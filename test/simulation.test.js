@@ -76,12 +76,13 @@ test('Boucle du monde : franchissement continu dans les deux sens', () => {
 });
 
 test('Spawns par sous-zone, sans dépendre de la caméra ni de la présence du joueur', () => {
-  const sim = new GameSimulation(config);
-  const seconds = 120;
+  const cfg = copyConfig(); cfg.balance.time.real_seconds_per_game_day = 1;
+  const sim = new GameSimulation(cfg);
+  const seconds = 20;
   tick(sim, seconds * 30, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
   const state = sim.getState();
   for (const zone of state.world.subzones) {
-    assert.equal(state.npcs.filter(n => n.origin_subzone_id === zone.id && n.role === 'NEUTRE').length, zone.max_neutrals_waiting, zone.id);
+    assert.equal(state.npcs.filter(n => n.origin_subzone_id === zone.id && n.role === 'NEUTRE').length, zone.max_npcs_by_origin, zone.id);
     const timer = state.spawn_timers.find(t => t.subzone_id === zone.id);
     assert.ok(timer.elapsed_ticks < timer.interval_ticks);
     assert.ok(timer.skipped_count > 0);

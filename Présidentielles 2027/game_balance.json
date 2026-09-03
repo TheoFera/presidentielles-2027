@@ -16,14 +16,15 @@
   },
   "money": {
     "base_starting_money": 100,
+    "campaign_spending_limit": 16800,
     "base_passive_income_per_second": 0.12,
     "supporter_income_per_second_by_origin_biome": {
-      "paris_19e": 1,
-      "banlieue": 0.4,
-      "periurbain_usine": 0.8,
-      "campagne": 0.6,
-      "retraites": 1.2,
-      "quartiers_riches": 2
+      "paris_19e": 0.05,
+      "banlieue": 0.02,
+      "periurbain_usine": 0.04,
+      "campagne": 0.03,
+      "retraites": 0.06,
+      "quartiers_riches": 0.1
     },
     "philippe_starting_money_multiplier": 1.6,
     "philippe_income_multiplier": 1.3

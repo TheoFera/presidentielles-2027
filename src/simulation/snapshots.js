@@ -5,6 +5,7 @@ import { validateCombatSnapshot } from './combat-snapshots.js';
 import { validateElectoralSnapshot } from './electoral-snapshots.js';
 import { GamePhase } from './phases.js';
 import { validateMatchSnapshot } from './match-snapshots.js';
+import { populationByOrigin } from './territory.js';
 
 /** Validate the entire snapshot before committing anything to the running simulation. */
 export function validateSnapshot(next, simulation, nested = false) {
@@ -35,6 +36,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!validPosition(candidate.x) || ![-1, 0, 1].includes(candidate.axis) || ![-1, 1].includes(candidate.facing) || typeof candidate.moving !== 'boolean'
       || typeof candidate.campaign_active !== 'boolean' || typeof candidate.interaction_active !== 'boolean') fail('candidat invalide');
     for (const field of ['money', 'total_spent', 'total_earned', 'income_per_second', 'special_charge', 'electoral_damage_received', 'hits_received', 'refunds_received']) if (!finite(candidate[field])) fail('économie du candidat invalide');
+    if (candidate.total_spent > config.balance.money.campaign_spending_limit) fail('plafond de dépenses de campagne dépassé');
     if (!candidate.spending || ['BUILD', 'UPGRADE', 'PRINT'].some(k => !finite(candidate.spending[k]))) fail('dépenses invalides');
     if (candidate.purchase_latch_target_id !== null && !next.buildings.some(b => b.id === candidate.purchase_latch_target_id)) fail('interaction inconnue');
     const hold = candidate.purchase_hold;
@@ -96,6 +98,7 @@ export function validateSnapshot(next, simulation, nested = false) {
       }
     }
   }
+  for (const zone of next.world.subzones) if (populationByOrigin(next, zone.id) > zone.max_npcs_by_origin) fail(`population d’origine supérieure au plafond de ${zone.id}`);
   for (const npc of next.npcs) {
     if (!/^npc:\d+$/.test(npc.id) || Number(npc.id.slice(4)) >= next.next_npc_id) fail('compteur PNJ invalide');
     const origin = next.world.socialPoints.find(p => p.id === npc.origin_social_point_id);

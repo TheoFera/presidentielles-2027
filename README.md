@@ -78,18 +78,39 @@ Le bloc `money.supporter_income_per_second_by_origin_biome` règle le revenu ajo
 
 | Biome d’origine | Clé à modifier | Revenu par partisan |
 |---|---|---|
-| Paris 19e / Bobo | `paris_19e` | 1 k €/s |
-| Banlieue | `banlieue` | 0,4 k €/s |
-| Périurbain / Usine | `periurbain_usine` | 0,8 k €/s |
-| Campagne | `campagne` | 0,6 k €/s |
-| Retraités | `retraites` | 1,2 k €/s |
-| Quartiers riches | `quartiers_riches` | 2 k €/s |
+| Paris 19e / Bobo | `paris_19e` | 0,05 k €/s |
+| Banlieue | `banlieue` | 0,02 k €/s |
+| Périurbain / Usine | `periurbain_usine` | 0,04 k €/s |
+| Campagne | `campagne` | 0,03 k €/s |
+| Retraités | `retraites` | 0,06 k €/s |
+| Quartiers riches | `quartiers_riches` | 0,1 k €/s |
 
 Un partisan est un **Sympathisant, un Militant ou un Service d’ordre** de ton camp. Son revenu commence dès son recrutement, reste identique après une promotion ou un déplacement, et cesse à sa démobilisation. S’il est ensuite recruté par un autre camp, sa contribution revient à ce camp avec le même biome d’origine. Les Neutres, candidats, unités temporaires et pourcentages de soutien électoral ne produisent pas ce revenu.
 
-Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **2,12 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans l’arène et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
+Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Les contributions des partisans ont été divisées par **20**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **0,22 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans l’arène et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
 
 Le gain total apparaît sous l’argent en jeu. **F3** affiche le détail par biome et les contributions avant bonus. Pour changer un montant, modifie le nombre dans `Présidentielles 2027/game_balance.json` (avec un point pour les décimales, par exemple `0.8`), enregistre puis **recharge la page**. `0` désactive la contribution d’un biome. Les changements s’appliquent aussi aux IA et demandent une nouvelle partie ; les sauvegardes liées aux anciens réglages sont incompatibles.
+
+Le réglage `money.campaign_spending_limit` vaut **16800 k€**, soit **16,8 millions d’euros par candidat pour toute la partie**, premier et second tours compris. Il limite les dépenses cumulées, pas l’argent détenu : constructions, améliorations, reconstructions, tracts, équipements, raids, fermetures et Meetings sont tous comptés. Un achat dépassant le reliquat est bloqué avant le paiement, même avec assez d’argent. Une dépense qui atteint exactement le plafond est autorisée. Les revenus, fonds de test et remboursements n’augmentent pas le plafond restant ; les remboursements restent ajoutés à la trésorerie. Le compteur est conservé dans les sauvegardes et entre les tours, et revient à zéro avec une nouvelle partie.
+
+## Population maximale par sous-zone
+
+Dans `Présidentielles 2027/world_layout.json`, chaque sous-zone possède `max_npcs_by_origin`. Ce plafond remplace `max_neutrals_waiting` : il compte **tous les PNJ existants nés dans la sous-zone**, tous camps et rôles confondus (Neutres, Sympathisants, Militants, Services d’ordre et démobilisés), même s’ils sont maintenant ailleurs. Les candidats et unités temporaires des pouvoirs n’entrent pas dans ce compte.
+
+| Biome | Sous-zone A | Sous-zone B | Sous-zone C |
+|---|---|---|---|
+| Paris 19e / Bobo | Canal, cafés : **9** | Place, commerces : **10** | Quartier mixte : **9** |
+| Banlieue | Cité dortoir : **9** | Marché central : **9** | Pavillons modestes : **7** |
+| Périurbain / Usine | Zone artisanale : **7** | Usine, entrepôts : **8** | Sortie vers les champs : **6** |
+| Campagne | Entrée du village : **6** | Cœur de village : **7** | Champs : **5** |
+| Retraités | Pavillons : **6** | Square, associations : **7** | Secteur aisé : **5** |
+| Quartiers riches | Résidentiel : **5** | Avenue commerçante : **6** | Haussmannien : **5** |
+
+Soit **126 PNJ permanents au maximum dans le monde** avec ces réglages. La fréquence et sa variation aléatoire sont conservées jusqu’au plafond. Tous les points sociaux d’une même sous-zone partagent sa capacité. À saturation, les tentatives sont ignorées puis reprogrammées, sans accumuler de PNJ à faire apparaître plus tard. Recruter, promouvoir, déplacer, changer de camp ou démobiliser un PNJ ne libère aucune place : il garde son identité et son origine, puis revient au même point social lorsqu’il est démobilisé. Seule sa suppression effective libérerait une place ; le jeu ordinaire ne tue pas les PNJ.
+
+F3 distingue la population présente de la population d’origine et indique quand le plafond est atteint. Même les apparitions de débogage respectent cette limite. Après modification des plafonds, recharge la page pour démarrer une nouvelle partie ; les anciennes sauvegardes ne sont plus compatibles.
+
+## Autres réglages de partie
 
 | Chemin | Valeur par défaut |
 |---|---|

@@ -1,6 +1,7 @@
 import { wrap, zoneAt } from './world.js';
 import { distance, localSympathisants, stableIdOrder } from './territory.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
+import { paymentStatus } from './campaign-budget.js';
 
 export function availableMilitants(state, biome, faction) {
   return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === faction && zoneAt(state.world, n.x).biome_id === biome
@@ -18,12 +19,9 @@ export function cabinetTarget(state, config, cabinet, direction) {
 
 function quote(state, config, candidate, building, kind, cost, x, radius, reason = null, extra = {}) {
   const settings = buildingSettings(config, building, candidate.faction_id);
-  const affordable = candidate.money + 1e-9 >= cost;
-  const available = !reason;
-  if (!affordable) reason = 'INSUFFICIENT_FUNDS';
   return { target_id: building.id, kind, key: `${building.id}:${kind}:${building.level}:${extra.direction || 0}:${extra.victim_id || ''}`,
     cost, x: wrap(x, state.world.length), radius, required_ticks: Math.ceil(settings.purchase_hold_seconds * config.balance.simulation_architecture.fixed_tick_hz),
-    affordable, available, enabled: affordable && available, reason, ...extra };
+    ...paymentStatus(candidate, config, cost, reason), ...extra };
 }
 
 /** Distinct ground positions choose the action, without a menu or buy button. */

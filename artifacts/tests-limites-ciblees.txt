@@ -1,0 +1,14 @@
+✔ Budget : tous les achats refusent le dépassement, mais autorisent la limite exacte (39.2839ms)
+✔ Budget : les paiements répétés s’arrêtent au plafond malgré les revenus et fonds de test (778.5924ms)
+✔ Budget : un plafond atteint pendant une présence annule le paiement en cours (6.251ms)
+✔ Population : tous les rôles et camps restent comptés à leur naissance, même en déplacement (11.6996ms)
+✔ Population : le débogage respecte aussi le plafond et une vraie suppression libère une place (31.7012ms)
+✔ Sauvegardes : dépassements de budget et de population refusés sans modifier la partie (26.9507ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1186.3153

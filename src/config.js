@@ -10,6 +10,7 @@ export function validateConfig(config) {
   positive(config.balance.persuasion.candidate_base_seconds, 'temps de persuasion');
   positive(config.balance.persuasion.melenchon_personal_time_multiplier, 'bonus Mélenchon');
   positive(config.balance.time.real_seconds_per_game_day, 'durée du jour');
+  positive(config.balance.money.campaign_spending_limit, 'plafond de dépenses de campagne');
   const supporterIncome = config.balance.money.supporter_income_per_second_by_origin_biome;
   if (!supporterIncome || typeof supporterIncome !== 'object' || Array.isArray(supporterIncome)) throw new Error('Configuration : revenus des partisans par biome manquants ou invalides.');
   for (const biome of config.layout.biomes) {
@@ -44,8 +45,8 @@ export function validateConfig(config) {
       positive(zone.spawn_randomness?.min_factor, `variation minimale ${zone.id}`);
       positive(zone.spawn_randomness?.max_factor, `variation maximale ${zone.id}`);
       if (zone.spawn_randomness.min_factor > zone.spawn_randomness.max_factor) throw new Error(`Configuration : intervalle aléatoire inversé dans ${zone.id}.`);
-      if (!Number.isInteger(zone.initial_neutral_count) || zone.initial_neutral_count < 0 || !Number.isInteger(zone.max_neutrals_waiting) || zone.max_neutrals_waiting < 0) throw new Error(`Population ou capacité invalide : ${zone.id}.`);
-      if (zone.initial_neutral_count > zone.max_neutrals_waiting * config.layout.social_points_per_subzone) throw new Error(`Configuration : population initiale supérieure à la capacité dans ${zone.id}.`);
+      if (!Number.isInteger(zone.initial_neutral_count) || zone.initial_neutral_count < 0 || !Number.isInteger(zone.max_npcs_by_origin) || zone.max_npcs_by_origin < 1) throw new Error(`Population ou capacité invalide : ${zone.id}.`);
+      if (zone.initial_neutral_count > zone.max_npcs_by_origin) throw new Error(`Configuration : population initiale supérieure à la capacité dans ${zone.id}.`);
     }
   }
   for (const id of Object.values(config.layout.starting_positions)) if (!ids.has(id)) throw new Error(`Position de départ inconnue : ${id}.`);

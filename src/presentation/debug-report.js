@@ -1,12 +1,13 @@
 import { buildingOffer } from '../simulation/economy.js';
 import { FACTIONS, zoneAt } from '../simulation/world.js';
-import { incomeBreakdown, localUnits, waitingAtPoint } from '../simulation/territory.js';
+import { incomeBreakdown, localUnits, populationByOrigin, waitingAtPoint } from '../simulation/territory.js';
+import { remainingCampaignBudget } from '../simulation/campaign-budget.js';
 import { buildingSettings, buildingLabel } from '../simulation/building-rules.js';
 import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
 export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
-export const reasonNames = { GLOBAL_LIMIT: 'Limite de Tours actives atteinte', QUEUE_FULL: 'File pleine', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
+export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Cet achat dépasserait le plafond de dépenses de campagne', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', QUEUE_FULL: 'File pleine', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
   const f = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
@@ -18,11 +19,13 @@ export function managementReport(state, config, candidate, npc, building) {
   const lines = [
     '', '— SOUS-ZONE ACTUELLE —',
     `Neutres présents : ${units.filter(n => n.role === 'NEUTRE').length}`,
+    `PNJ originaires de cette sous-zone : ${populationByOrigin(state, zone.id)} / ${zone.max_npcs_by_origin} (tous rôles et camps, même partis ailleurs)`,
+    populationByOrigin(state, zone.id) >= zone.max_npcs_by_origin ? 'Plafond atteint : aucune nouvelle apparition.' : 'Apparitions actives jusqu’au plafond de population d’origine.',
     `Moyenne : ${f(zone.mean_spawn_days)} jour(s), soit ${f(zone.mean_spawn_days * config.balance.time.real_seconds_per_game_day)} s`,
     `Variation : ×${f(zone.spawn_randomness.min_factor)} à ×${f(zone.spawn_randomness.max_factor)}`,
     ...state.spawn_timers.filter(t => t.subzone_id === zone.id).map(timer => {
       const waiting = waitingAtPoint(state, timer.social_point_id);
-      return `${timer.social_point_id}\n  Neutres : ${waiting}/${zone.max_neutrals_waiting} · prochaine tentative : ${f((timer.interval_ticks - timer.elapsed_ticks) / hz)} s\n  Délai tiré : ${f(timer.interval_ticks / hz)} s · tentatives sans place : ${timer.skipped_count}`;
+      return `${timer.social_point_id}\n  Neutres issus de ce point : ${waiting} · prochaine tentative : ${f((timer.interval_ticks - timer.elapsed_ticks) / hz)} s\n  Délai tiré : ${f(timer.interval_ticks / hz)} s · tentatives sans place : ${timer.skipped_count}`;
     }),
     ...FACTIONS.map(faction => {
       const s = units.filter(n => n.faction_id === faction && n.role === 'SYMPATHISANT').length;
@@ -74,6 +77,7 @@ export function managementReport(state, config, candidate, npc, building) {
       return `  ${biome.display_name} : ${source.count} × ${f(source.rate)} = ${f(source.income)} k €/s avant bonus`;
     }),
     `Revenus cumulés : ${f(candidate.total_earned)} k € · dépenses cumulées : ${f(candidate.total_spent)} k €`,
+    `Plafond de campagne : ${f(config.balance.money.campaign_spending_limit)} k € · reste dépensable : ${f(remainingCampaignBudget(candidate, config))} k €`,
     `Constructions : ${f(candidate.spending.BUILD)} · améliorations : ${f(candidate.spending.UPGRADE)} · tracts : ${f(candidate.spending.PRINT)} k €`,
     candidate.purchase_hold ? `Paiement : ${candidate.purchase_hold.target_id}\n  ${f(candidate.purchase_hold.elapsed_ticks / hz)} / ${f(candidate.purchase_hold.required_ticks / hz)} s · ${f(candidate.purchase_hold.cost)} k €` : 'Paiement : aucun',
     ...state.transactions.filter(t => t.candidate_id === candidate.id).slice(-5).map(t => `${t.id} · −${f(t.cost)} k € · ${transactionNames[t.kind]} · ${t.target_id}`),

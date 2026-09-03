@@ -5,7 +5,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { validateConfig } from '../src/config.js';
 import { FACTIONS, zoneAt } from '../src/simulation/world.js';
 import { buildingOffer, nearestOffer } from '../src/simulation/economy.js';
-import { incomeBreakdown, incomePerSecond, localSympathisants, waitingAtPoint } from '../src/simulation/territory.js';
+import { incomeBreakdown, incomePerSecond, localSympathisants, populationByOrigin } from '../src/simulation/territory.js';
 import { demobilizeUnit } from '../src/simulation/combat-state.js';
 import { teleportTarget, teleport, setCampaignActive, interactionPresence } from '../src/simulation/commands.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
@@ -55,7 +55,7 @@ test('Rareté initiale : 4 à 5 Neutres par biome, aucune unité offerte', () =>
   }
   assert.ok(state.npcs.every(n => n.role === 'NEUTRE' && n.faction_id === null));
   for (const biome of config.layout.biomes) for (const zone of biome.subzones) {
-    assert.deepEqual(Object.keys(zone).filter(k => /initial|spawn|waiting/.test(k)).sort(), ['initial_neutral_count', 'max_neutrals_waiting', 'mean_spawn_days', 'spawn_randomness'].sort());
+    assert.ok(Number.isInteger(zone.max_npcs_by_origin) && zone.max_npcs_by_origin >= 5 && zone.max_npcs_by_origin <= 10);
   }
 });
 
@@ -81,31 +81,33 @@ test('Les délais sont en jours, dans l’intervalle aléatoire demandé et chan
   assert.ok(config.layout.biomes.find(b => b.id === 'quartiers_riches').subzones.every(z => z.mean_spawn_days === 2));
 });
 
-test('Un point plein ne cumule pas de réapparitions et libérer une place ne crée pas de rafale', () => {
+test('Une sous-zone pleine ne crée plus de PNJ après un recrutement ou un départ', () => {
   const cfg = structuredClone(config);
   cfg.balance.time.real_seconds_per_game_day = 1;
   const sim = new GameSimulation(cfg);
-  advance(sim, 300, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
-  for (const point of sim.state.world.socialPoints) assert.equal(waitingAtPoint(sim.state, point.id), 2);
+  advance(sim, 600, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
+  for (const zone of sim.state.world.subzones) assert.equal(populationByOrigin(sim.state, zone.id), zone.max_npcs_by_origin);
   const state = sim.getState();
   const npc = state.npcs[0]; npc.role = 'SYMPATHISANT'; npc.faction_id = 'melenchon';
+  npc.x = state.world.subzones.at(-1).center;
+  const before = state.npcs.length;
   const timer = state.spawn_timers.find(t => t.social_point_id === npc.origin_social_point_id);
   const remaining = timer.interval_ticks - timer.elapsed_ticks;
   sim.importSnapshot(state);
   advance(sim, remaining - 1);
-  assert.equal(waitingAtPoint(sim.state, npc.origin_social_point_id), 1);
+  assert.equal(sim.state.npcs.length, before);
   sim.step();
-  assert.equal(waitingAtPoint(sim.state, npc.origin_social_point_id), 2);
+  assert.equal(sim.state.npcs.length, before);
   assert.ok(sim.state.spawn_timers.find(t => t.social_point_id === npc.origin_social_point_id).interval_ticks >= 1);
 });
 
-test('La capacité est bien par point social, même avec plusieurs points dans une sous-zone', () => {
+test('Plusieurs points sociaux partagent le même plafond de population d’origine', () => {
   const cfg = structuredClone(config); cfg.layout.social_points_per_subzone = 2; cfg.balance.time.real_seconds_per_game_day = 1;
   const sim = new GameSimulation(cfg);
-  advance(sim, 300, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
+  advance(sim, 600, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
   assert.equal(sim.state.spawn_timers.length, 36);
-  for (const point of sim.state.world.socialPoints) assert.equal(waitingAtPoint(sim.state, point.id), 2);
-  assert.equal(sim.state.npcs.length, 72);
+  for (const zone of sim.state.world.subzones) assert.equal(populationByOrigin(sim.state, zone.id), zone.max_npcs_by_origin);
+  assert.equal(sim.state.npcs.length, sim.state.world.subzones.reduce((sum, zone) => sum + zone.max_npcs_by_origin, 0));
 });
 
 test('Permanence verrouillée sous le seuil, même avec de l’argent ; seuil non consommé', () => {
@@ -212,7 +214,7 @@ test('Partisans : promotions conservées, démobilisation arrêtée, nouveau cam
   const npc = sim.state.npcs[0];
   for (const role of ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']) {
     npc.role = role;
-    assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.52);
+    assert.ok(Math.abs(incomePerSecond(sim.state, sim.config, 'melenchon') - 0.14) < 1e-12);
   }
   demobilizeUnit(sim, npc);
   assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
@@ -220,7 +222,7 @@ test('Partisans : promotions conservées, démobilisation arrêtée, nouveau cam
   assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
   npc.role = 'SYMPATHISANT'; npc.faction_id = 'philippe';
   assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
-  assert.equal(incomePerSecond(sim.state, sim.config, 'philippe'), 0.52 * 1.3);
+  assert.ok(Math.abs(incomePerSecond(sim.state, sim.config, 'philippe') - 0.14 * 1.3) < 1e-12);
   sim.state.eliminated_faction = 'philippe';
   assert.equal(incomePerSecond(sim.state, sim.config, 'philippe'), 0);
 });
@@ -232,9 +234,9 @@ test('Partisans : revenu versé chaque seconde et sauvegarde conservée', () => 
   const before = candidate.money;
   const resumed = new GameSimulation(cfg); resumed.importSnapshot(sim.exportSnapshot());
   advance(sim, sim.hz * 10); advance(resumed, resumed.hz * 10);
-  assert.ok(Math.abs(candidate.money - before - 21.2) < 1e-9);
-  assert.ok(Math.abs(candidate.total_earned - 21.2) < 1e-9);
-  assert.equal(candidate.income_per_second, 2.12);
+  assert.ok(Math.abs(candidate.money - before - 2.2) < 1e-9);
+  assert.ok(Math.abs(candidate.total_earned - 2.2) < 1e-9);
+  assert.equal(candidate.income_per_second, 0.22);
   assert.deepEqual(resumed.getState(), sim.getState());
 });
 
@@ -427,7 +429,10 @@ test('Les IA utilisent réellement les infrastructures avec les mêmes commandes
 test('Les nouveaux réglages invalides sont refusés explicitement', () => {
   for (const mutate of [
     cfg => { cfg.layout.biomes[0].subzones[0].spawn_randomness.min_factor = 2; },
-    cfg => { cfg.layout.biomes[0].subzones[0].max_neutrals_waiting = 0; },
+    cfg => { cfg.layout.biomes[0].subzones[0].max_npcs_by_origin = 0; },
+    cfg => { cfg.layout.biomes[0].subzones[0].max_npcs_by_origin = 5.5; },
+    cfg => { cfg.layout.biomes[0].subzones[0].initial_neutral_count = 11; },
+    cfg => { cfg.balance.money.campaign_spending_limit = -1; },
     cfg => { cfg.balance.buildings.imprimerie.max_queue_length = 0; },
     cfg => { cfg.balance.buildings.financement.income_per_second_by_level = []; },
     cfg => { delete cfg.balance.money.supporter_income_per_second_by_origin_biome; },

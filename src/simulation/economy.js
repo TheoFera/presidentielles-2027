@@ -4,6 +4,7 @@ import { buildingSettings } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
 import { canCampaign } from './combat-state.js';
 import { meetingOffers, triggerMeeting } from './electoral-buildings.js';
+import { paymentStatus } from './campaign-budget.js';
 
 export function createInfrastructure(world, config) {
   const buildings = [];
@@ -56,11 +57,9 @@ export function buildingOffer(state, config, candidate, building) {
     && state.buildings.filter(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE').length >= settings.global_limit) {
     available = false; reason = 'GLOBAL_LIMIT';
   }
-  const affordable = candidate.money + 1e-9 >= cost;
-  if (!affordable) reason = 'INSUFFICIENT_FUNDS';
   return { target_id: building.id, key: `${building.id}:${kind}:${building.level}`, kind, cost,
     required_ticks: Math.ceil((settings.purchase_hold_seconds ?? config.balance.interaction.default_hold_seconds) * config.balance.simulation_architecture.fixed_tick_hz),
-    available, affordable, reason, enabled: available && affordable };
+    ...paymentStatus(candidate, config, cost, available ? null : reason) };
 }
 
 export function buildingOffers(state, config, candidate, building) {
@@ -81,7 +80,7 @@ function transact(simulation, candidate, offer) {
   const { state, config } = simulation;
   const building = state.buildings.find(b => b.id === offer.target_id);
   const fresh = buildingOffers(state, config, candidate, building).find(o => o.key === offer.key);
-  if (!fresh?.enabled || fresh.key !== offer.key || distance(state, candidate.x, fresh.x ?? building.x) > (fresh.radius ?? config.balance.interaction.radius_units)) return false;
+  if (!fresh?.enabled || !paymentStatus(candidate, config, fresh.cost).enabled || fresh.key !== offer.key || distance(state, candidate.x, fresh.x ?? building.x) > (fresh.radius ?? config.balance.interaction.radius_units)) return false;
   const transaction = { id: `transaction:${state.next_transaction_id++}`, tick: state.tick, candidate_id: candidate.id,
     faction_id: candidate.faction_id, target_id: building.id, kind: fresh.kind, cost: fresh.cost };
   // One synchronous commit: ownership/queue validation and money are never split by a UI callback.

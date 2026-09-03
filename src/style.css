@@ -3,7 +3,9 @@
 body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: center; overflow: hidden; }
 #game { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #e3e6e3; container-type: inline-size; }
 #world { display: block; width: 100%; height: 100%; outline: none; touch-action: none; image-rendering: pixelated; }
-#money { position: absolute; top: 3.4%; left: 2.4%; font-size: clamp(14px, 2.1cqw, 25px); font-weight: 650; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; pointer-events: none; white-space: pre-line; }
+#funds { position: absolute; top: 3.4%; left: 2.4%; pointer-events: none; font-variant-numeric: tabular-nums; }
+#money { display: block; font-size: clamp(14px, 2.1cqw, 25px); font-weight: 650; letter-spacing: -0.04em; white-space: pre-line; }
+#campaign-budget { display: block; margin-top: 0.4cqw; font-size: clamp(9px, 1.1cqw, 14px); color: #52615a; }
 #notice { position: absolute; top: 23%; left: 20%; right: 20%; text-align: center; font-size: clamp(12px, 1.6cqw, 21px); letter-spacing: 0.05em; white-space: pre-line; pointer-events: none; }
 #hint { position: absolute; top: 20%; width: 100%; text-align: center; padding: 0 15%; font-size: clamp(10px, 1.3cqw, 16px); color: #56635d; pointer-events: none; transition: opacity 0.5s; }
 #electoral-display { position: absolute; left: 50%; top: 1.8%; width: 8cqw; height: 8cqw; transform: translateX(-50%); pointer-events: none; }

@@ -16,7 +16,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 9
         },
         {
           "id": "paris_b",
@@ -27,7 +27,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 10
         },
         {
           "id": "paris_c",
@@ -38,7 +38,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 9
         }
       ]
     },
@@ -55,7 +55,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 9
         },
         {
           "id": "banlieue_b",
@@ -66,7 +66,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 9
         },
         {
           "id": "banlieue_c",
@@ -77,7 +77,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 7
         }
       ]
     },
@@ -94,7 +94,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 7
         },
         {
           "id": "periurbain_b",
@@ -105,7 +105,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 8
         },
         {
           "id": "periurbain_c",
@@ -116,7 +116,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 6
         }
       ]
     },
@@ -133,7 +133,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 6
         },
         {
           "id": "campagne_b",
@@ -144,7 +144,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 7
         },
         {
           "id": "campagne_c",
@@ -155,7 +155,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 5
         }
       ]
     },
@@ -172,7 +172,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 6
         },
         {
           "id": "retraites_b",
@@ -183,7 +183,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 7
         },
         {
           "id": "retraites_c",
@@ -194,7 +194,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 5
         }
       ]
     },
@@ -211,7 +211,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 5
         },
         {
           "id": "riches_b",
@@ -222,7 +222,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 6
         },
         {
           "id": "riches_c",
@@ -233,7 +233,7 @@
             "min_factor": 0.75,
             "max_factor": 1.25
           },
-          "max_neutrals_waiting": 2
+          "max_npcs_by_origin": 5
         }
       ]
     }

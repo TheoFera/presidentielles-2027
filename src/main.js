@@ -1,5 +1,6 @@
 import { loadConfig } from './config.js';
 import { incomePerSecond } from './simulation/territory.js';
+import { remainingCampaignBudget } from './simulation/campaign-budget.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
@@ -34,6 +35,9 @@ async function start() {
   });
   const help = document.getElementById('help');
   const money = document.getElementById('money');
+  const funds = document.getElementById('funds');
+  const campaignBudget = document.getElementById('campaign-budget');
+  document.getElementById('budget-help').textContent = `Chaque candidat peut dépenser au maximum ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ sur toute la partie, premier et second tours compris. Tous les achats comptent. Un achat dépassant le plafond est bloqué, même si ta trésorerie suffit. Les remboursements ne remettent pas ce compteur à zéro.`;
   const notice = document.getElementById('notice');
   const hint = document.getElementById('hint');
   if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = 'Maintiens une flèche pour marcher · Frapper pour attaquer · Pause pour l’aide';
@@ -149,7 +153,8 @@ async function start() {
       }
       const income = incomePerSecond(state, config, candidate.faction_id).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
       money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`;
-      money.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      campaignBudget.textContent = `Plafond restant : ${currency.format(remainingCampaignBudget(candidate, config))} ${config.balance.display.currency_label}`;
+      funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('game-menu').hidden = paused || state.phase === 'RESULTS';
       electoralDisplay.update(state, candidate.faction_id);

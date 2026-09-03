@@ -25,8 +25,8 @@ function own(sim, type, faction = 'melenchon', level = 1, zone = 'banlieue_b') {
   if (type === 'faction') b.variant = faction === 'philippe' ? 'cabinet_administratif' : 'service_ordre';
   return b;
 }
-function unit(sim, role, faction, x) {
-  const z = zoneAt(sim.state.world, x); const n = sim.spawn(z, x, false);
+function unit(sim, role, faction, x, origin = null) {
+  const z = origin || zoneAt(sim.state.world, x); const n = sim.spawn(z, x, false);
   Object.assign(n, { role, faction_id: faction, hidden_durability: role === 'SERVICE_D_ORDRE' ? 90 : 30, roam_wait_ticks: 100000, roam_target_x: x });
   if (role === 'MILITANT') n.task = { kind: 'EXPAND', phase: 'WAIT', target_id: null, destination_x: x, destination_subzone_id: z.id, next_decision_tick: 100000 };
   if (role === 'SERVICE_D_ORDRE') { n.guard_biome_id = z.biome_id; n.guard_anchor_x = x; }
@@ -268,7 +268,9 @@ test('IA : chaque camp construit les trois lieux, utilise le Meeting et amélior
   for (const c of sim.state.candidates) {
     const z = sim.state.world.subzones.find(z => z.id === sim.config.layout.starting_positions[c.faction_id]);
     c.x = z.center; c.campaign_active = true; c.interaction_active = true;
-    for (let i = 0; i < 8; i++) unit(sim, 'SYMPATHISANT', c.faction_id, z.start + 9 + i * 0.4);
+    // The extra local supporters were born next door; migration does not enlarge the home cap.
+    const neighbor = sim.state.world.subzones.find(other => other.biome_id === z.biome_id && other.id !== z.id);
+    for (let i = 0; i < 8; i++) unit(sim, 'SYMPATHISANT', c.faction_id, z.start + 9 + i * 0.4, i < z.max_npcs_by_origin ? z : neighbor);
   }
   for (let i = 0; i < 30 * 160; i++) {
     sim.step(sim.state.candidates.flatMap(c => ai.commands(sim.state, c.id)));

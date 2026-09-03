@@ -23,7 +23,10 @@
         <button id="fullscreen-touch" aria-label="Passer en plein écran">Plein écran</button>
       </nav>
       <p id="orientation-hint">Pour mieux voir le jeu, tourne ton téléphone à l’horizontale.</p>
-      <output id="money" aria-label="Argent disponible et revenu passif par seconde"></output>
+      <div id="funds">
+        <output id="money" aria-label="Argent disponible et revenu passif par seconde"></output>
+        <output id="campaign-budget" aria-label="Budget de dépenses de campagne restant"></output>
+      </div>
       <div id="electoral-display">
         <div id="electoral-circle" hidden></div>
         <output id="day" aria-label="Jours avant le scrutin"></output>
@@ -48,6 +51,8 @@
         <p>À J0, les trois candidats rejoignent le plateau médiatique : leur score devient leur jauge. Le premier à 0 est éliminé. Retour immédiat au monde pour <strong>60 secondes de sprint, influence ×10</strong>, puis résultat. Si ton candidat est éliminé, tu peux suivre la fin en spectateur.</p>
         <p>Approche-toi d’une silhouette grise et reste à côté. Elle deviendra automatiquement <strong>Sympathisante</strong>, sans touche ni argent.</p>
         <p>Chaque partisan recruté augmente ton <strong>revenu passif</strong> selon son biome d’origine. Cette contribution continue lorsqu’il se déplace ou devient Militant ou Service d’ordre, et cesse s’il est démobilisé. Le gain par seconde apparaît sous ton argent ; son détail par biome est disponible avec F3.</p>
+        <p id="budget-help"></p>
+        <p>Chaque sous-zone possède un <strong>plafond de population d’origine</strong>. Les Neutres, Sympathisants, Militants, Services d’ordre et PNJ démobilisés y comptent, même lorsqu’ils partent ailleurs. À la limite, les apparitions s’arrêtent : recruter ne crée pas de place supplémentaire. F3 affiche le nombre et le plafond de la sous-zone actuelle.</p>
         <p>Avec assez de Sympathisants dans la sous-zone, un emplacement devient constructible. Reste devant son <strong>billet</strong> pour payer automatiquement. À l’Imprimerie, chaque paiement commande un tract : un Sympathisant vient le chercher et devient Militant.</p>
         <dl>
           <dt>← → / Q D / A D</dt><dd>Marcher à gauche ou à droite</dd>

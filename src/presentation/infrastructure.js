@@ -120,6 +120,10 @@ export function drawBanknote(renderer, state) {
     ctx.fillStyle = '#637c51';
     ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);
   }
+  if (offer.reason === 'CAMPAIGN_BUDGET_EXCEEDED') {
+    ctx.fillStyle = '#7e3737'; ctx.font = '600 11px system-ui';
+    ctx.fillText('Plafond de campagne insuffisant', x, y + h + 14);
+  }
   if (offer.label || offer.kind === 'REBUILD') {
     if (offer.victim_id) { ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27); }
     ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label || 'RECONSTRUIRE', x, y - 7);

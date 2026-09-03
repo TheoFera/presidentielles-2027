@@ -1,6 +1,7 @@
 import { wrap } from './world.js';
 import { convertInfluence, refreshElectoralState } from './electoral-state.js';
 import { GamePhase, influenceMultiplier } from './phases.js';
+import { paymentStatus } from './campaign-budget.js';
 
 export function meetingOffers(state, config, candidate, building) {
   if (building.owner_id !== candidate.faction_id || building.state !== 'ACTIVE') return [];
@@ -8,8 +9,7 @@ export function meetingOffers(state, config, candidate, building) {
   const quote = (kind, cost, x, radius, reason, label) => ({ target_id: building.id, kind,
     key: `${building.id}:${kind}:${building.level}`, cost, x: wrap(x, state.world.length), radius, label,
     required_ticks: Math.ceil(settings.purchase_hold_seconds * config.balance.simulation_architecture.fixed_tick_hz),
-    affordable: candidate.money + 1e-9 >= cost, available: !reason,
-    enabled: !reason && candidate.money + 1e-9 >= cost, reason: reason || (candidate.money + 1e-9 < cost ? 'INSUFFICIENT_FUNDS' : null) });
+    ...paymentStatus(candidate, config, cost, reason) });
   const offers = [quote('MEETING', settings.activation_cost_by_level[building.level - 1], building.x, settings.interaction_radius,
     state.tick < building.meeting_ready_tick ? 'COOLDOWN' : null, 'MEETING')];
   if (building.level < settings.max_level) offers.push(quote('UPGRADE', settings.upgrade_costs[building.level - 1], building.x + settings.upgrade_offset, settings.upgrade_radius, null, 'AMÉLIORER'));

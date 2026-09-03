@@ -24,6 +24,10 @@ export function waitingAtPoint(state, pointId) {
   return state.npcs.filter(n => n.origin_social_point_id === pointId && n.role === 'NEUTRE').length;
 }
 
+export function populationByOrigin(state, subzoneId) {
+  return state.npcs.filter(n => n.origin_subzone_id === subzoneId).length;
+}
+
 export function incomeBreakdown(state, config, factionId) {
   const money = config.balance.money;
   const eliminated = state.eliminated_faction === factionId;

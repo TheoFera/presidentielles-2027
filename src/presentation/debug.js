@@ -2,6 +2,7 @@ import { demobilize, selectCandidate, setAIEnabled, teleport, teleportTarget, gr
 import { FACTIONS, ringDelta, zoneAt } from '../simulation/world.js';
 import { managementReport, roleNames, buildingNames } from './debug-report.js';
 import { electoralReport } from './electoral-report.js';
+import { populationByOrigin } from '../simulation/territory.js';
 
 export class DebugPanel {
   constructor(config, callbacks) {
@@ -86,6 +87,10 @@ export class DebugPanel {
     const selected = this.spawnFaction.value;
     const faction = selected === 'ALLY' ? candidate.faction_id : selected === 'ENEMY' ? candidate.faction_id === 'melenchon' ? 'le_pen' : 'melenchon' : selected;
     if (role === 'SERVICE_D_ORDRE' && faction === 'philippe') { this.callbacks.notify('Philippe ne possède pas de SO permanent.'); return; }
+    const origin = state.world.subzones.find(z => z.id === this.config.layout.starting_positions[faction]);
+    if (populationByOrigin(state, origin.id) >= origin.max_npcs_by_origin) {
+      this.callbacks.notify(`Population maximale atteinte : ${origin.concept} (${origin.max_npcs_by_origin} PNJ originaires de cette sous-zone).`); return;
+    }
     this.callbacks.queue(spawnUnit(candidate.id, role, faction));
   }
 

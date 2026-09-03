@@ -1,7 +1,7 @@
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { createSpawnTimers, updateSpawns } from './spawns.js';
-import { createElectorate, localPersuasionMultiplier, refreshInfluenceSources, updateInfluence } from './territory.js';
+import { createElectorate, localPersuasionMultiplier, populationByOrigin, refreshInfluenceSources, updateInfluence } from './territory.js';
 import { convertInfluence, createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { triggerMeeting } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
@@ -88,6 +88,7 @@ export class GameSimulation {
   }
 
   spawn(zone, x, announce = true, originPoint = null) {
+    if (populationByOrigin(this.state, zone.id) >= zone.max_npcs_by_origin) return null;
     const points = this.state.world.socialPoints.filter(p => p.subzone_id === zone.id);
     const point = originPoint || points[Math.floor(random(this.state) * points.length)];
     if (x === undefined) x = point.x + (random(this.state) * 2 - 1) * this.config.prototype.world.respawn_spread_units;
@@ -182,6 +183,7 @@ export class GameSimulation {
           || (command.role === 'SERVICE_D_ORDRE' && command.factionId === 'philippe')) break;
         const zone = this.state.world.subzones.find(z => z.id === this.config.layout.starting_positions[command.factionId]);
         const npc = this.spawn(zone, candidate.x + candidate.facing * this.config.balance.debug.combat_spawn_distance);
+        if (!npc) { this.emit('DebugSpawnCapacityReached', { subzone_id: zone.id }); break; }
         npc.role = command.role; npc.faction_id = command.factionId;
         npc.hidden_durability = this.config.balance.physical_units[command.role === 'SERVICE_D_ORDRE' ? 'service_ordre' : command.role.toLowerCase()].hidden_durability;
         npc.guard_biome_id = command.role === 'SERVICE_D_ORDRE' ? zoneAt(this.state.world, npc.x).biome_id : null;
