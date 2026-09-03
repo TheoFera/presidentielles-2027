@@ -1,0 +1,17 @@
+Lis intégralement les fichiers V0.3 avant de coder, notamment VISUAL_COMPOSITION_SPEC.md et MULTIPLAYER_READINESS_SPEC.md.
+
+Construis d'abord une greybox solo + 2 IA. N'implémente PAS de réseau, mais respecte l'architecture multiplayer-ready.
+
+Règles non négociables :
+- caméra/sol/composition selon references/GREYBOX_COMPOSITION_V0.3.png ;
+- aucun bandeau HUD ; argent seul en permanence top-left au format k € ;
+- aucun clic/bouton d'achat ;
+- aucune pièce contextuelle ;
+- une dépense s'affiche comme un billet avec prix et se déclenche après quelques secondes de présence si les fonds sont suffisants ;
+- Imprimerie = service neutre préexistant, jamais possédé, paiement à chaque tract ;
+- Neutre → Sympathisant gratuit par proximité ;
+- simulation gameplay séparée du rendu et pilotée par GameCommands ;
+- fixed timestep, IDs uniques, snapshot sérialisable, Controller interchangeable humain/IA/futur réseau ;
+- aucun asset final.
+
+Travaille dans l'ordre de IMPLEMENTATION_TASKS.md et valide les phases avec PROTOTYPE_ACCEPTANCE_TESTS.md.

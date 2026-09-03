@@ -1,0 +1,302 @@
+{
+  "world_type": "horizontal_loop",
+  "screens_per_subzone": 1,
+  "note": "Les densités/spawns sont des paramètres de gameplay fictifs destinés au prototype, pas des affirmations sociologiques.",
+  "biomes": [
+    {
+      "id": "paris_19e",
+      "display_name": "Paris 19e / Bobo",
+      "subzones": [
+        {
+          "id": "paris_a",
+          "concept": "Canal, cafés, vélos",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.4,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "paris_b",
+          "concept": "Place de quartier, commerces",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1.25,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "paris_c",
+          "concept": "Quartier mixte vers banlieue",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.2,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    },
+    {
+      "id": "banlieue",
+      "display_name": "Banlieue",
+      "subzones": [
+        {
+          "id": "banlieue_a",
+          "concept": "Cité dortoir vers quartier bobo",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "banlieue_b",
+          "concept": "Marché populaire central",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "banlieue_c",
+          "concept": "Pavillons modestes vers périurbain",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    },
+    {
+      "id": "periurbain_usine",
+      "display_name": "Périurbain / Usine",
+      "subzones": [
+        {
+          "id": "periurbain_a",
+          "concept": "Pavillons modestes, zone artisanale",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.4,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "periurbain_b",
+          "concept": "Usine, entrepôts, rond-point",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1.25,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "periurbain_c",
+          "concept": "Sortie industrielle vers champs",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.5,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    },
+    {
+      "id": "campagne",
+      "display_name": "Campagne",
+      "subzones": [
+        {
+          "id": "campagne_a",
+          "concept": "Entrée village",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.5,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "campagne_b",
+          "concept": "Cœur village, mairie, place",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1.5,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "campagne_c",
+          "concept": "Champs vers pavillons retraités",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.5,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    },
+    {
+      "id": "retraites",
+      "display_name": "Retraités",
+      "subzones": [
+        {
+          "id": "retraites_a",
+          "concept": "Pavillons, pelouses très tondues, haies",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.75,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "retraites_b",
+          "concept": "Pharmacie, square, salle associative",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 1.6,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "retraites_c",
+          "concept": "Retraités aisés vers quartiers riches",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 1.8,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    },
+    {
+      "id": "quartiers_riches",
+      "display_name": "Quartiers riches",
+      "subzones": [
+        {
+          "id": "riches_a",
+          "concept": "Résidentiel bourgeois",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 2,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "riches_b",
+          "concept": "Avenue élégante, boutiques",
+          "initial_neutral_count": 2,
+          "mean_spawn_days": 2,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        },
+        {
+          "id": "riches_c",
+          "concept": "Haussmannien vers Paris 19e",
+          "initial_neutral_count": 1,
+          "mean_spawn_days": 2,
+          "spawn_randomness": {
+            "min_factor": 0.75,
+            "max_factor": 1.25
+          },
+          "max_neutrals_waiting": 2
+        }
+      ]
+    }
+  ],
+  "starting_positions": {
+    "melenchon": "banlieue_b",
+    "le_pen": "campagne_b",
+    "philippe": "riches_b"
+  },
+  "starting_units": {
+    "melenchon": {
+      "sympathisants": 0,
+      "militants": 0,
+      "service_ordre": 0
+    },
+    "le_pen": {
+      "sympathisants": 0,
+      "militants": 0,
+      "service_ordre": 0
+    },
+    "philippe": {
+      "sympathisants": 0,
+      "militants": 0,
+      "service_ordre": 0
+    }
+  },
+  "starting_support": {
+    "default": {
+      "melenchon": 18,
+      "le_pen": 18,
+      "philippe": 18,
+      "neutral": 46
+    },
+    "home_zone_base_bonus_points": {
+      "melenchon": 5,
+      "le_pen": 5,
+      "philippe": 5
+    },
+    "additional_le_pen_home_bonus_from_balance": true,
+    "renormalize_to_100": true
+  },
+  "subzone_electoral_weight": "equal_for_v0",
+  "social_points_per_subzone": 1,
+  "building_slots_per_subzone": 7,
+  "prototype_version": "0.3",
+  "neutral_services": {
+    "imprimerie": {
+      "ownership_model": "neutral_service",
+      "placement_rule": "one_preexisting_in_each_biome_center_subzone_for_v0",
+      "usable_by_all_factions": true
+    }
+  },
+  "visual_layout": {
+    "player_ground_y_ratio": 0.93,
+    "visible_ground_thickness_ratio": 0.025,
+    "character_height_ratio": 0.15,
+    "camera_anchor_x_ratio": 0.5
+  },
+  "infrastructure_layout": {
+    "permanence_x_ratio": 0.17,
+    "financement_x_ratio": 0.83,
+    "imprimerie_x_ratio": 0.55,
+    "faction_x_ratio": 0.35
+  },
+  "neutral_spawn_capacity_policy": "skip_and_reschedule_when_full"
+}

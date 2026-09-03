@@ -1,0 +1,138 @@
+{
+  "milestone": "conflict",
+  "seed": 2027,
+  "world": {
+    "units_per_screen": 24,
+    "candidate_start_ratio": 0.5,
+    "initial_spawn_spread_ratio": 0.7,
+    "respawn_spread_units": 2.8,
+    "roam_radius_units": 8,
+    "roam_speed_units_per_second": 0.32,
+    "roam_wait_seconds_min": 2,
+    "roam_wait_seconds_max": 6,
+    "arrival_epsilon_units": 0.02
+  },
+  "movement": {
+    "candidate_speed_units_per_second": 3.6
+  },
+  "persuasion": {
+    "radius_units": 1.5,
+    "break_policy": "reset",
+    "contest_policy": "nearest_then_stable_id",
+    "freeze_target_while_persuading": true
+  },
+  "ai": {
+    "stop_distance_radius_ratio": 0.75,
+    "patrol_direction": 1
+  },
+  "debug": {
+    "commands_enabled": true,
+    "event_history_limit": 10,
+    "refresh_seconds": 0.2
+  },
+  "time": {
+    "minimum_days_remaining_for_milestone": 1
+  },
+  "presentation": {
+    "reference_width": 960,
+    "reference_height": 540,
+    "max_pixel_ratio": 2,
+    "smoothing_reference_hz": 60,
+    "max_presentation_frame_seconds": 0.25,
+    "touch_pause_radius_ratio": 0.06,
+    "hint_seconds": 10,
+    "day_flash_seconds": 2,
+    "zone_flash_seconds": 2.2,
+    "conversion_flash_seconds": 0.8,
+    "npc_height_multiplier": 0.92,
+    "animation_walk_hz": 2.2,
+    "background_parallax_ratio": 0.22,
+    "building_height_ratios": [
+      0.52,
+      0.6,
+      0.48
+    ],
+    "building_width_ratios": [
+      0.24,
+      0.2,
+      0.22
+    ],
+    "building_x_ratios": [
+      0.02,
+      0.68
+    ],
+    "building_tone": "#b2b9b5",
+    "building_edge": "#7e8985",
+    "window_tone": "#8e9b97",
+    "ground_tone": "#737d78",
+    "ground_edge": "#4e5b55",
+    "neutral_tone": "#6d7675",
+    "outline_tone": "#2e3737",
+    "skin_tone": "#c5b9a3",
+    "biome_palettes": {
+      "paris_19e": {
+        "sky": "#e0e8e8",
+        "far": "#c5d0ce",
+        "accent": "#718f91",
+        "landmark": "CAFÉ"
+      },
+      "banlieue": {
+        "sky": "#e3e6e3",
+        "far": "#c9cfca",
+        "accent": "#8a9782",
+        "landmark": "MARCHÉ"
+      },
+      "periurbain_usine": {
+        "sky": "#e2e2de",
+        "far": "#c9cbc6",
+        "accent": "#929183",
+        "landmark": "USINE"
+      },
+      "campagne": {
+        "sky": "#e7e8dd",
+        "far": "#ccd2c0",
+        "accent": "#81906e",
+        "landmark": "VILLAGE"
+      },
+      "retraites": {
+        "sky": "#e8e5df",
+        "far": "#d2d0c5",
+        "accent": "#8d9d89",
+        "landmark": "SQUARE"
+      },
+      "quartiers_riches": {
+        "sky": "#e4e5e8",
+        "far": "#cbd0d5",
+        "accent": "#94969d",
+        "landmark": "AVENUE"
+      }
+    },
+    "factions": {
+      "melenchon": {
+        "name": "Mélenchon",
+        "symbol": "M",
+        "color": "#bb4c51"
+      },
+      "le_pen": {
+        "name": "Le Pen",
+        "symbol": "L",
+        "color": "#426594"
+      },
+      "philippe": {
+        "name": "Philippe",
+        "symbol": "P",
+        "color": "#ba9450"
+      }
+    },
+    "infrastructure": {
+      "width_ratio": 0.2,
+      "faction_width_ratio": 0.16,
+      "height_ratio": 0.46,
+      "banknote_width": 72,
+      "banknote_height": 28,
+      "paper_tone": "#f5f0d8",
+      "printer_tone": "#8d9692",
+      "construction_flash_seconds": 1
+    }
+  }
+}

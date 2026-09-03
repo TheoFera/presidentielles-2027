@@ -1,0 +1,393 @@
+{
+  "prototype_version": "0.3",
+  "time": {
+    "starting_days_before_first_round": 30,
+    "real_seconds_per_game_day": 20,
+    "second_round_sprint_seconds": 60,
+    "second_round_influence_multiplier": 10
+  },
+  "camera": {
+    "zoom_close": 1.18,
+    "zoom_medium": 1,
+    "zoom_far": 0.84,
+    "default_zoom": 1,
+    "follow_smoothing": 0.12,
+    "look_ahead_ratio": 0.06
+  },
+  "money": {
+    "base_starting_money": 100,
+    "base_passive_income_per_second": 0.12,
+    "philippe_starting_money_multiplier": 1.6,
+    "philippe_income_multiplier": 1.3
+  },
+  "persuasion": {
+    "candidate_base_seconds": 3,
+    "militant_base_seconds": 5,
+    "melenchon_personal_time_multiplier": 0.55,
+    "max_simultaneous_targets_per_actor": 1
+  },
+  "physical_units": {
+    "sympathisant": {
+      "hidden_durability": 30,
+      "local_influence_per_second": 0.008,
+      "task_move_speed": 2.4
+    },
+    "militant": {
+      "hidden_durability": 30,
+      "influence_per_second": 0.035,
+      "move_speed": 2.4,
+      "verbal_attack_electoral_damage": 0.025,
+      "nearby_zone_radius": 1,
+      "reconsider_seconds": 3,
+      "stop_distance_radius_ratio": 0.75,
+      "assignment_militant_weight": 1.5,
+      "assignment_permanence_weight": 2,
+      "max_player_speed_multiplier": 2,
+      "detection_range": 7,
+      "verbal_range": 5,
+      "preferred_distance": 3.5,
+      "verbal_cooldown_seconds": 1.15,
+      "verbal_damage": 4,
+      "verbal_knockback": 0.8,
+      "projectile_speed": 9,
+      "projectile_range": 6.5
+    },
+    "service_ordre": {
+      "hidden_durability": 90,
+      "move_speed": 3,
+      "home_biome_guard_radius_screens": 3,
+      "raid_duration_seconds": 18,
+      "raid_cost": 45,
+      "attack_range": 1.6,
+      "attack_cooldown_seconds": 0.9,
+      "attack_damage": 9,
+      "electoral_damage": 0.06,
+      "knockback": 2.8,
+      "patrol_radius": 2,
+      "raid_cooldown_seconds": 35
+    },
+    "demobilized": {
+      "move_speed": 2.1
+    }
+  },
+  "candidate_combat": {
+    "light_hit_hidden_damage": 8,
+    "finisher_hidden_damage": 14,
+    "light_knockback": 2.2,
+    "finisher_knockback": 4.8,
+    "combo_reset_seconds": 0.7,
+    "electoral_damage_on_light_hit_percent_points": 0.03,
+    "electoral_damage_on_finisher_percent_points": 0.07,
+    "electoral_damage_distribution": "controlled_subzones_proportional",
+    "lost_votes_destination": "neutral",
+    "hit_stun_seconds": 0.16,
+    "light_range": 2,
+    "finisher_range": 2.4,
+    "light_windup_seconds": 0.08,
+    "finisher_windup_seconds": 0.13,
+    "active_seconds": 0.08,
+    "light_recovery_seconds": 0.16,
+    "finisher_recovery_seconds": 0.23,
+    "input_buffer_seconds": 0.22,
+    "light_hitstop_seconds": 0.04,
+    "finisher_hitstop_seconds": 0.08,
+    "knockback_decay_per_second": 5,
+    "target_radius": 0.35,
+    "ai_detection_range": 5
+  },
+  "special_charge": {
+    "required_points": 10,
+    "points_per_light_hit": 1,
+    "points_per_finisher_hit": 2,
+    "auto_trigger_on_next_attack": true,
+    "show_ready_as_star_eyes": true
+  },
+  "specials": {
+    "melenchon_holograms": {
+      "count": 5,
+      "duration_seconds": 7,
+      "move_speed": 5.5,
+      "hidden_damage_per_hit": 7,
+      "knockback": 2.5,
+      "detection_range": 10,
+      "attack_range": 1.6,
+      "attack_cooldown_seconds": 0.55,
+      "electoral_damage": 0.025,
+      "spawn_spacing": 0.6,
+      "hidden_durability": 15
+    },
+    "le_pen_navy_wave": {
+      "range_screens": 0.9,
+      "travel_speed": 15,
+      "sympathisant_instant_demobilize": true,
+      "militant_damage_fraction_of_full_durability": 0.85,
+      "service_ordre_damage_fraction_of_full_durability": 0.35,
+      "candidate_electoral_damage_percent_points": 0.3,
+      "knockback": 8
+    },
+    "philippe_crs_wall": {
+      "guards_left": 1,
+      "guards_right": 1,
+      "duration_seconds": 9,
+      "guard_hidden_durability": 120,
+      "guard_hit_hidden_damage": 12,
+      "guard_knockback": 4.5,
+      "follow_offset": 1.1,
+      "follow_speed": 8,
+      "attack_range": 1.5,
+      "attack_cooldown_seconds": 0.7,
+      "electoral_damage": 0.04,
+      "interception_radius": 0.6
+    }
+  },
+  "buildings": {
+    "permanence": {
+      "required_local_sympathisants": 2,
+      "build_cost": 35,
+      "max_level": 3,
+      "upgrade_costs": [
+        55,
+        90
+      ],
+      "local_influence_by_level": [
+        0.012,
+        0.02,
+        0.032
+      ],
+      "local_persuasion_time_multiplier_by_level": [
+        0.95,
+        0.88,
+        0.8
+      ],
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2
+    },
+    "imprimerie": {
+      "required_local_sympathisants": 0,
+      "build_cost": null,
+      "max_level": 3,
+      "upgrade_costs": [
+        65,
+        100
+      ],
+      "tract_cost_by_level": [
+        12,
+        10,
+        8
+      ],
+      "equipment_seconds_by_level": [
+        4,
+        3.2,
+        2.5
+      ],
+      "ownership_model": "neutral_service",
+      "preexisting_in_world": true,
+      "required_local_sympathisants_to_use": 1,
+      "can_be_targeted_by_philippe": false,
+      "pay_per_use": true,
+      "purchase_hold_seconds": 2,
+      "max_queue_length": 4,
+      "pickup_seconds": 1
+    },
+    "faction_slot_melenchon_lepen_service_ordre": {
+      "required_local_sympathisants": 5,
+      "build_cost": 70,
+      "max_level": 3,
+      "upgrade_costs": [
+        95,
+        140
+      ],
+      "baton_cost_by_level": [
+        20,
+        18,
+        15
+      ],
+      "equipment_seconds_by_level": [
+        6,
+        5,
+        4
+      ],
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2,
+      "max_queue_length": 3,
+      "pickup_seconds": 1
+    },
+    "faction_slot_philippe_cabinet_administratif": {
+      "required_local_sympathisants": 5,
+      "build_cost": 80,
+      "max_level": 3,
+      "upgrade_costs": [
+        110,
+        160
+      ],
+      "close_enemy_building_cost_by_level": [
+        120,
+        105,
+        90
+      ],
+      "target_loses_all_upgrades": true,
+      "target_requires_rebuild": true,
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2,
+      "closure_cooldown_seconds": 20
+    },
+    "financement": {
+      "required_local_sympathisants": 4,
+      "build_cost": 55,
+      "max_level": 3,
+      "upgrade_costs": [
+        80,
+        125
+      ],
+      "income_per_second_by_level": [
+        0.3,
+        0.52,
+        0.82
+      ],
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2
+    },
+    "tour_communication": {
+      "required_local_sympathisants": 6,
+      "build_cost": 75,
+      "max_level": 3,
+      "upgrade_costs": [
+        110,
+        160
+      ],
+      "global_influence_per_second_by_level": [
+        0.002,
+        0.0035,
+        0.0055
+      ],
+      "controlled_zone_multiplier": 2,
+      "adjacent_zone_multiplier": 1.5,
+      "distant_zone_multiplier": 1,
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2
+    },
+    "institut_sondage": {
+      "required_local_sympathisants": 6,
+      "build_cost": 90,
+      "max_level": 1,
+      "poll_refresh_seconds": 8,
+      "unlock_circle": true,
+      "unlock_national_percentages": true,
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2
+    },
+    "meeting": {
+      "required_local_sympathisants": 5,
+      "build_cost": 65,
+      "max_level": 3,
+      "upgrade_costs": [
+        95,
+        140
+      ],
+      "activation_cost_by_level": [
+        30,
+        35,
+        40
+      ],
+      "influence_burst_by_level": [
+        0.7,
+        1.1,
+        1.6
+      ],
+      "ally_influence_multiplier_by_level": [
+        1.3,
+        1.45,
+        1.6
+      ],
+      "duration_seconds_by_level": [
+        14,
+        17,
+        20
+      ],
+      "internal_cooldown_seconds_by_level": [
+        55,
+        48,
+        40
+      ],
+      "ownership_model": "faction_owned",
+      "purchase_hold_seconds": 2
+    }
+  },
+  "influence": {
+    "le_pen_gain_multiplier": 1.25,
+    "le_pen_home_start_support_bonus_points": 8,
+    "neutral_resistance_curve_power": 1.8,
+    "allow_opponent_conversion_below_neutral_percent": 12,
+    "opponent_conversion_multiplier": 0.3,
+    "control_min_leader_percent": 35,
+    "control_required_lead_points": 4
+  },
+  "first_round_arena": {
+    "arena_name": "Plateau médiatique",
+    "health_source": "national_vote_percent",
+    "stop_after_first_elimination": true,
+    "show_vote_health_bars": true
+  },
+  "ui": {
+    "show_money_top_left": true,
+    "show_days_top_center": false,
+    "show_circle_before_polling_institute": false,
+    "show_national_percent_before_polling_institute": false,
+    "show_unit_counts": false,
+    "show_voter_counts": false,
+    "show_health_bars_in_overworld": false,
+    "show_special_bar": false,
+    "show_contextual_coin_costs": false,
+    "show_contextual_banknote_price": true,
+    "show_top_hud_bar": false
+  },
+  "display": {
+    "currency_label": "k €",
+    "currency_precision_decimals": 1,
+    "show_top_hud_bar": false,
+    "show_money_top_left": true,
+    "show_days_persistently_before_polling_institute": false,
+    "show_day_change_flash": true,
+    "show_contextual_coins": false,
+    "show_contextual_banknote_price": true
+  },
+  "interaction": {
+    "purchase_model": "proximity_hold_auto",
+    "default_hold_seconds": 2,
+    "progress_decay_seconds": 0.75,
+    "requires_button": false,
+    "insufficient_funds_visual": "disabled_banknote",
+    "radius_units": 1.15,
+    "owned_purchase_requires_reentry": true,
+    "printer_repeat_purchase": true
+  },
+  "simulation_architecture": {
+    "fixed_tick_hz": 30,
+    "controller_abstraction_required": true,
+    "command_driven_input": true,
+    "serializable_world_state": true,
+    "seeded_gameplay_rng": true,
+    "networking_implemented_in_v0": false,
+    "future_authority_model": "server_authoritative"
+  },
+  "ai_economy": {
+    "enabled": true,
+    "reserve_sympathisants_per_biome": 2,
+    "militant_goal_per_biome": 2,
+    "minimum_cash_reserve": 12
+  },
+  "debug": {
+    "transaction_history_limit": 20,
+    "acceleration_multiplier": 4,
+    "test_money_amount": 200,
+    "combat_spawn_distance": 1.5,
+    "combat_history_limit": 20
+  },
+  "faction_interactions": {
+    "center_radius": 0.45,
+    "side_offset": 2,
+    "side_radius": 0.55,
+    "upgrade_offset": 0.95,
+    "upgrade_radius": 0.3
+  }
+}

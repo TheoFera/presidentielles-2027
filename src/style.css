@@ -1,0 +1,40 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #293632; background: #222a2c; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: center; overflow: hidden; }
+#game { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #e3e6e3; container-type: inline-size; }
+#world { display: block; width: 100%; height: 100%; outline: none; touch-action: none; image-rendering: pixelated; }
+#money { position: absolute; top: 3.4%; left: 2.4%; font-size: clamp(14px, 2.1cqw, 25px); font-weight: 650; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; pointer-events: none; }
+#notice { position: absolute; top: 9%; left: 20%; right: 20%; text-align: center; font-size: clamp(12px, 1.6cqw, 21px); letter-spacing: 0.05em; white-space: pre-line; pointer-events: none; }
+#hint { position: absolute; top: 20%; width: 100%; text-align: center; padding: 0 15%; font-size: clamp(10px, 1.3cqw, 16px); color: #56635d; pointer-events: none; transition: opacity 0.5s; }
+[hidden] { display: none !important; }
+.panel { position: absolute; background: #f4f5eff5; border: 1px solid #a4afa7; box-shadow: 0 8px 28px #23362d26; padding: 24px; overflow: auto; max-height: 90%; font-size: clamp(11px, 1.35cqw, 16px); }
+#help { width: min(570px, 88%); left: 50%; top: 50%; transform: translate(-50%, -50%); }
+h1 { font-weight: 620; font-size: 1.7em; margin: 9px 0 18px; letter-spacing: -0.04em; }
+p { line-height: 1.55; }
+.eyebrow { font-size: 0.7em; letter-spacing: 0.13em; color: #708277; }
+dl { display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; }
+dt { font-weight: 650; }
+dd { margin: 0; }
+.subtle { color: #626e68; font-size: 0.85em; }
+button, select, input, .file-button { font: inherit; color: inherit; border: 1px solid #afb9b1; background: #fffdf7; border-radius: 3px; padding: 7px 9px; }
+button, select, .file-button { cursor: pointer; }
+button:hover, .file-button:hover { background: #e0e8dc; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #4a7564; outline-offset: 2px; }
+#resume { background: #344e41; border-color: #344e41; color: #fff; width: 100%; }
+#debug { top: 2%; right: 1.5%; width: min(420px, 47%); max-height: 90%; padding: 14px; font-size: clamp(10px, 1.15cqw, 14px); }
+#debug header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+#close-debug { border: 0; background: transparent; font-size: 1.5em; padding: 0 4px; }
+.debug-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.debug-actions label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.debug-actions select, .debug-actions input { min-width: 0; width: 100%; }
+.debug-actions button, .file-button { font-size: 0.86em; }
+#debug-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; font-size: 0.87em; }
+#debug-tools { margin: 12px 0; }
+#debug-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
+.file-button input { margin-top: 5px; font-size: 0.8em; }
+#error { inset: 10%; }
+#attack-touch { display: none; position: absolute; bottom: 9%; right: 3%; padding: 11px; background: #f0eddbcc; touch-action: none; }
+#combat-tools { margin: 12px 0; }
+#combat-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
+@media (pointer: coarse) { #attack-touch { display: block; } }
+@media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }

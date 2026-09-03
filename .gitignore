@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.DS_Store
+
+# Configuration locale et secrets (ne pas envoyer sur GitHub)
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+
+# Fichiers temporaires générés
+coverage/
+Thumbs.db
+Desktop.ini

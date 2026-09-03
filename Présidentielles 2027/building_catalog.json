@@ -1,0 +1,60 @@
+{
+  "version": "0.3",
+  "interaction_model": {
+    "default": "proximity_hold_auto_purchase",
+    "visual": "banknote_price_tag",
+    "button_required": false,
+    "show_coins": false
+  },
+  "building_types": {
+    "permanence": {
+      "ownership_model": "faction_owned",
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    },
+    "imprimerie": {
+      "ownership_model": "neutral_service",
+      "must_be_constructed": false,
+      "preexisting_in_world": true,
+      "pay_per_use": true,
+      "can_be_targeted_by_philippe": false
+    },
+    "service_ordre": {
+      "ownership_model": "faction_owned",
+      "available_to": [
+        "melenchon",
+        "le_pen"
+      ],
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    },
+    "cabinet_administratif": {
+      "ownership_model": "faction_owned",
+      "available_to": [
+        "philippe"
+      ],
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": false
+    },
+    "financement": {
+      "ownership_model": "faction_owned",
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    },
+    "tour_communication": {
+      "ownership_model": "faction_owned",
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    },
+    "institut_sondage": {
+      "ownership_model": "faction_owned",
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    },
+    "meeting": {
+      "ownership_model": "faction_owned",
+      "must_be_constructed": true,
+      "can_be_targeted_by_philippe": true
+    }
+  }
+}

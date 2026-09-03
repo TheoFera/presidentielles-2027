@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#222a2c">
+    <title>Présidentielles 2027 — Greybox jouable</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="src/style.css">
+  </head>
+  <body>
+    <main id="game" aria-label="Prototype jouable de Présidentielles 2027">
+      <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour attaquer, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
+      <button id="attack-touch" aria-label="Attaquer">Frapper</button>
+      <output id="money" aria-label="Argent disponible"></output>
+      <div id="notice" role="status"></div>
+      <div id="hint">← → ou Q / D : marcher · Espace / J : frapper · H : aide · F3 : débogage</div>
+      <section id="help" class="panel" hidden aria-label="Aide et pause">
+        <span class="eyebrow">GREYBOX · TROISIÈME JALON</span>
+        <h1>Faire campagne, à pied.</h1>
+        <p>Approche-toi d’une silhouette grise et reste à côté. Elle deviendra automatiquement <strong>Sympathisante</strong>, sans touche ni argent.</p>
+        <p>Avec assez de Sympathisants dans la sous-zone, un emplacement devient constructible. Reste devant son <strong>billet</strong> pour payer automatiquement. À l’Imprimerie, chaque paiement commande un tract : un Sympathisant vient le chercher et devient Militant.</p>
+        <dl>
+          <dt>← → / Q D / A D</dt><dd>Marcher à gauche ou à droite</dd>
+          <dt>Espace / J</dt><dd>Frapper : léger → léger → fort</dd>
+          <dt>H / Échap / P</dt><dd>Afficher l’aide et mettre en pause</dd>
+          <dt>F</dt><dd>Passer en plein écran</dd>
+          <dt>F3</dt><dd>Afficher ou masquer le débogage</dd>
+        </dl>
+        <p class="subtle">Trois appuis rapprochés forment le combo. Les coups réussis chargent le pouvoir : quand les yeux brillent, le prochain appui le déclenche. Personne ne meurt : les unités démobilisées rentrent à leur point d’origine.</p>
+        <p class="subtle">Local SO : équipement au centre, raid à gauche ou à droite. Cabinet de Philippe : fermeture vers la gauche ou la droite. Le petit repère ↑ à droite de la porte sert à améliorer ces bâtiments.</p>
+        <p class="subtle">Sur écran tactile : maintiens un doigt à gauche ou à droite du personnage pour marcher. Touche le personnage pour afficher l’aide.</p>
+        <p class="subtle" id="balance-help"></p>
+        <p class="subtle">Un achat ou une amélioration de bâtiment par visite : éloigne-toi, puis reviens pour le niveau suivant. À l’Imprimerie, rester sur place commande plusieurs tracts, dans la limite de la file et des fonds. Les Militants recrutent seuls ; les Sympathisants restent dans leur secteur.</p>
+        <button id="resume">Reprendre la campagne</button>
+      </section>
+      <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
+        <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>
+        <div class="debug-actions">
+          <label>Candidat <select id="candidate"></select></label>
+          <button id="ai-toggle">Suspendre les IA</button>
+          <button id="pause-debug">Pause (F4)</button>
+          <button id="speed-debug">Accélérer (F6)</button>
+          <label>PNJ inspecté <select id="inspect-npc"><option value="">Le plus proche</option></select></label>
+          <button id="go-npc">Aller près du PNJ inspecté</button>
+          <label>Bâtiment inspecté <select id="inspect-building"><option value="">Le plus proche</option></select></label>
+          <button id="go-building">Aller devant le bâtiment inspecté</button>
+        </div>
+        <details id="debug-tools">
+          <summary>Déplacements, fonds de test et sauvegardes</summary>
+          <div class="debug-actions">
+          <label>Sous-zone <select id="zone"></select></label>
+          <button id="teleport">Aller dans cette sous-zone</button>
+          <button id="demobilize">Démobiliser l’unité inspectée</button>
+          <button id="grant-money">Ajouter des fonds de test (G)</button>
+          <button id="save">Exporter l’état JSON</button>
+          <label class="file-button">Importer un état JSON<input id="load" type="file" accept=".json,application/json"></label>
+          <label>Graine <input id="seed" type="number" min="1" max="4294967295"></label>
+          <button id="restart">Recommencer avec cette graine</button>
+          </div>
+        </details>
+        <details id="combat-tools">
+          <summary>Essais de combat et pouvoirs</summary>
+          <div class="debug-actions">
+            <label>Camp des unités de test <select id="spawn-faction"><option value="ENEMY">Adversaire</option><option value="ALLY">Allié</option><option value="melenchon">Mélenchon</option><option value="le_pen">Le Pen</option><option value="philippe">Philippe</option></select></label>
+            <button id="fill-special">Charger le pouvoir (K)</button>
+            <button id="spawn-s">Créer un Sympathisant (F7)</button>
+            <button id="spawn-m">Créer un Militant (F8)</button>
+            <button id="spawn-so">Créer un SO (F9)</button>
+            <button id="control-zone">Contrôle local de test (Y)</button>
+          </div>
+        </details>
+        <pre id="debug-text"></pre>
+        <p class="subtle">F3 : fermer · F4 : pause · F6 : accélérer · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local de test. Raccourcis réservés au débogage.</p>
+      </aside>
+      <section id="error" class="panel" hidden role="alert"></section>
+    </main>
+    <noscript>Active JavaScript pour lancer le prototype.</noscript>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
