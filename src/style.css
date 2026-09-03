@@ -63,10 +63,37 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #debug-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
 .file-button input { margin-top: 5px; font-size: 0.8em; }
 #error { inset: 10%; }
-#attack-touch { display: none; position: absolute; bottom: 9%; right: 3%; padding: 11px; background: #f0eddbcc; touch-action: none; }
+#touch-controls { display: none; position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); justify-content: space-between; pointer-events: none; }
+.touch-directions { display: flex; gap: 12px; }
+#touch-controls button { min-width: 60px; min-height: 56px; font-size: 18px; font-weight: 650; background: #f0eddbed; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: auto; }
+#touch-controls button:active { background: #344e41; color: white; }
+#game-menu { position: absolute; top: max(10px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); display: flex; gap: 8px; }
+#game-menu button { min-height: 44px; font-size: 14px; touch-action: manipulation; }
+#orientation-hint { display: none; }
 #combat-tools { margin: 12px 0; }
 #combat-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
 #electoral-tools { margin: 12px 0; }
 #electoral-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
-@media (pointer: coarse) { #attack-touch { display: block; } }
+@media (any-pointer: coarse) {
+  /* Les panneaux fixes doivent se référer à l’écran, pas au cadre 16:9. */
+  #game { container-type: normal; }
+  #touch-controls { display: flex; }
+  #hint { display: none; }
+  .panel { font-size: 16px; overscroll-behavior: contain; }
+  .panel button, .panel select { min-height: 44px; }
+  #help, #results, #debug { position: fixed; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  #help, #results { width: min(570px, calc(100vw - 24px)); }
+  #debug { width: min(420px, calc(100vw - 24px)); font-size: 14px; }
+  #resume { position: sticky; bottom: 0; }
+  #arena-hud { top: 62px; }
+  #phase-banner { top: 38%; }
+}
+@media (any-pointer: coarse) and (orientation: portrait) {
+  #touch-controls { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); }
+  #touch-controls button { min-width: 72px; min-height: 64px; }
+  #game-menu { position: fixed; }
+  #orientation-hint { display: block; position: fixed; top: max(64px, calc(env(safe-area-inset-top) + 54px)); left: 20px; right: 20px; color: #f4f5ef; text-align: center; font-size: 16px; }
+  #arena-hud { top: 5%; }
+  .result-actions { flex-wrap: wrap; }
+}
 @media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }

@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Cinquième jalon — partie complète, arène médiatique et second tour",
   "scripts": {
+    "build": "node scripts/build-pages.mjs",
     "start": "node scripts/serve.mjs",
     "test": "node --test",
     "test:parcours": "node scripts/validate-milestone2.mjs",

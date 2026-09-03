@@ -1,6 +1,6 @@
 export class BrowserInput {
   constructor(canvas, human, onAction, anchorRatio, touchPauseRadius) {
-    this.keys = new Set(); this.pointerAxis = 0;
+    this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
     this.human = human; this.onAction = onAction; this.canvas = canvas; this.anchorRatio = anchorRatio;
     window.addEventListener('keydown', event => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
@@ -16,6 +16,25 @@ export class BrowserInput {
     window.addEventListener('keyup', event => { this.keys.delete(event.key.toLowerCase()); this.update(); });
     window.addEventListener('blur', () => this.clear());
     document.getElementById('attack-touch').addEventListener('pointerdown', event => { event.preventDefault(); onAction('attack'); });
+    document.getElementById('pause-touch').addEventListener('click', () => onAction('h'));
+    document.getElementById('fullscreen-touch').addEventListener('click', () => onAction('f'));
+    const release = event => {
+      this.pointers.delete(event.pointerId);
+      this.updatePointers();
+    };
+    const bindRelease = element => {
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) element.addEventListener(type, release);
+      element.addEventListener('contextmenu', event => event.preventDefault());
+    };
+    for (const [id, axis] of [['move-left', -1], ['move-right', 1]]) {
+      const button = document.getElementById(id);
+      button.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        event.preventDefault(); button.setPointerCapture(event.pointerId);
+        this.pointers.set(event.pointerId, axis); this.updatePointers();
+      });
+      bindRelease(button);
+    }
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.clear(); });
     canvas.addEventListener('pointerdown', event => {
       if (event.pointerType === 'mouse') { canvas.focus(); return; }
@@ -23,13 +42,13 @@ export class BrowserInput {
       const rect = canvas.getBoundingClientRect();
       const relative = (event.clientX - rect.left) / rect.width;
       if (Math.abs(relative - anchorRatio) < touchPauseRadius) onAction('h');
-      else this.pointerAxis = relative < anchorRatio ? -1 : 1;
-      this.update();
+      else { this.pointers.set(event.pointerId, relative < anchorRatio ? -1 : 1); this.updatePointers(); }
     });
-    const release = () => { this.pointerAxis = 0; this.update(); };
-    canvas.addEventListener('pointerup', release);
-    canvas.addEventListener('pointercancel', release);
-    canvas.addEventListener('lostpointercapture', release);
+    bindRelease(canvas);
+  }
+  updatePointers() {
+    this.pointerAxis = Math.sign([...this.pointers.values()].reduce((sum, axis) => sum + axis, 0));
+    this.update();
   }
   update() {
     const left = ['arrowleft', 'q', 'a'].some(k => this.keys.has(k));
@@ -37,5 +56,5 @@ export class BrowserInput {
     if (left && right && !this.pointerAxis) this.human.reset();
     else this.human.setAxis(this.pointerAxis || Number(right) - Number(left));
   }
-  clear() { this.keys.clear(); this.pointerAxis = 0; this.human.reset(); }
+  clear() { this.keys.clear(); this.pointers.clear(); this.pointerAxis = 0; this.human.reset(); }
 }

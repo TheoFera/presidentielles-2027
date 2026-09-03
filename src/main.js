@@ -14,7 +14,7 @@ function showError(error) {
   console.error(error);
   const element = document.getElementById('error');
   element.hidden = false;
-  element.textContent = `Le prototype n’a pas pu fonctionner : ${error.message}. Lance « Lancer le jeu.cmd » puis ouvre http://localhost:2027. Si le serveur est déjà lancé, consulte le terminal et recharge la page.`;
+  element.textContent = `Le jeu n’a pas pu démarrer : ${error.message}. Vérifie ta connexion et recharge la page. Si tu joues depuis les fichiers de ton ordinateur, utilise « Lancer le jeu.cmd ».`;
 }
 
 async function start() {
@@ -36,6 +36,7 @@ async function start() {
   const money = document.getElementById('money');
   const notice = document.getElementById('notice');
   const hint = document.getElementById('hint');
+  if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = 'Maintiens une flèche pour marcher · Frapper pour attaquer · Pause pour l’aide';
   let pending = [];
   let paused = false;
   let simulationSpeed = 1;
@@ -149,7 +150,8 @@ async function start() {
       const income = incomePerSecond(state, config, candidate.faction_id).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
       money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`;
       money.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('attack-touch').hidden = state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      document.getElementById('touch-controls').hidden = paused || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      document.getElementById('game-menu').hidden = paused || state.phase === 'RESULTS';
       electoralDisplay.update(state, candidate.faction_id);
       if (noticeRemaining <= 0) notice.textContent = '';
       hint.style.opacity = hintRemaining > 0 ? '1' : '0';

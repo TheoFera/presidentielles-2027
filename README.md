@@ -4,6 +4,21 @@ Une partie complète : **campagne → arène à trois → élimination → sprin
 
 ## Lancer et jouer
 
+### Sur téléphone et GitHub Pages
+
+Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni installation sur le téléphone n’est nécessaire. La publication doit d’abord être activée sur GitHub.
+
+1. Dans le dépôt GitHub, ouvre **Settings → Pages** et choisis **GitHub Actions** comme source.
+2. GitHub Pages doit être disponible pour le dépôt : un dépôt privé nécessite une offre compatible. Sinon, il faut décider de rendre le dépôt public (cela expose aussi son code et son historique).
+3. Envoie les modifications sur `main`, ou lance **Actions → Publier le jeu sur GitHub Pages → Run workflow**. Les tests passent avant la publication.
+4. Après la réussite du déploiement, ouvre l’adresse affichée dans **Settings → Pages** depuis Safari ou Chrome sur ton téléphone. L’adresse attendue est https://theofera.github.io/presidentielles-2027/ ; elle n’est utilisable qu’après activation et publication.
+
+Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. La partie est locale à chaque onglet : recharger la page la recommence.
+
+`npm run build` prépare le dossier `dist/` avec uniquement la page, le code du jeu et ses quatre fichiers de réglages. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
+
+### Sur ordinateur, en local
+
 Double-clique sur **Lancer le jeu.cmd**, puis ouvre [le jeu](http://localhost:2027/). Garde le terminal ouvert. Recharge la page si elle était déjà ouverte.
 
 - Flèches, Q/D ou A/D : marcher.

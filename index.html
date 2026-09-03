@@ -11,7 +11,18 @@
   <body>
     <main id="game" aria-label="Prototype jouable de Présidentielles 2027">
       <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour attaquer, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
-      <button id="attack-touch" aria-label="Attaquer">Frapper</button>
+      <div id="touch-controls" aria-label="Commandes tactiles">
+        <div class="touch-directions">
+          <button id="move-left" aria-label="Marcher à gauche">←</button>
+          <button id="move-right" aria-label="Marcher à droite">→</button>
+        </div>
+        <button id="attack-touch" aria-label="Attaquer">Frapper</button>
+      </div>
+      <nav id="game-menu" aria-label="Menu du jeu">
+        <button id="pause-touch" aria-label="Aide et pause">Pause</button>
+        <button id="fullscreen-touch" aria-label="Passer en plein écran">Plein écran</button>
+      </nav>
+      <p id="orientation-hint">Pour mieux voir le jeu, tourne ton téléphone à l’horizontale.</p>
       <output id="money" aria-label="Argent disponible et revenu passif par seconde"></output>
       <div id="electoral-display">
         <div id="electoral-circle" hidden></div>
@@ -49,7 +60,7 @@
         <p class="subtle">Local SO : équipement au centre, raid à gauche ou à droite. Cabinet de Philippe : fermeture vers la gauche ou la droite. Le petit repère ↑ à droite de la porte sert à améliorer ces bâtiments.</p>
         <p class="subtle" id="poll-help"></p>
         <p class="subtle">Meeting : construis le podium, éloigne-toi puis reviens au micro pour payer l’événement. Il convainc localement et renforce temporairement les Sympathisants et Militants du secteur. Le repère ↑ à droite sert à améliorer le lieu. Un billet grisé indique qu’il faut attendre ou réunir les fonds.</p>
-        <p class="subtle">Sur écran tactile : maintiens un doigt à gauche ou à droite du personnage pour marcher. Touche le personnage pour afficher l’aide.</p>
+        <p class="subtle">Sur téléphone : maintiens une flèche pour marcher et touche « Frapper » avec l’autre pouce pour attaquer. Relâche la flèche pour t’arrêter et convaincre. « Pause » ouvre cette aide. Le mode paysage est conseillé.</p>
         <p class="subtle" id="balance-help"></p>
         <p class="subtle">Un achat ou une amélioration de bâtiment par visite : éloigne-toi, puis reviens pour le niveau suivant. À l’Imprimerie, rester sur place commande plusieurs tracts, dans la limite de la file et des fonds. Les Militants recrutent seuls ; les Sympathisants restent dans leur secteur.</p>
         <button id="resume">Reprendre la campagne</button>
