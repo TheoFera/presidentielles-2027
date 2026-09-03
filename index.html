@@ -12,13 +12,31 @@
     <main id="game" aria-label="Prototype jouable de Présidentielles 2027">
       <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour attaquer, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
       <button id="attack-touch" aria-label="Attaquer">Frapper</button>
-      <output id="money" aria-label="Argent disponible"></output>
+      <output id="money" aria-label="Argent disponible et revenu passif par seconde"></output>
+      <div id="electoral-display">
+        <div id="electoral-circle" hidden></div>
+        <output id="day" aria-label="Jours avant le scrutin"></output>
+        <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
+      </div>
       <div id="notice" role="status"></div>
       <div id="hint">← → ou Q / D : marcher · Espace / J : frapper · H : aide · F3 : débogage</div>
+      <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
+      <div id="phase-banner" hidden role="status"></div>
+      <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
+      <div id="phase-fade" aria-hidden="true"></div>
+      <section id="results" class="panel" hidden aria-label="Résultat final">
+        <span class="eyebrow">VAINQUEUR</span>
+        <h1 id="winner"></h1><p id="winning-score"></p>
+        <p id="second-score"></p><p id="neutral-score"></p>
+        <p id="third-name" class="subtle"></p><p id="tie-detail" class="subtle"></p>
+        <div class="result-actions"><button id="replay">Rejouer</button><button id="return">Retour à l’accueil</button></div>
+      </section>
       <section id="help" class="panel" hidden aria-label="Aide et pause">
-        <span class="eyebrow">GREYBOX · TROISIÈME JALON</span>
+        <span class="eyebrow">GREYBOX · CINQUIÈME JALON</span>
         <h1>Faire campagne, à pied.</h1>
+        <p>À J0, les trois candidats rejoignent le plateau médiatique : leur score devient leur jauge. Le premier à 0 est éliminé. Retour immédiat au monde pour <strong>60 secondes de sprint, influence ×10</strong>, puis résultat. Si ton candidat est éliminé, tu peux suivre la fin en spectateur.</p>
         <p>Approche-toi d’une silhouette grise et reste à côté. Elle deviendra automatiquement <strong>Sympathisante</strong>, sans touche ni argent.</p>
+        <p>Chaque partisan recruté augmente ton <strong>revenu passif</strong> selon son biome d’origine. Cette contribution continue lorsqu’il se déplace ou devient Militant ou Service d’ordre, et cesse s’il est démobilisé. Le gain par seconde apparaît sous ton argent ; son détail par biome est disponible avec F3.</p>
         <p>Avec assez de Sympathisants dans la sous-zone, un emplacement devient constructible. Reste devant son <strong>billet</strong> pour payer automatiquement. À l’Imprimerie, chaque paiement commande un tract : un Sympathisant vient le chercher et devient Militant.</p>
         <dl>
           <dt>← → / Q D / A D</dt><dd>Marcher à gauche ou à droite</dd>
@@ -29,6 +47,8 @@
         </dl>
         <p class="subtle">Trois appuis rapprochés forment le combo. Les coups réussis chargent le pouvoir : quand les yeux brillent, le prochain appui le déclenche. Personne ne meurt : les unités démobilisées rentrent à leur point d’origine.</p>
         <p class="subtle">Local SO : équipement au centre, raid à gauche ou à droite. Cabinet de Philippe : fermeture vers la gauche ou la droite. Le petit repère ↑ à droite de la porte sert à améliorer ces bâtiments.</p>
+        <p class="subtle" id="poll-help"></p>
+        <p class="subtle">Meeting : construis le podium, éloigne-toi puis reviens au micro pour payer l’événement. Il convainc localement et renforce temporairement les Sympathisants et Militants du secteur. Le repère ↑ à droite sert à améliorer le lieu. Un billet grisé indique qu’il faut attendre ou réunir les fonds.</p>
         <p class="subtle">Sur écran tactile : maintiens un doigt à gauche ou à droite du personnage pour marcher. Touche le personnage pour afficher l’aide.</p>
         <p class="subtle" id="balance-help"></p>
         <p class="subtle">Un achat ou une amélioration de bâtiment par visite : éloigne-toi, puis reviens pour le niveau suivant. À l’Imprimerie, rester sur place commande plusieurs tracts, dans la limite de la file et des fonds. Les Militants recrutent seuls ; les Sympathisants restent dans leur secteur.</p>
@@ -36,6 +56,19 @@
       </section>
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>
+        <details id="match-tools">
+          <summary>Partie complète : J0, arène et sprint</summary>
+          <div class="debug-actions">
+            <button id="force-j0">Forcer J0</button><button id="start-arena">Démarrer l’arène</button>
+            <label>Candidat à éliminer <select id="eliminate-faction"><option value="philippe">Philippe</option><option value="le_pen">Le Pen</option><option value="melenchon">Mélenchon</option></select></label>
+            <button id="finish-arena">Terminer l’arène</button><button id="start-sprint">Démarrer le sprint</button>
+            <button id="sprint-10">Chrono à 10 s</button><button id="force-tie">Forcer une égalité à l’échéance</button>
+            <button id="neutral-all">50 % de Neutres partout</button><button id="real-scores">Afficher le score réel</button>
+            <button id="speed-five">Vitesse ×5</button><button id="save-telemetry">Exporter le résumé DEBUG</button>
+          </div>
+          <pre id="match-debug-text"></pre>
+          <p class="subtle">Les raccourcis de phase ignorent le temps d’attente. « Démarrer le sprint » neutralise le candidat sélectionné. Les commandes incompatibles avec la phase sont refusées.</p>
+        </details>
         <div class="debug-actions">
           <label>Candidat <select id="candidate"></select></label>
           <button id="ai-toggle">Suspendre les IA</button>
@@ -70,8 +103,22 @@
             <button id="control-zone">Contrôle local de test (Y)</button>
           </div>
         </details>
+        <details id="electoral-tools">
+          <summary>Essais de conquête et de sondages</summary>
+          <div class="debug-actions">
+            <button id="influence-m">+ Influence Mélenchon (4)</button>
+            <button id="influence-lp">+ Influence Le Pen (5)</button>
+            <button id="influence-ep">+ Influence Philippe (6)</button>
+            <button id="neutral-50">Neutres à 50 % (7)</button>
+            <button id="build-tower">Tour gratuite ici (8)</button>
+            <button id="build-institute">Institut gratuit ici (9)</button>
+            <button id="build-meeting">Podium gratuit ici (0)</button>
+            <button id="trigger-meeting">Meeting gratuit ici (V)</button>
+          </div>
+          <p class="subtle">Outils de test : les constructions ignorent le coût et l’implantation ; le Meeting ignore aussi le délai. La limite globale de Tours reste respectée. En partie normale, tout se paie par présence.</p>
+        </details>
         <pre id="debug-text"></pre>
-        <p class="subtle">F3 : fermer · F4 : pause · F6 : accélérer · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local de test. Raccourcis réservés au débogage.</p>
+        <p class="subtle">F3 : fermer · F4 : pause · F6 : ×1 / ×4 / ×5 / ×10 · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · O / U / M : Tour / Institut / Meeting · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local. 4 / 5 / 6 : influence M / LP / EP · 7 : Neutres 50 % · 8 / 9 / 0 : construire Tour / Institut / Meeting · V : lancer le Meeting de test. Raccourcis réservés au débogage.</p>
       </aside>
       <section id="error" class="panel" hidden role="alert"></section>
     </main>

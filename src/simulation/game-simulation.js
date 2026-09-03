@@ -1,38 +1,44 @@
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { createSpawnTimers, updateSpawns } from './spawns.js';
-import { createElectorate, localPersuasionMultiplier, updateInfluence } from './territory.js';
+import { createElectorate, localPersuasionMultiplier, refreshInfluenceSources, updateInfluence } from './territory.js';
+import { convertInfluence, createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
+import { triggerMeeting } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, requestAttack, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
+import { GamePhase, commandAllowed } from './phases.js';
+import { ArenaSimulation } from './arena-simulation.js';
+import { initialMatchState, startArena, finishArena, finishSprint, applyMatchDebug } from './match-lifecycle.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const byId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
 export class GameSimulation {
-  constructor(config, seed = config.prototype.seed) {
+  constructor(config, seed = config.prototype.seed, localCandidateId = 'candidate:melenchon') {
     this.config = clone(config);
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
     const initialSeed = Number(seed) >>> 0 || 1;
     const world = buildWorld(config);
     const infrastructure = createInfrastructure(world, config);
     this.state = {
-      snapshot_version: 3, config_fingerprint: fingerprint(config),
+      snapshot_version: 5, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: initialSeed, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, transactions: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [],
-      phase: 'EXPLORATION_GREYBOX', days_remaining: config.balance.time.starting_days_before_first_round,
-      local_candidate_id: 'candidate:melenchon', ai_enabled: true,
+      phase: GamePhase.CAMPAIGN, days_remaining: config.balance.time.starting_days_before_first_round,
+      local_candidate_id: FACTIONS.some(f => `candidate:${f}` === localCandidateId) ? localCandidateId : 'candidate:melenchon', ai_enabled: true,
       world, candidates: [], npcs: [], buildings: infrastructure.buildings, building_slots: infrastructure.slots,
       spawn_timers: [], electorate: createElectorate(world, config), events: [],
+      polls: createPolls(), actualGameState: null,
     };
     for (const faction of FACTIONS) {
       const start = world.subzones.find(zone => zone.id === config.layout.starting_positions[faction]);
       this.state.candidates.push({
-        id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction,
+        id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
         x: start.start + start.width * config.prototype.world.candidate_start_ratio,
         axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0,
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
@@ -50,6 +56,8 @@ export class GameSimulation {
       }
     }
     this.state.spawn_timers = createSpawnTimers(this);
+    refreshElectoralState(this.state, this.config);
+    refreshInfluenceSources(this.state, this.config);
   }
 
   secondsToTicks(seconds) { return Math.ceil(seconds * this.hz - 1e-9); }
@@ -64,6 +72,11 @@ export class GameSimulation {
   }
 
   emit(type, data) {
+    if (this.state.phase === GamePhase.SECOND_ROUND_SPRINT) {
+      if (type === 'MeetingStarted') this.state.telemetry.sprint_meetings++;
+      if (type === 'NpcConverted' && this.state.npcs.find(n => n.id === data.npc_id)?.former_eliminated_faction
+        && !this.state.telemetry.reconverted_npc_ids.includes(data.npc_id)) this.state.telemetry.reconverted_npc_ids.push(data.npc_id);
+    }
     this.state.events.push({ ...data, id: `event:${this.state.next_event_id++}`, tick: this.state.tick, type });
     const limit = this.config.prototype.debug.event_history_limit;
     if (this.state.events.length > limit) this.state.events.splice(0, this.state.events.length - limit);
@@ -92,8 +105,21 @@ export class GameSimulation {
   }
 
   applyCommand(command) {
-    if (!command || typeof command.type !== 'string') return;
+    if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
+    if (applyMatchDebug(this, command)) return;
+    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSetAIEnabled') {
+      if (typeof command.enabled === 'boolean') this.state.ai_enabled = command.enabled;
+      return;
+    }
+    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSelectCandidate') {
+      if (this.state.candidates.some(c => c.id === command.candidateId)) this.state.local_candidate_id = command.candidateId;
+      return;
+    }
+    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && !['DebugSelectCandidate', 'DebugSetAIEnabled'].includes(command.type)) {
+      new ArenaSimulation(this.config, this.state.arena).applyCommand(command); return;
+    }
     const candidate = this.state.candidates.find(c => c.id === command.candidateId);
+    if (candidate?.eliminated || command.factionId === this.state.eliminated_faction) return;
     if (command.type === 'Attack') { requestAttack(this, candidate, command.direction); return; }
     if (command.type === 'Move') {
       if (candidate && [-1, 0, 1].includes(command.axis)) candidate.axis = command.axis;
@@ -109,6 +135,36 @@ export class GameSimulation {
     }
     if (!this.config.prototype.debug.commands_enabled) return;
     switch (command.type) {
+      case 'DebugAddInfluence': {
+        if (!candidate || !FACTIONS.includes(command.factionId)) break;
+        const election = this.state.electorate.find(e => e.subzone_id === zoneAt(this.state.world, candidate.x).id);
+        convertInfluence(election, { [command.factionId]: this.config.balance.debug.influence_burst }, this.config);
+        this.emit('DebugInfluenceAdded', { faction_id: command.factionId, subzone_id: election.subzone_id });
+        break;
+      }
+      case 'DebugNeutral50': {
+        if (!candidate) break;
+        const election = this.state.electorate.find(e => e.subzone_id === zoneAt(this.state.world, candidate.x).id);
+        const total = FACTIONS.reduce((s, f) => s + election.support[f], 0);
+        for (const f of FACTIONS) election.support[f] = total ? election.support[f] * 50 / total : 50 / FACTIONS.length;
+        election.support.neutral = 50;
+        break;
+      }
+      case 'DebugBuildElectoral': {
+        if (!candidate || !['tour_communication', 'institut_sondage', 'meeting'].includes(command.buildingType)) break;
+        const building = this.state.buildings.find(b => b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.type === command.buildingType);
+        if (building.state === 'ACTIVE' || (building.owner_id && building.owner_id !== candidate.faction_id)) break;
+        if (building.type === 'tour_communication' && this.state.buildings.filter(b => b.type === building.type && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id).length >= this.config.balance.buildings.tour_communication.global_limit) break;
+        building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.last_action_tick = this.state.tick;
+        this.emit('DebugBuildingConstructed', { target_id: building.id });
+        break;
+      }
+      case 'DebugMeeting': {
+        if (!candidate) break;
+        const building = this.state.buildings.find(b => b.type === 'meeting' && b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id);
+        if (building) triggerMeeting(this, building);
+        break;
+      }
       case 'DebugFillSpecial':
         if (candidate) candidate.special_charge = this.config.balance.special_charge.required_points;
         break;
@@ -117,6 +173,7 @@ export class GameSimulation {
         const zone = zoneAt(this.state.world, candidate.x);
         const record = this.state.electorate.find(e => e.subzone_id === zone.id);
         record.support = { melenchon: 15, le_pen: 15, philippe: 15, neutral: 20, [candidate.faction_id]: 50 };
+        if (this.state.eliminated_faction) { record.support.neutral += record.support[this.state.eliminated_faction]; record.support[this.state.eliminated_faction] = 0; }
         this.emit('DebugZoneControlled', { subzone_id: zone.id, candidate_id: candidate.id });
         break;
       }
@@ -171,16 +228,30 @@ export class GameSimulation {
         break;
       }
     }
+    refreshElectoralState(this.state, this.config);
+    refreshInfluenceSources(this.state, this.config);
   }
 
   step(commands = []) {
-    for (const command of commands) this.applyCommand(command);
+    if (this.state.phase === GamePhase.RESULTS) return;
+    const previousPhase = this.state.phase;
+    const controlsBefore = this.state.electorate.map(e => e.controller);
+    for (const command of commands) {
+      this.applyCommand(command);
+      if (this.state.phase !== previousPhase) return; // New phase accepts only the next tick's inputs.
+    }
     const state = this.state;
+    state.match_tick++;
+    if (state.phase === GamePhase.FIRST_ROUND_ARENA) {
+      const arena = new ArenaSimulation(this.config, state.arena); arena.step();
+      if (state.arena.eliminated_faction) finishArena(this, state.arena.eliminated_faction);
+      return;
+    }
     const dt = 1 / this.hz;
     state.tick++;
     beginCombatTick(this);
     for (const candidate of state.candidates) {
-      if (interrupted(candidate)) continue;
+      if (candidate.eliminated || interrupted(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
@@ -197,9 +268,18 @@ export class GameSimulation {
     updateEquipmentProduction(this);
     this.updateNpcs();
     updateInfluence(this);
-    const days = Math.max(this.config.prototype.time.minimum_days_remaining_for_milestone,
+    const days = state.phase === GamePhase.SECOND_ROUND_SPRINT ? 0 : Math.max(0,
       this.config.balance.time.starting_days_before_first_round - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));
     if (days !== state.days_remaining) { state.days_remaining = days; this.emit('DayChanged', { days_remaining: days }); }
+    updatePolls(this);
+    if (state.phase === GamePhase.CAMPAIGN && days === 0) startArena(this);
+    else if (state.phase === GamePhase.SECOND_ROUND_SPRINT) {
+      state.sprint_elapsed_ticks++; state.sprint_remaining_ticks = Math.max(0, state.sprint_remaining_ticks - 1);
+      state.electorate.forEach((e, i) => {
+        if (e.controller !== controlsBefore[i] && !state.telemetry.changed_subzone_ids.includes(e.subzone_id)) state.telemetry.changed_subzone_ids.push(e.subzone_id);
+      });
+      if (state.sprint_remaining_ticks === 0) finishSprint(this);
+    }
   }
 
   persuasionTicks(actor) {
@@ -214,7 +294,7 @@ export class GameSimulation {
     const radius = this.config.prototype.persuasion.radius_units;
     const maxTargets = this.config.balance.persuasion.max_simultaneous_targets_per_actor;
     // Gameplay sees an actor's activity intention, never its input source or camera ownership.
-    const eligible = [...state.candidates.filter(c => c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')].filter(canCampaign);
+    const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')].filter(canCampaign);
     const claims = [];
     for (const actor of eligible) {
       for (const npc of state.npcs) {

@@ -1,6 +1,6 @@
 {
-  "snapshot_version": 3,
-  "config_fingerprint": "84371aab",
+  "snapshot_version": 4,
+  "config_fingerprint": "bbdc7811",
   "seed": 2027,
   "rng_state": 2121974841,
   "tick": 5,
@@ -2018,6 +2018,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:paris_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:paris_a:tour_communication",
+      "x": 1.2000000000000002,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:paris_a:institut_sondage",
+      "x": 16.799999999999997,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:paris_a:meeting",
+      "x": 22.799999999999997,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:paris_b:permanence",
       "type": "permanence",
       "slot_id": "slot:paris_b:permanence",
@@ -2070,6 +2129,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:paris_b:tour_communication",
+      "x": 25.2,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:paris_b:institut_sondage",
+      "x": 40.8,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:paris_b:meeting",
+      "x": 46.8,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:paris_19e:imprimerie",
@@ -2141,6 +2259,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:paris_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:paris_c:tour_communication",
+      "x": 49.2,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:paris_c:institut_sondage",
+      "x": 64.8,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:paris_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:paris_c:meeting",
+      "x": 70.8,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:banlieue_a:permanence",
       "type": "permanence",
       "slot_id": "slot:banlieue_a:permanence",
@@ -2195,6 +2372,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:banlieue_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:banlieue_a:tour_communication",
+      "x": 73.2,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:banlieue_a:institut_sondage",
+      "x": 88.8,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:banlieue_a:meeting",
+      "x": 94.8,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:banlieue_b:permanence",
       "type": "permanence",
       "slot_id": "slot:banlieue_b:permanence",
@@ -2247,6 +2483,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:banlieue_b:tour_communication",
+      "x": 97.2,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:banlieue_b:institut_sondage",
+      "x": 112.8,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:banlieue_b:meeting",
+      "x": 118.8,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:banlieue:imprimerie",
@@ -2318,6 +2613,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:banlieue_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:banlieue_c:tour_communication",
+      "x": 121.2,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:banlieue_c:institut_sondage",
+      "x": 136.8,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:banlieue_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:banlieue_c:meeting",
+      "x": 142.8,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:periurbain_a:permanence",
       "type": "permanence",
       "slot_id": "slot:periurbain_a:permanence",
@@ -2372,6 +2726,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:periurbain_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:periurbain_a:tour_communication",
+      "x": 145.2,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:periurbain_a:institut_sondage",
+      "x": 160.8,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:periurbain_a:meeting",
+      "x": 166.8,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:periurbain_b:permanence",
       "type": "permanence",
       "slot_id": "slot:periurbain_b:permanence",
@@ -2424,6 +2837,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:periurbain_b:tour_communication",
+      "x": 169.2,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:periurbain_b:institut_sondage",
+      "x": 184.8,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:periurbain_b:meeting",
+      "x": 190.8,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:periurbain_usine:imprimerie",
@@ -2495,6 +2967,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:periurbain_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:periurbain_c:tour_communication",
+      "x": 193.2,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:periurbain_c:institut_sondage",
+      "x": 208.8,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:periurbain_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:periurbain_c:meeting",
+      "x": 214.8,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:campagne_a:permanence",
       "type": "permanence",
       "slot_id": "slot:campagne_a:permanence",
@@ -2549,6 +3080,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:campagne_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:campagne_a:tour_communication",
+      "x": 217.2,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:campagne_a:institut_sondage",
+      "x": 232.8,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:campagne_a:meeting",
+      "x": 238.8,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:campagne_b:permanence",
       "type": "permanence",
       "slot_id": "slot:campagne_b:permanence",
@@ -2601,6 +3191,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:campagne_b:tour_communication",
+      "x": 241.2,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:campagne_b:institut_sondage",
+      "x": 256.8,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:campagne_b:meeting",
+      "x": 262.8,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:campagne:imprimerie",
@@ -2672,6 +3321,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:campagne_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:campagne_c:tour_communication",
+      "x": 265.2,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:campagne_c:institut_sondage",
+      "x": 280.8,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:campagne_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:campagne_c:meeting",
+      "x": 286.8,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:retraites_a:permanence",
       "type": "permanence",
       "slot_id": "slot:retraites_a:permanence",
@@ -2726,6 +3434,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:retraites_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:retraites_a:tour_communication",
+      "x": 289.2,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:retraites_a:institut_sondage",
+      "x": 304.8,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:retraites_a:meeting",
+      "x": 310.8,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:retraites_b:permanence",
       "type": "permanence",
       "slot_id": "slot:retraites_b:permanence",
@@ -2778,6 +3545,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:retraites_b:tour_communication",
+      "x": 313.2,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:retraites_b:institut_sondage",
+      "x": 328.8,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:retraites_b:meeting",
+      "x": 334.8,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:retraites:imprimerie",
@@ -2849,6 +3675,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:retraites_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:retraites_c:tour_communication",
+      "x": 337.2,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:retraites_c:institut_sondage",
+      "x": 352.8,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:retraites_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:retraites_c:meeting",
+      "x": 358.8,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:riches_a:permanence",
       "type": "permanence",
       "slot_id": "slot:riches_a:permanence",
@@ -2903,6 +3788,65 @@
       "closure_ready_tick": 0
     },
     {
+      "id": "building:riches_a:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:riches_a:tour_communication",
+      "x": 361.2,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_a:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:riches_a:institut_sondage",
+      "x": 376.8,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_a:meeting",
+      "type": "meeting",
+      "slot_id": "slot:riches_a:meeting",
+      "x": 382.8,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
+    },
+    {
       "id": "building:riches_b:permanence",
       "type": "permanence",
       "slot_id": "slot:riches_b:permanence",
@@ -2955,6 +3899,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_b:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:riches_b:tour_communication",
+      "x": 385.2,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_b:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:riches_b:institut_sondage",
+      "x": 400.8,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_b:meeting",
+      "type": "meeting",
+      "slot_id": "slot:riches_b:meeting",
+      "x": 406.8,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     },
     {
       "id": "service:quartiers_riches:imprimerie",
@@ -3024,6 +4027,65 @@
       "variant": null,
       "raid_ready_tick": 0,
       "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_c:tour_communication",
+      "type": "tour_communication",
+      "slot_id": "slot:riches_c:tour_communication",
+      "x": 409.2,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_c:institut_sondage",
+      "type": "institut_sondage",
+      "slot_id": "slot:riches_c:institut_sondage",
+      "x": 424.8,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0
+    },
+    {
+      "id": "building:riches_c:meeting",
+      "type": "meeting",
+      "slot_id": "slot:riches_c:meeting",
+      "x": 430.8,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches",
+      "ownership_model": "faction_owned",
+      "owner_id": null,
+      "level": 0,
+      "state": "EMPTY",
+      "queue": [],
+      "last_action_tick": -1,
+      "delivered_count": 0,
+      "variant": null,
+      "raid_ready_tick": 0,
+      "closure_ready_tick": 0,
+      "meeting_ready_tick": 0,
+      "meeting_started_tick": -1,
+      "meeting_until_tick": 0,
+      "meeting_level": 0,
+      "meetings_held": 0
     }
   ],
   "building_slots": [
@@ -3052,6 +4114,30 @@
       "biome_id": "paris_19e"
     },
     {
+      "id": "slot:paris_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:paris_a:tour_communication",
+      "x": 1.2000000000000002,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:paris_a:institut_sondage",
+      "x": 16.799999999999997,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_a:meeting",
+      "type": "meeting",
+      "building_id": "building:paris_a:meeting",
+      "x": 22.799999999999997,
+      "subzone_id": "paris_a",
+      "biome_id": "paris_19e"
+    },
+    {
       "id": "slot:paris_b:permanence",
       "type": "permanence",
       "building_id": "building:paris_b:permanence",
@@ -3072,6 +4158,30 @@
       "type": "faction",
       "building_id": "building:paris_b:faction",
       "x": 32.4,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:paris_b:tour_communication",
+      "x": 25.2,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:paris_b:institut_sondage",
+      "x": 40.8,
+      "subzone_id": "paris_b",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_b:meeting",
+      "type": "meeting",
+      "building_id": "building:paris_b:meeting",
+      "x": 46.8,
       "subzone_id": "paris_b",
       "biome_id": "paris_19e"
     },
@@ -3100,6 +4210,30 @@
       "biome_id": "paris_19e"
     },
     {
+      "id": "slot:paris_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:paris_c:tour_communication",
+      "x": 49.2,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:paris_c:institut_sondage",
+      "x": 64.8,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e"
+    },
+    {
+      "id": "slot:paris_c:meeting",
+      "type": "meeting",
+      "building_id": "building:paris_c:meeting",
+      "x": 70.8,
+      "subzone_id": "paris_c",
+      "biome_id": "paris_19e"
+    },
+    {
       "id": "slot:banlieue_a:permanence",
       "type": "permanence",
       "building_id": "building:banlieue_a:permanence",
@@ -3120,6 +4254,30 @@
       "type": "faction",
       "building_id": "building:banlieue_a:faction",
       "x": 80.4,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:banlieue_a:tour_communication",
+      "x": 73.2,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:banlieue_a:institut_sondage",
+      "x": 88.8,
+      "subzone_id": "banlieue_a",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_a:meeting",
+      "type": "meeting",
+      "building_id": "building:banlieue_a:meeting",
+      "x": 94.8,
       "subzone_id": "banlieue_a",
       "biome_id": "banlieue"
     },
@@ -3148,6 +4306,30 @@
       "biome_id": "banlieue"
     },
     {
+      "id": "slot:banlieue_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:banlieue_b:tour_communication",
+      "x": 97.2,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:banlieue_b:institut_sondage",
+      "x": 112.8,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_b:meeting",
+      "type": "meeting",
+      "building_id": "building:banlieue_b:meeting",
+      "x": 118.8,
+      "subzone_id": "banlieue_b",
+      "biome_id": "banlieue"
+    },
+    {
       "id": "slot:banlieue_c:permanence",
       "type": "permanence",
       "building_id": "building:banlieue_c:permanence",
@@ -3168,6 +4350,30 @@
       "type": "faction",
       "building_id": "building:banlieue_c:faction",
       "x": 128.4,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:banlieue_c:tour_communication",
+      "x": 121.2,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:banlieue_c:institut_sondage",
+      "x": 136.8,
+      "subzone_id": "banlieue_c",
+      "biome_id": "banlieue"
+    },
+    {
+      "id": "slot:banlieue_c:meeting",
+      "type": "meeting",
+      "building_id": "building:banlieue_c:meeting",
+      "x": 142.8,
       "subzone_id": "banlieue_c",
       "biome_id": "banlieue"
     },
@@ -3196,6 +4402,30 @@
       "biome_id": "periurbain_usine"
     },
     {
+      "id": "slot:periurbain_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:periurbain_a:tour_communication",
+      "x": 145.2,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:periurbain_a:institut_sondage",
+      "x": 160.8,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_a:meeting",
+      "type": "meeting",
+      "building_id": "building:periurbain_a:meeting",
+      "x": 166.8,
+      "subzone_id": "periurbain_a",
+      "biome_id": "periurbain_usine"
+    },
+    {
       "id": "slot:periurbain_b:permanence",
       "type": "permanence",
       "building_id": "building:periurbain_b:permanence",
@@ -3216,6 +4446,30 @@
       "type": "faction",
       "building_id": "building:periurbain_b:faction",
       "x": 176.4,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:periurbain_b:tour_communication",
+      "x": 169.2,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:periurbain_b:institut_sondage",
+      "x": 184.8,
+      "subzone_id": "periurbain_b",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_b:meeting",
+      "type": "meeting",
+      "building_id": "building:periurbain_b:meeting",
+      "x": 190.8,
       "subzone_id": "periurbain_b",
       "biome_id": "periurbain_usine"
     },
@@ -3244,6 +4498,30 @@
       "biome_id": "periurbain_usine"
     },
     {
+      "id": "slot:periurbain_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:periurbain_c:tour_communication",
+      "x": 193.2,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:periurbain_c:institut_sondage",
+      "x": 208.8,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine"
+    },
+    {
+      "id": "slot:periurbain_c:meeting",
+      "type": "meeting",
+      "building_id": "building:periurbain_c:meeting",
+      "x": 214.8,
+      "subzone_id": "periurbain_c",
+      "biome_id": "periurbain_usine"
+    },
+    {
       "id": "slot:campagne_a:permanence",
       "type": "permanence",
       "building_id": "building:campagne_a:permanence",
@@ -3264,6 +4542,30 @@
       "type": "faction",
       "building_id": "building:campagne_a:faction",
       "x": 224.4,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:campagne_a:tour_communication",
+      "x": 217.2,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:campagne_a:institut_sondage",
+      "x": 232.8,
+      "subzone_id": "campagne_a",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_a:meeting",
+      "type": "meeting",
+      "building_id": "building:campagne_a:meeting",
+      "x": 238.8,
       "subzone_id": "campagne_a",
       "biome_id": "campagne"
     },
@@ -3292,6 +4594,30 @@
       "biome_id": "campagne"
     },
     {
+      "id": "slot:campagne_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:campagne_b:tour_communication",
+      "x": 241.2,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:campagne_b:institut_sondage",
+      "x": 256.8,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_b:meeting",
+      "type": "meeting",
+      "building_id": "building:campagne_b:meeting",
+      "x": 262.8,
+      "subzone_id": "campagne_b",
+      "biome_id": "campagne"
+    },
+    {
       "id": "slot:campagne_c:permanence",
       "type": "permanence",
       "building_id": "building:campagne_c:permanence",
@@ -3312,6 +4638,30 @@
       "type": "faction",
       "building_id": "building:campagne_c:faction",
       "x": 272.4,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:campagne_c:tour_communication",
+      "x": 265.2,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:campagne_c:institut_sondage",
+      "x": 280.8,
+      "subzone_id": "campagne_c",
+      "biome_id": "campagne"
+    },
+    {
+      "id": "slot:campagne_c:meeting",
+      "type": "meeting",
+      "building_id": "building:campagne_c:meeting",
+      "x": 286.8,
       "subzone_id": "campagne_c",
       "biome_id": "campagne"
     },
@@ -3340,6 +4690,30 @@
       "biome_id": "retraites"
     },
     {
+      "id": "slot:retraites_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:retraites_a:tour_communication",
+      "x": 289.2,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:retraites_a:institut_sondage",
+      "x": 304.8,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_a:meeting",
+      "type": "meeting",
+      "building_id": "building:retraites_a:meeting",
+      "x": 310.8,
+      "subzone_id": "retraites_a",
+      "biome_id": "retraites"
+    },
+    {
       "id": "slot:retraites_b:permanence",
       "type": "permanence",
       "building_id": "building:retraites_b:permanence",
@@ -3360,6 +4734,30 @@
       "type": "faction",
       "building_id": "building:retraites_b:faction",
       "x": 320.4,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:retraites_b:tour_communication",
+      "x": 313.2,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:retraites_b:institut_sondage",
+      "x": 328.8,
+      "subzone_id": "retraites_b",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_b:meeting",
+      "type": "meeting",
+      "building_id": "building:retraites_b:meeting",
+      "x": 334.8,
       "subzone_id": "retraites_b",
       "biome_id": "retraites"
     },
@@ -3388,6 +4786,30 @@
       "biome_id": "retraites"
     },
     {
+      "id": "slot:retraites_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:retraites_c:tour_communication",
+      "x": 337.2,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:retraites_c:institut_sondage",
+      "x": 352.8,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites"
+    },
+    {
+      "id": "slot:retraites_c:meeting",
+      "type": "meeting",
+      "building_id": "building:retraites_c:meeting",
+      "x": 358.8,
+      "subzone_id": "retraites_c",
+      "biome_id": "retraites"
+    },
+    {
       "id": "slot:riches_a:permanence",
       "type": "permanence",
       "building_id": "building:riches_a:permanence",
@@ -3408,6 +4830,30 @@
       "type": "faction",
       "building_id": "building:riches_a:faction",
       "x": 368.4,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_a:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:riches_a:tour_communication",
+      "x": 361.2,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_a:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:riches_a:institut_sondage",
+      "x": 376.8,
+      "subzone_id": "riches_a",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_a:meeting",
+      "type": "meeting",
+      "building_id": "building:riches_a:meeting",
+      "x": 382.8,
       "subzone_id": "riches_a",
       "biome_id": "quartiers_riches"
     },
@@ -3436,6 +4882,30 @@
       "biome_id": "quartiers_riches"
     },
     {
+      "id": "slot:riches_b:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:riches_b:tour_communication",
+      "x": 385.2,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_b:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:riches_b:institut_sondage",
+      "x": 400.8,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_b:meeting",
+      "type": "meeting",
+      "building_id": "building:riches_b:meeting",
+      "x": 406.8,
+      "subzone_id": "riches_b",
+      "biome_id": "quartiers_riches"
+    },
+    {
       "id": "slot:riches_c:permanence",
       "type": "permanence",
       "building_id": "building:riches_c:permanence",
@@ -3456,6 +4926,30 @@
       "type": "faction",
       "building_id": "building:riches_c:faction",
       "x": 416.4,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_c:tour_communication",
+      "type": "tour_communication",
+      "building_id": "building:riches_c:tour_communication",
+      "x": 409.2,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_c:institut_sondage",
+      "type": "institut_sondage",
+      "building_id": "building:riches_c:institut_sondage",
+      "x": 424.8,
+      "subzone_id": "riches_c",
+      "biome_id": "quartiers_riches"
+    },
+    {
+      "id": "slot:riches_c:meeting",
+      "type": "meeting",
+      "building_id": "building:riches_c:meeting",
+      "x": 430.8,
       "subzone_id": "riches_c",
       "biome_id": "quartiers_riches"
     }
@@ -3597,6 +5091,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "riches_c",
+        "paris_b"
+      ],
+      "adjacent_biome_ids": [
+        "quartiers_riches",
+        "banlieue"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3615,6 +5155,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "paris_a",
+        "paris_c"
+      ],
+      "adjacent_biome_ids": [
+        "quartiers_riches",
+        "banlieue"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3635,6 +5221,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "paris_b",
+        "banlieue_a"
+      ],
+      "adjacent_biome_ids": [
+        "quartiers_riches",
+        "banlieue"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3654,6 +5286,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "paris_c",
+        "banlieue_b"
+      ],
+      "adjacent_biome_ids": [
+        "paris_19e",
+        "periurbain_usine"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1.5,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3668,18 +5346,64 @@
     {
       "subzone_id": "banlieue_b",
       "support": {
-        "melenchon": 50,
+        "melenchon": 50.00001471710908,
         "le_pen": 15,
         "philippe": 15,
-        "neutral": 20
+        "neutral": 19.999985282890925
+      },
+      "leader": "melenchon",
+      "controller": "melenchon",
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "banlieue_a",
+        "banlieue_c"
+      ],
+      "adjacent_biome_ids": [
+        "paris_19e",
+        "periurbain_usine"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0.002,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 2,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
-        "melenchon": 0,
+        "melenchon": 0.002,
         "le_pen": 0,
         "philippe": 0
       },
       "net_change_per_second": {
-        "melenchon": 0,
+        "melenchon": 0.00011037826332938039,
         "le_pen": 0,
         "philippe": 0
       }
@@ -3691,6 +5415,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "banlieue_b",
+        "periurbain_a"
+      ],
+      "adjacent_biome_ids": [
+        "paris_19e",
+        "periurbain_usine"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1.5,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3711,6 +5481,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "banlieue_c",
+        "periurbain_b"
+      ],
+      "adjacent_biome_ids": [
+        "banlieue",
+        "campagne"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3729,6 +5545,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "periurbain_a",
+        "periurbain_c"
+      ],
+      "adjacent_biome_ids": [
+        "banlieue",
+        "campagne"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3749,6 +5611,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "periurbain_b",
+        "campagne_a"
+      ],
+      "adjacent_biome_ids": [
+        "banlieue",
+        "campagne"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3768,6 +5676,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "periurbain_c",
+        "campagne_b"
+      ],
+      "adjacent_biome_ids": [
+        "periurbain_usine",
+        "retraites"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3783,9 +5737,55 @@
       "subzone_id": "campagne_b",
       "support": {
         "melenchon": 18,
-        "le_pen": 31,
+        "le_pen": 31.000011327754958,
         "philippe": 18,
-        "neutral": 33
+        "neutral": 32.999988672245046
+      },
+      "leader": "le_pen",
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "campagne_a",
+        "campagne_c"
+      ],
+      "adjacent_biome_ids": [
+        "periurbain_usine",
+        "retraites"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3806,6 +5806,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "campagne_b",
+        "retraites_a"
+      ],
+      "adjacent_biome_ids": [
+        "periurbain_usine",
+        "retraites"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3824,6 +5870,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "campagne_c",
+        "retraites_b"
+      ],
+      "adjacent_biome_ids": [
+        "campagne",
+        "quartiers_riches"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3844,6 +5936,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "retraites_a",
+        "retraites_c"
+      ],
+      "adjacent_biome_ids": [
+        "campagne",
+        "quartiers_riches"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3862,6 +6000,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "retraites_b",
+        "riches_a"
+      ],
+      "adjacent_biome_ids": [
+        "campagne",
+        "quartiers_riches"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3882,6 +6066,52 @@
         "philippe": 18,
         "neutral": 46
       },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "retraites_c",
+        "riches_b"
+      ],
+      "adjacent_biome_ids": [
+        "retraites",
+        "paris_19e"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
+      },
       "influence_per_second": {
         "melenchon": 0,
         "le_pen": 0,
@@ -3898,8 +6128,54 @@
       "support": {
         "melenchon": 18,
         "le_pen": 18,
-        "philippe": 23,
-        "neutral": 41
+        "philippe": 23.00001339428955,
+        "neutral": 40.99998660571045
+      },
+      "leader": "philippe",
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "riches_a",
+        "riches_c"
+      ],
+      "adjacent_biome_ids": [
+        "retraites",
+        "paris_19e"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -3919,6 +6195,52 @@
         "le_pen": 18,
         "philippe": 18,
         "neutral": 46
+      },
+      "leader": null,
+      "controller": null,
+      "electoral_weight": 1,
+      "adjacent_subzone_ids": [
+        "riches_b",
+        "paris_a"
+      ],
+      "adjacent_biome_ids": [
+        "retraites",
+        "paris_19e"
+      ],
+      "influence_sources": {
+        "melenchon": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        },
+        "le_pen": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1.25
+        },
+        "philippe": {
+          "sympathisants": 0,
+          "militants": 0,
+          "permanence": 0,
+          "candidate": 0,
+          "meeting": 0,
+          "tower": 0,
+          "tower_base": 0,
+          "tower_multiplier": 1,
+          "faction_multiplier": 1
+        }
       },
       "influence_per_second": {
         "melenchon": 0,
@@ -4009,5 +6331,37 @@
       "tick": 5,
       "type": "AttackStarted"
     }
-  ]
+  ],
+  "polls": {
+    "melenchon": {
+      "active": false,
+      "next_poll_tick": null,
+      "lastPollSnapshot": null
+    },
+    "le_pen": {
+      "active": false,
+      "next_poll_tick": null,
+      "lastPollSnapshot": null
+    },
+    "philippe": {
+      "active": false,
+      "next_poll_tick": null,
+      "lastPollSnapshot": null
+    }
+  },
+  "actualGameState": {
+    "updated_tick": 5,
+    "national_support": {
+      "melenchon": 19.77777859539495,
+      "le_pen": 18.555556184875275,
+      "philippe": 18.111111855238306,
+      "neutral": 43.55555336449148
+    },
+    "controlled_counts": {
+      "melenchon": 1,
+      "le_pen": 0,
+      "philippe": 0,
+      "contested": 17
+    }
+  }
 }

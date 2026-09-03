@@ -3,19 +3,21 @@ import { biomeSympathisants, distance, incomePerSecond, localSympathisants, stab
 import { buildingSettings } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
 import { canCampaign } from './combat-state.js';
+import { meetingOffers, triggerMeeting } from './electoral-buildings.js';
 
 export function createInfrastructure(world, config) {
   const buildings = [];
   const slots = [];
   for (const zone of world.subzones) {
-    for (const type of ['permanence', 'financement', 'faction']) {
+    for (const type of ['permanence', 'financement', 'faction', 'tour_communication', 'institut_sondage', 'meeting']) {
       const slotId = `slot:${zone.id}:${type}`;
       const buildingId = `building:${zone.id}:${type}`;
       const x = zone.start + zone.width * config.layout.infrastructure_layout[`${type}_x_ratio`];
       slots.push({ id: slotId, type, building_id: buildingId, x, subzone_id: zone.id, biome_id: zone.biome_id });
       buildings.push({ id: buildingId, type, slot_id: slotId, x, subzone_id: zone.id, biome_id: zone.biome_id,
         ownership_model: 'faction_owned', owner_id: null, level: 0, state: 'EMPTY', queue: [], last_action_tick: -1, delivered_count: 0,
-        variant: null, raid_ready_tick: 0, closure_ready_tick: 0 });
+        variant: null, raid_ready_tick: 0, closure_ready_tick: 0,
+        ...(type === 'meeting' ? { meeting_ready_tick: 0, meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 0, meetings_held: 0 } : {}) });
     }
     if (zone.local_index === Math.floor(world.subzones.filter(z => z.biome_id === zone.biome_id).length / 2)) {
       buildings.push({ id: `service:${zone.biome_id}:imprimerie`, type: 'imprimerie', slot_id: null,
@@ -29,7 +31,10 @@ export function createInfrastructure(world, config) {
 
 /** Authoritative quote. The renderer only displays this result and the saved timer. */
 export function buildingOffer(state, config, candidate, building) {
+  if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return null;
   if (building.type === 'faction') return nearestFactionOffer(state, config, candidate, building);
+  if (building.type === 'meeting' && building.state === 'ACTIVE') return meetingOffers(state, config, candidate, building)
+    .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0] || null;
   const settings = buildingSettings(config, building, candidate.faction_id);
   let kind; let cost; let available = true; let reason = null;
   if (building.type === 'imprimerie') {
@@ -47,6 +52,10 @@ export function buildingOffer(state, config, candidate, building) {
   } else if (building.owner_id === candidate.faction_id && building.level < settings.max_level) {
     kind = 'UPGRADE'; cost = settings.upgrade_costs[building.level - 1];
   } else return null;
+  if (building.type === 'tour_communication' && ['BUILD', 'REBUILD'].includes(kind)
+    && state.buildings.filter(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE').length >= settings.global_limit) {
+    available = false; reason = 'GLOBAL_LIMIT';
+  }
   const affordable = candidate.money + 1e-9 >= cost;
   if (!affordable) reason = 'INSUFFICIENT_FUNDS';
   return { target_id: building.id, key: `${building.id}:${kind}:${building.level}`, kind, cost,
@@ -54,10 +63,16 @@ export function buildingOffer(state, config, candidate, building) {
     available, affordable, reason, enabled: available && affordable };
 }
 
+export function buildingOffers(state, config, candidate, building) {
+  if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return [];
+  if (building.type === 'faction') return factionOffers(state, config, candidate, building);
+  if (building.type === 'meeting' && building.state === 'ACTIVE') return meetingOffers(state, config, candidate, building);
+  const offer = buildingOffer(state, config, candidate, building);
+  return offer ? [{ ...offer, x: building.x, radius: config.balance.interaction.radius_units }] : [];
+}
+
 export function nearestOffer(state, config, candidate) {
-  const radius = config.balance.interaction.radius_units;
-  const offers = state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id).flatMap(b => b.type === 'faction'
-    ? factionOffers(state, config, candidate, b) : [buildingOffer(state, config, candidate, b)].filter(Boolean).map(o => ({ ...o, x: b.x, radius })));
+  const offers = state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id).flatMap(b => buildingOffers(state, config, candidate, b));
   return offers.filter(o => distance(state, candidate.x, o.x) <= o.radius)
     .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))[0] || null;
 }
@@ -65,7 +80,7 @@ export function nearestOffer(state, config, candidate) {
 function transact(simulation, candidate, offer) {
   const { state, config } = simulation;
   const building = state.buildings.find(b => b.id === offer.target_id);
-  const fresh = building.type === 'faction' ? factionOffers(state, config, candidate, building).find(o => o.key === offer.key) : buildingOffer(state, config, candidate, building);
+  const fresh = buildingOffers(state, config, candidate, building).find(o => o.key === offer.key);
   if (!fresh?.enabled || fresh.key !== offer.key || distance(state, candidate.x, fresh.x ?? building.x) > (fresh.radius ?? config.balance.interaction.radius_units)) return false;
   const transaction = { id: `transaction:${state.next_transaction_id++}`, tick: state.tick, candidate_id: candidate.id,
     faction_id: candidate.faction_id, target_id: building.id, kind: fresh.kind, cost: fresh.cost };
@@ -75,7 +90,7 @@ function transact(simulation, candidate, offer) {
   candidate.spending[fresh.kind] = (candidate.spending[fresh.kind] || 0) + fresh.cost;
   state.transactions.push(transaction);
   if (state.transactions.length > config.balance.debug.transaction_history_limit) state.transactions.shift();
-  const handled = commitFactionAction(simulation, candidate, building, fresh);
+  const handled = fresh.kind === 'MEETING' ? (triggerMeeting(simulation, building), true) : commitFactionAction(simulation, candidate, building, fresh);
   if (handled) {
     // Raid, equipment and closure are committed through the same transaction path.
   } else if (fresh.kind === 'PRINT') {
@@ -100,6 +115,7 @@ function transact(simulation, candidate, offer) {
 export function updateEconomy(simulation) {
   const { state, config, hz } = simulation;
   for (const candidate of [...state.candidates].sort(stableIdOrder)) {
+    if (candidate.eliminated) continue;
     const income = incomePerSecond(state, config, candidate.faction_id);
     candidate.income_per_second = income;
     candidate.money += income / hz;
@@ -154,21 +170,50 @@ export function updateProduction(simulation) {
 }
 
 /** AI uses the same quotes as the simulation, and only emits movement/presence intentions. */
+export function aiDevelopmentZone(state, config, candidate) {
+  let missing = config.balance.ai_economy.development_order.find(type => !state.buildings.some(b => b.type === type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE'));
+  let desiredKind = 'BUILD';
+  if (!missing && state.buildings.some(b => b.type === 'meeting' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && !b.meetings_held)) { missing = 'meeting'; desiredKind = 'MEETING'; }
+  if (!missing && state.buildings.some(b => b.type === 'tour_communication' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && b.level < config.balance.buildings.tour_communication.max_level)) { missing = 'tour_communication'; desiredKind = 'UPGRADE'; }
+  if (!missing) return null;
+  const home = config.layout.starting_positions[candidate.faction_id];
+  const sites = state.buildings.filter(b => b.type === missing && (!b.owner_id || b.owner_id === candidate.faction_id)
+    && (desiredKind === 'BUILD' || (b.state === 'ACTIVE' && b.owner_id === candidate.faction_id)));
+  const homeSite = sites.find(b => b.subzone_id === home);
+  const site = homeSite || sites.sort((a, b) => localSympathisants(state, b.subzone_id, candidate.faction_id).length - localSympathisants(state, a.subzone_id, candidate.faction_id).length
+    || distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0];
+  return site ? { zone: state.world.subzones.find(z => z.id === site.subzone_id), next_type: missing, desired_kind: desiredKind } : null;
+}
+
 export function aiEconomicTarget(state, config, candidate) {
   const settings = config.balance.ai_economy;
   if (!settings.enabled) return null;
   const biome = zoneAt(state.world, candidate.x).biome_id;
+  const development = aiDevelopmentZone(state, config, candidate);
   const options = [];
   for (const building of state.buildings.filter(b => b.biome_id === biome && b.id !== candidate.purchase_latch_target_id)) {
-    const offer = buildingOffer(state, config, candidate, building);
+    for (const offer of buildingOffers(state, config, candidate, building)) {
     if (!offer?.enabled || candidate.money - offer.cost < settings.minimum_cash_reserve) continue;
+    // Establish a local economic base before dispersing the scarce workers.
+    if (development && !['PRINT', 'MEETING'].includes(offer.kind)
+      && !(building.type === development.next_type && (offer.kind === development.desired_kind || (offer.kind === 'REBUILD' && development.desired_kind === 'BUILD')))
+      && !(development.desired_kind === 'UPGRADE' && building.type === 'financement' && offer.kind === 'UPGRADE')) continue;
+    if (offer.kind === 'MEETING' && building.meetings_held && state.buildings.some(b => b.owner_id === candidate.faction_id
+      && b.type === 'tour_communication' && b.state === 'ACTIVE' && b.level < config.balance.buildings.tour_communication.max_level)) continue;
     if (offer.kind === 'PRINT') {
+      if (development && candidate.spending.PRINT >= settings.development_tract_limit * config.balance.buildings.imprimerie.tract_cost_by_level[0]) continue;
       const sympathisants = biomeSympathisants(state, biome, candidate.faction_id, true);
       const militants = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === biome).length;
       const queued = building.queue.filter(o => o.faction_id === candidate.faction_id).length;
       if (sympathisants.length <= settings.reserve_sympathisants_per_biome || militants + queued >= settings.militant_goal_per_biome) continue;
+      if (development && localSympathisants(state, development.zone.id, candidate.faction_id).length - queued <= settings.development_sympathisant_reserve) continue;
     }
-    options.push({ building: { ...building, x: offer.x ?? building.x }, priority: offer.kind === 'BUILD' ? (building.type === 'financement' ? 0 : 1) : offer.kind === 'PRINT' ? 2 : 3 });
+    const alreadyOwned = state.buildings.some(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
+    const priority = ['BUILD', 'REBUILD'].includes(offer.kind) ? (settings.electoral_building_priorities[building.type] ?? 5) + (alreadyOwned ? 10 : 0)
+      : offer.kind === 'MEETING' ? (building.meetings_held ? settings.repeat_meeting_priority : settings.first_meeting_priority)
+      : building.type === 'tour_communication' ? settings.tower_upgrade_priority : offer.kind === 'PRINT' ? settings.print_priority : 9;
+    options.push({ building: { ...building, x: offer.x ?? building.x, interaction_radius: offer.radius }, priority });
+    }
   }
   return options.sort((a, b) => a.priority - b.priority || distance(state, candidate.x, a.building.x) - distance(state, candidate.x, b.building.x) || stableIdOrder(a.building, b.building))[0]?.building || null;
 }

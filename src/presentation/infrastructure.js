@@ -1,6 +1,7 @@
 import { localSympathisants } from '../simulation/territory.js';
 import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
+import { drawElectoralBuilding } from './electoral.js';
 
 const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE' };
 
@@ -10,6 +11,7 @@ export function drawInfrastructure(renderer, state) {
   const settings = p.infrastructure;
   const h = settings.height_ratio * height;
   for (const building of state.buildings) {
+    if (['tour_communication', 'institut_sondage', 'meeting'].includes(building.type)) { drawElectoralBuilding(renderer, state, building); continue; }
     const w = (building.type === 'faction' ? settings.faction_width_ratio : settings.width_ratio) * width;
     const x = renderer.screenX(building.x);
     if (x + w / 2 < 0 || x - w / 2 > width) continue;

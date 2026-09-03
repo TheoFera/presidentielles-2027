@@ -80,6 +80,7 @@ export function commitFactionAction(sim, candidate, building, offer) {
   if (offer.kind === 'CLOSE') {
     const victim = state.buildings.find(b => b.id === offer.victim_id);
     victim.state = 'CLOSED'; victim.level = 0; victim.last_action_tick = state.tick;
+    if (victim.type === 'meeting') { victim.meeting_until_tick = 0; victim.meeting_level = 0; }
     for (const order of victim.queue) {
       const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
       if (worker) worker.task = null;

@@ -2,7 +2,7 @@ import { controlledZones } from '../simulation/combat-state.js';
 import { buildingSettings } from '../simulation/building-rules.js';
 import { cabinetTarget } from '../simulation/faction-buildings.js';
 export const attackNames = { CANDIDATE: 'Coup du candidat', VERBAL: 'Attaque verbale', GUARD: 'Coup de SO', HOLOGRAM: 'Coup d’hologramme', CRS: 'Coup de CRS', SPECIAL: 'Pouvoir spécial' };
-export const transactionNames = { BUILD: 'Construction', UPGRADE: 'Amélioration', PRINT: 'Impression', REBUILD: 'Reconstruction', EQUIP: 'Équipement SO', RAID: 'Raid', CLOSE: 'Fermeture' };
+export const transactionNames = { BUILD: 'Construction', UPGRADE: 'Amélioration', PRINT: 'Impression', REBUILD: 'Reconstruction', EQUIP: 'Équipement SO', RAID: 'Raid', CLOSE: 'Fermeture', MEETING: 'Meeting' };
 
 export function combatReport(state, config, candidate, npc, building) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;

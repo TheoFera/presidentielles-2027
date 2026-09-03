@@ -1,17 +1,18 @@
-import { ringDelta, wrap, zoneAt } from './world.js';
+import { combatDelta, combatPosition } from './combat-geometry.js';
+import { zoneAt } from './world.js';
 import { distance, localUnits, stableIdOrder } from './territory.js';
 
 export function moveNpcTowards(simulation, npc, destination, speed) {
   if (npc.role === 'MILITANT') speed = Math.min(speed, simulation.config.prototype.movement.candidate_speed_units_per_second * Math.min(2, simulation.config.balance.physical_units.militant.max_player_speed_multiplier));
-  const delta = ringDelta(npc.x, destination, simulation.state.world.length);
+  const delta = combatDelta(simulation.state, npc.x, destination);
   const step = speed / simulation.hz;
   if (Math.abs(delta) <= step) {
-    npc.x = wrap(destination, simulation.state.world.length);
+    npc.x = combatPosition(simulation.state, destination);
     npc.moving = Math.abs(delta) > simulation.config.prototype.world.arrival_epsilon_units;
     return true;
   }
   npc.facing = Math.sign(delta); npc.moving = true;
-  npc.x = wrap(npc.x + npc.facing * step, simulation.state.world.length);
+  npc.x = combatPosition(simulation.state, npc.x + npc.facing * step);
   return false;
 }
 

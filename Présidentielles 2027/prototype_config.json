@@ -1,5 +1,5 @@
 {
-  "milestone": "conflict",
+  "milestone": "complete_match",
   "seed": 2027,
   "world": {
     "units_per_screen": 24,
@@ -31,7 +31,7 @@
     "refresh_seconds": 0.2
   },
   "time": {
-    "minimum_days_remaining_for_milestone": 1
+    "minimum_days_remaining_for_milestone": 0
   },
   "presentation": {
     "reference_width": 960,

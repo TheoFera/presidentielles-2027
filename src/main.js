@@ -1,4 +1,5 @@
 import { loadConfig } from './config.js';
+import { incomePerSecond } from './simulation/territory.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
@@ -6,6 +7,8 @@ import { zoneAt } from './simulation/world.js';
 import { WorldRenderer } from './presentation/renderer.js';
 import { BrowserInput } from './presentation/input.js';
 import { DebugPanel } from './presentation/debug.js';
+import { ElectoralDisplay } from './presentation/electoral.js';
+import { MatchDisplay } from './presentation/match.js';
 
 function showError(error) {
   console.error(error);
@@ -24,6 +27,11 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  const electoralDisplay = new ElectoralDisplay(config);
+  const matchDisplay = new MatchDisplay(config, {
+    follow: () => { renderer.resetCamera(); canvas.focus(); },
+    replay: () => restartMatch(false), return: () => restartMatch(true),
+  });
   const help = document.getElementById('help');
   const money = document.getElementById('money');
   const notice = document.getElementById('notice');
@@ -43,14 +51,25 @@ async function start() {
   const queue = command => { pending.push(command); canvas.focus(); };
   const resetPresentation = () => {
     state = simulation.getState(); previous = state; pending = []; clock.reset(); input.clear(); renderer.resetCamera();
+    matchDisplay.reset();
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
+  function restartMatch(home = false, seed = config.prototype.seed) {
+    simulation = new GameSimulation(config, seed, state.local_candidate_id);
+    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
+    debug.toggle(false); togglePause(home); document.getElementById('resume').textContent = home ? 'Commencer la campagne' : 'Reprendre';
+  }
   const debug = new DebugPanel(config, {
     state: () => state, queue, notify,
     paused: () => paused, speed: () => simulationSpeed,
     togglePause: () => togglePause(!paused, false),
-    toggleSpeed: () => { simulationSpeed = simulationSpeed === 1 ? config.balance.debug.acceleration_multiplier : 1; canvas.focus(); },
+    toggleSpeed: () => { const speeds = config.balance.debug.acceleration_multipliers; simulationSpeed = speeds[(speeds.indexOf(simulationSpeed) + 1) % speeds.length]; canvas.focus(); },
+    speedFive: () => { simulationSpeed = 5; canvas.focus(); },
+    saveTelemetry: () => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(state.telemetry, null, 2)], { type: 'application/json' }));
+      const link = document.createElement('a'); link.href = url; link.download = `resume-partie-${state.seed}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
     save: () => {
       const blob = new Blob([simulation.exportSnapshot()], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -65,7 +84,7 @@ async function start() {
       } catch (error) { notify(error.message, config.prototype.presentation.hint_seconds); }
     },
     restart: seed => {
-      simulation = new GameSimulation(config, seed); resetPresentation(); simulationSpeed = 1;
+      restartMatch(false, seed);
       notify(`Nouvelle partie · graine ${seed}`);
     },
   });
@@ -95,9 +114,9 @@ async function start() {
   // Help values follow the configuration too.
   const durationText = document.getElementById('balance-help');
   const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+  document.getElementById('poll-help').textContent = `La Tour renforce doucement l’influence dans le monde entier. L’Institut révèle le cercle et les scores : un nouveau sondage arrive toutes les ${format(config.balance.buildings.institut_sondage.poll_refresh_seconds)} secondes. Un Institut fermé conserve sa dernière mesure, qui devient grisée. Le cercle suit le monde dans le sens des aiguilles d’une montre, depuis Paris à midi.`;
   durationText.textContent = `Permanence : ${config.balance.buildings.permanence.required_local_sympathisants} Sympathisants locaux, ${format(config.balance.buildings.permanence.build_cost)} k €. Financement : ${config.balance.buildings.financement.required_local_sympathisants} locaux, ${format(config.balance.buildings.financement.build_cost)} k €. Un tract : ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k €. Mélenchon convainc en ${format(config.balance.persuasion.candidate_base_seconds * config.balance.persuasion.melenchon_personal_time_multiplier)} s ; les autres en ${format(config.balance.persuasion.candidate_base_seconds)} s, les Militants en ${format(config.balance.persuasion.militant_base_seconds)} s, hors bonus de Permanence.`;
   const currency = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals });
-  notify(`J-${state.days_remaining}`, config.prototype.presentation.day_flash_seconds);
   canvas.focus();
 
   function frame(now) {
@@ -113,23 +132,31 @@ async function start() {
           pending = [];
           simulation.step(commands);
           state = simulation.getState();
+          if (state.phase !== previous.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
           if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
         });
         hintRemaining -= elapsed;
         noticeRemaining -= elapsed;
       }
-      const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
+      matchDisplay.update(state);
+      const candidate = matchDisplay.viewedCandidate(state);
       const zone = zoneAt(state.world, candidate.x);
       if (zone.id !== currentZone) { currentZone = zone.id; notify(`${zone.biome_name}\n${zone.concept}`); }
       if (state.days_remaining !== currentDay) {
         currentDay = state.days_remaining;
         if (config.balance.display.show_day_change_flash) notify(`J-${currentDay}`, config.prototype.presentation.day_flash_seconds);
       }
-      money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}`;
+      const income = incomePerSecond(state, config, candidate.faction_id).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+      money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`;
+      money.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      document.getElementById('attack-touch').hidden = state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      electoralDisplay.update(state, candidate.faction_id);
       if (noticeRemaining <= 0) notice.textContent = '';
       hint.style.opacity = hintRemaining > 0 ? '1' : '0';
-      hint.hidden = hintRemaining < -0.5;
-      renderer.draw(state, paused ? state : previous, paused ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+      hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
+      notice.hidden = state.phase === 'FIRST_ROUND_ARENA' || state.phase === 'RESULTS';
+      const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
+      renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);

@@ -1,0 +1,125 @@
+TAP version 13
+# Subtest: J0 au tick prévu : gel du monde complet, jauges nationales réelles, reprise exacte des finalistes
+ok 1 - J0 au tick prévu : gel du monde complet, jauges nationales réelles, reprise exacte des finalistes
+  ---
+  duration_ms: 76.4931
+  ...
+# Subtest: Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans l’arène
+ok 2 - Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans l’arène
+  ---
+  duration_ms: 6.0008
+  ...
+# Subtest: Dégâts d’arène des six attaques : jauge directe, support du monde inchangé, premier KO seul
+ok 3 - Dégâts d’arène des six attaques : jauge directe, support du monde inchangé, premier KO seul
+  ---
+  duration_ms: 35.835
+  ...
+# Subtest: Les vrais Attack déclenchent chaque spécial et infligent des dégâts d’arène autoritaires
+ok 4 - Les vrais Attack déclenchent chaque spécial et infligent des dégâts d’arène autoritaires
+  ---
+  duration_ms: 16.108
+  ...
+# Subtest: Bords de plateau solides : marche, recul et projectile ne bouclent pas, pas de ring-out
+ok 5 - Bords de plateau solides : marche, recul et projectile ne bouclent pas, pas de ring-out
+  ---
+  duration_ms: 4.2348
+  ...
+# Subtest: Neutralisation : S/M/SO rentrent à leur origine, bâtiments libérés, Neutres préservés et voix sans transfert
+ok 6 - Neutralisation : S/M/SO rentrent à leur origine, bâtiments libérés, Neutres préservés et voix sans transfert
+  ---
+  duration_ms: 251.2334
+  ...
+# Subtest: Imprimerie partagée : commandes du troisième annulées, celles du finaliste conservées
+ok 7 - Imprimerie partagée : commandes du troisième annulées, celles du finaliste conservées
+  ---
+  duration_ms: 11.1658
+  ...
+# Subtest: Anciens PNJ : aucune conversion gratuite, retour puis persuasion des deux finalistes et télémétrie unique
+ok 8 - Anciens PNJ : aucune conversion gratuite, retour puis persuasion des deux finalistes et télémétrie unique
+  ---
+  duration_ms: 470.449
+  ...
+# Subtest: Emplacement abandonné : seuil local et paiement restent requis, aucun transfert automatique
+ok 9 - Emplacement abandonné : seuil local et paiement restent requis, aucun transfert automatique
+  ---
+  duration_ms: 69.5435
+  ...
+# Subtest: Sprint : multiplicateur global unique, Tour atténuée, Meeting ×10 payé et délai raccourci
+ok 10 - Sprint : multiplicateur global unique, Tour atténuée, Meeting ×10 payé et délai raccourci
+  ---
+  duration_ms: 64.9661
+  ...
+# Subtest: Une Tour seule ne fait pas exploser une zone sans présence en deux secondes
+ok 11 - Une Tour seule ne fait pas exploser une zone sans présence en deux secondes
+  ---
+  duration_ms: 59.8994
+  ...
+# Subtest: Sondages du sprint à 2,5 s ; Institut fermé garde sa dernière mesure ; résultat utilise le réel
+ok 12 - Sondages du sprint à 2,5 s ; Institut fermé garde sa dernière mesure ; résultat utilise le réel
+  ---
+  duration_ms: 86.508
+  ...
+# Subtest: Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV d’arène
+ok 13 - Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV d’arène
+  ---
+  duration_ms: 6.6508
+  ...
+# Subtest: 60 secondes exactes, égalités répétées +15 s et fin autoritaire figée
+ok 14 - 60 secondes exactes, égalités répétées +15 s et fin autoritaire figée
+  ---
+  duration_ms: 2020.6529
+  ...
+# Subtest: Égalité : règle configurable J0 puis graine, et commande debug de prolongation
+ok 15 - Égalité : règle configurable J0 puis graine, et commande debug de prolongation
+  ---
+  duration_ms: 11.6162
+  ...
+# Subtest: Snapshot d’arène et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris
+ok 16 - Snapshot d’arène et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris
+  ---
+  duration_ms: 1381.8186
+  ...
+# Subtest: Snapshots corrompus : jauges, monde gelé, élimination, horloge et résultat refusés atomiquement
+ok 17 - Snapshots corrompus : jauges, monde gelé, élimination, horloge et résultat refusés atomiquement
+  ---
+  duration_ms: 82.2396
+  ...
+# Subtest: Les pouvoirs et attaques déjà actifs dans le monde reprennent avec leurs délais exacts
+ok 18 - Les pouvoirs et attaques déjà actifs dans le monde reprennent avec leurs délais exacts
+  ---
+  duration_ms: 18.4238
+  ...
+# Subtest: Un candidat à 0 % à J0 est éliminé sans blocage et le debug ne peut ressusciter son camp
+ok 19 - Un candidat à 0 % à J0 est éliminé sans blocage et le debug ne peut ressusciter son camp
+  ---
+  duration_ms: 10.5676
+  ...
+# Subtest: L’IA du sprint paye un Meeting proche et recherche la réserve du troisième
+ok 20 - L’IA du sprint paye un Meeting proche et recherche la réserve du troisième
+  ---
+  duration_ms: 63.2083
+  ...
+# Subtest: Rejouer : un nouveau GameSimulation efface élimination, IA, pouvoirs, unités et toute la télémétrie
+ok 21 - Rejouer : un nouveau GameSimulation efface élimination, IA, pouvoirs, unités et toute la télémétrie
+  ---
+  duration_ms: 10.3979
+  ...
+# Subtest: Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le sprint
+ok 22 - Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le sprint
+  ---
+  duration_ms: 1231.9796
+  ...
+# Subtest: IA d’arène indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0
+ok 23 - IA d’arène indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0
+  ---
+  duration_ms: 159.8225
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6296.7268

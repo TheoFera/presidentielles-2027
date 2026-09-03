@@ -1,0 +1,17 @@
+
+> presidentielles-2027-greybox@0.4.0 test:conflits
+> node scripts/validate-milestone3.mjs
+
+jalon3-hologrammes : état validé, tick 6
+jalon3-vague : état validé, tick 6
+jalon3-crs : état validé, tick 6
+jalon3-1so : état validé, tick 3
+jalon3-2so : état validé, tick 4
+jalon3-3so : état validé, tick 5
+jalon3-duel : état validé, tick 3
+jalon3-equipement : état validé, tick 130
+jalon3-retrait-so : état validé, tick 308
+jalon3-raid : état validé, tick 346
+jalon3-cabinet : état validé, tick 68
+jalon3-reconstruction : état validé, tick 129
+Parcours SO → équipement → raid, Cabinet → fermeture → reconstruction et 7 scènes de combat préparées et vérifiées. Ressources et unités de test explicites ; aucune modification des réglages normaux.

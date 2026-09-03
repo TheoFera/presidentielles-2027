@@ -1,14 +1,16 @@
 {
   "name": "presidentielles-2027-greybox",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Troisième jalon — combats, défense territoriale et pouvoirs",
+  "description": "Cinquième jalon — partie complète, arène médiatique et second tour",
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test",
     "test:parcours": "node scripts/validate-milestone2.mjs",
-    "test:conflits": "node scripts/validate-milestone3.mjs"
+    "test:conflits": "node scripts/validate-milestone3.mjs",
+    "test:conquete": "node scripts/validate-milestone4.mjs",
+    "test:partie": "node scripts/validate-milestone5.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -97,3 +97,14 @@ L'IA doit utiliser les mêmes GameCommands qu'un joueur humain.
 - tests snapshot ;
 - tests commands ;
 - acceptance checklist.
+
+## Livraison du cinquième jalon — V0 gameplay complète
+
+- [x] Quatre phases autoritaires, J0 naturel et gel du monde sérialisé.
+- [x] Arène à trois, jauges issues des scores, combos/pouvoirs, premier KO et IA déterministe.
+- [x] Reprise du monde et neutralisation complète du troisième camp.
+- [x] Sprint 60 s, influence ×10, Tour atténuée, sondages accélérés et Meeting payant.
+- [x] Résultat réel, prolongations, spectateur, Rejouer et retour à l’accueil.
+- [x] Outils de fin de partie, snapshots version 5 et télémétrie JSON.
+
+Contrats et validation détaillés : `../JALON_5_SPEC.md` et `../VALIDATION_JALON_5.md`. Aucun réseau réel n’est implémenté. Les mentions historiques du jour transitoire dans les spécifications initiales sont remplacées par le J-XX discret validé, puis par le chrono du sprint.

@@ -1,17 +1,17 @@
-import { FACTIONS, ringDelta } from './world.js';
+import { combatDelta, combatPosition } from './combat-geometry.js';
 import { stableIdOrder } from './territory.js';
+import { leadership, refreshElectoralState } from './electoral-state.js';
 
 export const combatState = () => ({ attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
-export const combatActors = state => [...state.candidates, ...state.npcs, ...state.temporary_units];
-export const canBeHit = actor => actor && actor.faction_id && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
+export const combatActors = state => [...state.candidates.filter(c => !c.eliminated), ...state.npcs, ...state.temporary_units];
+export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && a.faction_id !== b.faction_id;
 export const interrupted = actor => actor.combat && (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const canCampaign = actor => !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
-  return state.electorate.filter(e => e.support[faction] >= config.balance.influence.control_min_leader_percent
-    && FACTIONS.filter(f => f !== faction).every(f => e.support[faction] - e.support[f] >= config.balance.influence.control_required_lead_points));
+  return state.electorate.filter(e => leadership(e.support, config).controller === faction);
 }
 
 export function electoralDamage(sim, faction, amount) {
@@ -22,6 +22,7 @@ export function electoralDamage(sim, faction, amount) {
     const loss = Math.min(zone.support[faction], amount * zone.support[faction] / total);
     zone.support[faction] -= loss; zone.support.neutral += loss; removed += loss;
   }
+  refreshElectoralState(sim.state, sim.config);
   return removed;
 }
 
@@ -41,13 +42,24 @@ export function demobilizeUnit(sim, npc) {
 
 /** The simulation computes every hit; the renderer never chooses a victim. */
 export function hit(sim, source, target, spec, attackId) {
-  if (!enemies(source, target)) return null;
+  if (!enemies(source, target) || sim.state.arena_bounds && sim.state.eliminated_faction) return null;
   const { state, config } = sim;
-  const direction = spec.direction || Math.sign(ringDelta(source.x, target.x, state.world.length)) || source.facing;
+  const direction = spec.direction || Math.sign(combatDelta(state, source.x, target.x)) || source.facing;
   const result = { id: `hit:${state.next_hit_id++}`, tick: state.tick, attack_id: attackId,
     source_id: source.id, target_id: target.id, damage: 0, electoral_damage: 0, knockback: spec.knockback, direction, x: target.x, strong: !!spec.strong };
-  if (target.role === 'CANDIDAT') {
+  if (target.role === 'CANDIDAT' && state.arena_bounds) {
+    const damage = config.balance.first_round_arena.damage;
+    const key = spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
+    result.damage = Math.min(target.arena_hp, damage[key]);
+    result.score_damage = result.damage; result.arena_hp_before = target.arena_hp;
+    target.arena_hp = Math.max(0, target.arena_hp - damage[key]); result.arena_hp_after = target.arena_hp;
+    target.hits_received++; state.candidate_hit_count++;
+    if (target.arena_hp === 0) state.eliminated_faction = target.faction_id;
+  } else if (target.role === 'CANDIDAT') {
+    const before = controlledZones(state, config, target.faction_id).map(e => ({ subzone_id: e.subzone_id, support: { ...e.support }, controller: leadership(e.support, config).controller }));
     result.electoral_damage = electoralDamage(sim, target.faction_id, spec.electoral_damage || 0);
+    result.electoral_changes = before.map(e => { const after = state.electorate.find(z => z.subzone_id === e.subzone_id);
+      return { subzone_id: e.subzone_id, before: e.support, after: { ...after.support }, controller_before: e.controller, controller_after: after.controller }; });
     target.electoral_damage_received += result.electoral_damage;
     target.hits_received++;
   } else {
@@ -68,6 +80,7 @@ export function hit(sim, source, target, spec, attackId) {
     else demobilizeUnit(sim, target);
   }
   state.hit_results.push(result);
+  if (state.arena_bounds) state.hit_count++;
   if (state.hit_results.length > config.balance.debug.combat_history_limit) state.hit_results.shift();
   sim.emit('HitResolved', result);
   return result;
@@ -75,6 +88,6 @@ export function hit(sim, source, target, spec, attackId) {
 
 export function nearestEnemy(state, actor, range, predicate = () => true) {
   return combatActors(state).filter(target => enemies(actor, target) && predicate(target)
-    && Math.abs(ringDelta(actor.x, target.x, state.world.length)) <= range)
-    .sort((a, b) => Math.abs(ringDelta(actor.x, a.x, state.world.length)) - Math.abs(ringDelta(actor.x, b.x, state.world.length)) || stableIdOrder(a, b))[0] || null;
+    && Math.abs(combatDelta(state, actor.x, target.x)) <= range)
+    .sort((a, b) => Math.abs(combatDelta(state, actor.x, a.x)) - Math.abs(combatDelta(state, actor.x, b.x)) || stableIdOrder(a, b))[0] || null;
 }

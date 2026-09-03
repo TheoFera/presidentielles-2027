@@ -1,6 +1,8 @@
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
 import { drawInfrastructure, drawBanknote } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
+import { drawTerritoryFlags } from './electoral.js';
+import { drawArena } from './match.js';
 
 export function compositionMetrics(config, width, height) {
   const ratios = config.layout.visual_layout;
@@ -39,6 +41,7 @@ export class WorldRenderer {
   resetCamera() { this.cameraX = null; }
 
   draw(state, previous, alpha, elapsed, debug = false) {
+    if (state.phase === 'FIRST_ROUND_ARENA') { drawArena(this, state.arena, previous.arena, alpha); return; }
     const ctx = this.ctx;
     const m = this.metrics;
     const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
@@ -64,6 +67,7 @@ export class WorldRenderer {
       this.drawZone(subzone, left, this.p.biome_palettes[subzone.biome_id], state);
     }
     drawInfrastructure(this, state);
+    drawTerritoryFlags(this, state);
     ctx.fillStyle = this.p.ground_edge;
     ctx.fillRect(0, m.groundY, this.width, 2);
     ctx.fillStyle = this.p.ground_tone;
@@ -72,7 +76,7 @@ export class WorldRenderer {
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
-    const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => c.id !== candidate.id), candidate];
+    const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && c.id !== candidate.id), ...(!candidate.eliminated ? [candidate] : [])];
     for (const entity of entities) {
       if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
       const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
@@ -187,6 +191,8 @@ export class WorldRenderer {
     const walk = entity.moving ? Math.sin(time * this.p.animation_walk_hz * Math.PI * 2) : 0;
     const swing = Math.round(walk * 2);
     const persuading = entity.persuasion_target_ids?.length > 0;
+    const celebrating = ['SYMPATHISANT', 'MILITANT'].includes(entity.role) && !entity.combat?.engaged && state.buildings.some(b => b.type === 'meeting'
+      && b.state === 'ACTIVE' && b.owner_id === entity.faction_id && b.subzone_id === zoneAt(state.world, entity.x).id && b.meeting_until_tick > state.tick);
     ctx.save();
     ctx.translate(Math.round(x), Math.round(ground));
     ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.55 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
@@ -208,7 +214,7 @@ export class WorldRenderer {
     rect(-8, -19 + swing, 3, 10, outline);
     rect(-7, -18 + swing, 2, 6, tone);
     rect(-7, -12 + swing, 2, 3, this.p.skin_tone);
-    const raised = persuading || entity.task?.phase === 'PICKUP' ? -3 : -swing;
+    const raised = celebrating ? -5 + Math.round(Math.sin(time * 7)) : persuading || entity.task?.phase === 'PICKUP' ? -3 : -swing;
     rect(6, -19 + raised, 3, 10, outline);
     rect(6, -18 + raised, 2, 6, tone);
     rect(6, -12 + raised, 2, 3, this.p.skin_tone);

@@ -12,3 +12,7 @@ export const attack = (candidateId, direction = null) => ({ type: 'Attack', cand
 export const fillSpecial = candidateId => ({ type: 'DebugFillSpecial', candidateId });
 export const controlZone = candidateId => ({ type: 'DebugControlZone', candidateId });
 export const spawnUnit = (candidateId, role, factionId) => ({ type: 'DebugSpawnUnit', candidateId, role, factionId });
+export const addInfluence = (candidateId, factionId) => ({ type: 'DebugAddInfluence', candidateId, factionId });
+export const neutral50 = candidateId => ({ type: 'DebugNeutral50', candidateId });
+export const buildElectoral = (candidateId, buildingType) => ({ type: 'DebugBuildElectoral', candidateId, buildingType });
+export const debugMeeting = candidateId => ({ type: 'DebugMeeting', candidateId });

@@ -246,7 +246,7 @@ test('Hologrammes : se ruent sur les adversaires et frappent sans produire d’i
   advance(sim, 90);
   assert.ok(sim.state.hit_results.some(h => h.source_id.startsWith('temporary:')));
   assert.ok(target.hidden_durability < 90);
-  assert.equal(sim.state.electorate.find(e => e.subzone_id === 'banlieue_b').influence_per_second.melenchon, 0);
+  assert.equal(sim.state.electorate.find(e => e.subzone_id === 'banlieue_b').influence_per_second.melenchon, config.balance.influence.candidate_presence_per_second);
 });
 
 test('CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles', () => {

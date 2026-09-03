@@ -2,19 +2,22 @@ import { FACTIONS, buildWorld, fingerprint } from './world.js';
 import { createInfrastructure } from './economy.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
 import { validateCombatSnapshot } from './combat-snapshots.js';
+import { validateElectoralSnapshot } from './electoral-snapshots.js';
+import { GamePhase } from './phases.js';
+import { validateMatchSnapshot } from './match-snapshots.js';
 
 /** Validate the entire snapshot before committing anything to the running simulation. */
-export function validateSnapshot(next, simulation) {
+export function validateSnapshot(next, simulation, nested = false) {
   const { config } = simulation;
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 3 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde du troisième jalon');
+  if (!next || next.snapshot_version !== 5 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde du cinquième jalon');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
   for (const field of ['candidates', 'npcs', 'events', 'buildings', 'building_slots', 'transactions', 'electorate', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results']) if (!Array.isArray(next[field])) fail(`collection absente : ${field}`);
-  if (next.candidates.length !== FACTIONS.length || next.phase !== 'EXPLORATION_GREYBOX' || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
+  if (next.candidates.length !== FACTIONS.length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
   if (!integer(next.days_remaining, config.prototype.time.minimum_days_remaining_for_milestone) || next.days_remaining > config.balance.time.starting_days_before_first_round) fail('jour invalide');
   const infrastructure = createInfrastructure(next.world, config);
   if (JSON.stringify(next.building_slots) !== JSON.stringify(infrastructure.slots) || next.buildings.length !== infrastructure.buildings.length) fail('emplacements différents');
@@ -35,7 +38,7 @@ export function validateSnapshot(next, simulation) {
     if (!candidate.spending || ['BUILD', 'UPGRADE', 'PRINT'].some(k => !finite(candidate.spending[k]))) fail('dépenses invalides');
     if (candidate.purchase_latch_target_id !== null && !next.buildings.some(b => b.id === candidate.purchase_latch_target_id)) fail('interaction inconnue');
     const hold = candidate.purchase_hold;
-    if (hold && (!next.buildings.some(b => b.id === hold.target_id) || !['BUILD', 'UPGRADE', 'PRINT', 'REBUILD', 'EQUIP', 'RAID', 'CLOSE'].includes(hold.kind) || !finite(hold.cost)
+    if (hold && (!next.buildings.some(b => b.id === hold.target_id) || !['BUILD', 'UPGRADE', 'PRINT', 'REBUILD', 'EQUIP', 'RAID', 'CLOSE', 'MEETING'].includes(hold.kind) || !finite(hold.cost)
       || !integer(hold.required_ticks, 1) || !integer(hold.elapsed_ticks) || hold.elapsed_ticks >= hold.required_ticks || typeof hold.key !== 'string')) fail('paiement invalide');
   }
   for (const actor of [...next.candidates, ...next.npcs]) {
@@ -126,5 +129,7 @@ export function validateSnapshot(next, simulation) {
     if (FACTIONS.some(f => !finite(record.influence_per_second[f]) || !Number.isFinite(record.net_change_per_second[f]))) fail('influence invalide');
   });
   validateCombatSnapshot(next, simulation, fail);
+  validateElectoralSnapshot(next, config, fail);
+  validateMatchSnapshot(next, simulation, fail, validateSnapshot, nested);
   return next;
 }

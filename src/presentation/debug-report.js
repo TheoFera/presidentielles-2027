@@ -1,12 +1,12 @@
 import { buildingOffer } from '../simulation/economy.js';
 import { FACTIONS, zoneAt } from '../simulation/world.js';
-import { incomePerSecond, localUnits, waitingAtPoint } from '../simulation/territory.js';
+import { incomeBreakdown, localUnits, waitingAtPoint } from '../simulation/territory.js';
 import { buildingSettings, buildingLabel } from '../simulation/building-rules.js';
 import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
-export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet' };
-export const reasonNames = { QUEUE_FULL: 'File pleine', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
+export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
+export const reasonNames = { GLOBAL_LIMIT: 'Limite de Tours actives atteinte', QUEUE_FULL: 'File pleine', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
   const f = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
@@ -63,8 +63,16 @@ export function managementReport(state, config, candidate, npc, building) {
       for (const order of building.queue) lines.push(`${order.id} · ${names[order.faction_id].name} · ${states[order.state]}\n  ${order.assigned_npc_id || 'Attend une unité disponible'} · production ${f(order.production_elapsed_ticks / hz)} / ${f(order.production_required_ticks ? order.production_required_ticks / hz : settings.equipment_seconds_by_level[0])} s`);
     }
   }
+  const income = incomeBreakdown(state, config, candidate.faction_id);
   lines.push('', '— ÉCONOMIE DU CANDIDAT —', `Argent exact : ${f(candidate.money)} k €`,
-    `Revenu passif : ${f(incomePerSecond(state, config, candidate.faction_id))} k €/s`,
+    `Revenu passif total : ${f(income.total)} k €/s`,
+    `Avant bonus : base ${f(income.base)} + partisans ${f(income.supporters)} + financements ${f(income.buildings)} k €/s`,
+    `Multiplicateur du candidat : ×${f(income.multiplier)}`,
+    'Partisans par biome d’origine (Sympathisants, Militants et Services d’ordre) :',
+    ...config.layout.biomes.map(biome => {
+      const source = income.byBiome[biome.id];
+      return `  ${biome.display_name} : ${source.count} × ${f(source.rate)} = ${f(source.income)} k €/s avant bonus`;
+    }),
     `Revenus cumulés : ${f(candidate.total_earned)} k € · dépenses cumulées : ${f(candidate.total_spent)} k €`,
     `Constructions : ${f(candidate.spending.BUILD)} · améliorations : ${f(candidate.spending.UPGRADE)} · tracts : ${f(candidate.spending.PRINT)} k €`,
     candidate.purchase_hold ? `Paiement : ${candidate.purchase_hold.target_id}\n  ${f(candidate.purchase_hold.elapsed_ticks / hz)} / ${f(candidate.purchase_hold.required_ticks / hz)} s · ${f(candidate.purchase_hold.cost)} k €` : 'Paiement : aucun',

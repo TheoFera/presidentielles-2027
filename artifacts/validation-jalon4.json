@@ -1,0 +1,513 @@
+{
+  "prepared": [
+    {
+      "faction": "melenchon",
+      "spending": {
+        "BUILD": 230,
+        "UPGRADE": 270,
+        "PRINT": 0,
+        "MEETING": 30
+      },
+      "local_support": {
+        "melenchon": 36.334311917486666,
+        "le_pen": 17.6,
+        "philippe": 17.60041894568252,
+        "neutral": 28.46526913683081
+      },
+      "snapshot_tick": 545
+    },
+    {
+      "faction": "le_pen",
+      "spending": {
+        "BUILD": 230,
+        "UPGRADE": 270,
+        "PRINT": 0,
+        "MEETING": 30
+      },
+      "local_support": {
+        "melenchon": 17.6,
+        "le_pen": 36.598240230297286,
+        "philippe": 17.6,
+        "neutral": 28.20175976970272
+      },
+      "snapshot_tick": 545
+    },
+    {
+      "faction": "philippe",
+      "spending": {
+        "BUILD": 230,
+        "UPGRADE": 270,
+        "PRINT": 0,
+        "MEETING": 30
+      },
+      "local_support": {
+        "melenchon": 17.6,
+        "le_pen": 17.6,
+        "philippe": 36.242984394185584,
+        "neutral": 28.557015605814414
+      },
+      "snapshot_tick": 545
+    }
+  ],
+  "runs": [
+    {
+      "seed": 2027,
+      "seconds": 900,
+      "milestones": {
+        "melenchon": {
+          "buildings": {
+            "financement": 51.46666666666667,
+            "tour_communication": 198.76666666666668,
+            "institut_sondage": 411.1333333333333,
+            "meeting": 568.8
+          },
+          "meetings": 1
+        },
+        "le_pen": {
+          "buildings": {
+            "financement": 65.63333333333334,
+            "tour_communication": 153.66666666666666,
+            "institut_sondage": 421.23333333333335,
+            "meeting": 577.6333333333333
+          },
+          "meetings": 1
+        },
+        "philippe": {
+          "buildings": {
+            "financement": 67.23333333333333,
+            "tour_communication": 137.7,
+            "institut_sondage": 204.9,
+            "meeting": 348.1
+          },
+          "meetings": 1
+        }
+      },
+      "max_sum_error": 1.4210854715202004e-14,
+      "national": {
+        "melenchon": 22.38772579166674,
+        "le_pen": 23.30965654950055,
+        "philippe": 19.861059027970633,
+        "neutral": 34.44155863086209
+      },
+      "controlled": {
+        "melenchon": 1,
+        "le_pen": 1,
+        "philippe": 1,
+        "contested": 15
+      },
+      "factions": [
+        {
+          "faction": "melenchon",
+          "money": 59.15799999999431,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 109.20000000000005,
+          "hold": null
+        },
+        {
+          "faction": "le_pen",
+          "money": 52.80333333332881,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 253.44000000000005,
+          "hold": null
+        },
+        {
+          "faction": "philippe",
+          "money": 97.48093333330087,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 315,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 3,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 395.03999999999974,
+          "hold": null
+        }
+      ]
+    },
+    {
+      "seed": 73,
+      "seconds": 900,
+      "milestones": {
+        "melenchon": {
+          "buildings": {
+            "financement": 54.2,
+            "tour_communication": 201.86666666666667,
+            "institut_sondage": 412.96666666666664,
+            "meeting": 569.4666666666667
+          },
+          "meetings": 1
+        },
+        "le_pen": {
+          "buildings": {
+            "financement": 77.36666666666666,
+            "tour_communication": 160.03333333333333,
+            "institut_sondage": 429.76666666666665,
+            "meeting": 586
+          },
+          "meetings": 1
+        },
+        "philippe": {
+          "buildings": {
+            "financement": 98.66666666666667,
+            "tour_communication": 184.56666666666666,
+            "institut_sondage": 205.86666666666667,
+            "meeting": 369.73333333333335
+          },
+          "meetings": 1
+        }
+      },
+      "max_sum_error": 1.4210854715202004e-14,
+      "national": {
+        "melenchon": 21.09030165072888,
+        "le_pen": 23.119264717341665,
+        "philippe": 22.57270926439226,
+        "neutral": 33.2177243675372
+      },
+      "controlled": {
+        "melenchon": 1,
+        "le_pen": 1,
+        "philippe": 1,
+        "contested": 15
+      },
+      "factions": [
+        {
+          "faction": "melenchon",
+          "money": 58.015333333323234,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 109.08000000000004,
+          "hold": null
+        },
+        {
+          "faction": "le_pen",
+          "money": 47.3693333333312,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 253.48695574754788,
+          "hold": null
+        },
+        {
+          "faction": "philippe",
+          "money": 70.67146666665212,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 315,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 3,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 395.28,
+          "hold": null
+        }
+      ]
+    },
+    {
+      "seed": 31415,
+      "seconds": 900,
+      "milestones": {
+        "melenchon": {
+          "buildings": {
+            "financement": 39.6,
+            "tour_communication": 190.6,
+            "institut_sondage": 402.56666666666666,
+            "meeting": 559.5666666666667
+          },
+          "meetings": 1
+        },
+        "le_pen": {
+          "buildings": {
+            "financement": 61.766666666666666,
+            "tour_communication": 148.9,
+            "institut_sondage": 418.6333333333333,
+            "meeting": 574.7666666666667
+          },
+          "meetings": 1
+        },
+        "philippe": {
+          "buildings": {
+            "financement": 78.56666666666666,
+            "tour_communication": 149.5,
+            "institut_sondage": 191.5,
+            "meeting": 355.53333333333336
+          },
+          "meetings": 1
+        }
+      },
+      "max_sum_error": 1.4210854715202004e-14,
+      "national": {
+        "melenchon": 21.55241149649759,
+        "le_pen": 23.016702543173697,
+        "philippe": 23.12126897090912,
+        "neutral": 32.309616989419595
+      },
+      "controlled": {
+        "melenchon": 1,
+        "le_pen": 1,
+        "philippe": 1,
+        "contested": 15
+      },
+      "factions": [
+        {
+          "faction": "melenchon",
+          "money": 64.64666666665228,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 107.51999999999998,
+          "hold": null
+        },
+        {
+          "faction": "le_pen",
+          "money": 54.593999999995034,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 80,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 252.28695574754784,
+          "hold": null
+        },
+        {
+          "faction": "philippe",
+          "money": 87.71099999997493,
+          "spending": {
+            "BUILD": 285,
+            "UPGRADE": 315,
+            "PRINT": 24,
+            "MEETING": 30
+          },
+          "buildings": [
+            {
+              "type": "financement",
+              "level": 3,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "tour_communication",
+              "level": 2,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "institut_sondage",
+              "level": 1,
+              "state": "ACTIVE"
+            },
+            {
+              "type": "meeting",
+              "level": 1,
+              "state": "ACTIVE",
+              "meetings": 1
+            }
+          ],
+          "position": 395.15999999999997,
+          "hold": null
+        }
+      ]
+    }
+  ]
+}

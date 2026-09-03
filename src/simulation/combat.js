@@ -1,10 +1,10 @@
-import { ringDelta, wrap, zoneAt } from './world.js';
+import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
 import { combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
 
 export function requestAttack(sim, actor, direction = null) {
-  if (!actor || actor.role !== 'CANDIDAT' || !actor.campaign_active) return;
+  if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active) return;
   actor.combat.buffer_until_tick = sim.state.tick + sim.secondsToTicks(sim.config.balance.candidate_combat.input_buffer_seconds);
   if ([-1, 1].includes(direction)) actor.combat.requested_direction = direction;
 }
@@ -19,20 +19,20 @@ export function beginCombatTick(sim) {
     if (c.stun_ticks > 0) c.stun_ticks--;
     if (c.hitstop_ticks > 0) { c.hitstop_ticks--; continue; }
     if (Math.abs(c.knockback_velocity) > 0.02) {
-      actor.x = wrap(actor.x + c.knockback_velocity / hz, state.world.length);
+      actor.x = combatPosition(state, actor.x + c.knockback_velocity / hz);
       c.knockback_velocity *= Math.max(0, 1 - config.balance.candidate_combat.knockback_decay_per_second / hz);
     } else c.knockback_velocity = 0;
   }
 }
 
 export function wallBlockedPosition(sim, actor, desired) {
-  const d = ringDelta(actor.x, desired, sim.state.world.length);
+  const d = combatDelta(sim.state, actor.x, desired);
   if (!d) return desired;
   const radius = sim.config.balance.specials.philippe_crs_wall.interception_radius;
   const guards = sim.state.temporary_units.filter(t => t.role === 'CRS' && enemies(actor, t));
   for (const guard of guards.sort((a, b) => distance(sim.state, actor.x, a.x) - distance(sim.state, actor.x, b.x))) {
-    const ahead = ringDelta(actor.x, guard.x, sim.state.world.length) * Math.sign(d);
-    if (ahead >= 0 && ahead <= Math.abs(d) + radius) return wrap(actor.x + Math.sign(d) * Math.max(0, ahead - radius), sim.state.world.length);
+    const ahead = combatDelta(sim.state, actor.x, guard.x) * Math.sign(d);
+    if (ahead >= 0 && ahead <= Math.abs(d) + radius) return combatPosition(sim.state, actor.x + Math.sign(d) * Math.max(0, ahead - radius));
   }
   return desired;
 }
@@ -57,7 +57,7 @@ export function startNpcAttack(sim, actor, kind, settings) {
 
 function startCandidateAttack(sim, actor) {
   const c = actor.combat; const b = sim.config.balance;
-  if (c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active) return;
+  if (actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active) return;
   c.buffer_until_tick = -1;
   if (c.requested_direction) actor.facing = c.requested_direction;
   c.requested_direction = null; actor.purchase_hold = null;
@@ -93,7 +93,7 @@ function triggerSpecial(sim, actor) {
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, temporary: true, expired: false,
-      x: wrap(actor.x + offset, state.world.length), follow_offset: offset, facing: Math.sign(offset) || actor.facing,
+      x: combatPosition(state, actor.x + offset), follow_offset: offset, facing: Math.sign(offset) || actor.facing,
       moving: false, expires_tick: power.expires_tick, hidden_durability: hologram ? s.hidden_durability : s.guard_hidden_durability,
       combat: combatState(), persuasion_target_ids: [] });
   }
@@ -105,13 +105,14 @@ function triggerSpecial(sim, actor) {
 function meleeTargets(sim, owner, attack) {
   const radius = sim.config.balance.candidate_combat.target_radius;
   return combatActors(sim.state).filter(t => enemies(owner, t) && !attack.hit_ids.includes(t.id)
-    && ringDelta(owner.x, t.x, sim.state.world.length) * attack.direction >= -radius
+    && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
     && distance(sim.state, owner.x, t.x) <= attack.range + radius)
     .sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
 }
 
 function updateAttacks(sim) {
   for (const attack of [...sim.state.attacks]) {
+    if (sim.state.arena_bounds && sim.state.eliminated_faction) break;
     const actor = combatActors(sim.state).find(a => a.id === attack.owner_id);
     if (!actor || actor.combat.attack_id !== attack.id || !actor.faction_id || actor.expired) continue;
     if (actor.combat.hitstop_ticks > 0) continue;
@@ -143,16 +144,18 @@ function updateAttacks(sim) {
 function updateProjectiles(sim) {
   const { state, config } = sim;
   for (const p of state.projectiles) {
+    if (state.arena_bounds && state.eliminated_faction) break;
     const owner = combatActors(state).find(a => a.id === p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     const radius = config.balance.candidate_combat.target_radius;
     const targets = combatActors(state).filter(t => enemies(owner, t) && !p.hit_ids.includes(t.id)
       && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT')
-      && ringDelta(p.x, t.x, state.world.length) * p.direction >= -radius
-      && ringDelta(p.x, t.x, state.world.length) * p.direction <= step + radius)
+      && combatDelta(state, p.x, t.x) * p.direction >= -radius
+      && combatDelta(state, p.x, t.x) * p.direction <= step + radius)
       .sort((a, b) => distance(state, p.x, a.x) - distance(state, p.x, b.x) || stableIdOrder(a, b));
     for (const target of targets) {
+      if (state.arena_bounds && state.eliminated_faction) break;
       let damage = p.damage;
       if (p.kind === 'WAVE') {
         const s = config.balance.specials.le_pen_navy_wave;
@@ -165,7 +168,9 @@ function updateProjectiles(sim) {
       p.hit_ids.push(target.id);
       if (p.kind === 'VERBAL') { p.remaining_range = 0; break; }
     }
-    p.x = wrap(p.x + p.direction * step, state.world.length); p.remaining_range -= step;
+    const nextX = p.x + p.direction * step;
+    p.x = combatPosition(state, nextX); p.remaining_range -= step;
+    if (state.arena_bounds && p.x !== nextX) p.remaining_range = 0;
   }
   state.projectiles = state.projectiles.filter(p => p.remaining_range > 0);
 }
@@ -178,11 +183,11 @@ function updateTemporaryUnits(sim) {
     const hologram = unit.role === 'HOLOGRAMME';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
     const owner = state.candidates.find(c => c.id === unit.owner_id);
-    if (!hologram) moveNpcTowards(sim, unit, wrap(owner.x + unit.follow_offset, state.world.length), s.follow_speed);
+    if (!hologram) moveNpcTowards(sim, unit, combatPosition(state, owner.x + unit.follow_offset), s.follow_speed);
     const target = nearestEnemy(state, unit, hologram ? s.detection_range : s.attack_range + config.balance.candidate_combat.target_radius);
     unit.combat.target_id = target?.id || null;
     if (!target) continue;
-    const d = ringDelta(unit.x, target.x, state.world.length);
+    const d = combatDelta(state, unit.x, target.x);
     unit.facing = Math.sign(d) || unit.facing;
     if (hologram && Math.abs(d) > s.attack_range) moveNpcTowards(sim, unit, target.x, s.move_speed);
     else if (Math.abs(d) <= s.attack_range + config.balance.candidate_combat.target_radius) startNpcAttack(sim, unit, hologram ? 'HOLOGRAM' : 'CRS', {
@@ -201,11 +206,11 @@ export function updateMilitantCombat(sim, npc) {
   if (!target) return false;
   npc.combat.engaged = true;
   if (interrupted(npc)) return true;
-  const d = ringDelta(npc.x, target.x, sim.state.world.length);
+  const d = combatDelta(sim.state, npc.x, target.x);
   npc.facing = Math.sign(d) || npc.facing;
   if (Math.abs(d) > s.verbal_range) moveNpcTowards(sim, npc, target.x, s.move_speed);
   else {
-    if (Math.abs(d) < s.preferred_distance && !npc.combat.attack_id) moveNpcTowards(sim, npc, wrap(npc.x - npc.facing * s.preferred_distance, sim.state.world.length), s.move_speed);
+    if (Math.abs(d) < s.preferred_distance && !npc.combat.attack_id) moveNpcTowards(sim, npc, combatPosition(sim.state, npc.x - npc.facing * s.preferred_distance), s.move_speed);
     npc.facing = Math.sign(d) || npc.facing;
     startNpcAttack(sim, npc, 'VERBAL', { range: s.verbal_range, damage: s.verbal_damage, knockback: s.verbal_knockback,
       electoral_damage: s.verbal_attack_electoral_damage, cooldown_seconds: s.verbal_cooldown_seconds });

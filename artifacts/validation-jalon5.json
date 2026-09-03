@@ -1,0 +1,390 @@
+{
+  "version": 5,
+  "defaults": {
+    "campaign_seconds": 600,
+    "sprint_seconds": 60,
+    "sprint_influence": 10,
+    "tower_factor": 0.35,
+    "poll_seconds": 2.5
+  },
+  "full_matches": [
+    {
+      "seed": 2027,
+      "duration_seconds": 669.6333333333333,
+      "phases": [
+        "CAMPAIGN",
+        "FIRST_ROUND_ARENA",
+        "SECOND_ROUND_SPRINT",
+        "RESULTS"
+      ],
+      "max_sum_error": 1.4210854715202004e-14,
+      "former_npcs": 69,
+      "active_buildings": 9,
+      "j0_scores": {
+        "melenchon": 20.690399614053387,
+        "le_pen": 21.000190070508552,
+        "philippe": 19.25174433448503,
+        "neutral": 39.05766598095303
+      },
+      "eliminated_faction": "le_pen",
+      "arena_duration_seconds": 9.633333333333333,
+      "arena_hits": 76,
+      "arena_candidate_hits": 63,
+      "sprint_start_scores": {
+        "melenchon": 20.690399614053387,
+        "le_pen": 0,
+        "philippe": 19.25174433448503,
+        "neutral": 60.057856051461584
+      },
+      "final_scores": {
+        "melenchon": 27.579642414456735,
+        "le_pen": 0,
+        "philippe": 22.36590541085835,
+        "neutral": 50.05445217468491
+      },
+      "changed_subzone_ids": [
+        "banlieue_b",
+        "riches_b",
+        "paris_a"
+      ],
+      "reconverted_npc_ids": [
+        "npc:193",
+        "npc:57",
+        "npc:188",
+        "npc:109",
+        "npc:124",
+        "npc:118",
+        "npc:53",
+        "npc:105",
+        "npc:116",
+        "npc:95",
+        "npc:139",
+        "npc:178",
+        "npc:67",
+        "npc:129",
+        "npc:58",
+        "npc:107",
+        "npc:21",
+        "npc:98",
+        "npc:94"
+      ],
+      "sprint_meetings": 2,
+      "winner": "melenchon",
+      "changed_subzone_count": 3,
+      "reconverted_npc_count": 19
+    },
+    {
+      "seed": 73,
+      "duration_seconds": 670.9,
+      "phases": [
+        "CAMPAIGN",
+        "FIRST_ROUND_ARENA",
+        "SECOND_ROUND_SPRINT",
+        "RESULTS"
+      ],
+      "max_sum_error": 1.4210854715202004e-14,
+      "former_npcs": 52,
+      "active_buildings": 10,
+      "j0_scores": {
+        "melenchon": 20.037156353700635,
+        "le_pen": 20.856882258586865,
+        "philippe": 20.195485798753072,
+        "neutral": 38.91047558895942
+      },
+      "eliminated_faction": "melenchon",
+      "arena_duration_seconds": 10.9,
+      "arena_hits": 75,
+      "arena_candidate_hits": 62,
+      "sprint_start_scores": {
+        "melenchon": 0,
+        "le_pen": 20.856882258586865,
+        "philippe": 20.195485798753072,
+        "neutral": 58.94763194266006
+      },
+      "final_scores": {
+        "melenchon": 0,
+        "le_pen": 27.73143746610718,
+        "philippe": 29.136008294584535,
+        "neutral": 43.132554239308284
+      },
+      "changed_subzone_ids": [
+        "riches_b",
+        "periurbain_b",
+        "periurbain_a",
+        "campagne_a",
+        "paris_b",
+        "periurbain_c",
+        "paris_c",
+        "banlieue_c",
+        "paris_a"
+      ],
+      "reconverted_npc_ids": [
+        "npc:2",
+        "npc:3",
+        "npc:25",
+        "npc:12",
+        "npc:11",
+        "npc:1",
+        "npc:30",
+        "npc:28",
+        "npc:73",
+        "npc:13",
+        "npc:32",
+        "npc:10"
+      ],
+      "sprint_meetings": 1,
+      "winner": "philippe",
+      "changed_subzone_count": 9,
+      "reconverted_npc_count": 12
+    },
+    {
+      "seed": 31415,
+      "duration_seconds": 672.5,
+      "phases": [
+        "CAMPAIGN",
+        "FIRST_ROUND_ARENA",
+        "SECOND_ROUND_SPRINT",
+        "RESULTS"
+      ],
+      "max_sum_error": 1.4210854715202004e-14,
+      "former_npcs": 66,
+      "active_buildings": 9,
+      "j0_scores": {
+        "melenchon": 20.350835276314452,
+        "le_pen": 20.837139504312862,
+        "philippe": 20.422995783667716,
+        "neutral": 38.38902943570497
+      },
+      "eliminated_faction": "le_pen",
+      "arena_duration_seconds": 12.5,
+      "arena_hits": 108,
+      "arena_candidate_hits": 76,
+      "sprint_start_scores": {
+        "melenchon": 20.350835276314452,
+        "le_pen": 0,
+        "philippe": 20.422995783667716,
+        "neutral": 59.226168940017835
+      },
+      "final_scores": {
+        "melenchon": 25.64463098085034,
+        "le_pen": 0,
+        "philippe": 29.369237659342147,
+        "neutral": 44.986131359807516
+      },
+      "changed_subzone_ids": [
+        "banlieue_b",
+        "riches_b",
+        "retraites_c",
+        "riches_a",
+        "retraites_b",
+        "paris_b"
+      ],
+      "reconverted_npc_ids": [
+        "npc:63",
+        "npc:185",
+        "npc:119",
+        "npc:107",
+        "npc:131",
+        "npc:56",
+        "npc:100",
+        "npc:132",
+        "npc:172",
+        "npc:69",
+        "npc:140",
+        "npc:79",
+        "npc:117",
+        "npc:182",
+        "npc:71",
+        "npc:150",
+        "npc:166",
+        "npc:105"
+      ],
+      "sprint_meetings": 2,
+      "winner": "philippe",
+      "changed_subzone_count": 6,
+      "reconverted_npc_count": 18
+    }
+  ],
+  "arena_balance": [
+    {
+      "seed": 1,
+      "eliminated": "philippe",
+      "duration_seconds": 9.333333333333334,
+      "hits": 44
+    },
+    {
+      "seed": 2,
+      "eliminated": "le_pen",
+      "duration_seconds": 13.566666666666666,
+      "hits": 107
+    },
+    {
+      "seed": 3,
+      "eliminated": "le_pen",
+      "duration_seconds": 19.666666666666668,
+      "hits": 152
+    },
+    {
+      "seed": 4,
+      "eliminated": "le_pen",
+      "duration_seconds": 13.633333333333333,
+      "hits": 97
+    },
+    {
+      "seed": 5,
+      "eliminated": "le_pen",
+      "duration_seconds": 18.466666666666665,
+      "hits": 135
+    },
+    {
+      "seed": 6,
+      "eliminated": "philippe",
+      "duration_seconds": 10.233333333333333,
+      "hits": 74
+    },
+    {
+      "seed": 7,
+      "eliminated": "le_pen",
+      "duration_seconds": 13.566666666666666,
+      "hits": 116
+    },
+    {
+      "seed": 8,
+      "eliminated": "le_pen",
+      "duration_seconds": 17.933333333333334,
+      "hits": 128
+    },
+    {
+      "seed": 9,
+      "eliminated": "philippe",
+      "duration_seconds": 14.8,
+      "hits": 110
+    },
+    {
+      "seed": 10,
+      "eliminated": "philippe",
+      "duration_seconds": 11.133333333333333,
+      "hits": 60
+    },
+    {
+      "seed": 11,
+      "eliminated": "le_pen",
+      "duration_seconds": 18.966666666666665,
+      "hits": 142
+    },
+    {
+      "seed": 12,
+      "eliminated": "philippe",
+      "duration_seconds": 12.133333333333333,
+      "hits": 94
+    },
+    {
+      "seed": 13,
+      "eliminated": "philippe",
+      "duration_seconds": 17.333333333333332,
+      "hits": 90
+    },
+    {
+      "seed": 14,
+      "eliminated": "philippe",
+      "duration_seconds": 13.566666666666666,
+      "hits": 64
+    },
+    {
+      "seed": 15,
+      "eliminated": "le_pen",
+      "duration_seconds": 13.433333333333334,
+      "hits": 121
+    },
+    {
+      "seed": 16,
+      "eliminated": "philippe",
+      "duration_seconds": 10.233333333333333,
+      "hits": 49
+    },
+    {
+      "seed": 17,
+      "eliminated": "philippe",
+      "duration_seconds": 9.866666666666667,
+      "hits": 51
+    },
+    {
+      "seed": 18,
+      "eliminated": "le_pen",
+      "duration_seconds": 14.233333333333333,
+      "hits": 101
+    },
+    {
+      "seed": 19,
+      "eliminated": "le_pen",
+      "duration_seconds": 16.666666666666668,
+      "hits": 142
+    },
+    {
+      "seed": 20,
+      "eliminated": "melenchon",
+      "duration_seconds": 15.8,
+      "hits": 78
+    },
+    {
+      "seed": 21,
+      "eliminated": "philippe",
+      "duration_seconds": 12,
+      "hits": 96
+    },
+    {
+      "seed": 22,
+      "eliminated": "philippe",
+      "duration_seconds": 13.266666666666667,
+      "hits": 100
+    },
+    {
+      "seed": 23,
+      "eliminated": "le_pen",
+      "duration_seconds": 12.333333333333334,
+      "hits": 104
+    },
+    {
+      "seed": 24,
+      "eliminated": "le_pen",
+      "duration_seconds": 15.833333333333334,
+      "hits": 139
+    },
+    {
+      "seed": 25,
+      "eliminated": "le_pen",
+      "duration_seconds": 12.166666666666666,
+      "hits": 101
+    },
+    {
+      "seed": 26,
+      "eliminated": "philippe",
+      "duration_seconds": 12.6,
+      "hits": 68
+    },
+    {
+      "seed": 27,
+      "eliminated": "le_pen",
+      "duration_seconds": 14,
+      "hits": 97
+    },
+    {
+      "seed": 28,
+      "eliminated": "le_pen",
+      "duration_seconds": 14.333333333333334,
+      "hits": 121
+    },
+    {
+      "seed": 29,
+      "eliminated": "le_pen",
+      "duration_seconds": 19.5,
+      "hits": 154
+    },
+    {
+      "seed": 30,
+      "eliminated": "le_pen",
+      "duration_seconds": 14.366666666666667,
+      "hits": 152
+    }
+  ]
+}

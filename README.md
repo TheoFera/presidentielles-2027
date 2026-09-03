@@ -1,170 +1,104 @@
-# Présidentielles 2027 — troisième jalon jouable
+# Présidentielles 2027 — cinquième jalon jouable
 
-La version 0.3.0 ajoute les combats, la défense territoriale, les raids, le Cabinet administratif et les trois pouvoirs. Caméra, échelle, boucle du monde, recrutement, rareté des Neutres et boucle économique validés sont conservés. **Les Militants marchent désormais à 2,4 unités/s au lieu de 3,2**, contre 3,6 pour le joueur. Leur vitesse de marche est également plafonnée à deux fois celle du joueur.
+Une partie complète : **campagne → arène à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
 
-## Lancer
+## Lancer et jouer
 
-Double-clique sur **Lancer le jeu.cmd**, puis garde son terminal ouvert. Adresse : **http://localhost:2027**.
+Double-clique sur **Lancer le jeu.cmd**, puis ouvre [le jeu](http://localhost:2027/). Garde le terminal ouvert. Recharge la page si elle était déjà ouverte.
 
-Autre méthode, dans ce dossier :
+- Flèches, Q/D ou A/D : marcher.
+- Espace ou J : léger → léger → fort. Quand les yeux brillent, l’attaque suivante déclenche le pouvoir.
+- Rester près d’un Neutre : convaincre automatiquement.
+- Rester devant un billet : payer après 2 secondes de présence, avec les fonds et l’implantation nécessaires.
+- Après un achat de bâtiment : s’éloigner, puis revenir. L’Imprimerie permet plusieurs commandes séparément payées en restant sur place.
+- H, Échap ou P : aide et pause. F : plein écran. F3 : débogage.
 
-~~~powershell
-npm.cmd start
-~~~
+Les Militants marchent toujours à **2,4 unités/s**, contre **3,6** pour le candidat ; leur plafond reste à deux fois la vitesse du joueur.
 
-Node.js 20 ou plus récent, aucune dépendance à installer. La validation utilise Node.js 22.14.0. Ctrl+C arrête le serveur. Ne lance pas directement index.html : les JSON nécessitent le serveur local.
+## Déroulement
 
-## Jouer et combattre
+La campagne commence à **J-30**, avec **20 secondes par jour**, soit 10 minutes. Le J-XX reste discret. L’onglet masqué met la session locale en pause.
 
-| Contrôle | Action |
-| --- | --- |
-| ← →, Q / D ou A / D | Marcher et choisir la direction |
-| Espace ou J | Une attaque : léger → léger → fort |
-| H, Échap ou P | Aide et pause / reprise |
-| F | Plein écran |
-| F3 | Débogage |
+À **J0**, le monde est intégralement sauvegardé et figé. Sur le plateau télévisé, le **score national réel devient la jauge visible** de chaque candidat. Les coups et pouvoirs retirent directement des points de cette jauge, sans modifier le soutien sauvegardé. Le combat s’arrête au **premier candidat à 0**.
 
-Trois appuis espacés d’environ **0,4 à 0,5 seconde** permettent d’enchaîner le combo. Garde la cible devant toi et avance entre les coups si elle recule. Au-delà de **0,7 seconde depuis le début du coup précédent**, le combo repart au premier coup. Un appui bref est conservé entre deux ticks ; maintenir une touche ne produit pas une rafale automatique.
+Les finalistes reviennent immédiatement à leurs anciennes positions, avec leur argent, leur charge et leurs délais du monde conservés. Les anciens S/M/SO du troisième deviennent gris et rentrent à pied à leur origine ; ils redeviennent alors Neutres et peuvent être convaincus normalement. Ses bâtiments perdent leurs effets et leur propriétaire ; leurs emplacements sont à nouveau constructibles en remplissant les conditions et en payant. Les Imprimeries restent neutres ; seules les commandes du camp éliminé sont annulées. Toutes ses voix deviennent **Neutres**, sans transfert aux finalistes.
 
-Les coups ont une préparation, une courte phase active puis une récupération. La préparation est d’environ 0,10 s pour un léger, 0,13 s pour un fort à 30 ticks/s. Les impacts arrêtent brièvement les acteurs touchés et produisent un recul ; le troisième coup est visuellement plus marqué. La caméra garde son fonctionnement habituel.
+Le J-XX est remplacé par **60 secondes**. L’influence est multipliée par **10**, une seule fois, avant la résistance électorale. Les combats, pouvoirs, raids, constructions et Meetings restent actifs. Les IA recherchent notamment la réserve humaine du troisième, les Meetings accessibles et le rival proche.
 
-Sur tactile, les zones de marche sont conservées et un petit bouton **Frapper** apparaît. Le centre du jeu ouvre l’aide. Le tactile n’a pas été vérifié sur téléphone physique.
+Un Institut actif publie un sondage toutes les **2,5 secondes**. Fermé, il conserve sa dernière mesure. La Tour bénéficie du ×10 avec un facteur propre de **0,35**, pour limiter son influence sans présence sur le terrain. Le Meeting reste payant et exige la présence du candidat ; son délai passe à **22 secondes**, sans raccourcir un événement actif.
 
-### Valeurs des combats
+À zéro, les **scores réels des finalistes** décident du vainqueur, même si le sondage est ancien. Les Neutres restent possibles. Une égalité déclenche **15 secondes supplémentaires**, renouvelées si nécessaire.
 
-| Élément | Réglage |
-| --- | --- |
-| Résistance interne S / M / SO | **30 / 30 / 90** |
-| Dégâts léger / léger / fort | **8 / 8 / 14** |
-| Impulsion de recul léger / fort | **2,2 / 4,8 unités/s**, amorties |
-| Portée léger / fort | **2 / 2,4 unités**, plus rayon de cible 0,35 |
-| Étourdissement | 0,16 s, arrondi à 5 ticks |
-| Perte électorale léger / fort reçu par un candidat | **0,03 / 0,07 point**, au total dans ses zones contrôlées |
-| Militant : attaque verbale | 4 de résistance ou 0,025 point électoral ; portée 5 ; intervalle 1,15 s |
-| SO : attaque | 9 de résistance ou 0,06 point électoral ; portée 1,6 ; intervalle 0,9 s |
-| Charge spéciale | **10 points** ; léger réussi +1, fort réussi +2 |
+Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel finaliste suivre, sans contrôler son camp. **Rejouer** crée une partie entièrement neuve avec le même candidat ; **Retour à l’accueil** prépare une nouvelle campagne en pause sur l’aide.
 
-Aucune résistance, jauge ou valeur électorale n’est affichée dans le jeu normal. Les candidats n’ont pas de PV et ne meurent pas. Les unités démobilisées deviennent grises, perdent leur affiliation et leur influence, cessent de combattre et marchent jusqu’à leur point social d’origine. Elles y redeviennent Neutres.
+## Tester la fin rapidement
 
-Les Militants utilisent des bulles-projectiles et gardent leurs distances ; ils privilégient candidats, Militants, SO et unités temporaires adverses. Hors affrontement, ils reprennent leur prospection et leur persuasion.
+**F3 → « Partie complète : J0, arène et sprint »** donne accès à :
 
-## Services d’ordre et Cabinet
+| Commande | Effet |
+|---|---|
+| Forcer J0 / Démarrer l’arène | Figer le monde courant et lancer le premier tour |
+| Candidat à éliminer + Terminer l’arène | Choisir le troisième et revenir au monde |
+| Démarrer le sprint | Passer directement au sprint en neutralisant le camp sélectionné |
+| Chrono à 10 s | Rapprocher le résultat |
+| Forcer une égalité à l’échéance | Déclencher immédiatement la prolongation |
+| 50 % de Neutres partout | Tester la reconquête sur les 18 sous-zones |
+| Afficher le score réel | Consulter l’état autoritaire, distinct du sondage |
+| Vitesse ×5 | Accélérer toute la simulation ; F6 permet de revenir à ×1 |
+| Exporter le résumé DEBUG | Télécharger la télémétrie JSON |
 
-Tous les paiements demandent **2 secondes de présence continue**. S’éloigner annule sans dépense. Aucun clic ni bouton d’achat.
+**F4** met en pause quand le debug est ouvert. **K** charge le pouvoir, y compris dans l’arène. Les anciens outils restent présents. Les commandes incompatibles avec la phase sont refusées. Après le résultat, seule une nouvelle partie relance la simulation.
 
-### Mélenchon et Le Pen : Local SO
+Ces fichiers sont importables dans **F3 → Déplacements, fonds de test et sauvegardes → Importer un état JSON** ; `npm run test:partie` les régénère :
 
-- **5 S dans la sous-zone**, non consommés, débloquent le Local à **70 k€**.
-- Au centre de la porte : équipement à **20 k€**. Il faut un **Militant disponible dans le biome**, pas un Sympathisant.
-- Le Militant disponible le plus proche reçoit la tâche ; en cas d’égalité, son ID départage. Il vient physiquement chercher l’équipement. Préparation : **6 s**, retrait : **1 s**, puis SO.
-- File maximale : **3 équipements**. Rester au centre permet plusieurs achats si des Militants restent disponibles.
-- Le SO défend le **biome de son Local d’équipement** : il intercepte les intrus candidats, Militants et autres combattants, puis reprend sa garde après leur départ.
-- À gauche ou à droite : billet **RAID à 45 k€**. Les SO disponibles du biome partent dans cette direction pendant **18 s maximum**, puis reviennent. Délai entre deux raids : **35 s** depuis le paiement.
-- Le repère **↑**, juste à droite de la porte, sert à améliorer. Niveaux 2/3 : **95 / 140 k€**. Équipement : **18 / 15 k€** ; préparation : **5 / 4 s**. Éloigne-toi puis reviens pour chaque amélioration.
+- `artifacts/jalon5-arene-visuelle.json` : jauges 34/30/26, pouvoirs prêts, camp Le Pen établi près de la caméra du monde.
+- `artifacts/jalon5-effondrement.json` : ce camp vient d’être neutralisé ; douze anciens alliés repartent vers leurs origines.
+- `artifacts/jalon5-j0.json`, `jalon5-sprint.json`, `jalon5-resultat.json` : étapes d’une campagne normale de trois IA, graine 2027.
 
-### Philippe : Cabinet administratif
+Les sauvegardes utilisent le **format 5**, lié aux réglages courants. Les anciens JSON des jalons précédents sont incompatibles. Un import invalide est refusé sans modifier la partie ouverte.
 
-Philippe ne peut jamais produire de SO permanent. Son emplacement factionnel devient un Cabinet.
+## Réglages dans game_balance.json
 
-- Construction : **5 S locaux et 80 k€**.
-- Côté gauche / droit : la cible admissible la plus proche en suivant ce sens de la boucle apparaît au-dessus du billet.
-- Fermeture : **120 k€** au niveau 1, délai de réutilisation **20 s**.
-- La cible ferme, perd tous ses niveaux et cesse de produire ses effets. Son propriétaire doit revenir payer le prix de construction ; elle repart alors au niveau 1.
-- Les Imprimeries neutres et les Cabinets sont exclus des cibles.
-- Repère ↑ : améliorations à **110 / 160 k€** ; fermeture à **105 / 90 k€** aux niveaux 2/3.
+Le bloc `money.supporter_income_per_second_by_origin_biome` règle le revenu ajouté **par partisan et par seconde de simulation à vitesse ×1**, selon son biome de naissance :
 
-Les bâtiments déjà validés restent inchangés : Permanence 2 S et 35 k€, tract 12 k€, Financement 4 S et 55 k€. Le guide du deuxième jalon est conservé dans **GUIDE_JALON_2.md**.
+| Biome d’origine | Clé à modifier | Revenu par partisan |
+|---|---|---|
+| Paris 19e / Bobo | `paris_19e` | 1 k €/s |
+| Banlieue | `banlieue` | 0,4 k €/s |
+| Périurbain / Usine | `periurbain_usine` | 0,8 k €/s |
+| Campagne | `campagne` | 0,6 k €/s |
+| Retraités | `retraites` | 1,2 k €/s |
+| Quartiers riches | `quartiers_riches` | 2 k €/s |
 
-## Les trois pouvoirs
+Un partisan est un **Sympathisant, un Militant ou un Service d’ordre** de ton camp. Son revenu commence dès son recrutement, reste identique après une promotion ou un déplacement, et cesse à sa démobilisation. S’il est ensuite recruté par un autre camp, sa contribution revient à ce camp avec le même biome d’origine. Les Neutres, candidats, unités temporaires et pourcentages de soutien électoral ne produisent pas ce revenu.
 
-Quand la charge atteint 10, les yeux du candidat brillent. **Le prochain appui sur la même touche d’attaque déclenche le pouvoir et remet la charge à zéro.** Aucun bouton spécial ni jauge supplémentaire.
+Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **2,12 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans l’arène et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
 
-| Candidat | Fonctionnement |
-| --- | --- |
-| Mélenchon | **5 hologrammes pendant 7 s**. Ils détectent les adversaires proches, se ruent sur eux à 5,5 unités/s et frappent : 7 de résistance, recul 2,5. Ils ne recrutent pas et ne produisent pas d’influence. |
-| Le Pen | Vague bleu marine dans la direction regardée, **0,9 écran à 15 unités/s**. Un S est démobilisé ; un M perd **85 % de sa résistance maximale**, un SO **35 %**. Un candidat perd **0,3 point** dans ses territoires contrôlés. Recul : **8**. Le Pen reste sur place. |
-| Philippe | **1 CRS à gauche et 1 à droite pendant 9 s**. Ils suivent Philippe, bloquent l’approche, interceptent les projectiles et frappent au contact : 12 de résistance, recul 4,5. Résistance interne : 120 chacun. Aucune unité permanente n’est créée. |
+Le gain total apparaît sous l’argent en jeu. **F3** affiche le détail par biome et les contributions avant bonus. Pour changer un montant, modifie le nombre dans `Présidentielles 2027/game_balance.json` (avec un point pour les décimales, par exemple `0.8`), enregistre puis **recharge la page**. `0` désactive la contribution d’un biome. Les changements s’appliquent aussi aux IA et demandent une nouvelle partie ; les sauvegardes liées aux anciens réglages sont incompatibles.
 
-Hologrammes et CRS disparaissent à expiration, ou avant s’ils sont neutralisés. Les hologrammes ont 15 de résistance interne. Les attaques des pouvoirs ne rechargent pas la charge spéciale.
+| Chemin | Valeur par défaut |
+|---|---|
+| `time.starting_days_before_first_round` / `real_seconds_per_game_day` | 30 / 20 s |
+| `time.second_round_sprint_seconds` / `second_round_influence_multiplier` | 60 s / ×10 |
+| `first_round_arena.damage.light_1` / `light_2` / `heavy` | 0,45 / 0,55 / 1,1 point |
+| `first_round_arena.damage.hologram` / `wave` / `crs` | 0,12 / 6 / 0,22 point par impact |
+| `first_round_arena.ai_retarget_seconds` / `ai_variation_units` | 2,2 s / 7 |
+| `second_round.poll_refresh_seconds` | 2,5 s |
+| `second_round.tower_influence_multiplier` | 0,35 avant le ×10 global |
+| `second_round.meeting_cooldown_seconds` | 22 s, au moins la durée du Meeting |
+| `second_round.extension_seconds` / `tie_rule` | 15 s / `REPEAT_OVERTIME` |
 
-## Essayer rapidement
+La règle alternative `J0_THEN_SEED` départage une égalité par le score à J0, puis par la graine si nécessaire. Les dégâts d’arène des candidats sont séparés de ceux du monde ; les hologrammes et CRS conservent leur durabilité normale. La persuasion physique garde sa durée : le ×10 accélère les transferts électoraux abstraits, pas la marche ou la conversation.
 
-Ouvre F3, clique sur **Pause (F4)**, puis ouvre « Déplacements, fonds de test et sauvegardes » et importe l’un des fichiers ci-dessous. Clique ensuite sur **Reprendre (F4)** et masque F3 pour observer. Les scènes utilisent les réglages normaux, mais préparent explicitement des unités et ressources de débogage. Elles ne représentent pas une progression naturelle depuis zéro.
+## Vérification et architecture
 
-| Sauvegarde dans artifacts/ | Test |
-| --- | --- |
-| jalon3-duel.json | Militant adverse à proximité : approcher, frapper, observer les slogans et pertes électorales |
-| jalon3-1so.json / jalon3-2so.json / jalon3-3so.json | Comparer la difficulté face à 1, 2 ou 3 SO |
-| jalon3-hologrammes.json | Mélenchon, pouvoir chargé : appuyer sur J ou Espace |
-| jalon3-vague.json | Le Pen, pouvoir chargé : même commande |
-| jalon3-crs.json | Philippe, pouvoir chargé : même commande, puis marcher avec le mur |
-| jalon3-equipement.json | Local construit, équipement payé, Militant en route |
-| jalon3-retrait-so.json | Militant npc:31 en train de prendre son équipement ; il devient SO après environ 1 s |
-| jalon3-raid.json | Candidat sur le côté droit du Local : rester pour payer le raid puis suivre les SO |
-| jalon3-cabinet.json | Philippe devant le billet de fermeture d’un Financement adverse niveau 3 |
-| jalon3-reconstruction.json | Mélenchon devant le Financement fermé : rester pour payer sa reconstruction |
+```text
+npm test
+npm run test:partie
+```
 
-Pour vérifier un combo complet simplement : F3 → I pour suspendre les candidats IA → F7 pour créer un S adverse devant toi → trois appuis rapprochés sur J. Le débogage doit montrer 8, 8, 14, puis le rôle « Retour à l’origine ». Un adversaire Militant peut riposter et reculer : la portée compte.
+`GamePhase` valide les commandes. `ArenaSimulation` possède sa propre horloge et son propre combat ; `GameSimulation` conserve le monde complet jusqu’au retour. Impacts, jauges, élimination et résultats sont autoritaires, indépendants du rendu. Aucun réseau n’est implémenté.
 
-Les cinq sauvegardes **jalon2-*.json** ont aussi été régénérées et restent importables pour revoir la boucle économique validée.
+Le résumé DEBUG enregistre les scores à J0, l’éliminé, la durée et les coups de l’arène, les scores du sprint, les zones ayant changé de contrôle, les anciens PNJ reconvertis, les Meetings et le vainqueur.
 
-## Débogage
-
-Les raccourcis ci-dessous exigent F3 ouvert. Les commandes sont appliquées au prochain tick : reprendre le jeu si nécessaire.
-
-| Raccourci | Action |
-| --- | --- |
-| F4 / F6 | Pause / vitesse ×4 |
-| 1 / 2 / 3, ou & / é / " | Contrôler Mélenchon / Le Pen / Philippe |
-| I | Suspendre / activer les candidats IA ; les unités autonomes continuent |
-| F7 / F8 / F9 | Créer un S / M / SO devant le candidat |
-| K | Remplir la charge spéciale |
-| X | Démobiliser le PNJ inspecté |
-| G | Ajouter 200 k€ de test |
-| Y | Donner au candidat le contrôle de sa sous-zone pour mesurer les dégâts électoraux |
-| B / T / N / L | Rejoindre Permanence / Imprimerie / Financement / Local SO ou Cabinet |
-| C / [ / ] | Neutre le plus proche / sous-zone précédente / suivante |
-
-Dans « Essais de combat et pouvoirs », choisis le camp des unités créées : **Adversaire** par défaut, **Allié**, ou un candidat précis. Pour préparer un Local, choisis Allié, crée cinq S, puis un M. Philippe reste exclu des SO, même avec ces commandes.
-
-Le panneau montre les origines, tâches, raids, résistance, charge, dégâts électoraux, dernier impact, préparation et récupération, combo, revenus, coûts et files. Les rectangles d’attaque n’apparaissent qu’en F3. Tu peux inspecter et rejoindre une unité ou un bâtiment par sa liste. Les champs de saisie gardent leurs propres touches ; cliquer dans le jeu rend le clavier au personnage.
-
-## Réglages et hypothèses
-
-Les valeurs sont dans **Présidentielles 2027/game_balance.json** :
-
-- **candidate_combat** : dégâts, portée, recul, anticipation, combo, récupération, étourdissement et tampon des appuis.
-- **physical_units.militant / service_ordre** : vitesses, durabilités, attaques, garde, coût et durée des raids.
-- **special_charge / specials** : charge et valeurs des trois pouvoirs.
-- **buildings.faction_slot_melenchon_lepen_service_ordre** : seuil, construction, améliorations, équipement et file.
-- **buildings.faction_slot_philippe_cabinet_administratif** : coûts, améliorations et fermeture.
-- **faction_interactions** : centres et rayons des zones de présence ; centre 0,45 unité, côtés à ±2 avec rayon 0,55, amélioration à +0,95 avec rayon 0,3.
-- **influence** : définition du contrôle territorial et résistance électorale ; **debug** : fonds, distance de création et historique.
-- Les coûts et revenus des bâtiments précédents restent dans leurs sections d’origine.
-
-**world_layout.json** conserve les populations, spawns et implantations. **prototype_config.json** regroupe caméra, déplacement du joueur, proportions et présentation. Le nouvel emplacement est à 35 % de chaque sous-zone ; sa façade est un peu plus étroite pour ne pas recouvrir les bâtiments validés. **building_catalog.json** définit notamment les cibles administratives autorisées.
-
-Hypothèses explicites :
-
-1. Une sous-zone est contrôlée à partir de **35 % de soutien**, avec **4 points d’avance** sur chacun des autres camps. Sans zone contrôlée, un coup provoque recul et étourdissement mais aucune perte électorale. **Y** prépare volontairement une zone contrôlée pour tester cet effet immédiatement. La perte indiquée est un budget total réparti entre les zones contrôlées proportionnellement au soutien, pas autant de points perdus dans chacune.
-2. Le troisième emplacement est commun aux camps : le premier constructeur détermine Local SO ou Cabinet. Une fermeture conserve son propriétaire et son emplacement. La reconstruction ne revérifie pas le seuil de S initial. Les SO déjà équipés continuent de défendre après fermeture de leur Local ; les équipements payés mais non livrés sont annulés et remboursés.
-3. Sur un monde bouclé, gauche et droite peuvent aboutir à la même cible administrative s’il n’en reste qu’une. La sélection est recalculée avant de débiter ; une cible devenue indisponible annule le paiement. Les délais du Cabinet et du raid sont propres à chaque bâtiment.
-4. « Disponible » exclut les unités déjà occupées à une collecte ou un affrontement. Les SO en raid ne participent pas à un deuxième raid. Le biome de garde est celui où le SO a été équipé ; son origine permanente reste celle du PNJ, utilisée après démobilisation.
-5. Un coup de mêlée touche le premier adversaire dans sa portée. Les CRS peuvent donc s’interposer. La vague traverse plusieurs cibles et ne touche chacune qu’une fois. Les Neutres et alliés sont protégés. Un projectile verbal est annulé si son auteur perd son affiliation.
-6. Les bâtiments gardent l’absence de collision du déplacement validé. Les CRS ajoutent uniquement un obstacle mobile à l’approche des candidats adverses. Un coup ou une attaque interrompt la persuasion et le paiement ; une unité recommence ensuite normalement.
-7. Les durées sont arrondies au tick supérieur à **30 Hz**. Le bref arrêt d’impact concerne les combattants, sans suspendre l’économie du monde. Les IA candidates savent combattre par les mêmes commandes, sans nouvelle stratégie finale.
-8. Les sauvegardes sont au **format 3** et contiennent attaques, projectiles, charge, temporaires, raids, fermetures et files. Les anciens fichiers de sauvegarde ou ceux d’autres réglages sont refusés sans endommager la partie. L’état interne de démobilisation garde son nom historique **DEMOBILISE**.
-9. La difficulté 1 SO / 2 SO / 3 SO reste un réglage de départ à juger en jouant. Les tests vérifient la résistance et l’augmentation de la pression, pas une promesse de victoire. Aucun son ni graphisme final n’est ajouté.
-
-## Vérification et arrêt du jalon
-
-~~~powershell
-npm.cmd test
-npm.cmd run test:parcours
-npm.cmd run test:conflits
-~~~
-
-Les tests couvrent les règles et la continuation déterministe des sauvegardes. Le premier parcours vérifie encore la boucle du deuxième jalon sans argent ni PNJ ajoutés. Le second prépare les scènes de test et vérifie les chaînes SO/raid et fermeture/reconstruction. Voir **VALIDATION_JALON_3.md** pour les résultats.
-
-**Arrêt au troisième jalon, en attente de ton essai.** Tour complète, sondages, cercle électoral, Meeting, arène J0, second tour, réseau, graphismes et sons finaux restent hors périmètre.
-
+Voir [VALIDATION_JALON_5.md](VALIDATION_JALON_5.md), [JALON_5_SPEC.md](JALON_5_SPEC.md) et [le guide du quatrième jalon](GUIDE_JALON_4.md). Ce dernier conserve les détails des systèmes validés ; ses mentions de J0 hors périmètre et des anciennes sauvegardes sont historiques. Le banc `test:conquete` isole sa campagne de 900 s avec J-100 pour éviter le nouveau premier tour.

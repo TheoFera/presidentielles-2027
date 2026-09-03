@@ -43,7 +43,7 @@ test('Le monde contient 6 × 3 sous-zones, les populations exactes et des IDs un
   const entities = [...state.npcs, ...state.candidates, ...state.world.socialPoints, ...state.world.subzones, ...state.world.scenery, ...state.buildings, ...state.building_slots];
   assert.equal(new Set(entities.map(e => e.id)).size, entities.length);
   assert.equal(state.buildings.filter(b => b.type === 'imprimerie').length, 6);
-  assert.equal(state.buildings.filter(b => b.type !== 'imprimerie' && b.state === 'EMPTY').length, 54);
+  assert.equal(state.buildings.filter(b => b.type !== 'imprimerie' && b.state === 'EMPTY').length, 108);
   assert.equal(state.electorate.length, 18);
 });
 
@@ -100,7 +100,12 @@ test('Conversion sans commande ni dépense : 50 ticks pour Mélenchon, 90 pour l
     assert.equal(state.npcs[0].role, 'SYMPATHISANT');
     assert.equal(state.npcs[0].faction_id, faction);
     const income = config.balance.money.base_passive_income_per_second * (faction === 'philippe' ? config.balance.money.philippe_income_multiplier : 1);
-    assert.ok(Math.abs(state.candidates.find(c => c.id === candidateId).money - before.money - expected / 30 * income) < 1e-9);
+    const partisanIncome = config.balance.money.supporter_income_per_second_by_origin_biome[state.npcs[0].origin_biome_id]
+      * (faction === 'philippe' ? config.balance.money.philippe_income_multiplier : 1);
+    // The recruit contributes from the tick on which persuasion completes.
+    const candidate = state.candidates.find(c => c.id === candidateId);
+    assert.ok(Math.abs(candidate.money - before.money - expected / 30 * income - partisanIncome / 30) < 1e-9);
+    assert.ok(Math.abs(candidate.income_per_second - income - partisanIncome) < 1e-9);
     assert.equal(state.events.filter(e => e.type === 'NpcConverted').length, 1);
   }
 });
@@ -308,7 +313,7 @@ test('Un appui relâché entre deux ticks produit un pas, puis un arrêt ; perte
   assert.deepEqual(human.commands({}, 'candidate:melenchon'), [setCampaignActive('candidate:melenchon', true), interactionPresence('candidate:melenchon'), move('candidate:melenchon', 0)]);
 });
 
-test('Jours transitoires : le jalon reste à J-1 sans déclencher une arène', () => {
+test('Jours : J-1 est suivi de J0 et du plateau médiatique', () => {
   const sim = new GameSimulation(config);
   const state = sim.getState();
   state.tick = 30 * 20 * 29 - 1;
@@ -317,8 +322,8 @@ test('Jours transitoires : le jalon reste à J-1 sans déclencher une arène', (
   sim.step();
   assert.equal(sim.getState().days_remaining, 1);
   tick(sim, 601);
-  assert.equal(sim.getState().days_remaining, 1);
-  assert.equal(sim.getState().phase, 'EXPLORATION_GREYBOX');
+  assert.equal(sim.getState().days_remaining, 0);
+  assert.equal(sim.getState().phase, 'FIRST_ROUND_ARENA');
 });
 
 test('Composition proportionnelle : sol à 93 %, épaisseur 2,5 %, personnage 15 %', () => {

@@ -296,7 +296,14 @@
     "permanence_x_ratio": 0.17,
     "financement_x_ratio": 0.83,
     "imprimerie_x_ratio": 0.55,
-    "faction_x_ratio": 0.35
+    "faction_x_ratio": 0.35,
+    "tour_communication_x_ratio": 0.05,
+    "institut_sondage_x_ratio": 0.7,
+    "meeting_x_ratio": 0.95
   },
-  "neutral_spawn_capacity_policy": "skip_and_reschedule_when_full"
+  "neutral_spawn_capacity_policy": "skip_and_reschedule_when_full",
+  "electoral_weights": {
+    "default": 1,
+    "by_subzone": {}
+  }
 }

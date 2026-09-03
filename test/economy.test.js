@@ -5,7 +5,8 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { validateConfig } from '../src/config.js';
 import { FACTIONS, zoneAt } from '../src/simulation/world.js';
 import { buildingOffer, nearestOffer } from '../src/simulation/economy.js';
-import { incomePerSecond, localSympathisants, waitingAtPoint } from '../src/simulation/territory.js';
+import { incomeBreakdown, incomePerSecond, localSympathisants, waitingAtPoint } from '../src/simulation/territory.js';
+import { demobilizeUnit } from '../src/simulation/combat-state.js';
 import { teleportTarget, teleport, setCampaignActive, interactionPresence } from '../src/simulation/commands.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
 import { FixedClock } from '../src/simulation/fixed-clock.js';
@@ -186,6 +187,57 @@ test('Concurrence : une seule propriété et un seul débit, indépendants de l�
   assert.ok(a.state.candidates.every(c => c.purchase_hold === null));
 });
 
+test('Partisans : chaque biome de naissance contribue, même après un déplacement', () => {
+  const { sim } = scenario(0);
+  // Different rates make an accidental use of the current biome observable.
+  for (const [index, biome] of sim.config.layout.biomes.entries()) {
+    sim.config.balance.money.supporter_income_per_second_by_origin_biome[biome.id] = index + 1;
+    const zone = sim.state.world.subzones.find(z => z.biome_id === biome.id);
+    const npc = sim.spawn(zone, sim.state.world.subzones[0].center, false);
+    npc.role = 'SYMPATHISANT'; npc.faction_id = 'melenchon';
+  }
+  const income = incomeBreakdown(sim.state, sim.config, 'melenchon');
+  assert.equal(income.supporters, 21);
+  assert.equal(income.total, 21.12);
+  assert.ok(Object.values(income.byBiome).every(source => source.count === 1));
+  sim.state.npcs.forEach(n => { n.x = sim.state.world.subzones.at(-1).center; });
+  assert.deepEqual(incomeBreakdown(sim.state, sim.config, 'melenchon'), income);
+  assert.equal(incomePerSecond(sim.state, sim.config, 'le_pen'), 0.12);
+  sim.state.npcs.reverse();
+  assert.deepEqual(incomeBreakdown(sim.state, sim.config, 'melenchon'), income);
+});
+
+test('Partisans : promotions conservées, démobilisation arrêtée, nouveau camp bénéficiaire', () => {
+  const { sim } = scenario(1);
+  const npc = sim.state.npcs[0];
+  for (const role of ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']) {
+    npc.role = role;
+    assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.52);
+  }
+  demobilizeUnit(sim, npc);
+  assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
+  npc.role = 'NEUTRE';
+  assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
+  npc.role = 'SYMPATHISANT'; npc.faction_id = 'philippe';
+  assert.equal(incomePerSecond(sim.state, sim.config, 'melenchon'), 0.12);
+  assert.equal(incomePerSecond(sim.state, sim.config, 'philippe'), 0.52 * 1.3);
+  sim.state.eliminated_faction = 'philippe';
+  assert.equal(incomePerSecond(sim.state, sim.config, 'philippe'), 0);
+});
+
+test('Partisans : revenu versé chaque seconde et sauvegarde conservée', () => {
+  const { sim, cfg } = scenario(5);
+  sim.state.candidates.forEach(c => { c.campaign_active = false; c.interaction_active = false; });
+  const candidate = sim.state.candidates[0];
+  const before = candidate.money;
+  const resumed = new GameSimulation(cfg); resumed.importSnapshot(sim.exportSnapshot());
+  advance(sim, sim.hz * 10); advance(resumed, resumed.hz * 10);
+  assert.ok(Math.abs(candidate.money - before - 21.2) < 1e-9);
+  assert.ok(Math.abs(candidate.total_earned - 21.2) < 1e-9);
+  assert.equal(candidate.income_per_second, 2.12);
+  assert.deepEqual(resumed.getState(), sim.getState());
+});
+
 test('Financement : seuil de 4, revenus par niveau, bonus Philippe sur tous les revenus', () => {
   for (const faction of ['melenchon', 'philippe']) {
     const { sim, actorId } = scenario(4, { faction, money: 500 });
@@ -195,13 +247,14 @@ test('Financement : seuil de 4, revenus par niveau, bonus Philippe sur tous les 
     const candidate = sim.state.candidates.find(c => c.id === actorId);
     const before = candidate.money;
     advance(sim, 30);
-    const expected = (0.12 + 0.3) * (faction === 'philippe' ? 1.3 : 1);
+    const supporters = 4 * config.balance.money.supporter_income_per_second_by_origin_biome.banlieue;
+    const expected = (0.12 + supporters + 0.3) * (faction === 'philippe' ? 1.3 : 1);
     assert.ok(Math.abs(candidate.money - before - expected) < 1e-9);
     for (const level of [2, 3]) {
       sim.step([teleport(actorId, 'banlieue_a')]); sim.step([teleportTarget(actorId, financeId)]); advance(sim, 59);
       assert.equal(building.level, level);
     }
-    assert.ok(Math.abs(incomePerSecond(sim.state, sim.config, faction) - (0.12 + 0.82) * (faction === 'philippe' ? 1.3 : 1)) < 1e-12);
+    assert.ok(Math.abs(incomePerSecond(sim.state, sim.config, faction) - (0.12 + supporters + 0.82) * (faction === 'philippe' ? 1.3 : 1)) < 1e-12);
   }
   const { sim } = scenario(3);
   sim.step([teleportTarget(candidateId, financeId)]); advance(sim, 90);
@@ -298,15 +351,15 @@ test('Influence abstraite indépendante : sources locales et conservation de 100
   const { sim } = scenario(2);
   sim.step([interactionPresence(candidateId, false)]);
   const election = sim.state.electorate.find(e => e.subzone_id === 'banlieue_b');
-  assert.ok(Math.abs(election.influence_per_second.melenchon - 0.016) < 1e-12);
+  assert.ok(Math.abs(election.influence_per_second.melenchon - (0.016 + config.balance.influence.candidate_presence_per_second)) < 1e-12);
   const before = election.support.melenchon;
   advance(sim, 60, [interactionPresence(candidateId)]);
   assert.ok(election.support.melenchon > before);
-  assert.ok(Math.abs(election.influence_per_second.melenchon - 0.028) < 1e-12);
+  assert.ok(Math.abs(election.influence_per_second.melenchon - (0.028 + config.balance.influence.candidate_presence_per_second)) < 1e-12);
   for (const record of sim.state.electorate) assert.ok(Math.abs(Object.values(record.support).reduce((a, b) => a + b, 0) - 100) < 1e-9);
   const state = sim.getState(); state.npcs[0].role = 'MILITANT'; sim.importSnapshot(state); sim.step();
   const changed = sim.state.electorate.find(e => e.subzone_id === 'banlieue_b');
-  assert.ok(Math.abs(changed.influence_per_second.melenchon - (0.035 + 0.008 + 0.012)) < 1e-12);
+  assert.ok(Math.abs(changed.influence_per_second.melenchon - (0.035 + 0.008 + 0.012 + config.balance.influence.candidate_presence_per_second)) < 1e-12);
   assert.ok(sim.persuasionTicks(sim.state.candidates[0]) < 50);
 });
 
@@ -360,7 +413,8 @@ test('Économie, production et influence donnent le même résultat à différen
 test('Les IA utilisent réellement les infrastructures avec les mêmes commandes que le joueur', () => {
   const sim = new GameSimulation(config);
   const human = new LocalHumanController(); const ai = new AIController(config);
-  for (let i = 0; i < 30 * 150; i++) sim.step(collectCommands(sim.getState(), human, ai));
+  // Electoral development now preserves six local workers before printing spare tracts.
+  for (let i = 0; i < 30 * 240; i++) sim.step(collectCommands(sim.getState(), human, ai));
   assert.ok(sim.state.buildings.some(b => b.owner_id === 'le_pen'));
   assert.ok(sim.state.buildings.some(b => b.owner_id === 'philippe'));
   assert.ok(sim.state.candidates.find(c => c.faction_id === 'le_pen').total_spent > 0);
@@ -376,5 +430,14 @@ test('Les nouveaux réglages invalides sont refusés explicitement', () => {
     cfg => { cfg.layout.biomes[0].subzones[0].max_neutrals_waiting = 0; },
     cfg => { cfg.balance.buildings.imprimerie.max_queue_length = 0; },
     cfg => { cfg.balance.buildings.financement.income_per_second_by_level = []; },
+    cfg => { delete cfg.balance.money.supporter_income_per_second_by_origin_biome; },
+    cfg => { delete cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue; },
+    cfg => { cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue = -1; },
+    cfg => { cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue = '0.4'; },
+    cfg => { cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue = Infinity; },
+    cfg => { cfg.balance.money.supporter_income_per_second_by_origin_biome.inconnu = 1; },
   ]) { const cfg = structuredClone(config); mutate(cfg); assert.throws(() => validateConfig(cfg)); }
+  const cfg = structuredClone(config);
+  cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue = 0;
+  assert.doesNotThrow(() => validateConfig(cfg));
 });

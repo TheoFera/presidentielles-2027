@@ -1,0 +1,559 @@
+
+> presidentielles-2027-greybox@0.5.0 test
+> node --test
+
+TAP version 13
+# Subtest: Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines
+ok 1 - Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines
+  ---
+  duration_ms: 2072.0482
+  ...
+# Subtest: Une attente annule le combo ; le coup manqué ne charge rien ; anticipation et recul sont simulés
+ok 2 - Une attente annule le combo ; le coup manqué ne charge rien ; anticipation et recul sont simulés
+  ---
+  duration_ms: 41.8072
+  ...
+# Subtest: Les Neutres, alliés et démobilisés sont exclus des impacts ; le SO possède 90 de résistance
+ok 3 - Les Neutres, alliés et démobilisés sont exclus des impacts ; le SO possède 90 de résistance
+  ---
+  duration_ms: 28.2127
+  ...
+# Subtest: Dégâts électoraux proportionnels uniquement dans les territoires contrôlés, vers les Neutres
+ok 4 - Dégâts électoraux proportionnels uniquement dans les territoires contrôlés, vers les Neutres
+  ---
+  duration_ms: 2.3547
+  ...
+# Subtest: Un Militant attaque à distance, ignore les S comme cible prioritaire et reprend sa prospection
+ok 5 - Un Militant attaque à distance, ignore les S comme cible prioritaire et reprend sa prospection
+  ---
+  duration_ms: 71.5847
+  ...
+# Subtest: Vitesse des Militants réduite et plafonnée à deux fois celle du joueur
+ok 6 - Vitesse des Militants réduite et plafonnée à deux fois celle du joueur
+  ---
+  duration_ms: 1.71
+  ...
+# Subtest: Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet
+ok 7 - Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet
+  ---
+  duration_ms: 319.8194
+  ...
+# Subtest: Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée
+ok 8 - Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée
+  ---
+  duration_ms: 463.6857
+  ...
+# Subtest: Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau
+ok 9 - Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau
+  ---
+  duration_ms: 222.7188
+  ...
+# Subtest: Défense SO : intercepte un candidat dans son biome, cesse la poursuite à sa sortie
+ok 10 - Défense SO : intercepte un candidat dans son biome, cesse la poursuite à sa sortie
+  ---
+  duration_ms: 410.9003
+  ...
+# Subtest: Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome
+ok 11 - Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome
+  ---
+  duration_ms: 2141.8864
+  ...
+# Subtest: Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante
+ok 12 - Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante
+  ---
+  duration_ms: 111.5626
+  ...
+# Subtest: Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant
+ok 13 - Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant
+  ---
+  duration_ms: 108.454
+  ...
+# Subtest: Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes
+ok 14 - Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes
+  ---
+  duration_ms: 1475.8445
+  ...
+# Subtest: Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen
+ok 15 - Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen
+  ---
+  duration_ms: 31.5591
+  ...
+# Subtest: Plusieurs SO augmentent la pression par leurs attaques, sans ajouter de PV au candidat
+ok 16 - Plusieurs SO augmentent la pression par leurs attaques, sans ajouter de PV au candidat
+  ---
+  duration_ms: 401.0557
+  ...
+# Subtest: Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence
+ok 17 - Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence
+  ---
+  duration_ms: 74.304
+  ...
+# Subtest: CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles
+ok 18 - CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles
+  ---
+  duration_ms: 126.0394
+  ...
+# Subtest: Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement
+ok 19 - Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement
+  ---
+  duration_ms: 20.0463
+  ...
+# Subtest: Humain et IA passent par Attack ; l’appui bref est conservé et ne se répète pas
+ok 20 - Humain et IA passent par Attack ; l’appui bref est conservé et ne se répète pas
+  ---
+  duration_ms: 10.7636
+  ...
+# Subtest: Combat déterministe à plusieurs FPS, y compris projectiles et unités temporaires
+ok 21 - Combat déterministe à plusieurs FPS, y compris projectiles et unités temporaires
+  ---
+  duration_ms: 379.3463
+  ...
+# Subtest: L’attaque et la vague traversent correctement la jonction du monde
+ok 22 - L’attaque et la vague traversent correctement la jonction du monde
+  ---
+  duration_ms: 6.7621
+  ...
+# Subtest: Rareté initiale : 4 à 5 Neutres par biome, aucune unité offerte
+ok 23 - Rareté initiale : 4 à 5 Neutres par biome, aucune unité offerte
+  ---
+  duration_ms: 14.7795
+  ...
+# Subtest: Les délais sont en jours, dans l’intervalle aléatoire demandé et changent à chaque tentative
+ok 24 - Les délais sont en jours, dans l’intervalle aléatoire demandé et changent à chaque tentative
+  ---
+  duration_ms: 314.2506
+  ...
+# Subtest: Un point plein ne cumule pas de réapparitions et libérer une place ne crée pas de rafale
+ok 25 - Un point plein ne cumule pas de réapparitions et libérer une place ne crée pas de rafale
+  ---
+  duration_ms: 128.4625
+  ...
+# Subtest: La capacité est bien par point social, même avec plusieurs points dans une sous-zone
+ok 26 - La capacité est bien par point social, même avec plusieurs points dans une sous-zone
+  ---
+  duration_ms: 305.9045
+  ...
+# Subtest: Permanence verrouillée sous le seuil, même avec de l’argent ; seuil non consommé
+ok 27 - Permanence verrouillée sous le seuil, même avec de l’argent ; seuil non consommé
+  ---
+  duration_ms: 229.937
+  ...
+# Subtest: Fonds insuffisants : billet désactivé et aucune progression ni dépense
+ok 28 - Fonds insuffisants : billet désactivé et aucune progression ni dépense
+  ---
+  duration_ms: 106.8444
+  ...
+# Subtest: Sortir annule le paiement, revenir impose une nouvelle présence complète
+ok 29 - Sortir annule le paiement, revenir impose une nouvelle présence complète
+  ---
+  duration_ms: 101.9702
+  ...
+# Subtest: Présence sans intention active : la simulation refuse tout achat
+ok 30 - Présence sans intention active : la simulation refuse tout achat
+  ---
+  duration_ms: 156.7224
+  ...
+# Subtest: Améliorations complètes de Permanence, un achat par visite, niveau maximal respecté
+ok 31 - Améliorations complètes de Permanence, un achat par visite, niveau maximal respecté
+  ---
+  duration_ms: 284.0866
+  ...
+# Subtest: Concurrence : une seule propriété et un seul débit, indépendants de l’ordre des commandes
+ok 32 - Concurrence : une seule propriété et un seul débit, indépendants de l’ordre des commandes
+  ---
+  duration_ms: 177.7468
+  ...
+# Subtest: Financement : seuil de 4, revenus par niveau, bonus Philippe sur tous les revenus
+ok 33 - Financement : seuil de 4, revenus par niveau, bonus Philippe sur tous les revenus
+  ---
+  duration_ms: 479.9946
+  ...
+# Subtest: Imprimerie neutre : paiement séparé par camp, file partagée, attribution exclusive
+ok 34 - Imprimerie neutre : paiement séparé par camp, file partagée, attribution exclusive
+  ---
+  duration_ms: 71.0328
+  ...
+# Subtest: L’Imprimerie choisit le disponible le plus proche du biome, puis son ID en cas d’égalité
+ok 35 - L’Imprimerie choisit le disponible le plus proche du biome, puis son ID en cas d’égalité
+  ---
+  duration_ms: 124.465
+  ...
+# Subtest: La file est bornée ; un tract non affecté attend une main-d’œuvre future
+ok 36 - La file est bornée ; un tract non affecté attend une main-d’œuvre future
+  ---
+  duration_ms: 266.0773
+  ...
+# Subtest: Collecte visible puis Militant autonome : marche, attente, équipement, conversion d’un Neutre
+ok 37 - Collecte visible puis Militant autonome : marche, attente, équipement, conversion d’un Neutre
+  ---
+  duration_ms: 506.7874
+  ...
+# Subtest: Le Militant convainc en 5 s sans hériter du bonus personnel de Mélenchon
+ok 38 - Le Militant convainc en 5 s sans hériter du bonus personnel de Mélenchon
+  ---
+  duration_ms: 128.6332
+  ...
+# Subtest: Influence abstraite indépendante : sources locales et conservation de 100 %
+ok 39 - Influence abstraite indépendante : sources locales et conservation de 100 %
+  ---
+  duration_ms: 59.9418
+  ...
+# Subtest: Snapshot durant un paiement, puis durant la production : reprise strictement identique
+ok 40 - Snapshot durant un paiement, puis durant la production : reprise strictement identique
+  ---
+  duration_ms: 1770.7864
+  ...
+# Subtest: Snapshot corrompu : double affectation, propriété d’un service ou timer falsifié refusés
+ok 41 - Snapshot corrompu : double affectation, propriété d’un service ou timer falsifié refusés
+  ---
+  duration_ms: 130.2665
+  ...
+# Subtest: Économie, production et influence donnent le même résultat à différents FPS
+ok 42 - Économie, production et influence donnent le même résultat à différents FPS
+  ---
+  duration_ms: 2038.2087
+  ...
+# Subtest: Les IA utilisent réellement les infrastructures avec les mêmes commandes que le joueur
+ok 43 - Les IA utilisent réellement les infrastructures avec les mêmes commandes que le joueur
+  ---
+  duration_ms: 17051.6225
+  ...
+# Subtest: Les nouveaux réglages invalides sont refusés explicitement
+ok 44 - Les nouveaux réglages invalides sont refusés explicitement
+  ---
+  duration_ms: 2.3436
+  ...
+# Subtest: Électorat distinct des PNJ : départs, poids et voisins dans les deux sens de la boucle
+ok 45 - Électorat distinct des PNJ : départs, poids et voisins dans les deux sens de la boucle
+  ---
+  duration_ms: 12.505
+  ...
+# Subtest: Scores nationaux pondérés, avec un poids configurable distinct pour une sous-zone
+ok 46 - Scores nationaux pondérés, avec un poids configurable distinct pour une sous-zone
+  ---
+  duration_ms: 6.2352
+  ...
+# Subtest: Arrondis du dernier sondage : l’affichage reste à 100 %, sans altérer la mesure
+ok 47 - Arrondis du dernier sondage : l’affichage reste à 100 %, sans altérer la mesure
+  ---
+  duration_ms: 0.5412
+  ...
+# Subtest: Contrôle : minimum 35 et avance 4 inclusifs, égalités contestées et basculement des trois camps
+ok 48 - Contrôle : minimum 35 et avance 4 inclusifs, égalités contestées et basculement des trois camps
+  ---
+  duration_ms: 8.8103
+  ...
+# Subtest: Conversion : rendement décroissant, retournement direct seulement sous 12 %, sommes stables sous forte pression
+ok 49 - Conversion : rendement décroissant, retournement direct seulement sous 12 %, sommes stables sous forte pression
+  ---
+  duration_ms: 16.5472
+  ...
+# Subtest: Sources : S, M, Permanence et petite présence ; SO et Cabinet ne produisent pas de voix
+ok 50 - Sources : S, M, Permanence et petite présence ; SO et Cabinet ne produisent pas de voix
+  ---
+  duration_ms: 12.6127
+  ...
+# Subtest: Tour : implantation 6, paiement complet, annulation, niveaux 1–3 et une seule active par camp
+ok 51 - Tour : implantation 6, paiement complet, annulation, niveaux 1–3 et une seule active par camp
+  ---
+  duration_ms: 824.8973
+  ...
+# Subtest: Tour : ×2 contrôlée, ×1,5 adjacente y compris boucle, ×1 distante ; faible face au Militant
+ok 52 - Tour : ×2 contrôlée, ×1,5 adjacente y compris boucle, ×1 distante ; faible face au Militant
+  ---
+  duration_ms: 6.0206
+  ...
+# Subtest: Institut : aucun sondage initial, achat 90, mesure immédiate puis toutes les 240 étapes et séparation par camp
+ok 53 - Institut : aucun sondage initial, achat 90, mesure immédiate puis toutes les 240 étapes et séparation par camp
+  ---
+  duration_ms: 280.036
+  ...
+# Subtest: Cabinet : fermer Tour, Institut et Meeting coupe les effets ; dernière mesure figée puis reprise après reconstruction
+ok 54 - Cabinet : fermer Tour, Institut et Meeting coupe les effets ; dernière mesure figée puis reprise après reconstruction
+  ---
+  duration_ms: 923.5407
+  ...
+# Subtest: Meeting : construction 65, candidat sur place, événement 30, basculement local et bonus uniquement S/M
+ok 55 - Meeting : construction 65, candidat sur place, événement 30, basculement local et bonus uniquement S/M
+  ---
+  duration_ms: 423.9704
+  ...
+# Subtest: Meeting : les niveaux modifient coûts, impulsions, délais et bonus ; pas de double paiement ni activation à distance
+ok 56 - Meeting : les niveaux modifient coûts, impulsions, délais et bonus ; pas de double paiement ni activation à distance
+  ---
+  duration_ms: 911.1116
+  ...
+# Subtest: Coups : contrôle perdu immédiatement, pertes seulement aux Neutres, cercle modifié au prochain sondage
+ok 57 - Coups : contrôle perdu immédiatement, pertes seulement aux Neutres, cercle modifié au prochain sondage
+  ---
+  duration_ms: 189.8177
+  ...
+# Subtest: Snapshot : sondage ancien, Meeting actif et reprise déterministe, y compris à plusieurs FPS
+ok 58 - Snapshot : sondage ancien, Meeting actif et reprise déterministe, y compris à plusieurs FPS
+  ---
+  duration_ms: 1496.6684
+  ...
+# Subtest: Snapshot : supports, poids, contrôles, sondage, agrégation et horloges falsifiés sont refusés atomiquement
+ok 59 - Snapshot : supports, poids, contrôles, sondage, agrégation et horloges falsifiés sont refusés atomiquement
+  ---
+  duration_ms: 40.966
+  ...
+# Subtest: IA : chaque camp construit les trois lieux, utilise le Meeting et améliore sa Tour avec des transactions ordinaires
+ok 60 - IA : chaque camp construit les trois lieux, utilise le Meeting et améliore sa Tour avec des transactions ordinaires
+  ---
+  duration_ms: 5210.0756
+  ...
+# Subtest: IA : convaincre près de l’Imprimerie ne déclenche aucune dépense non choisie
+ok 61 - IA : convaincre près de l’Imprimerie ne déclenche aucune dépense non choisie
+  ---
+  duration_ms: 65.8154
+  ...
+# Subtest: Commandes de débogage : influence, contrôle, Neutres à 50 %, constructions et Meeting sérialisables
+ok 62 - Commandes de débogage : influence, contrôle, Neutres à 50 %, constructions et Meeting sérialisables
+  ---
+  duration_ms: 13.2685
+  ...
+# Subtest: J0 au tick prévu : gel du monde complet, jauges nationales réelles, reprise exacte des finalistes
+ok 63 - J0 au tick prévu : gel du monde complet, jauges nationales réelles, reprise exacte des finalistes
+  ---
+  duration_ms: 110.6864
+  ...
+# Subtest: Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans l’arène
+ok 64 - Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans l’arène
+  ---
+  duration_ms: 10.2213
+  ...
+# Subtest: Dégâts d’arène des six attaques : jauge directe, support du monde inchangé, premier KO seul
+ok 65 - Dégâts d’arène des six attaques : jauge directe, support du monde inchangé, premier KO seul
+  ---
+  duration_ms: 37.64
+  ...
+# Subtest: Les vrais Attack déclenchent chaque spécial et infligent des dégâts d’arène autoritaires
+ok 66 - Les vrais Attack déclenchent chaque spécial et infligent des dégâts d’arène autoritaires
+  ---
+  duration_ms: 20.8796
+  ...
+# Subtest: Bords de plateau solides : marche, recul et projectile ne bouclent pas, pas de ring-out
+ok 67 - Bords de plateau solides : marche, recul et projectile ne bouclent pas, pas de ring-out
+  ---
+  duration_ms: 4.3637
+  ...
+# Subtest: Neutralisation : S/M/SO rentrent à leur origine, bâtiments libérés, Neutres préservés et voix sans transfert
+ok 68 - Neutralisation : S/M/SO rentrent à leur origine, bâtiments libérés, Neutres préservés et voix sans transfert
+  ---
+  duration_ms: 309.7963
+  ...
+# Subtest: Imprimerie partagée : commandes du troisième annulées, celles du finaliste conservées
+ok 69 - Imprimerie partagée : commandes du troisième annulées, celles du finaliste conservées
+  ---
+  duration_ms: 10.6186
+  ...
+# Subtest: Anciens PNJ : aucune conversion gratuite, retour puis persuasion des deux finalistes et télémétrie unique
+ok 70 - Anciens PNJ : aucune conversion gratuite, retour puis persuasion des deux finalistes et télémétrie unique
+  ---
+  duration_ms: 535.4173
+  ...
+# Subtest: Emplacement abandonné : seuil local et paiement restent requis, aucun transfert automatique
+ok 71 - Emplacement abandonné : seuil local et paiement restent requis, aucun transfert automatique
+  ---
+  duration_ms: 79.437
+  ...
+# Subtest: Sprint : multiplicateur global unique, Tour atténuée, Meeting ×10 payé et délai raccourci
+ok 72 - Sprint : multiplicateur global unique, Tour atténuée, Meeting ×10 payé et délai raccourci
+  ---
+  duration_ms: 78.5623
+  ...
+# Subtest: Une Tour seule ne fait pas exploser une zone sans présence en deux secondes
+ok 73 - Une Tour seule ne fait pas exploser une zone sans présence en deux secondes
+  ---
+  duration_ms: 61.04
+  ...
+# Subtest: Sondages du sprint à 2,5 s ; Institut fermé garde sa dernière mesure ; résultat utilise le réel
+ok 74 - Sondages du sprint à 2,5 s ; Institut fermé garde sa dernière mesure ; résultat utilise le réel
+  ---
+  duration_ms: 83.246
+  ...
+# Subtest: Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV d’arène
+ok 75 - Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV d’arène
+  ---
+  duration_ms: 6.8375
+  ...
+# Subtest: 60 secondes exactes, égalités répétées +15 s et fin autoritaire figée
+ok 76 - 60 secondes exactes, égalités répétées +15 s et fin autoritaire figée
+  ---
+  duration_ms: 2129.4069
+  ...
+# Subtest: Égalité : règle configurable J0 puis graine, et commande debug de prolongation
+ok 77 - Égalité : règle configurable J0 puis graine, et commande debug de prolongation
+  ---
+  duration_ms: 14.155
+  ...
+# Subtest: Snapshot d’arène et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris
+ok 78 - Snapshot d’arène et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris
+  ---
+  duration_ms: 1483.8489
+  ...
+# Subtest: Snapshots corrompus : jauges, monde gelé, élimination, horloge et résultat refusés atomiquement
+ok 79 - Snapshots corrompus : jauges, monde gelé, élimination, horloge et résultat refusés atomiquement
+  ---
+  duration_ms: 73.5629
+  ...
+# Subtest: Les pouvoirs et attaques déjà actifs dans le monde reprennent avec leurs délais exacts
+ok 80 - Les pouvoirs et attaques déjà actifs dans le monde reprennent avec leurs délais exacts
+  ---
+  duration_ms: 18.4883
+  ...
+# Subtest: Un candidat à 0 % à J0 est éliminé sans blocage et le debug ne peut ressusciter son camp
+ok 81 - Un candidat à 0 % à J0 est éliminé sans blocage et le debug ne peut ressusciter son camp
+  ---
+  duration_ms: 11.7713
+  ...
+# Subtest: L’IA du sprint paye un Meeting proche et recherche la réserve du troisième
+ok 82 - L’IA du sprint paye un Meeting proche et recherche la réserve du troisième
+  ---
+  duration_ms: 71.8258
+  ...
+# Subtest: Rejouer : un nouveau GameSimulation efface élimination, IA, pouvoirs, unités et toute la télémétrie
+ok 83 - Rejouer : un nouveau GameSimulation efface élimination, IA, pouvoirs, unités et toute la télémétrie
+  ---
+  duration_ms: 14.8761
+  ...
+# Subtest: Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le sprint
+ok 84 - Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le sprint
+  ---
+  duration_ms: 1301.4602
+  ...
+# Subtest: IA d’arène indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0
+ok 85 - IA d’arène indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0
+  ---
+  duration_ms: 180.925
+  ...
+# Subtest: Le monde contient 6 × 3 sous-zones, les populations exactes et des IDs uniques
+ok 86 - Le monde contient 6 × 3 sous-zones, les populations exactes et des IDs uniques
+  ---
+  duration_ms: 11.5433
+  ...
+# Subtest: Argent initial, départs et vitesse de marche proviennent des JSON
+ok 87 - Argent initial, départs et vitesse de marche proviennent des JSON
+  ---
+  duration_ms: 71.7591
+  ...
+# Subtest: Boucle du monde : franchissement continu dans les deux sens
+ok 88 - Boucle du monde : franchissement continu dans les deux sens
+  ---
+  duration_ms: 23.806
+  ...
+# Subtest: Spawns par sous-zone, sans dépendre de la caméra ni de la présence du joueur
+ok 89 - Spawns par sous-zone, sans dépendre de la caméra ni de la présence du joueur
+  ---
+  duration_ms: 1605.7198
+  ...
+# Subtest: Conversion sans commande ni dépense : 50 ticks pour Mélenchon, 90 pour les autres
+ok 90 - Conversion sans commande ni dépense : 50 ticks pour Mélenchon, 90 pour les autres
+  ---
+  duration_ms: 259.4336
+  ...
+# Subtest: Quitter la zone de persuasion annule la progression et conserve l’origine
+ok 91 - Quitter la zone de persuasion annule la progression et conserve l’origine
+  ---
+  duration_ms: 84.4455
+  ...
+# Subtest: Un acteur ne persuade qu’un PNJ à la fois, puis passe au suivant
+ok 92 - Un acteur ne persuade qu’un PNJ à la fois, puis passe au suivant
+  ---
+  duration_ms: 114.3755
+  ...
+# Subtest: Une persuasion déjà commencée garde sa cible jusqu’à la sortie de portée
+ok 93 - Une persuasion déjà commencée garde sa cible jusqu’à la sortie de portée
+  ---
+  duration_ms: 13.9062
+  ...
+# Subtest: Conflit de proximité : une seule conversion, résultat déterministe
+ok 94 - Conflit de proximité : une seule conversion, résultat déterministe
+  ---
+  duration_ms: 96.7736
+  ...
+# Subtest: La persuasion fonctionne également à travers la jonction de la boucle
+ok 95 - La persuasion fonctionne également à travers la jonction de la boucle
+  ---
+  duration_ms: 64.8333
+  ...
+# Subtest: Démobilisation de débogage : retour physique au point d’origine avant neutralité
+ok 96 - Démobilisation de débogage : retour physique au point d’origine avant neutralité
+  ---
+  duration_ms: 91.6834
+  ...
+# Subtest: Humain et IA produisent la même commande ; les IA agissent hors écran
+ok 97 - Humain et IA produisent la même commande ; les IA agissent hors écran
+  ---
+  duration_ms: 1375.8091
+  ...
+# Subtest: Des humains peuvent piloter les trois candidats sans modifier la simulation
+ok 98 - Des humains peuvent piloter les trois candidats sans modifier la simulation
+  ---
+  duration_ms: 5.7194
+  ...
+# Subtest: Les règles de persuasion ignorent le candidat local et la nature des contrôleurs
+ok 99 - Les règles de persuasion ignorent le candidat local et la nature des contrôleurs
+  ---
+  duration_ms: 106.5749
+  ...
+# Subtest: Snapshot pendant la persuasion : rechargement puis évolution identique, IA et RNG compris
+ok 100 - Snapshot pendant la persuasion : rechargement puis évolution identique, IA et RNG compris
+  ---
+  duration_ms: 5147.057
+  ...
+# Subtest: Snapshot invalide refusé atomiquement, sans modifier la partie
+ok 101 - Snapshot invalide refusé atomiquement, sans modifier la partie
+  ---
+  duration_ms: 21.8132
+  ...
+# Subtest: La graine est reproductible, une autre graine change les promenades
+ok 102 - La graine est reproductible, une autre graine change les promenades
+  ---
+  duration_ms: 542.5006
+  ...
+# Subtest: Commandes invalides ignorées ; l’input ne peut pas injecter de position ou d’argent
+ok 103 - Commandes invalides ignorées ; l’input ne peut pas injecter de position ou d’argent
+  ---
+  duration_ms: 10.0483
+  ...
+# Subtest: La vue reçoit une copie : aucune mutation indirecte de l’état
+ok 104 - La vue reçoit une copie : aucune mutation indirecte de l’état
+  ---
+  duration_ms: 4.2881
+  ...
+# Subtest: Même simulation à 1, 20, 30, 60, 144 FPS et avec des frames irrégulières
+ok 105 - Même simulation à 1, 20, 30, 60, 144 FPS et avec des frames irrégulières
+  ---
+  duration_ms: 3514.3809
+  ...
+# Subtest: Un appui relâché entre deux ticks produit un pas, puis un arrêt ; perte de focus vide l’input
+ok 106 - Un appui relâché entre deux ticks produit un pas, puis un arrêt ; perte de focus vide l’input
+  ---
+  duration_ms: 0.3267
+  ...
+# Subtest: Jours : J-1 est suivi de J0 et du plateau médiatique
+ok 107 - Jours : J-1 est suivi de J0 et du plateau médiatique
+  ---
+  duration_ms: 558.4167
+  ...
+# Subtest: Composition proportionnelle : sol à 93 %, épaisseur 2,5 %, personnage 15 %
+ok 108 - Composition proportionnelle : sol à 93 %, épaisseur 2,5 %, personnage 15 %
+  ---
+  duration_ms: 0.2967
+  ...
+# Subtest: Configuration altérée : les réglages influencent réellement le gameplay
+ok 109 - Configuration altérée : les réglages influencent réellement le gameplay
+  ---
+  duration_ms: 63.5854
+  ...
+1..109
+# tests 109
+# suites 0
+# pass 109
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24662.1185

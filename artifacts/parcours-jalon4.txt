@@ -1,0 +1,10 @@
+
+> presidentielles-2027-greybox@0.4.0 test:parcours
+> node scripts/validate-milestone2.mjs
+
+jalon2-billet : 9.37 s, 101.12 k €, 0 k € dépensés
+jalon2-permanence : 10.37 s, 66.24 k €, 35 k € dépensés
+jalon2-collecte : 15.00 s, 54.80 k €, 47 k € dépensés
+jalon2-retrait : 18.50 s, 55.22 k €, 47 k € dépensés
+jalon2-financement : 73.67 s, 6.84 k €, 102 k € dépensés
+Parcours complet validé avec les réglages normaux, uniquement par marche et présence, sans argent ni PNJ ajoutés. IA candidates suspendues pour isoler le parcours.
