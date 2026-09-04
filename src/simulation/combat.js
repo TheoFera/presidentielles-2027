@@ -84,7 +84,7 @@ function triggerSpecial(sim, actor) {
     const range = s.range_screens * config.prototype.world.units_per_screen;
     power.expires_tick += sim.secondsToTicks(range / s.travel_speed);
     state.projectiles.push({ id: `projectile:${state.next_projectile_id++}`, power_id: power.id, owner_id: actor.id, faction_id: actor.faction_id,
-      kind: 'WAVE', x: actor.x, direction: actor.facing, speed: s.travel_speed, remaining_range: range, hit_ids: [], damage: 0, knockback: s.knockback, electoral_damage: s.candidate_electoral_damage_percent_points });
+      kind: 'WAVE', x: actor.x, direction: actor.facing, speed: s.travel_speed, remaining_range: range, hit_ids: [], damage: s.candidate_resistance_damage, knockback: s.knockback, electoral_damage: s.candidate_electoral_damage_percent_points });
   } else {
     const hologram = actor.faction_id === 'melenchon';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;

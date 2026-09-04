@@ -12,6 +12,8 @@ import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from
 import { GamePhase, commandAllowed } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
 import { initialMatchState, startArena, finishArena, finishSprint, applyMatchDebug } from './match-lifecycle.js';
+import { updateStrategicSites } from './strategic-sites.js';
+import { updateCandidateResistance } from './candidate-resistance.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const byId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
@@ -22,10 +24,11 @@ export class GameSimulation {
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
     const initialSeed = Number(seed) >>> 0 || 1;
     const world = buildWorld(config);
-    const infrastructure = createInfrastructure(world, config);
+    const rng = { rng_state: initialSeed };
+    const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 5, config_fingerprint: fingerprint(config), ...initialMatchState(),
-      seed: initialSeed, rng_state: initialSeed, tick: 0, next_npc_id: 1, next_event_id: 1,
+      snapshot_version: 6, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, transactions: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [],
@@ -42,9 +45,12 @@ export class GameSimulation {
         x: start.start + start.width * config.prototype.world.candidate_start_ratio,
         axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0,
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
-        interaction_active: true, purchase_hold: null, purchase_latch_target_id: null,
+        resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
+        ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
+        interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0,
         total_spent: 0, total_earned: 0, income_per_second: 0, spending: { BUILD: 0, UPGRADE: 0, PRINT: 0 },
         money: config.balance.money.base_starting_money * (faction === 'philippe' ? config.balance.money.philippe_starting_money_multiplier : 1),
+        start_x: start.start + start.width * config.prototype.world.candidate_start_ratio, last_hq_x: null,
       });
     }
     for (const zone of world.subzones) {
@@ -253,7 +259,7 @@ export class GameSimulation {
     state.tick++;
     beginCombatTick(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || interrupted(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || interrupted(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
@@ -264,11 +270,13 @@ export class GameSimulation {
       if (npc.role === 'SERVICE_D_ORDRE') updateGuard(this, npc);
     }
     updateCombat(this);
+    updateCandidateResistance(this);
     this.updatePersuasion();
     updateEconomy(this);
     updateProduction(this);
     updateEquipmentProduction(this);
     this.updateNpcs();
+    updateStrategicSites(this);
     updateInfluence(this);
     const days = state.phase === GamePhase.SECOND_ROUND_SPRINT ? 0 : Math.max(0,
       this.config.balance.time.starting_days_before_first_round - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));

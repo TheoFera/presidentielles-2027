@@ -41,8 +41,8 @@ export function incomeBreakdown(state, config, factionId) {
   }
   for (const biome of Object.values(byBiome)) biome.income = biome.count * biome.rate;
   const supporters = Object.values(byBiome).reduce((sum, biome) => sum + biome.income, 0);
-  const buildings = eliminated ? 0 : state.buildings.filter(b => b.type === 'financement' && b.owner_id === factionId && b.state === 'ACTIVE')
-    .reduce((sum, b) => sum + config.balance.buildings.financement.income_per_second_by_level[b.level - 1], 0);
+  // Le Financement paie uniquement à la fin d’une campagne déclenchée sur place.
+  const buildings = 0;
   const base = eliminated ? 0 : money.base_passive_income_per_second;
   const multiplier = factionId === 'philippe' ? money.philippe_income_multiplier : 1;
   return { base, supporters, buildings, multiplier, byBiome, total: (base + supporters + buildings) * multiplier };
@@ -83,7 +83,7 @@ const emptySources = () => ({ sympathisants: 0, militants: 0, permanence: 0, can
   tower: 0, tower_base: 0, tower_multiplier: 1, faction_multiplier: 1 });
 
 export function meetingMultiplier(state, config, zoneId, faction) {
-  return state.buildings.filter(b => b.type === 'meeting' && b.state === 'ACTIVE' && b.owner_id === faction
+  return state.buildings.filter(b => b.type === 'meeting' && b.state === 'ACTIVE' && b.meeting_faction_id === faction
     && b.subzone_id === zoneId && b.meeting_until_tick > state.tick)
     .reduce((best, b) => Math.max(best, config.balance.buildings.meeting.ally_influence_multiplier_by_level[b.meeting_level - 1]), 1);
 }
@@ -100,7 +100,8 @@ export function refreshInfluenceSources(state, config) {
     }
     for (const building of state.buildings) {
       if (building.subzone_id === zone.id && building.type === 'permanence' && building.state === 'ACTIVE') {
-        sources[building.owner_id].permanence += config.balance.buildings.permanence.local_influence_by_level[building.level - 1];
+        const value = config.balance.buildings.permanence.local_influence_by_level[building.level - 1];
+        sources[building.owner_id].permanence += value * (building.headquarters ? config.balance.buildings.permanence.hq_influence_multiplier : 1);
       }
     }
     for (const candidate of state.candidates) {
@@ -112,8 +113,9 @@ export function refreshInfluenceSources(state, config) {
       source.meeting = (source.sympathisants + source.militants) * (meetingMultiplier(state, config, zone.id, faction) - 1);
       source.tower_base = state.buildings.filter(b => b.type === 'tour_communication' && b.state === 'ACTIVE' && b.owner_id === faction)
         .reduce((sum, b) => sum + tower.global_influence_per_second_by_level[b.level - 1], 0);
-      source.tower_multiplier = election.controller === faction ? tower.controlled_zone_multiplier
-        : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier : tower.distant_zone_multiplier;
+      const level = Math.max(1, state.buildings.find(b => b.type === 'tour_communication' && b.state === 'ACTIVE' && b.owner_id === faction)?.level || 1);
+      source.tower_multiplier = election.controller === faction ? tower.controlled_zone_multiplier_by_level[level - 1]
+        : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier_by_level[level - 1] : tower.distant_zone_multiplier_by_level[level - 1];
       source.tower = source.tower_base * source.tower_multiplier * (state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.second_round.tower_influence_multiplier : 1);
       source.faction_multiplier = faction === 'le_pen' ? config.balance.influence.le_pen_gain_multiplier : 1;
       election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config);

@@ -1,7 +1,8 @@
 import { wrap, zoneAt } from './world.js';
-import { distance, localSympathisants, stableIdOrder } from './territory.js';
+import { distance, stableIdOrder } from './territory.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
 import { paymentStatus } from './campaign-budget.js';
+import { captureLimitReason, captureSite, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
 
 export function availableMilitants(state, biome, faction) {
   return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === faction && zoneAt(state.world, n.x).biome_id === biome
@@ -11,8 +12,10 @@ export const availableGuards = (state, biome, faction) => state.npcs.filter(n =>
   && n.guard_biome_id === biome && zoneAt(state.world, n.x).biome_id === biome && !n.raid && !n.combat?.engaged);
 
 export function cabinetTarget(state, config, cabinet, direction) {
-  return state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== cabinet.owner_id
-    && config.buildings.building_types[b.type === 'faction' ? b.variant : b.type]?.can_be_targeted_by_philippe)
+  const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
+  return state.buildings.filter(b => b.state === 'ACTIVE' && !b.headquarters
+    && (b.type === 'meeting' ? b.meeting_faction_id && b.meeting_faction_id !== cabinet.owner_id
+      : b.owner_id && b.owner_id !== cabinet.owner_id && allowed.includes(b.type === 'faction' ? b.variant : b.type)))
     .map(b => ({ b, distance: wrap((b.x - cabinet.x) * direction, state.world.length) }))
     .filter(item => item.distance > 0).sort((a, b) => a.distance - b.distance || stableIdOrder(a.b, b.b))[0]?.b || null;
 }
@@ -20,7 +23,7 @@ export function cabinetTarget(state, config, cabinet, direction) {
 function quote(state, config, candidate, building, kind, cost, x, radius, reason = null, extra = {}) {
   const settings = buildingSettings(config, building, candidate.faction_id);
   return { target_id: building.id, kind, key: `${building.id}:${kind}:${building.level}:${extra.direction || 0}:${extra.victim_id || ''}`,
-    cost, x: wrap(x, state.world.length), radius, required_ticks: Math.ceil(settings.purchase_hold_seconds * config.balance.simulation_architecture.fixed_tick_hz),
+    cost, x: wrap(x, state.world.length), radius, required_ticks: Math.ceil((kind === 'CAPTURE' ? settings.capture_seconds : settings.purchase_hold_seconds) * config.balance.simulation_architecture.fixed_tick_hz),
     ...paymentStatus(candidate, config, cost, reason), ...extra };
 }
 
@@ -28,20 +31,26 @@ function quote(state, config, candidate, building, kind, cost, x, radius, reason
 export function factionOffers(state, config, candidate, building) {
   const s = buildingSettings(config, building, candidate.faction_id);
   const p = config.balance.faction_interactions;
-  if (building.state === 'EMPTY') {
-    if (localSympathisants(state, building.subzone_id, candidate.faction_id).length < s.required_local_sympathisants) return [];
-    return [quote(state, config, candidate, building, 'BUILD', s.build_cost, building.x, p.center_radius)];
+  if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {
+    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < s.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
+      : captureLimitReason(state, config, building, candidate.faction_id);
+    return [quote(state, config, candidate, building, 'CAPTURE', s.capture_cost, building.x, p.center_radius, reason)];
   }
   if (building.owner_id !== candidate.faction_id) return [];
-  if (building.state === 'CLOSED') return [quote(state, config, candidate, building, 'REBUILD', s.build_cost, building.x, p.center_radius)];
   const offers = [];
-  if (building.level < s.max_level) offers.push(quote(state, config, candidate, building, 'UPGRADE', s.upgrade_costs[building.level - 1], building.x + p.upgrade_offset, p.upgrade_radius, null, { label: 'AMÉLIORER' }));
+  if (building.level < s.max_level) {
+    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < s[`required_presence_N${building.level + 1}`] ? 'INSUFFICIENT_PRESENCE' : null;
+    offers.push(quote(state, config, candidate, building, 'UPGRADE', s.upgrade_costs[building.level - 1], building.x, p.center_radius, reason, { label: 'AMÉLIORER' }));
+  }
   if (building.variant === 'service_ordre') {
-    const reason = building.queue.length >= s.max_queue_length ? 'QUEUE_FULL'
+    const maximum = s.max_active_SO_by_level[building.level - 1];
+    const linked = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.source_site_id === building.id).length + building.queue.length;
+    const reason = maximum !== null && linked >= maximum ? 'SO_LIMIT'
+      : building.queue.length >= s.max_queue_length ? 'QUEUE_FULL'
       : !availableMilitants(state, building.biome_id, candidate.faction_id).length ? 'NO_MILITANT' : null;
     offers.push(quote(state, config, candidate, building, 'EQUIP', s.baton_cost_by_level[building.level - 1], building.x, p.center_radius, reason, { label: 'ÉQUIPEMENT' }));
     for (const direction of [-1, 1]) {
-      const blocked = state.tick < building.raid_ready_tick ? 'COOLDOWN' : !availableGuards(state, building.biome_id, candidate.faction_id).length ? 'NO_GUARD' : null;
+      const blocked = building.level < s.raid_unlock_level ? 'LEVEL_REQUIRED' : state.tick < building.raid_ready_tick ? 'COOLDOWN' : !availableGuards(state, building.biome_id, candidate.faction_id).length ? 'NO_GUARD' : null;
       offers.push(quote(state, config, candidate, building, 'RAID', config.balance.physical_units.service_ordre.raid_cost, building.x + direction * p.side_offset, p.side_radius, blocked, { direction, label: direction < 0 ? '← RAID' : 'RAID →' }));
     }
   } else {
@@ -57,7 +66,7 @@ export function factionOffers(state, config, candidate, building) {
 
 export function commitFactionAction(sim, candidate, building, offer) {
   const { state, config } = sim;
-  if (offer.kind === 'BUILD' && building.type === 'faction') building.variant = factionVariant(candidate.faction_id);
+  if (offer.kind === 'CAPTURE' && building.type === 'faction') { captureSite(sim, building, candidate); return true; }
   if (offer.kind === 'EQUIP') {
     const settings = buildingSettings(config, building);
     const order = { id: `order:${state.next_order_id++}`, service_id: building.id, faction_id: candidate.faction_id, purchased_tick: state.tick,
@@ -77,8 +86,12 @@ export function commitFactionAction(sim, candidate, building, offer) {
   }
   if (offer.kind === 'CLOSE') {
     const victim = state.buildings.find(b => b.id === offer.victim_id);
-    victim.state = 'CLOSED'; victim.level = 0; victim.last_action_tick = state.tick;
-    if (victim.type === 'meeting') { victim.meeting_until_tick = 0; victim.meeting_level = 0; }
+    if (!victim || victim.headquarters) return false;
+    if (victim.type === 'meeting') {
+      const targeted = victim.meeting_faction_id;
+      victim.meeting_banned_until_by_faction[targeted] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
+      victim.meeting_until_tick = 0; victim.meeting_faction_id = null;
+    } else neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
     for (const order of victim.queue) {
       const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
       if (worker) worker.task = null;

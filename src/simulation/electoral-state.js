@@ -72,18 +72,16 @@ export function convertInfluence(election, budgets, config) {
 
 export const createPolls = () => Object.fromEntries(FACTIONS.map(f => [f, { active: false, next_poll_tick: null, lastPollSnapshot: null }]));
 
+export function publishPoll(sim, faction, institute) {
+  const poll = sim.state.polls[faction];
+  poll.lastPollSnapshot = { measured_tick: sim.state.tick, national_support: { ...sim.state.actualGameState.national_support },
+    zones: sim.state.electorate.map(e => ({ subzone_id: e.subzone_id, controller: e.controller, support: { ...e.support }, electoral_weight: e.electoral_weight })) };
+  poll.active = true; poll.next_poll_tick = null;
+  institute.last_poll_candidate_id = `candidate:${faction}`; institute.last_poll_tick = sim.state.tick;
+  sim.emit('PollPurchased', { faction_id: faction, target_id: institute.id });
+}
+
 export function updatePolls(sim) {
-  const { state, config } = sim;
-  for (const faction of FACTIONS) {
-    const poll = state.polls[faction];
-    const active = state.buildings.some(b => b.type === 'institut_sondage' && b.owner_id === faction && b.state === 'ACTIVE');
-    if (!active) { poll.active = false; poll.next_poll_tick = null; continue; }
-    if (!poll.active || !poll.lastPollSnapshot || state.tick >= poll.next_poll_tick) {
-      poll.lastPollSnapshot = { measured_tick: state.tick, national_support: { ...state.actualGameState.national_support },
-        zones: state.electorate.map(e => ({ subzone_id: e.subzone_id, controller: e.controller, support: { ...e.support }, electoral_weight: e.electoral_weight })) };
-      poll.next_poll_tick = state.tick + sim.secondsToTicks(state.phase === 'SECOND_ROUND_SPRINT' ? config.balance.second_round.poll_refresh_seconds : config.balance.buildings.institut_sondage.poll_refresh_seconds);
-      sim.emit('PollPublished', { faction_id: faction });
-    }
-    poll.active = true;
-  }
+  // Les sondages sont désormais des snapshots achetés ; aucun rafraîchissement automatique.
+  for (const poll of Object.values(sim.state.polls)) poll.next_poll_tick = null;
 }

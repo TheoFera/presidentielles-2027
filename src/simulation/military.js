@@ -41,7 +41,7 @@ export function updateEquipmentCollector(sim, npc) {
   task.phase = 'PICKUP'; task.elapsed_ticks++;
   if (task.elapsed_ticks < sim.secondsToTicks(buildingSettings(sim.config, building).pickup_seconds)) return;
   npc.role = 'SERVICE_D_ORDRE'; npc.hidden_durability = sim.config.balance.physical_units.service_ordre.hidden_durability;
-  npc.guard_biome_id = building.biome_id; npc.guard_anchor_x = building.x; npc.raid = null;
+  npc.guard_biome_id = building.biome_id; npc.guard_anchor_x = building.x; npc.source_site_id = building.id; npc.raid = null;
   npc.task = null; npc.promoted_tick = sim.state.tick; npc.persuasion_target_ids = [];
   building.queue.splice(building.queue.indexOf(order), 1); building.delivered_count++;
   sim.emit('GuardEquipped', { npc_id: npc.id, target_id: building.id });
@@ -54,10 +54,19 @@ export function updateGuard(sim, npc) {
   const home = state.world.subzones.filter(z => z.biome_id === npc.guard_biome_id);
   const outside = zoneAt(state.world, npc.x).biome_id !== npc.guard_biome_id;
   const returning = npc.raid?.phase === 'RETURN' || (!npc.raid && outside);
+  npc.pressure_target_id = null;
   let target = null;
-  if (!returning) target = nearestEnemy(state, npc, npc.raid ? s.home_biome_guard_radius_screens * config.prototype.world.units_per_screen : state.world.length,
-    t => npc.raid ? ringDelta(npc.x, t.x, state.world.length) * npc.raid.direction >= -s.attack_range
-      : zoneAt(state.world, t.x).biome_id === npc.guard_biome_id && t.role !== 'SYMPATHISANT');
+  if (!returning) {
+    const range = npc.raid ? state.world.length / 2 : s.home_biome_guard_radius_screens * config.prototype.world.units_per_screen;
+    const enemies = state.candidates.filter(c => !c.eliminated).concat(state.npcs, state.temporary_units).filter(t => t.id !== npc.id && t.faction_id && t.faction_id !== npc.faction_id
+      && t.role !== 'SYMPATHISANT' && (!npc.raid || ringDelta(npc.x, t.x, state.world.length) * npc.raid.direction >= -s.attack_range)
+      && (!npc.raid ? zoneAt(state.world, t.x).biome_id === npc.guard_biome_id : true)
+      && Math.abs(ringDelta(npc.x, t.x, state.world.length)) <= range);
+    target = enemies.sort((a, b) => {
+      const priority = unit => unit.combat?.attack_id || unit.combat?.engaged ? 0 : unit.role === 'MILITANT' ? 1 : unit.role === 'CANDIDAT' ? 2 : 3;
+      return priority(a) - priority(b) || distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b);
+    })[0] || null;
+  }
   npc.combat.target_id = target?.id || null;
   npc.combat.engaged = !!target;
   if (interrupted(npc)) return;
@@ -72,8 +81,17 @@ export function updateGuard(sim, npc) {
     else startNpcAttack(sim, npc, 'GUARD', { range: s.attack_range, damage: s.attack_damage, knockback: s.knockback,
       electoral_damage: s.electoral_damage, cooldown_seconds: s.attack_cooldown_seconds });
   } else if (npc.raid) {
-    phase = 'RAID'; destination = wrap(npc.x + npc.raid.direction * s.move_speed, state.world.length);
-    moveNpcTowards(sim, npc, destination, s.move_speed);
+    const hostileSite = state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== npc.faction_id && !b.headquarters
+      && ringDelta(npc.x, b.x, state.world.length) * npc.raid.direction >= -s.attack_range)
+      .sort((a, b) => Math.abs(ringDelta(npc.x, a.x, state.world.length)) - Math.abs(ringDelta(npc.x, b.x, state.world.length)) || stableIdOrder(a, b))[0];
+    if (hostileSite) {
+      phase = 'PRESSURE'; destination = hostileSite.x;
+      if (distance(state, npc.x, hostileSite.x) > s.attack_range) moveNpcTowards(sim, npc, hostileSite.x, s.move_speed);
+      else { npc.moving = false; npc.pressure_target_id = hostileSite.id; }
+    } else {
+      phase = 'RAID'; destination = wrap(npc.x + npc.raid.direction * s.move_speed, state.world.length);
+      moveNpcTowards(sim, npc, destination, s.move_speed);
+    }
   } else {
     const side = Math.floor(state.tick / (sim.hz * 4)) % 2 ? 1 : -1;
     destination = Math.max(home[0].start + 0.1, Math.min(home.at(-1).end - 0.1, npc.guard_anchor_x + side * s.patrol_radius));

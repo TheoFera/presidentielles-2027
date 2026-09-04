@@ -31,7 +31,8 @@ export function validateConfig(config) {
   positive(config.balance.interaction.radius_units, 'portée des interactions');
   if (!Number.isInteger(config.layout.social_points_per_subzone) || config.layout.social_points_per_subzone < 1) throw new Error('Configuration : au moins un point social par sous-zone.');
   if (config.layout.neutral_spawn_capacity_policy !== 'skip_and_reschedule_when_full') throw new Error('Configuration : politique de capacité inconnue.');
-  for (const ratio of Object.values(config.layout.infrastructure_layout)) if (!Number.isFinite(ratio) || ratio <= 0 || ratio >= 1) throw new Error('Configuration : emplacement d’infrastructure invalide.');
+  const generation = config.layout.strategic_site_generation;
+  if (!generation || generation.mode !== 'seeded_explicit_slots' || !Array.isArray(generation.slots)) throw new Error('Configuration : emplacements stratégiques absents.');
   if (config.prototype.persuasion.break_policy !== 'reset' || config.prototype.persuasion.contest_policy !== 'nearest_then_stable_id') {
     throw new Error('Règle de persuasion inconnue dans prototype_config.json.');
   }
@@ -50,18 +51,23 @@ export function validateConfig(config) {
     }
   }
   for (const id of Object.values(config.layout.starting_positions)) if (!ids.has(id)) throw new Error(`Position de départ inconnue : ${id}.`);
-  for (const type of ['permanence', 'financement']) {
+  const slotIds = new Set(); const slotZones = new Set();
+  for (const slot of generation.slots) {
+    if (!ids.has(slot.subzone_id) || slotIds.has(slot.site_id) || slotZones.has(slot.subzone_id) || !Number.isFinite(slot.x_ratio) || slot.x_ratio <= 0 || slot.x_ratio >= 1) throw new Error('Configuration : site stratégique explicite invalide.');
+    slotIds.add(slot.site_id); slotZones.add(slot.subzone_id);
+  }
+  if (slotZones.size !== ids.size) throw new Error('Configuration : chaque sous-zone doit posséder exactement un emplacement stratégique.');
+  const siteTypes = ['permanence', 'financement', 'faction', 'tour_communication', 'imprimerie', 'meeting', 'institut_sondage'];
+  if (siteTypes.some(type => !Number.isInteger(generation.site_counts[type]) || generation.site_counts[type] < 0)
+    || Object.values(generation.site_counts).reduce((a, b) => a + b, 0) !== generation.slots.length) throw new Error('Configuration : quotas de sites incohérents.');
+  const capturableConfigs = ['permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
+  for (const type of [...capturableConfigs, 'imprimerie', 'meeting', 'institut_sondage']) {
     const building = config.balance.buildings[type];
-    if (!Number.isInteger(building.required_local_sympathisants) || building.required_local_sympathisants < 0) throw new Error(`Seuil invalide : ${type}.`);
-    positive(building.build_cost, `coût ${type}`);
-    positive(building.purchase_hold_seconds, `durée d’achat ${type}`);
+    for (const cap of ['global_max', 'max_per_candidate', 'max_per_biome', 'max_per_subzone']) if (!Number.isInteger(building[cap]) || building[cap] < 0) throw new Error(`Configuration : cap invalide (${type}.${cap}).`);
     if (!Number.isInteger(building.max_level) || building.max_level < 1 || building.upgrade_costs.length !== building.max_level - 1) throw new Error(`Niveaux incohérents : ${type}.`);
+    for (const key of ['required_presence_N1', 'required_presence_N2', 'required_presence_N3', 'maintain_presence_N1', 'maintain_presence_N2', 'maintain_presence_N3']) if (!Number.isFinite(building[key]) || building[key] < 0) throw new Error(`Seuil invalide : ${type}.${key}.`);
+    if (capturableConfigs.includes(type)) { positive(building.capture_cost, `capture ${type}`); positive(building.capture_seconds, `capture ${type}`); positive(building.closure_delay_seconds, `fermeture ${type}`); }
     for (const cost of building.upgrade_costs) positive(cost, `amélioration ${type}`);
-    const fields = type === 'permanence' ? ['local_influence_by_level', 'local_persuasion_time_multiplier_by_level'] : ['income_per_second_by_level'];
-    for (const field of fields) {
-      if (building[field].length !== building.max_level) throw new Error(`Réglages de niveaux incomplets : ${type}.`);
-      for (const value of building[field]) positive(value, `${type}.${field}`);
-    }
   }
   const printer = config.balance.buildings.imprimerie;
   for (const field of ['purchase_hold_seconds', 'pickup_seconds']) positive(printer[field], `imprimerie.${field}`);
@@ -77,12 +83,7 @@ export function validateConfig(config) {
     [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit']],
   ]) for (const field of fields) positive(section[field], field);
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
-  for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) {
-    const b = config.balance.buildings[type];
-    positive(b.build_cost, type); positive(b.purchase_hold_seconds, type);
-    if (!Number.isInteger(b.required_local_sympathisants) || b.required_local_sympathisants < 0 || b.max_level !== b.upgrade_costs.length + 1) throw new Error('Configuration : bâtiment factionnel invalide.');
-    for (const cost of b.upgrade_costs) positive(cost, type);
-  }
+  for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
   if (!Number.isInteger(so.max_queue_length) || so.max_queue_length < 1 || so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
   for (const value of [...so.baton_cost_by_level, ...so.equipment_seconds_by_level, so.pickup_seconds]) positive(value, 'équipement SO');
@@ -94,23 +95,12 @@ export function validateConfig(config) {
     if (!ids.has(id)) throw new Error(`Configuration : poids d’une sous-zone inconnue (${id}).`);
     positive(weight, `poids électoral ${id}`);
   }
-  for (const type of ['tour_communication', 'institut_sondage', 'meeting']) {
-    const b = config.balance.buildings[type];
-    positive(b.build_cost, `coût ${type}`); positive(b.purchase_hold_seconds, `présence ${type}`);
-    if (!Number.isInteger(b.required_local_sympathisants) || b.required_local_sympathisants < 0
-      || !Number.isInteger(b.max_level) || b.max_level < 1 || (b.upgrade_costs || []).length !== b.max_level - 1) throw new Error(`Configuration : niveaux ou seuil invalides (${type}).`);
-    for (const [key, values] of Object.entries(b).filter(([key]) => key.endsWith('_by_level'))) {
-      if (values.length !== b.max_level) throw new Error(`Configuration : niveaux incomplets (${type}.${key}).`);
-      for (const value of values) positive(value, `${type}.${key}`);
-    }
-    for (const cost of b.upgrade_costs || []) positive(cost, `amélioration ${type}`);
-  }
   const tower = config.balance.buildings.tour_communication;
   if (!Number.isInteger(tower.global_limit) || tower.global_limit < 1) throw new Error('Configuration : limite globale de Tours invalide.');
-  for (const key of ['controlled_zone_multiplier', 'adjacent_zone_multiplier', 'distant_zone_multiplier']) positive(tower[key], key);
-  positive(config.balance.buildings.institut_sondage.poll_refresh_seconds, 'fréquence du sondage');
+  for (const key of ['controlled_zone_multiplier_by_level', 'adjacent_zone_multiplier_by_level', 'distant_zone_multiplier_by_level']) if (tower[key].length !== 3 || tower[key].some(v => !Number.isFinite(v) || v < 0)) throw new Error(`Configuration : effet de Tour invalide (${key}).`);
+  positive(config.balance.buildings.institut_sondage.poll_cost, 'prix du sondage');
   const meeting = config.balance.buildings.meeting;
-  for (const key of ['interaction_radius', 'upgrade_offset', 'upgrade_radius']) positive(meeting[key], `Meeting ${key}`);
+  positive(meeting.interaction_radius, 'portée Meeting');
   if (meeting.duration_seconds_by_level.some((duration, i) => duration > meeting.internal_cooldown_seconds_by_level[i])
     || meeting.ally_influence_multiplier_by_level.some(value => value < 1)) throw new Error('Configuration : bonus ou durée de Meeting incohérents.');
   for (const [key, value] of Object.entries(config.balance.influence)) if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : influence invalide (${key}).`);

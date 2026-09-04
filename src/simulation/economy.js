@@ -5,36 +5,16 @@ import { commitFactionAction, factionOffers, nearestFactionOffer } from './facti
 import { canCampaign } from './combat-state.js';
 import { meetingOffers, triggerMeeting } from './electoral-buildings.js';
 import { paymentStatus } from './campaign-budget.js';
+import { captureLimitReason, captureSite, createInfrastructure, localPoliticalPresence, startFundingCampaign } from './strategic-sites.js';
+import { publishPoll } from './electoral-state.js';
 
-export function createInfrastructure(world, config) {
-  const buildings = [];
-  const slots = [];
-  for (const zone of world.subzones) {
-    for (const type of ['permanence', 'financement', 'faction', 'tour_communication', 'institut_sondage', 'meeting']) {
-      const slotId = `slot:${zone.id}:${type}`;
-      const buildingId = `building:${zone.id}:${type}`;
-      const x = zone.start + zone.width * config.layout.infrastructure_layout[`${type}_x_ratio`];
-      slots.push({ id: slotId, type, building_id: buildingId, x, subzone_id: zone.id, biome_id: zone.biome_id });
-      buildings.push({ id: buildingId, type, slot_id: slotId, x, subzone_id: zone.id, biome_id: zone.biome_id,
-        ownership_model: 'faction_owned', owner_id: null, level: 0, state: 'EMPTY', queue: [], last_action_tick: -1, delivered_count: 0,
-        variant: null, raid_ready_tick: 0, closure_ready_tick: 0,
-        ...(type === 'meeting' ? { meeting_ready_tick: 0, meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 0, meetings_held: 0 } : {}) });
-    }
-    if (zone.local_index === Math.floor(world.subzones.filter(z => z.biome_id === zone.biome_id).length / 2)) {
-      buildings.push({ id: `service:${zone.biome_id}:imprimerie`, type: 'imprimerie', slot_id: null,
-        x: zone.start + zone.width * config.layout.infrastructure_layout.imprimerie_x_ratio,
-        subzone_id: zone.id, biome_id: zone.biome_id, ownership_model: 'neutral_service', owner_id: null,
-        level: 1, state: 'ACTIVE', queue: [], last_action_tick: -1, delivered_count: 0 });
-    }
-  }
-  return { buildings, slots };
-}
+export { createInfrastructure } from './strategic-sites.js';
 
 /** Authoritative quote. The renderer only displays this result and the saved timer. */
 export function buildingOffer(state, config, candidate, building) {
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return null;
   if (building.type === 'faction') return nearestFactionOffer(state, config, candidate, building);
-  if (building.type === 'meeting' && building.state === 'ACTIVE') return meetingOffers(state, config, candidate, building)
+  if (building.type === 'meeting') return meetingOffers(state, config, candidate, building)
     .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0] || null;
   const settings = buildingSettings(config, building, candidate.faction_id);
   let kind; let cost; let available = true; let reason = null;
@@ -44,28 +24,36 @@ export function buildingOffer(state, config, candidate, building) {
     else if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
       available = false; reason = 'NO_SYMPATHISANT';
     }
-  } else if (building.state === 'CLOSED') {
-    if (building.owner_id !== candidate.faction_id) return null;
-    kind = 'REBUILD'; cost = settings.build_cost;
-  } else if (building.state === 'EMPTY') {
-    if (localSympathisants(state, building.subzone_id, candidate.faction_id).length < settings.required_local_sympathisants) return null;
-    kind = 'BUILD'; cost = settings.build_cost;
+  } else if (building.type === 'institut_sondage') {
+    kind = 'POLL'; cost = settings.poll_cost;
+  } else if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {
+    kind = 'CAPTURE'; cost = settings.capture_cost;
+    const presence = localPoliticalPresence(state, building.subzone_id, candidate.faction_id);
+    const required = settings.required_presence_N1;
+    if (presence < required) { available = false; reason = 'INSUFFICIENT_PRESENCE'; }
+    reason ||= captureLimitReason(state, config, building, candidate.faction_id);
   } else if (building.owner_id === candidate.faction_id && building.level < settings.max_level) {
     kind = 'UPGRADE'; cost = settings.upgrade_costs[building.level - 1];
+    if (localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]) {
+      available = false; reason = 'INSUFFICIENT_PRESENCE';
+    }
+  } else if (building.type === 'financement' && building.owner_id === candidate.faction_id) {
+    kind = 'FUNDRAISE'; cost = settings.campaign_start_cost;
+    if (building.funding_state === 'RUNNING') { available = false; reason = 'CAMPAIGN_RUNNING'; }
   } else return null;
-  if (building.type === 'tour_communication' && ['BUILD', 'REBUILD'].includes(kind)
+  if (building.type === 'tour_communication' && kind === 'CAPTURE'
     && state.buildings.filter(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE').length >= settings.global_limit) {
     available = false; reason = 'GLOBAL_LIMIT';
   }
   return { target_id: building.id, key: `${building.id}:${kind}:${building.level}`, kind, cost,
-    required_ticks: Math.ceil((settings.purchase_hold_seconds ?? config.balance.interaction.default_hold_seconds) * config.balance.simulation_architecture.fixed_tick_hz),
+    required_ticks: Math.ceil((kind === 'CAPTURE' ? settings.capture_seconds : kind === 'FUNDRAISE' ? settings.campaign_start_seconds : settings.purchase_hold_seconds ?? config.balance.interaction.default_hold_seconds) * config.balance.simulation_architecture.fixed_tick_hz),
     ...paymentStatus(candidate, config, cost, available ? null : reason) };
 }
 
 export function buildingOffers(state, config, candidate, building) {
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return [];
   if (building.type === 'faction') return factionOffers(state, config, candidate, building);
-  if (building.type === 'meeting' && building.state === 'ACTIVE') return meetingOffers(state, config, candidate, building);
+  if (building.type === 'meeting') return meetingOffers(state, config, candidate, building);
   const offer = buildingOffer(state, config, candidate, building);
   return offer ? [{ ...offer, x: building.x, radius: config.balance.interaction.radius_units }] : [];
 }
@@ -89,7 +77,10 @@ function transact(simulation, candidate, offer) {
   candidate.spending[fresh.kind] = (candidate.spending[fresh.kind] || 0) + fresh.cost;
   state.transactions.push(transaction);
   if (state.transactions.length > config.balance.debug.transaction_history_limit) state.transactions.shift();
-  const handled = fresh.kind === 'MEETING' ? (triggerMeeting(simulation, building), true) : commitFactionAction(simulation, candidate, building, fresh);
+  const handled = fresh.kind === 'MEETING' ? (triggerMeeting(simulation, building, candidate.faction_id), true)
+    : fresh.kind === 'POLL' ? (publishPoll(simulation, candidate.faction_id, building), true)
+    : fresh.kind === 'FUNDRAISE' ? (startFundingCampaign(simulation, building), true)
+    : commitFactionAction(simulation, candidate, building, fresh);
   if (handled) {
     // Raid, equipment and closure are committed through the same transaction path.
   } else if (fresh.kind === 'PRINT') {
@@ -97,22 +88,24 @@ function transact(simulation, candidate, offer) {
       purchased_tick: state.tick, cost: fresh.cost, assigned_npc_id: null, state: 'QUEUED', production_elapsed_ticks: 0 };
     building.queue.push(order);
     simulation.emit('TractOrdered', { ...transaction, order_id: order.id });
+  } else if (fresh.kind === 'CAPTURE') {
+    captureSite(simulation, building, candidate);
   } else {
-    building.owner_id = candidate.faction_id;
-    building.state = 'ACTIVE';
     building.level++;
-    simulation.emit(fresh.kind === 'REBUILD' ? 'BuildingRebuilt' : fresh.kind === 'BUILD' ? 'BuildingConstructed' : 'BuildingUpgraded', { ...transaction, level: building.level });
+    simulation.emit('BuildingUpgraded', { ...transaction, level: building.level });
   }
   building.last_action_tick = state.tick;
-  if (!['PRINT', 'EQUIP'].includes(fresh.kind) ? config.balance.interaction.owned_purchase_requires_reentry : !config.balance.interaction.printer_repeat_purchase) {
+  if (['PRINT', 'EQUIP', 'MEETING', 'POLL', 'FUNDRAISE', 'RAID', 'CLOSE'].includes(fresh.kind)) {
     candidate.purchase_latch_target_id = building.id;
   }
+  if (['CAPTURE', 'UPGRADE'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
   candidate.purchase_hold = null;
   return true;
 }
 
 export function updateEconomy(simulation) {
   const { state, config, hz } = simulation;
+  for (const building of state.buildings) if (building.ownership_model === 'capturable' && building.state !== 'ACTIVE') building.capture_progress = 0;
   for (const candidate of [...state.candidates].sort(stableIdOrder)) {
     if (candidate.eliminated) continue;
     const income = incomePerSecond(state, config, candidate.faction_id);
@@ -121,11 +114,18 @@ export function updateEconomy(simulation) {
     candidate.total_earned += income / hz;
     const latched = state.buildings.find(b => b.id === candidate.purchase_latch_target_id);
     if (latched && distance(state, candidate.x, latched.x) > config.balance.interaction.radius_units) candidate.purchase_latch_target_id = null;
-    if (!candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate)) { candidate.purchase_hold = null; continue; }
+    if (!candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
+    for (const building of state.buildings) if (building.id === offer?.target_id) {
+      building.next_level_available = !!offer.enabled;
+      building.level_lock_reason = offer.reason || null;
+      if (building.state !== 'ACTIVE') building.required_presence = buildingSettings(config, building, candidate.faction_id).required_presence_N1;
+    }
     if (!offer?.enabled) { candidate.purchase_hold = null; continue; }
     if (candidate.purchase_hold?.key !== offer.key) candidate.purchase_hold = { ...offer, elapsed_ticks: 0 };
     candidate.purchase_hold.elapsed_ticks++;
+    const heldBuilding = state.buildings.find(b => b.id === candidate.purchase_hold.target_id);
+    if (heldBuilding && candidate.purchase_hold.kind === 'CAPTURE') heldBuilding.capture_progress = candidate.purchase_hold.elapsed_ticks / candidate.purchase_hold.required_ticks;
     if (candidate.purchase_hold.elapsed_ticks >= offer.required_ticks) {
       transact(simulation, candidate, offer);
       candidate.purchase_hold = null;
@@ -194,7 +194,7 @@ export function aiEconomicTarget(state, config, candidate) {
     for (const offer of buildingOffers(state, config, candidate, building)) {
     if (!offer?.enabled || candidate.money - offer.cost < settings.minimum_cash_reserve) continue;
     // Establish a local economic base before dispersing the scarce workers.
-    if (development && !['PRINT', 'MEETING'].includes(offer.kind)
+    if (development && !['PRINT', 'MEETING', 'POLL'].includes(offer.kind)
       && !(building.type === development.next_type && (offer.kind === development.desired_kind || (offer.kind === 'REBUILD' && development.desired_kind === 'BUILD')))
       && !(development.desired_kind === 'UPGRADE' && building.type === 'financement' && offer.kind === 'UPGRADE')) continue;
     if (offer.kind === 'MEETING' && building.meetings_held && state.buildings.some(b => b.owner_id === candidate.faction_id

@@ -2,7 +2,7 @@ import { GamePhase } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
 import { FACTIONS } from './world.js';
 import { combatState, demobilizeUnit, combatActors } from './combat-state.js';
-import { createInfrastructure } from './economy.js';
+import { neutralizeSite } from './strategic-sites.js';
 import { refreshElectoralState, updatePolls } from './electoral-state.js';
 import { refreshInfluenceSources } from './territory.js';
 
@@ -52,12 +52,12 @@ export function finishArena(sim, eliminated) {
     npc.guard_biome_id = null; npc.guard_anchor_x = null;
   }
   for (const npc of s.npcs) if (npc.persuasion?.actor_id === `candidate:${eliminated}`) npc.persuasion = null;
-  const fresh = createInfrastructure(s.world, sim.config).buildings;
-  s.buildings = s.buildings.map(b => b.owner_id === eliminated ? { ...fresh.find(f => f.id === b.id), abandoned_by: eliminated } : b);
+  for (const b of s.buildings.filter(b => b.owner_id === eliminated && !b.headquarters)) neutralizeSite(sim, b, 'CANDIDATE_ELIMINATED');
+  for (const b of s.buildings.filter(b => b.owner_id === eliminated)) neutralizeSite(sim, b, 'CANDIDATE_ELIMINATED');
   for (const b of s.buildings) {
     // Shared neutral services retain their identity, availability and other factions' orders.
     b.queue = b.queue.filter(o => o.faction_id !== eliminated);
-    if (b.type === 'meeting' && b.state === 'ACTIVE') b.meeting_ready_tick = Math.max(b.meeting_until_tick, Math.min(b.meeting_ready_tick, s.tick + sim.secondsToTicks(sim.config.balance.second_round.meeting_cooldown_seconds)));
+    if (b.type === 'meeting' && b.state === 'ACTIVE') b.meeting_until_tick = Math.max(b.meeting_until_tick, s.tick);
   }
   s.temporary_units = s.temporary_units.filter(t => t.faction_id !== eliminated);
   s.powers = s.powers.filter(p => p.faction_id !== eliminated);

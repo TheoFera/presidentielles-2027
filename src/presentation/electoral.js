@@ -79,17 +79,10 @@ export function drawElectoralBuilding(renderer, state, building) {
   const x = renderer.screenX(building.x);
   if (x < -70 || x > width + 70) return;
   const ground = m.groundY;
-  const color = p.factions[building.owner_id]?.color || '#758477';
+  const color = p.factions[building.owner_id || building.meeting_faction_id]?.color || '#758477';
   const active = building.state === 'ACTIVE';
   const labels = { tour_communication: 'COMM.', institut_sondage: 'SONDAGE', meeting: 'MEETING' };
   ctx.save(); ctx.textAlign = 'center'; ctx.lineWidth = 2;
-  if (building.state === 'EMPTY') {
-    ctx.fillStyle = '#e7e9e0'; ctx.fillRect(x - 32, ground - 58, 64, 23);
-    ctx.fillStyle = '#59665e'; ctx.font = '600 10px system-ui'; ctx.fillText(labels[building.type], x, ground - 42);
-    ctx.fillRect(x - 26, ground - 35, 3, 35); ctx.fillRect(x + 23, ground - 35, 3, 35);
-    ctx.setLineDash([4, 5]); ctx.strokeStyle = '#7e8a7e'; ctx.strokeRect(x - 28, ground - 13, 56, 11);
-    ctx.restore(); return;
-  }
   ctx.strokeStyle = active ? '#617064' : '#878d84'; ctx.fillStyle = '#c0c8ba';
   if (building.type === 'tour_communication') {
     const top = ground - height * 0.54;
@@ -126,10 +119,12 @@ export function drawElectoralBuilding(renderer, state, building) {
       ctx.beginPath(); ctx.arc(x, ground - 56, 22 + (phase % 1) * 58, Math.PI, 2 * Math.PI); ctx.stroke(); ctx.globalAlpha = 1;
       ctx.font = 'bold 17px system-ui'; ctx.fillText('✦', x - 28, ground - 145 - Math.sin(phase * 4) * 4); ctx.fillText('✦', x + 30, ground - 158 + Math.sin(phase * 4) * 4);
     }
-    if (active && building.level < config.balance.buildings.meeting.max_level) { ctx.font = '600 11px system-ui'; ctx.fillStyle = '#46544c'; ctx.fillText('↑', renderer.screenX(building.x + config.balance.buildings.meeting.upgrade_offset), ground - 7); }
   }
   ctx.fillStyle = '#e7e9e0'; ctx.fillRect(x - 31, ground - 34, 62, 17);
-  ctx.fillStyle = active ? '#435444' : '#8c5751'; ctx.font = '600 9px system-ui'; ctx.fillText(active ? labels[building.type] : 'FERMÉ', x, ground - 22);
+  ctx.fillStyle = active ? '#435444' : '#68726d'; ctx.font = '600 9px system-ui'; ctx.fillText(active ? labels[building.type] : 'NEUTRE', x, ground - 22);
   for (let i = 0; i < building.level; i++) { ctx.fillStyle = color; ctx.fillRect(x - 10 + i * 8, ground - 12, 5, 3); }
+  if (building.level >= 2 && building.type === 'tour_communication') { ctx.fillStyle = color; ctx.fillRect(x + 12, ground - height * 0.43, 7, 18); }
+  if (building.level >= 3 && building.type === 'tour_communication') { ctx.fillStyle = color; ctx.fillRect(x - 20, ground - height * 0.36, 7, 22); }
+  if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120,126,123,${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(x - 43, ground - height * 0.56, 86, height * 0.56); }
   ctx.restore();
 }

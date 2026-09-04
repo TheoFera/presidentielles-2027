@@ -1,11 +1,12 @@
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
+import { localUnitDamageMultiplier } from './strategic-sites.js';
 
 export const combatState = () => ({ attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
 export const combatActors = state => [...state.candidates.filter(c => !c.eliminated), ...state.npcs, ...state.temporary_units];
-export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
+export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && a.faction_id !== b.faction_id;
 export const interrupted = actor => actor.combat && (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const canCampaign = actor => !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
@@ -62,9 +63,20 @@ export function hit(sim, source, target, spec, attackId) {
       return { subzone_id: e.subzone_id, before: e.support, after: { ...after.support }, controller_before: e.controller, controller_after: after.controller }; });
     target.electoral_damage_received += result.electoral_damage;
     target.hits_received++;
+    result.damage = Math.min(target.resistance, spec.damage || 0);
+    target.resistance = Math.max(0, target.resistance - result.damage); target.last_damage_tick = state.tick;
+    if (target.resistance === 0 && !target.is_ko) {
+      const koLoss = electoralDamage(sim, target.faction_id, config.balance.candidate_combat.ko_electoral_damage_percent_points);
+      result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
+      target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
+      target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds);
+      target.respawn_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_respawn_seconds);
+      sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss });
+    }
   } else {
-    result.damage = Math.min(target.hidden_durability, spec.damage);
-    target.hidden_durability = Math.max(0, target.hidden_durability - spec.damage);
+    const multiplier = localUnitDamageMultiplier(state, config, target);
+    result.damage = Math.min(target.hidden_durability, spec.damage * multiplier);
+    target.hidden_durability = Math.max(0, target.hidden_durability - result.damage);
   }
   target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
   target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(config.balance.candidate_combat.hit_stun_seconds));

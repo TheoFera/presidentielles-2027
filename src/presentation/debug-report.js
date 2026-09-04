@@ -7,7 +7,7 @@ import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
 export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
-export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Cet achat dépasserait le plafond de dépenses de campagne', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', QUEUE_FULL: 'File pleine', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
+export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine', SO_LIMIT: 'Cap de SO atteint pour ce Local', LEVEL_REQUIRED: 'Niveau 3 requis', CAMPAIGN_RUNNING: 'Campagne de financement en cours', ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
   const f = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
@@ -52,14 +52,17 @@ export function managementReport(state, config, candidate, npc, building) {
   if (building) {
     const settings = buildingSettings(config, building, candidate.faction_id);
     const offer = buildingOffer(state, config, candidate, building);
-    const price = offer?.cost ?? (building.state === 'EMPTY' ? settings.build_cost : null);
+    const price = offer?.cost ?? (building.state === 'NEUTRAL' ? settings.capture_cost : null);
     lines.push('', '— BÂTIMENT INSPECTÉ —', `${buildingLabel(building, candidate.faction_id)} · ${building.id}`,
       `${building.subzone_id} · x=${f(building.x)}`,
-      `Propriétaire : ${building.owner_id ? names[building.owner_id].name : building.type === 'imprimerie' ? 'Service neutre, jamais possédé' : 'Aucun'}`,
-      `Niveau : ${building.level} · état : ${building.state === 'CLOSED' ? 'Fermé' : building.state === 'EMPTY' ? 'Emplacement' : 'En activité'}`,
-      `Seuil : ${building.type === 'imprimerie' ? `${settings.required_local_sympathisants_to_use} Sympathisant dans le biome` : `${settings.required_local_sympathisants} Sympathisants dans la sous-zone (non consommés)`}`,
+      `Propriétaire : ${building.owner_id ? names[building.owner_id].name : building.ownership_model === 'neutral_service' ? 'Service neutre, jamais possédé' : 'Aucun'}`,
+      `Niveau : ${building.level} · état : ${building.state === 'NEUTRAL' ? 'Neutre' : 'En activité'}${building.headquarters ? ' · QG' : ''}`,
+      `Présence politique : ${building.current_political_presence} · seuil ${building.required_presence} · pression SO ${f(building.hostile_pressure)} · effective ${f(building.current_effective_presence)}`,
+      `Fermeture : ${f(building.closure_progress * 100)} % · capture : ${f(building.capture_progress * 100)} %`,
       `Coût actuel : ${price === null ? 'Aucune dépense disponible' : `${f(price)} k €`}`,
-      `Disponibilité : ${candidate.purchase_latch_target_id === building.id ? 'S’éloigner puis revenir pour le prochain achat' : offer ? reasonNames[offer.reason] || 'Disponible' : building.state === 'EMPTY' ? 'Implantation insuffisante' : building.owner_id !== candidate.faction_id ? 'Autre camp' : 'Niveau maximal'}`);
+      `Prochain niveau : ${building.level < settings.max_level ? building.level + 1 : 'aucun'} · verrou : ${offer?.reason ? reasonNames[offer.reason] : 'aucun'}`);
+    if (building.type === 'financement') lines.push(`Financement : ${building.funding_state} · reste ${building.funding_end_tick ? f((building.funding_end_tick - state.tick) / hz) : 0} s · influence ×${f(building.funding_influence_factor || 0)} · hasard ×${f(building.funding_random_factor || 0)} · cagnotte ${f(building.funding_expected_payout)} k €`);
+    if (building.type === 'institut_sondage') lines.push(`Dernier payeur : ${building.last_poll_candidate_id || 'aucun'} · âge : ${building.last_poll_tick === null ? 'aucun sondage' : `${f((state.tick - building.last_poll_tick) / hz)} s`}`);
     if (building.type === 'imprimerie' || building.variant === 'service_ordre') {
       lines.push(`File : ${building.queue.length}/${settings.max_queue_length} · équipements récupérés : ${building.delivered_count}`);
       const states = { QUEUED: 'En attente', PRINTING: 'Impression', READY: 'Prêt' };

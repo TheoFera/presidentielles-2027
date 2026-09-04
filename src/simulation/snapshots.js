@@ -13,14 +13,14 @@ export function validateSnapshot(next, simulation, nested = false) {
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 5 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde du cinquième jalon');
+  if (!next || next.snapshot_version !== 6 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde de la refonte des sites');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
   for (const field of ['candidates', 'npcs', 'events', 'buildings', 'building_slots', 'transactions', 'electorate', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results']) if (!Array.isArray(next[field])) fail(`collection absente : ${field}`);
   if (next.candidates.length !== FACTIONS.length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
   if (!integer(next.days_remaining, config.prototype.time.minimum_days_remaining_for_milestone) || next.days_remaining > config.balance.time.starting_days_before_first_round) fail('jour invalide');
-  const infrastructure = createInfrastructure(next.world, config);
+  const infrastructure = createInfrastructure(next.world, config, { rng_state: next.seed });
   if (JSON.stringify(next.building_slots) !== JSON.stringify(infrastructure.slots) || next.buildings.length !== infrastructure.buildings.length) fail('emplacements différents');
   const ids = new Set();
   for (const entity of [...next.world.subzones, ...next.world.socialPoints, ...next.world.scenery, ...next.building_slots, ...next.buildings, ...next.candidates, ...next.npcs, ...next.temporary_units, ...next.attacks, ...next.projectiles, ...next.powers]) {
@@ -35,12 +35,12 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!candidateIds.has(candidate.id) || candidate.id !== `candidate:${candidate.faction_id}` || candidate.role !== 'CANDIDAT') fail('candidat inconnu');
     if (!validPosition(candidate.x) || ![-1, 0, 1].includes(candidate.axis) || ![-1, 1].includes(candidate.facing) || typeof candidate.moving !== 'boolean'
       || typeof candidate.campaign_active !== 'boolean' || typeof candidate.interaction_active !== 'boolean') fail('candidat invalide');
-    for (const field of ['money', 'total_spent', 'total_earned', 'income_per_second', 'special_charge', 'electoral_damage_received', 'hits_received', 'refunds_received']) if (!finite(candidate[field])) fail('économie du candidat invalide');
+    for (const field of ['money', 'total_spent', 'total_earned', 'income_per_second', 'special_charge', 'electoral_damage_received', 'hits_received', 'refunds_received', 'resistance']) if (!finite(candidate[field])) fail('économie ou résistance du candidat invalide');
     if (candidate.total_spent > config.balance.money.campaign_spending_limit) fail('plafond de dépenses de campagne dépassé');
     if (!candidate.spending || ['BUILD', 'UPGRADE', 'PRINT'].some(k => !finite(candidate.spending[k]))) fail('dépenses invalides');
     if (candidate.purchase_latch_target_id !== null && !next.buildings.some(b => b.id === candidate.purchase_latch_target_id)) fail('interaction inconnue');
     const hold = candidate.purchase_hold;
-    if (hold && (!next.buildings.some(b => b.id === hold.target_id) || !['BUILD', 'UPGRADE', 'PRINT', 'REBUILD', 'EQUIP', 'RAID', 'CLOSE', 'MEETING'].includes(hold.kind) || !finite(hold.cost)
+    if (hold && (!next.buildings.some(b => b.id === hold.target_id) || !['CAPTURE', 'UPGRADE', 'PRINT', 'EQUIP', 'RAID', 'CLOSE', 'MEETING', 'POLL', 'FUNDRAISE'].includes(hold.kind) || !finite(hold.cost)
       || !integer(hold.required_ticks, 1) || !integer(hold.elapsed_ticks) || hold.elapsed_ticks >= hold.required_ticks || typeof hold.key !== 'string')) fail('paiement invalide');
   }
   for (const actor of [...next.candidates, ...next.npcs]) {
@@ -66,17 +66,17 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!expected) fail('bâtiment inconnu');
     for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
     if (!Array.isArray(building.queue) || !integer(building.delivered_count) || !Number.isInteger(building.last_action_tick) || building.last_action_tick > next.tick) fail('état du bâtiment invalide');
-    if (building.type !== 'imprimerie') {
-      const settings = buildingSettings(config, building);
-      if (!integer(building.level) || building.level > settings.max_level) fail('niveau invalide');
-      if (building.state === 'EMPTY' ? building.level !== 0 || building.owner_id !== null
-        : !FACTIONS.includes(building.owner_id) || (building.state === 'CLOSED' ? building.level !== 0 : building.state !== 'ACTIVE' || building.level < 1)) fail('propriété invalide');
-      if (!integer(building.raid_ready_tick) || !integer(building.closure_ready_tick)) fail('délai de bâtiment invalide');
-      if (building.type === 'faction' && building.variant !== (building.owner_id ? factionVariant(building.owner_id) : null)) fail('bâtiment factionnel invalide');
-      if (building.variant !== 'service_ordre' || building.state !== 'ACTIVE') { if (building.queue.length) fail('file sur bâtiment inactif'); continue; }
-      if (building.queue.length > settings.max_queue_length) fail('file d’équipement pleine');
-    }
-    if (building.type === 'imprimerie' && (building.owner_id !== null || building.level !== 1 || building.state !== 'ACTIVE' || building.queue.length > config.balance.buildings.imprimerie.max_queue_length)) fail('service neutre invalide');
+    const settings = buildingSettings(config, building);
+    if (!integer(building.level) || building.level > settings.max_level || !Number.isFinite(building.capture_progress) || !Number.isFinite(building.closure_progress)) fail('niveau ou progression invalide');
+    if (building.ownership_model === 'neutral_service') {
+      if (building.owner_id !== null || building.level !== 1 || building.state !== 'ACTIVE' || !building.active || !building.neutral) fail('service neutre invalide');
+    } else if (building.state === 'NEUTRAL') {
+      if (building.level !== 0 || building.owner_id !== null || building.active || !building.neutral) fail('site neutre invalide');
+    } else if (building.state !== 'ACTIVE' || !FACTIONS.includes(building.owner_id) || building.level < 1 || !building.active || building.neutral) fail('propriété invalide');
+    if (!integer(building.raid_ready_tick) || !integer(building.closure_ready_tick)) fail('délai de bâtiment invalide');
+    if (building.type === 'faction' && building.variant !== (building.owner_id ? factionVariant(building.owner_id) : null)) fail('bâtiment factionnel invalide');
+    if (!['imprimerie'].includes(building.type) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
+    if ((building.type === 'imprimerie' || building.variant === 'service_ordre') && building.queue.length > settings.max_queue_length) fail('file de production pleine');
     let unfinishedFound = false;
     for (const order of building.queue) {
       if (!/^order:\d+$/.test(order.id) || Number(order.id.slice(6)) >= next.next_order_id || orderIds.has(order.id) || order.service_id !== building.id) fail('ordre de production invalide');
@@ -121,7 +121,7 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (npc.role !== 'MILITANT' || !integer(task.next_decision_tick) || !['TRAVEL', 'WAIT', 'RECRUIT'].includes(task.phase)
         || (task.target_id !== null && !next.npcs.some(n => n.id === task.target_id))) fail('tâche de Militant invalide');
     } else if (task.kind === 'GUARD') {
-      if (npc.role !== 'SERVICE_D_ORDRE' || !['PATROL', 'DEFEND', 'RAID', 'RETURN'].includes(task.phase)) fail('garde invalide');
+      if (npc.role !== 'SERVICE_D_ORDRE' || !['PATROL', 'DEFEND', 'RAID', 'PRESSURE', 'RETURN'].includes(task.phase)) fail('garde invalide');
     } else fail('tâche inconnue');
   }
   if (next.electorate.length !== next.world.subzones.length) fail('électorat incomplet');

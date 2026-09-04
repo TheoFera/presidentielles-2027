@@ -20,24 +20,12 @@ export function drawInfrastructure(renderer, state) {
     const top = Math.round(ground - h);
     const faction = p.factions[building.owner_id];
     const variant = building.type === 'faction' ? building.variant || factionVariant(candidate.faction_id) : building.type;
-    const label = variant === 'service_ordre' ? 'LOCAL SO' : variant === 'cabinet_administratif' ? 'CABINET' : labels[building.type];
+    const label = building.headquarters ? 'QG' : variant === 'service_ordre' ? 'LOCAL SO' : variant === 'cabinet_administratif' ? 'CABINET' : labels[building.type] || (building.type === 'meeting' ? 'SALLE' : building.type === 'institut_sondage' ? 'SONDAGES' : 'SITE');
     ctx.save();
-    if (building.state === 'EMPTY') {
-      const available = localSympathisants(state, building.subzone_id, candidate.faction_id).length >= buildingSettings(config, building, candidate.faction_id).required_local_sympathisants;
-      ctx.strokeStyle = available ? p.factions[candidate.faction_id].color : p.building_edge;
-      ctx.lineWidth = available ? 2 : 1;
-      ctx.setLineDash([5, 5]); ctx.strokeRect(left + 8, ground - 14, w - 16, 12); ctx.setLineDash([]);
-      ctx.fillStyle = p.building_edge;
-      ctx.fillRect(left + 20, ground - 46, 4, 46); ctx.fillRect(left + w - 24, ground - 46, 4, 46);
-      ctx.fillStyle = '#e7e9e0'; ctx.fillRect(left + 12, ground - 58, w - 24, 23);
-      ctx.fillStyle = available ? p.factions[candidate.faction_id].color : '#59665e';
-      ctx.font = '600 11px system-ui'; ctx.textAlign = 'center'; ctx.fillText(label, x, ground - 42);
-      ctx.restore(); continue;
-    }
     ctx.fillStyle = p.building_edge; ctx.fillRect(left - 3, top - 4, w + 6, h + 4);
     ctx.fillStyle = building.type === 'imprimerie' ? settings.printer_tone : p.building_tone;
     ctx.fillRect(left, top, w, h);
-    ctx.fillStyle = faction?.color || '#5e7067'; ctx.fillRect(left - 4, top - 5, w + 8, 10);
+    ctx.fillStyle = faction?.color || '#78817d'; ctx.fillRect(left - 4, top - 5, w + 8, 10);
     ctx.fillStyle = '#e9ebe2'; ctx.fillRect(left + 9, top + 21, w - 18, 29);
     ctx.fillStyle = '#35433c'; ctx.textAlign = 'center'; ctx.font = '700 13px system-ui';
     ctx.fillText(label, x, top + 40);
@@ -73,8 +61,15 @@ export function drawInfrastructure(renderer, state) {
         if (building.level < buildingSettings(config, building).max_level) ctx.fillText('↑', renderer.screenX(building.x + offsets.upgrade_offset), ground - 8);
       }
     } else {
-      ctx.fillStyle = faction.color; ctx.fillRect(x - 17, top + 79, 34, 43);
-      ctx.fillStyle = '#fff9e9'; ctx.font = 'bold 20px system-ui'; ctx.fillText(faction.symbol, x, top + 108);
+      ctx.fillStyle = faction?.color || '#78817d'; ctx.fillRect(x - 17, top + 79, 34, 43);
+      if (faction) { ctx.fillStyle = '#fff9e9'; ctx.font = 'bold 20px system-ui'; ctx.fillText(faction.symbol, x, top + 108); }
+    }
+    if (building.level >= 2 && building.ownership_model !== 'neutral_service') { ctx.fillStyle = faction?.color || '#78817d'; ctx.fillRect(left + 18, top - 19, 18, 15); }
+    if (building.level >= 3 && building.ownership_model !== 'neutral_service') { ctx.fillStyle = faction?.color || '#78817d'; ctx.fillRect(left + w - 36, top - 28, 18, 24); }
+    if (building.headquarters) { ctx.strokeStyle = '#f0d36a'; ctx.lineWidth = 4; ctx.strokeRect(left - 7, top - 9, w + 14, h + 9); }
+    if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120, 126, 123, ${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(left, top, w, h); }
+    if (building.type === 'financement' && building.funding_state === 'RUNNING') {
+      ctx.fillStyle = '#e8ce63'; ctx.font = 'bold 18px system-ui'; ctx.fillText(state.tick % 20 < 10 ? '€' : '·€·', x, top + 72);
     }
     if (building.state === 'CLOSED') {
       ctx.fillStyle = '#757c76cc'; ctx.fillRect(left, top + 52, w, h - 52);
@@ -116,10 +111,18 @@ export function drawBanknote(renderer, state) {
   if (!offer.enabled) {
     ctx.beginPath(); ctx.moveTo(x - w / 2 + 3, y + h - 3); ctx.lineTo(x - w / 2 + 18, y + 3); ctx.stroke();
   }
-  if (candidate.purchase_hold?.key === offer.key) {
+    if (candidate.purchase_hold?.key === offer.key) {
     ctx.fillStyle = '#637c51';
-    ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);
-  }
+      ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);
+    }
+    if (building.ownership_model === 'capturable') {
+      const max = buildingSettings(config, building, candidate.faction_id).max_level;
+      for (let level = 1; level <= max; level++) {
+        const segmentWidth = (w - 12) / max; const sx = x - w / 2 + 6 + (level - 1) * segmentWidth;
+        ctx.fillStyle = level <= building.level ? '#637c51' : level === building.level + 1 && offer.enabled ? '#b9c5ac' : '#aeb3ae';
+        ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
+      }
+    }
   if (offer.reason === 'CAMPAIGN_BUDGET_EXCEEDED') {
     ctx.fillStyle = '#7e3737'; ctx.font = '600 11px system-ui';
     ctx.fillText('Plafond de campagne insuffisant', x, y + h + 14);

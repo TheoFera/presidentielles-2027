@@ -80,6 +80,13 @@
     }
   },
   "candidate_combat": {
+    "resistance_max": 100,
+    "recovery_delay_seconds": 4,
+    "recovery_per_second": 12.5,
+    "recovery_safe_distance": 5,
+    "ko_electoral_damage_percent_points": 1.5,
+    "ko_fall_seconds": 0.7,
+    "ko_respawn_seconds": 3,
     "light_hit_hidden_damage": 8,
     "finisher_hidden_damage": 14,
     "light_knockback": 2.2,
@@ -132,6 +139,7 @@
       "militant_damage_fraction_of_full_durability": 0.85,
       "service_ordre_damage_fraction_of_full_durability": 0.35,
       "candidate_electoral_damage_percent_points": 0.3,
+      "candidate_resistance_damage": 18,
       "knockback": 8
     },
     "philippe_crs_wall": {
@@ -151,45 +159,62 @@
   },
   "buildings": {
     "permanence": {
-      "required_local_sympathisants": 2,
+      "ownership_model": "capturable",
+      "global_max": 6,
+      "max_per_candidate": 6,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 35,
       "build_cost": 35,
+      "capture_seconds": 2,
+      "required_presence_N1": 2,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 2,
+      "maintain_presence_N2": 3,
+      "maintain_presence_N3": 4,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
       "max_level": 3,
       "upgrade_costs": [
         55,
         90
       ],
-      "local_influence_by_level": [
-        0.012,
-        0.02,
-        0.032
-      ],
+      "local_influence_by_level": [0.018, 0.024, 0.032],
       "local_persuasion_time_multiplier_by_level": [
         0.95,
         0.88,
         0.8
       ],
-      "ownership_model": "faction_owned",
-      "purchase_hold_seconds": 2
+      "sympathisant_damage_multiplier_by_level": [1, 0.85, 0.7],
+      "militant_damage_multiplier_by_level": [1, 0.82, 0.65],
+      "biome_maintain_presence_reduction_by_level": [0, 0, 1],
+      "hq_influence_multiplier": 1.5,
+      "hq_resistance_multiplier": 0.85,
+      "purchase_hold_seconds": 2,
+      "upgrade_pause_seconds": 0.4
     },
     "imprimerie": {
+      "ownership_model": "neutral_service",
+      "global_max": 1,
+      "max_per_candidate": 0,
+      "max_per_biome": 2,
+      "max_per_subzone": 1,
+      "capture_cost": null,
+      "capture_seconds": 0,
+      "required_presence_N1": 1,
+      "required_presence_N2": 1,
+      "required_presence_N3": 1,
+      "maintain_presence_N1": 0,
+      "maintain_presence_N2": 0,
+      "maintain_presence_N3": 0,
+      "closure_delay_seconds": 0,
       "required_local_sympathisants": 0,
       "build_cost": null,
-      "max_level": 3,
-      "upgrade_costs": [
-        65,
-        100
-      ],
-      "tract_cost_by_level": [
-        12,
-        10,
-        8
-      ],
-      "equipment_seconds_by_level": [
-        4,
-        3.2,
-        2.5
-      ],
-      "ownership_model": "neutral_service",
+      "max_level": 1,
+      "upgrade_costs": [],
+      "tract_cost_by_level": [12],
+      "equipment_seconds_by_level": [4],
       "preexisting_in_world": true,
       "required_local_sympathisants_to_use": 1,
       "can_be_targeted_by_philippe": false,
@@ -199,8 +224,22 @@
       "pickup_seconds": 1
     },
     "faction_slot_melenchon_lepen_service_ordre": {
-      "required_local_sympathisants": 5,
+      "ownership_model": "capturable",
+      "global_max": 2,
+      "max_per_candidate": 2,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 70,
       "build_cost": 70,
+      "capture_seconds": 2,
+      "required_presence_N1": 3,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 3,
+      "maintain_presence_N2": 4,
+      "maintain_presence_N3": 5,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
       "max_level": 3,
       "upgrade_costs": [
         95,
@@ -216,114 +255,163 @@
         5,
         4
       ],
-      "ownership_model": "faction_owned",
       "purchase_hold_seconds": 2,
-      "max_queue_length": 3,
-      "pickup_seconds": 1
+      "max_queue_length": 8,
+      "pickup_seconds": 1,
+      "max_active_SO_by_level": [2, 5, null],
+      "raid_unlock_level": 3,
+      "hostile_pressure_per_SO": 1.25,
+      "reaction_speed_multiplier_by_level": [1, 1.12, 1.25]
     },
     "faction_slot_philippe_cabinet_administratif": {
-      "required_local_sympathisants": 5,
+      "ownership_model": "capturable",
+      "global_max": 2,
+      "max_per_candidate": 2,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 80,
       "build_cost": 80,
+      "capture_seconds": 2,
+      "required_presence_N1": 3,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 3,
+      "maintain_presence_N2": 4,
+      "maintain_presence_N3": 5,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
       "max_level": 3,
       "upgrade_costs": [
         110,
         160
       ],
-      "close_enemy_building_cost_by_level": [
-        120,
-        105,
-        90
+      "close_enemy_building_cost_by_level": [120, 135, 160],
+      "meeting_ban_seconds": 35,
+      "allowed_targets_by_level": [
+        ["financement", "meeting"],
+        ["financement", "meeting", "service_ordre", "tour_communication"],
+        ["financement", "meeting", "service_ordre", "tour_communication", "permanence"]
       ],
       "target_loses_all_upgrades": true,
       "target_requires_rebuild": true,
-      "ownership_model": "faction_owned",
       "purchase_hold_seconds": 2,
       "closure_cooldown_seconds": 20
     },
     "financement": {
-      "required_local_sympathisants": 4,
+      "ownership_model": "capturable",
+      "global_max": 3,
+      "max_per_candidate": 1,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 55,
       "build_cost": 55,
+      "capture_seconds": 2,
+      "required_presence_N1": 2,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 2,
+      "maintain_presence_N2": 3,
+      "maintain_presence_N3": 4,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
       "max_level": 3,
       "upgrade_costs": [
         80,
         125
       ],
-      "income_per_second_by_level": [
-        0.3,
-        0.52,
-        0.82
-      ],
-      "ownership_model": "faction_owned",
-      "purchase_hold_seconds": 2
+      "income_per_second_by_level": [0, 0, 0],
+      "campaign_duration_min": 20,
+      "campaign_duration_max": 30,
+      "campaign_start_cost": 0,
+      "payout_base": 55,
+      "influence_factor": 1.1,
+      "random_min": 0.85,
+      "random_max": 1.15,
+      "payout_level_multiplier": [1, 1.35, 1.75],
+      "purchase_hold_seconds": 2,
+      "campaign_start_seconds": 2,
+      "upgrade_pause_seconds": 0.4
     },
     "tour_communication": {
-      "required_local_sympathisants": 6,
+      "ownership_model": "capturable",
+      "global_max": 3,
+      "max_per_candidate": 1,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 75,
       "build_cost": 75,
+      "capture_seconds": 2,
+      "required_presence_N1": 3,
+      "required_presence_N2": 5,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 2,
+      "maintain_presence_N2": 4,
+      "maintain_presence_N3": 5,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
       "max_level": 3,
       "upgrade_costs": [
         110,
         160
       ],
-      "global_influence_per_second_by_level": [
-        0.002,
-        0.0035,
-        0.0055
-      ],
-      "controlled_zone_multiplier": 2,
-      "adjacent_zone_multiplier": 1.5,
-      "distant_zone_multiplier": 1,
-      "ownership_model": "faction_owned",
+      "global_influence_per_second_by_level": [0.003, 0.002, 0.0025],
+      "controlled_zone_multiplier_by_level": [2.2, 2.5, 4],
+      "adjacent_zone_multiplier_by_level": [1.7, 2, 3],
+      "distant_zone_multiplier_by_level": [0, 1, 1],
       "purchase_hold_seconds": 2,
-      "global_limit": 1
+      "global_limit": 1,
+      "upgrade_pause_seconds": 0.4
     },
     "institut_sondage": {
-      "required_local_sympathisants": 6,
-      "build_cost": 90,
+      "ownership_model": "neutral_service",
+      "global_max": 2,
+      "max_per_candidate": 0,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": null,
+      "build_cost": null,
+      "capture_seconds": 0,
+      "required_presence_N1": 0,
+      "required_presence_N2": 0,
+      "required_presence_N3": 0,
+      "maintain_presence_N1": 0,
+      "maintain_presence_N2": 0,
+      "maintain_presence_N3": 0,
+      "closure_delay_seconds": 0,
       "max_level": 1,
-      "poll_refresh_seconds": 8,
+      "upgrade_costs": [],
+      "poll_cost": 24,
+      "purchase_hold_seconds": 2,
       "unlock_circle": true,
       "unlock_national_percentages": true,
-      "ownership_model": "faction_owned",
-      "purchase_hold_seconds": 2
+      "pay_per_use": true
     },
     "meeting": {
-      "required_local_sympathisants": 5,
-      "build_cost": 65,
-      "max_level": 3,
-      "upgrade_costs": [
-        95,
-        140
-      ],
-      "activation_cost_by_level": [
-        30,
-        35,
-        40
-      ],
-      "influence_burst_by_level": [
-        12,
-        18,
-        26
-      ],
-      "ally_influence_multiplier_by_level": [
-        1.3,
-        1.45,
-        1.6
-      ],
-      "duration_seconds_by_level": [
-        14,
-        17,
-        20
-      ],
-      "internal_cooldown_seconds_by_level": [
-        55,
-        48,
-        40
-      ],
-      "ownership_model": "faction_owned",
+      "ownership_model": "neutral_service",
+      "global_max": 1,
+      "max_per_candidate": 0,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": null,
+      "build_cost": null,
+      "capture_seconds": 0,
+      "required_presence_N1": 1,
+      "required_presence_N2": 1,
+      "required_presence_N3": 1,
+      "maintain_presence_N1": 0,
+      "maintain_presence_N2": 0,
+      "maintain_presence_N3": 0,
+      "closure_delay_seconds": 0,
+      "max_level": 1,
+      "upgrade_costs": [],
+      "activation_cost_by_level": [30],
+      "influence_burst_by_level": [14],
+      "ally_influence_multiplier_by_level": [1.35],
+      "duration_seconds_by_level": [15],
+      "internal_cooldown_seconds_by_level": [50],
       "purchase_hold_seconds": 2,
       "interaction_radius": 0.45,
-      "upgrade_offset": 0.95,
-      "upgrade_radius": 0.3
+      "pay_per_use": true
     }
   },
   "influence": {
@@ -403,10 +491,9 @@
     "militant_goal_per_biome": 2,
     "minimum_cash_reserve": 12,
     "development_order": [
+      "permanence",
       "financement",
-      "tour_communication",
-      "institut_sondage",
-      "meeting"
+      "tour_communication"
     ],
     "development_sympathisant_reserve": 6,
     "development_tract_limit": 2,

@@ -76,7 +76,7 @@ export class WorldRenderer {
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
-    const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && c.id !== candidate.id), ...(!candidate.eliminated ? [candidate] : [])];
+    const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     for (const entity of entities) {
       if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
       const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
@@ -85,6 +85,12 @@ export class WorldRenderer {
     }
     drawBanknote(this, state);
     drawCombatEffects(this, state, debug);
+    if (!candidate.eliminated && candidate.resistance < this.config.balance.candidate_combat.resistance_max) {
+      const injury = 1 - candidate.resistance / this.config.balance.candidate_combat.resistance_max;
+      const gradient = ctx.createRadialGradient(this.width / 2, this.height / 2, this.height * 0.22, this.width / 2, this.height / 2, this.width * 0.65);
+      gradient.addColorStop(0, '#8f101000'); gradient.addColorStop(0.68, '#8f101000'); gradient.addColorStop(1, `rgba(145, 12, 12, ${0.08 + injury * 0.48})`);
+      ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
+    }
     if (debug) this.drawDebug(state, candidate);
   }
 
