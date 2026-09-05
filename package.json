@@ -7,13 +7,13 @@
   "scripts": {
     "build": "node scripts/build-pages.mjs",
     "start": "node scripts/serve.mjs",
-    "test": "node --test",
+    "test": "node --test test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js",
     "test:parcours": "node scripts/validate-milestone2.mjs",
     "test:conflits": "node scripts/validate-milestone3.mjs",
     "test:conquete": "node scripts/validate-milestone4.mjs",
     "test:partie": "node scripts/validate-milestone5.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }

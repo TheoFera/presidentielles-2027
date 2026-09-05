@@ -114,6 +114,8 @@ export function updateEconomy(simulation) {
     candidate.total_earned += income / hz;
     const latched = state.buildings.find(b => b.id === candidate.purchase_latch_target_id);
     if (latched && distance(state, candidate.x, latched.x) > config.balance.interaction.radius_units) candidate.purchase_latch_target_id = null;
+    const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
+    if (chained && distance(state, candidate.x, chained.x) > config.balance.interaction.radius_units) candidate.interaction_chain_site_id = null;
     if (!candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
     for (const building of state.buildings) if (building.id === offer?.target_id) {

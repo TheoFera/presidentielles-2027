@@ -40,7 +40,9 @@ export function factionOffers(state, config, candidate, building) {
   const offers = [];
   if (building.level < s.max_level) {
     const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < s[`required_presence_N${building.level + 1}`] ? 'INSUFFICIENT_PRESENCE' : null;
-    offers.push(quote(state, config, candidate, building, 'UPGRADE', s.upgrade_costs[building.level - 1], building.x, p.center_radius, reason, { label: 'AMÉLIORER' }));
+    const chained = candidate.interaction_chain_site_id === building.id;
+    offers.push(quote(state, config, candidate, building, 'UPGRADE', s.upgrade_costs[building.level - 1], chained ? building.x : building.x + p.upgrade_offset,
+      chained ? p.center_radius : p.upgrade_radius, reason, { label: 'AMÉLIORER' }));
   }
   if (building.variant === 'service_ordre') {
     const maximum = s.max_active_SO_by_level[building.level - 1];

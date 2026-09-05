@@ -47,7 +47,7 @@ export class GameSimulation {
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
         resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
         ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
-        interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0,
+        interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0, interaction_chain_site_id: null,
         total_spent: 0, total_earned: 0, income_per_second: 0, spending: { BUILD: 0, UPGRADE: 0, PRINT: 0 },
         money: config.balance.money.base_starting_money * (faction === 'philippe' ? config.balance.money.philippe_starting_money_multiplier : 1),
         start_x: start.start + start.width * config.prototype.world.candidate_start_ratio, last_hq_x: null,

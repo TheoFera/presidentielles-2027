@@ -99,6 +99,7 @@ export function plannedHeadquartersSuccessor(state, faction, fromX = null) {
 export function captureSite(sim, building, candidate) {
   building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.active = true; building.neutral = false;
   building.capture_progress = 0; building.closure_progress = 0; building.variant = building.type === 'faction' ? factionVariant(candidate.faction_id) : null;
+  candidate.interaction_chain_site_id = building.id;
   if (building.type === 'permanence' && !sim.state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.headquarters)) {
     building.headquarters = true; candidate.headquarters_site_id = building.id; candidate.last_hq_x = building.x;
     sim.emit('HeadquartersEstablished', { candidate_id: candidate.id, target_id: building.id });
@@ -161,7 +162,7 @@ export function updateStrategicSites(sim) {
     const s = buildingSettings(config, building);
     if (building.current_effective_presence < building.required_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
-    if (building.closure_progress >= 1) neutralizeSite(sim, building);
+    if (building.closure_progress >= 1 - 1e-9) neutralizeSite(sim, building);
   }
 }
 
