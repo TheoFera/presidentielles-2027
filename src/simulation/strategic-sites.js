@@ -26,12 +26,17 @@ export function createInfrastructure(world, config, rngState) {
       subzone_id: zone.id, biome_id: zone.biome_id };
   });
   const assigned = new Map();
-  for (const biome of config.layout.biomes) {
-    const choices = slots.filter(s => s.biome_id === biome.id);
-    assigned.set(choices[Math.floor(random(rngState) * choices.length)].id, 'permanence');
+  const guaranteedPerBiome = ['permanence', 'imprimerie', 'meeting'];
+  for (const type of guaranteedPerBiome) {
+    for (const biome of config.layout.biomes) {
+      const choices = slots.filter(s => s.biome_id === biome.id && !assigned.has(s.id));
+      assigned.set(choices[Math.floor(random(rngState) * choices.length)].id, type);
+    }
   }
   const free = slots.filter(s => !assigned.has(s.id));
-  const remaining = Object.entries(generation.site_counts).flatMap(([type, count]) => Array.from({ length: count - (type === 'permanence' ? config.layout.biomes.length : 0) }, () => type));
+  const remaining = Object.entries(generation.site_counts).flatMap(([type, count]) => Array.from({
+    length: count - (guaranteedPerBiome.includes(type) ? config.layout.biomes.length : 0),
+  }, () => type));
   let valid = null;
   for (let attempt = 0; attempt < 2000 && !valid; attempt++) {
     const types = shuffle(rngState, remaining); const perBiome = new Map(); let ok = true;

@@ -196,7 +196,7 @@
     },
     "imprimerie": {
       "ownership_model": "neutral_service",
-      "global_max": 1,
+      "global_max": 8,
       "max_per_candidate": 0,
       "max_per_biome": 2,
       "max_per_subzone": 1,
@@ -388,7 +388,7 @@
     },
     "meeting": {
       "ownership_model": "neutral_service",
-      "global_max": 1,
+      "global_max": 6,
       "max_per_candidate": 0,
       "max_per_biome": 1,
       "max_per_subzone": 1,

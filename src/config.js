@@ -51,12 +51,12 @@ export function validateConfig(config) {
     }
   }
   for (const id of Object.values(config.layout.starting_positions)) if (!ids.has(id)) throw new Error(`Position de départ inconnue : ${id}.`);
-  const slotIds = new Set(); const slotZones = new Set();
+  const slotIds = new Set(); const slotsByZone = new Map();
   for (const slot of generation.slots) {
-    if (!ids.has(slot.subzone_id) || slotIds.has(slot.site_id) || slotZones.has(slot.subzone_id) || !Number.isFinite(slot.x_ratio) || slot.x_ratio <= 0 || slot.x_ratio >= 1) throw new Error('Configuration : site stratégique explicite invalide.');
-    slotIds.add(slot.site_id); slotZones.add(slot.subzone_id);
+    if (!ids.has(slot.subzone_id) || slotIds.has(slot.site_id) || !Number.isFinite(slot.x_ratio) || slot.x_ratio <= 0 || slot.x_ratio >= 1) throw new Error('Configuration : site stratégique explicite invalide.');
+    slotIds.add(slot.site_id); slotsByZone.set(slot.subzone_id, (slotsByZone.get(slot.subzone_id) || 0) + 1);
   }
-  if (slotZones.size !== ids.size) throw new Error('Configuration : chaque sous-zone doit posséder exactement un emplacement stratégique.');
+  if ([...ids].some(id => !slotsByZone.has(id)) || [...slotsByZone.values()].some(count => count > generation.max_sites_per_subzone)) throw new Error('Configuration : nombre de sites invalide dans une sous-zone.');
   const siteTypes = ['permanence', 'financement', 'faction', 'tour_communication', 'imprimerie', 'meeting', 'institut_sondage'];
   if (siteTypes.some(type => !Number.isInteger(generation.site_counts[type]) || generation.site_counts[type] < 0)
     || Object.values(generation.site_counts).reduce((a, b) => a + b, 0) !== generation.slots.length) throw new Error('Configuration : quotas de sites incohérents.');

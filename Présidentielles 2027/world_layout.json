@@ -281,14 +281,15 @@
   "prototype_version": "0.3",
   "strategic_site_generation": {
     "mode": "seeded_explicit_slots",
-    "note": "La graine choisit les types parmi ces emplacements explicites. Une Permanence est garantie par biome et tous les caps de game_balance.json restent autoritaires.",
+    "note": "La graine choisit les types parmi ces emplacements explicites. Une Permanence, une Imprimerie et une Salle de meeting sont garanties par biome. Deux Imprimeries supplémentaires sont réparties aléatoirement.",
+    "max_sites_per_subzone": 2,
     "site_counts": {
       "permanence": 6,
       "financement": 3,
       "faction": 2,
       "tour_communication": 3,
-      "imprimerie": 1,
-      "meeting": 1,
+      "imprimerie": 8,
+      "meeting": 6,
       "institut_sondage": 2
     },
     "slots": [
@@ -309,7 +310,19 @@
       { "site_id": "site:retraites_c", "subzone_id": "retraites_c", "x_ratio": 0.79 },
       { "site_id": "site:riches_a", "subzone_id": "riches_a", "x_ratio": 0.27 },
       { "site_id": "site:riches_b", "subzone_id": "riches_b", "x_ratio": 0.49 },
-      { "site_id": "site:riches_c", "subzone_id": "riches_c", "x_ratio": 0.75 }
+      { "site_id": "site:riches_c", "subzone_id": "riches_c", "x_ratio": 0.75 },
+      { "site_id": "site:paris_a:service", "subzone_id": "paris_a", "x_ratio": 0.72 },
+      { "site_id": "site:paris_c:service", "subzone_id": "paris_c", "x_ratio": 0.28 },
+      { "site_id": "site:banlieue_a:service", "subzone_id": "banlieue_a", "x_ratio": 0.73 },
+      { "site_id": "site:banlieue_c:service", "subzone_id": "banlieue_c", "x_ratio": 0.27 },
+      { "site_id": "site:periurbain_a:service", "subzone_id": "periurbain_a", "x_ratio": 0.7 },
+      { "site_id": "site:periurbain_c:service", "subzone_id": "periurbain_c", "x_ratio": 0.3 },
+      { "site_id": "site:campagne_a:service", "subzone_id": "campagne_a", "x_ratio": 0.74 },
+      { "site_id": "site:campagne_c:service", "subzone_id": "campagne_c", "x_ratio": 0.29 },
+      { "site_id": "site:retraites_a:service", "subzone_id": "retraites_a", "x_ratio": 0.71 },
+      { "site_id": "site:retraites_c:service", "subzone_id": "retraites_c", "x_ratio": 0.26 },
+      { "site_id": "site:riches_a:service", "subzone_id": "riches_a", "x_ratio": 0.76 },
+      { "site_id": "site:riches_c:service", "subzone_id": "riches_c", "x_ratio": 0.25 }
     ]
   },
   "visual_layout": {

@@ -23,15 +23,17 @@ function unit(sim, role, faction, x) {
   return npc;
 }
 
-test('18 sites préexistants : tirage seedé, caps et un site par sous-zone', () => {
+test('30 sites préexistants : tirage seedé, caps et services garantis par biome', () => {
   const a = new GameSimulation(config, 2027); const b = new GameSimulation(config, 2027); const c = new GameSimulation(config, 99);
   assert.deepEqual(a.state.buildings, b.state.buildings);
   assert.notDeepEqual(a.state.buildings.map(s => s.type), c.state.buildings.map(s => s.type));
-  assert.equal(a.state.buildings.length, 18); assert.equal(new Set(a.state.buildings.map(s => s.subzone_id)).size, 18);
+  assert.equal(a.state.buildings.length, 30); assert.equal(new Set(a.state.buildings.map(s => s.subzone_id)).size, 18);
   for (const [type, count] of Object.entries(config.layout.strategic_site_generation.site_counts)) assert.equal(a.state.buildings.filter(s => s.type === type).length, count);
   for (const biome of config.layout.biomes) {
-    const sites = a.state.buildings.filter(s => s.biome_id === biome.id); assert.equal(sites.length, 3);
+    const sites = a.state.buildings.filter(s => s.biome_id === biome.id); assert.equal(sites.length, 5);
     assert.equal(sites.filter(s => s.type === 'permanence').length, 1);
+    assert.equal(sites.filter(s => s.type === 'meeting').length, 1);
+    assert.ok([1, 2].includes(sites.filter(s => s.type === 'imprimerie').length));
     for (const type of new Set(sites.map(s => s.type))) assert.ok(sites.filter(s => s.type === type).length <= (type === 'faction'
       ? config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.max_per_biome : config.balance.buildings[type].max_per_biome));
   }
