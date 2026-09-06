@@ -5,11 +5,11 @@ import { localUnitDamageMultiplier } from './strategic-sites.js';
 
 export const combatState = () => ({ attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
-export const combatActors = state => [...state.candidates.filter(c => !c.eliminated), ...state.npcs, ...state.temporary_units];
-export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
+export const combatActors = state => [...state.candidates.filter(c => !c.eliminated && !c.campaign_arena_id), ...state.npcs, ...state.temporary_units];
+export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_arena_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && a.faction_id !== b.faction_id;
 export const interrupted = actor => actor.combat && (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
-export const canCampaign = actor => !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
+export const canCampaign = actor => !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
   return state.electorate.filter(e => leadership(e.support, config).controller === faction);
@@ -51,9 +51,10 @@ export function hit(sim, source, target, spec, attackId) {
   if (target.role === 'CANDIDAT' && state.arena_bounds) {
     const damage = config.balance.first_round_arena.damage;
     const key = spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
-    result.damage = Math.min(target.arena_hp, damage[key]);
+    const dealt = source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1) : damage[key] * (state.campaign_damage_multiplier || 1);
+    result.damage = Math.min(target.arena_hp, dealt);
     result.score_damage = result.damage; result.arena_hp_before = target.arena_hp;
-    target.arena_hp = Math.max(0, target.arena_hp - damage[key]); result.arena_hp_after = target.arena_hp;
+    target.arena_hp = Math.max(0, target.arena_hp - dealt); result.arena_hp_after = target.arena_hp;
     target.hits_received++; state.candidate_hit_count++;
     if (target.arena_hp === 0) state.eliminated_faction = target.faction_id;
   } else if (target.role === 'CANDIDAT') {

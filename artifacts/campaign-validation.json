@@ -1,0 +1,209 @@
+[
+  {
+    "seed": 17,
+    "daySeconds": 1,
+    "enabled": true,
+    "events": 27,
+    "interval": 13.26923076923077,
+    "intensities": {
+      "MINOR": 18,
+      "MAJOR": 7,
+      "CRISIS": 2
+    },
+    "families": {
+      "CHOC_OPINION": 6,
+      "DEBAT_THEMATIQUE": 4,
+      "CRISE_FINANCEMENT": 5,
+      "MEETING_DE_CRISE": 5,
+      "CANDIDAT_FRAGILISE": 4,
+      "PIEGE_MEDIATIQUE": 3
+    },
+    "leaderChanges": 1,
+    "thirdReturns": 1,
+    "changedZones": 2,
+    "encounters": 8,
+    "orientations": [
+      0,
+      0,
+      4
+    ],
+    "meetings": 3,
+    "mediaDurations": [
+      13.066666666666666,
+      10.633333333333333,
+      10.633333333333333
+    ],
+    "scores": {
+      "melenchon": 24.178550739531115,
+      "le_pen": 9.23563947314736,
+      "philippe": 18.648775624851154,
+      "neutral": 47.93703416247037
+    },
+    "history": [
+      "choc_opinion_012",
+      "debat_thematique_035",
+      "crise_financement_008",
+      "meeting_de_crise_009",
+      "candidat_fragilise_015",
+      "piege_mediatique_030",
+      "crise_financement_005",
+      "choc_opinion_031",
+      "meeting_de_crise_006",
+      "piege_mediatique_039",
+      "choc_opinion_028",
+      "meeting_de_crise_007",
+      "crise_financement_003",
+      "candidat_fragilise_022",
+      "debat_thematique_017",
+      "choc_opinion_035",
+      "candidat_fragilise_030",
+      "debat_thematique_026",
+      "piege_mediatique_002",
+      "crise_financement_001",
+      "choc_opinion_004",
+      "meeting_de_crise_005",
+      "choc_opinion_034",
+      "candidat_fragilise_016",
+      "debat_thematique_034",
+      "crise_financement_006",
+      "meeting_de_crise_004"
+    ]
+  },
+  {
+    "seed": 42,
+    "daySeconds": 1,
+    "enabled": true,
+    "events": 24,
+    "interval": 14.956521739130435,
+    "intensities": {
+      "MINOR": 17,
+      "MAJOR": 5,
+      "CRISIS": 2
+    },
+    "families": {
+      "CHOC_OPINION": 4,
+      "MEETING_DE_CRISE": 6,
+      "CRISE_FINANCEMENT": 3,
+      "CANDIDAT_FRAGILISE": 5,
+      "PIEGE_MEDIATIQUE": 2,
+      "FERMETURE_BATIMENT": 2,
+      "DEBAT_THEMATIQUE": 2
+    },
+    "leaderChanges": 5,
+    "thirdReturns": 1,
+    "changedZones": 2,
+    "encounters": 4,
+    "orientations": [
+      0,
+      0,
+      3
+    ],
+    "meetings": 5,
+    "mediaDurations": [
+      8.133333333333333,
+      31.6
+    ],
+    "scores": {
+      "melenchon": 19.38943584778963,
+      "le_pen": 21.094376349037265,
+      "philippe": 21.724037511013957,
+      "neutral": 37.79215029215915
+    },
+    "history": [
+      "choc_opinion_012",
+      "meeting_de_crise_002",
+      "choc_opinion_021",
+      "crise_financement_002",
+      "meeting_de_crise_011",
+      "candidat_fragilise_004",
+      "crise_financement_014",
+      "choc_opinion_024",
+      "candidat_fragilise_003",
+      "piege_mediatique_046",
+      "meeting_de_crise_016",
+      "fermeture_batiment_011",
+      "candidat_fragilise_018",
+      "piege_mediatique_017",
+      "meeting_de_crise_017",
+      "candidat_fragilise_028",
+      "choc_opinion_022",
+      "meeting_de_crise_018",
+      "debat_thematique_031",
+      "fermeture_batiment_013",
+      "meeting_de_crise_001",
+      "candidat_fragilise_007",
+      "debat_thematique_033",
+      "crise_financement_006"
+    ]
+  },
+  {
+    "seed": 109,
+    "daySeconds": 1,
+    "enabled": true,
+    "events": 26,
+    "interval": 13.76,
+    "intensities": {
+      "MINOR": 13,
+      "MAJOR": 10,
+      "CRISIS": 3
+    },
+    "families": {
+      "CHOC_OPINION": 3,
+      "MEETING_DE_CRISE": 6,
+      "DEBAT_THEMATIQUE": 4,
+      "CANDIDAT_FRAGILISE": 5,
+      "CRISE_FINANCEMENT": 4,
+      "PIEGE_MEDIATIQUE": 4
+    },
+    "leaderChanges": 6,
+    "thirdReturns": 2,
+    "changedZones": 1,
+    "encounters": 6,
+    "orientations": [
+      0,
+      0,
+      0
+    ],
+    "meetings": 5,
+    "mediaDurations": [
+      25.166666666666668,
+      32.06666666666667,
+      13.333333333333334,
+      5.166666666666667
+    ],
+    "scores": {
+      "melenchon": 16.14591979843226,
+      "le_pen": 15.309639123020082,
+      "philippe": 21.69719536524593,
+      "neutral": 46.84724571330173
+    },
+    "history": [
+      "choc_opinion_011",
+      "meeting_de_crise_001",
+      "debat_thematique_035",
+      "candidat_fragilise_009",
+      "meeting_de_crise_004",
+      "crise_financement_014",
+      "candidat_fragilise_029",
+      "piege_mediatique_035",
+      "crise_financement_002",
+      "candidat_fragilise_004",
+      "meeting_de_crise_017",
+      "debat_thematique_010",
+      "choc_opinion_037",
+      "crise_financement_013",
+      "piege_mediatique_042",
+      "meeting_de_crise_014",
+      "candidat_fragilise_020",
+      "debat_thematique_012",
+      "crise_financement_003",
+      "meeting_de_crise_002",
+      "piege_mediatique_002",
+      "choc_opinion_010",
+      "debat_thematique_018",
+      "candidat_fragilise_003",
+      "meeting_de_crise_018",
+      "piege_mediatique_052"
+    ]
+  }
+]

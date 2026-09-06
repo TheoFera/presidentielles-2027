@@ -57,7 +57,7 @@ export function startNpcAttack(sim, actor, kind, settings) {
 
 function startCandidateAttack(sim, actor) {
   const c = actor.combat; const b = sim.config.balance;
-  if (actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active) return;
+  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active) return;
   c.buffer_until_tick = -1;
   if (c.requested_direction) actor.facing = c.requested_direction;
   c.requested_direction = null; actor.purchase_hold = null;

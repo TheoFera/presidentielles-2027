@@ -99,3 +99,16 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .result-actions { flex-wrap: wrap; }
 }
 @media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }
+/* Cartes d’annonce : deux secondes au centre, puis pile chronologique. */
+#campaign-events { position: fixed; top: 110px; right: 16px; width: min(310px, 40vw); display: flex; flex-direction: column; gap: 7px; z-index: 18; pointer-events: none; }
+.campaign-card { padding: 10px 13px; border: 1px solid #d9b966; border-radius: 9px; color: #fff5d6; background: #172331ef; box-shadow: 0 4px 20px #0005; transition: transform .55s ease, width .55s ease; font: 12px/1.35 system-ui; transform-origin: top right; }
+.campaign-card strong, .campaign-card span, .campaign-card small { display: block; }
+.campaign-card strong { font-size: 14px; margin-bottom: 4px; }
+.campaign-card-narrative { color: #f1e4bc; margin-bottom: 4px; }
+.campaign-card small { color: #d3dfeb; margin-top: 4px; }
+.campaign-card.arriving { transform: translateX(calc(-50vw + 50% + 16px)) scale(1.22); }
+#debug fieldset pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media(max-width: 650px) { #campaign-events { top: 135px; width: 210px; right: 8px; } .campaign-card { font-size: 10px; padding: 7px; } .campaign-card strong { font-size: 12px; } .campaign-card.arriving { transform: translateX(calc(-50vw + 50% + 8px)); } }
+
+.campaign-studio #funds, .campaign-studio #money, .campaign-studio #day, .campaign-studio #hint { color: #eaf2f7; }
+#campaign-events:has(.arriving) { gap: 24px; }

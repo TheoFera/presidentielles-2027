@@ -1,3 +1,4 @@
+import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
 import { FACTIONS } from './world.js';
@@ -15,9 +16,10 @@ export const initialMatchState = () => ({
 });
 
 export function startArena(sim) {
+  for (const e of sim.state.campaign_events || []) if (e.status === 'ACTIVE') resolveCampaignEvent(sim, e, 'EXPIRED');
   const s = sim.state;
   if (s.phase !== GamePhase.CAMPAIGN) return false;
-  s.days_remaining = 0;
+  s.days_remaining = 0; s.campaign_day_remaining = 0; s.campaign_elapsed_days = sim.config.balance.time.starting_days_before_first_round; s.campaign_progress_01 = 1;
   refreshElectoralState(s, sim.config);
   s.telemetry.j0_scores = clone(s.actualGameState.national_support);
   const saved = clone(s); // Full, non-recursive, JSON-compatible world snapshot.

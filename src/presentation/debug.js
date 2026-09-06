@@ -1,3 +1,4 @@
+import { installCampaignDebug, campaignDebugReport } from './campaign.js';
 import { demobilize, selectCandidate, setAIEnabled, teleport, teleportTarget, grantMoney, fillSpecial, spawnUnit, controlZone, addInfluence, neutral50, buildElectoral, debugMeeting } from '../simulation/commands.js';
 import { FACTIONS, ringDelta, zoneAt } from '../simulation/world.js';
 import { managementReport, roleNames, buildingNames } from './debug-report.js';
@@ -14,6 +15,7 @@ export class DebugPanel {
     this.ai = document.getElementById('ai-toggle');
     this.seed = document.getElementById('seed');
     this.seed.value = config.prototype.seed;
+    installCampaignDebug(this);
     this.inspectNpc = document.getElementById('inspect-npc');
     this.inspectBuilding = document.getElementById('inspect-building');
     this.spawnFaction = document.getElementById('spawn-faction');
@@ -144,6 +146,7 @@ export class DebugPanel {
   }
 
   update(state, fps) {
+    this.campaignReport.textContent = campaignDebugReport(state);
     if (!this.visible) return;
     const phaseNames = { CAMPAIGN: 'Campagne', FIRST_ROUND_ARENA: 'Premier tour · arène', SECOND_ROUND_SPRINT: 'Sprint du second tour', RESULTS: 'Résultat final' };
     const round = value => typeof value === 'number' ? Math.round(value * 1000) / 1000 : value;

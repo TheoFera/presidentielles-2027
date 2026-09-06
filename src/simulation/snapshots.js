@@ -1,3 +1,4 @@
+import { validateCampaignSnapshot } from './campaign-validation.js';
 import { FACTIONS, buildWorld, fingerprint } from './world.js';
 import { createInfrastructure } from './economy.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
@@ -13,13 +14,14 @@ export function validateSnapshot(next, simulation, nested = false) {
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 6 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde de la refonte des sites');
+  if (!next || next.snapshot_version !== 7 || next.config_fingerprint !== fingerprint(config)) fail('version ou réglages différents ; utilise une sauvegarde de l’année électorale');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
   for (const field of ['candidates', 'npcs', 'events', 'buildings', 'building_slots', 'transactions', 'electorate', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results']) if (!Array.isArray(next[field])) fail(`collection absente : ${field}`);
   if (next.candidates.length !== FACTIONS.length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
   if (!integer(next.days_remaining, config.prototype.time.minimum_days_remaining_for_milestone) || next.days_remaining > config.balance.time.starting_days_before_first_round) fail('jour invalide');
+  validateCampaignSnapshot(next, config, fail);
   const infrastructure = createInfrastructure(next.world, config, { rng_state: next.seed });
   if (JSON.stringify(next.building_slots) !== JSON.stringify(infrastructure.slots) || next.buildings.length !== infrastructure.buildings.length) fail('emplacements différents');
   const ids = new Set();

@@ -1,3 +1,4 @@
+import { fundingModifiers } from './campaign-events.js';
 import { zoneAt } from './world.js';
 import { biomeSympathisants, distance, incomePerSecond, localSympathisants, stableIdOrder } from './territory.js';
 import { buildingSettings } from './building-rules.js';
@@ -14,6 +15,7 @@ export { createInfrastructure } from './strategic-sites.js';
 export function buildingOffer(state, config, candidate, building) {
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return null;
   if (building.type === 'faction') return nearestFactionOffer(state, config, candidate, building);
+  if (building.type === 'meeting' && state.campaign_events?.some(e => e.status === 'ACTIVE' && e.target_site_id === building.id && ['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family))) return null;
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building)
     .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0] || null;
   const settings = buildingSettings(config, building, candidate.faction_id);
@@ -39,6 +41,7 @@ export function buildingOffer(state, config, candidate, building) {
     }
   } else if (building.type === 'financement' && building.owner_id === candidate.faction_id) {
     kind = 'FUNDRAISE'; cost = settings.campaign_start_cost;
+    if (!fundingModifiers(state, candidate.faction_id).can_start_new_campaign) { available = false; reason = 'FUNDING_CRISIS'; }
     if (building.funding_state === 'RUNNING') { available = false; reason = 'CAMPAIGN_RUNNING'; }
   } else return null;
   if (building.type === 'tour_communication' && kind === 'CAPTURE'
@@ -51,6 +54,7 @@ export function buildingOffer(state, config, candidate, building) {
 }
 
 export function buildingOffers(state, config, candidate, building) {
+  if (building.type === 'meeting' && state.campaign_events?.some(e => e.status === 'ACTIVE' && e.target_site_id === building.id && ['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family))) return [];
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return [];
   if (building.type === 'faction') return factionOffers(state, config, candidate, building);
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building);

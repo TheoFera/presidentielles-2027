@@ -1,3 +1,4 @@
+import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
 import { drawInfrastructure, drawBanknote } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
@@ -42,6 +43,8 @@ export class WorldRenderer {
 
   draw(state, previous, alpha, elapsed, debug = false) {
     if (state.phase === 'FIRST_ROUND_ARENA') { drawArena(this, state.arena, previous.arena, alpha); return; }
+    const campaignArena = state.campaign_events?.find(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id));
+    if (campaignArena) { drawArena(this, campaignArena.arena, previous.campaign_events?.find(e => e.id === campaignArena.id)?.arena || campaignArena.arena, alpha); return; }
     const ctx = this.ctx;
     const m = this.metrics;
     const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
@@ -66,6 +69,7 @@ export class WorldRenderer {
       if (left > this.width || left + subzone.width * m.pixelsPerUnit < 0) continue;
       this.drawZone(subzone, left, this.p.biome_palettes[subzone.biome_id], state);
     }
+    drawCampaignScenery(this, state);
     drawInfrastructure(this, state);
     drawTerritoryFlags(this, state);
     ctx.fillStyle = this.p.ground_edge;
@@ -91,6 +95,7 @@ export class WorldRenderer {
       gradient.addColorStop(0, '#8f101000'); gradient.addColorStop(0.68, '#8f101000'); gradient.addColorStop(1, `rgba(145, 12, 12, ${0.08 + injury * 0.48})`);
       ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
     }
+    drawCampaignMarkers(this, state);
     if (debug) this.drawDebug(state, candidate);
   }
 
@@ -190,7 +195,7 @@ export class WorldRenderer {
     const height = this.metrics.characterHeight * (candidate ? 1 : this.p.npc_height_multiplier);
     const pixel = height / 27;
     const ground = this.metrics.groundY;
-    const faction = this.p.factions[entity.faction_id];
+    const faction = entity.presentation_name === 'Journaliste' ? { color: '#566477', symbol: 'TV' } : this.p.factions[entity.faction_id];
     const recentlyHit = state.tick - (entity.combat?.last_hit?.tick ?? -100) < 3 && entity.combat?.last_hit?.target_id === entity.id;
     const tone = recentlyHit ? '#eee5c8' : entity.role === 'CRS' ? '#394b61' : faction?.color || this.p.neutral_tone;
     const time = state.tick / this.config.balance.simulation_architecture.fixed_tick_hz;

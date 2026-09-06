@@ -1,3 +1,4 @@
+import { fundingModifiers } from './campaign-events.js';
 import { random, ringDelta, zoneAt } from './world.js';
 import { buildingSettings, factionVariant, isCapturable, presenceForLevel } from './building-rules.js';
 import { stableIdOrder } from './territory.js';
@@ -135,12 +136,14 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
 
 export function startFundingCampaign(sim, building) {
   const s = sim.config.balance.buildings.financement;
+  const modifiers = fundingModifiers(sim.state, building.owner_id);
+  if (!modifiers.can_start_new_campaign) return false;
   const duration = s.campaign_duration_min + random(sim.state) * (s.campaign_duration_max - s.campaign_duration_min);
   const randomFactor = s.random_min + random(sim.state) * (s.random_max - s.random_min);
   const score = sim.state.actualGameState.national_support[building.owner_id];
   const influenceFactor = 1 + score / 100 * s.influence_factor;
   const payout = s.payout_base * s.payout_level_multiplier[building.level - 1] * influenceFactor * randomFactor;
-  building.funding_state = 'RUNNING'; building.funding_duration_ticks = sim.secondsToTicks(duration);
+  building.funding_state = 'RUNNING'; building.funding_duration_ticks = sim.secondsToTicks(duration * modifiers.campaign_duration_multiplier);
   building.funding_end_tick = sim.state.tick + building.funding_duration_ticks; building.funding_influence_factor = influenceFactor;
   building.funding_random_factor = randomFactor; building.funding_expected_payout = payout;
   sim.emit('FundingCampaignStarted', { target_id: building.id, owner_id: building.owner_id, duration_ticks: building.funding_duration_ticks });
@@ -152,8 +155,10 @@ export function updateStrategicSites(sim) {
     if (building.funding_state === 'RUNNING' && state.tick >= building.funding_end_tick) {
       const candidate = state.candidates.find(c => c.faction_id === building.owner_id);
       if (candidate && !candidate.eliminated && building.state === 'ACTIVE') {
-        candidate.money += building.funding_expected_payout; candidate.total_earned += building.funding_expected_payout;
-        sim.emit('FundingCampaignCompleted', { target_id: building.id, candidate_id: candidate.id, payout: building.funding_expected_payout });
+        const modifiers = fundingModifiers(state, candidate.faction_id);
+        const payout = Math.min(modifiers.payout_max ?? Infinity, building.funding_expected_payout * modifiers.payout_multiplier);
+        candidate.money += payout; candidate.total_earned += payout;
+        sim.emit('FundingCampaignCompleted', { target_id: building.id, candidate_id: candidate.id, payout });
       }
       building.funding_state = 'COMPLETED'; building.funding_end_tick = null;
     }

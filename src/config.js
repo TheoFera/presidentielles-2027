@@ -1,4 +1,6 @@
+import { validateCampaignConfig } from './simulation/campaign-validation.js';
 export function validateConfig(config) {
+  validateCampaignConfig(config);
   const positive = (value, label) => {
     if (!Number.isFinite(value) || value <= 0) throw new Error(`Configuration : ${label} doit être un nombre positif.`);
   };
@@ -111,11 +113,11 @@ export function validateConfig(config) {
 
 export async function loadConfig() {
   const base = new URL('../Présidentielles 2027/', import.meta.url);
-  const files = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json'];
-  const [balance, layout, buildings, prototype] = await Promise.all(files.map(async file => {
+  const files = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
+  const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(files.map(async file => {
     const response = await fetch(new URL(file, base));
     if (!response.ok) throw new Error(`Impossible de charger ${file} (${response.status}).`);
     return response.json();
   }));
-  return validateConfig({ balance, layout, buildings, prototype });
+  return validateConfig({ balance, layout, buildings, prototype, campaignCatalog });
 }

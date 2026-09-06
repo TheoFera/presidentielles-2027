@@ -1,3 +1,4 @@
+import { campaignAICommands } from './campaign-events.js';
 import { move, setCampaignActive, interactionPresence, attack } from './commands.js';
 import { ringDelta, zoneAt } from './world.js';
 import { aiDevelopmentZone, aiEconomicTarget } from './economy.js';
@@ -36,6 +37,8 @@ export class AIController extends Controller {
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
     const commands = (axis, purchase = false) => [setCampaignActive(candidateId, state.ai_enabled), interactionPresence(candidateId, state.ai_enabled && purchase), move(candidateId, axis)];
     if (!state.ai_enabled) return commands(0);
+    const eventCommands = campaignAICommands(state, this.config, candidate);
+    if (eventCommands) return eventCommands;
     const opponent = nearestEnemy(state, candidate, this.config.balance.candidate_combat.ai_detection_range, t => t.role !== 'SYMPATHISANT');
     if (opponent) {
       const d = ringDelta(candidate.x, opponent.x, state.world.length);

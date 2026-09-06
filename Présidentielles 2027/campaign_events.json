@@ -1,0 +1,5699 @@
+[
+  {
+    "event_id": "meeting_de_crise_001",
+    "family": "MEETING_DE_CRISE",
+    "title": "Cantines 100 % végétariennes : la polémique enfle",
+    "description": "Une controverse locale fictive mobilise les électeurs urbains.",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "food",
+      "urban"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Cantines 100 % végétariennes : la polémique enfle"
+  },
+  {
+    "event_id": "meeting_de_crise_002",
+    "family": "MEETING_DE_CRISE",
+    "title": "Places de stationnement : la mairie met le feu aux poudres",
+    "description": "Dans cette séquence satirique, riverains et cyclistes s’affrontent sur la ville de demain.",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "urban",
+      "transport"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Places de stationnement : la mairie met le feu aux poudres"
+  },
+  {
+    "event_id": "meeting_de_crise_003",
+    "family": "MEETING_DE_CRISE",
+    "title": "Nouvelle ZFE : les habitants se divisent",
+    "description": "Un projet fictif de restriction automobile déclenche un meeting décisif.",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "urban",
+      "transport",
+      "ecology"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Nouvelle ZFE : les habitants se divisent"
+  },
+  {
+    "event_id": "meeting_de_crise_004",
+    "family": "MEETING_DE_CRISE",
+    "title": "Menus des cantines : la polémique nationale arrive en banlieue",
+    "description": "Une querelle fictive autour des menus scolaires agite le quartier.",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "food",
+      "urban"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Menus des cantines : la polémique nationale arrive en banlieue"
+  },
+  {
+    "event_id": "meeting_de_crise_005",
+    "family": "MEETING_DE_CRISE",
+    "title": "Tensions après une intervention policière",
+    "description": "Un incident entièrement fictif provoque une forte mobilisation locale.",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "security",
+      "urban"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Tensions après une intervention policière"
+  },
+  {
+    "event_id": "meeting_de_crise_006",
+    "family": "MEETING_DE_CRISE",
+    "title": "Fermeture d’un service public de proximité",
+    "description": "La disparition annoncée d’un guichet public fictif rassemble les habitants.",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "public_service",
+      "urban"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Fermeture d’un service public de proximité"
+  },
+  {
+    "event_id": "meeting_de_crise_007",
+    "family": "MEETING_DE_CRISE",
+    "title": "Plan social : 600 emplois menacés",
+    "description": "Une entreprise fictive annonce un plan social qui bouleverse le bassin industriel.",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "economy",
+      "industry"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Plan social : 600 emplois menacés"
+  },
+  {
+    "event_id": "meeting_de_crise_008",
+    "family": "MEETING_DE_CRISE",
+    "title": "Le prix du carburant repart à la hausse",
+    "description": "Une flambée fictive des prix déclenche la colère des automobilistes.",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "economy",
+      "transport"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le prix du carburant repart à la hausse"
+  },
+  {
+    "event_id": "meeting_de_crise_009",
+    "family": "MEETING_DE_CRISE",
+    "title": "L’usine pourrait être délocalisée",
+    "description": "La rumeur fictive d’une délocalisation place le territoire au centre de la campagne.",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "economy",
+      "industry"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "L’usine pourrait être délocalisée"
+  },
+  {
+    "event_id": "meeting_de_crise_010",
+    "family": "MEETING_DE_CRISE",
+    "title": "Colère des agriculteurs contre les marges",
+    "description": "Une mobilisation agricole fictive vise les marges de la grande distribution.",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "rural",
+      "food",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Colère des agriculteurs contre les marges"
+  },
+  {
+    "event_id": "meeting_de_crise_011",
+    "family": "MEETING_DE_CRISE",
+    "title": "Nouvelle réglementation sur la chasse",
+    "description": "Une règle fictive sur la chasse divise brutalement le territoire.",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "rural",
+      "hunting"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Nouvelle réglementation sur la chasse"
+  },
+  {
+    "event_id": "meeting_de_crise_012",
+    "family": "MEETING_DE_CRISE",
+    "title": "Projet d’éoliennes : le village se déchire",
+    "description": "Un projet fictif d’éoliennes provoque une bataille politique locale.",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "rural",
+      "ecology"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Projet d’éoliennes : le village se déchire"
+  },
+  {
+    "event_id": "meeting_de_crise_013",
+    "family": "MEETING_DE_CRISE",
+    "title": "Nouvelle réforme des retraites annoncée",
+    "description": "Une réforme fictive replace l’âge de départ au cœur de la campagne.",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Nouvelle réforme des retraites annoncée"
+  },
+  {
+    "event_id": "meeting_de_crise_014",
+    "family": "MEETING_DE_CRISE",
+    "title": "Fermeture de la dernière pharmacie du secteur",
+    "description": "La fermeture fictive d’une pharmacie inquiète les habitants.",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "retirement",
+      "health",
+      "public_service"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Fermeture de la dernière pharmacie du secteur"
+  },
+  {
+    "event_id": "meeting_de_crise_015",
+    "family": "MEETING_DE_CRISE",
+    "title": "Le financement des pensions fait polémique",
+    "description": "Des projections fictives sur les pensions déclenchent une confrontation locale.",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le financement des pensions fait polémique"
+  },
+  {
+    "event_id": "meeting_de_crise_016",
+    "family": "MEETING_DE_CRISE",
+    "title": "Nouvelle taxe sur les très hauts patrimoines",
+    "description": "Une taxe fictive sur les patrimoines divise les électeurs du quartier.",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "wealth",
+      "tax"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Nouvelle taxe sur les très hauts patrimoines"
+  },
+  {
+    "event_id": "meeting_de_crise_017",
+    "family": "MEETING_DE_CRISE",
+    "title": "Cambriolages en série dans les beaux quartiers",
+    "description": "Une série de cambriolages entièrement fictive fait monter la question de la sécurité.",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "wealth",
+      "security"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Cambriolages en série dans les beaux quartiers"
+  },
+  {
+    "event_id": "meeting_de_crise_018",
+    "family": "MEETING_DE_CRISE",
+    "title": "Les chefs d’entreprise dénoncent une hausse des prélèvements",
+    "description": "Dans cette satire, un collectif fictif de dirigeants exige des réponses.",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "territory",
+      "wealth",
+      "tax",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Les chefs d’entreprise dénoncent une hausse des prélèvements"
+  },
+  {
+    "event_id": "choc_opinion_001",
+    "family": "CHOC_OPINION",
+    "title": "Une figure du mouvement propose des cantines entièrement végétariennes",
+    "description": "Séquence fictive : une figure du mouvement propose des cantines entièrement végétariennes.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "food",
+      "ecology"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Une figure du mouvement propose des cantines entièrement végétariennes"
+  },
+  {
+    "event_id": "choc_opinion_002",
+    "family": "CHOC_OPINION",
+    "title": "Mélenchon défend une ville sans voitures dans les grands centres urbains",
+    "description": "Séquence fictive : mélenchon défend une ville sans voitures dans les grands centres urbains.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "urban",
+      "transport"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Mélenchon défend une ville sans voitures dans les grands centres urbains"
+  },
+  {
+    "event_id": "choc_opinion_003",
+    "family": "CHOC_OPINION",
+    "title": "Proposition de limiter fortement les vols intérieurs",
+    "description": "Séquence fictive : proposition de limiter fortement les vols intérieurs.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "ecology",
+      "transport"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Proposition de limiter fortement les vols intérieurs"
+  },
+  {
+    "event_id": "choc_opinion_004",
+    "family": "CHOC_OPINION",
+    "title": "Polémique nationale autour des menus des cantines",
+    "description": "Séquence fictive : polémique nationale autour des menus des cantines.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "food",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Polémique nationale autour des menus des cantines"
+  },
+  {
+    "event_id": "choc_opinion_005",
+    "family": "CHOC_OPINION",
+    "title": "Nouvelle confrontation avec les syndicats de police",
+    "description": "Séquence fictive : nouvelle confrontation avec les syndicats de police.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "security",
+      "media"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Nouvelle confrontation avec les syndicats de police"
+  },
+  {
+    "event_id": "choc_opinion_006",
+    "family": "CHOC_OPINION",
+    "title": "Proposition d’encadrement massif des loyers",
+    "description": "Séquence fictive : proposition d’encadrement massif des loyers.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "housing",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Proposition d’encadrement massif des loyers"
+  },
+  {
+    "event_id": "choc_opinion_007",
+    "family": "CHOC_OPINION",
+    "title": "Virage souverainiste : produire français plutôt qu’importer",
+    "description": "Séquence fictive : virage souverainiste : produire français plutôt qu’importer.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Virage souverainiste : produire français plutôt qu’importer"
+  },
+  {
+    "event_id": "choc_opinion_008",
+    "family": "CHOC_OPINION",
+    "title": "Offensive pour nationaliser une industrie stratégique fictive",
+    "description": "Séquence fictive : offensive pour nationaliser une industrie stratégique fictive.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive pour nationaliser une industrie stratégique fictive"
+  },
+  {
+    "event_id": "choc_opinion_009",
+    "family": "CHOC_OPINION",
+    "title": "Proposition de forte hausse des salaires industriels",
+    "description": "Séquence fictive : proposition de forte hausse des salaires industriels.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Proposition de forte hausse des salaires industriels"
+  },
+  {
+    "event_id": "choc_opinion_010",
+    "family": "CHOC_OPINION",
+    "title": "Offensive contre les marges de la grande distribution",
+    "description": "Séquence fictive : offensive contre les marges de la grande distribution.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "food"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive contre les marges de la grande distribution"
+  },
+  {
+    "event_id": "choc_opinion_011",
+    "family": "CHOC_OPINION",
+    "title": "Proposition de prix minimum garantis pour les producteurs",
+    "description": "Séquence fictive : proposition de prix minimum garantis pour les producteurs.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Proposition de prix minimum garantis pour les producteurs"
+  },
+  {
+    "event_id": "choc_opinion_012",
+    "family": "CHOC_OPINION",
+    "title": "La retraite à 60 ans revient au centre de la campagne",
+    "description": "Séquence fictive : la retraite à 60 ans revient au centre de la campagne.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "La retraite à 60 ans revient au centre de la campagne"
+  },
+  {
+    "event_id": "choc_opinion_013",
+    "family": "CHOC_OPINION",
+    "title": "Grande campagne pour rouvrir des hôpitaux de proximité",
+    "description": "Séquence fictive : grande campagne pour rouvrir des hôpitaux de proximité.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "health"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grande campagne pour rouvrir des hôpitaux de proximité"
+  },
+  {
+    "event_id": "choc_opinion_014",
+    "family": "CHOC_OPINION",
+    "title": "Promesse d’une très forte taxation des milliardaires",
+    "description": "Séquence fictive : promesse d’une très forte taxation des milliardaires.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "tax"
+    ],
+    "mechanical_parameters": {
+      "biome_deltas": {
+        "quartiers_riches": -2,
+        "paris_19e": 0.7,
+        "banlieue": 0.7,
+        "periurbain_usine": 0.5,
+        "campagne": 0.4,
+        "retraites": 0.3
+      }
+    },
+    "narrative_variant": "Promesse d’une très forte taxation des milliardaires"
+  },
+  {
+    "event_id": "choc_opinion_015",
+    "family": "CHOC_OPINION",
+    "title": "Offensive contre l’héritage des très grandes fortunes",
+    "description": "Séquence fictive : offensive contre l’héritage des très grandes fortunes.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "tax"
+    ],
+    "mechanical_parameters": {
+      "biome_deltas": {
+        "quartiers_riches": -1.8,
+        "paris_19e": 0.5,
+        "banlieue": 0.6,
+        "periurbain_usine": 0.4,
+        "campagne": 0.3,
+        "retraites": 0.2
+      }
+    },
+    "narrative_variant": "Offensive contre l’héritage des très grandes fortunes"
+  },
+  {
+    "event_id": "choc_opinion_016",
+    "family": "CHOC_OPINION",
+    "title": "Grande offensive sur la protection animale",
+    "description": "Séquence fictive : grande offensive sur la protection animale.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "ecology",
+      "animals"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grande offensive sur la protection animale"
+  },
+  {
+    "event_id": "choc_opinion_017",
+    "family": "CHOC_OPINION",
+    "title": "Proposition de relocalisation écologique de la production",
+    "description": "Séquence fictive : proposition de relocalisation écologique de la production.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "ecology",
+      "industry"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Proposition de relocalisation écologique de la production"
+  },
+  {
+    "event_id": "choc_opinion_018",
+    "family": "CHOC_OPINION",
+    "title": "Offensive très sociale sur les bas salaires",
+    "description": "Séquence fictive : offensive très sociale sur les bas salaires.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "economy",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive très sociale sur les bas salaires"
+  },
+  {
+    "event_id": "choc_opinion_019",
+    "family": "CHOC_OPINION",
+    "title": "Priorité donnée au logement des classes populaires",
+    "description": "Séquence fictive : priorité donnée au logement des classes populaires.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "housing",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Priorité donnée au logement des classes populaires"
+  },
+  {
+    "event_id": "choc_opinion_020",
+    "family": "CHOC_OPINION",
+    "title": "Promesse de casser la hausse du prix du carburant",
+    "description": "Séquence fictive : promesse de casser la hausse du prix du carburant.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "transport",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Promesse de casser la hausse du prix du carburant"
+  },
+  {
+    "event_id": "choc_opinion_021",
+    "family": "CHOC_OPINION",
+    "title": "Offensive contre les ZFE et les restrictions automobiles",
+    "description": "Séquence fictive : offensive contre les zfe et les restrictions automobiles.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "transport",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive contre les ZFE et les restrictions automobiles"
+  },
+  {
+    "event_id": "choc_opinion_022",
+    "family": "CHOC_OPINION",
+    "title": "Protectionnisme : taxes massives sur les produits importés",
+    "description": "Séquence fictive : protectionnisme : taxes massives sur les produits importés.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Protectionnisme : taxes massives sur les produits importés"
+  },
+  {
+    "event_id": "choc_opinion_023",
+    "family": "CHOC_OPINION",
+    "title": "Vive polémique autour de la défense des chasseurs",
+    "description": "Séquence fictive : vive polémique autour de la défense des chasseurs.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "hunting"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Vive polémique autour de la défense des chasseurs"
+  },
+  {
+    "event_id": "choc_opinion_024",
+    "family": "CHOC_OPINION",
+    "title": "Soutien spectaculaire aux agriculteurs en colère",
+    "description": "Séquence fictive : soutien spectaculaire aux agriculteurs en colère.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "food"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Soutien spectaculaire aux agriculteurs en colère"
+  },
+  {
+    "event_id": "choc_opinion_025",
+    "family": "CHOC_OPINION",
+    "title": "Offensive contre les éoliennes dans les campagnes",
+    "description": "Séquence fictive : offensive contre les éoliennes dans les campagnes.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "ecology"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive contre les éoliennes dans les campagnes"
+  },
+  {
+    "event_id": "choc_opinion_026",
+    "family": "CHOC_OPINION",
+    "title": "Grande campagne sur l’ordre et la sécurité",
+    "description": "Séquence fictive : grande campagne sur l’ordre et la sécurité.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "security"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grande campagne sur l’ordre et la sécurité"
+  },
+  {
+    "event_id": "choc_opinion_027",
+    "family": "CHOC_OPINION",
+    "title": "Le parti de gouvernement devient le cœur du discours",
+    "description": "Séquence fictive : le parti de gouvernement devient le cœur du discours.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "respectability"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Le parti de gouvernement devient le cœur du discours"
+  },
+  {
+    "event_id": "choc_opinion_028",
+    "family": "CHOC_OPINION",
+    "title": "Défense des petites retraites et des propriétaires modestes",
+    "description": "Séquence fictive : défense des petites retraites et des propriétaires modestes.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Défense des petites retraites et des propriétaires modestes"
+  },
+  {
+    "event_id": "choc_opinion_029",
+    "family": "CHOC_OPINION",
+    "title": "Des grands patrons fictifs jugent le programme crédible",
+    "description": "Séquence fictive : des grands patrons fictifs jugent le programme crédible.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Des grands patrons fictifs jugent le programme crédible"
+  },
+  {
+    "event_id": "choc_opinion_030",
+    "family": "CHOC_OPINION",
+    "title": "Virage économique libéral qui rassure les marchés",
+    "description": "Séquence fictive : virage économique libéral qui rassure les marchés.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "biome_deltas": {
+        "quartiers_riches": 2,
+        "paris_19e": 0.3,
+        "banlieue": -0.8,
+        "periurbain_usine": -0.7,
+        "campagne": -0.5,
+        "retraites": -0.2
+      }
+    },
+    "narrative_variant": "Virage économique libéral qui rassure les marchés"
+  },
+  {
+    "event_id": "choc_opinion_031",
+    "family": "CHOC_OPINION",
+    "title": "Philippe accentue son image progressiste sur les questions de société",
+    "description": "Séquence fictive : philippe accentue son image progressiste sur les questions de société.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "urban",
+      "society"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Philippe accentue son image progressiste sur les questions de société"
+  },
+  {
+    "event_id": "choc_opinion_032",
+    "family": "CHOC_OPINION",
+    "title": "Grand plan de transformation écologique des métropoles",
+    "description": "Séquence fictive : grand plan de transformation écologique des métropoles.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "urban",
+      "ecology"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grand plan de transformation écologique des métropoles"
+  },
+  {
+    "event_id": "choc_opinion_033",
+    "family": "CHOC_OPINION",
+    "title": "Discours très pro-européen applaudi dans les métropoles",
+    "description": "Séquence fictive : discours très pro-européen applaudi dans les métropoles.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "urban",
+      "europe"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Discours très pro-européen applaudi dans les métropoles"
+  },
+  {
+    "event_id": "choc_opinion_034",
+    "family": "CHOC_OPINION",
+    "title": "Grand plan pour l’école et l’égalité des chances",
+    "description": "Séquence fictive : grand plan pour l’école et l’égalité des chances.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "education",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grand plan pour l’école et l’égalité des chances"
+  },
+  {
+    "event_id": "choc_opinion_035",
+    "family": "CHOC_OPINION",
+    "title": "Investissements massifs dans la rénovation urbaine",
+    "description": "Séquence fictive : investissements massifs dans la rénovation urbaine.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "housing",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Investissements massifs dans la rénovation urbaine"
+  },
+  {
+    "event_id": "choc_opinion_036",
+    "family": "CHOC_OPINION",
+    "title": "Grand plan de réindustrialisation",
+    "description": "Séquence fictive : grand plan de réindustrialisation.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grand plan de réindustrialisation"
+  },
+  {
+    "event_id": "choc_opinion_037",
+    "family": "CHOC_OPINION",
+    "title": "Offensive sur le nucléaire et l’indépendance énergétique",
+    "description": "Séquence fictive : offensive sur le nucléaire et l’indépendance énergétique.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "industry",
+      "energy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Offensive sur le nucléaire et l’indépendance énergétique"
+  },
+  {
+    "event_id": "choc_opinion_038",
+    "family": "CHOC_OPINION",
+    "title": "Assouplissement surprise des restrictions automobiles",
+    "description": "Séquence fictive : assouplissement surprise des restrictions automobiles.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "transport",
+      "urban"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Assouplissement surprise des restrictions automobiles"
+  },
+  {
+    "event_id": "choc_opinion_039",
+    "family": "CHOC_OPINION",
+    "title": "Choc de simplification promis aux agriculteurs",
+    "description": "Séquence fictive : choc de simplification promis aux agriculteurs.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Choc de simplification promis aux agriculteurs"
+  },
+  {
+    "event_id": "choc_opinion_040",
+    "family": "CHOC_OPINION",
+    "title": "Grand plan de revitalisation des petites villes",
+    "description": "Séquence fictive : grand plan de revitalisation des petites villes.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "rural",
+      "public_service"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Grand plan de revitalisation des petites villes"
+  },
+  {
+    "event_id": "choc_opinion_041",
+    "family": "CHOC_OPINION",
+    "title": "Philippe joue la carte stabilité, sérieux et expérience",
+    "description": "Séquence fictive : philippe joue la carte stabilité, sérieux et expérience.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "respectability"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Philippe joue la carte stabilité, sérieux et expérience"
+  },
+  {
+    "event_id": "choc_opinion_042",
+    "family": "CHOC_OPINION",
+    "title": "Promesse de protéger le niveau de vie des retraités",
+    "description": "Séquence fictive : promesse de protéger le niveau de vie des retraités.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Promesse de protéger le niveau de vie des retraités"
+  },
+  {
+    "event_id": "choc_opinion_043",
+    "family": "CHOC_OPINION",
+    "title": "Des milliardaires fictifs appellent à voter Philippe",
+    "description": "Séquence fictive : des milliardaires fictifs appellent à voter philippe.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Des milliardaires fictifs appellent à voter Philippe"
+  },
+  {
+    "event_id": "choc_opinion_044",
+    "family": "CHOC_OPINION",
+    "title": "Les grands patrons saluent son programme économique",
+    "description": "Séquence fictive : les grands patrons saluent son programme économique.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "favored_delta": 2,
+      "other_biomes_delta": -0.5
+    },
+    "narrative_variant": "Les grands patrons saluent son programme économique"
+  },
+  {
+    "event_id": "choc_opinion_045",
+    "family": "CHOC_OPINION",
+    "title": "Les marchés financiers applaudissent ses propositions",
+    "description": "Séquence fictive : les marchés financiers applaudissent ses propositions.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "opinion",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "biome_deltas": {
+        "quartiers_riches": 2.3,
+        "paris_19e": 0.3,
+        "banlieue": -0.7,
+        "periurbain_usine": -0.6,
+        "campagne": -0.5,
+        "retraites": -0.3
+      }
+    },
+    "narrative_variant": "Les marchés financiers applaudissent ses propositions"
+  },
+  {
+    "event_id": "candidat_fragilise_001",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Conflit public fictif avec une figure de son mouvement",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Conflit public fictif avec une figure de son mouvement"
+  },
+  {
+    "event_id": "candidat_fragilise_002",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Déclaration fictive qui relance la querelle sur la laïcité",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "society"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Déclaration fictive qui relance la querelle sur la laïcité"
+  },
+  {
+    "event_id": "candidat_fragilise_003",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Accusation satirique de ne plus parler aux classes populaires",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Accusation satirique de ne plus parler aux classes populaires"
+  },
+  {
+    "event_id": "candidat_fragilise_004",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Altercation médiatique fictive avec une organisation agricole",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "rural",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Altercation médiatique fictive avec une organisation agricole"
+  },
+  {
+    "event_id": "candidat_fragilise_005",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Phrase caricaturale jugée méprisante envers les plus âgés",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "retirement"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Phrase caricaturale jugée méprisante envers les plus âgés"
+  },
+  {
+    "event_id": "candidat_fragilise_006",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Nouvelle attaque contre les milliardaires qui tourne à la polémique",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "wealth"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Nouvelle attaque contre les milliardaires qui tourne à la polémique"
+  },
+  {
+    "event_id": "candidat_fragilise_007",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Le porte-parole fictif contredit publiquement la ligne du mouvement",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le porte-parole fictif contredit publiquement la ligne du mouvement"
+  },
+  {
+    "event_id": "candidat_fragilise_008",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une note de campagne imaginaire fuite dans la presse",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "media",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une note de campagne imaginaire fuite dans la presse"
+  },
+  {
+    "event_id": "candidat_fragilise_009",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "La stratégie industrielle divise les alliés fictifs",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "industry",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "La stratégie industrielle divise les alliés fictifs"
+  },
+  {
+    "event_id": "candidat_fragilise_010",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Le trésorier fictif improvise une conférence désastreuse",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "finance",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le trésorier fictif improvise une conférence désastreuse"
+  },
+  {
+    "event_id": "candidat_fragilise_011",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une ancienne déclaration fictive ressort sur les réseaux sociaux",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une ancienne déclaration fictive ressort sur les réseaux sociaux"
+  },
+  {
+    "event_id": "candidat_fragilise_012",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Polémique satirique sur immigration et nationalité",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "society"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Polémique satirique sur immigration et nationalité"
+  },
+  {
+    "event_id": "candidat_fragilise_013",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Contradiction publique entre ligne sociale et programme économique",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Contradiction publique entre ligne sociale et programme économique"
+  },
+  {
+    "event_id": "candidat_fragilise_014",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Conflit fictif avec une fédération de chasseurs",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "rural",
+      "hunting"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Conflit fictif avec une fédération de chasseurs"
+  },
+  {
+    "event_id": "candidat_fragilise_015",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une proposition imaginaire inquiète les épargnants",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "retirement",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une proposition imaginaire inquiète les épargnants"
+  },
+  {
+    "event_id": "candidat_fragilise_016",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Des dirigeants économiques fictifs attaquent son programme",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Des dirigeants économiques fictifs attaquent son programme"
+  },
+  {
+    "event_id": "candidat_fragilise_017",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Deux cadres fictifs revendiquent la même ligne politique",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Deux cadres fictifs revendiquent la même ligne politique"
+  },
+  {
+    "event_id": "candidat_fragilise_018",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Un tract parodique déclenche une querelle nationale",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Un tract parodique déclenche une querelle nationale"
+  },
+  {
+    "event_id": "candidat_fragilise_019",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Un chiffrage imaginaire du programme social est contesté",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Un chiffrage imaginaire du programme social est contesté"
+  },
+  {
+    "event_id": "candidat_fragilise_020",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Un soutien fictif embarrasse publiquement la campagne",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "media",
+      "internal_party"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Un soutien fictif embarrasse publiquement la campagne"
+  },
+  {
+    "event_id": "candidat_fragilise_021",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une ancienne position fictive jugée conservatrice ressort",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une ancienne position fictive jugée conservatrice ressort"
+  },
+  {
+    "event_id": "candidat_fragilise_022",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Polémique satirique sur le bilan des services publics",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "public_service"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Polémique satirique sur le bilan des services publics"
+  },
+  {
+    "event_id": "candidat_fragilise_023",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une ancienne mesure fictive sur la voiture revient dans le débat",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "transport"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une ancienne mesure fictive sur la voiture revient dans le débat"
+  },
+  {
+    "event_id": "candidat_fragilise_024",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Colère contre une décision technocratique attribuée à son camp",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "rural"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Colère contre une décision technocratique attribuée à son camp"
+  },
+  {
+    "event_id": "candidat_fragilise_025",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Le fantôme parodique d’une réforme des retraites revient",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "retirement"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le fantôme parodique d’une réforme des retraites revient"
+  },
+  {
+    "event_id": "candidat_fragilise_026",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Sa proximité fictive avec de grandes entreprises est caricaturée",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "wealth",
+      "economy"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Sa proximité fictive avec de grandes entreprises est caricaturée"
+  },
+  {
+    "event_id": "candidat_fragilise_027",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une hésitation imaginaire sur l’écologie divise ses soutiens",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "ecology"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une hésitation imaginaire sur l’écologie divise ses soutiens"
+  },
+  {
+    "event_id": "candidat_fragilise_028",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Un conseiller fictif critique la stratégie dans la presse",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "internal_party",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Un conseiller fictif critique la stratégie dans la presse"
+  },
+  {
+    "event_id": "candidat_fragilise_029",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Une promesse industrielle imaginaire est jugée trop vague",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "industry"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Une promesse industrielle imaginaire est jugée trop vague"
+  },
+  {
+    "event_id": "candidat_fragilise_030",
+    "family": "CANDIDAT_FRAGILISE",
+    "title": "Des donateurs fictifs réclament soudainement des explications",
+    "description": "Polémique entièrement fictive : le candidat devient vulnérable à une lourde sanction électorale en cas de KO.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": 40,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "scandal",
+      "finance",
+      "media"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Des donateurs fictifs réclament soudainement des explications"
+  },
+  {
+    "event_id": "piege_mediatique_001",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Êtes-vous suffisamment écologiste ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Êtes-vous suffisamment écologiste ?"
+  },
+  {
+    "event_id": "piege_mediatique_002",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre ville sans voitures est-elle praticable ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre ville sans voitures est-elle praticable ?"
+  },
+  {
+    "event_id": "piege_mediatique_003",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Vos alliés urbains parlent-ils encore d’une seule voix ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Vos alliés urbains parlent-ils encore d’une seule voix ?"
+  },
+  {
+    "event_id": "piege_mediatique_004",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Êtes-vous devenue écologiste maintenant ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Êtes-vous devenue écologiste maintenant ?"
+  },
+  {
+    "event_id": "piege_mediatique_005",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre relocalisation est-elle vraiment verte ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre relocalisation est-elle vraiment verte ?"
+  },
+  {
+    "event_id": "piege_mediatique_006",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre discours animalier convainc-il les métropoles ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre discours animalier convainc-il les métropoles ?"
+  },
+  {
+    "event_id": "piege_mediatique_007",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre écologie est-elle réservée aux cadres supérieurs ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre écologie est-elle réservée aux cadres supérieurs ?"
+  },
+  {
+    "event_id": "piege_mediatique_008",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre progressisme résiste-t-il aux arbitrages économiques ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre progressisme résiste-t-il aux arbitrages économiques ?"
+  },
+  {
+    "event_id": "piege_mediatique_009",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Les métropoles sont-elles votre seul horizon ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Les métropoles sont-elles votre seul horizon ?"
+  },
+  {
+    "event_id": "piege_mediatique_010",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Pourquoi vous accuse-t-on d’ambiguïté sur la laïcité ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Pourquoi vous accuse-t-on d’ambiguïté sur la laïcité ?"
+  },
+  {
+    "event_id": "piege_mediatique_011",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre discours sur la police rassemble-t-il vraiment ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre discours sur la police rassemble-t-il vraiment ?"
+  },
+  {
+    "event_id": "piege_mediatique_012",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre plan pour les quartiers est-il finançable ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre plan pour les quartiers est-il finançable ?"
+  },
+  {
+    "event_id": "piege_mediatique_013",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre politique peut-elle gouverner une France multiculturelle ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre politique peut-elle gouverner une France multiculturelle ?"
+  },
+  {
+    "event_id": "piege_mediatique_014",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre ligne sociale convainc-elle les quartiers populaires ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre ligne sociale convainc-elle les quartiers populaires ?"
+  },
+  {
+    "event_id": "piege_mediatique_015",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Que répondez-vous aux associations locales ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Que répondez-vous aux associations locales ?"
+  },
+  {
+    "event_id": "piege_mediatique_016",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Qu’avez-vous fait pour les quartiers populaires ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Qu’avez-vous fait pour les quartiers populaires ?"
+  },
+  {
+    "event_id": "piege_mediatique_017",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre plan pour l’école arrive-t-il trop tard ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre plan pour l’école arrive-t-il trop tard ?"
+  },
+  {
+    "event_id": "piege_mediatique_018",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "La rénovation urbaine suffit-elle ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "banlieue"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "La rénovation urbaine suffit-elle ?"
+  },
+  {
+    "event_id": "piege_mediatique_019",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Avez-vous abandonné les ouvriers ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Avez-vous abandonné les ouvriers ?"
+  },
+  {
+    "event_id": "piege_mediatique_020",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Vos nationalisations fictives sauveraient-elles vraiment les emplois ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Vos nationalisations fictives sauveraient-elles vraiment les emplois ?"
+  },
+  {
+    "event_id": "piege_mediatique_021",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre virage productif est-il crédible ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre virage productif est-il crédible ?"
+  },
+  {
+    "event_id": "piege_mediatique_022",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre programme social est-il vraiment finançable ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre programme social est-il vraiment finançable ?"
+  },
+  {
+    "event_id": "piege_mediatique_023",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Le protectionnisme fera-t-il baisser les prix ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le protectionnisme fera-t-il baisser les prix ?"
+  },
+  {
+    "event_id": "piege_mediatique_024",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Pouvez-vous tenir vos promesses sur le carburant ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Pouvez-vous tenir vos promesses sur le carburant ?"
+  },
+  {
+    "event_id": "piege_mediatique_025",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Comprenez-vous les gens qui prennent leur voiture chaque jour ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Comprenez-vous les gens qui prennent leur voiture chaque jour ?"
+  },
+  {
+    "event_id": "piege_mediatique_026",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre réindustrialisation arrivera-t-elle à temps ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre réindustrialisation arrivera-t-elle à temps ?"
+  },
+  {
+    "event_id": "piege_mediatique_027",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Le nucléaire peut-il résoudre tous vos problèmes ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le nucléaire peut-il résoudre tous vos problèmes ?"
+  },
+  {
+    "event_id": "piege_mediatique_028",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Que faites-vous concrètement pour les agriculteurs ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Que faites-vous concrètement pour les agriculteurs ?"
+  },
+  {
+    "event_id": "piege_mediatique_029",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Vos prix garantis résisteraient-ils au marché ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Vos prix garantis résisteraient-ils au marché ?"
+  },
+  {
+    "event_id": "piege_mediatique_030",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre mouvement comprend-il encore la ruralité ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre mouvement comprend-il encore la ruralité ?"
+  },
+  {
+    "event_id": "piege_mediatique_031",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Défendre les chasseurs suffit-il à avoir une politique rurale ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Défendre les chasseurs suffit-il à avoir une politique rurale ?"
+  },
+  {
+    "event_id": "piege_mediatique_032",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre soutien agricole va-t-il au-delà des slogans ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre soutien agricole va-t-il au-delà des slogans ?"
+  },
+  {
+    "event_id": "piege_mediatique_033",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre combat contre les éoliennes est-il cohérent ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre combat contre les éoliennes est-il cohérent ?"
+  },
+  {
+    "event_id": "piege_mediatique_034",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Êtes-vous autre chose qu’un candidat des métropoles ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Êtes-vous autre chose qu’un candidat des métropoles ?"
+  },
+  {
+    "event_id": "piege_mediatique_035",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre simplification agricole sera-t-elle réelle ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre simplification agricole sera-t-elle réelle ?"
+  },
+  {
+    "event_id": "piege_mediatique_036",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Que reste-t-il des services publics ruraux ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "campagne"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Que reste-t-il des services publics ruraux ?"
+  },
+  {
+    "event_id": "piege_mediatique_037",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Qui va payer votre programme ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Qui va payer votre programme ?"
+  },
+  {
+    "event_id": "piege_mediatique_038",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "La retraite à 60 ans est-elle encore réaliste ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "La retraite à 60 ans est-elle encore réaliste ?"
+  },
+  {
+    "event_id": "piege_mediatique_039",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre plan de santé de proximité est-il chiffré ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre plan de santé de proximité est-il chiffré ?"
+  },
+  {
+    "event_id": "piege_mediatique_040",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Vos propositions protègent-elles vraiment l’épargne ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Vos propositions protègent-elles vraiment l’épargne ?"
+  },
+  {
+    "event_id": "piege_mediatique_041",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre ligne sociale garantit-elle les pensions ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre ligne sociale garantit-elle les pensions ?"
+  },
+  {
+    "event_id": "piege_mediatique_042",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre respectabilité résiste-t-elle à vos promesses ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre respectabilité résiste-t-elle à vos promesses ?"
+  },
+  {
+    "event_id": "piege_mediatique_043",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Allez-vous encore repousser l’âge de la retraite ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Allez-vous encore repousser l’âge de la retraite ?"
+  },
+  {
+    "event_id": "piege_mediatique_044",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre image de stabilité rassure-t-elle vraiment ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre image de stabilité rassure-t-elle vraiment ?"
+  },
+  {
+    "event_id": "piege_mediatique_045",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Comment protégerez-vous le niveau de vie des retraités ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "retraites"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Comment protégerez-vous le niveau de vie des retraités ?"
+  },
+  {
+    "event_id": "piege_mediatique_046",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Pourquoi détestez-vous autant les riches ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Pourquoi détestez-vous autant les riches ?"
+  },
+  {
+    "event_id": "piege_mediatique_047",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre fiscalité ferait-elle fuir les capitaux ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre fiscalité ferait-elle fuir les capitaux ?"
+  },
+  {
+    "event_id": "piege_mediatique_048",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Peut-on financer votre programme sans les grandes fortunes ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "melenchon",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Peut-on financer votre programme sans les grandes fortunes ?"
+  },
+  {
+    "event_id": "piege_mediatique_049",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Les marchés peuvent-ils vous faire confiance ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Les marchés peuvent-ils vous faire confiance ?"
+  },
+  {
+    "event_id": "piege_mediatique_050",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre virage libéral est-il durable ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre virage libéral est-il durable ?"
+  },
+  {
+    "event_id": "piege_mediatique_051",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Les grands patrons croient-ils réellement à votre programme ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "le_pen",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Les grands patrons croient-ils réellement à votre programme ?"
+  },
+  {
+    "event_id": "piege_mediatique_052",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Êtes-vous simplement le candidat du CAC 40 ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Êtes-vous simplement le candidat du CAC 40 ?"
+  },
+  {
+    "event_id": "piege_mediatique_053",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Que promettez-vous en échange du soutien des grands patrons ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Que promettez-vous en échange du soutien des grands patrons ?"
+  },
+  {
+    "event_id": "piege_mediatique_054",
+    "family": "PIEGE_MEDIATIQUE",
+    "title": "Votre programme protège-t-il trop les hauts patrimoines ?",
+    "description": "Question d’interview fictive et volontairement caricaturale : battez les journalistes pour revenir dans le monde.",
+    "candidate_target": "philippe",
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1.4,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 35,
+    "tags": [
+      "media",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Votre programme protège-t-il trop les hauts patrimoines ?"
+  },
+  {
+    "event_id": "debat_thematique_001",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Faut-il interdire les voitures dans les centres-villes ?",
+    "description": "Débat fictif local consacré au thème « Faut-il interdire les voitures dans les centres-villes ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Faut-il interdire les voitures dans les centres-villes ?"
+  },
+  {
+    "event_id": "debat_thematique_002",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Faut-il rendre les cantines végétariennes ?",
+    "description": "Débat fictif local consacré au thème « Faut-il rendre les cantines végétariennes ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Faut-il rendre les cantines végétariennes ?"
+  },
+  {
+    "event_id": "debat_thematique_003",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Faut-il interdire les jets privés ?",
+    "description": "Débat fictif local consacré au thème « Faut-il interdire les jets privés ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Faut-il interdire les jets privés ?"
+  },
+  {
+    "event_id": "debat_thematique_004",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Jusqu’où faut-il aller pour le climat ?",
+    "description": "Débat fictif local consacré au thème « Jusqu’où faut-il aller pour le climat ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Jusqu’où faut-il aller pour le climat ?"
+  },
+  {
+    "event_id": "debat_thematique_005",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Peut-on encore construire dans les métropoles ?",
+    "description": "Débat fictif local consacré au thème « Peut-on encore construire dans les métropoles ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Peut-on encore construire dans les métropoles ?"
+  },
+  {
+    "event_id": "debat_thematique_006",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : La densité urbaine est-elle écologique ?",
+    "description": "Débat fictif local consacré au thème « La densité urbaine est-elle écologique ? ».",
+    "candidate_target": null,
+    "biome_target": "paris_19e",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "paris_19e"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : La densité urbaine est-elle écologique ?"
+  },
+  {
+    "event_id": "debat_thematique_007",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Police et sécurité",
+    "description": "Débat fictif local consacré au thème « Police et sécurité ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Police et sécurité"
+  },
+  {
+    "event_id": "debat_thematique_008",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Laïcité",
+    "description": "Débat fictif local consacré au thème « Laïcité ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Laïcité"
+  },
+  {
+    "event_id": "debat_thematique_009",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Immigration",
+    "description": "Débat fictif local consacré au thème « Immigration ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Immigration"
+  },
+  {
+    "event_id": "debat_thematique_010",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Discriminations",
+    "description": "Débat fictif local consacré au thème « Discriminations ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Discriminations"
+  },
+  {
+    "event_id": "debat_thematique_011",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Logement social",
+    "description": "Débat fictif local consacré au thème « Logement social ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Logement social"
+  },
+  {
+    "event_id": "debat_thematique_012",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : École",
+    "description": "Débat fictif local consacré au thème « École ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : École"
+  },
+  {
+    "event_id": "debat_thematique_013",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Transports",
+    "description": "Débat fictif local consacré au thème « Transports ».",
+    "candidate_target": null,
+    "biome_target": "banlieue",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "banlieue"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Transports"
+  },
+  {
+    "event_id": "debat_thematique_014",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Prix de l’essence",
+    "description": "Débat fictif local consacré au thème « Prix de l’essence ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Prix de l’essence"
+  },
+  {
+    "event_id": "debat_thematique_015",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Zones à faibles émissions",
+    "description": "Débat fictif local consacré au thème « Zones à faibles émissions ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Zones à faibles émissions"
+  },
+  {
+    "event_id": "debat_thematique_016",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Réindustrialisation",
+    "description": "Débat fictif local consacré au thème « Réindustrialisation ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Réindustrialisation"
+  },
+  {
+    "event_id": "debat_thematique_017",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Salaires",
+    "description": "Débat fictif local consacré au thème « Salaires ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Salaires"
+  },
+  {
+    "event_id": "debat_thematique_018",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Protectionnisme",
+    "description": "Débat fictif local consacré au thème « Protectionnisme ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Protectionnisme"
+  },
+  {
+    "event_id": "debat_thematique_019",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Pouvoir d’achat",
+    "description": "Débat fictif local consacré au thème « Pouvoir d’achat ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Pouvoir d’achat"
+  },
+  {
+    "event_id": "debat_thematique_020",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Fermetures d’usines",
+    "description": "Débat fictif local consacré au thème « Fermetures d’usines ».",
+    "candidate_target": null,
+    "biome_target": "periurbain_usine",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "periurbain_usine"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Fermetures d’usines"
+  },
+  {
+    "event_id": "debat_thematique_021",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Agriculture",
+    "description": "Débat fictif local consacré au thème « Agriculture ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Agriculture"
+  },
+  {
+    "event_id": "debat_thematique_022",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Chasse",
+    "description": "Débat fictif local consacré au thème « Chasse ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Chasse"
+  },
+  {
+    "event_id": "debat_thematique_023",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Éoliennes",
+    "description": "Débat fictif local consacré au thème « Éoliennes ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Éoliennes"
+  },
+  {
+    "event_id": "debat_thematique_024",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Pesticides",
+    "description": "Débat fictif local consacré au thème « Pesticides ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Pesticides"
+  },
+  {
+    "event_id": "debat_thematique_025",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Déserts médicaux",
+    "description": "Débat fictif local consacré au thème « Déserts médicaux ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Déserts médicaux"
+  },
+  {
+    "event_id": "debat_thematique_026",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Services publics",
+    "description": "Débat fictif local consacré au thème « Services publics ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Services publics"
+  },
+  {
+    "event_id": "debat_thematique_027",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Prix agricoles",
+    "description": "Débat fictif local consacré au thème « Prix agricoles ».",
+    "candidate_target": null,
+    "biome_target": "campagne",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "campagne"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Prix agricoles"
+  },
+  {
+    "event_id": "debat_thematique_028",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Retraites",
+    "description": "Débat fictif local consacré au thème « Retraites ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Retraites"
+  },
+  {
+    "event_id": "debat_thematique_029",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Dépendance",
+    "description": "Débat fictif local consacré au thème « Dépendance ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Dépendance"
+  },
+  {
+    "event_id": "debat_thematique_030",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Héritage",
+    "description": "Débat fictif local consacré au thème « Héritage ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Héritage"
+  },
+  {
+    "event_id": "debat_thematique_031",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Santé",
+    "description": "Débat fictif local consacré au thème « Santé ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Santé"
+  },
+  {
+    "event_id": "debat_thematique_032",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Sécurité",
+    "description": "Débat fictif local consacré au thème « Sécurité ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Sécurité"
+  },
+  {
+    "event_id": "debat_thematique_033",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Fiscalité des propriétaires",
+    "description": "Débat fictif local consacré au thème « Fiscalité des propriétaires ».",
+    "candidate_target": null,
+    "biome_target": "retraites",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "retraites"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Fiscalité des propriétaires"
+  },
+  {
+    "event_id": "debat_thematique_034",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Impôt sur la fortune",
+    "description": "Débat fictif local consacré au thème « Impôt sur la fortune ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Impôt sur la fortune"
+  },
+  {
+    "event_id": "debat_thematique_035",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Héritage",
+    "description": "Débat fictif local consacré au thème « Héritage ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Héritage"
+  },
+  {
+    "event_id": "debat_thematique_036",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Fiscalité des entreprises",
+    "description": "Débat fictif local consacré au thème « Fiscalité des entreprises ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Fiscalité des entreprises"
+  },
+  {
+    "event_id": "debat_thematique_037",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Exil fiscal",
+    "description": "Débat fictif local consacré au thème « Exil fiscal ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Exil fiscal"
+  },
+  {
+    "event_id": "debat_thematique_038",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Europe",
+    "description": "Débat fictif local consacré au thème « Europe ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Europe"
+  },
+  {
+    "event_id": "debat_thematique_039",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Dette publique",
+    "description": "Débat fictif local consacré au thème « Dette publique ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 2
+    },
+    "narrative_variant": "Débat : Dette publique"
+  },
+  {
+    "event_id": "debat_thematique_040",
+    "family": "DEBAT_THEMATIQUE",
+    "title": "Débat : Grandes fortunes",
+    "description": "Débat fictif local consacré au thème « Grandes fortunes ».",
+    "candidate_target": null,
+    "biome_target": "quartiers_riches",
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "debate",
+      "quartiers_riches"
+    ],
+    "mechanical_parameters": {
+      "participants": 3
+    },
+    "narrative_variant": "Débat : Grandes fortunes"
+  },
+  {
+    "event_id": "crise_financement_001",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Krach financier",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy",
+      "banking"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "payout_multiplier": 0.5
+    },
+    "narrative_variant": "Krach financier"
+  },
+  {
+    "event_id": "crise_financement_002",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Choc pétrolier",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy",
+      "energy"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "campaign_duration_multiplier": 1.5
+    },
+    "narrative_variant": "Choc pétrolier"
+  },
+  {
+    "event_id": "crise_financement_003",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Inflation surprise",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy",
+      "inflation"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "payout_multiplier": 0.5
+    },
+    "narrative_variant": "Inflation surprise"
+  },
+  {
+    "event_id": "crise_financement_004",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Panique bancaire",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy",
+      "banking"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "can_start_new_campaign": false
+    },
+    "narrative_variant": "Panique bancaire"
+  },
+  {
+    "event_id": "crise_financement_005",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Durcissement du crédit",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy",
+      "banking"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "campaign_duration_multiplier": 1.5
+    },
+    "narrative_variant": "Durcissement du crédit"
+  },
+  {
+    "event_id": "crise_financement_006",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Récession nationale",
+    "description": "Crise économique fictive : toutes les campagnes sont touchées.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "economy"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "ALL",
+      "payout_multiplier": 0.5
+    },
+    "narrative_variant": "Récession nationale"
+  },
+  {
+    "event_id": "crise_financement_007",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Les gros donateurs se font rares",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "payout_multiplier": 0.55
+    },
+    "narrative_variant": "Les gros donateurs se font rares"
+  },
+  {
+    "event_id": "crise_financement_008",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Un appel militant fictif rapporte moins que prévu",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "payout_max": 100
+    },
+    "narrative_variant": "Un appel militant fictif rapporte moins que prévu"
+  },
+  {
+    "event_id": "crise_financement_009",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Une polémique fictive refroidit les petits donateurs",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance",
+      "scandal"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "can_start_new_campaign": false
+    },
+    "narrative_variant": "Une polémique fictive refroidit les petits donateurs"
+  },
+  {
+    "event_id": "crise_financement_010",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Les banques deviennent soudainement très prudentes",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance",
+      "banking"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "can_start_new_campaign": false
+    },
+    "narrative_variant": "Les banques deviennent soudainement très prudentes"
+  },
+  {
+    "event_id": "crise_financement_011",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Des prêteurs fictifs se retirent",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "payout_multiplier": 0.5
+    },
+    "narrative_variant": "Des prêteurs fictifs se retirent"
+  },
+  {
+    "event_id": "crise_financement_012",
+    "family": "CRISE_FINANCEMENT",
+    "title": "La campagne doit revoir brutalement son budget",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "campaign_duration_multiplier": 1.5
+    },
+    "narrative_variant": "La campagne doit revoir brutalement son budget"
+  },
+  {
+    "event_id": "crise_financement_013",
+    "family": "CRISE_FINANCEMENT",
+    "title": "De grands donateurs fictifs suspendent leurs contributions",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance",
+      "wealth"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "can_start_new_campaign": false
+    },
+    "narrative_variant": "De grands donateurs fictifs suspendent leurs contributions"
+  },
+  {
+    "event_id": "crise_financement_014",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Le monde des affaires commence à douter de la victoire",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance",
+      "wealth"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "payout_multiplier": 0.5
+    },
+    "narrative_variant": "Le monde des affaires commence à douter de la victoire"
+  },
+  {
+    "event_id": "crise_financement_015",
+    "family": "CRISE_FINANCEMENT",
+    "title": "Les soutiens financiers réclament un programme plus clair",
+    "description": "Difficulté de financement fictive ciblant cette campagne.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "finance",
+      "wealth"
+    ],
+    "mechanical_parameters": {
+      "affected_candidates": "TARGET",
+      "campaign_duration_multiplier": 1.5
+    },
+    "narrative_variant": "Les soutiens financiers réclament un programme plus clair"
+  },
+  {
+    "event_id": "fermeture_batiment_001",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Incendie criminel fictif",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "fire",
+      "security"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Incendie criminel fictif"
+  },
+  {
+    "event_id": "fermeture_batiment_002",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Dégât des eaux",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Dégât des eaux"
+  },
+  {
+    "event_id": "fermeture_batiment_003",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Incendie électrique",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "fire",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Incendie électrique"
+  },
+  {
+    "event_id": "fermeture_batiment_004",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Bâtiment déclaré dangereux",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "safety"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Bâtiment déclaré dangereux"
+  },
+  {
+    "event_id": "fermeture_batiment_005",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Manifestants fictifs bloquent le local",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "protest"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Manifestants fictifs bloquent le local"
+  },
+  {
+    "event_id": "fermeture_batiment_006",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Cambriolage fictif et mise sous scellés",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "security"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Cambriolage fictif et mise sous scellés"
+  },
+  {
+    "event_id": "fermeture_batiment_007",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Dégradations importantes",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Dégradations importantes"
+  },
+  {
+    "event_id": "fermeture_batiment_008",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Infestation : fermeture sanitaire",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "safety"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Infestation : fermeture sanitaire"
+  },
+  {
+    "event_id": "fermeture_batiment_009",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Travaux d’urgence",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Travaux d’urgence"
+  },
+  {
+    "event_id": "fermeture_batiment_010",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Tempête : bâtiment inutilisable",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "weather",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Tempête : bâtiment inutilisable"
+  },
+  {
+    "event_id": "fermeture_batiment_011",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Coupure électrique majeure",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "damage"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Coupure électrique majeure"
+  },
+  {
+    "event_id": "fermeture_batiment_012",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Problème de conformité",
+    "description": "Incident fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": null,
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "administrative",
+      "safety"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Problème de conformité"
+  },
+  {
+    "event_id": "fermeture_batiment_013",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Fermeture préfectorale fictive après des incidents",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Fermeture préfectorale fictive après des incidents"
+  },
+  {
+    "event_id": "fermeture_batiment_014",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Contrôle administratif surprise",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Contrôle administratif surprise"
+  },
+  {
+    "event_id": "fermeture_batiment_015",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Affrontements fictifs devant la permanence",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Affrontements fictifs devant la permanence"
+  },
+  {
+    "event_id": "fermeture_batiment_016",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Manifestation interne qui dégénère",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Manifestation interne qui dégénère"
+  },
+  {
+    "event_id": "fermeture_batiment_017",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Occupation militante incontrôlée",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Occupation militante incontrôlée"
+  },
+  {
+    "event_id": "fermeture_batiment_018",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Copropriété en conflit avec la permanence",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "melenchon",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Copropriété en conflit avec la permanence"
+  },
+  {
+    "event_id": "fermeture_batiment_019",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Fermeture préfectorale fictive pour raisons de sécurité",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Fermeture préfectorale fictive pour raisons de sécurité"
+  },
+  {
+    "event_id": "fermeture_batiment_020",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Contre-manifestation devant la permanence",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Contre-manifestation devant la permanence"
+  },
+  {
+    "event_id": "fermeture_batiment_021",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Local vandalisé pendant la nuit",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Local vandalisé pendant la nuit"
+  },
+  {
+    "event_id": "fermeture_batiment_022",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Manifestants bloquent l’entrée",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Manifestants bloquent l’entrée"
+  },
+  {
+    "event_id": "fermeture_batiment_023",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Départ de feu fictif après des tensions",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Départ de feu fictif après des tensions"
+  },
+  {
+    "event_id": "fermeture_batiment_024",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Pétition fictive des riverains contre le local",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "le_pen",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Pétition fictive des riverains contre le local"
+  },
+  {
+    "event_id": "fermeture_batiment_025",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Contrôle administratif : problème de conformité",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Contrôle administratif : problème de conformité"
+  },
+  {
+    "event_id": "fermeture_batiment_026",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Le propriétaire fictif rompt soudainement le bail",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le propriétaire fictif rompt soudainement le bail"
+  },
+  {
+    "event_id": "fermeture_batiment_027",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Panne majeure dans les bureaux",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Panne majeure dans les bureaux"
+  },
+  {
+    "event_id": "fermeture_batiment_028",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Erreur administrative : fermeture temporaire",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Erreur administrative : fermeture temporaire"
+  },
+  {
+    "event_id": "fermeture_batiment_029",
+    "family": "FERMETURE_BATIMENT",
+    "title": "Le propriétaire refuse finalement l’affichage politique",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "Le propriétaire refuse finalement l’affichage politique"
+  },
+  {
+    "event_id": "fermeture_batiment_030",
+    "family": "FERMETURE_BATIMENT",
+    "title": "La copropriété interdit les activités politiques",
+    "description": "Incident entièrement fictif : le bâtiment indiqué sera neutralisé après le délai d’alerte.",
+    "candidate_target": "philippe",
+    "biome_target": null,
+    "duration": null,
+    "intensity": null,
+    "weight": 1.35,
+    "leader_weight": 1,
+    "second_weight": 1,
+    "third_weight": 1,
+    "minimum_day": 15,
+    "maximum_day": 365,
+    "cooldown_days": 30,
+    "tags": [
+      "infrastructure",
+      "candidate_specific"
+    ],
+    "mechanical_parameters": {},
+    "narrative_variant": "La copropriété interdit les activités politiques"
+  }
+]

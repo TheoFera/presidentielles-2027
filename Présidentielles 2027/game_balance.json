@@ -1,7 +1,7 @@
 {
   "prototype_version": "0.3",
   "time": {
-    "starting_days_before_first_round": 30,
+    "starting_days_before_first_round": 365,
     "real_seconds_per_game_day": 20,
     "second_round_sprint_seconds": 60,
     "second_round_influence_multiplier": 10
@@ -180,15 +180,31 @@
         55,
         90
       ],
-      "local_influence_by_level": [0.018, 0.024, 0.032],
+      "local_influence_by_level": [
+        0.018,
+        0.024,
+        0.032
+      ],
       "local_persuasion_time_multiplier_by_level": [
         0.95,
         0.88,
         0.8
       ],
-      "sympathisant_damage_multiplier_by_level": [1, 0.85, 0.7],
-      "militant_damage_multiplier_by_level": [1, 0.82, 0.65],
-      "biome_maintain_presence_reduction_by_level": [0, 0, 1],
+      "sympathisant_damage_multiplier_by_level": [
+        1,
+        0.85,
+        0.7
+      ],
+      "militant_damage_multiplier_by_level": [
+        1,
+        0.82,
+        0.65
+      ],
+      "biome_maintain_presence_reduction_by_level": [
+        0,
+        0,
+        1
+      ],
       "hq_influence_multiplier": 1.5,
       "hq_resistance_multiplier": 0.85,
       "purchase_hold_seconds": 2,
@@ -213,8 +229,12 @@
       "build_cost": null,
       "max_level": 1,
       "upgrade_costs": [],
-      "tract_cost_by_level": [12],
-      "equipment_seconds_by_level": [4],
+      "tract_cost_by_level": [
+        12
+      ],
+      "equipment_seconds_by_level": [
+        4
+      ],
       "preexisting_in_world": true,
       "required_local_sympathisants_to_use": 1,
       "can_be_targeted_by_philippe": false,
@@ -258,10 +278,18 @@
       "purchase_hold_seconds": 2,
       "max_queue_length": 8,
       "pickup_seconds": 1,
-      "max_active_SO_by_level": [2, 5, null],
+      "max_active_SO_by_level": [
+        2,
+        5,
+        null
+      ],
       "raid_unlock_level": 3,
       "hostile_pressure_per_SO": 1.25,
-      "reaction_speed_multiplier_by_level": [1, 1.12, 1.25]
+      "reaction_speed_multiplier_by_level": [
+        1,
+        1.12,
+        1.25
+      ]
     },
     "faction_slot_philippe_cabinet_administratif": {
       "ownership_model": "capturable",
@@ -285,12 +313,30 @@
         110,
         160
       ],
-      "close_enemy_building_cost_by_level": [120, 135, 160],
+      "close_enemy_building_cost_by_level": [
+        120,
+        135,
+        160
+      ],
       "meeting_ban_seconds": 35,
       "allowed_targets_by_level": [
-        ["financement", "meeting"],
-        ["financement", "meeting", "service_ordre", "tour_communication"],
-        ["financement", "meeting", "service_ordre", "tour_communication", "permanence"]
+        [
+          "financement",
+          "meeting"
+        ],
+        [
+          "financement",
+          "meeting",
+          "service_ordre",
+          "tour_communication"
+        ],
+        [
+          "financement",
+          "meeting",
+          "service_ordre",
+          "tour_communication",
+          "permanence"
+        ]
       ],
       "target_loses_all_upgrades": true,
       "target_requires_rebuild": true,
@@ -319,7 +365,11 @@
         80,
         125
       ],
-      "income_per_second_by_level": [0, 0, 0],
+      "income_per_second_by_level": [
+        0,
+        0,
+        0
+      ],
       "campaign_duration_min": 20,
       "campaign_duration_max": 30,
       "campaign_start_cost": 0,
@@ -327,7 +377,11 @@
       "influence_factor": 1.1,
       "random_min": 0.85,
       "random_max": 1.15,
-      "payout_level_multiplier": [1, 1.35, 1.75],
+      "payout_level_multiplier": [
+        1,
+        1.35,
+        1.75
+      ],
       "purchase_hold_seconds": 2,
       "campaign_start_seconds": 2,
       "upgrade_pause_seconds": 0.4
@@ -354,10 +408,26 @@
         110,
         160
       ],
-      "global_influence_per_second_by_level": [0.003, 0.002, 0.0025],
-      "controlled_zone_multiplier_by_level": [2.2, 2.5, 4],
-      "adjacent_zone_multiplier_by_level": [1.7, 2, 3],
-      "distant_zone_multiplier_by_level": [0, 1, 1],
+      "global_influence_per_second_by_level": [
+        0.003,
+        0.002,
+        0.0025
+      ],
+      "controlled_zone_multiplier_by_level": [
+        2.2,
+        2.5,
+        4
+      ],
+      "adjacent_zone_multiplier_by_level": [
+        1.7,
+        2,
+        3
+      ],
+      "distant_zone_multiplier_by_level": [
+        0,
+        1,
+        1
+      ],
       "purchase_hold_seconds": 2,
       "global_limit": 1,
       "upgrade_pause_seconds": 0.4
@@ -404,11 +474,21 @@
       "closure_delay_seconds": 0,
       "max_level": 1,
       "upgrade_costs": [],
-      "activation_cost_by_level": [30],
-      "influence_burst_by_level": [14],
-      "ally_influence_multiplier_by_level": [1.35],
-      "duration_seconds_by_level": [15],
-      "internal_cooldown_seconds_by_level": [50],
+      "activation_cost_by_level": [
+        30
+      ],
+      "influence_burst_by_level": [
+        14
+      ],
+      "ally_influence_multiplier_by_level": [
+        1.35
+      ],
+      "duration_seconds_by_level": [
+        15
+      ],
+      "internal_cooldown_seconds_by_level": [
+        50
+      ],
       "purchase_hold_seconds": 2,
       "interaction_radius": 0.45,
       "pay_per_use": true
@@ -520,7 +600,9 @@
       1,
       4,
       5,
-      10
+      10,
+      30,
+      100
     ],
     "influence_burst": 20
   },
@@ -542,5 +624,206 @@
     "ai_recruit_distance": 48,
     "ai_former_third_priority": 14,
     "ai_neutral_zone_priority": 0.3
+  },
+  "campaign_events": {
+    "event_enabled": true,
+    "initial_event_delay_days": 15,
+    "max_simultaneous_events": 3,
+    "leader_target_multiplier": 1.6,
+    "second_target_multiplier": 1,
+    "third_target_multiplier": 0.8,
+    "anti_repeat_window": 4,
+    "allow_variant_repeat": false,
+    "frequency_curve": [
+      [
+        300,
+        14,
+        20
+      ],
+      [
+        200,
+        11,
+        18
+      ],
+      [
+        100,
+        9,
+        15
+      ],
+      [
+        30,
+        7,
+        12
+      ],
+      [
+        0,
+        5,
+        9
+      ]
+    ],
+    "orientation_days": [
+      300,
+      210,
+      120,
+      45
+    ],
+    "orientation_hold_seconds": 3,
+    "orientation_bonus": 0.1,
+    "ai_reaction_seconds": 3,
+    "families": {
+      "MEETING_DE_CRISE": {
+        "base_weight": 2,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 65,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 0.5,
+        "second_weight": 1,
+        "third_weight": 2.5,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "meeting_hold_seconds": 8,
+        "meeting_cost": 80,
+        "local_influence_reward": 12,
+        "biome_influence_reward": 2,
+        "interruption_on_hit": true
+      },
+      "CHOC_OPINION": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 45,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        }
+      },
+      "CANDIDAT_FRAGILISE": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 40,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "ko_poll_loss": 5
+      },
+      "PIEGE_MEDIATIQUE": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 45,
+        "cooldown_days": 35,
+        "minimum_days_between_same_family": 35,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1.4,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "journalist_count": 1,
+        "journalist_durability": 100,
+        "journalist_damage": 1,
+        "AI_absence_duration_range": [
+          20,
+          35
+        ],
+        "player_damage_multiplier": 6
+      },
+      "DEBAT_THEMATIQUE": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 60,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "local_influence_reward": 10,
+        "biome_influence_reward": 2,
+        "participants": 3,
+        "player_damage_multiplier": 3
+      },
+      "CRISE_FINANCEMENT": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 45,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        }
+      },
+      "FERMETURE_BATIMENT": {
+        "base_weight": 1,
+        "minimum_day": 15,
+        "maximum_day": 365,
+        "duration": 45,
+        "cooldown_days": 20,
+        "minimum_days_between_same_family": 20,
+        "can_overlap": true,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "warning_seconds": 6,
+        "lose_levels": true,
+        "become_neutral": true,
+        "eligible_building_types": [
+          "permanence",
+          "financement",
+          "tour_communication",
+          "faction"
+        ]
+      }
+    }
   }
 }

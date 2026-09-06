@@ -70,7 +70,7 @@ export function createElectorate(world, config) {
     }
     const biomes = config.layout.biomes;
     const biomeIndex = biomes.findIndex(b => b.id === zone.biome_id);
-    return { subzone_id: zone.id, support, ...leadership(support, config),
+    return { subzone_id: zone.id, biome_id: zone.biome_id, support, ...leadership(support, config),
       electoral_weight: config.layout.electoral_weights.by_subzone[zone.id] ?? config.layout.electoral_weights.default,
       adjacent_subzone_ids: [world.subzones[(index + world.subzones.length - 1) % world.subzones.length].id, world.subzones[(index + 1) % world.subzones.length].id],
       adjacent_biome_ids: [biomes[(biomeIndex + biomes.length - 1) % biomes.length].id, biomes[(biomeIndex + 1) % biomes.length].id],
@@ -105,7 +105,7 @@ export function refreshInfluenceSources(state, config) {
       }
     }
     for (const candidate of state.candidates) {
-      if (!candidate.eliminated && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
+      if (!candidate.eliminated && !candidate.campaign_arena_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
         && !candidate.combat.engaged && zoneAt(state.world, candidate.x).id === zone.id) sources[candidate.faction_id].candidate += config.balance.influence.candidate_presence_per_second;
     }
     for (const faction of FACTIONS) {
@@ -118,7 +118,7 @@ export function refreshInfluenceSources(state, config) {
         : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier_by_level[level - 1] : tower.distant_zone_multiplier_by_level[level - 1];
       source.tower = source.tower_base * source.tower_multiplier * (state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.second_round.tower_influence_multiplier : 1);
       source.faction_multiplier = faction === 'le_pen' ? config.balance.influence.le_pen_gain_multiplier : 1;
-      election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config);
+      election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config) * (1 + (state.candidates.find(c => c.faction_id === faction)?.campaign_orientation_bonuses?.[election.biome_id] || 0));
     }
     election.influence_sources = sources;
   }

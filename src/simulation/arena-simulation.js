@@ -63,8 +63,9 @@ export function arenaAICommands(state, config, candidateId, enabled) {
   const period = Math.floor(state.tick / (config.balance.first_round_arena.ai_retarget_seconds * config.balance.simulation_architecture.fixed_tick_hz));
   const index = state.candidates.indexOf(c);
   const noise = i => { let n = (state.rng_state ^ Math.imul(period + 1, 374761393) ^ Math.imul(index + 1, 668265263) ^ Math.imul(i + 1, 1274126177)) >>> 0; n = Math.imul(n ^ (n >>> 13), 1274126177) >>> 0; return (n ^ (n >>> 16)) >>> 0; };
-  const options = state.candidates.filter(t => t.id !== c.id).map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + t.arena_hp * 0.06
+  const options = state.candidates.filter(t => t.id !== c.id && t.faction_id !== c.faction_id).map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + t.arena_hp * 0.06
     - (t.combat.target_id === c.id ? 0.8 : 0) + noise(state.candidates.indexOf(t)) / 0xffffffff * config.balance.first_round_arena.ai_variation_units }));
+  if (!options.length) return commands(0);
   options.sort((a, b) => a.rank - b.rank || a.t.id.localeCompare(b.t.id));
   const target = options[0].t; const d = target.x - c.x;
   const close = Math.abs(d) <= config.balance.candidate_combat.light_range;

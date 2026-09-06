@@ -4,7 +4,7 @@ import { distance } from './territory.js';
 export function updateCandidateResistance(sim) {
   const { state, config, hz } = sim; const settings = config.balance.candidate_combat;
   for (const candidate of state.candidates) {
-    if (candidate.eliminated) continue;
+    if (candidate.eliminated || candidate.campaign_arena_id) continue;
     if (candidate.is_ko) {
       candidate.axis = 0; candidate.moving = false; candidate.campaign_active = false; candidate.interaction_active = false;
       if (state.tick >= candidate.respawn_tick) {

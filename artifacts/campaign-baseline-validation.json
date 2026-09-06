@@ -1,0 +1,80 @@
+[
+  {
+    "seed": 17,
+    "daySeconds": 1,
+    "enabled": false,
+    "events": 0,
+    "interval": 0,
+    "intensities": {},
+    "families": {},
+    "leaderChanges": 1,
+    "thirdReturns": 0,
+    "encounters": 0,
+    "orientations": [
+      0,
+      0,
+      0
+    ],
+    "meetings": 0,
+    "mediaDurations": [],
+    "scores": {
+      "melenchon": 19.663941799335696,
+      "le_pen": 19.462767689426638,
+      "philippe": 18.460885453294065,
+      "neutral": 42.4124050579436
+    },
+    "history": []
+  },
+  {
+    "seed": 42,
+    "daySeconds": 1,
+    "enabled": false,
+    "events": 0,
+    "interval": 0,
+    "intensities": {},
+    "families": {},
+    "leaderChanges": 1,
+    "thirdReturns": 0,
+    "encounters": 0,
+    "orientations": [
+      0,
+      0,
+      0
+    ],
+    "meetings": 0,
+    "mediaDurations": [],
+    "scores": {
+      "melenchon": 20.459757200276208,
+      "le_pen": 19.613954791946128,
+      "philippe": 18.46090081220097,
+      "neutral": 41.465387195576696
+    },
+    "history": []
+  },
+  {
+    "seed": 109,
+    "daySeconds": 1,
+    "enabled": false,
+    "events": 0,
+    "interval": 0,
+    "intensities": {},
+    "families": {},
+    "leaderChanges": 1,
+    "thirdReturns": 0,
+    "encounters": 0,
+    "orientations": [
+      0,
+      0,
+      0
+    ],
+    "meetings": 0,
+    "mediaDurations": [],
+    "scores": {
+      "melenchon": 20.234011690392776,
+      "le_pen": 19.47590986160663,
+      "philippe": 18.460754898778326,
+      "neutral": 41.82932354922227
+    },
+    "history": []
+  }
+]

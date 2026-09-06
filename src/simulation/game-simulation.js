@@ -1,3 +1,4 @@
+import { initializeCampaign, campaignCommand, updateCampaignEvents, updateOrientations, CampaignEventDirector } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { createSpawnTimers, updateSpawns } from './spawns.js';
@@ -27,7 +28,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 6, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 7, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, transactions: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -61,6 +62,7 @@ export class GameSimulation {
         this.spawn(zone, zone.start + zone.width * ratio, false, points[index % points.length]);
       }
     }
+    initializeCampaign(this);
     this.state.spawn_timers = createSpawnTimers(this);
     refreshElectoralState(this.state, this.config);
     refreshInfluenceSources(this.state, this.config);
@@ -113,6 +115,7 @@ export class GameSimulation {
 
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
+    if (campaignCommand(this, command)) return;
     if (applyMatchDebug(this, command)) return;
     if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSetAIEnabled') {
       if (typeof command.enabled === 'boolean') this.state.ai_enabled = command.enabled;
@@ -259,7 +262,7 @@ export class GameSimulation {
     state.tick++;
     beginCombatTick(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || candidate.is_ko || interrupted(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || candidate.crisis_meeting_id || interrupted(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
@@ -271,6 +274,8 @@ export class GameSimulation {
     }
     updateCombat(this);
     updateCandidateResistance(this);
+    updateCampaignEvents(this);
+    updateOrientations(this);
     this.updatePersuasion();
     updateEconomy(this);
     updateProduction(this);
@@ -279,8 +284,12 @@ export class GameSimulation {
     updateStrategicSites(this);
     updateInfluence(this);
     const days = state.phase === GamePhase.SECOND_ROUND_SPRINT ? 0 : Math.max(0,
-      this.config.balance.time.starting_days_before_first_round - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));
+      this.config.balance.time.starting_days_before_first_round - (state.campaign_time_offset || 0) - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));
     if (days !== state.days_remaining) { state.days_remaining = days; this.emit('DayChanged', { days_remaining: days }); }
+    state.campaign_day_remaining = days;
+    state.campaign_elapsed_days = this.config.balance.time.starting_days_before_first_round - days;
+    state.campaign_progress_01 = state.campaign_elapsed_days / this.config.balance.time.starting_days_before_first_round;
+    if (state.phase === GamePhase.CAMPAIGN) CampaignEventDirector.update(this);
     updatePolls(this);
     if (state.phase === GamePhase.CAMPAIGN && days === 0) startArena(this);
     else if (state.phase === GamePhase.SECOND_ROUND_SPRINT) {

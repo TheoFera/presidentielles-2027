@@ -12,8 +12,8 @@ export function drawArena(renderer, state, previous, alpha) {
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
   ctx.strokeStyle = '#778496'; ctx.lineWidth = 2; ctx.strokeRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
   ctx.textAlign = 'center'; ctx.fillStyle = '#e3e8e6'; ctx.font = '600 22px system-ui';
-  ctx.fillText('PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.37);
-  ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText('Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);
+  ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.37);
+  ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText(state.campaign_event_family ? 'Le monde continue. Remportez la confrontation pour revenir en campagne.' : 'Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);
   ctx.fillStyle = '#b9c5c7'; ctx.fillRect(width * 0.025, m.groundY, width * 0.95, 9);
   ctx.fillStyle = '#657280'; ctx.fillRect(width * 0.025, m.groundY + 9, width * 0.95, 48);
   for (const edge of [state.arena_bounds.min, state.arena_bounds.max]) {
@@ -25,7 +25,8 @@ export function drawArena(renderer, state, previous, alpha) {
     renderer.drawPerson(entity, x, state);
     if (entity.role === 'CANDIDAT') {
       ctx.fillStyle = '#eef0df'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
-      ctx.fillText(renderer.p.factions[entity.faction_id].name, x, m.groundY - m.characterHeight - 20);
+      ctx.fillText(entity.presentation_name || renderer.p.factions[entity.faction_id].name, x, m.groundY - m.characterHeight - 20);
+      if (state.campaign_event_family) { ctx.fillStyle = '#182434'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70, 5); ctx.fillStyle = '#9bdbca'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70 * entity.arena_hp / entity.arena_initial_hp, 5); }
     }
   }
   drawCombatEffects(renderer, state, false);

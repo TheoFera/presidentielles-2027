@@ -1,3 +1,4 @@
+import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
 import { incomePerSecond } from './simulation/territory.js';
 import { remainingCampaignBudget } from './simulation/campaign-budget.js';
@@ -28,6 +29,7 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  const campaignDisplay = new CampaignDisplay(config);
   const electoralDisplay = new ElectoralDisplay(config);
   const matchDisplay = new MatchDisplay(config, {
     follow: () => { renderer.resetCamera(); canvas.focus(); },
@@ -137,6 +139,8 @@ async function start() {
           pending = [];
           simulation.step(commands);
           state = simulation.getState();
+          const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= previous.tick);
+          if (rejected && !previous.events.some(e => e.id === rejected.id)) notify(rejected.reason, 4);
           if (state.phase !== previous.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
           if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
         });
@@ -144,6 +148,8 @@ async function start() {
         noticeRemaining -= elapsed;
       }
       matchDisplay.update(state);
+      campaignDisplay.update(state);
+      document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id)));
       const candidate = matchDisplay.viewedCandidate(state);
       const zone = zoneAt(state.world, candidate.x);
       if (zone.id !== currentZone) { currentZone = zone.id; notify(`${zone.biome_name}\n${zone.concept}`); }

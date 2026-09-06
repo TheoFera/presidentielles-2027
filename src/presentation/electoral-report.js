@@ -2,15 +2,15 @@ import { FACTIONS } from '../simulation/world.js';
 
 export function electoralReport(state, config, candidate) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
-  const f = v => v.toLocaleString('fr-FR', { maximumFractionDigits: 5 });
+  const f = v => Number.isFinite(v) ? v.toLocaleString('fr-FR', { maximumFractionDigits: 5 }) : '—';
   const names = { melenchon: 'M', le_pen: 'LP', philippe: 'EP', neutral: 'N' };
   const scores = support => Object.entries(names).map(([id, name]) => `${name} ${f(support[id])} %`).join(' · ');
   const poll = state.polls[candidate.faction_id];
   const lines = ['', '— CONQUÊTE ET INFORMATION —', `J-${state.days_remaining} · score national réel :`, scores(state.actualGameState.national_support),
     `Contrôles : M ${state.actualGameState.controlled_counts.melenchon} · LP ${state.actualGameState.controlled_counts.le_pen} · EP ${state.actualGameState.controlled_counts.philippe} · contestées ${state.actualGameState.controlled_counts.contested}`,
     `Règle : ≥ ${f(config.balance.influence.control_min_leader_percent)} % et ≥ ${f(config.balance.influence.control_required_lead_points)} points d’avance sur le deuxième candidat.`,
-    `Institut du camp suivi : ${poll.active ? 'Actif' : 'Inactif'} · fréquence ${f(config.balance.buildings.institut_sondage.poll_refresh_seconds)} s`,
-    poll.lastPollSnapshot ? `Dernier sondage affiché (tick ${poll.lastPollSnapshot.measured_tick}) :\n${scores(poll.lastPollSnapshot.national_support)}\nÂge : ${f((state.tick - poll.lastPollSnapshot.measured_tick) / hz)} s · prochain : ${poll.active ? `${f((poll.next_poll_tick - state.tick) / hz)} s` : 'suspendu ; dernière mesure conservée'}` : 'Sondage : jamais publié ; cercle et scores masqués.',
+    `Institut neutre : sondage ponctuel à l’achat · ${poll.lastPollSnapshot ? 'mesure disponible' : 'aucune mesure'}`,
+    poll.lastPollSnapshot ? `Dernier sondage affiché (tick ${poll.lastPollSnapshot.measured_tick}) :\n${scores(poll.lastPollSnapshot.national_support)}\nÂge : ${f((state.tick - poll.lastPollSnapshot.measured_tick) / hz)} s · prochain : nouvel achat nécessaire` : 'Sondage : jamais publié ; cercle et scores masqués.',
     `Présence candidat : ${f(config.balance.influence.candidate_presence_per_second)} /s · gain LP ×${f(config.balance.influence.le_pen_gain_multiplier)}`,
     '', '— LES 18 SOUS-ZONES, DANS L’ORDRE —'];
   for (const e of state.electorate) {
