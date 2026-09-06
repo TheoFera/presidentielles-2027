@@ -23,7 +23,7 @@ const printerId = 'service:banlieue:imprimerie';
 // A small controllable world fixture: full topology, real transactions, no incidental spawns.
 function scenario(count = 2, { faction = 'melenchon', money = 300 } = {}) {
   const cfg = structuredClone(config);
-  for (const biome of cfg.layout.biomes) for (const zone of biome.subzones) zone.mean_spawn_days = 1000;
+  cfg.layout.neutral_population_growth.enabled = false;
   cfg.prototype.world.roam_speed_units_per_second = 0;
   const sim = new GameSimulation(cfg);
   const state = sim.getState();
@@ -55,37 +55,50 @@ test('Rareté initiale : 4 à 5 Neutres par biome, aucune unité offerte', () =>
   }
   assert.ok(state.npcs.every(n => n.role === 'NEUTRE' && n.faction_id === null));
   for (const biome of config.layout.biomes) for (const zone of biome.subzones) {
-    assert.ok(Number.isInteger(zone.max_npcs_by_origin) && zone.max_npcs_by_origin >= 5 && zone.max_npcs_by_origin <= 10);
+    assert.ok(Number.isInteger(zone.max_npcs_by_origin) && zone.max_npcs_by_origin >= 8 && zone.max_npcs_by_origin <= 16);
   }
 });
 
-test('Les délais sont en jours, dans l’intervalle aléatoire demandé et changent à chaque tentative', () => {
+test('Les délais répartissent la croissance jusqu’au premier tour', () => {
   const cfg = structuredClone(config);
   cfg.balance.time.real_seconds_per_game_day = 2;
   const sim = new GameSimulation(cfg);
-  const before = sim.getState();
-  const seen = new Map(before.spawn_timers.map(t => [t.social_point_id, new Set([t.interval_ticks])]));
-  for (let i = 0; i < 600; i++) {
-    sim.step(FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
-    for (const timer of sim.state.spawn_timers) {
-      const zone = sim.state.world.subzones.find(z => z.id === timer.subzone_id);
-      const meanTicks = zone.mean_spawn_days * 2 * 30;
-      assert.ok(timer.interval_ticks >= Math.ceil(meanTicks * 0.75 - 1e-9));
-      assert.ok(timer.interval_ticks <= Math.ceil(meanTicks * 1.25));
-      seen.get(timer.social_point_id).add(timer.interval_ticks);
-    }
+  for (const timer of sim.state.spawn_timers) {
+    const zone = sim.state.world.subzones.find(z => z.id === timer.subzone_id);
+    const missing = zone.max_npcs_by_origin - zone.initial_neutral_count;
+    const expectedInterval = Math.floor(365 * 2 * 30 / missing);
+    assert.equal(timer.interval_ticks, expectedInterval);
+    assert.ok(timer.interval_ticks * missing <= 365 * 2 * 30, zone.id);
   }
-  assert.ok([...seen.values()].every(values => values.size > 1));
-  assert.ok(config.layout.biomes.find(b => b.id === 'banlieue').subzones.every(z => z.mean_spawn_days === 1));
-  assert.ok(config.layout.biomes.find(b => b.id === 'campagne').subzones.every(z => z.mean_spawn_days === 1.5));
-  assert.ok(config.layout.biomes.find(b => b.id === 'quartiers_riches').subzones.every(z => z.mean_spawn_days === 2));
+  assert.deepEqual(cfg.layout.neutral_population_growth.interval_randomness, { min_factor: 1, max_factor: 1 });
+  const shorterCfg = structuredClone(config);
+  shorterCfg.balance.time.starting_days_before_first_round = 180;
+  shorterCfg.balance.time.real_seconds_per_game_day = 1;
+  const shorter = new GameSimulation(shorterCfg);
+  for (const timer of shorter.state.spawn_timers) {
+    const zone = shorter.state.world.subzones.find(z => z.id === timer.subzone_id);
+    const missing = zone.max_npcs_by_origin - zone.initial_neutral_count;
+    assert.equal(timer.interval_ticks, Math.floor(180 * 30 / missing));
+    assert.ok(timer.interval_ticks < sim.state.spawn_timers.find(t => t.subzone_id === zone.id).interval_ticks);
+  }
+});
+
+test('Tous les sous-biomes atteignent leur plafond au premier tour, sans le faire au début', () => {
+  const cfg = structuredClone(config); cfg.balance.time.real_seconds_per_game_day = 1;
+  const sim = new GameSimulation(cfg); const inactive = FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false));
+  advance(sim, 359 * 30, inactive);
+  assert.ok(sim.state.world.subzones.every(zone => populationByOrigin(sim.state, zone.id) < zone.max_npcs_by_origin));
+  advance(sim, 6 * 30, inactive);
+  for (const zone of sim.state.world.subzones) assert.equal(populationByOrigin(sim.state, zone.id), zone.max_npcs_by_origin, zone.id);
 });
 
 test('Une sous-zone pleine ne crée plus de PNJ après un recrutement ou un départ', () => {
   const cfg = structuredClone(config);
   cfg.balance.time.real_seconds_per_game_day = 1;
+  cfg.balance.time.starting_days_before_first_round = 366;
+  cfg.layout.neutral_population_growth.target_days_before_first_round = 1;
   const sim = new GameSimulation(cfg);
-  advance(sim, 600, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
+  advance(sim, 365 * 30, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
   for (const zone of sim.state.world.subzones) assert.equal(populationByOrigin(sim.state, zone.id), zone.max_npcs_by_origin);
   const state = sim.getState();
   const npc = state.npcs[0]; npc.role = 'SYMPATHISANT'; npc.faction_id = 'melenchon';
@@ -103,8 +116,10 @@ test('Une sous-zone pleine ne crée plus de PNJ après un recrutement ou un dép
 
 test('Plusieurs points sociaux partagent le même plafond de population d’origine', () => {
   const cfg = structuredClone(config); cfg.layout.social_points_per_subzone = 2; cfg.balance.time.real_seconds_per_game_day = 1;
+  cfg.balance.time.starting_days_before_first_round = 366;
+  cfg.layout.neutral_population_growth.target_days_before_first_round = 1;
   const sim = new GameSimulation(cfg);
-  advance(sim, 600, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
+  advance(sim, 365 * 30, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
   assert.equal(sim.state.spawn_timers.length, 36);
   for (const zone of sim.state.world.subzones) assert.equal(populationByOrigin(sim.state, zone.id), zone.max_npcs_by_origin);
   assert.equal(sim.state.npcs.length, sim.state.world.subzones.reduce((sum, zone) => sum + zone.max_npcs_by_origin, 0));
@@ -428,10 +443,10 @@ test('Les IA utilisent réellement les infrastructures avec les mêmes commandes
 
 test('Les nouveaux réglages invalides sont refusés explicitement', () => {
   for (const mutate of [
-    cfg => { cfg.layout.biomes[0].subzones[0].spawn_randomness.min_factor = 2; },
+    cfg => { cfg.layout.neutral_population_growth.interval_randomness.min_factor = 2; },
     cfg => { cfg.layout.biomes[0].subzones[0].max_npcs_by_origin = 0; },
     cfg => { cfg.layout.biomes[0].subzones[0].max_npcs_by_origin = 5.5; },
-    cfg => { cfg.layout.biomes[0].subzones[0].initial_neutral_count = 11; },
+    cfg => { cfg.layout.biomes[0].subzones[0].initial_neutral_count = 17; },
     cfg => { cfg.balance.money.campaign_spending_limit = -1; },
     cfg => { cfg.balance.buildings.imprimerie.max_queue_length = 0; },
     cfg => { cfg.balance.buildings.financement.income_per_second_by_level = []; },

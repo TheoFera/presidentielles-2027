@@ -27,25 +27,41 @@ export function createInfrastructure(world, config, rngState) {
       subzone_id: zone.id, biome_id: zone.biome_id };
   });
   const assigned = new Map();
-  const guaranteedPerBiome = ['permanence', 'imprimerie', 'meeting'];
-  for (const type of guaranteedPerBiome) {
-    for (const biome of config.layout.biomes) {
-      const choices = slots.filter(s => s.biome_id === biome.id && !assigned.has(s.id));
-      assigned.set(choices[Math.floor(random(rngState) * choices.length)].id, type);
-    }
+  const assignRandom = (type, biome, predicate = () => true) => {
+    const choices = slots.filter(s => s.biome_id === biome.id && !assigned.has(s.id) && predicate(s));
+    if (!choices.length) throw new Error(`Aucun emplacement admissible pour ${type} dans ${biome.id}.`);
+    assigned.set(choices[Math.floor(random(rngState) * choices.length)].id, type);
+  };
+  for (const biome of config.layout.biomes) {
+    const centralSubzone = biome.subzones[1].id;
+    assignRandom('permanence', biome, slot => slot.subzone_id === centralSubzone);
+    assignRandom('faction', biome, slot => slot.subzone_id !== centralSubzone);
   }
+  for (const biomeId of generation.fixed_biomes_by_type.institut_sondage) {
+    const biome = config.layout.biomes.find(candidate => candidate.id === biomeId);
+    assignRandom('institut_sondage', biome);
+  }
+  for (const type of ['imprimerie', 'meeting']) for (const biome of config.layout.biomes) assignRandom(type, biome);
   const free = slots.filter(s => !assigned.has(s.id));
+  const assignedCounts = [...assigned.values()].reduce((counts, type) => ({ ...counts, [type]: (counts[type] || 0) + 1 }), {});
   const remaining = Object.entries(generation.site_counts).flatMap(([type, count]) => Array.from({
-    length: count - (guaranteedPerBiome.includes(type) ? config.layout.biomes.length : 0),
+    length: count - (assignedCounts[type] || 0),
   }, () => type));
   let valid = null;
   for (let attempt = 0; attempt < 2000 && !valid; attempt++) {
-    const types = shuffle(rngState, remaining); const perBiome = new Map(); let ok = true;
+    const types = shuffle(rngState, remaining); const perBiome = new Map(); const perSubzone = new Map(); let ok = true;
+    for (const [slotId, type] of assigned) {
+      const slot = slots.find(candidate => candidate.id === slotId);
+      const biomeKey = `${slot.biome_id}:${type}`; const subzoneKey = `${slot.subzone_id}:${type}`;
+      perBiome.set(biomeKey, (perBiome.get(biomeKey) || 0) + 1);
+      perSubzone.set(subzoneKey, (perSubzone.get(subzoneKey) || 0) + 1);
+    }
     for (let i = 0; i < free.length; i++) {
-      const key = `${free[i].biome_id}:${types[i]}`;
-      const count = (perBiome.get(key) || 0) + 1;
-      if (count > typeSettings(config, types[i]).max_per_biome) { ok = false; break; }
-      perBiome.set(key, count);
+      const biomeKey = `${free[i].biome_id}:${types[i]}`; const subzoneKey = `${free[i].subzone_id}:${types[i]}`;
+      const biomeCount = (perBiome.get(biomeKey) || 0) + 1; const subzoneCount = (perSubzone.get(subzoneKey) || 0) + 1;
+      const settings = typeSettings(config, types[i]);
+      if (biomeCount > settings.max_per_biome || subzoneCount > settings.max_per_subzone) { ok = false; break; }
+      perBiome.set(biomeKey, biomeCount); perSubzone.set(subzoneKey, subzoneCount);
     }
     if (ok) valid = types;
   }
@@ -60,8 +76,10 @@ export function createInfrastructure(world, config, rngState) {
       hostile_pressure: 0, current_effective_presence: 0, next_level_available: false, level_lock_reason: null,
       queue: [], last_action_tick: -1, delivered_count: 0, variant: null, headquarters: false,
       raid_ready_tick: 0, closure_ready_tick: 0,
-      funding_state: 'INACTIVE', funding_end_tick: null, funding_duration_ticks: 0, funding_influence_factor: null,
-      funding_random_factor: null, funding_expected_payout: 0,
+      funding_state: 'INACTIVE', funding_started_tick: null, funding_end_tick: null, funding_duration_ticks: 0,
+      funding_progress_01: 0, funding_influence_factor: null, funding_campaign_progression_factor: null,
+      funding_random_factor: null, funding_target_payout: 0, funding_accumulated_payout: 0,
+      funding_expected_payout: 0, funding_last_payout: 0, funding_completed_tick: null,
       meeting_ready_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
       meeting_banned_until_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
       meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 1, meetings_held: 0,
@@ -118,7 +136,12 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
   const oldOwner = building.owner_id; const wasHeadquarters = building.headquarters; const oldX = building.x;
   building.owner_id = null; building.level = 0; building.state = 'NEUTRAL'; building.active = false; building.neutral = true;
   building.capture_progress = 0; building.closure_progress = 0; building.current_political_presence = 0; building.current_effective_presence = 0;
-  building.hostile_pressure = 0; building.variant = null; building.headquarters = false; building.funding_state = 'INACTIVE'; building.funding_end_tick = null;
+  building.hostile_pressure = 0; building.variant = null; building.headquarters = false;
+  building.funding_state = 'INACTIVE'; building.funding_started_tick = null; building.funding_end_tick = null;
+  building.funding_duration_ticks = 0; building.funding_progress_01 = 0; building.funding_influence_factor = null;
+  building.funding_campaign_progression_factor = null; building.funding_random_factor = null;
+  building.funding_target_payout = 0; building.funding_accumulated_payout = 0; building.funding_expected_payout = 0;
+  building.funding_last_payout = 0; building.funding_completed_tick = null;
   for (const order of building.queue) {
     const worker = sim.state.npcs.find(n => n.id === order.assigned_npc_id); if (worker) worker.task = null;
   }
@@ -137,30 +160,46 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
 export function startFundingCampaign(sim, building) {
   const s = sim.config.balance.buildings.financement;
   const modifiers = fundingModifiers(sim.state, building.owner_id);
-  if (!modifiers.can_start_new_campaign) return false;
+  if (!modifiers.can_start_new_campaign || building.funding_state === 'RUNNING') return false;
   const duration = s.campaign_duration_min + random(sim.state) * (s.campaign_duration_max - s.campaign_duration_min);
   const randomFactor = s.random_min + random(sim.state) * (s.random_max - s.random_min);
   const score = sim.state.actualGameState.national_support[building.owner_id];
   const influenceFactor = 1 + score / 100 * s.influence_factor;
-  const payout = s.payout_base * s.payout_level_multiplier[building.level - 1] * influenceFactor * randomFactor;
+  const campaignProgressionFactor = s.campaign_progression_factor_start
+    + sim.state.campaign_progress_01 * (s.campaign_progression_factor_end - s.campaign_progression_factor_start);
+  const rawTarget = s.payout_base * s.payout_level_multiplier[building.level - 1]
+    * influenceFactor * campaignProgressionFactor * randomFactor * modifiers.payout_multiplier;
+  const target = Math.min(modifiers.payout_max ?? Infinity, rawTarget);
   building.funding_state = 'RUNNING'; building.funding_duration_ticks = sim.secondsToTicks(duration * modifiers.campaign_duration_multiplier);
-  building.funding_end_tick = sim.state.tick + building.funding_duration_ticks; building.funding_influence_factor = influenceFactor;
-  building.funding_random_factor = randomFactor; building.funding_expected_payout = payout;
-  sim.emit('FundingCampaignStarted', { target_id: building.id, owner_id: building.owner_id, duration_ticks: building.funding_duration_ticks });
+  building.funding_started_tick = sim.state.tick; building.funding_end_tick = sim.state.tick + building.funding_duration_ticks;
+  building.funding_progress_01 = 0; building.funding_influence_factor = influenceFactor;
+  building.funding_campaign_progression_factor = campaignProgressionFactor; building.funding_random_factor = randomFactor;
+  building.funding_target_payout = target; building.funding_accumulated_payout = 0;
+  // Alias conservé pour les outils et rapports existants.
+  building.funding_expected_payout = target;
+  sim.emit('FundingCampaignStarted', { target_id: building.id, owner_id: building.owner_id,
+    duration_ticks: building.funding_duration_ticks, target_payout: target });
+  return true;
 }
 
 export function updateStrategicSites(sim) {
   const { state, config, hz } = sim;
   for (const building of state.buildings) {
+    if (building.funding_state === 'RUNNING') {
+      const elapsed = Math.max(0, state.tick - building.funding_started_tick);
+      building.funding_progress_01 = Math.min(1, elapsed / building.funding_duration_ticks);
+      building.funding_accumulated_payout = building.funding_target_payout * building.funding_progress_01;
+    }
     if (building.funding_state === 'RUNNING' && state.tick >= building.funding_end_tick) {
       const candidate = state.candidates.find(c => c.faction_id === building.owner_id);
       if (candidate && !candidate.eliminated && building.state === 'ACTIVE') {
-        const modifiers = fundingModifiers(state, candidate.faction_id);
-        const payout = Math.min(modifiers.payout_max ?? Infinity, building.funding_expected_payout * modifiers.payout_multiplier);
+        const payout = building.funding_accumulated_payout;
         candidate.money += payout; candidate.total_earned += payout;
         sim.emit('FundingCampaignCompleted', { target_id: building.id, candidate_id: candidate.id, payout });
+        building.funding_last_payout = payout; building.funding_completed_tick = state.tick; building.last_action_tick = state.tick;
       }
-      building.funding_state = 'COMPLETED'; building.funding_end_tick = null;
+      building.funding_state = 'COMPLETED'; building.funding_started_tick = null; building.funding_end_tick = null;
+      building.funding_progress_01 = 1;
     }
     if (!isCapturable(building) || building.state !== 'ACTIVE') continue;
     building.current_political_presence = localPoliticalPresence(state, building.subzone_id, building.owner_id);

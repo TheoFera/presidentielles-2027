@@ -3,7 +3,7 @@ import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
 import { drawElectoralBuilding } from './electoral.js';
 
-const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE' };
+const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE', tour_communication: 'COMMUNICATION' };
 
 export function drawInfrastructure(renderer, state) {
   const { ctx, metrics: m, config, p, height, width } = renderer;
@@ -11,7 +11,7 @@ export function drawInfrastructure(renderer, state) {
   const settings = p.infrastructure;
   const h = settings.height_ratio * height;
   for (const building of state.buildings) {
-    if (['tour_communication', 'institut_sondage', 'meeting'].includes(building.type)) { drawElectoralBuilding(renderer, state, building); continue; }
+    if (['institut_sondage', 'meeting'].includes(building.type)) { drawElectoralBuilding(renderer, state, building); continue; }
     const w = (building.type === 'faction' ? settings.faction_width_ratio : settings.width_ratio) * width;
     const x = renderer.screenX(building.x);
     if (x + w / 2 < 0 || x - w / 2 > width) continue;
@@ -51,6 +51,10 @@ export function drawInfrastructure(renderer, state) {
       }
     } else if (building.type === 'financement') {
       ctx.fillStyle = '#e5e4d6'; ctx.font = '600 33px system-ui'; ctx.fillText('€', x, top + 117);
+      if (building.state === 'ACTIVE' && building.level < config.balance.buildings.financement.max_level) {
+        const upgradeX = renderer.screenX(building.x + config.balance.buildings.financement.upgrade_offset);
+        ctx.fillStyle = '#46544c'; ctx.font = '600 9px system-ui'; ctx.fillText('↑ AMÉLIORER', upgradeX, ground - 8);
+      }
     } else if (building.type === 'faction') {
       ctx.fillStyle = '#e5e4d6'; ctx.font = '600 22px system-ui'; ctx.fillText(variant === 'service_ordre' ? 'SO' : 'DOSSIERS', x, top + 115);
       if (building.state === 'ACTIVE') {
@@ -70,6 +74,13 @@ export function drawInfrastructure(renderer, state) {
     if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120, 126, 123, ${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(left, top, w, h); }
     if (building.type === 'financement' && building.funding_state === 'RUNNING') {
       ctx.fillStyle = '#e8ce63'; ctx.font = 'bold 18px system-ui'; ctx.fillText(state.tick % 20 < 10 ? '€' : '·€·', x, top + 72);
+      ctx.fillStyle = '#4c574f'; ctx.fillRect(left + 15, top + 145, w - 30, 7);
+      ctx.fillStyle = '#e8ce63'; ctx.fillRect(left + 17, top + 147, (w - 34) * building.funding_progress_01, 3);
+    }
+    if (building.type === 'financement' && building.funding_completed_tick !== null
+      && state.tick - building.funding_completed_tick < config.balance.buildings.financement.completion_feedback_seconds * config.balance.simulation_architecture.fixed_tick_hz) {
+      const payout = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(building.funding_last_payout);
+      ctx.fillStyle = '#f4dc72'; ctx.font = 'bold 15px system-ui'; ctx.fillText(`+${payout} k €`, x, top - 18);
     }
     if (building.state === 'CLOSED') {
       ctx.fillStyle = '#757c76cc'; ctx.fillRect(left, top + 52, w, h - 52);
@@ -120,6 +131,14 @@ export function drawBanknote(renderer, state) {
       for (let level = 1; level <= max; level++) {
         const segmentWidth = (w - 12) / max; const sx = x - w / 2 + 6 + (level - 1) * segmentWidth;
         ctx.fillStyle = level <= building.level ? '#637c51' : level === building.level + 1 && offer.enabled ? '#b9c5ac' : '#aeb3ae';
+        ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
+      }
+    } else if (building.type === 'meeting') {
+      const max = config.balance.buildings.meeting.meeting_max_level;
+      const completed = candidate.interaction_chain_site_id === building.id && building.meeting_faction_id === candidate.faction_id ? building.meeting_level : 0;
+      for (let level = 1; level <= max; level++) {
+        const segmentWidth = (w - 12) / max; const sx = x - w / 2 + 6 + (level - 1) * segmentWidth;
+        ctx.fillStyle = level <= completed ? '#637c51' : level === completed + 1 && offer.enabled ? '#b9c5ac' : '#aeb3ae';
         ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
       }
     }

@@ -34,7 +34,7 @@ function unit(sim, role, faction, x, origin = null) {
 }
 function scenario(faction = 'melenchon', localCount = 6) {
   const cfg = structuredClone(config);
-  for (const b of cfg.layout.biomes) for (const z of b.subzones) z.mean_spawn_days = 10000;
+  cfg.layout.neutral_population_growth.enabled = false;
   const sim = new GameSimulation(cfg); sim.state.npcs = []; sim.state.ai_enabled = false;
   for (const [i, c] of sim.state.candidates.entries()) { c.x = 250 + i * 50; c.campaign_active = false; c.interaction_active = false; c.money = 2000; }
   const actor = sim.state.candidates.find(c => c.faction_id === faction); actor.x = 108; actor.campaign_active = true; actor.interaction_active = true;

@@ -7,6 +7,7 @@ import { validateElectoralSnapshot } from './electoral-snapshots.js';
 import { GamePhase } from './phases.js';
 import { validateMatchSnapshot } from './match-snapshots.js';
 import { populationByOrigin } from './territory.js';
+import { spawnIntervalBoundsTicks } from './spawns.js';
 
 /** Validate the entire snapshot before committing anything to the running simulation. */
 export function validateSnapshot(next, simulation, nested = false) {
@@ -56,10 +57,9 @@ export function validateSnapshot(next, simulation, nested = false) {
     const zone = next.world.subzones.find(z => z.id === timer.subzone_id);
     if (!point || !zone || point.subzone_id !== timer.subzone_id || timerPoints.has(point.id)) fail('point de spawn invalide');
     timerPoints.add(point.id);
-    const mean = zone.mean_spawn_days * config.balance.time.real_seconds_per_game_day;
+    const bounds = spawnIntervalBoundsTicks(simulation, zone, point);
     if (!integer(timer.elapsed_ticks) || !integer(timer.interval_ticks, 1) || timer.elapsed_ticks >= timer.interval_ticks || !integer(timer.skipped_count)
-      || timer.interval_ticks < simulation.secondsToTicks(mean * zone.spawn_randomness.min_factor)
-      || timer.interval_ticks > simulation.secondsToTicks(mean * zone.spawn_randomness.max_factor)) fail('timer de spawn invalide');
+      || timer.interval_ticks < bounds.min || timer.interval_ticks > bounds.max) fail('timer de spawn invalide');
   }
   const orderIds = new Set();
   const assigned = new Set();
@@ -76,6 +76,19 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (building.level !== 0 || building.owner_id !== null || building.active || !building.neutral) fail('site neutre invalide');
     } else if (building.state !== 'ACTIVE' || !FACTIONS.includes(building.owner_id) || building.level < 1 || !building.active || building.neutral) fail('propriété invalide');
     if (!integer(building.raid_ready_tick) || !integer(building.closure_ready_tick)) fail('délai de bâtiment invalide');
+    if (building.type === 'financement') {
+      if (!['INACTIVE', 'RUNNING', 'COMPLETED'].includes(building.funding_state)
+        || !finite(building.funding_duration_ticks) || !finite(building.funding_progress_01) || building.funding_progress_01 > 1
+        || !finite(building.funding_target_payout) || !finite(building.funding_accumulated_payout)
+        || building.funding_accumulated_payout > building.funding_target_payout + 1e-7
+        || !finite(building.funding_expected_payout) || !finite(building.funding_last_payout)
+        || (building.funding_completed_tick !== null && (!integer(building.funding_completed_tick) || building.funding_completed_tick > next.tick))) fail('campagne de financement invalide');
+      if (building.funding_state === 'RUNNING' && (!integer(building.funding_started_tick) || !integer(building.funding_end_tick)
+        || building.funding_end_tick <= next.tick || building.funding_started_tick > next.tick || building.funding_duration_ticks < 1
+        || !finite(building.funding_influence_factor) || !finite(building.funding_campaign_progression_factor)
+        || !finite(building.funding_random_factor))) fail('collecte en cours invalide');
+      if (building.funding_state !== 'RUNNING' && (building.funding_started_tick !== null || building.funding_end_tick !== null)) fail('horloge de collecte inactive');
+    }
     if (building.type === 'faction' && building.variant !== (building.owner_id ? factionVariant(building.owner_id) : null)) fail('bâtiment factionnel invalide');
     if (!['imprimerie'].includes(building.type) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
     if ((building.type === 'imprimerie' || building.variant === 'service_ordre') && building.queue.length > settings.max_queue_length) fail('file de production pleine');

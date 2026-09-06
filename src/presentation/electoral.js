@@ -107,6 +107,7 @@ export function drawElectoralBuilding(renderer, state, building) {
     ctx.fillStyle = '#728172'; ctx.fillRect(x - 12, ground - 60, 24, 60);
   } else {
     const running = active && building.meeting_until_tick > state.tick;
+    const visualLevel = running ? building.meeting_level : 1;
     ctx.fillStyle = '#778474'; ctx.fillRect(x - 40, ground - 17, 80, 17);
     ctx.fillStyle = '#c0c8ba'; ctx.fillRect(x - 13, ground - 58, 26, 41);
     ctx.fillStyle = active ? color : '#878d84'; ctx.fillRect(x - 14, ground - 59, 28, 7);
@@ -118,11 +119,14 @@ export function drawElectoralBuilding(renderer, state, building) {
       ctx.strokeStyle = color; ctx.globalAlpha = 0.65 * (1 - phase % 1);
       ctx.beginPath(); ctx.arc(x, ground - 56, 22 + (phase % 1) * 58, Math.PI, 2 * Math.PI); ctx.stroke(); ctx.globalAlpha = 1;
       ctx.font = 'bold 17px system-ui'; ctx.fillText('✦', x - 28, ground - 145 - Math.sin(phase * 4) * 4); ctx.fillText('✦', x + 30, ground - 158 + Math.sin(phase * 4) * 4);
+      if (visualLevel >= 2) { ctx.fillStyle = color; ctx.fillRect(x - 58, ground - 112, 20, 12); ctx.fillRect(x + 38, ground - 123, 20, 12); }
+      if (visualLevel >= 3) { ctx.fillStyle = '#f1d66c'; ctx.font = 'bold 20px system-ui'; ctx.fillText('★', x, ground - 168); }
     }
   }
   ctx.fillStyle = '#e7e9e0'; ctx.fillRect(x - 31, ground - 34, 62, 17);
   ctx.fillStyle = active ? '#435444' : '#68726d'; ctx.font = '600 9px system-ui'; ctx.fillText(active ? labels[building.type] : 'NEUTRE', x, ground - 22);
-  for (let i = 0; i < building.level; i++) { ctx.fillStyle = color; ctx.fillRect(x - 10 + i * 8, ground - 12, 5, 3); }
+  const displayedLevel = building.type === 'meeting' && building.meeting_until_tick > state.tick ? building.meeting_level : building.level;
+  for (let i = 0; i < displayedLevel; i++) { ctx.fillStyle = color; ctx.fillRect(x - 10 + i * 8, ground - 12, 5, 3); }
   if (building.level >= 2 && building.type === 'tour_communication') { ctx.fillStyle = color; ctx.fillRect(x + 12, ground - height * 0.43, 7, 18); }
   if (building.level >= 3 && building.type === 'tour_communication') { ctx.fillStyle = color; ctx.fillRect(x - 20, ground - height * 0.36, 7, 22); }
   if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120,126,123,${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(x - 43, ground - height * 0.56, 86, height * 0.56); }

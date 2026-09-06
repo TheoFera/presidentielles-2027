@@ -28,7 +28,7 @@ Double-clique sur **Lancer le jeu.cmd**, puis ouvre [le jeu](http://localhost:20
 - Après un achat de bâtiment : s’éloigner, puis revenir. L’Imprimerie permet plusieurs commandes séparément payées en restant sur place.
 - H, Échap ou P : aide et pause. F : plein écran. F3 : débogage.
 
-Les Militants marchent toujours à **2,4 unités/s**, contre **3,6** pour le candidat ; leur plafond reste à deux fois la vitesse du joueur.
+Les Militants marchent toujours à **2,4 unités/s**, contre **4,0** pour le candidat ; leur plafond reste à deux fois la vitesse du joueur.
 
 ## Déroulement
 
@@ -99,14 +99,14 @@ Dans `Présidentielles 2027/world_layout.json`, chaque sous-zone possède `max_n
 
 | Biome | Sous-zone A | Sous-zone B | Sous-zone C |
 |---|---|---|---|
-| Paris 19e / Bobo | Canal, cafés : **9** | Place, commerces : **10** | Quartier mixte : **9** |
-| Banlieue | Cité dortoir : **9** | Marché central : **9** | Pavillons modestes : **7** |
-| Périurbain / Usine | Zone artisanale : **7** | Usine, entrepôts : **8** | Sortie vers les champs : **6** |
-| Campagne | Entrée du village : **6** | Cœur de village : **7** | Champs : **5** |
-| Retraités | Pavillons : **6** | Square, associations : **7** | Secteur aisé : **5** |
-| Quartiers riches | Résidentiel : **5** | Avenue commerçante : **6** | Haussmannien : **5** |
+| Paris 19e / Bobo | Canal, cafés : **14** | Place, commerces : **16** | Quartier mixte : **14** |
+| Banlieue | Cité dortoir : **14** | Marché central : **14** | Pavillons modestes : **11** |
+| Périurbain / Usine | Zone artisanale : **11** | Usine, entrepôts : **13** | Sortie vers les champs : **10** |
+| Campagne | Entrée du village : **10** | Cœur de village : **11** | Champs : **8** |
+| Retraités | Pavillons : **10** | Square, associations : **11** | Secteur aisé : **8** |
+| Quartiers riches | Résidentiel : **8** | Avenue commerçante : **10** | Haussmannien : **8** |
 
-Soit **126 PNJ permanents au maximum dans le monde** avec ces réglages. La fréquence et sa variation aléatoire sont conservées jusqu’au plafond. Tous les points sociaux d’une même sous-zone partagent sa capacité. À saturation, les tentatives sont ignorées puis reprogrammées, sans accumuler de PNJ à faire apparaître plus tard. Recruter, promouvoir, déplacer, changer de camp ou démobiliser un PNJ ne libère aucune place : il garde son identité et son origine, puis revient au même point social lorsqu’il est démobilisé. Seule sa suppression effective libérerait une place ; le jeu ordinaire ne tue pas les PNJ.
+Soit **201 PNJ permanents au maximum dans le monde** avec ces réglages. La fréquence est calculée avec la durée totale de la campagne et le nombre de places à remplir dans chaque sous-zone. Le plafond est ainsi atteint au premier tour, même si la durée d’une journée ou le nombre de jours de campagne change. Tous les points sociaux d’une même sous-zone partagent sa capacité. À saturation, les tentatives sont ignorées puis reprogrammées, sans accumuler de PNJ à faire apparaître plus tard. Recruter, promouvoir, déplacer, changer de camp ou démobiliser un PNJ ne libère aucune place : il garde son identité et son origine, puis revient au même point social lorsqu’il est démobilisé. Seule sa suppression effective libérerait une place ; le jeu ordinaire ne tue pas les PNJ.
 
 F3 distingue la population présente de la population d’origine et indique quand le plafond est atteint. Même les apparitions de débogage respectent cette limite. Après modification des plafonds, recharge la page pour démarrer une nouvelle partie ; les anciennes sauvegardes ne sont plus compatibles.
 

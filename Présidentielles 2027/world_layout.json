@@ -2,6 +2,15 @@
   "world_type": "horizontal_loop",
   "screens_per_subzone": 1,
   "note": "Les densités/spawns sont des paramètres de gameplay fictifs destinés au prototype, pas des affirmations sociologiques.",
+  "population_growth_note": "La fréquence est calculée automatiquement avec la durée de la campagne, la population initiale et le plafond de chaque sous-biome, afin d’atteindre le plafond au premier tour.",
+  "neutral_population_growth": {
+    "enabled": true,
+    "target_days_before_first_round": 0,
+    "interval_randomness": {
+      "min_factor": 1,
+      "max_factor": 1
+    }
+  },
   "biomes": [
     {
       "id": "paris_19e",
@@ -11,34 +20,19 @@
           "id": "paris_a",
           "concept": "Canal, cafés, vélos",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.4,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 14
         },
         {
           "id": "paris_b",
           "concept": "Place de quartier, commerces",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1.25,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 16
         },
         {
           "id": "paris_c",
           "concept": "Quartier mixte vers banlieue",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.2,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 14
         }
       ]
     },
@@ -50,34 +44,19 @@
           "id": "banlieue_a",
           "concept": "Cité dortoir vers quartier bobo",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 14
         },
         {
           "id": "banlieue_b",
           "concept": "Marché populaire central",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 14
         },
         {
           "id": "banlieue_c",
           "concept": "Pavillons modestes vers périurbain",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 7
+          "max_npcs_by_origin": 11
         }
       ]
     },
@@ -89,34 +68,19 @@
           "id": "periurbain_a",
           "concept": "Pavillons modestes, zone artisanale",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.4,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 7
+          "max_npcs_by_origin": 11
         },
         {
           "id": "periurbain_b",
           "concept": "Usine, entrepôts, rond-point",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1.25,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 8
+          "max_npcs_by_origin": 13
         },
         {
           "id": "periurbain_c",
           "concept": "Sortie industrielle vers champs",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.5,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 6
+          "max_npcs_by_origin": 10
         }
       ]
     },
@@ -128,34 +92,19 @@
           "id": "campagne_a",
           "concept": "Entrée village",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.5,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 6
+          "max_npcs_by_origin": 10
         },
         {
           "id": "campagne_b",
           "concept": "Cœur village, mairie, place",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1.5,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 7
+          "max_npcs_by_origin": 11
         },
         {
           "id": "campagne_c",
           "concept": "Champs vers pavillons retraités",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.5,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 5
+          "max_npcs_by_origin": 8
         }
       ]
     },
@@ -167,34 +116,19 @@
           "id": "retraites_a",
           "concept": "Pavillons, pelouses très tondues, haies",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.75,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 6
+          "max_npcs_by_origin": 10
         },
         {
           "id": "retraites_b",
           "concept": "Pharmacie, square, salle associative",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 1.6,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 7
+          "max_npcs_by_origin": 11
         },
         {
           "id": "retraites_c",
           "concept": "Retraités aisés vers quartiers riches",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 1.8,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 5
+          "max_npcs_by_origin": 8
         }
       ]
     },
@@ -206,34 +140,19 @@
           "id": "riches_a",
           "concept": "Résidentiel bourgeois",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 2,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 5
+          "max_npcs_by_origin": 8
         },
         {
           "id": "riches_b",
           "concept": "Avenue élégante, boutiques",
           "initial_neutral_count": 2,
-          "mean_spawn_days": 2,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 6
+          "max_npcs_by_origin": 10
         },
         {
           "id": "riches_c",
           "concept": "Haussmannien vers Paris 19e",
           "initial_neutral_count": 1,
-          "mean_spawn_days": 2,
-          "spawn_randomness": {
-            "min_factor": 0.75,
-            "max_factor": 1.25
-          },
-          "max_npcs_by_origin": 5
+          "max_npcs_by_origin": 8
         }
       ]
     }
@@ -277,52 +196,210 @@
   },
   "subzone_electoral_weight": "equal_for_v0",
   "social_points_per_subzone": 1,
-  "building_slots_per_subzone": 1,
+  "building_slots_per_subzone": 2,
   "prototype_version": "0.3",
   "strategic_site_generation": {
     "mode": "seeded_explicit_slots",
-    "note": "La graine choisit les types parmi ces emplacements explicites. Une Permanence, une Imprimerie et une Salle de meeting sont garanties par biome. Deux Imprimeries supplémentaires sont réparties aléatoirement.",
+    "note": "La graine choisit les types parmi ces emplacements explicites. La Permanence est toujours dans la sous-zone centrale. Un Local SO/Cabinet est garanti par biome, hors sous-zone centrale. Une Imprimerie et une Salle de meeting sont garanties par biome.",
     "max_sites_per_subzone": 2,
     "site_counts": {
       "permanence": 6,
       "financement": 3,
-      "faction": 2,
+      "faction": 6,
       "tour_communication": 3,
       "imprimerie": 8,
       "meeting": 6,
-      "institut_sondage": 2
+      "institut_sondage": 4
+    },
+    "fixed_biomes_by_type": {
+      "institut_sondage": [
+        "paris_19e",
+        "periurbain_usine",
+        "retraites",
+        "quartiers_riches"
+      ]
     },
     "slots": [
-      { "site_id": "site:paris_a", "subzone_id": "paris_a", "x_ratio": 0.24 },
-      { "site_id": "site:paris_b", "subzone_id": "paris_b", "x_ratio": 0.52 },
-      { "site_id": "site:paris_c", "subzone_id": "paris_c", "x_ratio": 0.78 },
-      { "site_id": "site:banlieue_a", "subzone_id": "banlieue_a", "x_ratio": 0.26 },
-      { "site_id": "site:banlieue_b", "subzone_id": "banlieue_b", "x_ratio": 0.55 },
-      { "site_id": "site:banlieue_c", "subzone_id": "banlieue_c", "x_ratio": 0.76 },
-      { "site_id": "site:periurbain_a", "subzone_id": "periurbain_a", "x_ratio": 0.22 },
-      { "site_id": "site:periurbain_b", "subzone_id": "periurbain_b", "x_ratio": 0.5 },
-      { "site_id": "site:periurbain_c", "subzone_id": "periurbain_c", "x_ratio": 0.8 },
-      { "site_id": "site:campagne_a", "subzone_id": "campagne_a", "x_ratio": 0.25 },
-      { "site_id": "site:campagne_b", "subzone_id": "campagne_b", "x_ratio": 0.54 },
-      { "site_id": "site:campagne_c", "subzone_id": "campagne_c", "x_ratio": 0.77 },
-      { "site_id": "site:retraites_a", "subzone_id": "retraites_a", "x_ratio": 0.23 },
-      { "site_id": "site:retraites_b", "subzone_id": "retraites_b", "x_ratio": 0.51 },
-      { "site_id": "site:retraites_c", "subzone_id": "retraites_c", "x_ratio": 0.79 },
-      { "site_id": "site:riches_a", "subzone_id": "riches_a", "x_ratio": 0.27 },
-      { "site_id": "site:riches_b", "subzone_id": "riches_b", "x_ratio": 0.49 },
-      { "site_id": "site:riches_c", "subzone_id": "riches_c", "x_ratio": 0.75 },
-      { "site_id": "site:paris_a:service", "subzone_id": "paris_a", "x_ratio": 0.72 },
-      { "site_id": "site:paris_c:service", "subzone_id": "paris_c", "x_ratio": 0.28 },
-      { "site_id": "site:banlieue_a:service", "subzone_id": "banlieue_a", "x_ratio": 0.73 },
-      { "site_id": "site:banlieue_c:service", "subzone_id": "banlieue_c", "x_ratio": 0.27 },
-      { "site_id": "site:periurbain_a:service", "subzone_id": "periurbain_a", "x_ratio": 0.7 },
-      { "site_id": "site:periurbain_c:service", "subzone_id": "periurbain_c", "x_ratio": 0.3 },
-      { "site_id": "site:campagne_a:service", "subzone_id": "campagne_a", "x_ratio": 0.74 },
-      { "site_id": "site:campagne_c:service", "subzone_id": "campagne_c", "x_ratio": 0.29 },
-      { "site_id": "site:retraites_a:service", "subzone_id": "retraites_a", "x_ratio": 0.71 },
-      { "site_id": "site:retraites_c:service", "subzone_id": "retraites_c", "x_ratio": 0.26 },
-      { "site_id": "site:riches_a:service", "subzone_id": "riches_a", "x_ratio": 0.76 },
-      { "site_id": "site:riches_c:service", "subzone_id": "riches_c", "x_ratio": 0.25 }
+      {
+        "site_id": "site:paris_a",
+        "subzone_id": "paris_a",
+        "x_ratio": 0.24
+      },
+      {
+        "site_id": "site:paris_b",
+        "subzone_id": "paris_b",
+        "x_ratio": 0.52
+      },
+      {
+        "site_id": "site:paris_c",
+        "subzone_id": "paris_c",
+        "x_ratio": 0.78
+      },
+      {
+        "site_id": "site:banlieue_a",
+        "subzone_id": "banlieue_a",
+        "x_ratio": 0.26
+      },
+      {
+        "site_id": "site:banlieue_b",
+        "subzone_id": "banlieue_b",
+        "x_ratio": 0.55
+      },
+      {
+        "site_id": "site:banlieue_c",
+        "subzone_id": "banlieue_c",
+        "x_ratio": 0.76
+      },
+      {
+        "site_id": "site:periurbain_a",
+        "subzone_id": "periurbain_a",
+        "x_ratio": 0.22
+      },
+      {
+        "site_id": "site:periurbain_b",
+        "subzone_id": "periurbain_b",
+        "x_ratio": 0.5
+      },
+      {
+        "site_id": "site:periurbain_c",
+        "subzone_id": "periurbain_c",
+        "x_ratio": 0.8
+      },
+      {
+        "site_id": "site:campagne_a",
+        "subzone_id": "campagne_a",
+        "x_ratio": 0.25
+      },
+      {
+        "site_id": "site:campagne_b",
+        "subzone_id": "campagne_b",
+        "x_ratio": 0.54
+      },
+      {
+        "site_id": "site:campagne_c",
+        "subzone_id": "campagne_c",
+        "x_ratio": 0.77
+      },
+      {
+        "site_id": "site:retraites_a",
+        "subzone_id": "retraites_a",
+        "x_ratio": 0.23
+      },
+      {
+        "site_id": "site:retraites_b",
+        "subzone_id": "retraites_b",
+        "x_ratio": 0.51
+      },
+      {
+        "site_id": "site:retraites_c",
+        "subzone_id": "retraites_c",
+        "x_ratio": 0.79
+      },
+      {
+        "site_id": "site:riches_a",
+        "subzone_id": "riches_a",
+        "x_ratio": 0.27
+      },
+      {
+        "site_id": "site:riches_b",
+        "subzone_id": "riches_b",
+        "x_ratio": 0.49
+      },
+      {
+        "site_id": "site:riches_c",
+        "subzone_id": "riches_c",
+        "x_ratio": 0.75
+      },
+      {
+        "site_id": "site:paris_a:service",
+        "subzone_id": "paris_a",
+        "x_ratio": 0.72
+      },
+      {
+        "site_id": "site:paris_b:service",
+        "subzone_id": "paris_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:paris_c:service",
+        "subzone_id": "paris_c",
+        "x_ratio": 0.28
+      },
+      {
+        "site_id": "site:banlieue_a:service",
+        "subzone_id": "banlieue_a",
+        "x_ratio": 0.73
+      },
+      {
+        "site_id": "site:banlieue_b:service",
+        "subzone_id": "banlieue_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:banlieue_c:service",
+        "subzone_id": "banlieue_c",
+        "x_ratio": 0.27
+      },
+      {
+        "site_id": "site:periurbain_a:service",
+        "subzone_id": "periurbain_a",
+        "x_ratio": 0.7
+      },
+      {
+        "site_id": "site:periurbain_b:service",
+        "subzone_id": "periurbain_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:periurbain_c:service",
+        "subzone_id": "periurbain_c",
+        "x_ratio": 0.3
+      },
+      {
+        "site_id": "site:campagne_a:service",
+        "subzone_id": "campagne_a",
+        "x_ratio": 0.74
+      },
+      {
+        "site_id": "site:campagne_b:service",
+        "subzone_id": "campagne_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:campagne_c:service",
+        "subzone_id": "campagne_c",
+        "x_ratio": 0.29
+      },
+      {
+        "site_id": "site:retraites_a:service",
+        "subzone_id": "retraites_a",
+        "x_ratio": 0.71
+      },
+      {
+        "site_id": "site:retraites_b:service",
+        "subzone_id": "retraites_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:retraites_c:service",
+        "subzone_id": "retraites_c",
+        "x_ratio": 0.26
+      },
+      {
+        "site_id": "site:riches_a:service",
+        "subzone_id": "riches_a",
+        "x_ratio": 0.76
+      },
+      {
+        "site_id": "site:riches_b:service",
+        "subzone_id": "riches_b",
+        "x_ratio": 0.82
+      },
+      {
+        "site_id": "site:riches_c:service",
+        "subzone_id": "riches_c",
+        "x_ratio": 0.25
+      }
     ]
   },
   "visual_layout": {

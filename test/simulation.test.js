@@ -50,11 +50,12 @@ test('Le monde contient 6 × 3 sous-zones, les populations exactes et des IDs un
 test('Argent initial, départs et vitesse de marche proviennent des JSON', () => {
   const sim = new GameSimulation(config);
   const before = sim.getState();
+  const expectedStartingMoney = { melenchon: 40, le_pen: 40, philippe: 100 };
   for (const faction of FACTIONS) {
     const c = before.candidates.find(c => c.faction_id === faction);
     const zone = before.world.subzones.find(z => z.id === config.layout.starting_positions[faction]);
     assert.equal(c.x, zone.center);
-    assert.equal(c.money, config.balance.money.base_starting_money * (faction === 'philippe' ? config.balance.money.philippe_starting_money_multiplier : 1));
+    assert.equal(c.money, expectedStartingMoney[faction]);
   }
   tick(sim, 30, [move(before.local_candidate_id, 1)]);
   assert.ok(Math.abs(sim.getState().candidates[0].x - before.candidates[0].x - config.prototype.movement.candidate_speed_units_per_second) < 1e-9);
@@ -78,14 +79,14 @@ test('Boucle du monde : franchissement continu dans les deux sens', () => {
 test('Spawns par sous-zone, sans dépendre de la caméra ni de la présence du joueur', () => {
   const cfg = copyConfig(); cfg.balance.time.real_seconds_per_game_day = 1;
   const sim = new GameSimulation(cfg);
-  const seconds = 20;
+  const seconds = cfg.balance.time.starting_days_before_first_round;
   tick(sim, seconds * 30, FACTIONS.map(f => setCampaignActive(`candidate:${f}`, false)));
   const state = sim.getState();
   for (const zone of state.world.subzones) {
     assert.equal(state.npcs.filter(n => n.origin_subzone_id === zone.id && n.role === 'NEUTRE').length, zone.max_npcs_by_origin, zone.id);
     const timer = state.spawn_timers.find(t => t.subzone_id === zone.id);
     assert.ok(timer.elapsed_ticks < timer.interval_ticks);
-    assert.ok(timer.skipped_count > 0);
+    assert.equal(timer.skipped_count, 0);
   }
 });
 
@@ -289,7 +290,7 @@ test('La vue reçoit une copie : aucune mutation indirecte de l’état', () => 
   const sim = new GameSimulation(config);
   const read = sim.getState(); read.npcs.length = 0; read.candidates[0].money = -1;
   assert.ok(sim.getState().npcs.length > 0);
-  assert.equal(sim.getState().candidates[0].money, 100);
+  assert.equal(sim.getState().candidates[0].money, config.balance.money.base_starting_money);
 });
 
 test('Même simulation à 1, 20, 30, 60, 144 FPS et avec des frames irrégulières', () => {

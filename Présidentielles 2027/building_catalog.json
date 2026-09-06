@@ -11,6 +11,7 @@
       "ownership_model": "capturable",
       "preexisting_in_world": true,
       "first_capture_becomes_headquarters": true,
+      "placement_rule": "central_subzone_only",
       "headquarters_is_immune_to_ordinary_closure": true,
       "headquarters_is_immune_to_philippe": true
     },
@@ -19,6 +20,7 @@
       "must_be_constructed": false,
       "preexisting_in_world": true,
       "pay_per_use": true,
+      "repeat_purchase_while_present": true,
       "can_be_targeted_by_philippe": false
     },
     "service_ordre": {
@@ -28,6 +30,7 @@
         "le_pen"
       ],
       "preexisting_in_world": true,
+      "placement_rule": "one_per_biome_outside_central_subzone",
       "can_be_targeted_by_philippe": true
     },
     "cabinet_administratif": {
@@ -36,6 +39,7 @@
         "philippe"
       ],
       "preexisting_in_world": true,
+      "placement_rule": "one_per_biome_outside_central_subzone",
       "can_be_targeted_by_philippe": false
     },
     "financement": {
@@ -47,18 +51,30 @@
     "tour_communication": {
       "ownership_model": "capturable",
       "preexisting_in_world": true,
+      "visual_style": "classic_building",
       "can_be_targeted_by_philippe": true
     },
     "institut_sondage": {
       "ownership_model": "neutral_service",
       "preexisting_in_world": true,
       "pay_per_use": true,
+      "fixed_biomes": [
+        "paris_19e",
+        "periurbain_usine",
+        "retraites",
+        "quartiers_riches"
+      ],
       "can_be_targeted_by_philippe": false
     },
     "meeting": {
       "ownership_model": "neutral_service",
       "preexisting_in_world": true,
       "pay_per_use": true,
+      "continuous_levels_while_present": [
+        50,
+        100,
+        150
+      ],
       "can_be_targeted_by_philippe": true,
       "targeting_effect": "temporary_candidate_ban"
     }

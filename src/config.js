@@ -33,6 +33,14 @@ export function validateConfig(config) {
   positive(config.balance.interaction.radius_units, 'portée des interactions');
   if (!Number.isInteger(config.layout.social_points_per_subzone) || config.layout.social_points_per_subzone < 1) throw new Error('Configuration : au moins un point social par sous-zone.');
   if (config.layout.neutral_spawn_capacity_policy !== 'skip_and_reschedule_when_full') throw new Error('Configuration : politique de capacité inconnue.');
+  const populationGrowth = config.layout.neutral_population_growth;
+  if (!populationGrowth || typeof populationGrowth.enabled !== 'boolean') throw new Error('Configuration : réglage de croissance des PNJ manquant.');
+  if (!Number.isInteger(populationGrowth.target_days_before_first_round) || populationGrowth.target_days_before_first_round < 0
+    || populationGrowth.target_days_before_first_round >= config.balance.time.starting_days_before_first_round) throw new Error('Configuration : date cible de population invalide.');
+  positive(populationGrowth.interval_randomness?.min_factor, 'variation minimale des apparitions');
+  positive(populationGrowth.interval_randomness?.max_factor, 'variation maximale des apparitions');
+  if (populationGrowth.interval_randomness.min_factor > populationGrowth.interval_randomness.max_factor
+    || populationGrowth.interval_randomness.max_factor > 1) throw new Error('Configuration : variation des apparitions invalide ou susceptible de dépasser le premier tour.');
   const generation = config.layout.strategic_site_generation;
   if (!generation || generation.mode !== 'seeded_explicit_slots' || !Array.isArray(generation.slots)) throw new Error('Configuration : emplacements stratégiques absents.');
   if (config.prototype.persuasion.break_policy !== 'reset' || config.prototype.persuasion.contest_policy !== 'nearest_then_stable_id') {
@@ -44,11 +52,8 @@ export function validateConfig(config) {
     for (const zone of biome.subzones) {
       if (ids.has(zone.id)) throw new Error(`Sous-zone en double : ${zone.id}.`);
       ids.add(zone.id);
-      positive(zone.mean_spawn_days, `délai moyen ${zone.id}`);
-      positive(zone.spawn_randomness?.min_factor, `variation minimale ${zone.id}`);
-      positive(zone.spawn_randomness?.max_factor, `variation maximale ${zone.id}`);
-      if (zone.spawn_randomness.min_factor > zone.spawn_randomness.max_factor) throw new Error(`Configuration : intervalle aléatoire inversé dans ${zone.id}.`);
-      if (!Number.isInteger(zone.initial_neutral_count) || zone.initial_neutral_count < 0 || !Number.isInteger(zone.max_npcs_by_origin) || zone.max_npcs_by_origin < 1) throw new Error(`Population ou capacité invalide : ${zone.id}.`);
+      if (!Number.isInteger(zone.initial_neutral_count) || zone.initial_neutral_count < 0 || !Number.isInteger(zone.max_npcs_by_origin)
+        || zone.max_npcs_by_origin < 8 || zone.max_npcs_by_origin > 16) throw new Error(`Population ou capacité invalide dans ${zone.id} : plafond entier entre 8 et 16 attendu.`);
       if (zone.initial_neutral_count > zone.max_npcs_by_origin) throw new Error(`Configuration : population initiale supérieure à la capacité dans ${zone.id}.`);
     }
   }
@@ -62,6 +67,10 @@ export function validateConfig(config) {
   const siteTypes = ['permanence', 'financement', 'faction', 'tour_communication', 'imprimerie', 'meeting', 'institut_sondage'];
   if (siteTypes.some(type => !Number.isInteger(generation.site_counts[type]) || generation.site_counts[type] < 0)
     || Object.values(generation.site_counts).reduce((a, b) => a + b, 0) !== generation.slots.length) throw new Error('Configuration : quotas de sites incohérents.');
+  if (generation.site_counts.permanence !== config.layout.biomes.length || generation.site_counts.faction !== config.layout.biomes.length) throw new Error('Configuration : il faut une Permanence et un Local SO/Cabinet par biome.');
+  const instituteBiomes = generation.fixed_biomes_by_type?.institut_sondage;
+  if (!Array.isArray(instituteBiomes) || instituteBiomes.length !== generation.site_counts.institut_sondage
+    || new Set(instituteBiomes).size !== instituteBiomes.length || instituteBiomes.some(id => !config.layout.biomes.some(biome => biome.id === id))) throw new Error('Configuration : biomes des Instituts de sondage invalides.');
   const capturableConfigs = ['permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
   for (const type of [...capturableConfigs, 'imprimerie', 'meeting', 'institut_sondage']) {
     const building = config.balance.buildings[type];
@@ -75,6 +84,14 @@ export function validateConfig(config) {
   for (const field of ['purchase_hold_seconds', 'pickup_seconds']) positive(printer[field], `imprimerie.${field}`);
   positive(printer.tract_cost_by_level[0], 'prix du tract'); positive(printer.equipment_seconds_by_level[0], 'durée d’impression');
   if (!Number.isInteger(printer.max_queue_length) || printer.max_queue_length < 1) throw new Error('Configuration : capacité de file invalide.');
+  const funding = config.balance.buildings.financement;
+  for (const field of ['campaign_duration_min', 'campaign_duration_max', 'campaign_start_cost', 'payout_base', 'influence_factor',
+    'campaign_progression_factor_start', 'campaign_progression_factor_end', 'random_min', 'random_max', 'campaign_start_seconds',
+    'upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);
+  if (funding.campaign_duration_min > funding.campaign_duration_max || funding.random_min > funding.random_max
+    || funding.campaign_progression_factor_start > funding.campaign_progression_factor_end
+    || funding.payout_level_multiplier.length !== funding.max_level
+    || funding.payout_level_multiplier.some(value => !Number.isFinite(value) || value <= 0)) throw new Error('Configuration : campagne de financement invalide.');
   positive(config.balance.physical_units.sympathisant.task_move_speed, 'vitesse de collecte');
   positive(config.balance.physical_units.militant.move_speed, 'vitesse du Militant');
   positive(config.balance.physical_units.militant.max_player_speed_multiplier, 'limite de vitesse du Militant');
@@ -103,7 +120,11 @@ export function validateConfig(config) {
   positive(config.balance.buildings.institut_sondage.poll_cost, 'prix du sondage');
   const meeting = config.balance.buildings.meeting;
   positive(meeting.interaction_radius, 'portée Meeting');
-  if (meeting.duration_seconds_by_level.some((duration, i) => duration > meeting.internal_cooldown_seconds_by_level[i])
+  if (!Number.isInteger(meeting.meeting_max_level) || meeting.meeting_max_level < 1
+    || ['activation_cost_by_level', 'influence_burst_by_level', 'ally_influence_multiplier_by_level', 'duration_seconds_by_level', 'internal_cooldown_seconds_by_level']
+      .some(key => meeting[key].length !== meeting.meeting_max_level)
+    || meeting.activation_cost_by_level.some(value => !Number.isFinite(value) || value <= 0)
+    || meeting.duration_seconds_by_level.some((duration, i) => duration > meeting.internal_cooldown_seconds_by_level[i])
     || meeting.ally_influence_multiplier_by_level.some(value => value < 1)) throw new Error('Configuration : bonus ou durée de Meeting incohérents.');
   for (const [key, value] of Object.entries(config.balance.influence)) if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : influence invalide (${key}).`);
   for (const key of ['control_min_leader_percent', 'control_required_lead_points', 'allow_opponent_conversion_below_neutral_percent']) if (config.balance.influence[key] > 100) throw new Error(`Configuration : seuil supérieur à 100 (${key}).`);

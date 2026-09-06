@@ -1,6 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BrowserInput } from '../src/presentation/input.js';
+import { CampaignDisplay } from '../src/presentation/campaign.js';
+import { config } from '../scripts/game-config.mjs';
+import { GameSimulation } from '../src/simulation/game-simulation.js';
+import { captureSite } from '../src/simulation/strategic-sites.js';
+
+test('Le panneau affiche les trois orientations près du QG pour chaque candidat', t => {
+  class Node {
+    children = []; style = {}; classes = new Set();
+    classList = { toggle: (name, enabled) => enabled ? this.classes.add(name) : this.classes.delete(name) };
+    append(...nodes) { this.children.push(...nodes); }
+    replaceChildren(...nodes) { this.children = nodes; }
+    setAttribute() {}
+  }
+  const previous = globalThis.document;
+  globalThis.document = { createElement: () => new Node(), body: new Node(), getElementById: () => null };
+  t.after(() => { if (previous === undefined) delete globalThis.document; else globalThis.document = previous; });
+  for (const faction of ['melenchon', 'le_pen', 'philippe']) {
+    const sim = new GameSimulation(config, 42, `candidate:${faction}`);
+    const candidate = sim.state.candidates.find(c => c.faction_id === faction);
+    const hq = sim.state.buildings.find(b => b.type === 'permanence');
+    captureSite(sim, hq, candidate); candidate.x = hq.x;
+    candidate.orientation_hold = { index: 1, start_tick: sim.state.tick };
+    const display = new CampaignDisplay(config);
+    display.updateOrientation(sim.state);
+    const choices = display.orientationRoot.children[3].children;
+    assert.equal(choices.length, 3);
+    assert.ok(choices.every(choice => typeof choice.children[0].textContent === 'string'));
+    assert.equal(choices[1].classes.has('active'), true);
+    assert.equal(choices[0].classes.has('active'), false);
+  }
+});
 
 class Element extends EventTarget {
   tagName = 'BUTTON';

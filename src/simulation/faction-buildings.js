@@ -14,7 +14,7 @@ export const availableGuards = (state, biome, faction) => state.npcs.filter(n =>
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
   return state.buildings.filter(b => b.state === 'ACTIVE' && !b.headquarters
-    && (b.type === 'meeting' ? b.meeting_faction_id && b.meeting_faction_id !== cabinet.owner_id
+    && (b.type === 'meeting' ? b.meeting_until_tick > state.tick && b.meeting_faction_id && b.meeting_faction_id !== cabinet.owner_id
       : b.owner_id && b.owner_id !== cabinet.owner_id && allowed.includes(b.type === 'faction' ? b.variant : b.type)))
     .map(b => ({ b, distance: wrap((b.x - cabinet.x) * direction, state.world.length) }))
     .filter(item => item.distance > 0).sort((a, b) => a.distance - b.distance || stableIdOrder(a.b, b.b))[0]?.b || null;
@@ -103,7 +103,10 @@ export function commitFactionAction(sim, candidate, building, offer) {
       sim.emit('EquipmentRefunded', { order_id: order.id, candidate_id: payer.id, amount: order.cost });
     }
     victim.queue = [];
-    for (const c of state.candidates) if (c.purchase_hold?.target_id === victim.id) c.purchase_hold = null;
+    for (const c of state.candidates) {
+      if (c.purchase_hold?.target_id === victim.id) c.purchase_hold = null;
+      if (c.interaction_chain_site_id === victim.id) c.interaction_chain_site_id = null;
+    }
     building.closure_ready_tick = state.tick + sim.secondsToTicks(buildingSettings(config, building).closure_cooldown_seconds);
     sim.emit('BuildingClosed', { target_id: victim.id, cabinet_id: building.id, owner_id: victim.owner_id });
     return true;

@@ -38,7 +38,7 @@ export function validateElectoralSnapshot(state, config, fail) {
   for (const f of FACTIONS) if (state.buildings.filter(b => b.type === 'tour_communication' && b.state === 'ACTIVE' && b.owner_id === f).length > config.balance.buildings.tour_communication.global_limit) fail('limite de Tours dépassée');
   for (const b of state.buildings.filter(b => b.type === 'meeting')) {
     if (!integer(b.meeting_until_tick) || !integer(b.meeting_started_tick, -1) || b.meeting_started_tick > state.tick
-      || !integer(b.meeting_level) || b.meeting_level !== 1 || !integer(b.meetings_held)
+      || !integer(b.meeting_level, 1) || b.meeting_level > config.balance.buildings.meeting.meeting_max_level || !integer(b.meetings_held)
       || !b.meeting_ready_by_faction || !b.meeting_banned_until_by_faction
       || [...FACTIONS].some(f => !integer(b.meeting_ready_by_faction[f]) || !integer(b.meeting_banned_until_by_faction[f]))
       || (b.meeting_until_tick > state.tick && (b.state !== 'ACTIVE' || !FACTIONS.includes(b.meeting_faction_id)))) fail('état du Meeting invalide');

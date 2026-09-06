@@ -1,5 +1,5 @@
 import { fundingModifiers } from './campaign-events.js';
-import { zoneAt } from './world.js';
+import { wrap, zoneAt } from './world.js';
 import { biomeSympathisants, distance, incomePerSecond, localSympathisants, stableIdOrder } from './territory.js';
 import { buildingSettings } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
@@ -34,15 +34,15 @@ export function buildingOffer(state, config, candidate, building) {
     const required = settings.required_presence_N1;
     if (presence < required) { available = false; reason = 'INSUFFICIENT_PRESENCE'; }
     reason ||= captureLimitReason(state, config, building, candidate.faction_id);
+  } else if (building.type === 'financement' && building.owner_id === candidate.faction_id) {
+    kind = 'FUNDRAISE'; cost = settings.campaign_start_cost;
+    if (!fundingModifiers(state, candidate.faction_id).can_start_new_campaign) { available = false; reason = 'FUNDING_CRISIS'; }
+    if (building.funding_state === 'RUNNING') { available = false; reason = 'CAMPAIGN_RUNNING'; }
   } else if (building.owner_id === candidate.faction_id && building.level < settings.max_level) {
     kind = 'UPGRADE'; cost = settings.upgrade_costs[building.level - 1];
     if (localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]) {
       available = false; reason = 'INSUFFICIENT_PRESENCE';
     }
-  } else if (building.type === 'financement' && building.owner_id === candidate.faction_id) {
-    kind = 'FUNDRAISE'; cost = settings.campaign_start_cost;
-    if (!fundingModifiers(state, candidate.faction_id).can_start_new_campaign) { available = false; reason = 'FUNDING_CRISIS'; }
-    if (building.funding_state === 'RUNNING') { available = false; reason = 'CAMPAIGN_RUNNING'; }
   } else return null;
   if (building.type === 'tour_communication' && kind === 'CAPTURE'
     && state.buildings.filter(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE').length >= settings.global_limit) {
@@ -59,7 +59,20 @@ export function buildingOffers(state, config, candidate, building) {
   if (building.type === 'faction') return factionOffers(state, config, candidate, building);
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building);
   const offer = buildingOffer(state, config, candidate, building);
-  return offer ? [{ ...offer, x: building.x, radius: config.balance.interaction.radius_units }] : [];
+  const offers = offer ? [{ ...offer, x: building.x, radius: config.balance.interaction.radius_units,
+    ...(offer.kind === 'FUNDRAISE' ? { label: 'LANCER LA COLLECTE' } : {}) }] : [];
+  if (building.type === 'financement' && building.state === 'ACTIVE' && building.owner_id === candidate.faction_id
+    && building.level < config.balance.buildings.financement.max_level) {
+    const settings = config.balance.buildings.financement;
+    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]
+      ? 'INSUFFICIENT_PRESENCE' : null;
+    const cost = settings.upgrade_costs[building.level - 1];
+    offers.push({ target_id: building.id, key: `${building.id}:UPGRADE:${building.level}`, kind: 'UPGRADE', cost,
+      required_ticks: Math.ceil(settings.purchase_hold_seconds * config.balance.simulation_architecture.fixed_tick_hz),
+      x: wrap(building.x + settings.upgrade_offset, state.world.length), radius: settings.upgrade_radius, label: 'AMÉLIORER',
+      ...paymentStatus(candidate, config, cost, reason) });
+  }
+  return offers;
 }
 
 export function nearestOffer(state, config, candidate) {
@@ -81,7 +94,7 @@ function transact(simulation, candidate, offer) {
   candidate.spending[fresh.kind] = (candidate.spending[fresh.kind] || 0) + fresh.cost;
   state.transactions.push(transaction);
   if (state.transactions.length > config.balance.debug.transaction_history_limit) state.transactions.shift();
-  const handled = fresh.kind === 'MEETING' ? (triggerMeeting(simulation, building, candidate.faction_id), true)
+  const handled = fresh.kind === 'MEETING' ? (triggerMeeting(simulation, building, candidate.faction_id, fresh.meeting_level), true)
     : fresh.kind === 'POLL' ? (publishPoll(simulation, candidate.faction_id, building), true)
     : fresh.kind === 'FUNDRAISE' ? (startFundingCampaign(simulation, building), true)
     : commitFactionAction(simulation, candidate, building, fresh);
@@ -99,10 +112,14 @@ function transact(simulation, candidate, offer) {
     simulation.emit('BuildingUpgraded', { ...transaction, level: building.level });
   }
   building.last_action_tick = state.tick;
-  if (['PRINT', 'EQUIP', 'MEETING', 'POLL', 'FUNDRAISE', 'RAID', 'CLOSE'].includes(fresh.kind)) {
+  if (['EQUIP', 'POLL', 'FUNDRAISE', 'RAID', 'CLOSE'].includes(fresh.kind)) {
     candidate.purchase_latch_target_id = building.id;
   }
   if (['CAPTURE', 'UPGRADE'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
+  if (fresh.kind === 'MEETING') {
+    candidate.interaction_chain_site_id = building.id;
+    candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(config.balance.buildings.meeting.upgrade_pause_seconds);
+  }
   candidate.purchase_hold = null;
   return true;
 }
@@ -119,7 +136,8 @@ export function updateEconomy(simulation) {
     const latched = state.buildings.find(b => b.id === candidate.purchase_latch_target_id);
     if (latched && distance(state, candidate.x, latched.x) > config.balance.interaction.radius_units) candidate.purchase_latch_target_id = null;
     const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
-    if (chained && distance(state, candidate.x, chained.x) > config.balance.interaction.radius_units) candidate.interaction_chain_site_id = null;
+    const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : config.balance.interaction.radius_units;
+    if (chained && distance(state, candidate.x, chained.x) > chainRadius) candidate.interaction_chain_site_id = null;
     if (!candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
     for (const building of state.buildings) if (building.id === offer?.target_id) {

@@ -99,7 +99,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .result-actions { flex-wrap: wrap; }
 }
 @media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }
-/* Cartes d’annonce : deux secondes au centre, puis pile chronologique. */
+/* Cartes d’annonce : arrivée au centre, puis pile chronologique. */
 #campaign-events { position: fixed; top: 110px; right: 16px; width: min(310px, 40vw); display: flex; flex-direction: column; gap: 7px; z-index: 18; pointer-events: none; }
 .campaign-card { padding: 10px 13px; border: 1px solid #d9b966; border-radius: 9px; color: #fff5d6; background: #172331ef; box-shadow: 0 4px 20px #0005; transition: transform .55s ease, width .55s ease; font: 12px/1.35 system-ui; transform-origin: top right; }
 .campaign-card strong, .campaign-card span, .campaign-card small { display: block; }
@@ -112,3 +112,16 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 
 .campaign-studio #funds, .campaign-studio #money, .campaign-studio #day, .campaign-studio #hint { color: #eaf2f7; }
 #campaign-events:has(.arriving) { gap: 24px; }
+#campaign-orientation { position: absolute; left: 50%; top: 17%; width: min(620px, 76%); transform: translateX(-50%); z-index: 2; padding: 7px 10px; border: 2px solid #5b9d76; border-radius: 12px; background: #f4f1dfef; box-shadow: 0 5px 22px #1b2b2455; color: #243a30; text-align: center; pointer-events: none; }
+#campaign-orientation > strong { font-size: clamp(14px, 1.7cqw, 21px); }
+.orientation-count { margin-left: 9px; padding: 2px 7px; border-radius: 999px; background: #397054; color: white; font-size: clamp(9px, 1cqw, 12px); }
+#campaign-orientation p { margin: 5px 0 8px; font-size: clamp(10px, 1.15cqw, 14px); }
+.orientation-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.orientation-option { position: relative; overflow: hidden; min-height: 55px; padding: 7px; border: 1px solid #9bb6a5; border-radius: 7px; background: #fffdf4; }
+.orientation-option strong, .orientation-option span, .orientation-option small { display: block; }
+.orientation-option strong { font-size: clamp(10px, 1.15cqw, 14px); }
+.orientation-option span { color: #496457; font-size: clamp(9px, .95cqw, 12px); }
+.orientation-option small { margin-top: 3px; color: #68766f; font-size: clamp(8px, .82cqw, 10px); }
+.orientation-option i { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: #3da66b; }
+.orientation-option.active { border-color: #27965b; background: #e4f6e9; box-shadow: inset 0 0 0 1px #27965b; }
+@media(max-width: 650px) { #campaign-orientation { top: 18%; width: 92%; padding: 5px 7px; } .orientation-options { gap: 4px; } .orientation-option { padding: 5px 3px; } }

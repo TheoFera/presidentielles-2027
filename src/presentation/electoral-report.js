@@ -22,11 +22,11 @@ export function electoralReport(state, config, candidate) {
     }
   }
   lines.push('', '— TOURS ET MEETINGS —');
-  for (const b of state.buildings.filter(b => b.owner_id && ['tour_communication', 'meeting'].includes(b.type))) {
+  for (const b of state.buildings.filter(b => b.type === 'tour_communication' && b.owner_id || b.type === 'meeting')) {
     const settings = config.balance.buildings[b.type];
     if (b.type === 'tour_communication') lines.push(`${b.subzone_id} · Tour ${names[b.owner_id]} · niveau ${b.level} · ${b.state === 'ACTIVE' ? `base ${f(settings.global_influence_per_second_by_level[b.level - 1])}/s` : 'fermée : influence nulle'}`);
-    else lines.push(`${b.subzone_id} · Meeting ${names[b.owner_id]} · niveau ${b.level} · ${b.state === 'ACTIVE' ? `événement ${f(settings.activation_cost_by_level[b.level - 1])} k € · impulsion ${f(settings.influence_burst_by_level[b.level - 1])}` : 'fermé'}`,
-      `  Délai : ${f(Math.max(0, b.meeting_ready_tick - state.tick) / hz)} s · bonus actif : ${b.state === 'ACTIVE' && b.meeting_until_tick > state.tick ? `×${f(settings.ally_influence_multiplier_by_level[b.meeting_level - 1])}, encore ${f((b.meeting_until_tick - state.tick) / hz)} s` : 'aucun'} · événements : ${b.meetings_held}`);
+    else lines.push(`${b.subzone_id} · Salle neutre · ${b.meeting_until_tick > state.tick ? `Meeting ${names[b.meeting_faction_id]} niveau ${b.meeting_level} · impulsion ${f(settings.influence_burst_by_level[b.meeting_level - 1])}` : 'aucun Meeting actif'}`,
+      `  Bonus actif : ${b.meeting_until_tick > state.tick ? `×${f(settings.ally_influence_multiplier_by_level[b.meeting_level - 1])}, encore ${f((b.meeting_until_tick - state.tick) / hz)} s` : 'aucun'} · segments achetés : ${b.meetings_held}`);
   }
   const impact = [...state.hit_results].reverse().find(hit => hit.electoral_changes?.length);
   if (impact) {

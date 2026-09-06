@@ -2,7 +2,7 @@
 
 31 tests réussis avec npm test ; npm run build réussit. Vérification réelle dans le navigateur : démarrage, F3, annonce centrale puis carte compacte à droite, plusieurs cartes, studio séparé et décor hivernal après saut à J-165. Une erreur existante de formatage du rapport électoral a été corrigée.
 
-Trois seeds (17, 42, 109), trois candidats contrôlés par IA, campagnes simulées jusqu’à J0 à 30 ticks/seconde et **1 seconde par jour**. Trois témoins sans événements utilisent les mêmes seeds. Le réglage normal reste 20 secondes par jour ; ces chiffres ne prouvent pas l’équilibrage d’une partie de deux heures.
+Trois seeds (17, 42, 109), trois candidats contrôlés par IA, campagnes simulées jusqu’à J0 à 30 ticks/seconde et **1 seconde par jour**. Trois témoins sans événements utilisent les mêmes seeds. Le réglage normal vaut désormais 2,5 secondes par jour, soit environ 15 minutes et 13 secondes pour l’année ; ces chiffres accélérés ne suffisent pas à prouver l’équilibrage d’une partie jouée normalement.
 
 | Seed | Événements | Intervalle moyen (jours) | Changements de leader | Rencontres | Candidats auparavant troisièmes revenus en tête | Sous-zones ayant changé de contrôle | Meetings remportés |
 |---|---:|---:|---:|---:|---:|---:|---:|

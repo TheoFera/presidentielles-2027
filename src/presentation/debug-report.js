@@ -1,4 +1,4 @@
-import { buildingOffer } from '../simulation/economy.js';
+import { buildingOffer, buildingOffers } from '../simulation/economy.js';
 import { FACTIONS, zoneAt } from '../simulation/world.js';
 import { incomeBreakdown, localUnits, populationByOrigin, waitingAtPoint } from '../simulation/territory.js';
 import { remainingCampaignBudget } from '../simulation/campaign-budget.js';
@@ -16,13 +16,17 @@ export function managementReport(state, config, candidate, npc, building) {
   const zone = zoneAt(state.world, candidate.x);
   const units = localUnits(state, zone.id);
   const election = state.electorate.find(e => e.subzone_id === zone.id);
+  const growth = config.layout.neutral_population_growth;
+  const missingPopulation = Math.max(1, zone.max_npcs_by_origin - zone.initial_neutral_count);
+  const socialPointCount = Math.max(1, state.world.socialPoints.filter(point => point.subzone_id === zone.id).length);
+  const intervalDays = (config.balance.time.starting_days_before_first_round - growth.target_days_before_first_round) * socialPointCount / missingPopulation;
   const lines = [
     '', '— SOUS-ZONE ACTUELLE —',
     `Neutres présents : ${units.filter(n => n.role === 'NEUTRE').length}`,
     `PNJ originaires de cette sous-zone : ${populationByOrigin(state, zone.id)} / ${zone.max_npcs_by_origin} (tous rôles et camps, même partis ailleurs)`,
     populationByOrigin(state, zone.id) >= zone.max_npcs_by_origin ? 'Plafond atteint : aucune nouvelle apparition.' : 'Apparitions actives jusqu’au plafond de population d’origine.',
-    `Moyenne : ${f(zone.mean_spawn_days)} jour(s), soit ${f(zone.mean_spawn_days * config.balance.time.real_seconds_per_game_day)} s`,
-    `Variation : ×${f(zone.spawn_randomness.min_factor)} à ×${f(zone.spawn_randomness.max_factor)}`,
+    `Fréquence calculée : ${f(intervalDays)} jour(s), soit ${f(intervalDays * config.balance.time.real_seconds_per_game_day)} s`,
+    `Objectif : plafond atteint à J-${growth.target_days_before_first_round} · variation ×${f(growth.interval_randomness.min_factor)} à ×${f(growth.interval_randomness.max_factor)}`,
     ...state.spawn_timers.filter(t => t.subzone_id === zone.id).map(timer => {
       const waiting = waitingAtPoint(state, timer.social_point_id);
       return `${timer.social_point_id}\n  Neutres issus de ce point : ${waiting} · prochaine tentative : ${f((timer.interval_ticks - timer.elapsed_ticks) / hz)} s\n  Délai tiré : ${f(timer.interval_ticks / hz)} s · tentatives sans place : ${timer.skipped_count}`;
@@ -52,6 +56,7 @@ export function managementReport(state, config, candidate, npc, building) {
   if (building) {
     const settings = buildingSettings(config, building, candidate.faction_id);
     const offer = buildingOffer(state, config, candidate, building);
+    const upgradeOffer = buildingOffers(state, config, candidate, building).find(candidateOffer => candidateOffer.kind === 'UPGRADE');
     const price = offer?.cost ?? (building.state === 'NEUTRAL' ? settings.capture_cost : null);
     lines.push('', '— BÂTIMENT INSPECTÉ —', `${buildingLabel(building, candidate.faction_id)} · ${building.id}`,
       `${building.subzone_id} · x=${f(building.x)}`,
@@ -60,8 +65,9 @@ export function managementReport(state, config, candidate, npc, building) {
       `Présence politique : ${building.current_political_presence} · seuil ${building.required_presence} · pression SO ${f(building.hostile_pressure)} · effective ${f(building.current_effective_presence)}`,
       `Fermeture : ${f(building.closure_progress * 100)} % · capture : ${f(building.capture_progress * 100)} %`,
       `Coût actuel : ${price === null ? 'Aucune dépense disponible' : `${f(price)} k €`}`,
-      `Prochain niveau : ${building.level < settings.max_level ? building.level + 1 : 'aucun'} · verrou : ${offer?.reason ? reasonNames[offer.reason] : 'aucun'}`);
-    if (building.type === 'financement') lines.push(`Financement : ${building.funding_state} · reste ${building.funding_end_tick ? f((building.funding_end_tick - state.tick) / hz) : 0} s · influence ×${f(building.funding_influence_factor || 0)} · hasard ×${f(building.funding_random_factor || 0)} · cagnotte ${f(building.funding_expected_payout)} k €`);
+      `Prochain niveau : ${building.level < settings.max_level ? building.level + 1 : 'aucun'} · verrou : ${(upgradeOffer?.reason || (building.type !== 'financement' && offer?.reason)) ? reasonNames[upgradeOffer?.reason || offer.reason] : 'aucun'}`);
+    if (building.type === 'financement') lines.push(`Financement : ${building.funding_state} · progression ${f(building.funding_progress_01 * 100)} % · reste ${building.funding_end_tick ? f((building.funding_end_tick - state.tick) / hz) : 0} s\n  Cagnotte ${f(building.funding_accumulated_payout)} / ${f(building.funding_target_payout)} k € · score ×${f(building.funding_influence_factor || 0)} · calendrier ×${f(building.funding_campaign_progression_factor || 0)} · hasard ×${f(building.funding_random_factor || 0)}\n  Dernier encaissement : ${f(building.funding_last_payout)} k €`);
+    if (building.type === 'meeting') lines.push(`Meeting actif : ${building.meeting_until_tick > state.tick ? `niveau ${building.meeting_level} pour ${building.meeting_faction_id} · encore ${f((building.meeting_until_tick - state.tick) / hz)} s` : 'aucun'}\n  Prochain segment proposé : ${offer?.meeting_level || 'aucun'} · coût ${offer?.kind === 'MEETING' ? `${f(offer.cost)} k €` : 'indisponible'} · segments achetés : ${building.meetings_held}`);
     if (building.type === 'institut_sondage') lines.push(`Dernier payeur : ${building.last_poll_candidate_id || 'aucun'} · âge : ${building.last_poll_tick === null ? 'aucun sondage' : `${f((state.tick - building.last_poll_tick) / hz)} s`}`);
     if (building.type === 'imprimerie' || building.variant === 'service_ordre') {
       lines.push(`File : ${building.queue.length}/${settings.max_queue_length} · équipements récupérés : ${building.delivered_count}`);

@@ -13,7 +13,7 @@
     "arrival_epsilon_units": 0.02
   },
   "movement": {
-    "candidate_speed_units_per_second": 3.6
+    "candidate_speed_units_per_second": 4.0
   },
   "persuasion": {
     "radius_units": 1.5,

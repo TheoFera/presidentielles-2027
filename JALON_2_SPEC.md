@@ -101,9 +101,9 @@ ce sont uniquement des paramètres fictifs d'équilibrage.
 
 Je veux que chaque sous-zone possède explicitement dans la configuration :
 - initial_neutral_count
-- mean_spawn_days
-- spawn_randomness
-- max_neutrals_waiting
+- max_npcs_by_origin
+
+La fréquence d’apparition est calculée automatiquement avec la durée de la campagne et le nombre de places restant à remplir. Le réglage global `neutral_population_growth` permet de choisir la date cible et la variation des intervalles sans toucher au code.
 
 afin que je puisse les modifier sans toucher au code.
 

@@ -11,7 +11,7 @@ import { startArena, finishArena } from '../src/simulation/match-lifecycle.js';
 function quiet(limit = 16800) {
   const cfg = structuredClone(config);
   cfg.balance.money.campaign_spending_limit = limit;
-  for (const biome of cfg.layout.biomes) for (const zone of biome.subzones) zone.mean_spawn_days = 10000;
+  cfg.layout.neutral_population_growth.enabled = false;
   const sim = new GameSimulation(cfg);
   sim.state.npcs = []; sim.state.ai_enabled = false;
   sim.state.candidates.forEach(c => { c.campaign_active = false; c.interaction_active = false; c.money = 20000; });
@@ -94,12 +94,13 @@ test('Budget : un plafond atteint pendant une présence annule le paiement en co
 test('Population : tous les rôles et camps restent comptés à leur naissance, même en déplacement', () => {
   const sim = quiet(); const zone = sim.state.world.subzones.find(z => z.id === 'campagne_c');
   const roles = ['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE', 'DEMOBILISE'];
-  for (const [i, role] of roles.entries()) {
+  for (let i = 0; i < zone.max_npcs_by_origin; i++) {
+    const role = roles[i % roles.length];
     const n = recruit(sim, role, i % 2 ? 'le_pen' : 'melenchon', zone.id, 108);
     if (['NEUTRE', 'DEMOBILISE'].includes(role)) n.faction_id = null;
   }
-  assert.equal(zone.max_npcs_by_origin, 5);
-  assert.equal(populationByOrigin(sim.state, zone.id), 5);
+  assert.equal(zone.max_npcs_by_origin, 8);
+  assert.equal(populationByOrigin(sim.state, zone.id), 8);
   assert.equal(populationByOrigin(sim.state, 'banlieue_b'), 0);
   const before = sim.exportSnapshot();
   assert.equal(sim.spawn(zone), null);

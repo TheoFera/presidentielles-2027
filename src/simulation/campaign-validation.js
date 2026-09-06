@@ -19,7 +19,7 @@ export function validateCampaignSnapshot(state, config, fail) {
 }
 export function validateCampaignConfig(config){
  const b=config.balance.campaign_events;const fail=label=>{throw new Error(`Configuration de campagne invalide : ${label}.`);};const positive=n=>Number.isFinite(n)&&n>0;
- if(!b||!positive(b.max_simultaneous_events)||!positive(b.initial_event_delay_days)||!Array.isArray(b.frequency_curve)||b.frequency_curve.some(row=>row.length!==3||!positive(row[1])||row[2]<row[1])||!Array.isArray(b.orientation_days)||b.orientation_days.some(d=>!Number.isInteger(d)||d<0||d>365))fail('calendrier ou fréquence');
+ if(!b||!positive(b.max_simultaneous_events)||!positive(b.initial_event_delay_days)||!positive(b.notification_display_seconds)||!positive(b.notification_arrival_seconds)||b.notification_arrival_seconds>b.notification_display_seconds||!Array.isArray(b.frequency_curve)||b.frequency_curve.some(row=>row.length!==3||!positive(row[1])||row[2]<row[1])||!Array.isArray(b.orientation_days)||b.orientation_days.some(d=>!Number.isInteger(d)||d<0||d>365))fail('calendrier, annonces ou fréquence');
  for(const [family,p]of Object.entries(b.families)){for(const key of ['base_weight','duration','max_simultaneous','leader_weight','second_weight','third_weight'])if(!positive(p[key]))fail(family+' / '+key);if(p.minimum_day>p.maximum_day||Object.values(p.intensity_weights).some(v=>!positive(v)))fail(family);}
  if(config.campaignCatalog){const ids=new Set();for(const v of config.campaignCatalog){if(ids.has(v.event_id)||!b.families[v.family]||typeof v.title!=='string'||!positive(v.weight)||!Array.isArray(v.tags)||!v.mechanical_parameters)fail('variante '+v.event_id);ids.add(v.event_id);}}
 }

@@ -19,7 +19,7 @@ const config = validateConfig({ balance, layout, buildings, prototype });
 const advance = (sim, n) => { for (let i = 0; i < n; i++) sim.step(); };
 function setup(faction = 'melenchon') {
   const cfg = structuredClone(config);
-  for (const b of cfg.layout.biomes) for (const z of b.subzones) z.mean_spawn_days = 10000;
+  cfg.layout.neutral_population_growth.enabled = false;
   const sim = new GameSimulation(cfg);
   sim.state.npcs = []; sim.state.ai_enabled = false;
   sim.state.candidates.forEach((c, i) => { c.x = 230 + i * 60; c.campaign_active = false; c.interaction_active = false; c.money = 2000; });
