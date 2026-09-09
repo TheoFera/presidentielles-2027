@@ -7,15 +7,19 @@ export function drawArena(renderer, state, previous, alpha) {
   renderer.metrics = { ...original, groundY: height * 0.79, pixelsPerUnit: width / renderer.config.balance.first_round_arena.width_units };
   const m = renderer.metrics;
   renderer.screenX = x => x * m.pixelsPerUnit;
-  ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = false;
+  ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
   ctx.strokeStyle = '#778496'; ctx.lineWidth = 2; ctx.strokeRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
-  ctx.textAlign = 'center'; ctx.fillStyle = '#e3e8e6'; ctx.font = '600 22px system-ui';
-  ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.37);
+  const backdrop = renderer.assets.get('background-arena');
+  if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
+  else void renderer.assets.load('background-arena');
+  ctx.textAlign = 'center'; ctx.fillStyle = '#fff2d6'; ctx.font = '700 17px system-ui';
+  ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.32, width * 0.28);
   ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText(state.campaign_event_family ? 'Le monde continue. Remportez la confrontation pour revenir en campagne.' : 'Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);
-  ctx.fillStyle = '#b9c5c7'; ctx.fillRect(width * 0.025, m.groundY, width * 0.95, 9);
-  ctx.fillStyle = '#657280'; ctx.fillRect(width * 0.025, m.groundY + 9, width * 0.95, 48);
+  ctx.fillStyle = '#c9ab7f'; ctx.fillRect(0, m.groundY, width, 5);
+  ctx.fillStyle = '#4c3b30'; ctx.fillRect(0, m.groundY + 5, width, height - m.groundY);
+  ctx.strokeStyle = '#2c2d2b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, m.groundY); ctx.lineTo(width, m.groundY); ctx.stroke();
   for (const edge of [state.arena_bounds.min, state.arena_bounds.max]) {
     ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20);
   }

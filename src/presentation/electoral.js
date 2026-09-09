@@ -67,10 +67,16 @@ export function drawTerritoryFlags(renderer, state) {
     const x = renderer.screenX(zone.start + zone.width * 0.59);
     if (x < -25 || x > width) continue;
     const y = metrics.groundY - metrics.characterHeight * 1.85;
-    ctx.fillStyle = '#6b756b'; ctx.fillRect(x, y, 2, 48);
-    ctx.fillStyle = territoryColors[e.controller || 'contested']; ctx.fillRect(x + 2, y + 1, 21, 12);
-    ctx.strokeStyle = '#6b756b'; ctx.lineWidth = 1; ctx.strokeRect(x + 2, y + 1, 21, 12);
-    if (!e.controller) { ctx.beginPath(); ctx.moveTo(x + 3, y + 12); ctx.lineTo(x + 22, y + 2); ctx.stroke(); }
+    ctx.save();
+    ctx.fillStyle = '#4b4b3f'; ctx.fillRect(x, y, 3, metrics.groundY - y);
+    ctx.fillStyle = '#b8ad8c'; ctx.fillRect(x + 1, y, 1, metrics.groundY - y);
+    ctx.fillStyle = e.controller ? territoryColors[e.controller] : '#eee4c9';
+    ctx.strokeStyle = '#45473d'; ctx.lineWidth = 1.2;
+    const flutter = Math.sin(state.tick / 15 + zone.index) * 2;
+    ctx.beginPath(); ctx.moveTo(x + 3, y + 2); ctx.quadraticCurveTo(x + 13, y - 1, x + 26, y + 3 + flutter);
+    ctx.lineTo(x + 24, y + 18 + flutter); ctx.quadraticCurveTo(x + 13, y + 13, x + 3, y + 17); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d3b267'; ctx.beginPath(); ctx.arc(x + 1.5, y - 2, 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.restore();
   }
 }
 

@@ -1,0 +1,8 @@
+{
+  "asset_id": "distant-periurbain",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ca8fe4d0-108c-48a1-9ac4-0e8968088ef3.png",
+  "prompt": "Edit this distant landscape panorama for seamless horizontal game scrolling. Keep the central 60% unchanged. Redraw the leftmost 20% and rightmost 20% as gently descending, naturally painted wooded foothills ending in a LOW tree ridge at EXACTLY 70% of image height from the top on BOTH image edges. No buildings or tall trees in the extreme edge regions. Paint natural varied tree silhouettes and gentle slopes, no warped buildings, no vertical cliffs, no fading, no translucency. The bottom 30% remains opaque woodland reaching the bottom edge across the whole width. Keep all sky truly transparent. Preserve the wide composition and the ink watercolor style.",
+  "transparent": true,
+  "max_height": 512,
+  "preserve_canvas": true
+}

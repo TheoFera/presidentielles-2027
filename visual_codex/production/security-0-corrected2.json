@@ -1,0 +1,7 @@
+{
+  "asset_id": "security-0",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ea4cd7d4-2e7a-4d23-98a7-181da3a816ab.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+  "transparent": true
+}

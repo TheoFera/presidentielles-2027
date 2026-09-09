@@ -1,0 +1,7 @@
+{
+  "asset_id": "npc-campagne-1",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-a1e6b37d-87bd-408a-af62-2c68e4b3626c.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Edit the attached character. Remove the entire fake white-grey checkerboard and export genuine PNG transparency with alpha=0 outside the ink silhouette and between limbs. Keep the exact complete character, clothes, colors, texture, ink outline. No backdrop, no pattern, no floor, no drop shadow, no white matte. Isolated game sprite.",
+  "transparent": true
+}

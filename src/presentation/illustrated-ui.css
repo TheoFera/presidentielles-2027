@@ -1,0 +1,60 @@
+/* Papier, encre et touches de faction : tous les textes restent accessibles. */
+#money, #day { color: #fff5df; font-weight: 850; paint-order: stroke fill; -webkit-text-stroke: 1.8px #253438; text-shadow: 1px 3px 0 #253438; letter-spacing: -.025em; }
+#money { font-size: clamp(18px, 2.45cqw, 33px); }
+#campaign-budget { color: #fff8e8; font-weight: 750; text-shadow: -1px -1px #26373a, 1px 1px #26373a, 0 2px #26373a; }
+#day { font-size: clamp(17px, 2.2cqw, 29px); }
+button, select, .file-button { border: 2px solid #354044; border-radius: 8px 6px 9px 5px; background: #fff5df; box-shadow: 0 2px 0 #857661; font-weight: 650; }
+button:hover, .file-button:hover { background: #f5dfad; }
+button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
+.panel { border: 2px solid #364448; border-radius: 14px 10px 15px 11px; background: linear-gradient(125deg, #fff8e9, #eee0c5); box-shadow: 0 6px 0 #35404455, 0 15px 32px #20313c44; }
+#campaign-orientation { background: linear-gradient(120deg, #fff8e3, #e7e5c7); border-color: #426b50; border-radius: 14px 11px 16px 10px; box-shadow: 0 3px 0 #2f463957, 0 9px 20px #183d3640; padding-left: 46px; }
+#campaign-orientation::before { content: '✦'; position: absolute; left: 14px; top: 16px; font-size: 25px; color: #b95745; text-shadow: 1px 1px #513d32; }
+.orientation-count { border: 1px solid #264e3c; }
+.campaign-card { position: relative; padding: 11px 12px 11px 48px; background: linear-gradient(125deg, #fff7e3, #ebdfc4); color: #293b40; border: 2px solid #3d4b4a; border-radius: 10px 7px 12px 8px; box-shadow: 0 3px 0 #38444566, 0 7px 15px #24384033; }
+.campaign-card::before { content: var(--event-symbol, '✦'); position: absolute; left: 10px; top: 12px; display: grid; place-items: center; width: 29px; height: 29px; border: 2px solid #3d4b4a; border-radius: 50%; color: #b55141; background: #fff7e5; font-size: 20px; font-weight: 900; }
+.campaign-card-narrative { color: #625647; }
+.campaign-card small { color: #536165; }
+.campaign-card strong { color: #253a40; }
+.campaign-card.arriving { border-color: #88703f; }
+.campaign-card[data-family]::before { content: ''; background: #fff7e5 var(--event-icon) center / 25px 25px no-repeat; }
+#poll-scores { color: #283b40; padding: 4px 8px; background: #fff6dfef; border: 1px solid #364444; border-radius: 7px; }
+#touch-controls button { border: 2px solid #344445; border-radius: 13px; box-shadow: 0 3px 0 #283a3c77; }
+.arena-card { border-radius: 10px; border: 2px solid #fff0d4; border-top: 4px solid var(--camp-color); }
+#notice { color: #fff5df; font-weight: 800; text-shadow: 0 2px #2c3c40, 1px 0 #2c3c40, -1px 0 #2c3c40; }
+@media(max-height:500px) { #campaign-events { top: 75px; width: min(255px, 30vw); } .campaign-card { padding: 7px 8px 7px 34px; font-size: 10px; } .campaign-card strong { font-size: 11px; } .campaign-card::before { left: 6px; top: 8px; width: 21px; height: 21px; font-size: 14px; } }
+@media(prefers-reduced-motion:reduce) { .campaign-card { transition: none; } }
+#campaign-events, .campaign-card, #campaign-orientation { box-sizing: border-box; }
+#campaign-events { max-width: calc(100vw - 32px); }
+.campaign-card { min-width: 0; overflow-wrap: anywhere; }
+#campaign-orientation { width: min(580px, 64%); }
+@media(max-height:500px) { #campaign-orientation { top: 16%; width: min(520px, 58%); padding: 6px 10px 6px 34px; } #campaign-orientation > strong { font-size: 13px; } #campaign-orientation p { font-size: 10px; margin-bottom: 2px; } }
+
+/* Keep every announcement inside the actual game frame, including letterboxed phones. */
+#campaign-events { position: absolute; right: 12px; width: min(290px, 26%); top: 94px; max-height: 42%; overflow-y: auto; scrollbar-width: thin; pointer-events: auto; }
+.campaign-card { overflow-wrap: normal; word-break: normal; cursor: pointer; flex-shrink: 0; }
+.campaign-card.arriving { transform: none; }
+#campaign-events:has(.arriving) { gap: 7px; }
+.orientation-count { display: inline-block; white-space: nowrap; vertical-align: middle; }
+#campaign-orientation { left: 24%; width: 47%; transform: none; top: 15%; }
+@media (max-height: 540px), (max-width: 900px) {
+  #game-menu { top: 6px; right: 8px; gap: 6px; }
+  #game-menu button { font-size: 12px; padding: 5px 8px; min-height: 40px; }
+  #campaign-events { top: 54px; right: 8px; width: 28%; max-height: 38%; gap: 4px; }
+  .campaign-card { padding: 6px 7px 6px 30px; font-size: 10px; line-height: 1.3; box-shadow: 0 2px 0 #38444544; }
+  .campaign-card strong { font-size: 11px; margin: 0; }
+  .campaign-card::before { left: 5px; top: 7px; width: 19px; height: 19px; background-size: 17px !important; }
+  .campaign-card:not(.expanded) .campaign-card-narrative,
+  .campaign-card:not(.expanded) > span:not(.campaign-card-narrative) { display: none; }
+  .campaign-card small { font-size: 9px; margin-top: 3px; }
+  #campaign-orientation { top: 55px; left: 20%; width: 49%; padding: 6px 8px; border-radius: 8px; }
+  #campaign-orientation::before { display: none; }
+  #campaign-orientation > strong { font-size: 11px; }
+  .orientation-count { font-size: 9px; margin-left: 4px; padding: 1px 4px; }
+  #campaign-orientation p { font-size: 10px; line-height: 1.3; margin: 4px 0 0; }
+  .orientation-options:empty { display: none; }
+  .orientation-options { margin-top: 5px; gap: 3px; }
+  .orientation-option { padding: 4px; min-height: 0; }
+  .orientation-option strong { font-size: 10px; }
+  .orientation-option span, .orientation-option small { font-size: 9px; }
+  #touch-controls button { min-width: 52px; min-height: 48px; font-size: 16px; }
+}

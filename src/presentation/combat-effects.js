@@ -8,8 +8,19 @@ export function drawCombatEffects(renderer, state, debug) {
     if (p.kind === 'WAVE') {
       const h = m.characterHeight * 1.65;
       const width = m.pixelsPerUnit * 1.8;
-      ctx.fillStyle = '#163972b8'; ctx.fillRect(x - width / 2, m.groundY - h, width, h);
-      ctx.strokeStyle = '#779bcd'; ctx.lineWidth = 4;
+      ctx.save(); ctx.translate(x, m.groundY); ctx.scale(p.direction || 1, 1);
+      const wash = ctx.createLinearGradient(-width / 2, 0, width / 2, -h);
+      wash.addColorStop(0, '#28578abb'); wash.addColorStop(1, '#78b4e8ef');
+      ctx.fillStyle = wash; ctx.strokeStyle = '#293f5b'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(-width * .6, 0);
+      ctx.bezierCurveTo(-width * .2, -h * .3, -width * .5, -h * .84, width * .15, -h);
+      ctx.bezierCurveTo(width * .85, -h * 1.04, width * .9, -h * .65, width * .3, -h * .72);
+      ctx.bezierCurveTo(width * .55, -h * .45, width * .45, -h * .2, width * .72, 0);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#d7eef3'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-width * .25, -h * .75); ctx.bezierCurveTo(0, -h * 1.03, width * .6, -h, width * .55, -h * .81); ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle = '#b9dff0'; ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         ctx.beginPath();
         for (let y = 0; y <= h; y += 5) {
@@ -21,8 +32,9 @@ export function drawCombatEffects(renderer, state, debug) {
       }
     } else {
       ctx.fillStyle = '#f4f0df'; ctx.strokeStyle = renderer.p.factions[p.faction_id].color; ctx.lineWidth = 2;
-      ctx.fillRect(x - 12, m.groundY - m.characterHeight * 0.9, 24, 17);
-      ctx.strokeRect(x - 12, m.groundY - m.characterHeight * 0.9, 24, 17);
+      const y = m.groundY - m.characterHeight * 0.9;
+      ctx.beginPath(); ctx.roundRect(x - 15, y, 30, 20, 8); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 5, y + 19); ctx.lineTo(x - 10, y + 26); ctx.lineTo(x + 1, y + 20); ctx.fill(); ctx.stroke();
       ctx.fillStyle = ctx.strokeStyle; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText('!?', x, m.groundY - m.characterHeight * 0.9 + 13);
     }
   }
@@ -32,7 +44,12 @@ export function drawCombatEffects(renderer, state, debug) {
     if (age > duration) continue;
     const x = renderer.screenX(hit.x); const y = m.groundY - m.characterHeight * 0.65;
     const size = (hit.strong ? 27 : 12) * (1 + age * 2);
-    ctx.globalAlpha = 1 - age / duration; ctx.strokeStyle = hit.strong ? '#fff0b9' : '#fffdf0'; ctx.lineWidth = hit.strong ? 5 : 2;
+    ctx.globalAlpha = 1 - age / duration;
+    ctx.fillStyle = hit.strong ? '#f4cf76' : '#fff2c9'; ctx.strokeStyle = '#4c4035'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10, r = size * (i % 2 ? .38 : 1); const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (!i) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#fff6dc'; ctx.lineWidth = hit.strong ? 3 : 1.5;
     for (let i = 0; i < 8; i++) {
       const a = i * Math.PI / 4;
       ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * size * 0.3, y + Math.sin(a) * size * 0.3);

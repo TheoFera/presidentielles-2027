@@ -4,6 +4,11 @@ import { drawInfrastructure, drawBanknote } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { drawTerritoryFlags } from './electoral.js';
 import { drawArena } from './match.js';
+import { VisualAssets } from './visual-assets.js';
+import { visualManifest } from './visual-manifest.js';
+import { drawIllustratedCharacter } from './illustrated-characters.js';
+import { preloadWorld, drawIllustratedSky, drawIllustratedDistance, drawIllustratedMiddle, drawIllustratedStreet, drawIllustratedZone, drawIllustratedGround } from './illustrated-world.js';
+import { drawSeasonalScenery } from './illustrated-vegetation.js';
 
 export function compositionMetrics(config, width, height) {
   const ratios = config.layout.visual_layout;
@@ -21,6 +26,7 @@ export class WorldRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.config = config;
+    this.assets = new VisualAssets(visualManifest, {limit: 80});
     this.p = config.prototype.presentation;
     this.width = this.p.reference_width;
     this.height = this.p.reference_height;
@@ -59,19 +65,24 @@ export class WorldRenderer {
     ctx.setTransform(this.canvas.width / this.width, 0, 0, this.canvas.height / this.height, 0, 0);
     ctx.imageSmoothingEnabled = false;
     const zone = zoneAt(state.world, playerX);
+    preloadWorld(this, state, zone);
+    const illustrated = !!this.assets.get(`background-${zone.index}`);
     const palette = this.p.biome_palettes[zone.biome_id];
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, 0, this.width, this.height);
-    this.drawFarScenery(state, palette);
+    if (illustrated) { drawIllustratedSky(this, state); drawIllustratedDistance(this, state, zone); }
+    else this.drawFarScenery(state, palette);
     const screenUnits = this.width / m.pixelsPerUnit;
-    for (const subzone of state.world.subzones) {
+    if (!drawIllustratedMiddle(this, state)) for (const subzone of state.world.subzones) {
       const left = this.screenX(subzone.start);
-      if (left > this.width || left + subzone.width * m.pixelsPerUnit < 0) continue;
-      this.drawZone(subzone, left, this.p.biome_palettes[subzone.biome_id], state);
+      const span = subzone.width * m.pixelsPerUnit;
+      if (left - span * 0.2 > this.width || left + span * 1.2 < 0) continue;
+      if (!drawIllustratedZone(this, subzone, left)) this.drawZone(subzone, left, this.p.biome_palettes[subzone.biome_id], state);
     }
-    drawCampaignScenery(this, state);
-    drawInfrastructure(this, state);
+    if (illustrated) { drawIllustratedStreet(this,state); drawSeasonalScenery(this, state); }
+    else drawCampaignScenery(this, state);
     drawTerritoryFlags(this, state);
+    drawInfrastructure(this, state);
     ctx.fillStyle = this.p.ground_edge;
     ctx.fillRect(0, m.groundY, this.width, 2);
     ctx.fillStyle = this.p.ground_tone;
@@ -79,6 +90,7 @@ export class WorldRenderer {
     // The final margin shares the sky colour: no road, water or decorative foreground.
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
+    if (illustrated) drawIllustratedGround(this);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
     const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     for (const entity of entities) {
@@ -190,6 +202,7 @@ export class WorldRenderer {
   }
 
   drawPerson(entity, x, state) {
+    if (drawIllustratedCharacter(this, entity, x, state)) return;
     const ctx = this.ctx;
     const candidate = entity.role === 'CANDIDAT';
     const height = this.metrics.characterHeight * (candidate ? 1 : this.p.npc_height_multiplier);
@@ -289,6 +302,9 @@ export class WorldRenderer {
     const x = this.screenX(candidate.x);
     const radius = this.config.prototype.persuasion.radius_units * m.pixelsPerUnit;
     ctx.save();
+    const assets = this.assets.status();
+    ctx.font = '11px system-ui'; ctx.fillStyle = '#273b40'; ctx.textAlign = 'left';
+    ctx.fillText(`Visuels : ${assets.loaded} chargés · ${assets.pending} en attente · ${assets.failed.length} absents · Zone ${this.artZone + 1}`, 14, 125);
     ctx.strokeStyle = '#b34c55'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(m.anchorX, 0); ctx.lineTo(m.anchorX, m.groundY); ctx.stroke();
     ctx.strokeRect(x - radius, m.groundY - m.characterHeight - 22, radius * 2, m.characterHeight + 22);

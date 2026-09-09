@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "candidates": {
+    "melenchon": {
+      "animations": {
+        "idle": 4,
+        "walk": 6,
+        "run": 6,
+        "persuade": 4,
+        "interact_hold": 4,
+        "attack_light_1": 4,
+        "attack_light_2": 4,
+        "attack_heavy": 6,
+        "charged_attack": 6,
+        "hurt": 3,
+        "knockback": 3,
+        "ko": 5,
+        "meeting": 4,
+        "special_start": 6,
+        "special_recovery": 3
+      }
+    },
+    "le_pen": {
+      "animations": {
+        "idle": 4,
+        "walk": 6,
+        "run": 6,
+        "persuade": 4,
+        "interact_hold": 4,
+        "attack_light_1": 4,
+        "attack_light_2": 4,
+        "attack_heavy": 6,
+        "charged_attack": 6,
+        "hurt": 3,
+        "knockback": 3,
+        "ko": 5,
+        "meeting": 4,
+        "special_start": 6,
+        "special_recovery": 3
+      }
+    },
+    "philippe": {
+      "animations": {
+        "idle": 4,
+        "walk": 6,
+        "run": 6,
+        "persuade": 4,
+        "interact_hold": 4,
+        "attack_light_1": 4,
+        "attack_light_2": 4,
+        "attack_heavy": 6,
+        "charged_attack": 6,
+        "hurt": 3,
+        "knockback": 3,
+        "ko": 5,
+        "meeting": 4,
+        "special_start": 6,
+        "special_recovery": 3
+      }
+    }
+  },
+  "npc": {
+    "archetypes_per_biome": 3,
+    "biomes": [
+      "bobo",
+      "banlieue",
+      "periurbain",
+      "campagne",
+      "retraites",
+      "riches"
+    ],
+    "animations": {
+      "idle": 4,
+      "walk": 6,
+      "persuade_listen": 4,
+      "convert": 3,
+      "hurt": 3,
+      "knockback": 3,
+      "demobilised_return": 6
+    },
+    "role_overlays": [
+      "sympathisant",
+      "militant"
+    ]
+  },
+  "service_ordre": {
+    "visual_variants": 2,
+    "animations": {
+      "idle_guard": 4,
+      "patrol": 6,
+      "run_to_threat": 6,
+      "attack": 5,
+      "guard": 3,
+      "raid_run": 6,
+      "hurt": 3,
+      "knockback": 3,
+      "demobilised_return": 6
+    }
+  },
+  "crs": {
+    "visual_variants": 2,
+    "animations": {
+      "idle": 3,
+      "move": 5,
+      "push_attack": 5,
+      "despawn": 4
+    }
+  },
+  "journalists": {
+    "visual_variants": 3,
+    "animations": {
+      "idle": 4,
+      "attack_question": 5,
+      "hurt": 3,
+      "defeated": 4
+    }
+  }
+}

@@ -14,7 +14,9 @@ test('Le paquet GitHub Pages contient uniquement le jeu et charge ses réglages 
     await rm(output, { recursive: true });
   });
   await buildPages(output);
-  assert.deepEqual((await readdir(output)).sort(), ['Présidentielles 2027', 'index.html', 'src'].sort());
+  assert.deepEqual((await readdir(output)).sort(), ['Présidentielles 2027', 'assets', 'index.html', 'src'].sort());
+  assert.ok((await readFile(join(output, 'assets/generated/characters/melenchon.png'))).length > 0);
+  assert.ok(!(await readdir(join(output, 'assets/generated'))).includes('masters'));
   const html = await readFile(join(output, 'index.html'), 'utf8');
   const base = new URL('https://example.github.io/presidentielles-2027/');
   for (const [, path] of html.matchAll(/(?:src|href)="((?:src\/)[^"]+)"/g)) {
@@ -26,7 +28,7 @@ test('Le paquet GitHub Pages contient uniquement le jeu et charge ses réglages 
   const dataBase = new URL(relative, new URL('src/config.js', base));
   assert.equal(decodeURIComponent(dataBase.pathname), '/presidentielles-2027/Présidentielles 2027/');
   const config = {};
-  for (const [key, file] of Object.entries({ balance: 'game_balance.json', layout: 'world_layout.json', buildings: 'building_catalog.json', prototype: 'prototype_config.json' })) {
+  for (const [key, file] of Object.entries({ balance: 'game_balance.json', layout: 'world_layout.json', buildings: 'building_catalog.json', prototype: 'prototype_config.json', campaignCatalog: 'campaign_events.json' })) {
     config[key] = JSON.parse(await readFile(join(output, 'Présidentielles 2027', file), 'utf8'));
   }
   assert.equal(validateConfig(config), config);

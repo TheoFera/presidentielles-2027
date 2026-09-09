@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: center; overflow: hidden; }
 #game { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #e3e6e3; container-type: inline-size; }
-#world { display: block; width: 100%; height: 100%; outline: none; touch-action: none; image-rendering: pixelated; }
+#world { display: block; width: 100%; height: 100%; outline: none; touch-action: none; image-rendering: auto; }
 #funds { position: absolute; top: 3.4%; left: 2.4%; pointer-events: none; font-variant-numeric: tabular-nums; }
 #money { display: block; font-size: clamp(14px, 2.1cqw, 25px); font-weight: 650; letter-spacing: -0.04em; white-space: pre-line; }
 #campaign-budget { display: block; margin-top: 0.4cqw; font-size: clamp(9px, 1.1cqw, 14px); color: #52615a; }

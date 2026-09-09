@@ -1,0 +1,7 @@
+{
+  "asset_id": "npc-retraites-1",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c6ccbb75-6e4b-4d10-8da1-333db3df70eb.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Single full-body French comic game character: older dark-skinned man in a tan blazer and grey trousers, rolled gardening magazine. Match supplied STYLE_TARGET reference: expressive caricature, compact proportions with large head and short legs, dark ink outlines, hand-drawn gently textured flat colors. Relaxed standing pose facing right, both feet visible. Actual transparent PNG alpha cutout, no scenery, no background, no floor shadow, no text. All parts separate from image edges. Strong silhouette readable at 80 pixels tall.",
+  "transparent": true
+}

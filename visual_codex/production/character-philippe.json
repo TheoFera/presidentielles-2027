@@ -1,0 +1,7 @@
+{
+  "asset_id": "character-philippe",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c5918f6f-c4cc-47b9-ba05-e254e55bf6a4.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Create one full-body compact side-view French comic game character: Édouard Philippe, recognizable French political caricature, bald head with closely trimmed distinctive partly white beard, anthracite suit, white shirt. Match STYLE_TARGET.png supplied as art direction, clean dark hand-inked contours, lightly textured flat colors, warm caricature, big expressive head and short legs, total height about 3 heads. Face right in slight three-quarter view, neutral idle stance, arms slightly apart, feet visible, no props, no lettering. Transparent background, isolated cutout PNG with alpha. No scene, no floor shadow. Suitable for 80px tall game sprite.",
+  "transparent": true
+}

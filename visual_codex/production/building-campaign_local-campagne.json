@@ -1,0 +1,7 @@
+{
+  "asset_id": "building-campaign_local-campagne",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9ef9c040-3306-4bdf-b6c4-0d76a95db662.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for campaign_local, biome campagne. Architecture MUST reflect: former village shop or small maison-de-bourg, stone/render, shutters and planter. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+  "transparent": false
+}

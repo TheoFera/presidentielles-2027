@@ -2,6 +2,7 @@ import { localSympathisants } from '../simulation/territory.js';
 import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
 import { drawElectoralBuilding } from './electoral.js';
+import { drawIllustratedBuilding, buildingGeometry } from './illustrated-buildings.js';
 
 const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE', tour_communication: 'COMMUNICATION' };
 
@@ -11,6 +12,7 @@ export function drawInfrastructure(renderer, state) {
   const settings = p.infrastructure;
   const h = settings.height_ratio * height;
   for (const building of state.buildings) {
+    if (drawIllustratedBuilding(renderer, state, building)) continue;
     if (['institut_sondage', 'meeting'].includes(building.type)) { drawElectoralBuilding(renderer, state, building); continue; }
     const w = (building.type === 'faction' ? settings.faction_width_ratio : settings.width_ratio) * width;
     const x = renderer.screenX(building.x);
@@ -108,20 +110,18 @@ export function drawBanknote(renderer, state) {
   const x = renderer.screenX(offer.x ?? building.x);
   const w = p.infrastructure.banknote_width;
   const h = p.infrastructure.banknote_height;
-  const y = m.groundY - m.characterHeight - h - 16;
+  const y = Math.max(60, buildingGeometry(renderer, building).top - h - 24);
   ctx.save();
-  ctx.fillStyle = offer.enabled ? '#e9ebd6' : '#d4d8d0';
-  ctx.strokeStyle = offer.enabled ? '#62745a' : '#8a938b';
-  ctx.lineWidth = 1;
-  ctx.fillRect(x - w / 2, y, w, h); ctx.strokeRect(x - w / 2, y, w, h);
-  ctx.strokeRect(x - w / 2 + 4, y + 5, 13, h - 10);
-  ctx.fillStyle = offer.enabled ? '#354b35' : '#858e85';
+  ctx.fillStyle = offer.enabled ? '#fff1ca' : '#e8ddc6';
+  ctx.strokeStyle = offer.enabled ? '#4d6648' : '#7e6252';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y, w, h, 5); ctx.fill(); ctx.stroke();
+  ctx.font = 'bold 14px Georgia'; ctx.textAlign = 'center'; ctx.fillStyle = '#97713c';
+  ctx.fillText('€', x - w / 2 + 11, y + 20);
+  ctx.fillStyle = offer.enabled ? '#354b35' : '#745e50';
   ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
   const price = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals }).format(offer.cost);
   ctx.fillText(`${price} ${config.balance.display.currency_label}`, x + 8, y + 19);
-  if (!offer.enabled) {
-    ctx.beginPath(); ctx.moveTo(x - w / 2 + 3, y + h - 3); ctx.lineTo(x - w / 2 + 18, y + 3); ctx.stroke();
-  }
     if (candidate.purchase_hold?.key === offer.key) {
     ctx.fillStyle = '#637c51';
       ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);

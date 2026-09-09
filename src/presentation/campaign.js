@@ -1,23 +1,25 @@
 import { seasonAt, orientationOptions, availableOrientations } from '../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../simulation/world.js';
+import { eventIconData } from './illustrated-icons.js';
 const labels={MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',CRISE_FINANCEMENT:'Crise de financement',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 export class CampaignDisplay {
- constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');document.body.append(this.root);this.orientationRoot=document.createElement('section');this.orientationRoot.id='campaign-orientation';this.orientationRoot.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.orientationRoot);}
+ constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);this.orientationRoot=document.createElement('section');this.orientationRoot.id='campaign-orientation';this.orientationRoot.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.orientationRoot);}
  update(state){
  if(this.seed!==state.seed||state.tick<this.lastTick){this.root.replaceChildren();this.cards.clear();this.seen.clear();this.seed=state.seed;}const previousTick=this.lastTick;this.lastTick=state.tick;const now=performance.now();
  const hz=this.config.balance.simulation_architecture.fixed_tick_hz;
  const displaySeconds=this.config.balance.campaign_events.notification_display_seconds,arrivalSeconds=this.config.balance.campaign_events.notification_arrival_seconds;
  for(const e of state.campaign_events){if(!this.seen.has(e.id))this.seen.set(e.id,e.status==='ACTIVE'||e.start_tick>=previousTick?now:-Infinity);const age=(now-this.seen.get(e.id))/1000,visible=state.phase==='CAMPAIGN'&&(e.status==='ACTIVE'||age<displaySeconds);
  if(!visible){this.cards.get(e.id)?.remove();this.cards.delete(e.id);continue;}
- let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';this.root.append(card);this.cards.set(e.id,card);}
+ let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-expanded','false');const toggle=()=>{const expanded=card.classList.toggle('expanded');card.setAttribute('aria-expanded',String(expanded));};card.onclick=toggle;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}};this.root.append(card);this.cards.set(e.id,card);}
  const zone=state.world.subzones.find(z=>z.id===e.target_subzone_id),names=e.target_candidate_ids.map(id=>this.config.prototype.presentation.factions[state.candidates.find(c=>c.id===id).faction_id].name).join(', ');
- card.style.order = e.start_tick;
- const heading=document.createElement('strong');heading.textContent=e.title;
+ card.style.order = e.start_tick; card.dataset.family = e.family; card.style.setProperty('--event-icon', eventIconData[e.family] || 'none');
+ const heading=document.createElement('strong');heading.textContent=e.title;card.setAttribute('aria-label',e.title+' : afficher ou masquer les détails');
  const narrative=document.createElement('span');narrative.className='campaign-card-narrative';narrative.textContent=e.description;
  const effect=e.family==='CRISE_FINANCEMENT' ? (e.parameters.can_start_new_campaign===false ? 'Nouvelles collectes bloquées' : e.parameters.payout_multiplier ? 'Rendement des collectes ×'+e.parameters.payout_multiplier.toLocaleString('fr-FR') : 'Durée des collectes ×'+e.parameters.campaign_duration_multiplier.toLocaleString('fr-FR')) : e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
- const detail=document.createElement('span');detail.textContent=`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
- const timer=document.createElement('small');timer.textContent=e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
- card.replaceChildren(heading,narrative,detail,timer);card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
+ const winner=e.winner&&this.config.prototype.presentation.factions[e.winner]?.name;
+ const detail=document.createElement('span');detail.textContent=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
+ const timer=document.createElement('small');timer.textContent=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au Meeting : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
+ const contentKey=[heading.textContent,narrative.textContent,detail.textContent,timer.textContent].join('\n');if(card.dataset.contentKey!==contentKey){card.replaceChildren(heading,narrative,detail,timer);card.dataset.contentKey=contentKey;}card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
  }
  this.updateOrientation(state);
  }
@@ -59,6 +61,7 @@ export function drawCampaignMarkers(renderer,state){
  const b=state.buildings.find(b=>b.id===e.target_site_id);if(!['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT'].includes(e.family))continue;
  const x=renderer.screenX(b.x);ctx.strokeStyle='#ffe078';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,m.groundY-2,36,9,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff1ab';ctx.fillText(e.title,x,m.groundY-140);
  if(e.family==='MEETING_DE_CRISE')ctx.fillText(`Rester ${e.parameters.meeting_hold_seconds} s · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
+ if(e.family==='DEBAT_THEMATIQUE')ctx.fillText(`Premier paiement · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
  }
  for(const c of state.candidates){
  if(state.campaign_events.some(e=>e.status==='ACTIVE'&&e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id))){ctx.fillStyle='#ffdb76';ctx.fillText('⚠ Prime au KO',renderer.screenX(c.x),m.groundY-m.characterHeight-35);}

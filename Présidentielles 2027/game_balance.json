@@ -795,8 +795,7 @@
         },
         "local_influence_reward": 10,
         "biome_influence_reward": 2,
-        "participants": 3,
-        "player_damage_multiplier": 3
+        "meeting_cost": 80
       },
       "CRISE_FINANCEMENT": {
         "base_weight": 1,

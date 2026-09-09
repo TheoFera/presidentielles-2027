@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "rule": "Every site type requires a distinct architectural base for each biome while preserving a shared gameplay footprint and interaction anchor.",
+  "biomes": ["bobo", "banlieue", "periurbain", "campagne", "retraites", "riches"],
+  "site_types": [
+    "campaign_local",
+    "financement",
+    "communication",
+    "security_admin_slot",
+    "imprimerie",
+    "meeting_hall",
+    "polling_institute"
+  ],
+  "shared_constraints": {
+    "same_gameplay_footprint_within_site_family": true,
+    "same_ground_anchor_within_site_family": true,
+    "same_interaction_anchor_within_site_family": true,
+    "architecture_must_change_by_biome": true,
+    "recolor_only_is_forbidden": true,
+    "owner_should_use_overlays_when_possible": true,
+    "levels_should_use_overlays_when_possible": true
+  },
+  "variants": {
+    "campaign_local": {
+      "bobo": "gentrified storefront or former cafe/community local, broad window, bicycle/notice-board cues",
+      "banlieue": "ground-floor local in apartment block, simple storefront, roller shutter and concrete/enduit cues",
+      "periurbain": "small office in retail/artisan strip, light cladding, parking/functional frontage",
+      "campagne": "former village shop or small maison-de-bourg, stone/render, shutters and planter",
+      "retraites": "well-kept association pavilion/local, light facade, awning, hedges and planters",
+      "riches": "elegant stone ground-floor office, refined frames, brass/wood details, restrained awning"
+    },
+    "financement": {
+      "bobo": "small coworking/fundraising storefront with modern interior",
+      "banlieue": "practical association/accounting office at ground floor",
+      "periurbain": "small office in business/retail park",
+      "campagne": "traditional village agency/notary-like small office",
+      "retraites": "very tidy mutual/association style office",
+      "riches": "small premium consulting/finance office in stone/glass"
+    },
+    "communication": {
+      "bobo": "creative media studio with compact rooftop antenna",
+      "banlieue": "technical/media local attached to apartment block with mast/dish",
+      "periurbain": "industrial media/technical unit with compact mast and equipment",
+      "campagne": "local radio/repeater building with slim mast",
+      "retraites": "well-kept community communication local with discreet antenna",
+      "riches": "elegant media agency with discreet integrated dishes/screens"
+    },
+    "security_admin_slot": {
+      "bobo": "small urban multipurpose local with storefront and side storage",
+      "banlieue": "storage/association ground-floor unit with shutter and service door",
+      "periurbain": "small logistics office/hangar with loading cues",
+      "campagne": "municipal annex/former workshop with traditional materials",
+      "retraites": "tidy association/service local",
+      "riches": "elegant annex/service office with refined frontage"
+    },
+    "imprimerie": {
+      "bobo": "risograph/screen-print creative workshop",
+      "banlieue": "neighborhood copy-shop/printing workshop",
+      "periurbain": "small semi-industrial print workshop",
+      "campagne": "traditional village print shop",
+      "retraites": "tidy stationery/print shop",
+      "riches": "premium stationery and fine-print shop"
+    },
+    "meeting_hall": {
+      "bobo": "cultural center/community loft",
+      "banlieue": "multipurpose neighborhood/community hall",
+      "periurbain": "municipal multipurpose hall near commercial/industrial area",
+      "campagne": "recognizable village salle des fetes",
+      "retraites": "well-kept municipal clubhouse/association hall",
+      "riches": "small auditorium/conference salon/cultural hall"
+    },
+    "polling_institute": {
+      "bobo": "creative research/survey studio with glass frontage and screens",
+      "banlieue": "modern ground-floor field research office",
+      "periurbain": "study office in small tertiary/business park",
+      "campagne": "survey office in converted municipal/commercial local",
+      "retraites": "tidy survey/research office near municipal context",
+      "riches": "elegant polling/consulting office in stone/glass"
+    }
+  }
+}

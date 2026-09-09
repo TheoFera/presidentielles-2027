@@ -1,0 +1,7 @@
+{
+  "asset_id": "npc-retraites-2",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c6e5a459-b889-4e99-87e7-6da827f217c3.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+  "transparent": true
+}

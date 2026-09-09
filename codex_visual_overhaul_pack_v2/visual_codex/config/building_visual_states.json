@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "shared_states": [
+    "neutral",
+    "capturing",
+    "owned",
+    "closing",
+    "neutralized"
+  ],
+  "owner_overlays": [
+    "melenchon",
+    "le_pen",
+    "philippe"
+  ],
+  "sites": {
+    "campaign_local": {
+      "capturable": true,
+      "roles": [
+        "qg",
+        "permanence"
+      ],
+      "levels": [
+        1,
+        2,
+        3
+      ],
+      "qg_overlay": true,
+      "states": [
+        "neutral",
+        "capturing",
+        "owned",
+        "closing",
+        "neutralized"
+      ]
+    },
+    "financement": {
+      "capturable": true,
+      "levels": [
+        1,
+        2,
+        3
+      ],
+      "states": [
+        "neutral",
+        "capturing",
+        "owned",
+        "funding_idle",
+        "funding_active",
+        "funding_payout",
+        "closing",
+        "neutralized"
+      ]
+    },
+    "communication": {
+      "capturable": true,
+      "levels": [
+        1,
+        2,
+        3
+      ],
+      "states": [
+        "neutral",
+        "capturing",
+        "owned",
+        "closing",
+        "neutralized"
+      ]
+    },
+    "security_admin_slot": {
+      "capturable": true,
+      "levels": [
+        1,
+        2,
+        3
+      ],
+      "owner_render_modes": {
+        "melenchon": "service_ordre",
+        "le_pen": "service_ordre",
+        "philippe": "cabinet_administratif"
+      },
+      "states": [
+        "neutral",
+        "capturing",
+        "owned",
+        "closing",
+        "neutralized"
+      ]
+    },
+    "imprimerie": {
+      "capturable": false,
+      "neutral_service": true,
+      "levels": [
+        1
+      ],
+      "states": [
+        "idle",
+        "printing",
+        "pickup"
+      ]
+    },
+    "meeting_hall": {
+      "capturable": false,
+      "neutral_service": true,
+      "levels": [
+        1
+      ],
+      "states": [
+        "idle",
+        "event_target",
+        "meeting_setup",
+        "meeting_active",
+        "cooldown"
+      ]
+    },
+    "polling_institute": {
+      "capturable": false,
+      "neutral_service": true,
+      "levels": [
+        1
+      ],
+      "states": [
+        "idle",
+        "poll_requested",
+        "poll_ready"
+      ]
+    }
+  },
+  "event_overlays": [
+    "fire",
+    "administrative_seal",
+    "damage",
+    "blocked"
+  ]
+}

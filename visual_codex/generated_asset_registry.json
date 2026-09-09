@@ -1,0 +1,2705 @@
+{
+  "version": 1,
+  "status": "in_progress",
+  "assets": [
+    {
+      "key": "melenchonRetry",
+      "id": "character-melenchon",
+      "file": "assets/generated/characters/melenchon.png",
+      "master": "assets/generated/masters/melenchon.png",
+      "transparent": true,
+      "asset_id": "character-melenchon",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Master candidat Mélenchon corrigé par détourage ; voir historique de génération.",
+      "date": "2026-09-07",
+      "status": "generated_pending_qa",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-59466256-d92c-4921-aed9-049168f16ea8.png"
+    },
+    {
+      "key": "npc-bobo-0",
+      "id": "npc-bobo-0",
+      "file": "assets/generated/npc/npc-bobo-0.png",
+      "master": "assets/generated/masters/npc-bobo-0.png",
+      "transparent": true,
+      "asset_id": "npc-bobo-0",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Production game asset. Input image: STYLE_TARGET.png is style reference only. Contemporary French BD/cartoon illustration, clean dark ink contours, lightly textured flat colors, pleasant warm lighting, not pixel art, not realistic 3D. One neutral recruitable NPC master: young adult woman with medium-brown skin, casual beige jacket, denim trousers, canvas bag carrying books, relaxed stance facing right, full body, feet visible, compact slightly oversized head. Genuine transparent PNG alpha background. No checkerboard, no scene, no shadows around silhouette, no text. Keep silhouette compact and readable at 100 pixels tall.",
+      "date": "2026-09-07",
+      "status": "generated_pending_qa",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-dd925f77-3a91-44b8-b45d-111cde9f31c5.png"
+    },
+    {
+      "key": "building-campaign_local-bobo",
+      "id": "building-campaign_local-bobo",
+      "file": "assets/generated/buildings/building-campaign_local-bobo.png",
+      "master": "assets/generated/masters/building-campaign_local-bobo.png",
+      "transparent": false,
+      "crop": [
+        218,
+        112,
+        960,
+        875
+      ],
+      "asset_id": "building-campaign_local-bobo",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Production game asset. Input image: STYLE_TARGET.png is style reference only. Contemporary French BD/cartoon illustration, clean dark ink contours, lightly textured flat colors, pleasant warm lighting, not pixel art, not realistic 3D. One front-facing small French gentrified former café storefront, a neutral campaign local in a Paris canal neighborhood. Broad shop window, wooden door on right, cream stone facade, dark restrained blue-grey wood window frames, blank wide cream sign above window, subtle bicycle leaning at left. No political branding. Entire building isolated, ground-aligned, compact one-storey architecture, aspect about 0.8 width to height, genuine transparent PNG background. No floor plane or sky, no checkerboard, no text. Same hand-drawn French comic treatment as supplied reference. Building base usable before and after capture through runtime flags only.",
+      "date": "2026-09-07",
+      "status": "generated_pending_qa",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ec582f61-0dc0-4eda-b48d-0e945e91d9ea.png"
+    },
+    {
+      "asset_id": "character-le_pen",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-7ed680b3-f372-4917-ba83-5aca0b32ff3e.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create one full-body compact side-view French comic game character: Marine Le Pen, recognizable French political caricature, blonde shoulder-length hair, navy blue trouser suit and white blouse. Match STYLE_TARGET.png supplied as art direction, clean dark hand-inked contours, lightly textured flat colors, warm caricature, big expressive head and short legs, total height about 3 heads. Face right in slight three-quarter view, neutral idle stance, arms slightly apart, feet visible, no props, no lettering. Transparent background, isolated cutout PNG with alpha. No scene, no floor shadow. Suitable for 80px tall game sprite.",
+      "transparent": true,
+      "master": "assets/generated/masters/character-le_pen.png",
+      "file": "assets/generated/characters/character-le_pen.png",
+      "dimensions": [
+        182,
+        384
+      ],
+      "source_crop": [
+        176,
+        47,
+        688,
+        1448
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "character-philippe",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c5918f6f-c4cc-47b9-ba05-e254e55bf6a4.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create one full-body compact side-view French comic game character: Édouard Philippe, recognizable French political caricature, bald head with closely trimmed distinctive partly white beard, anthracite suit, white shirt. Match STYLE_TARGET.png supplied as art direction, clean dark hand-inked contours, lightly textured flat colors, warm caricature, big expressive head and short legs, total height about 3 heads. Face right in slight three-quarter view, neutral idle stance, arms slightly apart, feet visible, no props, no lettering. Transparent background, isolated cutout PNG with alpha. No scene, no floor shadow. Suitable for 80px tall game sprite.",
+      "transparent": true,
+      "master": "assets/generated/masters/character-philippe.png",
+      "file": "assets/generated/characters/character-philippe.png",
+      "dimensions": [
+        161,
+        384
+      ],
+      "source_crop": [
+        309,
+        32,
+        550,
+        1308
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-banlieue-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-5911db83-b73c-4889-8488-ce55f93bad4d.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body French comic game NPC master: a light-skinned young woman with short dark hair, grey work jacket, beige trousers, sports bag. STYLE_TARGET.png is the art reference. Compact caricature about 3.5 heads tall, large expressive face, short legs, clean dark ink lines and gently textured flat colors. Relaxed side view facing right, same foot baseline. No political color identification, no essential text. Isolated cutout on genuinely transparent PNG alpha background, no shadow plane, no backdrop. Match reference cartoon, never photorealistic.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-banlieue-0.png",
+      "file": "assets/generated/characters/npc-banlieue-0.png",
+      "dimensions": [
+        192,
+        384
+      ],
+      "source_crop": [
+        150,
+        15,
+        706,
+        1413
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-banlieue-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-4c8f36da-43e9-4059-ae65-8a5fcb6b8f86.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body French comic game NPC master: a dark-skinned middle-aged father with glasses, cream polo, brown trousers, backpack. STYLE_TARGET.png is the art reference. Compact caricature about 3.5 heads tall, large expressive face, short legs, clean dark ink lines and gently textured flat colors. Relaxed side view facing right, same foot baseline. No political color identification, no essential text. Isolated cutout on genuinely transparent PNG alpha background, no shadow plane, no backdrop. Match reference cartoon, never photorealistic.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-banlieue-1.png",
+      "file": "assets/generated/characters/npc-banlieue-1.png",
+      "dimensions": [
+        185,
+        384
+      ],
+      "source_crop": [
+        235,
+        22,
+        638,
+        1326
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-banlieue-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9d5317f7-f84d-431e-916d-25f5392f959f.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body French comic game NPC master: a medium-brown-skinned elderly man with grey hair, blue-grey cardigan, flat cap, shopping bag. STYLE_TARGET.png is the art reference. Compact caricature about 3.5 heads tall, large expressive face, short legs, clean dark ink lines and gently textured flat colors. Relaxed side view facing right, same foot baseline. No political color identification, no essential text. Isolated cutout on genuinely transparent PNG alpha background, no shadow plane, no backdrop. Match reference cartoon, never photorealistic.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-banlieue-2.png",
+      "file": "assets/generated/characters/npc-banlieue-2.png",
+      "dimensions": [
+        215,
+        384
+      ],
+      "source_crop": [
+        256,
+        16,
+        723,
+        1294
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-bobo-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-f6857b03-a3de-4e50-93d9-a40ed3929208.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body French comic game NPC master: a stocky middle-aged light-skinned man, curly grey hair, tan corduroy jacket, green trousers, bicycle helmet held in hand. STYLE_TARGET.png is the art reference. Compact caricature about 3.5 heads tall, large expressive face, short legs, clean dark ink lines and gently textured flat colors. Relaxed side view facing right, same foot baseline. No political color identification, no essential text. Isolated cutout on genuinely transparent PNG alpha background, no shadow plane, no backdrop. Match reference cartoon, never photorealistic.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-bobo-1.png",
+      "file": "assets/generated/characters/npc-bobo-1.png",
+      "dimensions": [
+        199,
+        384
+      ],
+      "source_crop": [
+        150,
+        45,
+        755,
+        1454
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-bobo-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-3efab0a0-6753-4d95-bceb-0bf37ad08ea7.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body French comic game NPC master: an older dark-skinned woman with short grey hair, light ochre cardigan and a reusable market basket. STYLE_TARGET.png is the art reference. Compact caricature about 3.5 heads tall, large expressive face, short legs, clean dark ink lines and gently textured flat colors. Relaxed side view facing right, same foot baseline. No political color identification, no essential text. Isolated cutout on genuinely transparent PNG alpha background, no shadow plane, no backdrop. Match reference cartoon, never photorealistic.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-bobo-2.png",
+      "file": "assets/generated/characters/npc-bobo-2.png",
+      "dimensions": [
+        230,
+        384
+      ],
+      "source_crop": [
+        173,
+        12,
+        782,
+        1308
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-campagne-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-efcd8fb6-a8dd-46d0-9dff-ebf3a517ea1a.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body compact French comic game NPC master: young medium-brown-skinned man, mustard pullover, denim trousers, hiking backpack. STYLE_TARGET.png art reference: clean dark ink lines, lightly textured flat colors, compact caricature 3.5 heads tall, expressive face and short legs. Side view facing right, idle standing pose, feet visible on same baseline. Isolated transparent PNG alpha cutout without backdrop or ground shadow, no text or political marks. Not realistic, not pixel art.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-campagne-2.png",
+      "file": "assets/generated/characters/npc-campagne-2.png",
+      "dimensions": [
+        160,
+        384
+      ],
+      "source_crop": [
+        193,
+        42,
+        604,
+        1448
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-periurbain-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8cb1848e-952f-42ca-96bf-6f21b26ab151.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body compact French comic game NPC master: middle-aged dark-skinned man, charcoal work jacket, beige trousers, folded newspaper. STYLE_TARGET.png art reference: clean dark ink lines, lightly textured flat colors, compact caricature 3.5 heads tall, expressive face and short legs. Side view facing right, idle standing pose, feet visible on same baseline. Isolated transparent PNG alpha cutout without backdrop or ground shadow, no text or political marks. Not realistic, not pixel art.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-periurbain-1.png",
+      "file": "assets/generated/characters/npc-periurbain-1.png",
+      "dimensions": [
+        182,
+        384
+      ],
+      "source_crop": [
+        278,
+        16,
+        617,
+        1303
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-periurbain-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-aa231f57-f326-4c64-a0c1-450ce221ab6e.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "One full-body compact French comic game NPC master: young medium-brown-skinned delivery worker, olive jacket, messenger bag, brown sneakers. STYLE_TARGET.png art reference: clean dark ink lines, lightly textured flat colors, compact caricature 3.5 heads tall, expressive face and short legs. Side view facing right, idle standing pose, feet visible on same baseline. Isolated transparent PNG alpha cutout without backdrop or ground shadow, no text or political marks. Not realistic, not pixel art.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-periurbain-2.png",
+      "file": "assets/generated/characters/npc-periurbain-2.png",
+      "dimensions": [
+        174,
+        384
+      ],
+      "source_crop": [
+        278,
+        38,
+        559,
+        1234
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-003c0bb0-ce0d-4049-8779-39c12b54878b.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: Paris 19e canal embankment, Parisian residential blocks, wrought iron railings and bicycles. To the left, gradually retain motifs of: Haussmann institutions and mixed Parisian shops, bicycles and canal embankment motifs returning toward Paris 19e. To the right, gradually announce: Paris neighborhood plaza, small cafés and bookshop storefronts, mixed Haussmann and contemporary housing. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-0.png",
+      "file": "assets/generated/biomes/background-0.png",
+      "dimensions": [
+        1058,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1802,
+        872
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9395ba44-f802-41a6-a659-a26ef8ad2d89.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: Paris neighborhood plaza, small cafés and bookshop storefronts, mixed Haussmann and contemporary housing. To the left, gradually retain motifs of: Paris 19e canal embankment, Parisian residential blocks, wrought iron railings and bicycles. To the right, gradually announce: mixed Parisian housing, modest modern apartment blocks with distant residential towers toward banlieue. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-1.png",
+      "file": "assets/generated/biomes/background-1.png",
+      "dimensions": [
+        1229,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1942,
+        809
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-11",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-36101cda-a47c-460d-af70-e37ee77f573f.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: village edge with increasingly tidy detached houses, low garden walls, fields diminishing toward suburban gardens. To the left, gradually retain motifs of: French village center, small mairie with blank sign, bakery storefront, old stone houses, modest church far behind. To the right, gradually announce: quiet retired neighborhood, small well-kept detached pavilions, low wooden garden fences. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-11.png",
+      "file": "assets/generated/biomes/background-11.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-934b5bb7-9986-4b3e-9692-aefa0d73ab7f.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: mixed Parisian housing, modest modern apartment blocks with distant residential towers toward banlieue. To the left, gradually retain motifs of: Paris neighborhood plaza, small cafés and bookshop storefronts, mixed Haussmann and contemporary housing. To the right, gradually announce: banlieue residential collective housing, small clean ground-floor shops and distant towers, some older Parisian facades on left. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-2.png",
+      "file": "assets/generated/biomes/background-2.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-6",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-10e5ae5d-16f5-428e-87b2-f70471e52131.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: periurban modest houses and artisan workshops, functional low business buildings. To the left, gradually retain motifs of: banlieue lowering density, modest detached houses and garages, small workshops toward an artisan district. To the right, gradually announce: industrial area, low factory sheds and warehouses, stylized chimney and silos, wire fences. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-6.png",
+      "file": "assets/generated/biomes/background-6.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-7",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-cd79b372-427c-46fe-b737-79b24f2f2bd0.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: industrial area, low factory sheds and warehouses, stylized chimney and silos, wire fences. To the left, gradually retain motifs of: periurban modest houses and artisan workshops, functional low business buildings. To the right, gradually announce: last industrial warehouses on left, low fences and field edges toward countryside on right. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-7.png",
+      "file": "assets/generated/biomes/background-7.png",
+      "dimensions": [
+        1023,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1773,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-8",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-f763ec34-eb52-45e9-9799-a9302eb9a141.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: last industrial warehouses on left, low fences and field edges toward countryside on right. To the left, gradually retain motifs of: industrial area, low factory sheds and warehouses, stylized chimney and silos, wire fences. To the right, gradually announce: entry to a French village, farm shed, golden fields and scattered low stone village houses. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-8.png",
+      "file": "assets/generated/biomes/background-8.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-9",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-59115a65-cff4-43f6-b79c-e23aa06e132a.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: entry to a French village, farm shed, golden fields and scattered low stone village houses. To the left, gradually retain motifs of: last industrial warehouses on left, low fences and field edges toward countryside on right. To the right, gradually announce: French village center, small mairie with blank sign, bakery storefront, old stone houses, modest church far behind. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-9.png",
+      "file": "assets/generated/biomes/background-9.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-campaign_local-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d7097579-20b7-4b01-be68-cf2fc572d31c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for campaign_local, biome banlieue. Architecture MUST reflect: ground-floor local in apartment block, simple storefront, roller shutter and concrete/enduit cues. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-campaign_local-banlieue.png",
+      "file": "assets/generated/buildings/building-campaign_local-banlieue.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-campaign_local-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c271205c-e66d-48a0-b960-028e3ef8fea9.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for campaign_local, biome retraites. Architecture MUST reflect: well-kept association pavilion/local, light facade, awning, hedges and planters. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-campaign_local-retraites.png",
+      "file": "assets/generated/buildings/building-campaign_local-retraites.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-173c655d-84ad-4bf6-bd97-fdd88fabb723.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for communication, biome riches. Architecture MUST reflect: elegant media agency with discreet integrated dishes/screens. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-communication-riches.png",
+      "file": "assets/generated/buildings/building-communication-riches.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-14a82e17-5971-4cd9-8c7b-a8e2aa4f1b97.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for financement, biome banlieue. Architecture MUST reflect: practical association/accounting office at ground floor. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-financement-banlieue.png",
+      "file": "assets/generated/buildings/building-financement-banlieue.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-61eea7cb-896c-4f65-85ec-8260f1a0eb65.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for security_admin_slot, biome bobo. Architecture MUST reflect: small urban multipurpose local with storefront and side storage. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-security_admin_slot-bobo.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-bobo.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-10",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-a109c315-4ff3-4ade-ba9f-cf01f7e9bd0f.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Créer un panorama de décor 2D de jeu à défilement latéral, très large 3:1. La référence jointe définit UNIQUEMENT le trait BD français à l'encre, textures aquarelle douces, palette naturelle, pas son architecture parisienne. SUJET PRIORITAIRE : CAMPAGNE FRANÇAISE très ouverte, les CHAMPS couvrent les trois quarts de la largeur, grandes parcelles de blé doré, pâturages verts et sillons labourés ondulant sur les collines. Quelques meules de foin. Un petit village de cinq maisons en pierre avec clocher se niche au loin à droite, une ferme et grange à gauche. Premier plan clôture agricole basse en bois, ni alignement de boutiques ni façades urbaines. Beaucoup d'espace rural visible. Vue latérale frontale, lisible derrière de petits personnages. Ciel bleu cyan simple et uni sans nuages dans les 30% supérieurs. Façades et paysages opaques. Les objets proches se terminent au même niveau horizontal à 90% de hauteur ; les derniers 10% sont une marge ocre vide à découper. Aucun personnage, aucune route, aucun trottoir, aucun asphalte, aucun texte, aucune interface. Extrêmes gauche et droite dégagés autour d'une clôture basse pour le raccord naturel avec un décor adjacent ; ne pas couper de tour proche sur un bord.",
+      "transparent": false,
+      "max_height": 512,
+      "master": "assets/generated/masters/background-10.png",
+      "file": "assets/generated/biomes/background-10.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-12",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d0754e02-6af6-46dd-8c1b-ca4e5cb7c770.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: quiet retired neighborhood, small well-kept detached pavilions, low wooden garden fences. To the left, gradually retain motifs of: village edge with increasingly tidy detached houses, low garden walls, fields diminishing toward suburban gardens. To the right, gradually announce: small-town square with pharmacy storefront without words, community clubhouse and residential pavilions. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-12.png",
+      "file": "assets/generated/biomes/background-12.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-13",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9ce08f3d-da1f-41a0-b219-6b5469799fba.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: small-town square with pharmacy storefront without words, community clubhouse and residential pavilions. To the left, gradually retain motifs of: quiet retired neighborhood, small well-kept detached pavilions, low wooden garden fences. To the right, gradually announce: larger tidy pavilions and stone garden gates, wealthy residential houses gradually appearing on right. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-13.png",
+      "file": "assets/generated/biomes/background-13.png",
+      "dimensions": [
+        1280,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1983,
+        793
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-14",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-1be09b7e-4a14-4acc-bf40-ea2b0c76fedd.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: larger tidy pavilions and stone garden gates, wealthy residential houses gradually appearing on right. To the left, gradually retain motifs of: small-town square with pharmacy storefront without words, community clubhouse and residential pavilions. To the right, gradually announce: bourgeois residential quarter, elegant stone villas with wrought iron gates, small mature gardens. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-14.png",
+      "file": "assets/generated/biomes/background-14.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-15",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9550e4ee-1137-48b6-82c7-ef06538733ec.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: bourgeois residential quarter, elegant stone villas with wrought iron gates, small mature gardens. To the left, gradually retain motifs of: larger tidy pavilions and stone garden gates, wealthy residential houses gradually appearing on right. To the right, gradually announce: elegant avenue with refined boutiques, pale stone facades, cafe terraces, quiet French architecture. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-15.png",
+      "file": "assets/generated/biomes/background-15.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-16",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d86d0140-941e-405b-8870-4d2e90328410.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: elegant avenue with refined boutiques, pale stone facades, cafe terraces, quiet French architecture. To the left, gradually retain motifs of: bourgeois residential quarter, elegant stone villas with wrought iron gates, small mature gardens. To the right, gradually announce: Haussmann institutions and mixed Parisian shops, bicycles and canal embankment motifs returning toward Paris 19e. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-16.png",
+      "file": "assets/generated/biomes/background-16.png",
+      "dimensions": [
+        1280,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1983,
+        793
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-17",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-4f24fb86-0141-4021-b1ee-b28623b18ff0.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. Final 2D side-scroller background architecture, contemporary French hand-drawn comic style matching reference STYLE_TARGET. Scene: Haussmann institutions and mixed Parisian shops, bicycles and canal embankment motifs returning toward Paris 19e. To the left, gradually retain motifs of: elegant avenue with refined boutiques, pale stone facades, cafe terraces, quiet French architecture. To the right, gradually announce: Paris 19e canal embankment, Parisian residential blocks, wrought iron railings and bicycles. Wide 3:1 panorama. All architecture occupies CENTRAL 80% of image, tapering to low neutral stone walls at both outer edges. Complete opaque facades, dark readable ink contours and warm lightly textured flat colors. Uniform pale cyan-blue sky above skyline; top 32% completely sky, without clouds. All building bases share baseline at 90% image height. Lowest 10% plain muted ochre empty band for cropping. CRITICAL: NO road, NO asphalt, NO sidewalk strip, NO foreground ground surface. No characters, political sites, UI, lettering or text. No trees or foliage: these are separate seasonal game layers. All buildings seen mainly front-on, no diagonal street vanishing point. Keep horizon and scale compatible with neighboring French districts. Left and right edges include low walls and sparse architecture only, so they can join naturally without crossfading any buildings.",
+      "transparent": false,
+      "master": "assets/generated/masters/background-17.png",
+      "file": "assets/generated/biomes/background-17.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-eacc219e-8ce9-4830-9026-80de6df0c56e.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Créer un panorama de décor 2D de jeu à défilement latéral, très large 3:1. La référence jointe définit UNIQUEMENT le trait BD français à l'encre, textures aquarelle douces, palette naturelle, pas son architecture parisienne. SUJET PRIORITAIRE : BANLIEUE FRANÇAISE, entrée d'une CITÉ HLM. Au centre une grande barre de logements sociaux années 1970, 9 étages, béton clair avec panneaux colorés, balcons répétitifs et halls d'immeubles. Deux tours d'habitation à l'arrière. À l'extrême gauche seulement un dernier immeuble ancien parisien annonce le quartier précédent ; à droite commence la cité dense. Petit équipement de quartier au pied, grilles basses. Vue latérale frontale, lisible derrière de petits personnages. Ciel bleu cyan simple et uni sans nuages dans les 30% supérieurs. Façades et paysages opaques. Les objets proches se terminent au même niveau horizontal à 90% de hauteur ; les derniers 10% sont une marge ocre vide à découper. Aucun personnage, aucune route, aucun trottoir, aucun asphalte, aucun texte, aucune interface. Extrêmes gauche et droite dégagés autour d'une clôture basse pour le raccord naturel avec un décor adjacent ; ne pas couper de tour proche sur un bord.",
+      "transparent": false,
+      "max_height": 512,
+      "master": "assets/generated/masters/background-3.png",
+      "file": "assets/generated/biomes/background-3.png",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-b4bd9f9b-e085-497b-965e-0730d04ff28c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for imprimerie, biome banlieue. Architecture MUST reflect: neighborhood copy-shop/printing workshop. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-imprimerie-banlieue.png",
+      "file": "assets/generated/buildings/building-imprimerie-banlieue.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-941798da-4cf5-4811-b2d7-bfa7c4d9b025.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for imprimerie, biome periurbain. Architecture MUST reflect: small semi-industrial print workshop. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-imprimerie-periurbain.png",
+      "file": "assets/generated/buildings/building-imprimerie-periurbain.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c5f8b4fd-c223-4817-a382-f1a6d04b08ae.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for meeting_hall, biome retraites. Architecture MUST reflect: well-kept municipal clubhouse/association hall. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-meeting_hall-retraites.png",
+      "file": "assets/generated/buildings/building-meeting_hall-retraites.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-f782cbe2-b2fb-4705-a27a-a57a7707ae80.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for meeting_hall, biome riches. Architecture MUST reflect: small auditorium/conference salon/cultural hall. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-meeting_hall-riches.png",
+      "file": "assets/generated/buildings/building-meeting_hall-riches.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-262c7344-8919-4037-b651-2e1cabe8d673.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for security_admin_slot, biome banlieue. Architecture MUST reflect: storage/association ground-floor unit with shutter and service door. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-security_admin_slot-banlieue.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-banlieue.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-4ee72a2e-406c-4dcc-bf5b-240a1c64cc93.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for security_admin_slot, biome campagne. Architecture MUST reflect: municipal annex/former workshop with traditional materials. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-security_admin_slot-campagne.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-campagne.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c0078b24-be7a-430d-b83a-6d8d27c1d57e.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for security_admin_slot, biome periurbain. Architecture MUST reflect: small logistics office/hangar with loading cues. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-security_admin_slot-periurbain.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-periurbain.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-f8b412a1-c964-433b-929e-c66f70d429a4.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Use case: stylized-concept. One production 2D French comic facade texture for security_admin_slot, biome riches. Architecture MUST reflect: elegant annex/service office with refined frontage. Match supplied STYLE_TARGET.png hand-drawn dark ink lines, textured warm flat colors, pleasant caricature. This is a RECTANGULAR FRONT ELEVATION TILE: crop tightly to the building, facade and roof cornice fill the entire canvas edge to edge, NO surrounding sky, NO street, NO pavement, NO checkerboard, no exterior blank margin. Portrait 4:5 proportion. One storey compact local with distinctive architectural details, full-width blank cream sign panel in top 10-23 percent, front window and door below, whole structure intact to ground at bottom border. Neutral cream/grey palette with wood/stone/metal appropriate to biome, no political branding, no essential text, no people. Recognizable functional cues for this site family, not the same facade recolored. Owner flags, sign lettering and level equipment will be overlaid by game code. Only produce one facade.",
+      "transparent": false,
+      "master": "assets/generated/masters/building-security_admin_slot-riches.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-riches.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "crs-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-44b0df0f-0a1e-4c28-a489-af0d749cdf8d.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Single full-body French comic game character: compact stocky light-skinned riot-police officer, stylized navy protective uniform, helmet and simple transparent protective shield, no lettering. Match supplied STYLE_TARGET reference: expressive caricature, compact proportions with large head and short legs, dark ink outlines, hand-drawn gently textured flat colors. Relaxed standing pose facing right, both feet visible. Actual transparent PNG alpha cutout, no scenery, no background, no floor shadow, no text. All parts separate from image edges. Strong silhouette readable at 80 pixels tall.",
+      "transparent": true,
+      "master": "assets/generated/masters/crs-0.png",
+      "file": "assets/generated/characters/crs-0.png",
+      "dimensions": [
+        239,
+        384
+      ],
+      "source_crop": [
+        72,
+        65,
+        887,
+        1424
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-campagne-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-0ecd50e0-622a-4e26-a01e-a73a7ada981c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Using the reference only for hand-inked French comic art style, create a full-body farmer NPC, elderly white French man in blue overalls, straw hat, boots, carrying a small crate of vegetables. Friendly adult, 3/4 facing right, large expressive head, entire feet visible, neutral standing pose. Genuine transparent PNG RGBA background, no checkerboard drawn, no scenery, no floor, no text. Crisp dark contours, warm muted watercolor texture.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-campagne-0.png",
+      "file": "assets/generated/characters/npc-campagne-0.png",
+      "dimensions": [
+        187,
+        384
+      ],
+      "source_crop": [
+        186,
+        25,
+        723,
+        1487
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-campagne-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-a1e6b37d-87bd-408a-af62-2c68e4b3626c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Edit the attached character. Remove the entire fake white-grey checkerboard and export genuine PNG transparency with alpha=0 outside the ink silhouette and between limbs. Keep the exact complete character, clothes, colors, texture, ink outline. No backdrop, no pattern, no floor, no drop shadow, no white matte. Isolated game sprite.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-campagne-1.png",
+      "file": "assets/generated/characters/npc-campagne-1.png",
+      "dimensions": [
+        169,
+        384
+      ],
+      "source_crop": [
+        208,
+        14,
+        646,
+        1468
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-periurbain-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-378f6d37-ff96-4d08-939b-e8234e2b7755.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Edit the attached character. Remove the entire fake white-grey checkerboard and export genuine PNG transparency with alpha=0 outside the ink silhouette and between limbs. Keep the exact complete character, clothes, colors, texture, ink outline. No backdrop, no pattern, no floor, no drop shadow, no white matte. Isolated game sprite.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-periurbain-0.png",
+      "file": "assets/generated/characters/npc-periurbain-0.png",
+      "dimensions": [
+        191,
+        384
+      ],
+      "source_crop": [
+        269,
+        17,
+        623,
+        1251
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-riches-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-59975394-3c34-4546-8ec2-481e61c486a6.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Single full-body French comic game character: young medium-brown-skinned man in cashmere beige pullover, neat grey trousers and leather satchel. Match supplied STYLE_TARGET reference: expressive caricature, compact proportions with large head and short legs, dark ink outlines, hand-drawn gently textured flat colors. Relaxed standing pose facing right, both feet visible. Actual transparent PNG alpha cutout, no scenery, no background, no floor shadow, no text. All parts separate from image edges. Strong silhouette readable at 80 pixels tall.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-riches-2.png",
+      "file": "assets/generated/characters/npc-riches-2.png",
+      "dimensions": [
+        155,
+        384
+      ],
+      "source_crop": [
+        215,
+        17,
+        604,
+        1498
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-4",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-5421e2be-23a7-49f2-acb2-9794ec889a75.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Illustration de décor pour jeu 2D à défilement latéral, très large format 3:1. Référence jointe UNIQUEMENT pour le style BD française à l'encre et aquarelle texturée, pas pour l'architecture. Cœur d'une CITÉ HLM française : grandes barres d'habitation sociale années 1970 de 10 étages avec panneaux brique et ocre, deux tours. Devant, petit marché populaire aux auvents colorés et terrain de basket grillagé. La cité occupe 80% du paysage. Aucune architecture haussmannienne ni maison de village. Ciel cyan simple dans le tiers supérieur, aucun cadre. Pied du décor sur ligne horizontale à 90% hauteur, dernière marge de 10% ocre vide. Les deux bords restent bas pour raccorder les scènes. Aucun texte, aucun personnage, aucune interface, aucune route ni asphalte. Couleurs naturelles lisibles, détails fins mais formes claires.",
+      "transparent": false,
+      "max_height": 512,
+      "master": "assets/generated/masters/background-4.png",
+      "file": "assets/generated/biomes/background-4.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-5",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-36dc1854-84d4-4993-84d5-42cea1732166.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Illustration de décor pour jeu 2D à défilement latéral, très large format 3:1. Référence jointe UNIQUEMENT pour le style BD française à l'encre et aquarelle texturée, pas pour l'architecture. Sortie d'une CITÉ HLM française vers une zone artisanale : barres et tours d'habitation sociale béton clair avec grands balcons répétitifs à gauche et au centre ; garages et hangars en bardage métallique au quart droit. Quelques pavillons modestes en transition. Aucun immeuble haussmannien. Ciel cyan simple dans le tiers supérieur, aucun cadre. Pied du décor sur ligne horizontale à 90% hauteur, dernière marge de 10% ocre vide. Les deux bords restent bas pour raccorder les scènes. Aucun texte, aucun personnage, aucune interface, aucune route ni asphalte. Couleurs naturelles lisibles, détails fins mais formes claires.",
+      "transparent": false,
+      "max_height": 512,
+      "master": "assets/generated/masters/background-5.png",
+      "file": "assets/generated/biomes/background-5.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-campaign_local-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d77c3b34-342a-4394-9ccc-a0cafa8aafc6.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create a rectangular FRONT ELEVATION TILE of one compact neutral game building. Fill the entire portrait 4:5 image with the facade, edge-to-edge: no white margins, no background, no sky, no road, no pavement. Architecture: elegant stone ground-floor office, refined frames, brass/wood details, restrained awning. Biome: riches. Function: campaign_local. Use the attached reference ONLY for French comic ink style and muted watercolor texture. Clear front door, distinct windows, a broad blank cream sign integrated in the upper 10–23% of the facade. Single compact storey, no people, no readable lettering, no faction symbols. The entire bottom edge is the building's threshold. The roof cornice touches the entire top edge.",
+      "transparent": false,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-campaign_local-riches.png",
+      "file": "assets/generated/buildings/building-campaign_local-riches.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-91426db3-4a36-4b5a-b097-73c15434f943.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background outside the building transparent. Keep the complete building, roof and antenna unchanged. No white or black backdrop, no shadow.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-communication-bobo.png",
+      "file": "assets/generated/buildings/building-communication-bobo.png",
+      "dimensions": [
+        471,
+        640
+      ],
+      "source_crop": [
+        3,
+        53,
+        1018,
+        1384
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9f584cc6-b883-496a-9a33-205f0e2b9194.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background outside the building transparent. Keep the complete building, roof and antenna unchanged. No white or black backdrop, no shadow.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-communication-periurbain.png",
+      "file": "assets/generated/buildings/building-communication-periurbain.png",
+      "dimensions": [
+        467,
+        640
+      ],
+      "source_crop": [
+        8,
+        56,
+        1007,
+        1380
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-42c471d0-6107-4eef-a987-13acace3dee1.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create a rectangular FRONT ELEVATION TILE of one compact neutral game building. Fill the entire portrait 4:5 image with the facade, edge-to-edge: no white margins, no background, no sky, no road, no pavement. Architecture: premium stationery and fine-print shop. Biome: riches. Function: imprimerie. Use the attached reference ONLY for French comic ink style and muted watercolor texture. Clear front door, distinct windows, a broad blank cream sign integrated in the upper 10–23% of the facade. Single compact storey, no people, no readable lettering, no faction symbols. The entire bottom edge is the building's threshold. The roof cornice touches the entire top edge.",
+      "transparent": false,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-imprimerie-riches.png",
+      "file": "assets/generated/buildings/building-imprimerie-riches.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-72fe8ec4-e353-4cf7-82f4-4b9822200d5b.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create a rectangular FRONT ELEVATION TILE of one compact neutral game building. Fill the entire portrait 4:5 image with the facade, edge-to-edge: no white margins, no background, no sky, no road, no pavement. Architecture: multipurpose neighborhood/community hall. Biome: banlieue. Function: meeting_hall. Use the attached reference ONLY for French comic ink style and muted watercolor texture. Clear front door, distinct windows, a broad blank cream sign integrated in the upper 10–23% of the facade. Single compact storey, no people, no readable lettering, no faction symbols. The entire bottom edge is the building's threshold. The roof cornice touches the entire top edge.",
+      "transparent": false,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-meeting_hall-banlieue.png",
+      "file": "assets/generated/buildings/building-meeting_hall-banlieue.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-75ade208-bbc3-4efa-9f33-82067288f705.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create a rectangular FRONT ELEVATION TILE of one compact neutral game building. Fill the entire portrait 4:5 image with the facade, edge-to-edge: no white margins, no background, no sky, no road, no pavement. Architecture: cultural center/community loft. Biome: bobo. Function: meeting_hall. Use the attached reference ONLY for French comic ink style and muted watercolor texture. Clear front door, distinct windows, a broad blank cream sign integrated in the upper 10–23% of the facade. Single compact storey, no people, no readable lettering, no faction symbols. The entire bottom edge is the building's threshold. The roof cornice touches the entire top edge.",
+      "transparent": false,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-meeting_hall-bobo.png",
+      "file": "assets/generated/buildings/building-meeting_hall-bobo.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-7add617c-1402-47bd-b724-b7dd6dda590f.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background outside the building transparent. Keep the complete building, roof and antenna unchanged. No white or black backdrop, no shadow.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-bobo.png",
+      "file": "assets/generated/buildings/building-polling_institute-bobo.png",
+      "dimensions": [
+        477,
+        640
+      ],
+      "source_crop": [
+        154,
+        6,
+        903,
+        1212
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-bec45b65-486c-404f-99ac-800548bc4065.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Create a rectangular FRONT ELEVATION TILE of one compact neutral game building. Fill the entire portrait 4:5 image with the facade, edge-to-edge: no white margins, no background, no sky, no road, no pavement. Architecture: survey office in converted municipal/commercial local. Biome: campagne. Function: polling_institute. Use the attached reference ONLY for French comic ink style and muted watercolor texture. Clear front door, distinct windows, a broad blank cream sign integrated in the upper 10–23% of the facade. Single compact storey, no people, no readable lettering, no faction symbols. The entire bottom edge is the building's threshold. The roof cornice touches the entire top edge.",
+      "transparent": false,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-campagne.png",
+      "file": "assets/generated/buildings/building-polling_institute-campagne.png",
+      "dimensions": [
+        512,
+        640
+      ],
+      "source_crop": [
+        0,
+        0,
+        1122,
+        1402
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "crs-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c6e4bdf8-29a8-4a7a-aa31-24dc3987c614.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Full body French hand-drawn comic game character, compact dark-skinned riot-police officer, stylized navy protective uniform, helmet and simple protective shield, no lettering. Match reference ink linework and muted watercolor texture only. Three-quarter facing right, adult slightly caricatured big expressive head, neutral pose. Entire body including feet visible. Transparent background.",
+      "transparent": true,
+      "master": "assets/generated/masters/crs-1.png",
+      "file": "assets/generated/characters/crs-1.png",
+      "dimensions": [
+        228,
+        384
+      ],
+      "source_crop": [
+        100,
+        27,
+        879,
+        1482
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "journalist-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-29d3f07c-ee58-4ab3-9e0d-cb6b68f105ae.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Full body French hand-drawn comic game character, female dark-skinned TV journalist in beige blazer holding a handheld microphone. Match reference ink linework and muted watercolor texture only. Three-quarter facing right, adult slightly caricatured big expressive head, neutral pose. Entire body including feet visible. Transparent background.",
+      "transparent": true,
+      "master": "assets/generated/masters/journalist-0.png",
+      "file": "assets/generated/characters/journalist-0.png",
+      "dimensions": [
+        134,
+        384
+      ],
+      "source_crop": [
+        214,
+        9,
+        527,
+        1513
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "journalist-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c870d01a-da28-4e62-8a56-8e83f5e0c7aa.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Full body French hand-drawn comic game character, male light-skinned older editorial interviewer, round glasses, grey suit, notebook and microphone. Match reference ink linework and muted watercolor texture only. Three-quarter facing right, adult slightly caricatured big expressive head, neutral pose. Entire body including feet visible. Transparent background.",
+      "transparent": true,
+      "master": "assets/generated/masters/journalist-1.png",
+      "file": "assets/generated/characters/journalist-1.png",
+      "dimensions": [
+        181,
+        384
+      ],
+      "source_crop": [
+        181,
+        32,
+        692,
+        1469
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "journalist-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-cef66931-6ff9-4d5c-804d-9b614491edc4.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Full body French hand-drawn comic game character, medium-brown-skinned camerawoman, practical olive jacket and small shoulder television camera. Match reference ink linework and muted watercolor texture only. Three-quarter facing right, adult slightly caricatured big expressive head, neutral pose. Entire body including feet visible. Transparent background.",
+      "transparent": true,
+      "master": "assets/generated/masters/journalist-2.png",
+      "file": "assets/generated/characters/journalist-2.png",
+      "dimensions": [
+        196,
+        384
+      ],
+      "source_crop": [
+        193,
+        48,
+        735,
+        1443
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-retraites-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-631ebdd3-942a-45f9-b9d0-a0597388621c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the character unchanged.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-retraites-0.png",
+      "file": "assets/generated/characters/npc-retraites-0.png",
+      "dimensions": [
+        146,
+        384
+      ],
+      "source_crop": [
+        219,
+        10,
+        550,
+        1443
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-retraites-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-0f15fccc-c547-4cbd-ae60-c06f35a46c38.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-retraites-1.png",
+      "file": "assets/generated/characters/npc-retraites-1.png",
+      "dimensions": [
+        157,
+        384
+      ],
+      "source_crop": [
+        201,
+        24,
+        601,
+        1472
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-retraites-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c6e5a459-b889-4e99-87e7-6da827f217c3.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-retraites-2.png",
+      "file": "assets/generated/characters/npc-retraites-2.png",
+      "dimensions": [
+        190,
+        384
+      ],
+      "source_crop": [
+        219,
+        54,
+        621,
+        1256
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-riches-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-caa1a964-7b5a-4edb-a370-35fa9ad38252.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-riches-0.png",
+      "file": "assets/generated/characters/npc-riches-0.png",
+      "dimensions": [
+        154,
+        384
+      ],
+      "source_crop": [
+        178,
+        19,
+        586,
+        1465
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-riches-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-74ab307e-768a-45a5-9227-729c446539df.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/npc-riches-1.png",
+      "file": "assets/generated/characters/npc-riches-1.png",
+      "dimensions": [
+        152,
+        384
+      ],
+      "source_crop": [
+        301,
+        12,
+        528,
+        1333
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "security-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ea4cd7d4-2e7a-4d23-98a7-181da3a816ab.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/security-0.png",
+      "file": "assets/generated/characters/security-0.png",
+      "dimensions": [
+        231,
+        384
+      ],
+      "source_crop": [
+        251,
+        12,
+        723,
+        1202
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "security-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d4f5cce5-3b68-4856-a766-6faf71e0593c.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Make the background transparent. Keep the entire character unchanged, no shadow or glow.",
+      "transparent": true,
+      "master": "assets/generated/masters/security-1.png",
+      "file": "assets/generated/characters/security-1.png",
+      "dimensions": [
+        216,
+        384
+      ],
+      "source_crop": [
+        190,
+        12,
+        745,
+        1327
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "vegetation-0",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-dd273df2-1021-4fa6-9363-577eff4f0067.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "French hand-drawn comic game asset, broad rounded plane-tree crown, irregular clustered foliage. LEAF CANOPY ONLY, no trunk, no branches below, no pot, no soil. Summer muted olive-green leaves in many overlapping organic clusters with fine dark ink contours and textured watercolor shading. Match the attached illustration's technique. Isolated foliage silhouette, complete edges, transparent background. No glow, no shadow, no lettering.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/vegetation-0.png",
+      "file": "assets/generated/vegetation/vegetation-0.png",
+      "dimensions": [
+        508,
+        320
+      ],
+      "source_crop": [
+        18,
+        30,
+        1497,
+        943
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "vegetation-2",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-6dec5357-ba03-4426-9ee9-22bcf78500a6.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "French hand-drawn comic game asset, wide rounded park-tree crown with distinct lobes. LEAF CANOPY ONLY, no trunk, no branches below, no pot, no soil. Summer muted olive-green leaves in many overlapping organic clusters with fine dark ink contours and textured watercolor shading. Match the attached illustration's technique. Isolated foliage silhouette, complete edges, transparent background. No glow, no shadow, no lettering.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/vegetation-2.png",
+      "file": "assets/generated/vegetation/vegetation-2.png",
+      "dimensions": [
+        500,
+        320
+      ],
+      "source_crop": [
+        14,
+        7,
+        1509,
+        965
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "vegetation-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-81293f8c-cc50-4c48-96cf-69e0b2c0a283.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "French hand-drawn comic game asset, very wide spreading oak-tree crown with rugged large lobes. LEAF CANOPY ONLY, no trunk, no branches below, no pot, no soil. Summer muted olive-green leaves in many overlapping organic clusters with fine dark ink contours and textured watercolor shading. Match the attached illustration's technique. Isolated foliage silhouette, complete edges, transparent background. No glow, no shadow, no lettering.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/vegetation-3.png",
+      "file": "assets/generated/vegetation/vegetation-3.png",
+      "dimensions": [
+        584,
+        320
+      ],
+      "source_crop": [
+        12,
+        10,
+        1652,
+        905
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "vegetation-4",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-27a7b0bc-8c4e-4e4c-ad82-bc33f722bcf5.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "French hand-drawn comic game asset, long low clipped hedge, organic slightly uneven rectangular outline. LEAF CANOPY ONLY, no trunk, no branches below, no pot, no soil. Summer muted olive-green leaves in many overlapping organic clusters with fine dark ink contours and textured watercolor shading. Match the attached illustration's technique. Isolated foliage silhouette, complete edges, transparent background. No glow, no shadow, no lettering.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/vegetation-4.png",
+      "file": "assets/generated/vegetation/vegetation-4.png",
+      "dimensions": [
+        1674,
+        320
+      ],
+      "source_crop": [
+        50,
+        181,
+        2077,
+        397
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-arena",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-36dd33b3-55fc-4a6e-a91b-e3ac450f5579.png",
+      "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+      "prompt": "Illustration de décor pour jeu 2D à défilement latéral, très large format 3:1. Référence jointe UNIQUEMENT pour le style BD française à l'encre et aquarelle texturée, pas pour l'architecture. Plateau de télévision français pour un débat satirique, vide, vue frontale de scène de théâtre : grand écran central vide bleu pétrole, décor élégant de panneaux bois clair et rouge sourd, éclairages suspendus et rideaux aux bords. L'avant de la scène dégagé pour personnages, aucun pupitre ni meuble au milieu. Sol de scène horizontal à 85% hauteur. Aucun texte, aucun personnage, aucune interface, aucune route ni asphalte. Couleurs naturelles lisibles, détails fins mais formes claires.",
+      "transparent": false,
+      "max_height": 512,
+      "master": "assets/generated/masters/background-arena.png",
+      "file": "assets/generated/biomes/background-arena.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-campaign_local-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-dc2c030a-dc3c-48e5-8419-f4cf363aeffa.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-campaign_local-periurbain.png",
+      "file": "assets/generated/buildings/building-campaign_local-periurbain.png",
+      "dimensions": [
+        524,
+        640
+      ],
+      "source_crop": [
+        93,
+        14,
+        1012,
+        1237
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c93e21c3-abfc-4ba8-8516-e628c1af867f.png",
+      "prompt": "Make the background transparent. Remove the apartment block and trees behind this single-storey storefront. Keep the storefront and its roof antennas unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-communication-banlieue.png",
+      "file": "assets/generated/buildings/building-communication-banlieue.png",
+      "dimensions": [
+        546,
+        640
+      ],
+      "source_crop": [
+        88,
+        10,
+        1038,
+        1217
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ca588ba1-a2d7-4332-9a81-9ebd35867f77.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-communication-campagne.png",
+      "file": "assets/generated/buildings/building-communication-campagne.png",
+      "dimensions": [
+        543,
+        640
+      ],
+      "source_crop": [
+        65,
+        12,
+        1070,
+        1260
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-communication-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-aac21ae0-ccee-4bbf-aaba-d80a5ae14c11.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-communication-retraites.png",
+      "file": "assets/generated/buildings/building-communication-retraites.png",
+      "dimensions": [
+        565,
+        640
+      ],
+      "source_crop": [
+        52,
+        1,
+        1096,
+        1241
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-7a49465d-308c-4145-84ae-2e3d5f42f0bd.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-financement-bobo.png",
+      "file": "assets/generated/buildings/building-financement-bobo.png",
+      "dimensions": [
+        562,
+        640
+      ],
+      "source_crop": [
+        0,
+        1,
+        1135,
+        1293
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-405a5715-b443-4872-8d90-c1e0e788dbcf.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-imprimerie-campagne.png",
+      "file": "assets/generated/buildings/building-imprimerie-campagne.png",
+      "dimensions": [
+        521,
+        640
+      ],
+      "source_crop": [
+        5,
+        14,
+        1112,
+        1365
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-b808d250-6111-46d4-b494-532210a3e149.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-meeting_hall-campagne.png",
+      "file": "assets/generated/buildings/building-meeting_hall-campagne.png",
+      "dimensions": [
+        575,
+        640
+      ],
+      "source_crop": [
+        17,
+        0,
+        1164,
+        1295
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-3ba3646d-566a-4486-8917-309a54126643.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-periurbain.png",
+      "file": "assets/generated/buildings/building-polling_institute-periurbain.png",
+      "dimensions": [
+        521,
+        640
+      ],
+      "source_crop": [
+        30,
+        12,
+        1081,
+        1329
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-03f625bd-0abd-4212-a3c0-3e2a9d30fb77.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-retraites.png",
+      "file": "assets/generated/buildings/building-polling_institute-retraites.png",
+      "dimensions": [
+        535,
+        640
+      ],
+      "source_crop": [
+        79,
+        8,
+        1039,
+        1243
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-19879678-5b9d-4d0a-ba2a-d41b97c58eb6.png",
+      "prompt": "Make the background transparent.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-banlieue.png",
+      "file": "assets/generated/buildings/building-polling_institute-banlieue.png",
+      "dimensions": [
+        553,
+        640
+      ],
+      "source_crop": [
+        22,
+        28,
+        1113,
+        1288
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "vegetation-1",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-bbfda397-e16d-4e6e-a44d-2787133f09d7.png",
+      "prompt": "Create a narrow upright leafy tree crown in this illustration style. Only the foliage, no trunk. Transparent background.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/vegetation-1.png",
+      "file": "assets/generated/vegetation/vegetation-1.png",
+      "dimensions": [
+        134,
+        320
+      ],
+      "source_crop": [
+        197,
+        13,
+        632,
+        1509
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-campaign_local-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-7341cc2b-8c48-4f65-915b-b5506efedc20.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-campaign_local-campagne.png",
+      "file": "assets/generated/buildings/building-campaign_local-campagne.png",
+      "dimensions": [
+        523,
+        640
+      ],
+      "source_crop": [
+        58,
+        0,
+        1057,
+        1294
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-e991b698-149d-41eb-8435-36e266cd5500.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-financement-riches.png",
+      "file": "assets/generated/buildings/building-financement-riches.png",
+      "dimensions": [
+        532,
+        640
+      ],
+      "source_crop": [
+        21,
+        12,
+        1094,
+        1317
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-meeting_hall-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8507d6d8-e3f3-44e7-b958-e8bdc94f6c21.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-meeting_hall-periurbain.png",
+      "file": "assets/generated/buildings/building-meeting_hall-periurbain.png",
+      "dimensions": [
+        522,
+        640
+      ],
+      "source_crop": [
+        0,
+        19,
+        1121,
+        1375
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-security_admin_slot-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-55888cee-2735-4fe6-b240-25fc76a2b783.png",
+      "prompt": "Make the background transparent. Keep the building unchanged.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-security_admin_slot-retraites.png",
+      "file": "assets/generated/buildings/building-security_admin_slot-retraites.png",
+      "dimensions": [
+        523,
+        640
+      ],
+      "source_crop": [
+        74,
+        0,
+        1010,
+        1235
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-fc112152-a47c-4c35-81c6-dfe10cff1524.png",
+      "prompt": "Remove the surrounding background and export this building with a transparent background. Preserve the building illustration.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-financement-campagne.png",
+      "file": "assets/generated/buildings/building-financement-campagne.png",
+      "dimensions": [
+        515,
+        640
+      ],
+      "source_crop": [
+        19,
+        13,
+        1089,
+        1354
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-50b3d573-0e1e-4269-8bfe-d17fca69d6c0.png",
+      "prompt": "Remove the surrounding background and export this building with a transparent background. Preserve the building illustration.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-financement-periurbain.png",
+      "file": "assets/generated/buildings/building-financement-periurbain.png",
+      "dimensions": [
+        528,
+        640
+      ],
+      "source_crop": [
+        23,
+        12,
+        1099,
+        1331
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-financement-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-b5557b41-a025-4b87-96eb-6be24a5e8a23.png",
+      "prompt": "Remove the surrounding background and export this building with a transparent background. Preserve the building illustration.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-financement-retraites.png",
+      "file": "assets/generated/buildings/building-financement-retraites.png",
+      "dimensions": [
+        526,
+        640
+      ],
+      "source_crop": [
+        81,
+        4,
+        1049,
+        1277
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c2eb2b50-9822-44c8-8437-e13eabb593d2.png",
+      "prompt": "Remove the surrounding background and export this building with a transparent background. Preserve the building illustration.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-imprimerie-bobo.png",
+      "file": "assets/generated/buildings/building-imprimerie-bobo.png",
+      "dimensions": [
+        532,
+        640
+      ],
+      "source_crop": [
+        46,
+        3,
+        1070,
+        1287
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-polling_institute-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9fbf82a1-0625-4ce8-b923-d81e24d570a8.png",
+      "prompt": "Remove the surrounding background and export this building with a transparent background. Preserve the building illustration.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-polling_institute-riches.png",
+      "file": "assets/generated/buildings/building-polling_institute-riches.png",
+      "dimensions": [
+        535,
+        640
+      ],
+      "source_crop": [
+        21,
+        0,
+        1115,
+        1333
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "distant-rural",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-da4b08c4-f2d2-4b3f-aba3-bb38841836b4.png",
+      "prompt": "Wide panoramic 2D game distant scenery layer, 3:1 landscape. rolling French countryside hills with patchwork fields, hedgerows and two small distant villages, a tiny church spire, oak woodlands. Hand-inked French bande dessinée illustration, fine charcoal contours, muted blue-grey and sage atmospheric colors, warm pale stone, restrained detail, convincing depth. Only the distant landscape skyline, continuous from left to right, flat lower edge filled solid with the scene, no road, no foreground, no people, no lettering, no frame. TRANSPARENT background above the skyline, real PNG alpha; no painted sky. This is a far background layer behind existing close buildings.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-rural.png",
+      "file": "assets/generated/biomes/distant-rural.png",
+      "dimensions": [
+        2172,
+        399
+      ],
+      "source_crop": [
+        0,
+        325,
+        2172,
+        399
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "distant-suburb",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8f10ae09-4e9f-47c0-9f4e-8b37c6429631.png",
+      "prompt": "Wide panoramic 2D game distant scenery layer, 3:1 landscape. French cités HLM, several apartment towers and long mid-rise housing blocks, tiny industrial chimneys, tree belts between estates. Hand-inked French bande dessinée illustration, fine charcoal contours, muted blue-grey and sage atmospheric colors, warm pale stone, restrained detail, convincing depth. Only the distant landscape skyline, continuous from left to right, flat lower edge filled solid with the scene, no road, no foreground, no people, no lettering, no frame. TRANSPARENT background above the skyline, real PNG alpha; no painted sky. This is a far background layer behind existing close buildings.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-suburb.png",
+      "file": "assets/generated/biomes/distant-suburb.png",
+      "dimensions": [
+        2172,
+        344
+      ],
+      "source_crop": [
+        0,
+        380,
+        2172,
+        344
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "distant-urban",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-99bc9871-a407-47b0-ace2-13467ae97ad7.png",
+      "prompt": "Wide panoramic 2D game distant scenery layer, 3:1 landscape. dense Parisian rooftops, pale limestone Haussmann blocks on a gently rising hill, varied chimneys and one distant modest dome. Hand-inked French bande dessinée illustration, fine charcoal contours, muted blue-grey and sage atmospheric colors, warm pale stone, restrained detail, convincing depth. Only the distant landscape skyline, continuous from left to right, flat lower edge filled solid with the scene, no road, no foreground, no people, no lettering, no frame. TRANSPARENT background above the skyline, real PNG alpha; no painted sky. This is a far background layer behind existing close buildings.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-urban.png",
+      "file": "assets/generated/biomes/distant-urban.png",
+      "dimensions": [
+        2172,
+        500
+      ],
+      "source_crop": [
+        0,
+        224,
+        2172,
+        500
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "distant-clouds",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-5ea88d39-8d4b-43db-83b7-357771e0563c.png",
+      "prompt": "Wide 4:1 strip of six separated soft cumulus cloud groups, hand painted French bande dessinée watercolor style with fine pencil texture, warm ivory highlights and muted pale blue grey shading, varied shapes and sizes, thin wispy edges, no outline border. Real transparent PNG background. Clouds only, no sky, landscape, ground, text or frame.",
+      "transparent": true,
+      "max_height": 320,
+      "master": "assets/generated/masters/distant-clouds.png",
+      "file": "assets/generated/biomes/distant-clouds.png",
+      "dimensions": [
+        2019,
+        320
+      ],
+      "source_crop": [
+        34,
+        224,
+        2107,
+        334
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "building-imprimerie-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-2dc67335-b8bf-485e-98a8-97d384009e29.png",
+      "prompt": "Single French neighborhood print shop storefront for a 2D side scrolling game. Blue painted wood frontage, pale warm limestone wall, large blank ivory sign panel above a glass window showing printing presses and neat paper stacks, glass door at right. Front elevation, no perspective. Detailed hand inked French bande dessinée, warm watercolor textures. Whole building from roof cornice to feet, isolated on a TRANSPARENT PNG background, no backdrop, no floor, no frame, no letters. Compact one storey building with small tiled roof edge.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/building-imprimerie-retraites.png",
+      "file": "assets/generated/buildings/building-imprimerie-retraites.png",
+      "dimensions": [
+        730,
+        640
+      ],
+      "source_crop": [
+        11,
+        4,
+        1290,
+        1131
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-7b0d8dc8-a2d9-41de-9acb-48488ce67c1a.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. French banlieue with unmistakable cités HLM: apartment towers and long housing estates at left, neighborhood outdoor market in center, smaller residential houses at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-banlieue.png",
+      "file": "assets/generated/biomes/background-strip-banlieue.png",
+      "dimensions": [
+        2172,
+        504
+      ],
+      "source_crop": [
+        0,
+        129,
+        2172,
+        504
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-cd63c7b0-ff06-4ad9-b2d2-841b3c17eb6e.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. Paris populaire et bobo: canal with iron footbridge at left, lively café square and Haussmann apartment streets in center, mixed residential Paris towards suburb at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-bobo.png",
+      "file": "assets/generated/biomes/background-strip-bobo.png",
+      "dimensions": [
+        2172,
+        520
+      ],
+      "source_crop": [
+        0,
+        119,
+        2172,
+        520
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-e875e62c-fbff-4494-960a-21c5c7a095c2.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. French countryside: village outskirts and farm barns at left, open patchwork fields and a small stone village with a church in center, more fields and village houses at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-campagne.png",
+      "file": "assets/generated/biomes/background-strip-campagne.png",
+      "dimensions": [
+        2172,
+        497
+      ],
+      "source_crop": [
+        0,
+        129,
+        2172,
+        497
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-b3d07fec-a955-4f61-bb1b-b092c4c7a18b.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. French industrial outskirts: modest worker housing at left, factory workshops and industrial chimneys in center, warehouses and a gradual opening onto agricultural land at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-periurbain.png",
+      "file": "assets/generated/biomes/background-strip-periurbain.png",
+      "dimensions": [
+        2167,
+        481
+      ],
+      "source_crop": [
+        3,
+        129,
+        2167,
+        481
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d281aa8b-9546-48a7-9422-c2eec2d76e54.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. Quiet French residential town: tiled-roof gardens and low houses at left, small town hall square in center, leafy comfortable villas at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-retraites.png",
+      "file": "assets/generated/biomes/background-strip-retraites.png",
+      "dimensions": [
+        2172,
+        472
+      ],
+      "source_crop": [
+        0,
+        178,
+        2172,
+        472
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "background-strip-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8c9bf0ff-331b-487c-999a-bf5270cb4656.png",
+      "prompt": "Create one wide continuous panoramic illustration for a 2D French bande dessinée side-scrolling game. Landscape 3:1, highest available detail. Wealthy French urban district: elegant stone villas and park gates at left, refined Parisian shopping street in center, handsome Haussmann blocks at right. These three areas merge organically in ONE uninterrupted streetscape; no panels, no collage, no internal vertical seams. Eye-level front elevation, fine dark ink, warm muted watercolor stone, physically coherent scale. Ordinary background buildings, NO gameplay storefronts with blank signs, no people, no text. No road or pavement: all scenery ends at one thin baseline at bottom. IMPORTANT connection geometry: at the extreme leftmost and rightmost 8% of the panorama only a LOW stone garden wall with low shrubs, identical baseline and height (bottom 12% of image), no cropped buildings, no cliffs, no fields ending in a vertical wall. All buildings must end fully before those border strips. Small distant fields may be visible between houses. Transparent background above the irregular skyline, real PNG alpha, no painted sky. This is the middle distance; architecture fills the lower 65% of the canvas.",
+      "transparent": true,
+      "max_height": 640,
+      "master": "assets/generated/masters/background-strip-riches.png",
+      "file": "assets/generated/biomes/background-strip-riches.png",
+      "dimensions": [
+        2172,
+        529
+      ],
+      "source_crop": [
+        0,
+        115,
+        2172,
+        529
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-campagne-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-fd19a9cb-12a4-4c57-b238-b5f24e359c65.png",
+      "prompt": "One full-body adult character sprite for a French political satire 2D game: a sturdy farmer with a straw hat, rolled sleeves, worn blue overalls, muddy boots, holding a small basket of vegetables, sun-weathered face and large friendly moustache. Charming French bande dessinée caricature, expressive enlarged head, compact body, confident ink contours and warm watercolor shading, three-quarter side view facing right, both feet visible on the same baseline. Match a detailed illustrated French street game. No words or letters, no scene, no floor, no cast shadow outside feet. Isolated on a real transparent PNG background.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-campagne-3.png",
+      "file": "assets/generated/characters/npc-campagne-3.png",
+      "dimensions": [
+        238,
+        384
+      ],
+      "source_crop": [
+        202,
+        0,
+        849,
+        1372
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-retraites-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d22a493f-f7f5-47a6-8384-36c93032711e.png",
+      "prompt": "One full-body adult character sprite for a French political satire 2D game: a short elderly woman walking with a wooden cane, patterned cardigan, sensible shoes, small handbag, silver curls, mischievous determined expression, rounded comic proportions. Charming French bande dessinée caricature, expressive enlarged head, compact body, confident ink contours and warm watercolor shading, three-quarter side view facing right, both feet visible on the same baseline. Match a detailed illustrated French street game. No words or letters, no scene, no floor, no cast shadow outside feet. Isolated on a real transparent PNG background.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-retraites-3.png",
+      "file": "assets/generated/characters/npc-retraites-3.png",
+      "dimensions": [
+        228,
+        384
+      ],
+      "source_crop": [
+        192,
+        13,
+        781,
+        1315
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-banlieue-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-120639c9-cf85-4be9-85ab-d72d38c56ac7.png",
+      "prompt": "Make the background transparent. Keep the character unchanged.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-banlieue-3.png",
+      "file": "assets/generated/characters/npc-banlieue-3.png",
+      "dimensions": [
+        151,
+        384
+      ],
+      "source_crop": [
+        233,
+        15,
+        594,
+        1507
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-periurbain-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-87e966c5-833f-4bbe-aaa7-539d559df25f.png",
+      "prompt": "Make the background transparent. Keep the character unchanged.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-periurbain-3.png",
+      "file": "assets/generated/characters/npc-periurbain-3.png",
+      "dimensions": [
+        165,
+        384
+      ],
+      "source_crop": [
+        163,
+        2,
+        650,
+        1510
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-periurbain-4",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-ee7aeb95-b221-49e1-95b4-9b17e6a58691.png",
+      "prompt": "Full body game character: friendly adult factory worker in blue work overalls, sturdy build, moustache, carrying a small tool bag, standing facing right in three-quarter view. French comic book illustration with ink and watercolor, expressive face, compact proportions, both boots visible. Isolated character sprite, transparent background, no scenery and no text.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-periurbain-4.png",
+      "file": "assets/generated/characters/npc-periurbain-4.png",
+      "dimensions": [
+        212,
+        384
+      ],
+      "source_crop": [
+        71,
+        9,
+        839,
+        1517
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "npc-riches-3",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-009d5d31-bda5-465d-9fb5-72781c1a83c9.png",
+      "prompt": "Make the background transparent. Keep the character unchanged.",
+      "transparent": true,
+      "max_height": 384,
+      "master": "assets/generated/masters/npc-riches-3.png",
+      "file": "assets/generated/characters/npc-riches-3.png",
+      "dimensions": [
+        196,
+        384
+      ],
+      "source_crop": [
+        135,
+        15,
+        770,
+        1506
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-07"
+    },
+    {
+      "asset_id": "distant-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-e8f42f66-a298-4f86-934e-733dd5262cec.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: French housing estate towers and apartment blocks clustered in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-banlieue.png",
+      "file": "assets/generated/biomes/distant-banlieue.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "distant-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-4bb1d1a5-7bab-4960-af32-cdd632e17655.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: Paris mansard rooftops and a small hilltop neighborhood clustered in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-bobo.png",
+      "file": "assets/generated/biomes/distant-bobo.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "distant-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-826f4524-728a-43c6-87b4-db9bc23fd8e9.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: rolling agricultural fields, low hills, and tiny French villages in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-campagne.png",
+      "file": "assets/generated/biomes/distant-campagne.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "distant-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d267aab1-9ac2-4506-868b-71875c2f87ca.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: low wooded hills with a few tiny factory roofs and chimneys in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-periurbain.png",
+      "file": "assets/generated/biomes/distant-periurbain.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "distant-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-0167a800-ac2b-4168-b856-d4b6d3a4409c.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: a peaceful French small town with one church spire and wooded hills clustered in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-retraites.png",
+      "file": "assets/generated/biomes/distant-retraites.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "distant-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-98932aa7-dd33-433b-a4a9-96effa3409af.png",
+      "prompt": "Transparent background. A very wide isolated landscape sprite for a side-scrolling French comic-book game: elegant Paris rooftops, a golden dome and private park trees clustered in the central half, distant blue-gray watercolor colors, hand-drawn ink contours. The extreme left and right edges are low bushes at the same height, only in the bottom third. Gentle rolling silhouette. Opaque woodland fills the bottom third continuously to the bottom edge. All empty space above the landscape is transparent. No sky, no clouds, no floor, no words. Wide 3:1 panoramic composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/distant-riches.png",
+      "file": "assets/generated/biomes/distant-riches.png",
+      "dimensions": [
+        1524,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2164,
+        727
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-32fdd548-75a7-4d15-8475-7a6968f918e1.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: housing estate apartment blocks in the central distance, broad lawns and community gardens. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-banlieue.png",
+      "file": "assets/generated/biomes/landscape-banlieue.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-19c51f91-b8c9-4977-a28d-d6e31aae3833.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: Paris neighborhood rooftops in the central distance, leafy urban gardens and park paths. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-bobo.png",
+      "file": "assets/generated/biomes/landscape-bobo.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8810cb71-1fc2-4ddc-9f6d-bd2ab98d9830.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: rolling wheat fields, meadows, hedgerows and a tiny distant farm. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-campagne.png",
+      "file": "assets/generated/biomes/landscape-campagne.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-9fc3bff1-c457-40b0-9e45-f9c9350f3849.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: low industrial sheds in the central distance, allotment gardens, grassy embankments and broad-leaved trees. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-periurbain.png",
+      "file": "assets/generated/biomes/landscape-periurbain.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-c70ac005-d9be-4394-818d-da13b182c38f.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: gentle wooded hills, orchards and a tiny village in the central distance. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-retraites.png",
+      "file": "assets/generated/biomes/landscape-retraites.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "landscape-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-604ff74a-f96f-4348-bf5b-3f25f401f579.png",
+      "prompt": "Transparent background. NEW wide game landscape layer in the French ink-and-watercolor comic illustration style of the attached style reference: formal parkland, mature trees and a small distant mansion roof. This is a MIDDLE-DISTANCE landscape viewed sideways from a street. No foreground street facades, no large doors or storefronts, no pavement, no foreground road, no people, no words. All objects modest in scale. Opaque terrain fills the bottom half and reaches the bottom edge. Low vegetation at both extreme side edges rises to exactly half the canvas height; higher distant forms remain in the central region. Gently continuous landscape, no cliffs or cut buildings at edges. Above the landscape is empty transparent space, no sky or clouds. Very wide 3:1 composition.",
+      "transparent": true,
+      "preserve_canvas": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/landscape-riches.png",
+      "file": "assets/generated/biomes/landscape-riches.png",
+      "dimensions": [
+        1536,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        2172,
+        724
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-banlieue",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-053bd3a3-df95-4abe-b3d7-a1deb4829c0a.png",
+      "prompt": "Create a NEW game environment sprite using the attached artwork ONLY as a style reference. Transparent background. Very wide panoramic row of STREET-LEVEL facades: French housing estate street: low community center, convenience shops, apartment entrance halls, concrete and brick facades. Flat orthographic side view, hand-drawn French BD ink and watercolor. IMPORTANT: only the immediate street frontage, no hills, no fields, no distant skyline, no landscape behind the houses, no sky, no perspective roads. Attached architecture, not isolated separate houses. All bases share one straight horizontal ground line. Buildings occupy only the LOWER 35% of the full 3:1 canvas; upper 65% entirely transparent. Both extreme ends transition to a low stone garden wall occupying just the bottom 8%, with tiny shrubs. No cut building at either edge. No readable text, no people, no ground strip or pavement below the facade baseline. The buildings should feel like neighbors to playable storefronts rather than theatrical scenery.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-banlieue.png",
+      "file": "assets/generated/biomes/street-banlieue.png",
+      "dimensions": [
+        2171,
+        345
+      ],
+      "source_crop": [
+        0,
+        284,
+        2171,
+        345
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-campagne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-d2beaf81-b2a5-43d2-99e1-6f7fa1ead46b.png",
+      "prompt": "Create a NEW game environment sprite using the attached artwork ONLY as a style reference. Transparent background. Very wide panoramic row of STREET-LEVEL facades: French village street: adjoining low stone cottages, barn doors, bakery shopfront, warm tiled roofs. Flat orthographic side view, hand-drawn French BD ink and watercolor. IMPORTANT: only the immediate street frontage, no hills, no fields, no distant skyline, no landscape behind the houses, no sky, no perspective roads. Attached architecture, not isolated separate houses. All bases share one straight horizontal ground line. Buildings occupy only the LOWER 35% of the full 3:1 canvas; upper 65% entirely transparent. Both extreme ends transition to a low stone garden wall occupying just the bottom 8%, with tiny shrubs. No cut building at either edge. No readable text, no people, no ground strip or pavement below the facade baseline. The buildings should feel like neighbors to playable storefronts rather than theatrical scenery.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-campagne.png",
+      "file": "assets/generated/biomes/street-campagne.png",
+      "dimensions": [
+        2172,
+        415
+      ],
+      "source_crop": [
+        0,
+        246,
+        2172,
+        415
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-bobo",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-97167cb3-88d2-4a06-9d75-e95a4bf75731.png",
+      "prompt": "Transparent background. A very wide 3:1 game sprite of a continuous attached row of Parisian cream stone and red brick apartment lower facades, café windows, iron balconies. French comic book ink and watercolor, finely drawn warm stone textures. Flat side view, straight baseline, only two-storey street facades. No scenery or sky behind, no hills, people, text, ground or pavement. Upper half of canvas transparent. Buildings connected by low stone walls, both extreme ends low walls with small shrubs so no building is cut by the image edge. Actual transparent alpha outside the architectural silhouettes.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-bobo.png",
+      "file": "assets/generated/biomes/street-bobo.png",
+      "dimensions": [
+        2164,
+        431
+      ],
+      "source_crop": [
+        4,
+        259,
+        2164,
+        431
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-periurbain",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-a136d8b4-2094-4fdf-98d8-b1d30bb3be97.png",
+      "prompt": "Transparent background. A very wide 3:1 game sprite of a continuous attached row of French suburban brick worker houses, modest garages, factory workshop frontage. French comic book ink and watercolor, finely drawn warm stone textures. Flat side view, straight baseline, only two-storey street facades. No scenery or sky behind, no hills, people, text, ground or pavement. Upper half of canvas transparent. Buildings connected by low stone walls, both extreme ends low walls with small shrubs so no building is cut by the image edge. Actual transparent alpha outside the architectural silhouettes.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-periurbain.png",
+      "file": "assets/generated/biomes/street-periurbain.png",
+      "dimensions": [
+        2172,
+        350
+      ],
+      "source_crop": [
+        0,
+        292,
+        2172,
+        350
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-retraites",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-4f6b320b-d781-4c33-b50f-530c051ba81c.png",
+      "prompt": "Transparent background. A very wide 3:1 game sprite of a continuous attached row of French small-town limestone homes, pastel shutters, tiled roofs, garden gates. French comic book ink and watercolor, finely drawn warm stone textures. Flat side view, straight baseline, only two-storey street facades. No scenery or sky behind, no hills, people, text, ground or pavement. Upper half of canvas transparent. Buildings connected by low stone walls, both extreme ends low walls with small shrubs so no building is cut by the image edge. Actual transparent alpha outside the architectural silhouettes.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-retraites.png",
+      "file": "assets/generated/biomes/street-retraites.png",
+      "dimensions": [
+        2127,
+        388
+      ],
+      "source_crop": [
+        22,
+        224,
+        2127,
+        388
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    },
+    {
+      "asset_id": "street-riches",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-8643fda3-6951-41b6-8048-da1ac813baeb.png",
+      "prompt": "Transparent background. A very wide 3:1 game sprite of a continuous attached row of affluent French cream stone townhouses, elegant shop windows, wrought iron gates and slate roofs. French comic book ink and watercolor, finely drawn warm stone textures. Flat side view, straight baseline, only two-storey street facades. No scenery or sky behind, no hills, people, text, ground or pavement. Upper half of canvas transparent. Buildings connected by low stone walls, both extreme ends low walls with small shrubs so no building is cut by the image edge. Actual transparent alpha outside the architectural silhouettes.",
+      "transparent": true,
+      "max_height": 512,
+      "master": "assets/generated/masters/street-riches.png",
+      "file": "assets/generated/biomes/street-riches.png",
+      "dimensions": [
+        2170,
+        481
+      ],
+      "source_crop": [
+        0,
+        183,
+        2170,
+        481
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-09"
+    }
+  ]
+}

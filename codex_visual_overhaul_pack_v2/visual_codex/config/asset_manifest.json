@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "batches": [
+    {
+      "id": "A_foundation",
+      "type": "runtime_setup",
+      "generate_images": false
+    },
+    {
+      "id": "B_golden_sample",
+      "type": "mixed",
+      "generate_images": true
+    },
+    {
+      "id": "C_candidates",
+      "type": "characters",
+      "generate_images": true
+    },
+    {
+      "id": "D_npc_roles",
+      "type": "characters",
+      "generate_images": true
+    },
+    {
+      "id": "E_buildings",
+      "type": "buildings",
+      "generate_images": true
+    },
+    {
+      "id": "F_biomes",
+      "type": "backgrounds",
+      "generate_images": true
+    },
+    {
+      "id": "G_transitions",
+      "type": "transitions",
+      "generate_images": true
+    },
+    {
+      "id": "H_seasons",
+      "type": "vegetation_seasons",
+      "generate_images": true
+    },
+    {
+      "id": "I_ui_events",
+      "type": "ui",
+      "generate_images": true
+    },
+    {
+      "id": "J_fx",
+      "type": "fx",
+      "generate_images": true
+    },
+    {
+      "id": "K_qa_optimization",
+      "type": "qa",
+      "generate_images": false
+    }
+  ],
+  "global_assets": {
+    "characters": [
+      "melenchon",
+      "le_pen",
+      "philippe",
+      "service_ordre",
+      "crs",
+      "journalists"
+    ],
+    "buildings": [
+      "campaign_local",
+      "financement",
+      "communication",
+      "security_admin_slot",
+      "imprimerie",
+      "meeting_hall",
+      "polling_institute"
+    ],
+    "biomes": [
+      "bobo",
+      "banlieue",
+      "periurbain",
+      "campagne",
+      "retraites",
+      "riches"
+    ],
+    "seasons": [
+      "summer",
+      "autumn",
+      "winter",
+      "spring"
+    ],
+    "fx": [
+      "hit_light",
+      "hit_heavy",
+      "dust",
+      "knockback_trail",
+      "ko_stars",
+      "speech_projectile",
+      "hologram_overlay",
+      "navy_wave",
+      "crs_spawn",
+      "meeting_pulse",
+      "fire_overlay",
+      "administrative_seal"
+    ]
+  },
+  "background_layers_per_subzone": [
+    "far",
+    "mid",
+    "near_props"
+  ],
+  "npc_archetypes_per_biome": 3,
+  "essential_runtime_rule": "All strategic sites are visible in neutral state before capture. Capturing changes layers/state; it does not spawn the building.",
+  "building_biome_variants": {
+    "required": true,
+    "site_type_count": 7,
+    "biome_count": 6,
+    "minimum_architectural_bases": 42,
+    "recolor_only_forbidden": true,
+    "shared_gameplay_footprint_required": true,
+    "matrix": "visual_codex/config/building_biome_matrix.json"
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "loop": true,
+  "subzones": [
+    {
+      "id": "bobo_a_canal",
+      "biome": "bobo",
+      "order": 0
+    },
+    {
+      "id": "bobo_b_place",
+      "biome": "bobo",
+      "order": 1
+    },
+    {
+      "id": "bobo_c_mixte_vers_banlieue",
+      "biome": "bobo",
+      "order": 2
+    },
+    {
+      "id": "banlieue_a_cite_vers_bobo",
+      "biome": "banlieue",
+      "order": 3
+    },
+    {
+      "id": "banlieue_b_marche",
+      "biome": "banlieue",
+      "order": 4
+    },
+    {
+      "id": "banlieue_c_pavillons_vers_periurbain",
+      "biome": "banlieue",
+      "order": 5
+    },
+    {
+      "id": "periurbain_a_pavillons_artisanal",
+      "biome": "periurbain",
+      "order": 6
+    },
+    {
+      "id": "periurbain_b_usine",
+      "biome": "periurbain",
+      "order": 7
+    },
+    {
+      "id": "periurbain_c_sortie_vers_champs",
+      "biome": "periurbain",
+      "order": 8
+    },
+    {
+      "id": "campagne_a_entree_village",
+      "biome": "campagne",
+      "order": 9
+    },
+    {
+      "id": "campagne_b_centre_village",
+      "biome": "campagne",
+      "order": 10
+    },
+    {
+      "id": "campagne_c_vers_retraites",
+      "biome": "campagne",
+      "order": 11
+    },
+    {
+      "id": "retraites_a_pavillons",
+      "biome": "retraites",
+      "order": 12
+    },
+    {
+      "id": "retraites_b_square_pharmacie",
+      "biome": "retraites",
+      "order": 13
+    },
+    {
+      "id": "retraites_c_residences_aises",
+      "biome": "retraites",
+      "order": 14
+    },
+    {
+      "id": "riches_a_residentiel",
+      "biome": "riches",
+      "order": 15
+    },
+    {
+      "id": "riches_b_avenue_boutiques",
+      "biome": "riches",
+      "order": 16
+    },
+    {
+      "id": "riches_c_haussmann_vers_bobo",
+      "biome": "riches",
+      "order": 17
+    }
+  ],
+  "biome_boundaries": [
+    {
+      "id": "bobo_to_banlieue",
+      "from": "bobo_c_mixte_vers_banlieue",
+      "to": "banlieue_a_cite_vers_bobo",
+      "bridge_elements": [
+        "mixed_housing",
+        "urban_trees",
+        "distant_towers",
+        "graffiti",
+        "bus_stop"
+      ],
+      "blend_fraction": 0.2
+    },
+    {
+      "id": "banlieue_to_periurbain",
+      "from": "banlieue_c_pavillons_vers_periurbain",
+      "to": "periurbain_a_pavillons_artisanal",
+      "bridge_elements": [
+        "modest_houses",
+        "garages",
+        "small_workshops",
+        "parking",
+        "cars"
+      ],
+      "blend_fraction": 0.2
+    },
+    {
+      "id": "periurbain_to_campagne",
+      "from": "periurbain_c_sortie_vers_champs",
+      "to": "campagne_a_entree_village",
+      "bridge_elements": [
+        "last_warehouse",
+        "fence",
+        "field_edge",
+        "utility_pole",
+        "farm_shed"
+      ],
+      "blend_fraction": 0.22
+    },
+    {
+      "id": "campagne_to_retraites",
+      "from": "campagne_c_vers_retraites",
+      "to": "retraites_a_pavillons",
+      "bridge_elements": [
+        "village_houses",
+        "hedges",
+        "lawns",
+        "gardens",
+        "low_fences"
+      ],
+      "blend_fraction": 0.2
+    },
+    {
+      "id": "retraites_to_riches",
+      "from": "retraites_c_residences_aises",
+      "to": "riches_a_residentiel",
+      "bridge_elements": [
+        "large_houses",
+        "tidy_gardens",
+        "gates",
+        "stone_facades"
+      ],
+      "blend_fraction": 0.2
+    },
+    {
+      "id": "riches_to_bobo",
+      "from": "riches_c_haussmann_vers_bobo",
+      "to": "bobo_a_canal",
+      "bridge_elements": [
+        "haussmann",
+        "urban_density",
+        "bicycles",
+        "cafes",
+        "cultural_posters"
+      ],
+      "blend_fraction": 0.22,
+      "loop_seam": true
+    }
+  ],
+  "seam_rules": {
+    "same_ground_height": true,
+    "same_horizon_scale": true,
+    "preload_neighbor": true,
+    "no_hard_palette_jump": true,
+    "blend_all_parallax_layers": true
+  }
+}

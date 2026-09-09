@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "ui": [
+    "hud_money_frame",
+    "hud_day_frame",
+    "button_pause",
+    "button_fullscreen",
+    "interaction_ticket",
+    "interaction_ticket_segment",
+    "event_card_large",
+    "event_card_small",
+    "poll_circle_frame",
+    "damage_vignette"
+  ],
+  "event_icons": [
+    "meeting_crisis",
+    "opinion_shock",
+    "vulnerable_candidate",
+    "media_trap",
+    "thematic_debate",
+    "funding_crisis",
+    "building_closure"
+  ],
+  "rule": "All essential labels and numbers must remain runtime text, not baked into image assets."
+}

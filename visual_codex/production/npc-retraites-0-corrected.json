@@ -1,0 +1,7 @@
+{
+  "asset_id": "npc-retraites-0",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-a28d3e34-c93c-473f-beca-dd6e9d2cef44.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Edit the attached complete character without redesigning. Remove the fake white-grey checkerboard entirely. Output a TRUE transparent PNG with an alpha channel (RGBA), alpha=0 outside the silhouette including internal gaps. Keep all ink outlines and original watercolor colors, full body and feet. No pattern, white background, ground, or shadow. This must be an isolated transparent game sprite.",
+  "transparent": true
+}

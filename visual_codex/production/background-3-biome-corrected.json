@@ -1,0 +1,8 @@
+{
+  "asset_id": "background-3",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a078f1-72db-7111-82dc-3195890eb66d\\exec-eacc219e-8ce9-4830-9026-80de6df0c56e.png",
+  "source_reference": "codex_visual_overhaul_pack_v2/visual_codex/references/STYLE_TARGET.png",
+  "prompt": "Créer un panorama de décor 2D de jeu à défilement latéral, très large 3:1. La référence jointe définit UNIQUEMENT le trait BD français à l'encre, textures aquarelle douces, palette naturelle, pas son architecture parisienne. SUJET PRIORITAIRE : BANLIEUE FRANÇAISE, entrée d'une CITÉ HLM. Au centre une grande barre de logements sociaux années 1970, 9 étages, béton clair avec panneaux colorés, balcons répétitifs et halls d'immeubles. Deux tours d'habitation à l'arrière. À l'extrême gauche seulement un dernier immeuble ancien parisien annonce le quartier précédent ; à droite commence la cité dense. Petit équipement de quartier au pied, grilles basses. Vue latérale frontale, lisible derrière de petits personnages. Ciel bleu cyan simple et uni sans nuages dans les 30% supérieurs. Façades et paysages opaques. Les objets proches se terminent au même niveau horizontal à 90% de hauteur ; les derniers 10% sont une marge ocre vide à découper. Aucun personnage, aucune route, aucun trottoir, aucun asphalte, aucun texte, aucune interface. Extrêmes gauche et droite dégagés autour d'une clôture basse pour le raccord naturel avec un décor adjacent ; ne pas couper de tour proche sur un bord.",
+  "transparent": false,
+  "max_height": 512
+}

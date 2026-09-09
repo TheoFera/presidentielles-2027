@@ -98,7 +98,7 @@ async function start() {
   function togglePause(force = !paused, showHelp = true) {
     paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
     if (!paused || !showHelp) canvas.focus();
-    else document.getElementById('resume').focus();
+    else { document.getElementById('resume').focus({ preventScroll: true }); document.getElementById('help').scrollTop = 0; }
   }
   const input = new BrowserInput(canvas, human, async key => {
     if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "reference_images": {
+    "style_target": "visual_codex/references/STYLE_TARGET.png",
+    "greybox": [
+      "visual_codex/references/GREYBOX_01.png",
+      "visual_codex/references/GREYBOX_02.png"
+    ]
+  },
+  "canonical_viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "composition": {
+    "ground_y_ratio_target": 0.93,
+    "ground_y_ratio_range": [
+      0.92,
+      0.945
+    ],
+    "character_height_ratio_target": 0.15,
+    "character_height_ratio_range": [
+      0.13,
+      0.17
+    ],
+    "interactive_building_height_ratio_max": 0.54,
+    "preferred_parallax_layers": [
+      "sky",
+      "far",
+      "mid",
+      "gameplay",
+      "foreground"
+    ]
+  },
+  "runtime": {
+    "target_fps": 60,
+    "acceptable_fallback_fps": 30,
+    "preload_subzones_ahead": 1,
+    "preload_subzones_behind": 1,
+    "loop_world": true,
+    "fallback_to_greybox_on_missing_asset": true
+  },
+  "formats": {
+    "transparent_assets": [
+      "png"
+    ],
+    "large_backgrounds_preferred": [
+      "webp",
+      "png"
+    ],
+    "keep_master_png": true,
+    "do_not_bake_essential_text": true
+  },
+  "generation": {
+    "always_reference_style_target": true,
+    "generate_in_batches": true,
+    "max_retries_per_asset": 3,
+    "create_registry": true,
+    "qa_after_each_batch": true,
+    "building_architecture_per_biome_required": true,
+    "building_recolor_only_forbidden": true,
+    "minimum_building_architectural_bases": 42
+  }
+}
