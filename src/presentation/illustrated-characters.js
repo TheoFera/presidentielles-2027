@@ -40,6 +40,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const sprite = renderer.assets.get(id);
   if (!sprite) { void renderer.assets.load(id); return false; }
   const { ctx, metrics: m, p } = renderer;
+  const feetY = m.groundY + m.characterHeight * 0.06;
   const candidate = entity.role === 'CANDIDAT';
   const height = m.characterHeight * (candidate ? 1 : p.npc_height_multiplier);
   const width = height * sprite.naturalWidth / sprite.naturalHeight;
@@ -54,8 +55,8 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const faction = p.factions[entity.faction_id];
   ctx.save();
   ctx.imageSmoothingEnabled = true;
-  ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, m.groundY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.translate(x, m.groundY - Math.abs(stride) * 1.8);
+  ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, feetY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.translate(x, feetY);
   ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (animation === 'ko') ctx.translate(0, -width * .48);
   ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025);
@@ -98,22 +99,23 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   if (['persuade', 'interact_hold', 'persuade_listen', 'meeting'].includes(animation)) {
     const wave = Math.sin(time * 5);
     ctx.fillStyle = '#fff7e4'; ctx.strokeStyle = '#29353b'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.roundRect(x + 14, m.groundY - height - 13 + wave, 24, 17, 6); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(x + 14, feetY - height - 13 + wave, 24, 17, 6); ctx.fill(); ctx.stroke();
     ctx.fillStyle = faction?.color || '#364548'; ctx.font = 'bold 12px system-ui';
-    ctx.fillText(animation === 'interact_hold' ? '…' : '!', x + 26, m.groundY - height + wave);
+    ctx.fillText(animation === 'interact_hold' ? '…' : '!', x + 26, feetY - height + wave);
   }
   if (entity.persuasion) {
     const progress = entity.persuasion.elapsed_ticks / entity.persuasion.required_ticks;
     ctx.strokeStyle = p.factions[[...state.candidates, ...state.npcs].find(c => c.id === entity.persuasion.actor_id)?.faction_id]?.color || '#436d5c';
-    ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, m.groundY - height - 9, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, feetY - height - 9, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
   }
-  if (animation === 'convert') { ctx.font = 'bold 16px system-ui'; ctx.fillStyle = faction?.color || '#476e5d'; ctx.fillText('♥', x, m.groundY - height - 8); }
+  if (animation === 'convert') { ctx.font = 'bold 16px system-ui'; ctx.fillStyle = faction?.color || '#476e5d'; ctx.fillText('♥', x, feetY - height - 8); }
   if (animation === 'ko' || candidate && entity.special_charge >= renderer.config.balance.special_charge.required_points) {
     ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#ffd66b'; ctx.strokeStyle = '#51412e'; ctx.lineWidth = 2;
     const headX = animation === 'ko' ? x - height * 0.85 : x;
-    const headY = animation === 'ko' ? m.groundY - 20 : m.groundY - height - 6;
+    const headY = animation === 'ko' ? feetY - 20 : feetY - height - 6;
     for (let i = 0; i < 3; i++) { const sx = headX + Math.cos(time * 3 + i * 2.1) * 14; const sy = headY + Math.sin(time * 3 + i * 2.1) * 3; ctx.strokeText('✦', sx, sy); ctx.fillText('✦', sx, sy); }
   }
   ctx.restore();
   return true;
 }
+

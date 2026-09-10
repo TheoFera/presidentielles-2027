@@ -2,6 +2,8 @@
 
 ## Correction des dernières remarques
 
+Le pied des rues est désormais ancré sur la dernière ligne de maçonnerie opaque, détectée et mémorisée pour chaque image. Les quelques pixels transparents du bord PNG ne créent plus de bande entre les façades et le trottoir. Un léger recouvrement sous le sol masque la couture liée au lissage.
+
 La rue est désormais distincte du paysage. Les commerces jouables se placent parmi des façades attenantes, sur la même ligne de sol et avec la même vitesse. Le paysage intermédiaire se déplace à 55 % de la vitesse de la rue et l’horizon à 26 %. Ces coordonnées bouclent sur la carte circulaire.
 
 Les hauteurs des façades et des décors sont calculées à partir de leurs dimensions natives. Les bâtiments et monuments ne sont plus redimensionnés indépendamment en largeur et en hauteur. Seules les dernières lignes de terrain des paysages sont prolongées vers le bas pour éviter de voir le ciel sous un horizon.
@@ -31,4 +33,3 @@ Les enseignes sont ancrées dans le panneau du sprite. Propriété, niveau, QG e
 L’atelier utilise le vrai moteur de rendu avec des états isolés. Il ne remplace pas une partie complète jusqu’au second tour sur téléphone physique. Les animations restent des transformations de sprites, pas des séquences dessinées image par image. Les rues et paysages répètent certains motifs. Les nouvelles variantes artistiques à arbres réduits n’ont pas pu être générées à cause de la limite temporaire du service ; les images disponibles sont utilisées à une échelle corrigée.
 
 La refonte ne doit donc pas être présentée comme une recette finale sans réserve. Les captures et les tests documentent les éléments réellement contrôlés.
-

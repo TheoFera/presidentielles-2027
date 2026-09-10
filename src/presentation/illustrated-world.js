@@ -133,6 +133,23 @@ export function drawIllustratedMiddle(renderer,state) {
   ctx.restore();return true;
 }
 
+const streetBaselines = new WeakMap();
+function streetBaseline(image) {
+  if(streetBaselines.has(image))return streetBaselines.get(image);
+  const canvas=document.createElement('canvas');
+  canvas.width=image.naturalWidth;canvas.height=Math.min(24,image.naturalHeight);
+  const c=canvas.getContext('2d',{willReadFrequently:true});
+  c.drawImage(image,0,image.naturalHeight-canvas.height,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
+  const {data}=c.getImageData(0,0,canvas.width,canvas.height);
+  let baseline=image.naturalHeight;
+  for(let y=canvas.height-1;y>=0;y--) {
+    let opaque=0;
+    for(let x=0;x<canvas.width;x++)if(data[(y*canvas.width+x)*4+3]>=200)opaque++;
+    if(opaque>=canvas.width*.9) {baseline=image.naturalHeight-canvas.height+y+1;break;}
+  }
+  streetBaselines.set(image,baseline);return baseline;
+}
+
 export function drawIllustratedStreet(renderer,state) {
   const {ctx,width,metrics:m}=renderer;
   ctx.save();ctx.imageSmoothingEnabled=true;
@@ -146,7 +163,10 @@ export function drawIllustratedStreet(renderer,state) {
       const w=group.width*m.pixelsPerUnit/2+2;
       if(x+w/2<0||x-w/2>width)continue;
       const h=sceneryImageHeight(image,w);
-      ctx.drawImage(image,x-w/2,m.groundY-h,w,h);
+      // Anchor the opaque masonry, not the PNG's transparent lower fringe.
+      // One physical pixel overlaps the pavement to avoid a filtering seam.
+      const base=streetBaseline(image)*w/image.naturalWidth;
+      ctx.drawImage(image,x-w/2,m.groundY-base+1,w,h);
     }
   }
   ctx.restore();
