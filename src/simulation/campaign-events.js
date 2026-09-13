@@ -1,14 +1,10 @@
+import { clearCampaignUltimate, activeCampaignStyle, styleTagWeight, styleInfluenceMultiplier } from './campaign-styles.js';
 import { random, ringDelta, wrap, zoneAt, FACTIONS } from './world.js';
 import { aggregateNational, normalizeSupport, refreshElectoralState } from './electoral-state.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { paymentStatus } from './campaign-budget.js';
 import { ArenaSimulation, arenaAICommands } from './arena-simulation.js';
 
-export const orientationOptions = {
- melenchon:[['Universalisme urbain','paris_19e'],['Populaire','banlieue'],['Social-productif','periurbain_usine']],
- le_pen:[['Parti de gouvernement','retraites'],['Ligne sociale','periurbain_usine'],['Ruralité','campagne']],
- philippe:[['Modernisation urbaine','paris_19e'],['Stabilité et gestion','retraites'],['Entreprise et compétitivité','quartiers_riches']],
-};
 export function seasonAt(progress) {
  const t=Math.min(3.999999,Math.max(0,progress % 1)*4), i=Math.floor(t);
  return {name:['Été','Automne','Hiver','Printemps'][i],index:i,blend:t-i};
@@ -17,7 +13,7 @@ export function initializeCampaign(sim) {
  const s=sim.state;
  s.campaign_elapsed_days=0; s.campaign_day_remaining=s.days_remaining; s.campaign_progress_01=0; s.campaign_time_offset=0;
  s.campaign_events=[]; s.campaign_director={next_event_day:sim.config.balance.campaign_events.initial_event_delay_days,event_history:[],active_event_ids:[],rng_state:(s.seed^0x9e3779b9)>>>0||1,next_id:1,target_counts:Object.fromEntries(FACTIONS.map(f=>[f,0])),family_weights:{},target_weights:{}};
- for(const c of s.candidates){c.campaign_orientation_bonuses={};c.orientation_choices=[];c.orientation_hold=null;c.campaign_arena_id=null;c.crisis_meeting_id=null;c.VULNERABLE_SCANDAL=null;}
+ for(const c of s.candidates){c.campaign_arena_id=null;c.crisis_meeting_id=null;c.VULNERABLE_SCANDAL=null;}
 }
 const active=s=>s.campaign_events.filter(e=>e.status==='ACTIVE');
 const cfg=sim=>sim.config.balance.campaign_events;
@@ -28,15 +24,15 @@ export function fundingModifiers(state,faction){
  p.payout_multiplier*=e.parameters.payout_multiplier??1;p.campaign_duration_multiplier*=e.parameters.campaign_duration_multiplier??1;p.can_start_new_campaign&&=e.parameters.can_start_new_campaign!==false; if(Number.isFinite(e.parameters.payout_max))p.payout_max=Math.min(p.payout_max??Infinity,e.parameters.payout_max);
  }return p;
 }
-export function transferSupport(sim,record,faction,delta,oriented=false){
- if(delta>0){if(oriented)delta*=1+(sim.state.candidates.find(c=>c.faction_id===faction).campaign_orientation_bonuses[record.biome_id]||0);const gain=Math.min(record.support.neutral,delta);record.support.neutral-=gain;record.support[faction]+=gain;}
+export function transferSupport(sim,record,faction,delta,multiplier=1){
+ if(delta>0){delta*=multiplier;const gain=Math.min(record.support.neutral,delta);record.support.neutral-=gain;record.support[faction]+=gain;}
  else {const loss=Math.min(record.support[faction],-delta);record.support[faction]-=loss;record.support.neutral+=loss;}normalizeSupport(record.support);
 }
-function reward(sim,e,faction){for(const r of sim.state.electorate)if(r.biome_id===e.target_biome_id)transferSupport(sim,r,faction,(r.subzone_id===e.target_subzone_id?e.parameters.local_influence_reward:0)+(e.parameters.biome_influence_reward||0),true);}
+function reward(sim,e,faction){for(const r of sim.state.electorate)if(r.biome_id===e.target_biome_id)transferSupport(sim,r,faction,(r.subzone_id===e.target_subzone_id?e.parameters.local_influence_reward:0)+(e.parameters.biome_influence_reward||0),e.style_snapshot[faction]?.biome_multipliers[r.biome_id]??1);}
 export function resolveCampaignEvent(sim,e,status='RESOLVED',winner=null){
  if(e.status!=='ACTIVE')return;
  e.status=status;e.resolved_tick=sim.state.tick;e.winner=winner;
- for(const c of sim.state.candidates){if(c.VULNERABLE_SCANDAL===e.id)c.VULNERABLE_SCANDAL=null;if(c.crisis_meeting_id===e.id)c.crisis_meeting_id=null;if(c.campaign_arena_id===e.id){c.campaign_arena_id=null;c.disappeared=false;c.campaign_active=true;c.interaction_active=true;c.axis=0;}}
+ for(const c of sim.state.candidates){if(c.VULNERABLE_SCANDAL===e.id)c.VULNERABLE_SCANDAL=null;if(c.crisis_meeting_id===e.id)c.crisis_meeting_id=null;if(c.campaign_arena_id===e.id){const a=e.arena?.candidates.find(a=>a.id===c.id);clearCampaignUltimate(sim,c);c.bardella_form=false;c.bardellisation_used ||= !!a?.bardellisation_used;c.campaign_arena_id=null;c.disappeared=false;c.campaign_active=true;c.interaction_active=true;c.axis=0;}}
  if(winner)reward(sim,e,winner);
  sim.state.campaign_director.active_event_ids=active(sim.state).map(e=>e.id);
  sim.emit(status==='EXPIRED'?'CampaignEventExpired':'CampaignEventResolved',{campaign_event_id:e.id,winner});
@@ -67,7 +63,7 @@ export class CampaignEventDirector {
  if(['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(v.family)){for(let i=sites.length-1;i>=0;i--)if(active(s).some(e=>e.target_site_id===sites[i].id&&['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)))sites.splice(i,1);}
  if(!sites.length)continue;
  const index=rank.indexOf(c.faction_id),rw=['leader_weight','second_weight','third_weight'][index];
- options.push({v,c,sites,weight:(request.family?settings.base_weight:weights[v.family])*v.weight*targets[c.faction_id]*settings[rw]*v[rw]*(recent.some(e=>e.tags.some(t=>v.tags.includes(t)))?0.7:1)});
+ options.push({v,c,sites,weight:(request.family?settings.base_weight:weights[v.family])*v.weight*styleTagWeight(sim.config,c,v.tags)*targets[c.faction_id]*settings[rw]*v[rw]*(recent.some(e=>e.tags.some(t=>v.tags.includes(t)))?0.7:1)});
  }}
  // Normalize within each family so narrative richness does not bias family frequency.
  const totals=Object.fromEntries(Object.keys(b.families).map(f=>[f,options.filter(o=>o.v.family===f).reduce((n,o)=>n+o.weight,0)]));
@@ -78,18 +74,20 @@ export class CampaignEventDirector {
  const intensity=pick(d,Object.entries({MINOR:0.85-0.55*s.campaign_progress_01,MAJOR:0.14+0.43*s.campaign_progress_01,CRISIS:0.01+0.12*s.campaign_progress_01}).map(([value,w])=>({value,weight:w*p.intensity_weights[value]}))).value;
  const duration=v.duration??p.duration;
  const e={id:`campaign:${d.next_id++}`,variant_id:v.event_id,family:v.family,title:v.title,description:v.description,start_tick:s.tick,end_tick:s.tick+sim.secondsToTicks(duration),target_candidate_ids:v.mechanical_parameters.affected_candidates==='ALL'?s.candidates.map(c=>c.id):[c.id],target_biome_id:site.biome_id,target_subzone_id:site.subzone_id,target_site_id:site.id,status:'ACTIVE',parameters:p,intensity:v.intensity||intensity,category:v.family==='CHOC_OPINION'?'INSTANT':'ACTIVE',attempt:null,participants:[],arena:null};
+ e.style_snapshot=Object.fromEntries(s.candidates.map(candidate=>[candidate.faction_id,{style_id:candidate.current_campaign_style,biome_multipliers:Object.fromEntries(sim.config.layout.biomes.map(b=>[b.id,styleInfluenceMultiplier(sim.config,candidate,b.id)]))}]));
  s.campaign_events.push(e);d.target_counts[c.faction_id]++;
  d.event_history.push({id:e.id,variant_id:v.event_id,family:e.family,day:s.campaign_elapsed_days,candidate:c.faction_id,biome:site.biome_id,site_type:site.type,tags:v.tags,intensity:e.intensity});
  if(e.family==='CANDIDAT_FRAGILISE')c.VULNERABLE_SCANDAL=e.id;
  if(e.family==='CHOC_OPINION'){
   for(const r of s.electorate){
    const delta=p.biome_deltas?.[r.biome_id]??(r.biome_id===e.target_biome_id?p.favored_delta:p.other_biomes_delta);
-   transferSupport(sim,r,c.faction_id,delta);
+   transferSupport(sim,r,c.faction_id,delta*v.tags.reduce((n,t)=>n*(activeCampaignStyle(sim.config,c)?.opinion_tag_multipliers?.[t]??1),1));
   }
   resolveCampaignEvent(sim,e);
  }
  if(e.family==='FERMETURE_BATIMENT')e.end_tick=s.tick+sim.secondsToTicks(p.warning_seconds);
  if(e.family==='PIEGE_MEDIATIQUE'){
+ const charge=c.special_charge;clearCampaignUltimate(sim,c);c.special_charge=charge;
  e.participants=[c.id];c.campaign_arena_id=e.id;c.purchase_hold=null;c.crisis_meeting_id=null;
  if(c.id!==s.local_candidate_id){e.ai_return_tick=s.tick+sim.secondsToTicks(p.AI_absence_duration_range[0]+random(d)*(p.AI_absence_duration_range[1]-p.AI_absence_duration_range[0]));e.end_tick=e.ai_return_tick;}
  else {e.arena=ArenaSimulation.create(sim.config,s);e.arena.campaign_event_family=e.family;e.arena.campaign_damage_multiplier=p.player_damage_multiplier;const player=e.arena.candidates.find(a=>a.id===c.id);player.arena_hp=player.arena_initial_hp=100;player.campaign_arena_id=null;const journalists=e.arena.candidates.filter(a=>a.id!==c.id).slice(0,e.intensity==='CRISIS'?2:p.journalist_count);for(const j of journalists){j.is_ko=false;j.disappeared=false;j.eliminated=false;j.faction_id=journalists[0].faction_id;j.arena_hp=j.arena_initial_hp=p.journalist_durability;j.campaign_arena_id=null;j.presentation_name='Journaliste';j.journalist_damage=p.journalist_damage;}e.arena.candidates=[player,...journalists];e.arena.eliminated_faction=null;e.end_tick=null;}
@@ -138,15 +136,6 @@ export function updateCampaignEvents(sim){
  for(const c of s.candidates){c.disappeared=!!c.campaign_arena_id||(c.is_ko&&s.tick>=c.disappear_tick);if(c.campaign_arena_id)c.axis=0;}
  refreshElectoralState(s,sim.config);
 }
-export function availableOrientations(state,config,c){return config.balance.campaign_events.orientation_days.filter(day=>state.campaign_day_remaining<=day).length-c.orientation_choices.length;}
-export function updateOrientations(sim){for(const c of sim.state.candidates){
- if(c.is_ko||c.campaign_arena_id||availableOrientations(sim.state,sim.config,c)<=0){c.orientation_hold=null;continue;}
- const hq=sim.state.buildings.find(b=>b.id===c.headquarters_site_id&&b.headquarters&&b.owner_id===c.faction_id);if(!hq)continue;
- const options=orientationOptions[c.faction_id],index=options.findIndex((_,i)=>Math.abs(ringDelta(c.x,wrap(hq.x+(i-1)*3,sim.state.world.length),sim.state.world.length))<0.65);
- if(index<0||c.axis!==0||!c.interaction_active||c.combat.stun_ticks){c.orientation_hold=null;continue;}
- if(c.orientation_hold?.index!==index)c.orientation_hold={index,start_tick:sim.state.tick};
- if(sim.state.tick-c.orientation_hold.start_tick>=sim.secondsToTicks(cfg(sim).orientation_hold_seconds)){const biome=options[index][1];c.campaign_orientation_bonuses[biome]=(c.campaign_orientation_bonuses[biome]||0)+cfg(sim).orientation_bonus;c.orientation_choices.push({biome,day:sim.state.campaign_day_remaining});c.orientation_hold=null;sim.emit('ChooseCampaignOrientation',{candidate_id:c.id,biome_id:biome});}
- }}
 export function campaignCommand(sim,command){
  if(command.type==='DebugStartCampaignEvent'){if(!CampaignEventDirector.start(sim,command))sim.emit('CampaignEventRejected',{reason:'Aucune cible admissible, variante déjà utilisée ou limite d’événements atteinte.'});return true;}
  if(command.type==='DebugAdvanceCampaign'){if(sim.state.phase==='CAMPAIGN'){const remaining=Number.isFinite(command.remaining)?Math.max(0,command.remaining):Math.max(0,sim.state.days_remaining-(command.days||0));sim.state.campaign_time_offset+=sim.state.days_remaining-remaining;}return true;}
@@ -168,8 +157,6 @@ export function campaignAICommands(state,config,c){
  if(x!==undefined)options.push({x,value:value/(1+Math.abs(ringDelta(c.x,x,state.world.length))/30),hunt:e.family==='CANDIDAT_FRAGILISE'||!!e.attempt&&e.attempt.candidate_id!==c.id});
  }
  for(const e of state.campaign_events.filter(e=>e.family==='FERMETURE_BATIMENT'&&e.status==='RESOLVED'&&e.target_candidate_ids.includes(c.id)&&state.tick-e.resolved_tick<30*config.balance.simulation_architecture.fixed_tick_hz)){const site=state.buildings.find(b=>b.id===e.target_site_id);if(site.owner_id===null)options.push({x:site.x,value:4});}
- const hq=state.buildings.find(b=>b.id===c.headquarters_site_id);
- if(hq&&availableOrientations(state,config,c)>0){const choices=orientationOptions[c.faction_id].map(([_,biome],index)=>({index,value:state.electorate.filter(e=>e.biome_id===biome).reduce((n,e)=>n+e.support[c.faction_id]*0.01+(e.controller?0:0.5),0)+(c.campaign_orientation_bonuses[biome]||0)+((state.seed+index*13+FACTIONS.indexOf(c.faction_id)*7)%11)/10})).sort((a,b)=>b.value-a.value);options.push({x:wrap(hq.x+(choices[0].index-1)*3,state.world.length),value:5});}
  options.sort((a,b)=>b.value-a.value);const chosen=options[0];if(!chosen||noise>0.85)return null;
  const out=commands(chosen.x);if(chosen.hunt&&Math.abs(ringDelta(c.x,chosen.x,state.world.length))<=config.balance.candidate_combat.light_range)out.push({type:'Attack',candidateId:c.id,direction:Math.sign(ringDelta(c.x,chosen.x,state.world.length))||1});return out;
 }

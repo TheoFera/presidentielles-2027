@@ -17,7 +17,7 @@
           <button id="move-left" aria-label="Marcher à gauche">←</button>
           <button id="move-right" aria-label="Marcher à droite">→</button>
         </div>
-        <button id="attack-touch" aria-label="Attaquer">Frapper</button>
+        <div class="touch-actions"><span id="bardella-armed" hidden>✦ Protection active</span><button id="ultimate-touch" hidden disabled aria-label="Ultime"><span>Ultime</span></button><button id="attack-touch" aria-label="Attaquer">Frapper</button></div>
       </div>
       <nav id="game-menu" aria-label="Menu du jeu">
         <button id="pause-touch" aria-label="Aide et pause">Pause</button>
@@ -34,7 +34,7 @@
         <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
       </div>
       <div id="notice" role="status"></div>
-      <div id="hint">← → ou Q / D : marcher · Espace / J : frapper · H : aide · F3 : débogage</div>
+      <div id="hint">← → ou Q / D : marcher · Double appui : esquiver · Espace / J : frapper · R : ultime · H : aide · F3 : débogage</div>
       <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
       <div id="phase-banner" hidden role="status"></div>
       <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
@@ -54,16 +54,19 @@
         <p>Chaque partisan recruté augmente ton <strong>revenu passif</strong> selon son biome d’origine. Cette contribution continue lorsqu’il se déplace ou devient Militant ou Service d’ordre, et cesse s’il est démobilisé. Le gain par seconde apparaît sous ton argent ; son détail par biome est disponible avec F3.</p>
         <p id="budget-help"></p>
         <p>Chaque sous-zone possède un <strong>plafond de population d’origine</strong>. Les Neutres, Sympathisants, Militants, Services d’ordre et PNJ démobilisés y comptent, même lorsqu’ils partent ailleurs. À la limite, les apparitions s’arrêtent : recruter ne crée pas de place supplémentaire. F3 affiche le nombre et le plafond de la sous-zone actuelle.</p>
-        <p>Une première décision stratégique est disponible dès que ton QG est établi, puis à <strong>J-270, J-150 et J-60</strong>. Retourne à ton QG, choisis l’un des trois types de campagne affichés et reste immobile trois secondes sur son repère. Chaque choix augmente de 10 % les gains électoraux des événements dans le biome indiqué.</p>
+        <p>Ton premier Local devient ton <strong>QG</strong> : choisis alors un style parmi trois grandes cartes. Un seul style est actif ; les deux autres commencent verrouillés. Pour changer ensuite, reviens devant ton QG et maintiens <strong>E</strong> ou <strong>CHANGER DE STYLE</strong> pendant trois secondes, sans bouger. Le nouveau style remplace le précédent et remet la charge de l’ultime à zéro. Les PNJ gardent toujours leur apparence habituelle.</p>
         <p>Avec assez de Sympathisants dans la sous-zone, un emplacement devient constructible. Reste devant son <strong>billet</strong> pour payer automatiquement. À l’Imprimerie, chaque paiement commande un tract : un Sympathisant vient le chercher et devient Militant.</p>
         <dl>
           <dt>← → / Q D / A D</dt><dd>Marcher à gauche ou à droite</dd>
+          <dt>E (maintenir devant le QG)</dt><dd>Ouvrir les styles de campagne</dd>
+          <dt>Double appui ← / → ou Q / D</dt><dd>Esquive directionnelle</dd>
+          <dt>R</dt><dd>Activer l’ultime chargé</dd>
           <dt>Espace / J</dt><dd>Frapper : léger → léger → fort</dd>
           <dt>H / Échap / P</dt><dd>Afficher l’aide et mettre en pause</dd>
           <dt>F</dt><dd>Passer en plein écran</dd>
           <dt>F3</dt><dd>Afficher ou masquer le débogage</dd>
         </dl>
-        <p class="subtle">Trois appuis rapprochés forment le combo. Les coups réussis chargent le pouvoir : quand les yeux brillent, le prochain appui le déclenche. Personne ne meurt : les unités démobilisées rentrent à leur point d’origine.</p>
+        <p class="subtle">Trois appuis rapprochés forment le combo. Les coups réussis chargent le pouvoir : quand le bouton Ultime est plein, appuie dessus (ou sur R) pour l’activer. La charge commence à baisser après 10 secondes sans toucher et disparaît en 5 secondes. Pour Bardella, ce bouton arme une relève au prochain KO, une seule fois par vie. Un coup dans le vide ou un dégât d’ultime ne recharge rien. Personne ne meurt : les unités démobilisées rentrent à leur point d’origine.</p>
         <p class="subtle">Local SO : équipement au centre, raid à gauche ou à droite. Cabinet de Philippe : fermeture vers la gauche ou la droite. Le petit repère ↑ à droite de la porte sert à améliorer ces bâtiments.</p>
         <p class="subtle" id="poll-help"></p>
         <p class="subtle">Meeting : construis le podium, éloigne-toi puis reviens au micro pour payer l’événement. Il convainc localement et renforce temporairement les Sympathisants et Militants du secteur. Le repère ↑ à droite sert à améliorer le lieu. Un billet grisé indique qu’il faut attendre ou réunir les fonds.</p>

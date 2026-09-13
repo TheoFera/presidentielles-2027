@@ -1,3 +1,4 @@
+import { combatReport } from './combat-report.js';
 import { installCampaignDebug, campaignDebugReport } from './campaign.js';
 import { demobilize, selectCandidate, setAIEnabled, teleport, teleportTarget, grantMoney, fillSpecial, spawnUnit, controlZone, addInfluence, neutral50, buildElectoral, debugMeeting } from '../simulation/commands.js';
 import { FACTIONS, ringDelta, zoneAt } from '../simulation/world.js';
@@ -35,6 +36,16 @@ export class DebugPanel {
     document.getElementById('fill-special').addEventListener('click', () => callbacks.queue(fillSpecial(callbacks.state().local_candidate_id)));
     document.getElementById('control-zone').addEventListener('click', () => callbacks.queue(controlZone(callbacks.state().local_candidate_id)));
     for (const [id, role] of [['spawn-s', 'SYMPATHISANT'], ['spawn-m', 'MILITANT'], ['spawn-so', 'SERVICE_D_ORDRE']]) document.getElementById(id).addEventListener('click', () => this.spawnTestUnit(role));
+    const mobileTools = document.createElement('div'); mobileTools.className = 'debug-actions';
+    for (const [label, type, value] of [
+      ...[0,1,2,3].map(n => [`Dash : ${n} charge(s)`, 'DebugSetDashCharges', n]),
+      ['Recharger les dashs', 'DebugRefillDashCharges'], ['Suspendre la recharge', 'DebugDisableDashRecharge', true], ['Reprendre la recharge', 'DebugDisableDashRecharge', false],
+      ['Vider l’ultime', 'DebugEmptyUltimateCharge'], ['Forcer la décharge', 'DebugForceUltimateDecay'], ['Activer l’ultime (R)', 'ActivateUltimate'],
+      ['Armer Bardella', 'DebugArmBardella'], ['Désarmer Bardella', 'DebugDisarmBardella']]) {
+      const button = document.createElement('button'); button.textContent = label;
+      button.addEventListener('click', () => callbacks.queue({ type, candidateId: callbacks.state().local_candidate_id, value, disabled: value })); mobileTools.append(button);
+    }
+    document.getElementById('debug-tools').append(mobileTools);
     const state = callbacks.state();
     for (const faction of FACTIONS) this.candidate.add(new Option(config.prototype.presentation.factions[faction].name, `candidate:${faction}`));
     for (const zone of state.world.subzones) this.zone.add(new Option(`${zone.index + 1}. ${zone.biome_name} — ${zone.concept}`, zone.id));
@@ -56,7 +67,7 @@ export class DebugPanel {
     document.getElementById('close-debug').addEventListener('click', () => this.toggle(false));
     document.getElementById('teleport').addEventListener('click', () => callbacks.queue(teleport(callbacks.state().local_candidate_id, this.zone.value)));
     document.getElementById('demobilize').addEventListener('click', () => {
-      const state = callbacks.state();
+    const state = callbacks.state();
       const nearest = this.inspectedNpc(state);
       if (nearest && ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(nearest.role)) callbacks.queue(demobilize(nearest.id));
       else callbacks.notify('Sélectionne un Sympathisant, un Militant ou un SO à démobiliser.');
@@ -158,6 +169,8 @@ export class DebugPanel {
       `Sous-zones ayant basculé : ${state.telemetry.changed_subzone_ids.length} · anciens PNJ reconvertis : ${state.telemetry.reconverted_npc_ids.length} · Meetings : ${state.telemetry.sprint_meetings}`,
       state.result ? JSON.stringify(state.telemetry, (key, value) => round(value), 2) : '',
     ].filter(Boolean).join('\n');
+    const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena;
+    if (combatView) document.getElementById('match-debug-text').textContent += combatReport(combatView, this.config, combatView.candidates.find(c => c.id === state.local_candidate_id));
     const cfg = this.config;
     const hz = cfg.balance.simulation_architecture.fixed_tick_hz;
     const candidate = state.candidates.find(c => c.id === state.local_candidate_id);

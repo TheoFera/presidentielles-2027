@@ -1,3 +1,4 @@
+import { clearCampaignUltimate } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { distance } from './territory.js';
 
@@ -11,6 +12,7 @@ export function updateCandidateResistance(sim) {
         const hq = state.buildings.find(b => b.id === candidate.headquarters_site_id && b.headquarters && b.owner_id === candidate.faction_id);
         candidate.x = hq?.x ?? candidate.last_hq_x ?? candidate.start_x;
         candidate.resistance = settings.resistance_max; candidate.is_ko = false; candidate.disappeared = false;
+        clearCampaignUltimate(sim, candidate, true);
         candidate.combat = combatState(); candidate.campaign_active = true; candidate.interaction_active = true;
         sim.emit('CandidateRespawned', { candidate_id: candidate.id, target_id: hq?.id || null, x: candidate.x });
       } else if (state.tick >= candidate.disappear_tick) candidate.disappeared = true;

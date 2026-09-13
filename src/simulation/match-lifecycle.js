@@ -1,3 +1,4 @@
+import { clearCampaignUltimate } from './campaign-styles.js';
 import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
@@ -22,6 +23,9 @@ export function startArena(sim) {
   s.days_remaining = 0; s.campaign_day_remaining = 0; s.campaign_elapsed_days = sim.config.balance.time.starting_days_before_first_round; s.campaign_progress_01 = 1;
   refreshElectoralState(s, sim.config);
   s.telemetry.j0_scores = clone(s.actualGameState.national_support);
+  for (const c of s.candidates) {
+    const charge = c.special_charge; clearCampaignUltimate(sim, c); c.special_charge = charge; c.bardella_form = false;
+  }
   const saved = clone(s); // Full, non-recursive, JSON-compatible world snapshot.
   s.arena = ArenaSimulation.create(sim.config, s);
   s.campaign_snapshot = saved;
@@ -40,6 +44,11 @@ export function finishArena(sim, eliminated) {
   // Restore before neutralising: no arena money, positions, charge or cooldown leaks into the world.
   sim.state = clone(old.campaign_snapshot);
   const s = sim.state;
+  for (const c of s.candidates) {
+    const arenaCandidate = old.arena.candidates.find(a => a.id === c.id);
+    clearCampaignUltimate(sim, c); c.bardella_form = false;
+    c.bardellisation_used ||= !!arenaCandidate?.bardellisation_used;
+  }
   s.match_tick = old.match_tick; s.local_candidate_id = old.local_candidate_id; s.ai_enabled = old.ai_enabled;
   s.telemetry = telemetry; s.phase = GamePhase.SECOND_ROUND_SPRINT; s.phase_started_match_tick = s.match_tick;
   s.eliminated_faction = eliminated; s.finalists = FACTIONS.filter(f => f !== eliminated);
@@ -98,6 +107,7 @@ export function finishSprint(sim) {
   const second = winner === a ? b : a;
   s.result = { winner, second, scores: clone(scores), decided_tick: s.tick, tie_break: tied, extensions: s.extensions };
   s.telemetry.final_scores = clone(scores); s.telemetry.winner = winner;
+  for (const c of s.candidates) clearCampaignUltimate(sim, c);
   s.phase = GamePhase.RESULTS; s.phase_started_match_tick = s.match_tick;
   sim.emit('MatchFinished', { winner, second, scores: clone(scores) });
 }

@@ -1,6 +1,7 @@
+import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { random } from './world.js';
 import { combatState, interrupted } from './combat-state.js';
-import { beginCombatTick, requestAttack, updateCombat, wallBlockedPosition } from './combat.js';
+import { beginCombatTick, activateUltimate, requestAttack, updateCombat, wallBlockedPosition } from './combat.js';
 import { combatPosition } from './combat-geometry.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -21,7 +22,9 @@ export class ArenaSimulation {
     const places = [0.23, 0.5, 0.77];
     for (let i = places.length - 1; i > 0; i--) { const j = Math.floor(random(state) * (i + 1)); [places[i], places[j]] = [places[j], places[i]]; }
     state.candidates.forEach((c, i) => {
+      initializeMobileCombat({ config }, c);
       c.x = places[i] * b.width_units; c.axis = 0; c.facing = c.x > b.width_units / 2 ? -1 : 1; c.moving = false;
+      c.ultimate_effect = null; c.style_hold = null; c.style_interaction_held = false; c.bardella_form = false; c.is_ko = false; c.disappeared = false;
       c.combat = combatState(); c.campaign_active = true; c.interaction_active = false; c.purchase_hold = null; c.persuasion_target_ids = [];
       c.arena_initial_hp = worldState.actualGameState.national_support[c.faction_id]; c.arena_hp = c.arena_initial_hp;
     });
@@ -36,10 +39,10 @@ export class ArenaSimulation {
   applyCommand(command) {
     const c = this.state.candidates.find(c => c.id === command.candidateId);
     if (!c || this.state.eliminated_faction) return;
+    if (mobileCommand(this, c, command, activateUltimate)) return;
     if (command.type === 'Move' && [-1, 0, 1].includes(command.axis)) c.axis = command.axis;
     if (command.type === 'SetCampaignActive' && typeof command.active === 'boolean') c.campaign_active = command.active;
     if (command.type === 'Attack') requestAttack(this, c, command.direction);
-    if (command.type === 'DebugFillSpecial') c.special_charge = this.config.balance.special_charge.required_points;
   }
   step() {
     if (this.state.eliminated_faction) return;
@@ -70,6 +73,6 @@ export function arenaAICommands(state, config, candidateId, enabled) {
   const target = options[0].t; const d = target.x - c.x;
   const close = Math.abs(d) <= config.balance.candidate_combat.light_range;
   const result = commands(close ? 0 : Math.sign(d));
-  if (close && !c.combat.attack_id && !c.combat.stun_ticks) result.push({ type: 'Attack', candidateId, direction: Math.sign(d) || c.facing });
+  if (close && !c.combat.attack_id && !c.combat.stun_ticks) { if (c.special_charge >= config.balance.special_charge.required_points && !c.ultimate_effect && !c.bardella_guardian_armed) result.push({ type: 'ActivateUltimate', candidateId: c.id }); else result.push({ type: 'Attack', candidateId, direction: Math.sign(d) || c.facing }); };
   return result;
 }

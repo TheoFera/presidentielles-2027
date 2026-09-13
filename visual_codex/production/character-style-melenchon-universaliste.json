@@ -1,0 +1,9 @@
+{
+  "asset_id": "character-style-melenchon-universaliste",
+  "style_id": "melenchon_universaliste",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-ceeb568d-60d8-4673-a53e-3a7a8868b174.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final transparent PNG full-body character sprite for a French satirical 2D side-scrolling arcade game. Input image: reference for EXACT character likeness, hand-inked cartoon art, proportions and facing direction. Generate a new dedicated Jean-Luc Mélenchon UNIVERSALISTE costume sprite: same recognizable silver hair, glasses, older face, oversized caricature head, dark charcoal suit, vivid red scarf, cream shirt, small green leaf lapel pin. Three-quarter side view facing RIGHT, neutral standing idle pose, both arms relaxed, hands and shoes fully visible, feet aligned flat. Strong clean dark outlines, warm hand-painted cel shading, sophisticated editorial caricature identical in spirit to reference. Single character centered, occupies about 85% height, consistent head/body ratio with reference. GENUINELY TRANSPARENT alpha background. No scenery, no text, no labels, no UI, no border, no floor, no cast shadow outside the figure. This is one of nine game sprites; prioritize readable silhouette at 90px tall. Do not place a checkerboard pattern in the image."
+}

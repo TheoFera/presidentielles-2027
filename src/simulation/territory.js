@@ -1,3 +1,4 @@
+import { styleInfluenceMultiplier } from './campaign-styles.js';
 import { combatDelta } from './combat-geometry.js';
 import { influenceMultiplier, GamePhase } from './phases.js';
 import { FACTIONS, ringDelta, zoneAt } from './world.js';
@@ -118,7 +119,7 @@ export function refreshInfluenceSources(state, config) {
         : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier_by_level[level - 1] : tower.distant_zone_multiplier_by_level[level - 1];
       source.tower = source.tower_base * source.tower_multiplier * (state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.second_round.tower_influence_multiplier : 1);
       source.faction_multiplier = faction === 'le_pen' ? config.balance.influence.le_pen_gain_multiplier : 1;
-      election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config) * (1 + (state.candidates.find(c => c.faction_id === faction)?.campaign_orientation_bonuses?.[election.biome_id] || 0));
+      election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config) * styleInfluenceMultiplier(config, state.candidates.find(c => c.faction_id === faction), election.biome_id);
     }
     election.influence_sources = sources;
   }

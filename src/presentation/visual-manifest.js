@@ -1,4 +1,4 @@
-// Generated from visual_codex/generated_asset_registry.json by scripts/register-visual.mjs.
+// Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
   "character-melenchon": { file: new URL("../../assets/generated/characters/melenchon.png", import.meta.url).href },
   "npc-bobo-0": { file: new URL("../../assets/generated/npc/npc-bobo-0.png", import.meta.url).href },
@@ -128,4 +128,18 @@ export const visualManifest = {
   "street-periurbain": { file: new URL("../../assets/generated/biomes/street-periurbain.png", import.meta.url).href },
   "street-retraites": { file: new URL("../../assets/generated/biomes/street-retraites.png", import.meta.url).href },
   "street-riches": { file: new URL("../../assets/generated/biomes/street-riches.png", import.meta.url).href },
+  "character-style-le-pen-gouvernement": { file: new URL("../../assets/generated/characters/character-style-le-pen-gouvernement.png", import.meta.url).href },
+  "character-style-le-pen-souverainiste": { file: new URL("../../assets/generated/characters/character-style-le-pen-souverainiste.png", import.meta.url).href },
+  "character-style-le-pen-zemmouriste": { file: new URL("../../assets/generated/characters/character-style-le-pen-zemmouriste.png", import.meta.url).href },
+  "character-style-melenchon-communautariste": { file: new URL("../../assets/generated/characters/character-style-melenchon-communautariste.png", import.meta.url).href },
+  "character-style-melenchon-populiste": { file: new URL("../../assets/generated/characters/character-style-melenchon-populiste.png", import.meta.url).href },
+  "character-style-melenchon-universaliste": { file: new URL("../../assets/generated/characters/character-style-melenchon-universaliste.png", import.meta.url).href },
+  "character-style-philippe-europeiste": { file: new URL("../../assets/generated/characters/character-style-philippe-europeiste.png", import.meta.url).href },
+  "character-style-philippe-gestionnaire": { file: new URL("../../assets/generated/characters/character-style-philippe-gestionnaire.png", import.meta.url).href },
+  "character-style-philippe-notable": { file: new URL("../../assets/generated/characters/character-style-philippe-notable.png", import.meta.url).href },
+  "character-ultimate-melenchon-gilet-jaune": { file: new URL("../../assets/generated/characters/character-ultimate-melenchon-gilet-jaune.png", import.meta.url).href },
+  "character-ultimate-bardella": { file: new URL("../../assets/generated/characters/character-ultimate-bardella.png", import.meta.url).href },
+  "character-ultimate-encapuchonne": { file: new URL("../../assets/generated/characters/character-ultimate-encapuchonne.png", import.meta.url).href },
+  "character-ultimate-philippe-super-europeiste": { file: new URL("../../assets/generated/characters/character-ultimate-philippe-super-europeiste.png", import.meta.url).href },
+  "character-ultimate-zemmour": { file: new URL("../../assets/generated/characters/character-ultimate-zemmour.png", import.meta.url).href },
 };

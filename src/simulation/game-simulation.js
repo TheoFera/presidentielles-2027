@@ -1,4 +1,6 @@
-import { initializeCampaign, campaignCommand, updateCampaignEvents, updateOrientations, CampaignEventDirector } from './campaign-events.js';
+import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
+import { CampaignStyleSystem } from './campaign-styles.js';
+import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { createSpawnTimers, updateSpawns } from './spawns.js';
@@ -8,7 +10,7 @@ import { triggerMeeting } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
-import { beginCombatTick, requestAttack, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
+import { beginCombatTick, activateUltimate, requestAttack, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
@@ -20,7 +22,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const byId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
 export class GameSimulation {
-  constructor(config, seed = config.prototype.seed, localCandidateId = 'candidate:melenchon') {
+  constructor(config, seed = config.prototype.seed, localCandidateId = 'candidate:melenchon', profile = {}) {
     this.config = clone(config);
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
     const initialSeed = Number(seed) >>> 0 || 1;
@@ -28,7 +30,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 7, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 8, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, transactions: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -62,7 +64,9 @@ export class GameSimulation {
         this.spawn(zone, zone.start + zone.width * ratio, false, points[index % points.length]);
       }
     }
+    for (const c of this.state.candidates) initializeMobileCombat(this, c);
     initializeCampaign(this);
+    CampaignStyleSystem.initialize(this, profile);
     this.state.spawn_timers = createSpawnTimers(this);
     refreshElectoralState(this.state, this.config);
     refreshInfluenceSources(this.state, this.config);
@@ -115,6 +119,7 @@ export class GameSimulation {
 
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
+    if (CampaignStyleSystem.command(this, command)) return;
     if (campaignCommand(this, command)) return;
     if (applyMatchDebug(this, command)) return;
     if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSetAIEnabled') {
@@ -130,6 +135,7 @@ export class GameSimulation {
     }
     const candidate = this.state.candidates.find(c => c.id === command.candidateId);
     if (candidate?.eliminated || command.factionId === this.state.eliminated_faction) return;
+    if (mobileCommand(this, candidate, command, activateUltimate)) return;
     if (command.type === 'Attack') { requestAttack(this, candidate, command.direction); return; }
     if (command.type === 'Move') {
       if (candidate && [-1, 0, 1].includes(command.axis)) candidate.axis = command.axis;
@@ -175,9 +181,6 @@ export class GameSimulation {
         if (building) triggerMeeting(this, building);
         break;
       }
-      case 'DebugFillSpecial':
-        if (candidate) candidate.special_charge = this.config.balance.special_charge.required_points;
-        break;
       case 'DebugControlZone': {
         if (!candidate) break;
         const zone = zoneAt(this.state.world, candidate.x);
@@ -252,6 +255,7 @@ export class GameSimulation {
       if (this.state.phase !== previousPhase) return; // New phase accepts only the next tick's inputs.
     }
     const state = this.state;
+    if (state.campaign_style_selection) return;
     state.match_tick++;
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) {
       const arena = new ArenaSimulation(this.config, state.arena); arena.step();
@@ -275,7 +279,7 @@ export class GameSimulation {
     updateCombat(this);
     updateCandidateResistance(this);
     updateCampaignEvents(this);
-    updateOrientations(this);
+    CampaignStyleSystem.update(this);
     this.updatePersuasion();
     updateEconomy(this);
     updateProduction(this);
@@ -289,9 +293,9 @@ export class GameSimulation {
     state.campaign_day_remaining = days;
     state.campaign_elapsed_days = this.config.balance.time.starting_days_before_first_round - days;
     state.campaign_progress_01 = state.campaign_elapsed_days / this.config.balance.time.starting_days_before_first_round;
-    if (state.phase === GamePhase.CAMPAIGN) CampaignEventDirector.update(this);
+    if (state.phase === GamePhase.CAMPAIGN && !state.campaign_style_selection) CampaignEventDirector.update(this);
     updatePolls(this);
-    if (state.phase === GamePhase.CAMPAIGN && days === 0) startArena(this);
+    if (state.phase === GamePhase.CAMPAIGN && days === 0 && !state.campaign_style_selection) startArena(this);
     else if (state.phase === GamePhase.SECOND_ROUND_SPRINT) {
       state.sprint_elapsed_ticks++; state.sprint_remaining_ticks = Math.max(0, state.sprint_remaining_ticks - 1);
       state.electorate.forEach((e, i) => {

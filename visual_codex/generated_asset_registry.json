@@ -2700,6 +2700,331 @@
       ],
       "status": "generated_pending_qa",
       "date": "2026-09-09"
+    },
+    {
+      "asset_id": "character-style-le-pen-gouvernement",
+      "style_id": "le_pen_gouvernement",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-b9a3e9ff-f7fd-4dd1-a6ca-7a2abf798842.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Marine Le Pen LIBÉRALE / PARTI DE GOUVERNEMENT: identical blonde hairstyle and face. Light ice-blue elegant trouser suit, white blouse, neat pearl necklace, navy low heels. Bright government-formal costume, distinct from navy and charcoal outfits. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-6d233ef0-f462-4130-898a-a6562dd7ceff.png",
+      "correction": "Suppression du fond par image_gen ; conservation du personnage entier.",
+      "master": "assets/generated/masters/character-style-le-pen-gouvernement.png",
+      "file": "assets/generated/characters/character-style-le-pen-gouvernement.png",
+      "dimensions": [
+        242,
+        512
+      ],
+      "source_crop": [
+        0,
+        0,
+        863,
+        1823
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-le-pen-souverainiste",
+      "style_id": "le_pen_souverainiste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-b3c2fe16-a25a-4e01-82e1-f078504aab24.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Marine Le Pen SOUVERAINISTE: identical blonde hairstyle and face. Deep navy-blue tailored trouser suit, cream blouse, small tricolor French lapel ribbon, matching low heels. Clean patriotic formal silhouette, no flags held. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-82f67b9f-2ff7-402e-8d18-e0df337b7301.png",
+      "correction": "Suppression du fond par image_gen ; conservation du personnage entier.",
+      "master": "assets/generated/masters/character-style-le-pen-souverainiste.png",
+      "file": "assets/generated/characters/character-style-le-pen-souverainiste.png",
+      "dimensions": [
+        242,
+        512
+      ],
+      "source_crop": [
+        3,
+        0,
+        861,
+        1819
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-le-pen-zemmouriste",
+      "style_id": "le_pen_zemmouriste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-3e7d7b35-3f38-4191-8266-f5aa085a4e59.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Marine Le Pen ZEMMOURISTE: identical blonde hairstyle and face. Elegant very dark charcoal tailored jacket and trousers, burgundy high-neck blouse, small bronze lapel brooch, dark pumps. Clearly distinguish from navy default. Single Marine only, not Zemmour. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "master": "assets/generated/masters/character-style-le-pen-zemmouriste.png",
+      "file": "assets/generated/characters/character-style-le-pen-zemmouriste.png",
+      "dimensions": [
+        243,
+        512
+      ],
+      "source_crop": [
+        1,
+        1,
+        863,
+        1820
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-melenchon-communautariste",
+      "style_id": "melenchon_communautariste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-601ec8e8-449c-4529-89fb-b68b112b3efd.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Jean-Luc Mélenchon COMMUNAUTARISTE: identical older face, silver hair, glasses. Casual dark plum-purple open field jacket over cream open-collar shirt, plum scarf, dark trousers and black shoes. No head covering on candidate. Distinguished but street-campaign casual. No other people. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "master": "assets/generated/masters/character-style-melenchon-communautariste.png",
+      "file": "assets/generated/characters/character-style-melenchon-communautariste.png",
+      "dimensions": [
+        211,
+        512
+      ],
+      "source_crop": [
+        12,
+        5,
+        790,
+        1917
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-melenchon-populiste",
+      "style_id": "melenchon_populiste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-debf52ac-c02c-4020-a405-9c15267fe30f.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Jean-Luc Mélenchon POPULISTE: identical older face, silver hair, glasses. Clearly distinct blue worker jacket, sleeves slightly rolled at wrist, open pale shirt, small red neck scarf, dark work trousers and sturdy dark shoes. No yellow vest yet: that belongs to his temporary ultimate. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "master": "assets/generated/masters/character-style-melenchon-populiste.png",
+      "file": "assets/generated/characters/character-style-melenchon-populiste.png",
+      "dimensions": [
+        214,
+        512
+      ],
+      "source_crop": [
+        6,
+        0,
+        808,
+        1930
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-melenchon-universaliste",
+      "style_id": "melenchon_universaliste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-ceeb568d-60d8-4673-a53e-3a7a8868b174.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final transparent PNG full-body character sprite for a French satirical 2D side-scrolling arcade game. Input image: reference for EXACT character likeness, hand-inked cartoon art, proportions and facing direction. Generate a new dedicated Jean-Luc Mélenchon UNIVERSALISTE costume sprite: same recognizable silver hair, glasses, older face, oversized caricature head, dark charcoal suit, vivid red scarf, cream shirt, small green leaf lapel pin. Three-quarter side view facing RIGHT, neutral standing idle pose, both arms relaxed, hands and shoes fully visible, feet aligned flat. Strong clean dark outlines, warm hand-painted cel shading, sophisticated editorial caricature identical in spirit to reference. Single character centered, occupies about 85% height, consistent head/body ratio with reference. GENUINELY TRANSPARENT alpha background. No scenery, no text, no labels, no UI, no border, no floor, no cast shadow outside the figure. This is one of nine game sprites; prioritize readable silhouette at 90px tall. Do not place a checkerboard pattern in the image.",
+      "master": "assets/generated/masters/character-style-melenchon-universaliste.png",
+      "file": "assets/generated/characters/character-style-melenchon-universaliste.png",
+      "dimensions": [
+        214,
+        512
+      ],
+      "source_crop": [
+        204,
+        10,
+        616,
+        1476
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-philippe-europeiste",
+      "style_id": "philippe_europeiste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-5351a36f-f051-4554-a9a5-1160e4aae0e9.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Édouard Philippe EUROPÉISTE normal campaign form: identical bald crown, dark side hair, black glasses and salt-and-pepper beard. Cobalt-blue tailored business suit, cream shirt and golden-yellow tie, small circular ring of yellow stars lapel pin, black shoes. This is normal form, NOT superhero yet, no aura. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "master": "assets/generated/masters/character-style-philippe-europeiste.png",
+      "file": "assets/generated/characters/character-style-philippe-europeiste.png",
+      "dimensions": [
+        216,
+        512
+      ],
+      "source_crop": [
+        227,
+        10,
+        619,
+        1469
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-philippe-gestionnaire",
+      "style_id": "philippe_gestionnaire",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-39d6a1b2-b144-4fe8-bde6-c6b71ab33684.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Édouard Philippe GESTIONNAIRE: identical bald crown, dark side hair, black glasses and salt-and-pepper beard. Steel-grey perfectly tailored suit, white shirt and dark teal tie, polished black shoes. Competent reserved expression, arms relaxed. No guards. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-c0c25161-0d5b-4fc2-b7f9-d8f960d6cfb8.png",
+      "correction": "Suppression du fond par image_gen ; conservation du personnage entier.",
+      "master": "assets/generated/masters/character-style-philippe-gestionnaire.png",
+      "file": "assets/generated/characters/character-style-philippe-gestionnaire.png",
+      "dimensions": [
+        214,
+        512
+      ],
+      "source_crop": [
+        212,
+        5,
+        620,
+        1482
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-style-philippe-notable",
+      "style_id": "philippe_notable",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-447a643e-e3c6-4903-9a98-71ff7afe6d5a.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Édouard Philippe NOTABLE LOCAL: identical bald crown, dark side hair, black glasses and salt-and-pepper beard. Dark navy suit, white shirt, elegant diagonal French mayor's sash blue-white-red across chest with small gold fringed end on hip. Normal idle sash, no attack motion. Black shoes. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+      "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-c40c5f7e-dd9c-44b7-9ee6-562c7d57a924.png",
+      "correction": "Suppression du fond par image_gen ; conservation du personnage entier.",
+      "master": "assets/generated/masters/character-style-philippe-notable.png",
+      "file": "assets/generated/characters/character-style-philippe-notable.png",
+      "dimensions": [
+        215,
+        512
+      ],
+      "source_crop": [
+        135,
+        8,
+        673,
+        1605
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-ultimate-melenchon-gilet-jaune",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-a0c30f0e-17be-454f-bf1f-a4f6e498ca71.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Jean-Luc Mélenchon in his GILET JAUNE ultimate form. Keep exact older caricature face, glasses and silver hair. Bright fluorescent yellow safety vest with two silver reflective bands over blue worker jacket and pale shirt, dark trousers, black work shoes. Empty hands relaxed, do NOT include a bottle, flames, aura or projectile. Full-body game sprite, reference for consistent hand-inked editorial cartoon style, three-quarter view facing right, neutral idle pose, transparent PNG.",
+      "master": "assets/generated/masters/character-ultimate-melenchon-gilet-jaune.png",
+      "file": "assets/generated/characters/character-ultimate-melenchon-gilet-jaune.png",
+      "dimensions": [
+        211,
+        512
+      ],
+      "source_crop": [
+        16,
+        3,
+        782,
+        1901
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-ultimate-bardella",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-30985101-9615-4186-a8a7-7905acd7d5b6.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Crée un sprite de jeu vidéo PNG à fond transparent : caricature satirique de Jordan Bardella, jeune homme adulte français, visage allongé anguleux, sourcils marqués, cheveux bruns coiffés en arrière, sans barbe, petit sourire assuré. Costume bleu marine, chemise blanche, cravate bleu clair, chaussures noires. Dessin à l'encre et ombrages colorés chaleureux, grosse tête et petit corps, même style que les personnages du jeu. Personnage entier debout, de trois quarts tourné vers la droite, bras détendus, mains vides, pieds bien visibles. Aucun décor, aucune ombre au sol, aucun texte. Fond entièrement transparent.",
+      "master": "assets/generated/masters/character-ultimate-bardella.png",
+      "file": "assets/generated/characters/character-ultimate-bardella.png",
+      "dimensions": [
+        177,
+        512
+      ],
+      "source_crop": [
+        245,
+        12,
+        524,
+        1514
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-ultimate-encapuchonne",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-2fcc4ec9-5f69-4da8-944e-27ace10b2138.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Crée un sprite de personnage de jeu arcade satirique français, adulte anonyme encapuchonné entièrement en noir, visage entièrement caché dans l'ombre de la capuche, aucune arme aucun insigne. Silhouette entière pieds inclus, debout posture prête à courir, trois quarts orienté droite. Gros contours dessinés à l'encre, aplats ombrés cartoon, grosse tête petit corps, lisible à petite taille. Sweat noir ample à capuche, pantalon noir, gants noirs, chaussures noires. Un seul personnage centré. PNG avec véritable fond transparent canal alpha, aucun décor, aucun damier dessiné, aucune ombre au sol, aucun texte.",
+      "master": "assets/generated/masters/character-ultimate-encapuchonne.png",
+      "file": "assets/generated/characters/character-ultimate-encapuchonne.png",
+      "dimensions": [
+        290,
+        512
+      ],
+      "source_crop": [
+        207,
+        6,
+        768,
+        1357
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-ultimate-philippe-super-europeiste",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-528bc615-a6d8-4c90-bb36-713e8c765205.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Détoure ce sprite Super Européiste et livre-le en PNG à fond réellement transparent. Garde exactement le personnage entier, son costume de super-héros bleu, ses étoiles jaunes, sa cape, ses bottes jaunes, ses cheveux blancs, ses lunettes et son visage. Supprime entièrement le fond gris, y compris entre les jambes et sous les bras. Aucun décor. Les pixels en dehors du personnage doivent être transparents.",
+      "master": "assets/generated/masters/character-ultimate-philippe-super-europeiste.png",
+      "file": "assets/generated/characters/character-ultimate-philippe-super-europeiste.png",
+      "dimensions": [
+        240,
+        512
+      ],
+      "source_crop": [
+        142,
+        6,
+        703,
+        1501
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-ultimate-zemmour",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-e9c85590-7848-41bd-9d6c-a2647b05e85c.png",
+      "transparent": true,
+      "max_height": 512,
+      "generation_method": "built-in image_gen",
+      "prompt": "Crée un sprite PNG à fond transparent pour un jeu de combat satirique 2D. Caricature d'Éric Zemmour : homme français âgé, silhouette mince et frêle, visage allongé, grand nez anguleux, oreilles marquées, cheveux foncés très dégarnis, sans barbe et sans lunettes. Costume anthracite étroit, chemise blanche, cravate bordeaux, chaussures noires. Grosse tête et petit corps, dessin à l'encre aux contours noirs nets et ombrages cartoon chaleureux. Personnage entier de trois quarts tourné vers la droite, debout, mains vides détendues, pieds entièrement visibles. Aucun décor, aucune bulle ni texte. Fond transparent, sans ombre au sol.",
+      "master": "assets/generated/masters/character-ultimate-zemmour.png",
+      "file": "assets/generated/characters/character-ultimate-zemmour.png",
+      "dimensions": [
+        172,
+        512
+      ],
+      "source_crop": [
+        260,
+        14,
+        508,
+        1508
+      ],
+      "status": "generated_pending_qa",
+      "date": "2026-09-13"
     }
   ]
 }

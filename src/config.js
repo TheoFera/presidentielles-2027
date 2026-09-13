@@ -5,6 +5,12 @@ export function validateConfig(config) {
     if (!Number.isFinite(value) || value <= 0) throw new Error(`Configuration : ${label} doit être un nombre positif.`);
   };
   positive(config.balance.simulation_architecture.fixed_tick_hz, 'fixed_tick_hz');
+  const dash = config.balance.dash, charge = config.balance.special_charge;
+  for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms']) positive(dash?.[key], `dash : ${key}`);
+  const hz = config.balance.simulation_architecture.fixed_tick_hz;
+  if (!Number.isInteger(dash.max_charges) || Math.ceil(dash.invulnerability_seconds * hz) >= Math.ceil(dash.duration_seconds * hz)) throw new Error('Configuration : le dash doit avoir des charges entières et une invulnérabilité plus courte que sa durée.');
+  for (const key of ['required_points', 'points_per_light_hit', 'points_per_second_hit', 'points_per_finisher_hit', 'decay_delay_seconds', 'decay_duration_seconds']) positive(charge?.[key], `ultime : ${key}`);
+  if (typeof dash.allowed_in_arena !== 'boolean' || typeof charge.enemy_summons_charge !== 'boolean' || typeof charge.ultimate_key !== 'string' || !charge.ultimate_key) throw new Error('Configuration : commandes de combat invalides.');
   positive(config.prototype.world.units_per_screen, 'units_per_screen');
   positive(config.layout.screens_per_subzone, 'screens_per_subzone');
   positive(config.prototype.movement.candidate_speed_units_per_second, 'vitesse de marche');

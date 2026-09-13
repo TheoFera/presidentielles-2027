@@ -1,3 +1,4 @@
+import { DEFAULT_UNLOCKS } from './campaign-styles.js';
 import { campaignAICommands } from './campaign-events.js';
 import { move, setCampaignActive, interactionPresence, attack } from './commands.js';
 import { ringDelta, zoneAt } from './world.js';
@@ -14,13 +15,17 @@ export class Controller {
 export class LocalHumanController extends Controller {
   constructor() { super(); this.axis = 0; this.pendingTap = 0; }
   setAxis(axis) { this.axis = Math.sign(axis); if (this.axis) this.pendingTap = this.axis; }
-  reset() { this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
+  dash(direction) { this.dashPending = direction; }
+  ultimate() { this.ultimatePending = true; }
+  reset() { this.dashPending = 0; this.ultimatePending = false; this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
   attack() { this.attackPending = true; }
   commands(_state, candidateId) {
     // Preserve a key press released between two simulation ticks.
     const axis = this.axis || this.pendingTap;
     this.pendingTap = 0;
     const commands = [setCampaignActive(candidateId, true), interactionPresence(candidateId), move(candidateId, axis)];
+    if (this.dashPending) { commands.push({ type: 'Dash', candidateId, direction: this.dashPending }); this.dashPending = 0; }
+    if (this.ultimatePending) { commands.push({ type: 'ActivateUltimate', candidateId }); this.ultimatePending = false; }
     if (this.attackPending) { commands.push(attack(candidateId)); this.attackPending = false; }
     return commands;
   }
@@ -30,6 +35,7 @@ export class LocalHumanController extends Controller {
 export class AIController extends Controller {
   constructor(config) { super(); this.config = config; }
   commands(state, candidateId) {
+    if (state.campaign_style_selection?.candidate_id === candidateId) return [{ type: 'SelectCampaignStyle', candidateId, styleId: DEFAULT_UNLOCKS[state.candidates.find(c => c.id === candidateId).faction_id][0] }];
     if (state.phase === GamePhase.RESULTS) return [];
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) return arenaAICommands(state.arena, this.config, candidateId, state.ai_enabled);
     const candidate = state.candidates.find(c => c.id === candidateId);
@@ -44,7 +50,7 @@ export class AIController extends Controller {
       const d = ringDelta(candidate.x, opponent.x, state.world.length);
       const close = Math.abs(d) <= this.config.balance.candidate_combat.light_range;
       const result = commands(close ? 0 : Math.sign(d));
-      if (close && !candidate.combat.attack_id && !candidate.combat.stun_ticks) result.push(attack(candidateId, Math.sign(d) || candidate.facing));
+      if (close && !candidate.combat.attack_id && !candidate.combat.stun_ticks) { if (candidate.special_charge >= this.config.balance.special_charge.required_points && !candidate.ultimate_effect && !candidate.bardella_guardian_armed) result.push({ type: 'ActivateUltimate', candidateId: candidate.id }); else result.push(attack(candidateId, Math.sign(d) || candidate.facing)); };
       return result;
     }
     const retained = state.npcs.find(n => n.role === 'NEUTRE' && n.persuasion?.actor_id === candidateId);

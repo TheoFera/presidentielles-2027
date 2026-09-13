@@ -1,3 +1,4 @@
+import { CampaignStyleSystem } from './campaign-styles.js';
 import { fundingModifiers } from './campaign-events.js';
 import { random, ringDelta, zoneAt } from './world.js';
 import { buildingSettings, factionVariant, isCapturable, presenceForLevel } from './building-rules.js';
@@ -127,6 +128,7 @@ export function captureSite(sim, building, candidate) {
   if (building.type === 'permanence' && !sim.state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.headquarters)) {
     building.headquarters = true; candidate.headquarters_site_id = building.id; candidate.last_hq_x = building.x;
     sim.emit('HeadquartersEstablished', { candidate_id: candidate.id, target_id: building.id });
+    CampaignStyleSystem.headquartersEstablished(sim, candidate);
   }
   sim.emit('SiteCaptured', { candidate_id: candidate.id, target_id: building.id, level: 1 });
 }

@@ -1,0 +1,337 @@
+{
+  "cards": [
+    {
+      "style": "melenchon_universaliste",
+      "x": 43.1875,
+      "right": 475.71875,
+      "width": 432.53125,
+      "sprite": "character-style-melenchon-universaliste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "melenchon_communautariste",
+      "x": 503.71875,
+      "right": 936.265625,
+      "width": 432.546875,
+      "sprite": "character-style-melenchon-communautariste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "melenchon_populiste",
+      "x": 964.265625,
+      "right": 1396.796875,
+      "width": 432.53125,
+      "sprite": "character-style-melenchon-populiste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "le_pen_souverainiste",
+      "x": 43.1875,
+      "right": 475.71875,
+      "width": 432.53125,
+      "sprite": "character-style-le-pen-souverainiste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "le_pen_zemmouriste",
+      "x": 503.71875,
+      "right": 936.265625,
+      "width": 432.546875,
+      "sprite": "character-style-le-pen-zemmouriste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "le_pen_gouvernement",
+      "x": 964.265625,
+      "right": 1396.796875,
+      "width": 432.53125,
+      "sprite": "character-style-le-pen-gouvernement",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "philippe_gestionnaire",
+      "x": 43.1875,
+      "right": 475.71875,
+      "width": 432.53125,
+      "sprite": "character-style-philippe-gestionnaire",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "philippe_notable",
+      "x": 503.71875,
+      "right": 936.265625,
+      "width": 432.546875,
+      "sprite": "character-style-philippe-notable",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "philippe_europeiste",
+      "x": 964.265625,
+      "right": 1396.796875,
+      "width": 432.53125,
+      "sprite": "character-style-philippe-europeiste",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "style": "melenchon_universaliste",
+      "x": 16,
+      "right": 275.40625,
+      "width": 259.40625,
+      "sprite": "character-style-melenchon-universaliste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "melenchon_communautariste",
+      "x": 292.28125,
+      "right": 551.703125,
+      "width": 259.421875,
+      "sprite": "character-style-melenchon-communautariste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "melenchon_populiste",
+      "x": 568.578125,
+      "right": 827.984375,
+      "width": 259.40625,
+      "sprite": "character-style-melenchon-populiste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "le_pen_souverainiste",
+      "x": 16,
+      "right": 275.40625,
+      "width": 259.40625,
+      "sprite": "character-style-le-pen-souverainiste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "le_pen_zemmouriste",
+      "x": 292.28125,
+      "right": 551.703125,
+      "width": 259.421875,
+      "sprite": "character-style-le-pen-zemmouriste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "le_pen_gouvernement",
+      "x": 568.578125,
+      "right": 827.984375,
+      "width": 259.40625,
+      "sprite": "character-style-le-pen-gouvernement",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "philippe_gestionnaire",
+      "x": 16,
+      "right": 275.40625,
+      "width": 259.40625,
+      "sprite": "character-style-philippe-gestionnaire",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "philippe_notable",
+      "x": 292.28125,
+      "right": 551.703125,
+      "width": 259.421875,
+      "sprite": "character-style-philippe-notable",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "philippe_europeiste",
+      "x": 568.578125,
+      "right": 827.984375,
+      "width": 259.40625,
+      "sprite": "character-style-philippe-europeiste",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      }
+    },
+    {
+      "style": "melenchon_universaliste",
+      "x": 11.6875,
+      "right": 129.21875,
+      "width": 117.53125,
+      "sprite": "character-style-melenchon-universaliste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "melenchon_communautariste",
+      "x": 136.21875,
+      "right": 253.765625,
+      "width": 117.546875,
+      "sprite": "character-style-melenchon-communautariste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "melenchon_populiste",
+      "x": 260.765625,
+      "right": 378.296875,
+      "width": 117.53125,
+      "sprite": "character-style-melenchon-populiste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "le_pen_souverainiste",
+      "x": 11.6875,
+      "right": 129.21875,
+      "width": 117.53125,
+      "sprite": "character-style-le-pen-souverainiste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "le_pen_zemmouriste",
+      "x": 136.21875,
+      "right": 253.765625,
+      "width": 117.546875,
+      "sprite": "character-style-le-pen-zemmouriste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "le_pen_gouvernement",
+      "x": 260.765625,
+      "right": 378.296875,
+      "width": 117.53125,
+      "sprite": "character-style-le-pen-gouvernement",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "philippe_gestionnaire",
+      "x": 11.6875,
+      "right": 129.21875,
+      "width": 117.53125,
+      "sprite": "character-style-philippe-gestionnaire",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "philippe_notable",
+      "x": 136.21875,
+      "right": 253.765625,
+      "width": 117.546875,
+      "sprite": "character-style-philippe-notable",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "style": "philippe_europeiste",
+      "x": 260.765625,
+      "right": 378.296875,
+      "width": 117.53125,
+      "sprite": "character-style-philippe-europeiste",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "errors": [],
+  "flows": [
+    "Maintien clavier, interruption et annulation au QG",
+    "Sélection réelle et sauvegarde : melenchon_universaliste",
+    "Sélection réelle et sauvegarde : melenchon_communautariste",
+    "Sélection réelle et sauvegarde : melenchon_populiste",
+    "Sélection réelle et sauvegarde : le_pen_souverainiste",
+    "Sélection réelle et sauvegarde : le_pen_zemmouriste",
+    "Sélection réelle et sauvegarde : le_pen_gouvernement",
+    "Sélection réelle et sauvegarde : philippe_gestionnaire",
+    "Sélection réelle et sauvegarde : philippe_notable",
+    "Sélection réelle et sauvegarde : philippe_europeiste",
+    "Rendu de l’ultime : melenchon_universaliste",
+    "Rendu de l’ultime : melenchon_communautariste",
+    "Rendu de l’ultime : melenchon_populiste",
+    "Rendu de l’ultime : le_pen_souverainiste",
+    "Rendu de l’ultime : le_pen_zemmouriste",
+    "Rendu de l’ultime : le_pen_gouvernement",
+    "Rendu de l’ultime : philippe_gestionnaire",
+    "Rendu de l’ultime : philippe_notable",
+    "Rendu de l’ultime : philippe_europeiste"
+  ]
+}

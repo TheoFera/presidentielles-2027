@@ -18,6 +18,12 @@ export function combatReport(state, config, candidate, npc, building) {
     `Vitesse de recul : ${f(c.knockback_velocity)} u/s`,
     c.last_hit ? `Dernier impact : ${c.last_hit.id} · ${c.last_hit.source_id} → ${c.last_hit.target_id}\n  résistance −${f(c.last_hit.damage)} · soutien −${f(c.last_hit.electoral_damage)} · recul ${f(c.last_hit.knockback)}` : 'Dernier impact : aucun',
     `Unités temporaires : ${state.temporary_units.length} · projectiles : ${state.projectiles.length}`];
+  lines.push(`Dash : ${candidate.dash_charges}/${candidate.dash_max_charges} · actif : ${candidate.dash_active ? 'oui' : 'non'} · recharge : ${f(config.balance.dash.recharge_seconds - candidate.dash_recharge_progress / hz)} s`,
+    `Invulnérabilité : ${Math.max(0, candidate.dash_invulnerable_until_tick - state.tick)} ticks`,
+    `Ultime : ${f(100 * candidate.special_charge / candidate.special_threshold)} % · prêt : ${candidate.special_charge >= candidate.special_threshold ? 'oui' : 'non'}`,
+    `Dernier coup réussi : tick ${candidate.last_successful_hit_tick} · décharge dans ${f(Math.max(0, config.balance.special_charge.decay_delay_seconds - (state.tick - candidate.last_successful_hit_tick) / hz))} s`,
+    `Décharge active : ${candidate.special_decay_started ? 'oui' : 'non'} · vitesse : ${f(candidate.special_decay_origin / config.balance.special_charge.decay_duration_seconds)} unité(s)/s`,
+    `Bardella armé : ${candidate.bardella_guardian_armed ? 'oui' : 'non'}`);
   if (attack) lines.push(`Préparation / activité / récupération : ${f(attack.windup_ticks / hz)} / ${f(attack.active_ticks / hz)} / ${f(attack.recovery_ticks / hz)} s`, `Dégâts : ${f(attack.damage)} · recul : ${f(attack.knockback)} · portée : ${f(attack.range)} u`);
   if (npc) lines.push('', '— COMBAT DU PNJ —', `Durabilité exacte : ${f(npc.hidden_durability)}`,
     `Cible de combat : ${npc.combat.target_id || 'Aucune'}`,

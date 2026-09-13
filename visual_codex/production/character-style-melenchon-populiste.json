@@ -1,0 +1,9 @@
+{
+  "asset_id": "character-style-melenchon-populiste",
+  "style_id": "melenchon_populiste",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-debf52ac-c02c-4020-a405-9c15267fe30f.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Jean-Luc Mélenchon POPULISTE: identical older face, silver hair, glasses. Clearly distinct blue worker jacket, sleeves slightly rolled at wrist, open pale shirt, small red neck scarf, dark work trousers and sturdy dark shoes. No yellow vest yet: that belongs to his temporary ultimate. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup."
+}

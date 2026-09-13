@@ -1,0 +1,11 @@
+{
+  "asset_id": "character-style-philippe-gestionnaire",
+  "style_id": "philippe_gestionnaire",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-39d6a1b2-b144-4fe8-bde6-c6b71ab33684.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Édouard Philippe GESTIONNAIRE: identical bald crown, dark side hair, black glasses and salt-and-pepper beard. Steel-grey perfectly tailored suit, white shirt and dark teal tie, polished black shoes. Competent reserved expression, arms relaxed. No guards. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+  "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-c0c25161-0d5b-4fc2-b7f9-d8f960d6cfb8.png",
+  "correction": "Suppression du fond par image_gen ; conservation du personnage entier."
+}

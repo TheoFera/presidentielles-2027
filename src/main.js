@@ -1,3 +1,5 @@
+import { CampaignStylesDisplay } from './presentation/campaign-styles.js';
+import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
 import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
 import { incomePerSecond } from './simulation/territory.js';
@@ -21,7 +23,9 @@ function showError(error) {
 
 async function start() {
   const config = await loadConfig();
-  let simulation = new GameSimulation(config);
+  const profile = loadCampaignProfile();
+  try { saveCampaignProfile(profile); } catch { console.warn('Le profil ne peut pas être enregistré dans ce navigateur.'); }
+  let simulation = new GameSimulation(config, config.prototype.seed, 'candidate:melenchon', profile);
   let state = simulation.getState();
   let previous = state;
   const clock = new FixedClock(config.balance.simulation_architecture.fixed_tick_hz);
@@ -63,7 +67,7 @@ async function start() {
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
   function restartMatch(home = false, seed = config.prototype.seed) {
-    simulation = new GameSimulation(config, seed, state.local_candidate_id);
+    simulation = new GameSimulation(config, seed, state.local_candidate_id, profile);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
     debug.toggle(false); togglePause(home); document.getElementById('resume').textContent = home ? 'Commencer la campagne' : 'Reprendre';
   }
@@ -96,12 +100,17 @@ async function start() {
     },
   });
   function togglePause(force = !paused, showHelp = true) {
+    if (state.campaign_style_selection) return;
     paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
+    simulation.applyCommand({ type: 'HoldCampaignStyle', candidateId: state.local_candidate_id, active: false });
     if (!paused || !showHelp) canvas.focus();
     else { document.getElementById('resume').focus({ preventScroll: true }); document.getElementById('help').scrollTop = 0; }
   }
   const input = new BrowserInput(canvas, human, async key => {
+    if (state.campaign_style_selection) return;
     if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
+    else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) { if (!paused) human.ultimate(); }
+    else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (['h', 'escape', 'p'].includes(key)) togglePause();
     else if (key === 'f3') debug.toggle();
     else if (key === 'f') {
@@ -110,7 +119,11 @@ async function start() {
         else await document.documentElement.requestFullscreen();
       } catch { notify('Le plein écran est indisponible dans ce navigateur.'); }
     } else debug.action(key);
-  }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio);
+  }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, config.balance.dash.double_tap_window_ms);
+  const stylesDisplay = new CampaignStylesDisplay(config, profile, command => {
+    if (paused && command.type === 'HoldCampaignStyle' && command.active) return;
+    simulation.applyCommand(command); state = simulation.getState();
+  }, () => { input.clear(); pending = []; clock.reset(); });
   document.getElementById('resume').addEventListener('click', () => togglePause(false));
   document.addEventListener('visibilitychange', () => {
     // A hidden local tab pauses the session clock, not off-camera entities.
@@ -149,8 +162,18 @@ async function start() {
       }
       matchDisplay.update(state);
       campaignDisplay.update(state);
+      stylesDisplay.update(state);
       document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id)));
       const candidate = matchDisplay.viewedCandidate(state);
+      const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
+      const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
+      const ultimateButton = document.getElementById('ultimate-touch');
+      const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
+      ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = ratio < 1 || fighter.is_ko || !!fighter.combat.attack_id || fighter.combat.stun_ticks > 0 || fighter.dash_active || !!fighter.ultimate_effect || fighter.bardella_guardian_armed;
+      ultimateButton.classList.toggle('ready', ratio >= 1);
+      ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
+      ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
+      document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
       const zone = zoneAt(state.world, candidate.x);
       if (zone.id !== currentZone) { currentZone = zone.id; notify(`${zone.biome_name}\n${zone.concept}`); }
       if (state.days_remaining !== currentDay) {
@@ -161,8 +184,8 @@ async function start() {
       money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`;
       campaignBudget.textContent = `Plafond restant : ${currency.format(remainingCampaignBudget(candidate, config))} ${config.balance.display.currency_label}`;
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('touch-controls').hidden = paused || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('game-menu').hidden = paused || state.phase === 'RESULTS';
+      document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      document.getElementById('game-menu').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS';
       electoralDisplay.update(state, candidate.faction_id);
       if (noticeRemaining <= 0) notice.textContent = '';
       hint.style.opacity = hintRemaining > 0 ? '1' : '0';

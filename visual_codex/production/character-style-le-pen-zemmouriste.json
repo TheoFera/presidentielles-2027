@@ -1,0 +1,9 @@
+{
+  "asset_id": "character-style-le-pen-zemmouriste",
+  "style_id": "le_pen_zemmouriste",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-3e7d7b35-3f38-4191-8266-f5aa085a4e59.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Marine Le Pen ZEMMOURISTE: identical blonde hairstyle and face. Elegant very dark charcoal tailored jacket and trousers, burgundy high-neck blouse, small bronze lapel brooch, dark pumps. Clearly distinguish from navy default. Single Marine only, not Zemmour. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup."
+}

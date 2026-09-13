@@ -1,19 +1,24 @@
+import { updateMobileCombat, successfulNormalHit, changeCharge, actionAllowed } from './mobile-combat.js';
+import { activeCampaignStyle } from './campaign-styles.js';
+import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEffects } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
 import { combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
 
 export function requestAttack(sim, actor, direction = null) {
-  if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active) return;
+  if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active || actor.is_ko) return;
   actor.combat.buffer_until_tick = sim.state.tick + sim.secondsToTicks(sim.config.balance.candidate_combat.input_buffer_seconds);
   if ([-1, 1].includes(direction)) actor.combat.requested_direction = direction;
 }
 
 export function beginCombatTick(sim) {
   const { state, config, hz } = sim;
+  updateMobileCombat(sim);
   for (const actor of combatActors(state)) {
-    actor.moving = false;
+    actor.moving = !!actor.dash_active;
     const c = actor.combat;
+    if (sim.state.tick > c.combo_expires_tick) c.combo_step = 0;
     c.engaged = false;
     if (c.cooldown_ticks > 0) c.cooldown_ticks--;
     if (c.stun_ticks > 0) c.stun_ticks--;
@@ -57,44 +62,56 @@ export function startNpcAttack(sim, actor, kind, settings) {
 
 function startCandidateAttack(sim, actor) {
   const c = actor.combat; const b = sim.config.balance;
-  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active) return;
+  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active || actor.is_ko) return;
   c.buffer_until_tick = -1;
   if (c.requested_direction) actor.facing = c.requested_direction;
   c.requested_direction = null; actor.purchase_hold = null;
-  if (actor.special_charge >= b.special_charge.required_points) {
-    actor.special_charge = 0; c.combo_step = 0; triggerSpecial(sim, actor); return;
-  }
   c.combo_step = sim.state.tick > c.combo_expires_tick ? 1 : c.combo_step % 3 + 1;
   c.combo_expires_tick = sim.state.tick + sim.secondsToTicks(b.candidate_combat.combo_reset_seconds);
   const strong = c.combo_step === 3;
-  makeAttack(sim, actor, 'CANDIDATE', { step: c.combo_step, strong,
-    range: strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
-    damage: strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
-    knockback: strong ? b.candidate_combat.finisher_knockback : b.candidate_combat.light_knockback,
+  const scarf = actor.ultimate_effect?.kind === 'SCARF' && actor.ultimate_effect.expires_tick > sim.state.tick;
+  makeAttack(sim, actor, scarf ? 'SCARF' : 'CANDIDATE', { step: c.combo_step, strong,
+    range: scarf ? b.specials.scarf.range : strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
+    damage: scarf ? b.specials.scarf.damage : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
+    knockback: scarf ? b.specials.scarf.knockback : strong ? b.candidate_combat.finisher_knockback : b.candidate_combat.light_knockback,
     electoral_damage: strong ? b.candidate_combat.electoral_damage_on_finisher_percent_points : b.candidate_combat.electoral_damage_on_light_hit_percent_points });
+}
+
+export function activateUltimate(sim, actor) {
+  if (!actionAllowed(sim, actor) || actor.special_charge < sim.config.balance.special_charge.required_points || actor.ultimate_effect || actor.bardella_guardian_armed) return;
+  const style = activeCampaignStyle(sim.config, actor);
+  if (!style || style.ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return;
+  changeCharge(sim, actor, 0); actor.combat.combo_step = 0;
+  actor.active_ultimate_id = style.ultimate.kind;
+  sim.emit('UltimateActivated', { candidate_id: actor.id, kind: style.ultimate.kind });
+  if (style.ultimate.kind === 'BARDELLA') { actor.bardella_guardian_armed = true; sim.emit('BardellaGuardianArmed', { candidate_id: actor.id }); return; }
+  triggerSpecial(sim, actor);
 }
 
 function triggerSpecial(sim, actor) {
   const { state, config } = sim;
-  const kinds = { melenchon: 'HOLOGRAMS', le_pen: 'WAVE', philippe: 'WALL' };
-  const power = { id: `power:${state.next_power_id++}`, owner_id: actor.id, faction_id: actor.faction_id, kind: kinds[actor.faction_id], started_tick: state.tick, expires_tick: state.tick };
+  const kind = activeCampaignStyle(config, actor)?.ultimate.kind;
+  if (!kind) return;
+  const power = { id: `power:${state.next_power_id++}`, owner_id: actor.id, faction_id: actor.faction_id, kind, started_tick: state.tick, expires_tick: state.tick };
   state.powers.push(power);
-  if (actor.faction_id === 'le_pen') {
+  if (startStyleUltimate(sim, actor, power)) {
+    // New styles share the same authoritative power lifetime.
+  } else if (kind === 'WAVE') {
     const s = config.balance.specials.le_pen_navy_wave;
     const range = s.range_screens * config.prototype.world.units_per_screen;
     power.expires_tick += sim.secondsToTicks(range / s.travel_speed);
     state.projectiles.push({ id: `projectile:${state.next_projectile_id++}`, power_id: power.id, owner_id: actor.id, faction_id: actor.faction_id,
       kind: 'WAVE', x: actor.x, direction: actor.facing, speed: s.travel_speed, remaining_range: range, hit_ids: [], damage: s.candidate_resistance_damage, knockback: s.knockback, electoral_damage: s.candidate_electoral_damage_percent_points });
   } else {
-    const hologram = actor.faction_id === 'melenchon';
+    const hologram = kind === 'HOLOGRAMS';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
-    power.expires_tick += sim.secondsToTicks(s.duration_seconds);
+    power.expires_tick += sim.secondsToTicks(s.duration_seconds + (hologram ? s.appearance_seconds : 0));
     const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i - (s.count - 1) / 2) * s.spawn_spacing)
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, temporary: true, expired: false,
       x: combatPosition(state, actor.x + offset), follow_offset: offset, facing: Math.sign(offset) || actor.facing,
-      moving: false, expires_tick: power.expires_tick, hidden_durability: hologram ? s.hidden_durability : s.guard_hidden_durability,
+      moving: false, spawn_tick: state.tick, ready_tick: state.tick + sim.secondsToTicks(hologram ? s.appearance_seconds : 0), expires_tick: power.expires_tick, hidden_durability: hologram ? s.hidden_durability : s.guard_hidden_durability,
       combat: combatState(), persuasion_target_ids: [] });
   }
   // The same button consumes the power; a short recovery prevents double activation.
@@ -124,15 +141,13 @@ function updateAttacks(sim) {
           kind: 'VERBAL', x: actor.x, direction: attack.direction, speed: s.projectile_speed, remaining_range: s.projectile_range,
           hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
         attack.launched = true;
-      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && attack.hit_ids.length === 0) {
-        const target = meleeTargets(sim, actor, attack)[0];
+      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (attack.kind === 'SCARF' || attack.hit_ids.length === 0)) {
+        const targets = meleeTargets(sim, actor, attack);
+        for (const target of (attack.kind === 'SCARF' ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
-          if (attack.kind === 'CANDIDATE' && !attack.charged) {
-            const charge = sim.config.balance.special_charge;
-            actor.special_charge = Math.min(charge.required_points, actor.special_charge + (attack.strong ? charge.points_per_finisher_hit : charge.points_per_light_hit));
-            attack.charged = true;
-          }
+          if (attack.kind === 'CANDIDATE' && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
+        }
         }
       }
     }
@@ -147,7 +162,9 @@ function updateProjectiles(sim) {
     if (state.arena_bounds && state.eliminated_faction) break;
     const owner = combatActors(state).find(a => a.id === p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
+    if (p.kind === 'BUBBLE') { const target = combatActors(state).find(t => t.id === p.target_id && enemies(owner,t)); if (target) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
+    if (updateMolotov(sim, p, step)) continue;
     const radius = config.balance.candidate_combat.target_radius;
     const targets = combatActors(state).filter(t => enemies(owner, t) && !p.hit_ids.includes(t.id)
       && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT')
@@ -164,9 +181,9 @@ function updateProjectiles(sim) {
         else if (target.role === 'SERVICE_D_ORDRE') damage = config.balance.physical_units.service_ordre.hidden_durability * s.service_ordre_damage_fraction_of_full_durability;
         else if (target.temporary) damage = config.balance.physical_units.service_ordre.hidden_durability * s.service_ordre_damage_fraction_of_full_durability;
       }
-      hit(sim, owner, target, { ...p, damage, strong: p.kind === 'WAVE' }, p.id);
+      hit(sim, owner, target, { ...p, damage, ranged: true, strong: p.kind === 'WAVE' }, p.id);
       p.hit_ids.push(target.id);
-      if (p.kind === 'VERBAL') { p.remaining_range = 0; break; }
+      if (['VERBAL', 'BUBBLE'].includes(p.kind)) { p.remaining_range = 0; break; }
     }
     const nextX = p.x + p.direction * step;
     p.x = combatPosition(state, nextX); p.remaining_range -= step;
@@ -179,10 +196,12 @@ function updateTemporaryUnits(sim) {
   const { state, config } = sim;
   for (const unit of state.temporary_units) {
     if (state.tick >= unit.expires_tick) unit.expired = true;
-    if (unit.expired || interrupted(unit)) continue;
+    const owner = state.candidates.find(c => c.id === unit.owner_id);
+    if (!owner || owner.is_ko || owner.eliminated) { unit.expired = true; continue; }
+    if (unit.expired || interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;
+    if (updateStyleTemporary(sim, unit)) continue;
     const hologram = unit.role === 'HOLOGRAMME';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
-    const owner = state.candidates.find(c => c.id === unit.owner_id);
     if (!hologram) moveNpcTowards(sim, unit, combatPosition(state, owner.x + unit.follow_offset), s.follow_speed);
     const target = nearestEnemy(state, unit, hologram ? s.detection_range : s.attack_range + config.balance.candidate_combat.target_radius);
     unit.combat.target_id = target?.id || null;
@@ -194,6 +213,8 @@ function updateTemporaryUnits(sim) {
       range: s.attack_range, damage: hologram ? s.hidden_damage_per_hit : s.guard_hit_hidden_damage, knockback: hologram ? s.knockback : s.guard_knockback,
       electoral_damage: s.electoral_damage, cooldown_seconds: s.attack_cooldown_seconds });
   }
+  const expiredOwners = new Set(state.temporary_units.filter(t => t.expired).map(t => t.id));
+  state.projectiles = state.projectiles.filter(p => !expiredOwners.has(p.owner_id));
   state.temporary_units = state.temporary_units.filter(t => !t.expired);
   state.powers = state.powers.filter(p => p.expires_tick > state.tick);
 }
@@ -223,6 +244,9 @@ export function updateCombat(sim) {
   updateTemporaryUnits(sim);
   updateAttacks(sim);
   updateProjectiles(sim);
+  updateStyleEffects(sim);
+  const expiredIds = new Set(sim.state.temporary_units.filter(t => t.expired).map(t => t.id));
+  sim.state.projectiles = sim.state.projectiles.filter(p => !expiredIds.has(p.owner_id));
   sim.state.temporary_units = sim.state.temporary_units.filter(t => !t.expired);
   sim.state.attacks = sim.state.attacks.filter(a => combatActors(sim.state).some(t => t.id === a.owner_id && t.combat.attack_id === a.id));
 }

@@ -1,3 +1,4 @@
+import { specialCharacterAssetId } from './campaign-style-art.js';
 import { zoneAt } from '../simulation/world.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
@@ -7,6 +8,8 @@ export const npcVariantCounts = Object.freeze({bobo:3,banlieue:4,periurbain:5,ca
 export function characterAssetId(entity, state) {
   const variation = hash(entity.id);
   if (entity.presentation_name === 'Journaliste') return `journalist-${variation % 3}`;
+  const dedicated = specialCharacterAssetId(entity, state);
+  if (dedicated) return dedicated;
   if (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME') return `character-${entity.faction_id}`;
   if (entity.role === 'CRS') return `crs-${variation % 2}`;
   if (entity.role === 'SERVICE_D_ORDRE') return `security-${variation % 2}`;
@@ -56,12 +59,16 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, feetY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
+  if (entity.role === 'ENCAPUCHONNE' && state.tick < entity.ready_tick) {
+    ctx.beginPath(); ctx.rect(x - width, feetY - height * 1.1, width * 2, height * 1.1); ctx.clip();
+    ctx.translate(0, height * (1 - (state.tick - entity.spawn_tick) / Math.max(1, entity.ready_tick - entity.spawn_tick)));
+  }
   ctx.translate(x, feetY);
   ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (animation === 'ko') ctx.translate(0, -width * .48);
   ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025);
   ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.5 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
-  if (entity.role === 'HOLOGRAMME') { ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
+  if (entity.role === 'HOLOGRAMME') { ctx.globalAlpha *= Math.min(1, (state.tick - (entity.spawn_tick || 0)) / Math.max(1, (entity.ready_tick || 1) - (entity.spawn_tick || 0))); ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
   const breathing = 1 + Math.sin(time * 3) * 0.008;
   ctx.scale(1 / breathing, breathing);
   // Deform the two leg regions around a fixed hip seam, reusing the master identity.
@@ -74,7 +81,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
     }
   } else ctx.drawImage(sprite, -width / 2, -height, width, height);
   ctx.shadowBlur = 0;
-  if (!candidate && faction && entity.role !== 'HOLOGRAMME') {
+  if (!candidate && faction && !['HOLOGRAMME', 'ZEMMOUR', 'ENCAPUCHONNE'].includes(entity.role)) {
     ctx.fillStyle = faction.color; ctx.strokeStyle = '#263132'; ctx.lineWidth = 1.1;
     ctx.beginPath(); ctx.roundRect(-width * 0.36, -height * 0.53, width * 0.24, 6, 2); ctx.fill(); ctx.stroke();
     if (entity.role === 'MILITANT') {

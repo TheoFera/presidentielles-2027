@@ -1,0 +1,190 @@
+TAP version 13
+# file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/src/simulation/campaign-validation.js:28
+#  const b=config.balance.campaign_events;const fail=label=>{throw new Error(`Configuration de campagne invalide : ${label}.`);};const positive=n=>Number.isFinite(n)&&n>0;
+#                                                                  ^
+# Error: Configuration de campagne invalide : melenchon_universaliste / ultime.
+#     at fail (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/src/simulation/campaign-validation.js:28:66)
+#     at validateCampaignConfig (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/src/simulation/campaign-validation.js:34:184)
+#     at validateConfig (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/src/config.js:3:3)
+#     at file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/scripts/game-config.mjs:5:23
+# Node.js v22.14.0
+# Subtest: test\\browser-input.test.js
+not ok 1 - test\\browser-input.test.js
+  ---
+  duration_ms: 177.7986
+  location: 'C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\test\\browser-input.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: Neuf styles, trois par candidat, trois déblocages persistants par défaut
+ok 2 - Neuf styles, trois par candidat, trois déblocages persistants par défaut
+  ---
+  duration_ms: 2.0917
+  ...
+# Subtest: Premier QG : choix obligatoire, monde figé, styles verrouillés refusés
+ok 3 - Premier QG : choix obligatoire, monde figé, styles verrouillés refusés
+  ---
+  duration_ms: 18.2996
+  ...
+# Subtest: Changer remplace le bonus, vide la charge et conserve scores, bâtiments et PNJ
+ok 4 - Changer remplace le bonus, vide la charge et conserve scores, bâtiments et PNJ
+  ---
+  duration_ms: 11.8111
+  ...
+# Subtest: Maintien au QG : trois secondes, annulation et interruptions
+ok 5 - Maintien au QG : trois secondes, annulation et interruptions
+  ---
+  duration_ms: 76.559
+  ...
+# Subtest: Un événement garde ses multiplicateurs après changement de style
+ok 6 - Un événement garde ses multiplicateurs après changement de style
+  ---
+  duration_ms: 10.9442
+  ...
+# Subtest: Coup dans le vide : zéro charge ; contact normal : charge configurée
+ok 7 - Coup dans le vide : zéro charge ; contact normal : charge configurée
+  ---
+  duration_ms: 21.207
+  ...
+# Subtest: Hologrammes : activation selon le mode du style
+ok 8 - Hologrammes : activation selon le mode du style
+  ---
+  duration_ms: 10.5627
+  ...
+# Subtest: Hologrammes : sauvegarde pendant l’ultime
+ok 9 - Hologrammes : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 34.1092
+  ...
+# Subtest: Déferlante encapuchonnée : activation selon le mode du style
+ok 10 - Déferlante encapuchonnée : activation selon le mode du style
+  ---
+  duration_ms: 9.9557
+  ...
+# Subtest: Déferlante encapuchonnée : sauvegarde pendant l’ultime
+ok 11 - Déferlante encapuchonnée : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 26.9138
+  ...
+# Subtest: Gilet jaune : activation selon le mode du style
+ok 12 - Gilet jaune : activation selon le mode du style
+  ---
+  duration_ms: 9.8492
+  ...
+# Subtest: Gilet jaune : sauvegarde pendant l’ultime
+ok 13 - Gilet jaune : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 23.2745
+  ...
+# Subtest: Vague bleu marine : activation selon le mode du style
+ok 14 - Vague bleu marine : activation selon le mode du style
+  ---
+  duration_ms: 9.7898
+  ...
+# Subtest: Vague bleu marine : sauvegarde pendant l’ultime
+ok 15 - Vague bleu marine : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 22.5962
+  ...
+# Subtest: Invocation Zemmour : activation selon le mode du style
+ok 16 - Invocation Zemmour : activation selon le mode du style
+  ---
+  duration_ms: 8.0507
+  ...
+# Subtest: Invocation Zemmour : sauvegarde pendant l’ultime
+ok 17 - Invocation Zemmour : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 25.3864
+  ...
+# Subtest: Bardellisation : activation selon le mode du style
+ok 18 - Bardellisation : activation selon le mode du style
+  ---
+  duration_ms: 13.4691
+  ...
+# Subtest: Bardellisation : sauvegarde pendant l’ultime
+ok 19 - Bardellisation : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 21.8233
+  ...
+# Subtest: Protection CRS : activation selon le mode du style
+ok 20 - Protection CRS : activation selon le mode du style
+  ---
+  duration_ms: 8.5672
+  ...
+# Subtest: Protection CRS : sauvegarde pendant l’ultime
+ok 21 - Protection CRS : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 20.8415
+  ...
+# Subtest: Écharpe du maire : activation selon le mode du style
+ok 22 - Écharpe du maire : activation selon le mode du style
+  ---
+  duration_ms: 8.0588
+  ...
+# Subtest: Écharpe du maire : sauvegarde pendant l’ultime
+ok 23 - Écharpe du maire : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 19.5188
+  ...
+# Subtest: Super Européiste : activation selon le mode du style
+ok 24 - Super Européiste : activation selon le mode du style
+  ---
+  duration_ms: 6.9624
+  ...
+# Subtest: Super Européiste : sauvegarde pendant l’ultime
+ok 25 - Super Européiste : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 19.1199
+  ...
+# Subtest: Vague : dommages d’ultime sans recharge
+ok 26 - Vague : dommages d’ultime sans recharge
+  ---
+  duration_ms: 7.358
+  ...
+# Subtest: Déferlante : sept silhouettes, apparition puis disparition complète
+ok 27 - Déferlante : sept silhouettes, apparition puis disparition complète
+  ---
+  duration_ms: 11.5883
+  ...
+# Subtest: Écharpe : allonge, plusieurs cibles et retour au mouvement normal
+ok 28 - Écharpe : allonge, plusieurs cibles et retour au mouvement normal
+  ---
+  duration_ms: 8.3235
+  ...
+# Subtest: Feu : zone temporaire, brûlure rafraîchie et nettoyage au changement
+ok 29 - Feu : zone temporaire, brûlure rafraîchie et nettoyage au changement
+  ---
+  duration_ms: 8.496
+  ...
+# Subtest: Zemmour : un PNJ intercepte la bulle et deux coups suffisent
+ok 30 - Zemmour : un PNJ intercepte la bulle et deux coups suffisent
+  ---
+  duration_ms: 6.8582
+  ...
+# Subtest: Bardellisation : une seule relève ; KO suivant et respawn sous forme Marine
+ok 31 - Bardellisation : une seule relève ; KO suivant et respawn sous forme Marine
+  ---
+  duration_ms: 6.831
+  ...
+# Subtest: Super Européiste : riposte en mêlée, aucun renvoi à distance, nettoyage au KO
+ok 32 - Super Européiste : riposte en mêlée, aucun renvoi à distance, nettoyage au KO
+  ---
+  duration_ms: 6.8327
+  ...
+# Subtest: Le maintien et les styles se sauvegardent ; une sauvegarde invalide est atomiquement rejetée
+ok 33 - Le maintien et les styles se sauvegardent ; une sauvegarde invalide est atomiquement rejetée
+  ---
+  duration_ms: 34.4076
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 32
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 796.6993

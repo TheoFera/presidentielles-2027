@@ -1,3 +1,5 @@
+import { clearCampaignUltimate } from './campaign-styles.js';
+import { tryBardellisation } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
@@ -8,8 +10,8 @@ export const combatState = () => ({ attack_id: null, stun_ticks: 0, hitstop_tick
 export const combatActors = state => [...state.candidates.filter(c => !c.eliminated && !c.campaign_arena_id), ...state.npcs, ...state.temporary_units];
 export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_arena_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && a.faction_id !== b.faction_id;
-export const interrupted = actor => actor.combat && (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
-export const canCampaign = actor => !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
+export const interrupted = actor => actor.combat && (actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
+export const canCampaign = actor => !actor.style_hold && !actor.style_interaction_held && !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
   return state.electorate.filter(e => leadership(e.support, config).controller === faction);
@@ -45,6 +47,9 @@ export function demobilizeUnit(sim, npc) {
 export function hit(sim, source, target, spec, attackId) {
   if (!enemies(source, target) || sim.state.arena_bounds && sim.state.eliminated_faction) return null;
   const { state, config } = sim;
+  if (target.dash_active && state.tick <= target.dash_invulnerable_until_tick) { sim.emit('DashEvadedHit', { candidate_id: target.id, attack_id: attackId }); return null; }
+  const retaliate = target.role === 'CANDIDAT' && target.ultimate_effect?.kind === 'EUROPE' && target.ultimate_effect.expires_tick > state.tick && !spec.ranged && !spec.retaliation;
+  let revived = false;
   const direction = spec.direction || Math.sign(combatDelta(state, source.x, target.x)) || source.facing;
   const result = { id: `hit:${state.next_hit_id++}`, tick: state.tick, attack_id: attackId,
     source_id: source.id, target_id: target.id, damage: 0, electoral_damage: 0, knockback: spec.knockback, direction, x: target.x, strong: !!spec.strong };
@@ -56,7 +61,7 @@ export function hit(sim, source, target, spec, attackId) {
     result.score_damage = result.damage; result.arena_hp_before = target.arena_hp;
     target.arena_hp = Math.max(0, target.arena_hp - dealt); result.arena_hp_after = target.arena_hp;
     target.hits_received++; state.candidate_hit_count++;
-    if (target.arena_hp === 0) state.eliminated_faction = target.faction_id;
+    if (target.arena_hp === 0) { revived = tryBardellisation(sim, target); if (!revived) { clearCampaignUltimate(sim,target,true); state.eliminated_faction = target.faction_id; } }
   } else if (target.role === 'CANDIDAT') {
     const before = controlledZones(state, config, target.faction_id).map(e => ({ subzone_id: e.subzone_id, support: { ...e.support }, controller: leadership(e.support, config).controller }));
     result.electoral_damage = electoralDamage(sim, target.faction_id, spec.electoral_damage || 0);
@@ -66,7 +71,9 @@ export function hit(sim, source, target, spec, attackId) {
     target.hits_received++;
     result.damage = Math.min(target.resistance, spec.damage || 0);
     target.resistance = Math.max(0, target.resistance - result.damage); target.last_damage_tick = state.tick;
-    if (target.resistance === 0 && !target.is_ko) {
+    if (target.resistance === 0 && !target.is_ko) revived = tryBardellisation(sim, target);
+    if (target.resistance === 0 && !target.is_ko && !revived) {
+      clearCampaignUltimate(sim, target, true);
       const koLoss = electoralDamage(sim, target.faction_id, config.balance.candidate_combat.ko_electoral_damage_percent_points);
       result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
       target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
@@ -80,14 +87,15 @@ export function hit(sim, source, target, spec, attackId) {
     target.hidden_durability = Math.max(0, target.hidden_durability - result.damage);
   }
   target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
-  target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(config.balance.candidate_combat.hit_stun_seconds));
-  const stop = sim.secondsToTicks(spec.strong ? config.balance.candidate_combat.finisher_hitstop_seconds : config.balance.candidate_combat.light_hitstop_seconds);
+  target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(spec.stun_seconds ?? config.balance.candidate_combat.hit_stun_seconds));
+  const stop = spec.no_hitstop ? 0 : sim.secondsToTicks(spec.strong ? config.balance.candidate_combat.finisher_hitstop_seconds : config.balance.candidate_combat.light_hitstop_seconds);
   target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
   source.combat.last_hit = result; target.combat.last_hit = result;
   source.combat.target_id = target.id;
-  target.combat.attack_id = null;
-  if (target.role === 'CANDIDAT') target.purchase_hold = null;
+  if (spec.kind !== 'BURN') target.combat.attack_id = null;
+  if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
+  if (revived) { target.combat = combatState(); target.axis = 0; }
   if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0) {
     if (target.temporary) { target.expired = true; target.combat.attack_id = null; }
     else demobilizeUnit(sim, target);
@@ -96,6 +104,10 @@ export function hit(sim, source, target, spec, attackId) {
   if (state.arena_bounds) state.hit_count++;
   if (state.hit_results.length > config.balance.debug.combat_history_limit) state.hit_results.shift();
   sim.emit('HitResolved', result);
+  if (retaliate && !target.is_ko && canBeHit(source)) {
+    const s = config.balance.specials.europe;
+    hit(sim, target, source, { kind: 'RETALIATION', retaliation: true, ultimate: true, ranged: true, damage: s.retaliation_damage, knockback: s.knockback, stun_seconds: s.stun_seconds }, `riposte:${result.id}`);
+  }
   return result;
 }
 

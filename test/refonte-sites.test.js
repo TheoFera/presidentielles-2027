@@ -60,6 +60,7 @@ test('Capture et améliorations continues : coût, présence et arrêt au niveau
   const local = sim.state.buildings.find(s => s.type === 'permanence'); actor.x = local.x;
   for (let i = 0; i < 4; i++) unit(sim, 'SYMPATHISANT', actor.faction_id, local.x + i * 0.05);
   advance(sim, sim.secondsToTicks(2)); assert.equal(local.level, 1); assert.equal(local.headquarters, true);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(local.level, 2);
   advance(sim, sim.secondsToTicks(3)); assert.equal(local.level, 2); assert.equal(buildingOffers(sim.state, sim.config, actor, local)[0].reason, 'INSUFFICIENT_PRESENCE');
   for (let i = 0; i < 2; i++) unit(sim, 'MILITANT', actor.faction_id, local.x - i * 0.05);
@@ -115,7 +116,9 @@ test('Institut et Salle neutres : paiement à l’usage, snapshot figé et Meeti
   actor.purchase_latch_target_id = null; const hall = sim.state.buildings.find(s => s.type === 'meeting'); actor.x = hall.x;
   unit(sim, 'SYMPATHISANT', actor.faction_id, hall.x); const before = sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon;
   advance(sim, sim.secondsToTicks(2)); assert.equal(hall.owner_id, null); assert.equal(hall.meeting_faction_id, actor.faction_id); assert.equal(hall.meeting_level, 1);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(hall.meeting_level, 2);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(hall.meeting_level, 3); assert.equal(actor.spending.MEETING, 300);
   assert.ok(sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon > before);
 });
@@ -132,6 +135,7 @@ test('Imprimerie neutre : tracts à 2 k€ achetés à la chaîne sans quitter l
 test('Résistance cachée : récupération, KO, perte électorale et respawn au QG', () => {
   const sim = new GameSimulation(config); const target = candidate(sim); const attacker = candidate(sim, 'le_pen');
   const hq = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, hq, target);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: target.id, styleId: 'melenchon_universaliste' });
   target.x = hq.x + 10; attacker.x = target.x; const election = sim.state.electorate.find(e => e.subzone_id === zoneAt(sim.state.world, target.x).id);
   election.support = { melenchon: 60, le_pen: 15, philippe: 10, neutral: 15 };
   hit(sim, attacker, target, { damage: 30, electoral_damage: 0.03, knockback: 0 }, 'test:1'); assert.equal(target.resistance, 70);
@@ -141,7 +145,7 @@ test('Résistance cachée : récupération, KO, perte électorale et respawn au 
   advance(sim, sim.secondsToTicks(3)); assert.equal(target.is_ko, false); assert.equal(target.resistance, 100); assert.equal(target.x, hq.x);
 });
 
-test('Snapshot v7 : topologie aléatoire et collecte en cours reprennent à l’identique', () => {
+test('Snapshot v8 : topologie aléatoire et collecte en cours reprennent à l’identique', () => {
   const sim = new GameSimulation(config, 73); advance(sim, 50);
   const actor = candidate(sim); const funding = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, funding, actor); startFundingCampaign(sim, funding); advance(sim, 25);
   const restored = new GameSimulation(config, 73); restored.importSnapshot(sim.exportSnapshot());

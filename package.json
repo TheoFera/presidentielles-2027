@@ -3,16 +3,18 @@
   "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Cinquième jalon — partie complète, arène médiatique et second tour",
+  "description": "CinquiÃ¨me jalon â€” partie complÃ¨te, arÃ¨ne mÃ©diatique et second tour",
   "scripts": {
     "build": "node scripts/build-pages.mjs",
     "start": "node scripts/serve.mjs",
-    "test": "node --test test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js test/campaign-events.test.js test/visual-assets.test.js",
+    "test": "node --test test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js test/campaign-events.test.js test/campaign-styles.test.js test/campaign-sprites.test.js test/visual-assets.test.js test/mobile-combat.test.js",
     "test:parcours": "node scripts/validate-milestone2.mjs",
     "test:conflits": "node scripts/validate-milestone3.mjs",
     "test:conquete": "node scripts/validate-milestone4.mjs",
     "test:partie": "node scripts/validate-milestone5.mjs",
-    "test:campagne": "node scripts/validate-campaign.mjs"
+    "test:campagne": "node scripts/validate-campaign.mjs",
+    "test:styles": "node --test test/campaign-styles.test.js",
+    "test:combat-mobile": "node --test test/mobile-combat.test.js test/browser-input.test.js test/campaign-styles.test.js"
   },
   "engines": {
     "node": ">=24"

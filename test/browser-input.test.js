@@ -1,36 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BrowserInput } from '../src/presentation/input.js';
-import { CampaignDisplay } from '../src/presentation/campaign.js';
+import { CampaignStylesDisplay } from '../src/presentation/campaign-styles.js';
+import { normalizeCampaignProfile } from '../src/simulation/campaign-styles.js';
 import { config } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { captureSite } from '../src/simulation/strategic-sites.js';
 
-test('Le panneau affiche les trois orientations près du QG pour chaque candidat', t => {
-  class Node {
-    children = []; style = {}; classes = new Set();
+test('Neuf cartes, trois par candidat : choix obligatoire et deux cadenas', t => {
+  class Node extends EventTarget {
+    children = []; dataset = {}; style = { setProperty() {} }; classes = new Set(); open = false;
     classList = { toggle: (name, enabled) => enabled ? this.classes.add(name) : this.classes.delete(name) };
     append(...nodes) { this.children.push(...nodes); }
     replaceChildren(...nodes) { this.children = nodes; }
     setAttribute() {}
+    getContext() { return {}; }
+    showModal() { this.open = true; }
+    close() { this.open = false; }
+    focus() {}
+    querySelector() { return this.children.find(n => !n.disabled); }
   }
-  const previous = globalThis.document;
-  globalThis.document = { createElement: () => new Node(), body: new Node(), getElementById: () => null };
-  t.after(() => { if (previous === undefined) delete globalThis.document; else globalThis.document = previous; });
+  const previous = { document: globalThis.document, window: globalThis.window, Image: globalThis.Image };
+  const doc = new Node(); doc.createElement = () => new Node(); doc.body = new Node(); doc.getElementById = () => null;
+  globalThis.document = doc; globalThis.window = new Node(); globalThis.Image = class {};
+  t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; } });
+  const ids = new Set();
   for (const faction of ['melenchon', 'le_pen', 'philippe']) {
-    const sim = new GameSimulation(config, 42, `candidate:${faction}`);
-    const candidate = sim.state.candidates.find(c => c.faction_id === faction);
-    const hq = sim.state.buildings.find(b => b.type === 'permanence');
-    captureSite(sim, hq, candidate); candidate.x = hq.x;
-    candidate.orientation_hold = { index: 1, start_tick: sim.state.tick };
-    const display = new CampaignDisplay(config);
-    display.updateOrientation(sim.state);
-    const choices = display.orientationRoot.children[3].children;
-    assert.equal(choices.length, 3);
-    assert.ok(choices.every(choice => typeof choice.children[0].textContent === 'string'));
-    assert.equal(choices[1].classes.has('active'), true);
-    assert.equal(choices[0].classes.has('active'), false);
+    const sim = new GameSimulation(config, 42, `candidate:${faction}`), c = sim.state.candidates.find(c => c.faction_id === faction);
+    const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c); c.x = hq.x;
+    const display = new CampaignStylesDisplay(config, normalizeCampaignProfile(), command => sim.applyCommand(command), () => {});
+    display.update(sim.state);
+    assert.equal(display.dialog.open, true);
+    assert.equal(display.dialog.children.length, 3, 'Aucun bouton Annuler au premier choix');
+    const choices = display.dialog.children[2].children;
+    assert.equal(choices.length, 3); assert.equal(choices.filter(c => c.disabled).length, 2);
+    for (const choice of choices) { assert.ok(choice.children[2].textContent); assert.ok(choice.children[5].textContent); ids.add(faction + ':' + choice.children[2].textContent); }
+    choices[0].dispatchEvent(new Event('click')); display.update(sim.state); assert.equal(display.dialog.open, false);
+    assert.ok(c.current_campaign_style);
   }
+  assert.equal(ids.size, 9);
 });
 
 class Element extends EventTarget {
@@ -111,4 +119,22 @@ test('Le clavier et le déplacement tactile sur le monde restent disponibles', t
   assert.equal(human.axis, -1);
   canvas.send('pointercancel');
   assert.equal(human.axis, 0);
+});
+
+test('Double appui directionnel : relâchement obligatoire, maintien et répétitions ignorés', t => {
+  const { get, actions, win } = setup(t);
+  get('move-left').send('pointerdown'); get('move-left').send('pointerdown');
+  assert.deepEqual(actions, []);
+  get('move-left').send('pointerup'); get('move-left').send('lostpointercapture'); get('move-left').send('pointerdown');
+  assert.deepEqual(actions, ['dash-left']);
+  get('move-left').send('pointerdown'); assert.equal(actions.length, 1);
+  win.send('blur');
+  win.send('keydown', { key:'d', repeat:false }); win.send('keydown', { key:'d', repeat:true }); assert.equal(actions.length,1);
+  win.send('keyup',{key:'d'}); win.send('keydown',{key:'d',repeat:false}); assert.deepEqual(actions,['dash-left','dash-right']);
+});
+test('Deux directions différentes ou annulation tactile ne déclenchent pas de dash', t => {
+  const { get, actions } = setup(t);
+  get('move-left').send('pointerdown'); get('move-left').send('pointerup');
+  get('move-right').send('pointerdown'); get('move-right').send('pointercancel'); get('move-right').send('pointerdown');
+  assert.deepEqual(actions, []);
 });

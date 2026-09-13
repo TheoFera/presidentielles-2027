@@ -138,7 +138,7 @@ export function updateEconomy(simulation) {
     const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
     const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : config.balance.interaction.radius_units;
     if (chained && distance(state, candidate.x, chained.x) > chainRadius) candidate.interaction_chain_site_id = null;
-    if (!candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
+    if (state.campaign_style_selection || candidate.style_interaction_held || candidate.style_hold || !candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
     for (const building of state.buildings) if (building.id === offer?.target_id) {
       building.next_level_available = !!offer.enabled;

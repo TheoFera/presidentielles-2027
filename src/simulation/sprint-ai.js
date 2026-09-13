@@ -14,7 +14,7 @@ export function sprintAICommands(state, config, c) {
   if (rival) {
     const close = Math.abs(delta(rival.x)) <= config.balance.candidate_combat.light_range;
     const result = commands(close ? 0 : Math.sign(delta(rival.x)));
-    if (close && !c.combat.attack_id && !c.combat.stun_ticks) result.push(attack(c.id, Math.sign(delta(rival.x)) || c.facing));
+    if (close && !c.combat.attack_id && !c.combat.stun_ticks) { if (c.special_charge >= config.balance.special_charge.required_points && !c.ultimate_effect && !c.bardella_guardian_armed) result.push({ type: 'ActivateUltimate', candidateId: c.id }); else result.push(attack(c.id, Math.sign(delta(rival.x)) || c.facing)); };
     return result;
   }
   const talking = state.npcs.find(n => n.role === 'NEUTRE' && n.persuasion?.actor_id === c.id);

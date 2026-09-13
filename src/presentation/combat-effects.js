@@ -1,7 +1,14 @@
+import { drawStyleEffects } from './style-effects.js';
 export function drawCombatEffects(renderer, state, debug) {
   const { ctx, metrics: m, config } = renderer;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   ctx.save();
+  for (const c of state.candidates) {
+    if (!c.dash_active) continue;
+    const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * .45;
+    ctx.strokeStyle = state.tick <= c.dash_invulnerable_until_tick ? '#c5f8ff' : '#e9dfcc88'; ctx.lineWidth = 3;
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - c.dash_direction * 12, y + i * 10); ctx.lineTo(x - c.dash_direction * (40 + i * 9), y + i * 10); ctx.stroke(); }
+  }
   for (const p of state.projectiles) {
     const x = renderer.screenX(p.x);
     if (x < -100 || x > renderer.width + 100) continue;
@@ -30,12 +37,17 @@ export function drawCombatEffects(renderer, state, debug) {
         }
         ctx.stroke();
       }
+    } else if (p.kind === 'MOLOTOV') {
+      const y = m.groundY - m.characterHeight * .7;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(state.tick * .4);
+      ctx.fillStyle = '#f8c94b'; ctx.strokeStyle = '#843f34'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-6,-10,12,18,4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ff833c'; ctx.beginPath(); ctx.moveTo(-4,-12); ctx.lineTo(3,-26); ctx.lineTo(6,-12); ctx.fill(); ctx.restore();
     } else {
       ctx.fillStyle = '#f4f0df'; ctx.strokeStyle = renderer.p.factions[p.faction_id].color; ctx.lineWidth = 2;
       const y = m.groundY - m.characterHeight * 0.9;
-      ctx.beginPath(); ctx.roundRect(x - 15, y, 30, 20, 8); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(x - (p.kind === 'BUBBLE' ? 33 : 15), y, p.kind === 'BUBBLE' ? 66 : 30, 20, 8); ctx.fill(); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x - 5, y + 19); ctx.lineTo(x - 10, y + 26); ctx.lineTo(x + 1, y + 20); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = ctx.strokeStyle; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText('!?', x, m.groundY - m.characterHeight * 0.9 + 13);
+      ctx.fillStyle = ctx.strokeStyle; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'; ctx.fillText(p.label || '!?', x, m.groundY - m.characterHeight * 0.9 + 13);
     }
   }
   for (const hit of state.hit_results) {
@@ -67,4 +79,5 @@ export function drawCombatEffects(renderer, state, debug) {
     ctx.strokeRect(a.direction > 0 ? x : x - w, m.groundY - m.characterHeight, w, m.characterHeight);
   }
   ctx.restore();
+  drawStyleEffects(renderer, state);
 }

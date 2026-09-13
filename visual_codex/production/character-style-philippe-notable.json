@@ -1,0 +1,11 @@
+{
+  "asset_id": "character-style-philippe-notable",
+  "style_id": "philippe_notable",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-447a643e-e3c6-4903-9a98-71ff7afe6d5a.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Édouard Philippe NOTABLE LOCAL: identical bald crown, dark side hair, black glasses and salt-and-pepper beard. Dark navy suit, white shirt, elegant diagonal French mayor's sash blue-white-red across chest with small gold fringed end on hip. Normal idle sash, no attack motion. Black shoes. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+  "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-c40c5f7e-dd9c-44b7-9ee6-562c7d57a924.png",
+  "correction": "Suppression du fond par image_gen ; conservation du personnage entier."
+}

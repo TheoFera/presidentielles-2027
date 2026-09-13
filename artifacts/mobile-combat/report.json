@@ -1,0 +1,17 @@
+{
+  "flows": [
+    "melenchon_universaliste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "melenchon_communautariste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "melenchon_populiste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "le_pen_souverainiste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "le_pen_zemmouriste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "le_pen_gouvernement : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "philippe_gestionnaire : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "philippe_notable : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "philippe_europeiste : invisible à zéro, remplissage 60 %, prêt, activation tactile",
+    "Double appui tactile : dash réel, une charge consommée",
+    "Maintien clavier sans dash ; K recharge, R active",
+    "Décharge réelle du bouton après 10 secondes, disparition à 15 secondes"
+  ],
+  "errors": []
+}

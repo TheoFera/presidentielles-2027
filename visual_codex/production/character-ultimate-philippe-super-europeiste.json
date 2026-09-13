@@ -1,0 +1,8 @@
+{
+  "asset_id": "character-ultimate-philippe-super-europeiste",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-528bc615-a6d8-4c90-bb36-713e8c765205.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Détoure ce sprite Super Européiste et livre-le en PNG à fond réellement transparent. Garde exactement le personnage entier, son costume de super-héros bleu, ses étoiles jaunes, sa cape, ses bottes jaunes, ses cheveux blancs, ses lunettes et son visage. Supprime entièrement le fond gris, y compris entre les jambes et sous les bras. Aucun décor. Les pixels en dehors du personnage doivent être transparents."
+}

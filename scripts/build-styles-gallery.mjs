@@ -1,0 +1,11 @@
+import { writeFile, mkdir } from 'node:fs/promises';
+import { CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
+import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const names = { melenchon: 'Jean-Luc Mélenchon', le_pen: 'Marine Le Pen', philippe: 'Édouard Philippe' };
+const groups = Object.entries(CAMPAIGN_STYLES).map(([f, styles]) => `<section><h2>${names[f]}</h2><img class="screen" src="styles-browser/${f}-1440x900.png" alt="Les trois cartes de ${names[f]}"><div class="grid">${styles.map(s => `<article><h3>${s.name}</h3><p>${s.ultimate.name}</p><a href="styles-browser/ultime-${s.id}.png"><img class="screen" src="styles-browser/ultime-${s.id}.png" alt="${s.ultimate.name} en jeu"></a></article>`).join('')}</div></section>`).join('');
+const sprites = Object.entries(visualManifest).filter(([id]) => id.startsWith('character-ultimate-')).map(([id, v]) => `<figure><img src="../${path.relative(process.cwd(), fileURLToPath(v.file)).replaceAll('\\', '/')}" alt="${id}"><figcaption>${id.replace('character-ultimate-', '').replaceAll('-', ' ')}</figcaption></figure>`).join('');
+await mkdir('artifacts', {recursive:true});
+await writeFile('artifacts/styles-gallery.html', `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Les neuf styles de campagne</title><style>body{margin:0 auto;max-width:1200px;padding:32px;background:#101a2b;color:#f7f2e8;font:17px system-ui}h1{font-size:40px}h2{margin-top:48px;color:#ffdb83}.screen{width:100%;border-radius:12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}article,figure{background:#23324b;padding:16px;border-radius:12px}figure{margin:0}figure img{height:280px;max-width:100%;object-fit:contain}figcaption{font-size:14px}a{color:#ffdb83}@media(max-width:650px){.grid{grid-template-columns:1fr}}</style><h1>Les neuf styles de campagne</h1><p>Neuf sprites de candidats et neuf cartes. Les captures ci-dessous montrent aussi chaque ultime avec le moteur de rendu du jeu.</p><p>Un seul style actif ; les PNJ standards conservent leur apparence.</p>${groups}<h2>Sprites supplémentaires des ultimes</h2><div class="grid">${sprites}</div></html>`);
+console.log('Galerie : artifacts/styles-gallery.html');

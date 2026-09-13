@@ -115,8 +115,13 @@
     "required_points": 10,
     "points_per_light_hit": 1,
     "points_per_finisher_hit": 2,
-    "auto_trigger_on_next_attack": true,
-    "show_ready_as_star_eyes": true
+    "auto_trigger_on_next_attack": false,
+    "show_ready_as_star_eyes": true,
+    "points_per_second_hit": 1,
+    "decay_delay_seconds": 10,
+    "decay_duration_seconds": 5,
+    "enemy_summons_charge": true,
+    "ultimate_key": "r"
   },
   "specials": {
     "melenchon_holograms": {
@@ -130,7 +135,8 @@
       "attack_cooldown_seconds": 0.55,
       "electoral_damage": 0.025,
       "spawn_spacing": 0.6,
-      "hidden_durability": 15
+      "hidden_durability": 15,
+      "appearance_seconds": 0.5
     },
     "le_pen_navy_wave": {
       "range_screens": 0.9,
@@ -155,6 +161,50 @@
       "attack_cooldown_seconds": 0.7,
       "electoral_damage": 0.04,
       "interception_radius": 0.6
+    },
+    "surge": {
+      "count": 7,
+      "appearance_seconds": 0.25,
+      "duration_seconds": 4,
+      "speed": 9,
+      "range": 0.8,
+      "damage": 10.0,
+      "knockback": 2.5,
+      "stun_seconds": 1,
+      "contact_cooldown_seconds": 0.8
+    },
+    "fire": {
+      "duration_seconds": 5.5,
+      "projectile_speed": 18,
+      "radius": 3,
+      "burn_seconds": 2,
+      "damage_per_second": 7.5,
+      "tick_seconds": 0.5
+    },
+    "zemmour": {
+      "duration_seconds": 8,
+      "durability": 12.0,
+      "shots_per_second": 2,
+      "projectile_speed": 9,
+      "projectile_range": 35,
+      "damage": 10.0,
+      "knockback": 1,
+      "bubble_labels": [
+        "ARABES",
+        "ISLAM"
+      ]
+    },
+    "scarf": {
+      "duration_seconds": 4,
+      "range": 5.0,
+      "damage": 8,
+      "knockback": 5
+    },
+    "europe": {
+      "duration_seconds": 5,
+      "retaliation_damage": 8,
+      "knockback": 11,
+      "stun_seconds": 0.5
     }
   },
   "buildings": {
@@ -680,14 +730,6 @@
         9
       ]
     ],
-    "orientation_days": [
-      365,
-      270,
-      150,
-      60
-    ],
-    "orientation_hold_seconds": 3,
-    "orientation_bonus": 0.1,
     "ai_reaction_seconds": 3,
     "families": {
       "MEETING_DE_CRISE": {
@@ -843,5 +885,19 @@
         ]
       }
     }
+  },
+  "campaign_styles": {
+    "hold_seconds": 3,
+    "radius_units": 1.2,
+    "definitions": {}
+  },
+  "dash": {
+    "max_charges": 3,
+    "recharge_seconds": 4,
+    "duration_seconds": 0.24,
+    "distance": 3.6,
+    "invulnerability_seconds": 0.12,
+    "double_tap_window_ms": 300,
+    "allowed_in_arena": true
   }
 }

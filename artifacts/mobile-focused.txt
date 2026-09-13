@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: melenchon : 3 esquives, distance et recharge séquentielle exacte
+ok 1 - melenchon : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 19.617
+  ...
+# Subtest: melenchon : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+not ok 2 - melenchon : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 15.1323
+  location: 'C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\test\\mobile-combat.test.js:30:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    -4 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: -4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/mobile-combat.test.js:34:98)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: le_pen : 3 esquives, distance et recharge séquentielle exacte
+ok 3 - le_pen : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 17.9599
+  ...
+# Subtest: le_pen : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+ok 4 - le_pen : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 8.67
+  ...
+# Subtest: philippe : 3 esquives, distance et recharge séquentielle exacte
+ok 5 - philippe : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 9.5868
+  ...
+# Subtest: philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+ok 6 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 11.4316
+  ...
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+ok 7 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+  ---
+  duration_ms: 61.2474
+  ...
+# Subtest: Décharge linéaire : 100 ou 60 %, stable 10 s, zéro à 15 s ; nouveau hit interrompt
+ok 8 - Décharge linéaire : 100 ou 60 %, stable 10 s, zéro à 15 s ; nouveau hit interrompt
+  ---
+  duration_ms: 68.0563
+  ...
+# Subtest: Combo : 1, 2, finisher fort puis retour au premier coup
+ok 9 - Combo : 1, 2, finisher fort puis retour au premier coup
+  ---
+  duration_ms: 9.9051
+  ...
+# Subtest: Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; changement annule
+ok 10 - Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; changement annule
+  ---
+  duration_ms: 36.1923
+  ...
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
+ok 11 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 8.629
+  ...
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+ok 12 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 9.3447
+  ...
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+ok 13 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 8.5483
+  ...
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+ok 14 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 10.8753
+  ...
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+ok 15 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 11.4516
+  ...
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
+ok 16 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 10.8108
+  ...
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
+ok 17 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 7.8358
+  ...
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+ok 18 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 9.0895
+  ...
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
+ok 19 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 9.2388
+  ...
+# Subtest: Sauvegarde de dash et validation atomique des champs
+ok 20 - Sauvegarde de dash et validation atomique des champs
+  ---
+  duration_ms: 55.0812
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 19
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 635.6881

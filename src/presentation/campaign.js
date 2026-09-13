@@ -1,9 +1,9 @@
-import { seasonAt, orientationOptions, availableOrientations } from '../simulation/campaign-events.js';
+import { seasonAt } from '../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../simulation/world.js';
 import { eventIconData } from './illustrated-icons.js';
 const labels={MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',CRISE_FINANCEMENT:'Crise de financement',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 export class CampaignDisplay {
- constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);this.orientationRoot=document.createElement('section');this.orientationRoot.id='campaign-orientation';this.orientationRoot.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.orientationRoot);}
+ constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);}
  update(state){
  if(this.seed!==state.seed||state.tick<this.lastTick){this.root.replaceChildren();this.cards.clear();this.seen.clear();this.seed=state.seed;}const previousTick=this.lastTick;this.lastTick=state.tick;const now=performance.now();
  const hz=this.config.balance.simulation_architecture.fixed_tick_hz;
@@ -21,26 +21,6 @@ export class CampaignDisplay {
  const timer=document.createElement('small');timer.textContent=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au Meeting : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
  const contentKey=[heading.textContent,narrative.textContent,detail.textContent,timer.textContent].join('\n');if(card.dataset.contentKey!==contentKey){card.replaceChildren(heading,narrative,detail,timer);card.dataset.contentKey=contentKey;}card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
  }
- this.updateOrientation(state);
- }
- updateOrientation(state){
- const candidate=state.candidates.find(c=>c.id===state.local_candidate_id),available=candidate?availableOrientations(state,this.config,candidate):0;
- if(state.phase!=='CAMPAIGN'||!candidate||candidate.eliminated||available<=0){this.orientationRoot.hidden=true;this.orientationRoot.replaceChildren();return;}
- this.orientationRoot.hidden=false;
- const hq=state.buildings.find(b=>b.id===candidate.headquarters_site_id&&b.headquarters&&b.owner_id===candidate.faction_id);
- const near=!!hq&&Math.abs(ringDelta(candidate.x,hq.x,state.world.length))<=12;
- const title=document.createElement('strong');title.textContent='Choisissez votre type de campagne';
- const count=document.createElement('span');count.className='orientation-count';count.textContent=`${available} décision${available>1?'s':''} disponible${available>1?'s':''}`;
- const instruction=document.createElement('p');instruction.textContent=!hq?'Capturez un Local pour établir votre QG et faire ce choix.':!near?'Retournez à votre QG pour choisir votre orientation.':`Placez-vous sur un repère devant le QG et restez immobile ${this.config.balance.campaign_events.orientation_hold_seconds.toLocaleString('fr-FR')} secondes.`;
- const options=document.createElement('div');options.className='orientation-options';
- if(hq&&near)for(const [index,entry]of orientationOptions[candidate.faction_id].entries()){
- const [name,biomeId]=entry,biome=this.config.layout.biomes.find(b=>b.id===biomeId),option=document.createElement('div');option.className='orientation-option';option.classList.toggle('active',candidate.orientation_hold?.index===index);
- const heading=document.createElement('strong');heading.textContent=name;const target=document.createElement('span');target.textContent=biome.display_name;
- const previous=candidate.orientation_choices.filter(choice=>choice.biome===biomeId).length,effect=document.createElement('small');effect.textContent=`+${Math.round(this.config.balance.campaign_events.orientation_bonus*100)} % aux gains électoraux des événements${previous?` · déjà choisie ${previous} fois`:''}`;
- const progress=document.createElement('i');if(candidate.orientation_hold?.index===index)progress.style.width=`${Math.min(100,(state.tick-candidate.orientation_hold.start_tick)/(this.config.balance.campaign_events.orientation_hold_seconds*this.config.balance.simulation_architecture.fixed_tick_hz)*100)}%`;
- option.append(heading,target,effect,progress);options.append(option);
- }
- this.orientationRoot.replaceChildren(title,count,instruction,options);
  }
 }
 export function drawCampaignScenery(renderer,state){
@@ -65,10 +45,7 @@ export function drawCampaignMarkers(renderer,state){
  }
  for(const c of state.candidates){
  if(state.campaign_events.some(e=>e.status==='ACTIVE'&&e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id))){ctx.fillStyle='#ffdb76';ctx.fillText('⚠ Prime au KO',renderer.screenX(c.x),m.groundY-m.characterHeight-35);}
- if(availableOrientations(state,renderer.config,c)<=0)continue;
- const hq=state.buildings.find(b=>b.id===c.headquarters_site_id);if(!hq)continue;
- orientationOptions[c.faction_id].forEach(([name,biome],i)=>{const x=renderer.screenX(wrap(hq.x+(i-1)*3,state.world.length));ctx.fillStyle=c.id===state.local_candidate_id?'#9cffc2':'#c3d2d9';ctx.fillRect(x-10,m.groundY-9,20,9);if(c.id===state.local_candidate_id){ctx.save();ctx.translate(x,m.groundY-30-(i%2)*18);ctx.font='11px sans-serif';ctx.fillText(name,0,0);ctx.restore();}});
- ctx.fillStyle='#a4ffcb';ctx.fillText('Orientation disponible · rester 3 s sur un repère',renderer.screenX(hq.x),m.groundY-168);
+
  }ctx.restore();
 }
 export function installCampaignDebug(panel){
@@ -80,4 +57,4 @@ export function installCampaignDebug(panel){
  for(const days of [30,100])button(`+${days} jours`,()=>panel.callbacks.queue({type:'DebugAdvanceCampaign',days}));for(const remaining of [30,5])button(`Aller à J-${remaining}`,()=>panel.callbacks.queue({type:'DebugAdvanceCampaign',remaining}));
  panel.campaignReport=document.createElement('pre');box.append(panel.campaignReport);panel.element.insertBefore(box, panel.text);
 }
-export function campaignDebugReport(state){const d=state.campaign_director;return `J-${state.campaign_day_remaining} · ${seasonAt(state.campaign_progress_01).name}\nProchain événement : jour ${d.next_event_day.toFixed(1)}\nActifs : ${d.active_event_ids.join(', ')}\nPoids familles : ${JSON.stringify(d.family_weights)}\nPoids cibles : ${JSON.stringify(d.target_weights)}\nClassement : ${(d.ranking||[]).join(' > ')}\nOrientations : ${state.candidates.map(c=>c.faction_id+' '+JSON.stringify(c.campaign_orientation_bonuses)).join('\n')}\nHistorique : ${d.event_history.slice(-8).map(e=>e.family+' · '+e.candidate+' · jour '+e.day).join('\n')}`;}
+export function campaignDebugReport(state){const d=state.campaign_director;return `J-${state.campaign_day_remaining} · ${seasonAt(state.campaign_progress_01).name}\nProchain événement : jour ${d.next_event_day.toFixed(1)}\nActifs : ${d.active_event_ids.join(', ')}\nPoids familles : ${JSON.stringify(d.family_weights)}\nPoids cibles : ${JSON.stringify(d.target_weights)}\nClassement : ${(d.ranking||[]).join(' > ')}\nStyles : ${state.candidates.map(c=>c.faction_id+' '+c.current_campaign_style).join('\n')}\nHistorique : ${d.event_history.slice(-8).map(e=>e.family+' · '+e.candidate+' · jour '+e.day).join('\n')}`;}

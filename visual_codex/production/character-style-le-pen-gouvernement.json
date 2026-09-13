@@ -1,0 +1,11 @@
+{
+  "asset_id": "character-style-le-pen-gouvernement",
+  "style_id": "le_pen_gouvernement",
+  "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-b9a3e9ff-f7fd-4dd1-a6ca-7a2abf798842.png",
+  "transparent": true,
+  "max_height": 512,
+  "generation_method": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: final production full-body transparent PNG sprite for the same French satirical 2D arcade game. Input image is the EXACT likeness, drawing style, proportions and pose reference. Subject: Marine Le Pen LIBÉRALE / PARTI DE GOUVERNEMENT: identical blonde hairstyle and face. Light ice-blue elegant trouser suit, white blouse, neat pearl necklace, navy low heels. Bright government-formal costume, distinct from navy and charcoal outfits. Preserve the recognizable person's facial identity. Single character, three-quarter profile facing RIGHT, neutral standing idle pose with arms down and both shoes fully visible. Same oversized caricature head and small body proportions as reference. Hand-inked clean dark outlines, textured warm cel shading, polished editorial cartoon. Genuinely transparent alpha background with absolutely no backdrop, no floor, no drop shadow, no glow, no checkerboard. Centered full body with modest transparent margin, character fills 90% height. No text, labels, captions, UI, watermark, border or additional characters. This is a distinct new costume raster asset, not a mockup.",
+  "previous_source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0903f-173b-7590-aadf-92a5867aa131\\exec-6d233ef0-f462-4130-898a-a6562dd7ceff.png",
+  "correction": "Suppression du fond par image_gen ; conservation du personnage entier."
+}
