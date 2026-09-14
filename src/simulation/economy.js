@@ -192,51 +192,54 @@ export function updateProduction(simulation) {
   }
 }
 
-/** AI uses the same quotes as the simulation, and only emits movement/presence intentions. */
+/** Compatibilité des outils : le développement initial vise un QG réellement capturable. */
 export function aiDevelopmentZone(state, config, candidate) {
-  let missing = config.balance.ai_economy.development_order.find(type => !state.buildings.some(b => b.type === type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE'));
-  let desiredKind = 'BUILD';
-  if (!missing && state.buildings.some(b => b.type === 'meeting' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && !b.meetings_held)) { missing = 'meeting'; desiredKind = 'MEETING'; }
-  if (!missing && state.buildings.some(b => b.type === 'tour_communication' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && b.level < config.balance.buildings.tour_communication.max_level)) { missing = 'tour_communication'; desiredKind = 'UPGRADE'; }
-  if (!missing) return null;
-  const home = config.layout.starting_positions[candidate.faction_id];
-  const sites = state.buildings.filter(b => b.type === missing && (!b.owner_id || b.owner_id === candidate.faction_id)
-    && (desiredKind === 'BUILD' || (b.state === 'ACTIVE' && b.owner_id === candidate.faction_id)));
-  const homeSite = sites.find(b => b.subzone_id === home);
-  const site = homeSite || sites.sort((a, b) => localSympathisants(state, b.subzone_id, candidate.faction_id).length - localSympathisants(state, a.subzone_id, candidate.faction_id).length
-    || distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0];
-  return site ? { zone: state.world.subzones.find(z => z.id === site.subzone_id), next_type: missing, desired_kind: desiredKind } : null;
+  if (candidate.headquarters_site_id) return null;
+  const site = state.buildings.filter(b => b.type === 'permanence' && !b.owner_id)
+    .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x) || stableIdOrder(a, b))[0];
+  return site ? { zone: state.world.subzones.find(z => z.id === site.subzone_id), next_type: 'permanence', desired_kind: 'CAPTURE' } : null;
 }
 
-export function aiEconomicTarget(state, config, candidate) {
+/** Même devis, présence et budget que le joueur ; aucun achat à distance. */
+export function aiEconomicTarget(state, config, candidate, objective = null) {
   const settings = config.balance.ai_economy;
   if (!settings.enabled) return null;
-  const biome = zoneAt(state.world, candidate.x).biome_id;
-  const development = aiDevelopmentZone(state, config, candidate);
+  const zone = zoneAt(state.world, candidate.x);
   const options = [];
-  for (const building of state.buildings.filter(b => b.biome_id === biome && b.id !== candidate.purchase_latch_target_id)) {
+  for (const building of state.buildings) {
+    if (building.id === candidate.purchase_latch_target_id) continue;
+    const local = building.subzone_id === (objective?.subzone_id ?? zone.id);
+    // Les investissements hors objectif restent de courts détours sur le trajet.
+    if (!local && (objective?.purpose === 'SETUP' || distance(state, candidate.x, building.x) > 4)) continue;
     for (const offer of buildingOffers(state, config, candidate, building)) {
-    if (!offer?.enabled || candidate.money - offer.cost < settings.minimum_cash_reserve) continue;
-    // Establish a local economic base before dispersing the scarce workers.
-    if (development && !['PRINT', 'MEETING', 'POLL'].includes(offer.kind)
-      && !(building.type === development.next_type && (offer.kind === development.desired_kind || (offer.kind === 'REBUILD' && development.desired_kind === 'BUILD')))
-      && !(development.desired_kind === 'UPGRADE' && building.type === 'financement' && offer.kind === 'UPGRADE')) continue;
-    if (offer.kind === 'MEETING' && building.meetings_held && state.buildings.some(b => b.owner_id === candidate.faction_id
-      && b.type === 'tour_communication' && b.state === 'ACTIVE' && b.level < config.balance.buildings.tour_communication.max_level)) continue;
-    if (offer.kind === 'PRINT') {
-      if (development && candidate.spending.PRINT >= settings.development_tract_limit * config.balance.buildings.imprimerie.tract_cost_by_level[0]) continue;
-      const sympathisants = biomeSympathisants(state, biome, candidate.faction_id, true);
-      const militants = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === biome).length;
-      const queued = building.queue.filter(o => o.faction_id === candidate.faction_id).length;
-      if (sympathisants.length <= settings.reserve_sympathisants_per_biome || militants + queued >= settings.militant_goal_per_biome) continue;
-      if (development && localSympathisants(state, development.zone.id, candidate.faction_id).length - queued <= settings.development_sympathisant_reserve) continue;
-    }
-    const alreadyOwned = state.buildings.some(b => b.type === building.type && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
-    const priority = ['BUILD', 'REBUILD'].includes(offer.kind) ? (settings.electoral_building_priorities[building.type] ?? 5) + (alreadyOwned ? 10 : 0)
-      : offer.kind === 'MEETING' ? (building.meetings_held ? settings.repeat_meeting_priority : settings.first_meeting_priority)
-      : building.type === 'tour_communication' ? settings.tower_upgrade_priority : offer.kind === 'PRINT' ? settings.print_priority : 9;
-    options.push({ building: { ...building, x: offer.x ?? building.x, interaction_radius: offer.radius }, priority });
+      const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
+      if (!offer.enabled || candidate.money - offer.cost < (firstHQ ? 0 : settings.minimum_cash_reserve)) continue;
+      if (offer.kind === 'POLL') continue;
+      if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
+      if (offer.kind === 'PRINT') {
+        const supporters = biomeSympathisants(state, building.biome_id, candidate.faction_id, true);
+        const queued = state.buildings.filter(b => b.biome_id === building.biome_id && b.type === 'imprimerie')
+          .flatMap(b => b.queue).filter(o => o.faction_id === candidate.faction_id).length;
+        const militants = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === building.biome_id).length;
+        if (supporters.length - queued <= settings.reserve_sympathisants_per_biome || militants + queued >= settings.militant_goal_per_biome) continue;
+        // Préserver les soutiens indispensables au maintien des sites déjà capturés.
+        if (supporters.some(n => state.buildings.some(b => b.subzone_id === zoneAt(state.world, n.x).id && b.owner_id === candidate.faction_id
+          && b.state === 'ACTIVE' && localSympathisants(state, b.subzone_id, candidate.faction_id).length - queued <= (buildingSettings(config, b).required_presence_N1 ?? 0)))) continue;
+      }
+      if (offer.kind === 'RAID') {
+        const direction = offer.direction;
+        const enemy = state.buildings.some(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== candidate.faction_id
+          && wrap((b.x - building.x) * direction, state.world.length) < state.world.length / 2);
+        if (!enemy) continue;
+      }
+      const priority = offer.kind === 'CAPTURE' ? (!candidate.headquarters_site_id && building.type === 'permanence' ? 0
+        : building.type === 'tour_communication' ? 2 : building.type === 'financement' ? 4 : 5)
+        : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
+        : offer.kind === 'FUNDRAISE' ? 3 : offer.kind === 'PRINT' ? 5 : offer.kind === 'EQUIP' ? 6
+        : offer.kind === 'MEETING' ? 7 : 8;
+      options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer,
+        rank: priority + distance(state, candidate.x, offer.x) * 0.35 });
     }
   }
-  return options.sort((a, b) => a.priority - b.priority || distance(state, candidate.x, a.building.x) - distance(state, candidate.x, b.building.x) || stableIdOrder(a.building, b.building))[0]?.building || null;
+  return options.sort((a, b) => a.rank - b.rank || a.offer.key.localeCompare(b.offer.key))[0] || null;
 }

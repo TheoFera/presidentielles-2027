@@ -1,5 +1,7 @@
 import { validateCampaignConfig } from './simulation/campaign-validation.js';
+import { validAIDifficulty } from './simulation/ai-settings.js';
 export function validateConfig(config) {
+  if (config.balance.ai?.difficulty !== undefined && !validAIDifficulty(config.balance.ai.difficulty)) throw new Error('Configuration : difficulté de l’IA invalide.');
   validateCampaignConfig(config);
   const positive = (value, label) => {
     if (!Number.isFinite(value) || value <= 0) throw new Error(`Configuration : ${label} doit être un nombre positif.`);

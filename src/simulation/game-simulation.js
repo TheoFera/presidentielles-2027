@@ -1,4 +1,5 @@
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
+import { validAIDifficulty } from './ai-settings.js';
 import { CampaignStyleSystem } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
@@ -22,7 +23,9 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const byId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
 export class GameSimulation {
-  constructor(config, seed = config.prototype.seed, localCandidateId = 'candidate:melenchon', profile = {}) {
+  constructor(config, seed = config.prototype.seed, localCandidateId = 'candidate:melenchon', profile = {}, options = {}) {
+    const difficulty = options.aiDifficulty ?? config.balance.ai?.difficulty ?? 'normal';
+    if (!validAIDifficulty(difficulty)) throw new Error('Difficulté de l’IA inconnue : facile, normal ou difficile attendu.');
     this.config = clone(config);
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
     const initialSeed = Number(seed) >>> 0 || 1;
@@ -37,6 +40,7 @@ export class GameSimulation {
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [],
       phase: GamePhase.CAMPAIGN, days_remaining: config.balance.time.starting_days_before_first_round,
       local_candidate_id: FACTIONS.some(f => `candidate:${f}` === localCandidateId) ? localCandidateId : 'candidate:melenchon', ai_enabled: true,
+      ai_difficulty: difficulty,
       world, candidates: [], npcs: [], buildings: infrastructure.buildings, building_slots: infrastructure.slots,
       spawn_timers: [], electorate: createElectorate(world, config), events: [],
       polls: createPolls(), actualGameState: null,
@@ -45,6 +49,7 @@ export class GameSimulation {
       const start = world.subzones.find(zone => zone.id === config.layout.starting_positions[faction]);
       this.state.candidates.push({
         id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
+        ai_objective: null,
         x: start.start + start.width * config.prototype.world.candidate_start_ratio,
         axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0,
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
@@ -135,6 +140,14 @@ export class GameSimulation {
     }
     const candidate = this.state.candidates.find(c => c.id === command.candidateId);
     if (candidate?.eliminated || command.factionId === this.state.eliminated_faction) return;
+    if (command.type === 'SetAIObjective') {
+      const objective = command.objective;
+      if (candidate && this.state.ai_enabled && objective && ['SETUP', 'CONQUER', 'DEFEND', 'RECOVER'].includes(objective.purpose)
+        && this.state.world.subzones.some(z => z.id === objective.subzone_id) && Number.isInteger(objective.expires_tick)
+        && objective.expires_tick > this.state.tick) candidate.ai_objective = {
+          subzone_id: objective.subzone_id, purpose: objective.purpose, expires_tick: objective.expires_tick };
+      return;
+    }
     if (mobileCommand(this, candidate, command, activateUltimate)) return;
     if (command.type === 'Attack') { requestAttack(this, candidate, command.direction); return; }
     if (command.type === 'Move') {

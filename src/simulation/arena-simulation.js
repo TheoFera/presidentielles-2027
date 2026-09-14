@@ -1,3 +1,5 @@
+import { aiCombatCommands } from './ai-combat.js';
+import { aiSettings } from './ai-settings.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { random } from './world.js';
 import { combatState, interrupted } from './combat-state.js';
@@ -13,6 +15,7 @@ export class ArenaSimulation {
     const b = config.balance.first_round_arena;
     const state = {
       tick: 0, rng_state: worldState.rng_state, world: clone(worldState.world),
+      ai_difficulty: worldState.ai_difficulty ?? config.balance.ai?.difficulty ?? 'normal',
       arena_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
       candidates: clone(worldState.candidates), npcs: [], buildings: [], electorate: [],
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [], events: [],
@@ -63,16 +66,13 @@ export function arenaAICommands(state, config, candidateId, enabled) {
   if (!c || state.eliminated_faction) return [];
   const commands = axis => [{ type: 'SetCampaignActive', candidateId, active: enabled }, { type: 'Move', candidateId, axis }];
   if (!enabled) return commands(0);
-  const period = Math.floor(state.tick / (config.balance.first_round_arena.ai_retarget_seconds * config.balance.simulation_architecture.fixed_tick_hz));
+  const settings = aiSettings(state, config);
+  const period = Math.floor(state.tick / (config.balance.first_round_arena.ai_retarget_seconds * settings.event_reaction_multiplier * config.balance.simulation_architecture.fixed_tick_hz));
   const index = state.candidates.indexOf(c);
   const noise = i => { let n = (state.rng_state ^ Math.imul(period + 1, 374761393) ^ Math.imul(index + 1, 668265263) ^ Math.imul(i + 1, 1274126177)) >>> 0; n = Math.imul(n ^ (n >>> 13), 1274126177) >>> 0; return (n ^ (n >>> 16)) >>> 0; };
   const options = state.candidates.filter(t => t.id !== c.id && t.faction_id !== c.faction_id).map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + t.arena_hp * 0.06
-    - (t.combat.target_id === c.id ? 0.8 : 0) + noise(state.candidates.indexOf(t)) / 0xffffffff * config.balance.first_round_arena.ai_variation_units }));
+    - (t.combat.target_id === c.id ? 0.8 : 0) + noise(state.candidates.indexOf(t)) / 0xffffffff * config.balance.first_round_arena.ai_variation_units * settings.event_reaction_multiplier }));
   if (!options.length) return commands(0);
   options.sort((a, b) => a.rank - b.rank || a.t.id.localeCompare(b.t.id));
-  const target = options[0].t; const d = target.x - c.x;
-  const close = Math.abs(d) <= config.balance.candidate_combat.light_range;
-  const result = commands(close ? 0 : Math.sign(d));
-  if (close && !c.combat.attack_id && !c.combat.stun_ticks) { if (c.special_charge >= config.balance.special_charge.required_points && !c.ultimate_effect && !c.bardella_guardian_armed) result.push({ type: 'ActivateUltimate', candidateId: c.id }); else result.push({ type: 'Attack', candidateId, direction: Math.sign(d) || c.facing }); };
-  return result;
+  return aiCombatCommands(state, config, c, options[0].t);
 }

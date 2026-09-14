@@ -1,3 +1,4 @@
+import { aiSettings } from './ai-settings.js';
 import { clearCampaignUltimate, activeCampaignStyle, styleTagWeight, styleInfluenceMultiplier } from './campaign-styles.js';
 import { random, ringDelta, wrap, zoneAt, FACTIONS } from './world.js';
 import { aggregateNational, normalizeSupport, refreshElectoralState } from './electoral-state.js';
@@ -143,12 +144,14 @@ export function campaignCommand(sim,command){
  if(c?.crisis_meeting_id&&command.type==='Attack')return true;return false;
 }
 export function campaignAICommands(state,config,c){
+ const settings=aiSettings(state,config);
+ if(!state.ai_enabled||c.is_ko)return null;
  if(c.campaign_arena_id){const event=state.campaign_events.find(e=>e.id===c.campaign_arena_id);return c.id===state.local_candidate_id&&event?.arena?arenaAICommands(event.arena,config,c.id,state.ai_enabled):[];}
  const commands=x=>{const d=ringDelta(c.x,x,state.world.length);return [{type:'Move',candidateId:c.id,axis:Math.abs(d)<0.4?0:Math.sign(d)},{type:'InteractionPresence',candidateId:c.id,active:true}];};
  if(c.crisis_meeting_id)return commands(c.x);
- const period=Math.floor(state.tick/(config.balance.campaign_events.ai_reaction_seconds*config.balance.simulation_architecture.fixed_tick_hz));
+ const period=Math.floor(state.tick/(config.balance.campaign_events.ai_reaction_seconds*settings.event_reaction_multiplier*config.balance.simulation_architecture.fixed_tick_hz));
  const noise=((Math.imul(period+1,1103515245)^state.seed^Math.imul(FACTIONS.indexOf(c.faction_id)+1,12345))>>>0)/4294967296;
- const events=active(state).filter(e=>state.tick-e.start_tick>=config.balance.campaign_events.ai_reaction_seconds*config.balance.simulation_architecture.fixed_tick_hz);
+ const events=active(state).filter(e=>state.tick-e.start_tick>=config.balance.campaign_events.ai_reaction_seconds*settings.event_reaction_multiplier*config.balance.simulation_architecture.fixed_tick_hz);
  const danger=events.find(e=>e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id));if(danger&&noise<0.8)return commands(state.buildings.find(b=>b.id===c.headquarters_site_id)?.x??c.start_x);
  const options=[];
  for(const e of events){let x,value=0;
@@ -157,6 +160,6 @@ export function campaignAICommands(state,config,c){
  if(x!==undefined)options.push({x,value:value/(1+Math.abs(ringDelta(c.x,x,state.world.length))/30),hunt:e.family==='CANDIDAT_FRAGILISE'||!!e.attempt&&e.attempt.candidate_id!==c.id});
  }
  for(const e of state.campaign_events.filter(e=>e.family==='FERMETURE_BATIMENT'&&e.status==='RESOLVED'&&e.target_candidate_ids.includes(c.id)&&state.tick-e.resolved_tick<30*config.balance.simulation_architecture.fixed_tick_hz)){const site=state.buildings.find(b=>b.id===e.target_site_id);if(site.owner_id===null)options.push({x:site.x,value:4});}
- options.sort((a,b)=>b.value-a.value);const chosen=options[0];if(!chosen||noise>0.85)return null;
+ options.sort((a,b)=>b.value-a.value);const chosen=options[0];if(!chosen||noise>settings.event_interest)return null;
  const out=commands(chosen.x);if(chosen.hunt&&Math.abs(ringDelta(c.x,chosen.x,state.world.length))<=config.balance.candidate_combat.light_range)out.push({type:'Attack',candidateId:c.id,direction:Math.sign(ringDelta(c.x,chosen.x,state.world.length))||1});return out;
 }

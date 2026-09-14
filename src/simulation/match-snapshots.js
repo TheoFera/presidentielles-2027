@@ -1,4 +1,5 @@
 import { FACTIONS } from './world.js';
+import { validAIDifficulty } from './ai-settings.js';
 import { GamePhase } from './phases.js';
 import { validateCombatSnapshot } from './combat-snapshots.js';
 
@@ -32,6 +33,8 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
     for (const key of ['tick', 'rng_state', 'candidates', 'npcs', 'buildings', 'electorate', 'polls', 'actualGameState', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results', 'transactions', 'next_npc_id', 'next_order_id', 'next_transaction_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!same(s[key], s.campaign_snapshot[key])) fail(`monde évolué pendant l’arène : ${key}`);
     if (!same(t.j0_scores, s.campaign_snapshot.actualGameState.national_support)) fail('scores à J0 incohérents');
     const a = s.arena; const cfg = sim.config.balance.first_round_arena;
+    if (a?.ai_difficulty !== undefined && (!validAIDifficulty(a.ai_difficulty)
+      || a.ai_difficulty !== (s.ai_difficulty ?? sim.config.balance.ai?.difficulty ?? 'normal'))) fail('difficulté d’arène incohérente');
     if (!a || !integer(a.tick) || !integer(a.hit_count) || !integer(a.candidate_hit_count) || !integer(a.rng_state) || a.rng_state < 1 || a.rng_state > 0xffffffff
       || !same(a.world, s.world) || !same(a.arena_bounds, { min: cfg.edge_margin, max: cfg.width_units - cfg.edge_margin })
       || !Array.isArray(a.candidates) || a.candidates.length !== 3 || a.npcs?.length !== 0 || a.buildings?.length !== 0

@@ -1,4 +1,5 @@
 import { ringDelta } from './world.js';
+import { aiNoise } from './ai-settings.js';
 
 const style = (id, name, biome, summary, ultimate, kind, tags, accent, outfit) => ({
   id, name, primary_biome: biome, summary, skin: { accent, outfit },
@@ -47,6 +48,15 @@ export function campaignStyles(config, faction) {
   });
 }
 export const activeCampaignStyle = (config, candidate) => campaignStyles(config, candidate?.faction_id).find(s => s.id === candidate.current_campaign_style) || null;
+/** Tous les styles du candidat sont accessibles à l’IA, sans déblocage joueur.
+ * Le terrain du QG favorise un style, sans exclure les autres possibilités. */
+export function chooseAICampaignStyle(state, config, candidate) {
+  const styles = campaignStyles(config, candidate.faction_id);
+  const biome = state.buildings.find(b => b.id === candidate.headquarters_site_id)?.biome_id;
+  const weights = styles.map(s => s.primary_biome === biome ? 1.5 : 1);
+  let roll = aiNoise(state.seed, `${candidate.id}:campaign-style`) * weights.reduce((a, b) => a + b, 0);
+  return styles.find((_style, index) => (roll -= weights[index]) < 0)?.id ?? styles.at(-1).id;
+}
 export function styleInfluenceMultiplier(config, candidate, biome) {
   const s = activeCampaignStyle(config, candidate);
   return (s?.biome_multipliers?.[biome] ?? 1) * (s?.penalized_biomes?.[biome] ?? 1);
@@ -81,7 +91,7 @@ export class CampaignStyleSystem {
   static headquartersEstablished(sim, c) {
     if (c.current_campaign_style) return;
     if (c.id === sim.state.local_candidate_id) this.open(sim, c, true);
-    else this.select(sim, c, DEFAULT_UNLOCKS[c.faction_id][0], true);
+    else this.select(sim, c, chooseAICampaignStyle(sim.state, sim.config, c), true);
   }
   static open(sim, c, mandatory = false) {
     c.axis = 0; c.moving = false; c.purchase_hold = null; c.style_hold = null; c.style_interaction_held = false; c.combat.buffer_until_tick = -1;

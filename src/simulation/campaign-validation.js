@@ -1,4 +1,5 @@
 import { campaignStyles, CAMPAIGN_STYLES } from './campaign-styles.js';
+import { validAIDifficulty } from './ai-settings.js';
 /** Validation of the authoritative campaign extension, before atomic snapshot import. */
 export function validateCampaignSnapshot(state, config, fail) {
  const finite=n=>Number.isFinite(n)&&n>=0;
@@ -8,6 +9,7 @@ export function validateCampaignSnapshot(state, config, fail) {
  for(const e of state.campaign_events){
  if(!e||typeof e.id!=='string'||ids.has(e.id)||!families.includes(e.family)||!['ACTIVE','RESOLVED','EXPIRED'].includes(e.status)||!['MINOR','MAJOR','CRISIS'].includes(e.intensity)||!Number.isInteger(e.start_tick)||e.start_tick<0||!(e.end_tick===null||Number.isInteger(e.end_tick)&&e.end_tick>=e.start_tick)||!e.parameters||!Array.isArray(e.target_candidate_ids)||e.target_candidate_ids.some(id=>!state.candidates.some(c=>c.id===id))||!state.buildings.some(b=>b.id===e.target_site_id))fail('événement de campagne invalide');
  ids.add(e.id);
+ if(e.arena?.ai_difficulty!==undefined&&(!validAIDifficulty(e.arena.ai_difficulty)||e.arena.ai_difficulty!==(state.ai_difficulty??config.balance.ai?.difficulty??'normal')))fail('difficulté d’arène de campagne incohérente');
  if(!e.style_snapshot||Object.keys(CAMPAIGN_STYLES).some(f=>!e.style_snapshot[f]||!e.style_snapshot[f].biome_multipliers||config.layout.biomes.some(b=>!finite(e.style_snapshot[f].biome_multipliers[b.id]))))fail('paramètres de style de l’événement invalides');
  if(e.attempt&&(!state.candidates.some(c=>c.id===e.attempt.candidate_id)||!finite(e.attempt.start_tick)||!finite(e.attempt.hits)))fail('tentative de Meeting invalide');
  if(e.arena&&(!Array.isArray(e.arena.candidates)||e.arena.candidates.some(c=>!finite(c.arena_hp)||!finite(c.x)||!c.combat)||!finite(e.arena.tick)||!Array.isArray(e.arena.attacks)))fail('arène de campagne invalide');

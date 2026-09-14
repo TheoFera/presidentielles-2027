@@ -1,4 +1,5 @@
 import { validateCampaignSnapshot } from './campaign-validation.js';
+import { validAIDifficulty } from './ai-settings.js';
 import { FACTIONS, buildWorld, fingerprint } from './world.js';
 import { createInfrastructure } from './economy.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
@@ -21,6 +22,8 @@ export function validateSnapshot(next, simulation, nested = false) {
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
   for (const field of ['candidates', 'npcs', 'events', 'buildings', 'building_slots', 'transactions', 'electorate', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results']) if (!Array.isArray(next[field])) fail(`collection absente : ${field}`);
   if (next.candidates.length !== FACTIONS.length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
+  // Les anciennes sauvegardes sans ces champs reprennent au niveau normal.
+  if (next.ai_difficulty !== undefined && !validAIDifficulty(next.ai_difficulty)) fail('difficulté de l’IA invalide');
   if (!integer(next.days_remaining, config.prototype.time.minimum_days_remaining_for_milestone) || next.days_remaining > config.balance.time.starting_days_before_first_round) fail('jour invalide');
   validateCampaignSnapshot(next, config, fail);
   const infrastructure = createInfrastructure(next.world, config, { rng_state: next.seed });
@@ -35,6 +38,9 @@ export function validateSnapshot(next, simulation, nested = false) {
   const validPosition = x => Number.isFinite(x) && x >= 0 && x < next.world.length;
   if (!candidateIds.has(next.local_candidate_id)) fail('contrôle local inconnu');
   for (const candidate of next.candidates) {
+    const objective = candidate.ai_objective;
+    if (objective != null && (!next.world.subzones.some(z => z.id === objective.subzone_id)
+      || !['SETUP', 'CONQUER', 'DEFEND', 'RECOVER'].includes(objective.purpose) || !integer(objective.expires_tick))) fail('objectif de l’IA invalide');
     if (!candidateIds.has(candidate.id) || candidate.id !== `candidate:${candidate.faction_id}` || candidate.role !== 'CANDIDAT') fail('candidat inconnu');
     if (!validPosition(candidate.x) || ![-1, 0, 1].includes(candidate.axis) || ![-1, 1].includes(candidate.facing) || typeof candidate.moving !== 'boolean'
       || typeof candidate.campaign_active !== 'boolean' || typeof candidate.interaction_active !== 'boolean') fail('candidat invalide');
