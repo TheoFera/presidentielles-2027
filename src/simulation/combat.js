@@ -77,8 +77,22 @@ function startCandidateAttack(sim, actor) {
     electoral_damage: strong ? b.candidate_combat.electoral_damage_on_finisher_percent_points : b.candidate_combat.electoral_damage_on_light_hit_percent_points });
 }
 
+export function ultimateBlockedReason(sim, actor) {
+  if (!actor || actor.eliminated || actor.is_ko || !actor.campaign_active) return 'Ultime indisponible : candidat hors combat.';
+  if (!activeCampaignStyle(sim.config, actor)) return 'Choisis d’abord un style à ton QG.';
+  if (actor.bardella_guardian_armed) return 'Bardellisation déjà armée : elle se déclenchera au prochain KO.';
+  if (activeCampaignStyle(sim.config, actor).ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return 'Bardellisation déjà utilisée pour cette vie.';
+  if (actor.ultimate_effect) return 'Un effet d’ultime est encore actif.';
+  if (actor.special_charge < sim.config.balance.special_charge.required_points) return `Ultime chargé à ${Math.floor(100 * actor.special_charge / sim.config.balance.special_charge.required_points)} % : touche des adversaires pour le recharger.`;
+  if (actor.combat.attack_id) return 'Attaque en cours : appuie sur R après la fin du coup.';
+  if (actor.dash_active) return 'Esquive en cours : appuie sur R après le dash.';
+  if (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || Math.abs(actor.combat.knockback_velocity) > 0.02) return 'Impact ou étourdissement en cours : attends de reprendre le contrôle.';
+  if (!actionAllowed(sim, actor)) return 'Interaction en cours : termine-la ou quitte la zone avant de lancer l’ultime.';
+  return null;
+}
+
 export function activateUltimate(sim, actor) {
-  if (!actionAllowed(sim, actor) || actor.special_charge < sim.config.balance.special_charge.required_points || actor.ultimate_effect || actor.bardella_guardian_armed) return;
+  if (ultimateBlockedReason(sim, actor)) return;
   const style = activeCampaignStyle(sim.config, actor);
   if (!style || style.ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return;
   changeCharge(sim, actor, 0); actor.combat.combo_step = 0;

@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { ArenaSimulation } from '../src/simulation/arena-simulation.js';
 import { CAMPAIGN_STYLES, CampaignStyleSystem } from '../src/simulation/campaign-styles.js';
-import { beginCombatTick, requestAttack, activateUltimate, updateCombat } from '../src/simulation/combat.js';
+import { beginCombatTick, requestAttack, activateUltimate, updateCombat, ultimateBlockedReason } from '../src/simulation/combat.js';
 import { hit, combatState } from '../src/simulation/combat-state.js';
 import { requestDash, successfulNormalHit } from '../src/simulation/mobile-combat.js';
 
@@ -82,6 +82,19 @@ test('Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; cha
   CampaignStyleSystem.select(c.sim,c.c,CAMPAIGN_STYLES.le_pen[0].id,true); assert.equal(c.c.bardella_guardian_armed,false);
 });
 for (const [faction, styles] of Object.entries(CAMPAIGN_STYLES)) for (let i=0;i<styles.length;i++) {
+  test(`${styles[i].ultimate.name} : commande R en campagne et refus explicite pendant un coup`, () => {
+    const { sim, c } = setup(faction, i); c.special_charge = 10;
+    requestAttack(sim, c); ticks(sim, 1, true);
+    assert.match(ultimateBlockedReason(sim, c), /Attaque en cours/);
+    sim.applyCommand({ type: 'ActivateUltimate', candidateId: c.id });
+    assert.equal(c.special_charge, 10);
+    ticks(sim, 30, true);
+    assert.equal(ultimateBlockedReason(sim, c), null);
+    sim.applyCommand({ type: 'ActivateUltimate', candidateId: c.id });
+    assert.equal(c.special_charge, 0);
+    if (styles[i].ultimate.kind === 'BARDELLA') assert.equal(c.bardella_guardian_armed, true);
+    else assert.ok(sim.state.powers.some(p => p.kind === styles[i].ultimate.kind));
+  });
   test(`${styles[i].ultimate.name} : aucune activation sur attaque, commande manuelle en arène`, () => {
     const { sim, c } = setup(faction,i); c.special_charge=10;
     requestAttack(sim,c); ticks(sim,30,true); assert.equal(c.special_charge,10); assert.equal(sim.state.powers.length,0); assert.equal(c.bardella_guardian_armed,false);

@@ -1,5 +1,6 @@
 import { DamageFeedbackDisplay } from './presentation/damage-feedback.js';
 import { CampaignStylesDisplay } from './presentation/campaign-styles.js';
+import { ultimateBlockedReason } from './simulation/combat.js';
 import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
 import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
@@ -113,7 +114,13 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (state.campaign_style_selection) return;
     if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
-    else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) { if (!paused) human.ultimate(); }
+    else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) {
+      if (!paused) {
+        const view = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
+        const reason = ultimateBlockedReason({ state: view, config }, view.candidates.find(c => c.id === state.local_candidate_id));
+        if (reason) notify(reason, 4); else human.ultimate();
+      }
+    }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (['h', 'escape', 'p'].includes(key)) togglePause();
     else if (key === 'f3') debug.toggle();
@@ -195,7 +202,7 @@ async function start() {
       if (noticeRemaining <= 0) notice.textContent = '';
       hint.style.opacity = hintRemaining > 0 ? '1' : '0';
       hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
-      notice.hidden = state.phase === 'FIRST_ROUND_ARENA' || state.phase === 'RESULTS';
+      notice.hidden = state.phase === 'RESULTS';
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
       renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
