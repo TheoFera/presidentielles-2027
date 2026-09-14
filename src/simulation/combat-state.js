@@ -86,7 +86,7 @@ export function hit(sim, source, target, spec, attackId) {
     result.damage = Math.min(target.hidden_durability, spec.damage * multiplier);
     target.hidden_durability = Math.max(0, target.hidden_durability - result.damage);
   }
-  target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
+  if (spec.knockback > 0) target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
   target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(spec.stun_seconds ?? config.balance.candidate_combat.hit_stun_seconds));
   const stop = spec.no_hitstop ? 0 : sim.secondsToTicks(spec.strong ? config.balance.candidate_combat.finisher_hitstop_seconds : config.balance.candidate_combat.light_hitstop_seconds);
   target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);

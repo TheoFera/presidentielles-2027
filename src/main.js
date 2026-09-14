@@ -1,3 +1,4 @@
+import { DamageFeedbackDisplay } from './presentation/damage-feedback.js';
 import { CampaignStylesDisplay } from './presentation/campaign-styles.js';
 import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
 import { CampaignDisplay } from './presentation/campaign.js';
@@ -14,11 +15,13 @@ import { DebugPanel } from './presentation/debug.js';
 import { ElectoralDisplay } from './presentation/electoral.js';
 import { MatchDisplay } from './presentation/match.js';
 
-function showError(error) {
+function showError(error, duringGame = false) {
   console.error(error);
   const element = document.getElementById('error');
   element.hidden = false;
-  element.textContent = `Le jeu n’a pas pu démarrer : ${error.message}. Vérifie ta connexion et recharge la page. Si tu joues depuis les fichiers de ton ordinateur, utilise « Lancer le jeu.cmd ».`;
+  element.textContent = duringGame
+    ? `La partie a été interrompue par une erreur. Recharge la page pour relancer le jeu. Détail technique : ${error.message}`
+    : `Le jeu n’a pas pu démarrer : ${error.message}. Recharge la page. Si tu joues depuis les fichiers de ton ordinateur, utilise « Lancer le jeu.cmd ».`;
 }
 
 async function start() {
@@ -33,6 +36,7 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  const damageFeedback = new DamageFeedbackDisplay(config);
   const campaignDisplay = new CampaignDisplay(config);
   const electoralDisplay = new ElectoralDisplay(config);
   const matchDisplay = new MatchDisplay(config, {
@@ -167,6 +171,7 @@ async function start() {
       const candidate = matchDisplay.viewedCandidate(state);
       const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
+      damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       const ultimateButton = document.getElementById('ultimate-touch');
       const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
       ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = ratio < 1 || fighter.is_ko || !!fighter.combat.attack_id || fighter.combat.stun_ticks > 0 || fighter.dash_active || !!fighter.ultimate_effect || fighter.bardella_guardian_armed;
@@ -196,7 +201,7 @@ async function start() {
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);
-    } catch (error) { showError(error); }
+    } catch (error) { showError(error, true); }
   }
   requestAnimationFrame(frame);
 }

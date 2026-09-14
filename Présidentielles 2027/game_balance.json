@@ -57,7 +57,7 @@
       "preferred_distance": 3.5,
       "verbal_cooldown_seconds": 1.15,
       "verbal_damage": 4,
-      "verbal_knockback": 0.8,
+      "verbal_knockback": 0,
       "projectile_speed": 9,
       "projectile_range": 6.5
     },
@@ -895,9 +895,17 @@
     "max_charges": 3,
     "recharge_seconds": 4,
     "duration_seconds": 0.24,
-    "distance": 3.6,
+    "distance": 2,
     "invulnerability_seconds": 0.12,
     "double_tap_window_ms": 300,
     "allowed_in_arena": true
+  },
+  "damage_feedback": {
+    "max_injury_opacity": 0.82,
+    "impact_seconds": 0.7,
+    "impact_opacity": 0.36,
+    "critical_health_ratio": 0.25,
+    "critical_pulse_hz": 1.1,
+    "critical_pulse_opacity": 0.1
   }
 }

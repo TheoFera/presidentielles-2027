@@ -22,7 +22,7 @@ for (const faction of Object.keys(CAMPAIGN_STYLES)) {
     const { sim, c } = setup(faction), start = c.x;
     assert.equal(c.dash_charges, 3);
     for (const direction of [-1, 1, -1]) { requestDash(sim, c, direction); assert.equal(c.dash_active, true); ticks(sim, 9); }
-    assert.ok(Math.abs(c.x - start + 3.6) < 1e-9); assert.equal(c.dash_charges, 0);
+    assert.ok(Math.abs(c.x - start + sim.config.balance.dash.distance) < 1e-9); assert.equal(c.dash_charges, 0);
     requestDash(sim, c, 1); assert.equal(c.dash_active, false);
     ticks(sim, 92); assert.equal(c.dash_charges, 0); ticks(sim, 1); assert.equal(c.dash_charges, 1);
     ticks(sim, 120); assert.equal(c.dash_charges, 2); ticks(sim, 120); assert.equal(c.dash_charges, 3);
@@ -125,4 +125,38 @@ test('Zone de feu : aucune application pendant les frames, brûlure possible ens
 test('Traverser Super Européiste ne déclenche aucune riposte', () => {
   const {sim,c,enemy}=setup('philippe',2);c.special_charge=10;activateUltimate(sim,c);ticks(sim,30,true);
   enemy.x=c.x-1;requestDash(sim,enemy,1);const hp=enemy.resistance;ticks(sim,9,true);assert.equal(enemy.resistance,hp);
+});
+
+test('Bulles des militants : dégâts réels, aucun recul ajouté ni retournement du recul existant', async () => {
+  const { updateMilitantCombat } = await import('../src/simulation/combat.js');
+  const { sim, c } = setup();
+  const militant = sim.spawn(sim.state.world.subzones[0], c.x - 2);
+  Object.assign(militant, {role:'MILITANT',faction_id:'le_pen',hidden_durability:100,facing:1});
+  const x=c.x, hp=c.resistance;
+  updateMilitantCombat(sim,militant); ticks(sim,30,true);
+  assert.ok(c.resistance<hp);assert.equal(c.x,x);assert.equal(c.combat.knockback_velocity,0);
+  c.combat.knockback_velocity=-3;
+  hit(sim,militant,c,{kind:'VERBAL',ranged:true,damage:1,knockback:sim.config.balance.physical_units.militant.verbal_knockback},'test:verbal');
+  assert.equal(c.combat.knockback_velocity,-3);
+});
+
+test('Bords rouges : dégâts cumulés, impact local, récupération et faible résistance', async () => {
+  const { damageFeedbackState } = await import('../src/presentation/damage-feedback.js');
+  const {sim,c,enemy}=setup(); const feedback=()=>damageFeedbackState(sim.state,c,sim.config);
+  assert.equal(feedback().opacity,0);
+  c.resistance=80;const light=feedback().opacity;c.resistance=35;const heavy=feedback().opacity;assert.ok(heavy>light);
+  hit(sim,enemy,c,{damage:8,knockback:0},'test:incoming');const impact=feedback();assert.ok(impact.impact>0);
+  ticks(sim,30);assert.equal(feedback().impact,0);assert.ok(feedback().opacity<impact.opacity);
+  c.resistance=100;assert.equal(feedback().opacity,0);
+  hit(sim,c,enemy,{damage:8,knockback:0},'test:outgoing');assert.equal(feedback().opacity,0);
+  c.resistance=10;const reducedA=damageFeedbackState(sim.state,c,sim.config,1,true);ticks(sim,9);
+  assert.deepEqual(damageFeedbackState(sim.state,c,sim.config,1,true),reducedA);
+  assert.ok(damageFeedbackState(sim.state,c,sim.config).opacity>=reducedA.opacity);
+});
+
+test('Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne', async () => {
+  const {damageFeedbackState}=await import('../src/presentation/damage-feedback.js');const {sim,c}=setup();
+  const arena=ArenaSimulation.create(sim.config,sim.state);const fighter=arena.candidates.find(a=>a.id===c.id);
+  fighter.resistance=0;assert.equal(damageFeedbackState(arena,fighter,sim.config).opacity,0);
+  fighter.arena_hp=fighter.arena_initial_hp*.5;assert.ok(damageFeedbackState(arena,fighter,sim.config).opacity>0);
 });

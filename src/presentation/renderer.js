@@ -101,12 +101,6 @@ export class WorldRenderer {
     }
     drawBanknote(this, state);
     drawCombatEffects(this, state, debug);
-    if (!candidate.eliminated && candidate.resistance < this.config.balance.candidate_combat.resistance_max) {
-      const injury = 1 - candidate.resistance / this.config.balance.candidate_combat.resistance_max;
-      const gradient = ctx.createRadialGradient(this.width / 2, this.height / 2, this.height * 0.22, this.width / 2, this.height / 2, this.width * 0.65);
-      gradient.addColorStop(0, '#8f101000'); gradient.addColorStop(0.68, '#8f101000'); gradient.addColorStop(1, `rgba(145, 12, 12, ${0.08 + injury * 0.48})`);
-      ctx.fillStyle = gradient; ctx.fillRect(0, 0, this.width, this.height);
-    }
     drawCampaignMarkers(this, state);
     if (debug) this.drawDebug(state, candidate);
   }

@@ -4,7 +4,7 @@ Le combat existant et les neuf ultimes sont conservés. La simulation à 30 tick
 
 | Réglage | Valeur |
 |---|---|
-| Dash | 3,6 unités ; durée configurée 0,24 s, arrondie à 8 ticks = 0,267 s |
+| Dash | 2 unités ; durée configurée 0,24 s, arrondie à 8 ticks = 0,267 s |
 | Invulnérabilité | 0,12 s configurée ; 4 ticks = 0,133 s, puis vulnérabilité pendant la fin du dash |
 | Réserve cachée | 3 charges ; aucun indicateur hors débogage |
 | Recharge | 1 charge toutes les 120 ticks = 4 s ; séquentielle, sans remettre la progression à zéro à chaque dash |
@@ -44,3 +44,14 @@ Les modifications qui étaient déjà présentes avant ce jalon ont été conser
 - Rapport : `docs/COMBAT_MOBILE.md` ; résultats et captures dans `artifacts/` ; sortie du build dans `dist/`.
 
 Tous les réglages de ce jalon sont dans `game_balance.json`, sections `dash`, `special_charge` et `candidate_combat`.
+
+
+## Ajustement du ressenti des dégâts — 14 septembre 2026
+
+- Dash raccourci de 3,6 à 2 unités (−44 %), avec les mêmes durées et charges.
+- Bulles des militants : recul à zéro. Les dégâts et l’étourdissement existants sont conservés ; une bulle ne retourne plus non plus un recul déjà provoqué par une autre attaque.
+- Nouveau bord rouge sur toute la fenêtre, avec un centre transparent et des commandes tactiles intactes. Son intensité suit les blessures restantes ; chaque impact reçu produit une pulsation de 0,7 s, proportionnée aux dégâts. Une pulsation lente apparaît sous 25 % de résistance.
+- La rougeur diminue avec la récupération et disparaît à pleine résistance ou après réapparition. En arène, elle utilise les points de vie propres à l’arène. Les coups donnés et les attaques esquivées ne provoquent aucun flash de dégâts reçus.
+- L’option système de réduction des animations conserve les bords rouges mais désactive les pulsations.
+- Réglages visuels : section `damage_feedback` de `game_balance.json`.
+- Validation : 126 tests réussis ; Chrome tactile en paysage et portrait, intensité vérifiée à 100/75/40/10 points, pulsation d’impact, disparition après récupération et réduction des animations. Captures et rapport : `artifacts/damage-feedback/`.

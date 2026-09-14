@@ -47,3 +47,10 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 #bardella-armed { position: absolute; bottom: 110%; right: 0; white-space: nowrap; color: #fff3b0; font-size: 12px; }
 @keyframes ultimate-ready { 50% { box-shadow: 0 0 9px #ffdc77; } }
 @media (prefers-reduced-motion: reduce) { #ultimate-touch.ready { animation: none; outline: 2px solid #ffdc77; } }
+
+/* Screen feedback sits under the controls and never intercepts a finger. */
+#damage-feedback { position: fixed; inset: 0; z-index: 1; pointer-events: none; user-select: none;
+  background: radial-gradient(ellipse at center, transparent var(--damage-clear, 50%), rgba(135, 0, 12, .48) 72%, rgba(190, 5, 25, .95) 100%);
+  opacity: var(--damage-opacity, 0); }
+#damage-feedback[hidden] { display: none; }
+#touch-controls, #game-menu { z-index: 2; }
