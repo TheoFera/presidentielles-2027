@@ -15,6 +15,8 @@ import { BrowserInput } from './presentation/input.js';
 import { DebugPanel } from './presentation/debug.js';
 import { ElectoralDisplay } from './presentation/electoral.js';
 import { MatchDisplay } from './presentation/match.js';
+import { StartMenu } from './presentation/start-menu.js';
+import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby } from './presentation/multiplayer.js';
 
 function showError(error, duringGame = false) {
   console.error(error);
@@ -42,7 +44,7 @@ async function start() {
   const electoralDisplay = new ElectoralDisplay(config);
   const matchDisplay = new MatchDisplay(config, {
     follow: () => { renderer.resetCamera(); canvas.focus(); },
-    replay: () => restartMatch(false), return: () => restartMatch(true),
+    replay: () => { if (session) returnHome(); else { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); } }, return: () => returnHome(),
   });
   const help = document.getElementById('help');
   const money = document.getElementById('money');
@@ -53,7 +55,13 @@ async function start() {
   const hint = document.getElementById('hint');
   if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = 'Maintiens une flèche pour marcher · Frapper pour attaquer · Pause pour l’aide';
   let pending = [];
-  let paused = false;
+  let paused = true;
+  let menu;
+  let session = null;
+  let roomPhase = null;
+  let remote = new Map();
+  let networkElapsed = 0;
+  let networkBusy = false;
   let simulationSpeed = 1;
   let wasHidden = false;
   let noticeRemaining = 0;
@@ -105,13 +113,16 @@ async function start() {
     },
   });
   function togglePause(force = !paused, showHelp = true) {
+    if (menu?.active) return;
     if (state.campaign_style_selection) return;
+    if (session) { session.request('pause', { paused: force }).catch(error => session?.fail(error.message)); return; }
     paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
     simulation.applyCommand({ type: 'HoldCampaignStyle', candidateId: state.local_candidate_id, active: false });
     if (!paused || !showHelp) canvas.focus();
     else { document.getElementById('resume').focus({ preventScroll: true }); document.getElementById('help').scrollTop = 0; }
   }
   const input = new BrowserInput(canvas, human, async key => {
+    if (menu?.active) return;
     if (state.campaign_style_selection) return;
     if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
     else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) {
@@ -123,23 +134,27 @@ async function start() {
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (['h', 'escape', 'p'].includes(key)) togglePause();
-    else if (key === 'f3') debug.toggle();
+    else if (key === 'f3') { if (!session) debug.toggle(); }
     else if (key === 'f') {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
         else await document.documentElement.requestFullscreen();
       } catch { notify('Le plein écran est indisponible dans ce navigateur.'); }
-    } else debug.action(key);
+    } else if (!session) debug.action(key);
   }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, config.balance.dash.double_tap_window_ms);
   const stylesDisplay = new CampaignStylesDisplay(config, profile, command => {
+    if (menu?.active) return;
     if (paused && command.type === 'HoldCampaignStyle' && command.active) return;
+    if (session && !session.host) { pending.push(command); return; }
     simulation.applyCommand(command); state = simulation.getState();
   }, () => { input.clear(); pending = []; clock.reset(); });
   document.getElementById('resume').addEventListener('click', () => togglePause(false));
+  document.getElementById('pause-home').addEventListener('click', () => returnHome());
   document.addEventListener('visibilitychange', () => {
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
     wasHidden = true; input.clear(); clock.reset();
+    if (session?.room.phase === 'playing' && document.hidden) session.request('pause', { paused: true }).catch(error => session?.fail(error.message));
     if (!document.hidden) previousTime = performance.now();
   });
   // Help values follow the configuration too.
@@ -148,17 +163,115 @@ async function start() {
   document.getElementById('poll-help').textContent = `Les Instituts sont deux services neutres rares. Reste devant et paie ${format(config.balance.buildings.institut_sondage.poll_cost)} k € pour obtenir un nouveau snapshot ; il ne s’actualise jamais tout seul.`;
   durationText.textContent = `Tous les sites existent dès le départ. Capture d’un Local : ${format(config.balance.buildings.permanence.capture_cost)} k € avec ${config.balance.buildings.permanence.required_presence_N1} présences politiques. Le premier devient le QG. Un tract : ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k €. Les améliorations s’enchaînent tant que tu restes devant et que l’argent et la présence suffisent.`;
   const currency = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals });
-  canvas.focus();
+  function stopSession() {
+    const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
+  }
+  function returnHome() {
+    paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
+    stylesDisplay.state = null; stylesDisplay.dialog.close();
+    menu.home();
+  }
+  async function prepare(candidateId) {
+    paused = true; help.hidden = true; input.clear(); debug.toggle(false);
+    stylesDisplay.profile = profile;
+    simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
+    if (session) simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
+    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
+    renderer.artZone = null;
+    renderer.draw(state, state, 1, 0);
+    await Promise.race([
+      renderer.assets.preload([...renderer.assets.protectedIds]),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000)),
+    ]);
+  }
+  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); }
+  function roomChanged(room) {
+    if (!session) return;
+    if (room.phase === 'lobby') {
+      if (menu.screen !== 'lobby') showLobby(menu, session, returnHome); else updateLobby(menu, session);
+    } else if (room.phase === 'loading' && roomPhase !== 'loading') {
+      menu.selected = session.candidateId.split(':')[1];
+      void menu.loading({ multiplayer: true, ready: () => session.request('ready') });
+    } else if (room.phase === 'playing') {
+      if (roomPhase !== 'playing') { menu.close(); play(); }
+      const changed = paused !== room.paused;
+      paused = room.paused; help.hidden = !paused;
+      if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; if (paused) document.getElementById('resume').focus(); else canvas.focus(); }
+    }
+    roomPhase = room.phase;
+  }
+  async function connectRoom(action, data) {
+    const generation = menu.generation;
+    const nextSession = new MultiplayerSession({
+      room: roomChanged,
+      commands: packet => {
+        if (!session?.host || paused) return;
+        const player = session.room.players.find(p => p.id === packet.playerId);
+        if (!player) return;
+        const id = `candidate:${player.faction}`;
+        const controller = remote.get(id) || { axis: 0, actions: [], seen: 0 };
+        controller.seen = performance.now();
+        for (const command of packet.commands) {
+          if (command.type === 'Move') controller.axis = command.axis;
+          else if (!['SetCampaignActive', 'InteractionPresence'].includes(command.type)) controller.actions.push(command);
+        }
+        controller.actions = controller.actions.slice(-30); remote.set(id, controller);
+      },
+      snapshot: snapshot => {
+        if (!session || session.host || menu.active) return;
+        if (snapshot.multiplayer_profile) stylesDisplay.profile = snapshot.multiplayer_profile;
+        previous = state; state = { ...snapshot, local_candidate_id: session.candidateId };
+        if (previous.phase !== state.phase) { previous = state; input.clear(); renderer.resetCamera(); }
+      },
+      ended: message => {
+        returnHome(); menu.page('disconnected', 'La partie a été interrompue.', '<p id="disconnect-message" class="menu-intro" role="alert"></p><button id="back-to-home" class="menu-primary">Retour à l’accueil</button>');
+        menu.element.querySelector('#disconnect-message').textContent = message;
+        menu.element.querySelector('#back-to-home').onclick = () => menu.home();
+      },
+    });
+    await nextSession.connect(action, data);
+    if (menu.generation !== generation) { nextSession.close(); return; }
+    session = nextSession; roomChanged(session.room);
+  }
+  menu = new StartMenu({ prepare, play, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
+  menu.leave = stopSession;
+
+  function matchCommands() {
+    if (!session) return collectCommands(state, human, ai);
+    return state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
+      if (candidate.id === state.local_candidate_id) return human.commands(state, candidate.id);
+      if (!state.human_candidate_ids.includes(candidate.id)) return ai.commands(state, candidate.id);
+      const controller = remote.get(candidate.id);
+      const recent = controller && performance.now() - controller.seen < 1000;
+      const commands = [{ type: 'Move', candidateId: candidate.id, axis: recent ? controller.axis : 0 }, { type: 'InteractionPresence', candidateId: candidate.id, active: true }, { type: 'SetCampaignActive', candidateId: candidate.id, active: true }, ...(recent ? controller.actions.splice(0) : [])];
+      if (!recent) commands.push({ type: 'HoldCampaignStyle', candidateId: candidate.id, active: false });
+      return commands;
+    });
+  }
+
+  function networkFrame(elapsed) {
+    if (!session || menu.active || session.room.phase !== 'playing') return;
+    networkElapsed += elapsed;
+    if (networkBusy || networkElapsed < (session.host ? 0.1 : 0.05)) return;
+    networkElapsed = 0;
+    const activeSession = session;
+    if (!session.host && paused) return;
+    const action = session.host ? 'snapshot' : 'commands';
+    const data = session.host ? { state: { ...state, multiplayer_profile: profile } } : { commands: [...human.commands(state, session.candidateId), ...pending.splice(0)] };
+    networkBusy = true;
+    session.request(action, data).catch(error => activeSession.fail(error.message)).finally(() => { networkBusy = false; });
+  }
 
   function frame(now) {
     try {
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
-      if (!paused && !document.hidden) {
+      if (menu.active) { requestAnimationFrame(frame); return; }
+      if (!paused && !document.hidden && (!session || session.host)) {
         clock.advance(elapsed * simulationSpeed, () => {
           previous = state;
-          const commands = [...collectCommands(state, human, ai), ...pending];
+          const commands = [...matchCommands(), ...pending];
           const changedCamera = pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
           simulation.step(commands);
@@ -168,12 +281,16 @@ async function start() {
           if (state.phase !== previous.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
           if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
         });
-        hintRemaining -= elapsed;
-        noticeRemaining -= elapsed;
       }
+      if (!paused && !document.hidden) { hintRemaining -= elapsed; noticeRemaining -= elapsed; }
+      networkFrame(elapsed);
       matchDisplay.update(state);
+      document.getElementById('replay').hidden = !!session;
       campaignDisplay.update(state);
       stylesDisplay.update(state);
+      const waiting = session && state.campaign_style_selection && state.campaign_style_selection.candidate_id !== state.local_candidate_id;
+      const networkStatus = document.getElementById('network-status'); networkStatus.hidden = !waiting;
+      if (waiting) networkStatus.textContent = 'Un autre joueur choisit son style. La campagne reprendra dès qu’il aura terminé.';
       document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id)));
       const candidate = matchDisplay.viewedCandidate(state);
       const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
@@ -204,7 +321,7 @@ async function start() {
       hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
       notice.hidden = state.phase === 'RESULTS';
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
-      renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+      renderer.draw(viewState, paused ? viewState : previous, paused || session && !session.host ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);

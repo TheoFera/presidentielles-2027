@@ -1,4 +1,5 @@
 import { aiSettings } from './ai-settings.js';
+import { isHumanCandidate } from './human-candidates.js';
 import { clearCampaignUltimate, activeCampaignStyle, styleTagWeight, styleInfluenceMultiplier } from './campaign-styles.js';
 import { random, ringDelta, wrap, zoneAt, FACTIONS } from './world.js';
 import { aggregateNational, normalizeSupport, refreshElectoralState } from './electoral-state.js';
@@ -90,7 +91,7 @@ export class CampaignEventDirector {
  if(e.family==='PIEGE_MEDIATIQUE'){
  const charge=c.special_charge;clearCampaignUltimate(sim,c);c.special_charge=charge;
  e.participants=[c.id];c.campaign_arena_id=e.id;c.purchase_hold=null;c.crisis_meeting_id=null;
- if(c.id!==s.local_candidate_id){e.ai_return_tick=s.tick+sim.secondsToTicks(p.AI_absence_duration_range[0]+random(d)*(p.AI_absence_duration_range[1]-p.AI_absence_duration_range[0]));e.end_tick=e.ai_return_tick;}
+ if(!isHumanCandidate(s,c.id)){e.ai_return_tick=s.tick+sim.secondsToTicks(p.AI_absence_duration_range[0]+random(d)*(p.AI_absence_duration_range[1]-p.AI_absence_duration_range[0]));e.end_tick=e.ai_return_tick;}
  else {e.arena=ArenaSimulation.create(sim.config,s);e.arena.campaign_event_family=e.family;e.arena.campaign_damage_multiplier=p.player_damage_multiplier;const player=e.arena.candidates.find(a=>a.id===c.id);player.arena_hp=player.arena_initial_hp=100;player.campaign_arena_id=null;const journalists=e.arena.candidates.filter(a=>a.id!==c.id).slice(0,e.intensity==='CRISIS'?2:p.journalist_count);for(const j of journalists){j.is_ko=false;j.disappeared=false;j.eliminated=false;j.faction_id=journalists[0].faction_id;j.arena_hp=j.arena_initial_hp=p.journalist_durability;j.campaign_arena_id=null;j.presentation_name='Journaliste';j.journalist_damage=p.journalist_damage;}e.arena.candidates=[player,...journalists];e.arena.eliminated_faction=null;e.end_tick=null;}
  }
  d.active_event_ids=active(s).map(e=>e.id);refreshElectoralState(s,sim.config);sim.emit('StartCampaignEvent',{campaign_event_id:e.id});return e;
@@ -126,7 +127,7 @@ export function updateCampaignEvents(sim){
  if(e.arena){
  // Player attacks use normal combat damage; only journalist attacks use reduced damage.
  const arena=new ArenaSimulation(sim.config,e.arena);
- for(const c of e.arena.candidates)if(c.id!==s.local_candidate_id){if(c.presentation_name==='Journaliste')c.special_charge=0;for(const command of arenaAICommands(e.arena,sim.config,c.id,true))arena.applyCommand(command);}
+ for(const c of e.arena.candidates)if(!isHumanCandidate(s,c.id)){if(c.presentation_name==='Journaliste')c.special_charge=0;for(const command of arenaAICommands(e.arena,sim.config,c.id,true))arena.applyCommand(command);}
  arena.step();
  if(e.arena.eliminated_faction){const loser=e.arena.candidates.find(c=>c.arena_hp<=0)||e.arena.candidates.find(c=>c.faction_id===e.arena.eliminated_faction);if(e.family==='PIEGE_MEDIATIQUE'&&loser.id===target.id){loser.arena_hp=100;loser.combat.stun_ticks=sim.secondsToTicks(2);e.arena.eliminated_faction=null;continue;}e.arena.candidates=e.arena.candidates.filter(c=>c!==loser);e.arena.eliminated_faction=null;
  if(e.family==='PIEGE_MEDIATIQUE'&&(loser.id===target.id||e.arena.candidates.length===1))resolveCampaignEvent(sim,e);

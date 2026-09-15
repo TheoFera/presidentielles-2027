@@ -1,4 +1,5 @@
 import { ringDelta } from './world.js';
+import { isHumanCandidate } from './human-candidates.js';
 import { aiNoise } from './ai-settings.js';
 
 const style = (id, name, biome, summary, ultimate, kind, tags, accent, outfit) => ({
@@ -90,7 +91,7 @@ export class CampaignStyleSystem {
   }
   static headquartersEstablished(sim, c) {
     if (c.current_campaign_style) return;
-    if (c.id === sim.state.local_candidate_id) this.open(sim, c, true);
+    if (isHumanCandidate(sim.state, c.id)) { if (!sim.state.campaign_style_selection) this.open(sim, c, true); }
     else this.select(sim, c, chooseAICampaignStyle(sim.state, sim.config, c), true);
   }
   static open(sim, c, mandatory = false) {
@@ -121,7 +122,7 @@ export class CampaignStyleSystem {
     }
     if (sim.state.campaign_style_selection) return true;
     if (command.type === 'HoldCampaignStyle') {
-      if (c && c.id === sim.state.local_candidate_id) {
+      if (c && isHumanCandidate(sim.state, c.id)) {
         c.style_interaction_held = command.active === true;
         if (c.style_interaction_held) c.purchase_hold = null;
         if (!c.style_interaction_held) c.style_hold = null;
@@ -133,6 +134,7 @@ export class CampaignStyleSystem {
   }
   static update(sim) {
     for (const c of sim.state.candidates) {
+      if (sim.state.campaign_style_selection) break;
       if (!c.current_campaign_style && c.headquarters_site_id && !c.eliminated) { this.headquartersEstablished(sim, c); continue; }
       if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
       c.style_hold ??= { start_tick: sim.state.tick, hits: c.hits_received, x: c.x };

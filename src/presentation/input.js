@@ -4,6 +4,7 @@ export class BrowserInput {
     this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
     this.human = human; this.onAction = onAction; this.canvas = canvas; this.anchorRatio = anchorRatio;
     window.addEventListener('keydown', event => {
+      if (document.getElementById('game')?.inert) return;
       if (event.target.closest?.('#campaign-styles')) return;
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();

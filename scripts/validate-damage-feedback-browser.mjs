@@ -1,3 +1,4 @@
+import { startSolo } from './browser-start.mjs';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -20,6 +21,7 @@ const report={views:[],errors:[]};
 try{
  const context=await browser.newContext({viewport:{width:844,height:390},hasTouch:true});const page=await context.newPage();
  page.on('pageerror',e=>report.errors.push(e.message));await page.goto('http://localhost:2027');await page.waitForSelector('#damage-feedback',{state:'attached'});
+    await startSolo(page);
  async function load(hp,impact=false){await page.locator('#load').setInputFiles({name:'damage.json',mimeType:'application/json',buffer:Buffer.from(snapshot(hp,impact))});if(await page.locator('#help').isVisible())await page.locator('#resume').click();}
  for(const hp of [100,75,40,10]){
   await load(hp);await page.waitForFunction(hp=>{const e=document.querySelector('#damage-feedback');return hp===100?e.hidden:!e.hidden;},hp);

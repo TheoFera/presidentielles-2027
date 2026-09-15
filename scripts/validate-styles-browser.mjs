@@ -1,3 +1,4 @@
+import { startSolo } from './browser-start.mjs';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -34,6 +35,7 @@ try {
     page.on('pageerror', e => report.errors.push(e.message));
     page.on('response', response => { if (response.status() >= 400 && /character-(style|ultimate)-/.test(response.url())) report.errors.push(`${response.status()} ${response.url()}`); });
     await page.goto(baseURL); await page.waitForSelector('#campaign-styles', { state: 'attached' });
+    await startSolo(page);
     for (const faction of Object.keys(CAMPAIGN_STYLES)) {
       await page.locator('#load').setInputFiles({ name: 'styles.json', mimeType: 'application/json', buffer: Buffer.from(snapshot(faction)) });
       await page.waitForSelector('#campaign-styles[open]');
@@ -78,6 +80,7 @@ try {
   });
   const page = await context.newPage(); page.on('pageerror', e => report.errors.push(e.message));
   await page.goto(baseURL); await page.waitForSelector('#campaign-styles', { state: 'attached' });
+    await startSolo(page);
   for (const [faction, styles] of Object.entries(CAMPAIGN_STYLES)) for (const style of styles) {
     await page.locator('#load').setInputFiles({ name: 'style.json', mimeType: 'application/json', buffer: Buffer.from(snapshot(faction)) });
     await page.waitForSelector('#campaign-styles[open]');

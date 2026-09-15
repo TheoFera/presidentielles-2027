@@ -6,6 +6,25 @@ L’IA mène des offensives contre les implantations adverses et utilise les tro
 
 ## Lancer et jouer
 
+### Menu de démarrage
+
+Le jeu s’ouvre sur **Solo** et **Multijoueur**. En Solo, choisis Mélenchon, Le Pen ou Philippe, puis consulte les consignes et les contrôles pendant le chargement des images. **Commencer la campagne** lance la simulation : le temps ne passe pas dans les menus. L’aide en pause et les résultats permettent de revenir à l’accueil.
+
+### Multijoueur : deux ou trois appareils
+
+Sur le même réseau Wi-Fi, l’hôte lance **Lancer le multijoueur.cmd**. La fenêtre affiche l’adresse IPv4 de son ordinateur. Chaque joueur ouvre `http://ADRESSE-IP:2027` dans son navigateur, en remplaçant `ADRESSE-IP` par cette adresse (par exemple `http://192.168.1.20:2027`). Si Windows le demande, autorise Node.js sur le réseau privé.
+
+1. L’hôte choisit **Multijoueur**, son candidat, puis **Créer un salon**.
+2. Les autres choisissent un candidat différent et saisissent le code du salon.
+3. À partir de deux joueurs, l’hôte peut préparer la partie. À deux, le troisième candidat est contrôlé par l’ordinateur.
+4. Chacun lit le tutoriel puis clique sur **Je suis prêt**. La campagne commence lorsque tous les joueurs sont prêts.
+
+Chaque appareil possède sa caméra et ses commandes habituelles. La pause est partagée ; masquer un onglet met la partie en pause. Le choix de style d’un joueur suspend aussi la campagne. Une déconnexion termine le salon avec un message explicite. Il faut alors créer un nouveau salon ; les salons ne sont pas sauvegardés. L’hôte garde son onglet ouvert : son navigateur calcule la partie, et le serveur relaie les commandes et l’état du monde.
+
+**Pour jouer à distance par Internet**, il faut héberger ce serveur Node.js sur une adresse accessible aux joueurs, avec HTTPS et prise en charge des connexions SSE. Le serveur se lance avec `HOST=0.0.0.0` et le port défini par `PORT` (2027 par défaut). Aucun service public n’est déployé automatiquement. GitHub Pages conserve le mode Solo et explique l’absence de serveur lorsqu’on ouvre Multijoueur.
+
+Vérification du serveur et des règles multijoueurs : `npm run test:multijoueur`. Le script `scripts/validate-start-menu-browser.mjs` vérifie les parcours dans Chrome, avec Playwright accessible via `CAMPAIGN_TEST_NODE_MODULES`.
+
 ### Sur téléphone et GitHub Pages
 
 Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni installation sur le téléphone n’est nécessaire. La publication doit d’abord être activée sur GitHub.
@@ -46,7 +65,7 @@ Un Institut actif publie un sondage toutes les **2,5 secondes**. Fermé, il cons
 
 À zéro, les **scores réels des finalistes** décident du vainqueur, même si le sondage est ancien. Les Neutres restent possibles. Une égalité déclenche **15 secondes supplémentaires**, renouvelées si nécessaire.
 
-Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel finaliste suivre, sans contrôler son camp. **Rejouer** crée une partie entièrement neuve avec le même candidat ; **Retour à l’accueil** prépare une nouvelle campagne en pause sur l’aide.
+Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel finaliste suivre, sans contrôler son camp. En Solo, **Rejouer** prépare une partie neuve avec le même candidat ; **Retour à l’accueil** ouvre le menu Solo / Multijoueur. En multijoueur, reviens à l’accueil pour créer un nouveau salon.
 
 ## Tester la fin rapidement
 

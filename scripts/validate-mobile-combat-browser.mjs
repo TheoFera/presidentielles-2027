@@ -1,3 +1,4 @@
+import { startSolo } from './browser-start.mjs';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -28,6 +29,7 @@ try {
  const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
  await page.goto(process.env.CAMPAIGN_TEST_URL || 'http://localhost:2027');
  await page.waitForSelector('#campaign-styles',{state:'attached'});
+    await startSolo(page);
  async function load(f,i,charge=0){
   await page.locator('#load').setInputFiles({name:'combat.json',mimeType:'application/json',buffer:Buffer.from(snapshot(f,i,charge))});
   if(await page.locator('#help').isVisible()) await page.locator('#resume').click();

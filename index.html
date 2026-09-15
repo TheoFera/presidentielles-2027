@@ -8,9 +8,11 @@
     <link rel="icon" href="data:,">
   <link rel="stylesheet" href="src/style.css">
   <link rel="stylesheet" href="src/presentation/illustrated-ui.css">
+  <link rel="stylesheet" href="src/presentation/start-menu.css">
   </head>
   <body>
-    <main id="game" aria-label="Prototype jouable de Présidentielles 2027">
+    <section id="start-menu" aria-label="Menu de Présidentielles 2027"><p class="boot-message" role="status">Préparation du jeu…</p></section>
+    <main id="game" inert aria-label="Prototype jouable de Présidentielles 2027">
       <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour attaquer, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
       <div id="touch-controls" aria-label="Commandes tactiles">
         <div class="touch-directions">
@@ -34,6 +36,7 @@
         <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
       </div>
       <div id="notice" role="status"></div>
+      <div id="network-status" hidden role="status"></div>
       <div id="hint">← → ou Q / D : marcher · Double appui : esquiver · Espace / J : frapper · R : ultime · H : aide · F3 : débogage</div>
       <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
       <div id="phase-banner" hidden role="status"></div>
@@ -74,6 +77,7 @@
         <p class="subtle" id="balance-help"></p>
         <p class="subtle">Un achat ou une amélioration de bâtiment par visite : éloigne-toi, puis reviens pour le niveau suivant. À l’Imprimerie, rester sur place commande plusieurs tracts, dans la limite de la file et des fonds. Les Militants recrutent seuls ; les Sympathisants restent dans leur secteur.</p>
         <button id="resume">Reprendre la campagne</button>
+        <button id="pause-home">Retour au menu principal</button>
       </section>
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>

@@ -1,0 +1,45 @@
+#start-menu { position: fixed; inset: 0; z-index: 10; overflow-y: auto; color: #243d48; background: linear-gradient(120deg, #f7eddaef, #f7eddae8), url('../../assets/generated/biomes/background-0.png') center / cover; padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); }
+#start-menu::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 7px; background: linear-gradient(to right, #344d73 0 33.33%, #fff9ea 33.33% 66.66%, #b85342 66.66%); }
+.menu-shell { width: min(1080px, 100%); margin: auto; padding: 24px 0; }
+.menu-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 36px; }
+.menu-brand { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+#start-menu .eyebrow { color: #825b38; font-weight: 800; }
+#start-menu h1 { font-size: clamp(30px, 5.5vw, 64px); line-height: 1.04; margin: 14px 0 20px; font-weight: 850; max-width: 800px; }
+#start-menu h1:focus { outline: none; }
+.menu-intro { font-size: clamp(16px, 1.8vw, 20px); max-width: 670px; color: #52636a; }
+.menu-home { padding: min(9vh, 70px) 0 20px; }
+.menu-home h1 span { color: #b34f3d; display: block; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 780px; margin: 36px 0 28px; }
+#start-menu .mode-card { text-align: left; padding: 26px; border-radius: 14px; background: #fffaf0; }
+.mode-card strong { display: block; font-size: 27px; margin-bottom: 10px; }
+.mode-card small { display: block; font-weight: 450; font-size: 15px; line-height: 1.5; }
+#start-menu .mode-card:first-child { background: #294955; color: #fff6e3; }
+#start-menu button { min-height: 44px; }
+#start-menu button:disabled { cursor: wait; opacity: .55; }
+.candidate-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 28px 0; }
+#start-menu .candidate-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 18px; border: 2px solid #baa98c; border-radius: 14px; background: #fffaf0; }
+#start-menu .candidate-card[aria-pressed="true"] { border-color: #294955; box-shadow: 0 0 0 3px #294955, 0 7px 0 #29495520; background: #f2e5c9; }
+.candidate-card img { width: 100%; height: clamp(115px, 23vh, 215px); object-fit: contain; margin: 8px 0 16px; }
+.candidate-card strong { font-size: clamp(17px, 2vw, 23px); }
+.candidate-card small { color: #5e6867; margin-top: 10px; font-weight: 450; line-height: 1.4; }
+.candidate-badge { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.menu-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 24px; }
+.menu-note { color: #617077; font-size: 14px; line-height: 1.5; }
+#start-menu .menu-primary { background: #294955; color: #fff6e3; padding: 14px 25px; }
+.tutorial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0; }
+.tutorial-card { padding: 22px; border: 1px solid #cdbb9f; border-radius: 12px; background: #fffaf0b3; }
+.tutorial-card h2 { font-size: 20px; margin: 0 0 12px; }
+.tutorial-card p { margin: 10px 0; }
+.tutorial-card dl { font-size: 14px; gap: 9px; }
+.menu-loading { width: 100%; height: 12px; accent-color: #294955; }
+.menu-status { min-height: 24px; }
+.boot-message { text-align: center; margin-top: 40vh; }
+#pause-home { width: 100%; margin-top: 12px; }
+.room-code { font-size: 40px; letter-spacing: .2em; font-weight: 850; margin: 16px 0; }
+#room-form label { display: block; margin-bottom: 8px; }
+#room-form input, #room-form select { max-width: 100%; min-height: 44px; margin-bottom: 12px; }
+#room-error { color: #963b31; }
+#network-status { position: absolute; z-index: 3; top: 28%; left: 15%; right: 15%; padding: 12px; text-align: center; background: #fff5df; border: 2px solid #354044; border-radius: 8px; }
+#error { z-index: 20; position: fixed; }
+@media(max-width: 600px) { .menu-header { margin-bottom: 24px; } .menu-shell { padding-top: 8px; } .mode-grid, .tutorial-grid { grid-template-columns: 1fr; } .mode-grid { margin-top: 24px; } .candidate-grid { grid-template-columns: 1fr; gap: 12px; } #start-menu .candidate-card { display: grid; grid-template-columns: 85px 1fr; text-align: left; column-gap: 16px; } .candidate-card img { grid-column: 1; grid-row: 1 / 4; height: 110px; margin: 0; } .candidate-card strong, .candidate-card small, .candidate-badge { grid-column: 2; } .menu-home { padding-top: 20px; } .menu-footer .menu-primary { width: 100%; } }
+@media(max-height: 500px) and (min-width: 601px) { .menu-shell { padding-top: 0; } .menu-header { margin-bottom: 16px; } .menu-home { padding-top: 0; } #start-menu h1 { font-size: 34px; } .candidate-card img { height: 110px; } .candidate-grid { margin: 16px 0; } }

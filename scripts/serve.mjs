@@ -3,9 +3,12 @@ import { readFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { createMultiplayerHandler } from './multiplayer-server.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.PORT || 2027);
+const host = process.env.HOST || '127.0.0.1';
+const multiplayer = createMultiplayerHandler();
 const url = `http://localhost:${port}`;
 function openBrowser() {
   if (!process.argv.includes('--open')) return;
@@ -18,10 +21,14 @@ function openBrowser() {
 }
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.md': 'text/plain; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
+  if (await multiplayer(req, res)) return;
   try {
     const urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const file = path.resolve(root, `.${urlPath === '/' ? '/index.html' : urlPath}`);
     const relative = path.relative(root, file);
+    const normalizedPath = '/' + relative.split(path.sep).join('/');
+    const publicPath = normalizedPath === '/index.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/generated/') || /^\/Présidentielles 2027\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
+    if (!publicPath) { res.writeHead(404).end('Fichier introuvable.'); return; }
     if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(path.sep).some(p => p.startsWith('.'))) {
       res.writeHead(403).end('Accès refusé.'); return;
     }
@@ -39,7 +46,7 @@ server.on('error', error => {
   process.exitCode = 1;
   if (error.code === 'EADDRINUSE') openBrowser();
 });
-server.listen(port, '127.0.0.1', () => {
+server.listen(port, host, () => {
   console.log(`Prototype prêt : ${url}\nLaisse ce terminal ouvert. Ctrl+C pour arrêter.`);
   openBrowser();
 });
