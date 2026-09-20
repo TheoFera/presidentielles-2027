@@ -111,10 +111,10 @@
     "target_radius": 0.35,
     "ai_detection_range": 5,
     "charge_activation_seconds": 0.2,
-    "charge_ready_seconds": 1.5,
+    "charge_ready_seconds": 1,
     "charged_damage": 21,
     "charged_stun_seconds": 0.3,
-    "jump_height_ratio": 1.8,
+    "jump_height_ratio": 1,
     "jump_duration_seconds": 0.8
   },
   "special_charge": {
@@ -131,7 +131,7 @@
   },
   "specials": {
     "melenchon_holograms": {
-      "count": 5,
+      "count": 4,
       "duration_seconds": 7,
       "move_speed": 5.5,
       "hidden_damage_per_hit": 7,
@@ -145,7 +145,7 @@
       "appearance_seconds": 0.5
     },
     "le_pen_navy_wave": {
-      "range_screens": 0.9,
+      "range_screens": 0.7,
       "travel_speed": 15,
       "sympathisant_instant_demobilize": true,
       "militant_damage_fraction_of_full_durability": 0.85,
@@ -171,12 +171,12 @@
     "surge": {
       "count": 7,
       "appearance_seconds": 0.25,
-      "duration_seconds": 4,
-      "speed": 9,
-      "range": 0.8,
+      "duration_seconds": 2.5,
+      "speed": 8,
+      "range": 0.7,
       "damage": 10.0,
-      "knockback": 2.5,
-      "stun_seconds": 1,
+      "knockback": 1.5,
+      "stun_seconds": 0.5,
       "contact_cooldown_seconds": 0.8
     },
     "fire": {
