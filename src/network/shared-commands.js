@@ -1,4 +1,4 @@
-const allowed = new Set(['Move', 'Attack', 'Dash', 'ActivateUltimate', 'SetCampaignActive', 'InteractionPresence', 'HoldCampaignStyle', 'SelectCampaignStyle', 'CancelCampaignStyle']);
+const allowed = new Set(['Move', 'Attack', 'PressAttack', 'ReleaseAttack', 'CancelAttack', 'Jump', 'Dash', 'ActivateUltimate', 'SetCampaignActive', 'InteractionPresence', 'HoldCampaignStyle', 'SelectCampaignStyle', 'CancelCampaignStyle']);
 export function sanitizeCommands(commands, faction) {
   if (!Array.isArray(commands) || commands.length > 20) throw new Error('Commandes invalides.');
   return commands.map(command => {

@@ -82,13 +82,15 @@ test('Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; cha
   CampaignStyleSystem.select(c.sim,c.c,CAMPAIGN_STYLES.le_pen[0].id,true); assert.equal(c.c.bardella_guardian_armed,false);
 });
 for (const [faction, styles] of Object.entries(CAMPAIGN_STYLES)) for (let i=0;i<styles.length;i++) {
-  test(`${styles[i].ultimate.name} : commande R en campagne et refus explicite pendant un coup`, () => {
+  test(`${styles[i].ultimate.name} : commande R prioritaire pendant un coup, refus pendant le stun`, () => {
     const { sim, c } = setup(faction, i); c.special_charge = 10;
     requestAttack(sim, c); ticks(sim, 1, true);
-    assert.match(ultimateBlockedReason(sim, c), /Attaque en cours/);
+    c.combat.stun_ticks = 2;
+    assert.match(ultimateBlockedReason(sim, c), /étourdi/);
     sim.applyCommand({ type: 'ActivateUltimate', candidateId: c.id });
     assert.equal(c.special_charge, 10);
-    ticks(sim, 30, true);
+    c.combat.stun_ticks = 0;
+    assert.ok(c.combat.attack_id);
     assert.equal(ultimateBlockedReason(sim, c), null);
     sim.applyCommand({ type: 'ActivateUltimate', candidateId: c.id });
     assert.equal(c.special_charge, 0);

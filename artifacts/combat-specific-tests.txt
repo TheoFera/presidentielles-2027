@@ -1,0 +1,280 @@
+✔ Trois difficultés configurables, sauvegardées et validées sans bonus économiques (140.1446ms)
+✔ Chaque IA peut tirer chacun des trois styles de son candidat malgré les cadenas du joueur (22.1392ms)
+✔ L’IA joue réellement l’ultime Hologrammes (22.1585ms)
+✔ L’IA joue réellement l’ultime Déferlante encapuchonnée (14.4853ms)
+✔ L’IA joue réellement l’ultime Gilet jaune (15.4047ms)
+✔ L’IA joue réellement l’ultime Vague bleu marine (22.6295ms)
+✔ L’IA joue réellement l’ultime Invocation Zemmour (20.6125ms)
+✔ L’IA joue réellement l’ultime Bardellisation (56.08ms)
+✔ L’IA joue réellement l’ultime Protection CRS (22.0151ms)
+✔ L’IA joue réellement l’ultime Écharpe du maire (18.2939ms)
+✔ L’IA joue réellement l’ultime Super Européiste (12.9509ms)
+✔ Après sa relève, Bardella continue à frapper au lieu de demander un ultime refusé (12.3196ms)
+✔ Conquête : territoire du joueur ou d’une IA, mêmes décisions et trajet circulaire (16.562ms)
+✔ Un objectif de conquête persiste, puis est remplacé après sa capture (13.4958ms)
+✔ CAMPAIGN : attaque et démobilise les soutiens adverses (47.5634ms)
+✔ SECOND_ROUND_SPRINT : attaque et démobilise les soutiens adverses (38.1712ms)
+✔ L’IA capture son QG par maintien et paie le prix normal dès qu’elle a deux soutiens (153.3797ms)
+✔ Offensive complète : affaiblir les soutiens, neutraliser puis reprendre un site du joueur (590.1882ms)
+✔ Le cabinet administratif de Philippe cible une fermeture adverse (36.0693ms)
+✔ L’IA déclenche un raid disponible dans la direction des bâtiments ennemis (14.3788ms)
+✔ Difficulté : cadence de combat distincte, dash offensif et repli après blessure (57.6325ms)
+✔ La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile (12.5239ms)
+✔ Reprise déterministe : objectifs, styles, RNG et décisions ne dépendent pas du contrôleur en mémoire (1765.0551ms)
+✔ Charge : seuil exact à 6 ticks, prête à 45, aucun coup avant relâchement (123.7345ms)
+✔ Protection : dégâts reçus, aucun recul/stun, seul le troisième coup brise la charge (19.0798ms)
+✔ La frappe chargée reste protégée jusqu’à sa récupération ; un KO reste possible (15.1223ms)
+✔ Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (campagne) (14.0219ms)
+✔ Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (arène) (15.8986ms)
+✔ Dash : annule seulement s’il peut partir, sans frappe fantôme au relâchement (16.1095ms)
+✔ Troisième coup : sort de la portée de mêlée ; recul limité aux bords de l’arène (41.4426ms)
+✔ Saut : sommet à 1,8 hauteur, durée 24 ticks, attaques possibles, pas de dash ni double saut (37.5495ms)
+✔ Maintien commencé en vol : ne devient pas une charge à l’atterrissage (31.5548ms)
+✔ Ultime : annule charge, dash, recul, interaction et hitstop ; préserve le saut (88.387ms)
+✔ Sauvegarde : charge et saut reprennent à l’identique ; ancien format refusé (40.517ms)
+✔ Réseau : appui/relâchement autorisés et attribués au bon candidat ; priorité ultime locale (1.5744ms)
+✔ IA : termine sa charge et privilégie le combo contre une charge adverse (16.4885ms)
+✖ Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines (90.4087ms)
+✔ Une attente annule le combo ; le coup manqué ne charge rien ; anticipation et recul sont simulés (53.8739ms)
+✔ Les Neutres, alliés et démobilisés sont exclus des impacts ; le SO possède 90 de résistance (31.5613ms)
+✔ Dégâts électoraux proportionnels uniquement dans les territoires contrôlés, vers les Neutres (11.025ms)
+✔ Un Militant attaque à distance, ignore les S comme cible prioritaire et reprend sa prospection (142.4885ms)
+✔ Vitesse des Militants réduite et plafonnée à deux fois celle du joueur (4.094ms)
+✖ Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet (4.789ms)
+✖ Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée (3.146ms)
+✖ Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau (4.9581ms)
+✔ Défense SO : intercepte un candidat dans son biome, cesse la poursuite à sa sortie (565.2595ms)
+✖ Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome (4.6244ms)
+✖ Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante (4.1043ms)
+✖ Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant (4.0538ms)
+✖ Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes (7.001ms)
+✖ Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen (34.819ms)
+✔ Plusieurs SO augmentent la pression par leurs attaques, sans ajouter de PV au candidat (561.1902ms)
+✖ Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence (100.8153ms)
+✖ CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles (86.2759ms)
+✖ Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement (17.3209ms)
+✔ Humain et IA passent par Attack ; l’appui bref est conservé et ne se répète pas (15.3368ms)
+✔ Combat déterministe à plusieurs FPS, y compris projectiles et unités temporaires (652.944ms)
+✖ L’attaque et la vague traversent correctement la jonction du monde (14.4623ms)
+✔ L’invitation directe conserve la description et refuse une réponse utilisée comme invitation (3.5604ms)
+✔ Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne (63.9604ms)
+✔ Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée (13.7611ms)
+✔ L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée (0.9064ms)
+✔ Les commandes réseau sont limitées au candidat attribué et excluent le débogage (0.5486ms)
+✔ Salons : candidats uniques, autorisations, préparation de tous les joueurs et fermeture (154.7451ms)
+✔ Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé (38.1127ms)
+ℹ tests 65
+ℹ suites 0
+ℹ pass 52
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3436.2981
+
+✖ failing tests:
+
+test at test\combat.test.js:45:1
+✖ Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines (90.4087ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 4
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:54:12)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.start (node:internal/test_runner/test:877:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 4,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:116:1
+✖ Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet (4.789ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'x')
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:120:25)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:130:1
+✖ Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée (3.146ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:131:45)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:145:1
+✖ Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau (4.9581ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:147:54)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:167:1
+✖ Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome (4.6244ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:168:45)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:180:1
+✖ Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante (4.1043ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:181:61)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:195:1
+✖ Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant (4.0538ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:196:60)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:206:1
+✖ Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes (7.001ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  10 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:210:42)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 10,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:220:1
+✖ Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen (34.819ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'SYMPATHISANT'
+  - 'DEMOBILISE'
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:229:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'SYMPATHISANT',
+    expected: 'DEMOBILISE',
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:243:1
+✖ Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence (100.8153ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(sim.state.hit_results.some(h => h.source_id.startsWith('temporary:')))
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:247:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '=='
+  }
+
+test at test\combat.test.js:252:1
+✖ CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles (86.2759ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:256:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:265:1
+✖ Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement (17.3209ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'expires_tick')
+      at s.temporary_units.<computed>.temporary (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:268:114)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:269:36)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:295:1
+✖ L’attaque et la vague traversent correctement la jonction du monde (14.4623ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'SYMPATHISANT'
+  - 'DEMOBILISE'
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/Documents/Programmation/Presidentielles%202027/test/combat.test.js:299:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'SYMPATHISANT',
+    expected: 'DEMOBILISE',
+    operator: 'strictEqual'
+  }

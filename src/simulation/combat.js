@@ -1,3 +1,4 @@
+import { airborne, charging, cancelCharge, updateActions, verticalHit } from './combat-actions.js';
 import { updateMobileCombat, successfulNormalHit, changeCharge, actionAllowed } from './mobile-combat.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEffects } from './style-ultimates.js';
@@ -12,11 +13,36 @@ export function requestAttack(sim, actor, direction = null) {
   if ([-1, 1].includes(direction)) actor.combat.requested_direction = direction;
 }
 
+export function attackInput(sim, actor, type) {
+  if (type === 'CancelAttack') { cancelCharge(actor); actor.combat.buffer_until_tick = -1; return; }
+  const c = actor.combat, b = sim.config.balance.candidate_combat;
+  if (type === 'ReleaseAttack') {
+    if (c.press_tick == null) return;
+    const ready = !c.press_airborne && charging(actor) && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_ready_seconds);
+    cancelCharge(actor);
+    if (!ready) { requestAttack(sim, actor); return; }
+    if (interrupted(actor) || actor.is_ko) return;
+    c.combo_step = 0; c.combo_expires_tick = 0; c.buffer_until_tick = -1;
+    makeAttack(sim, actor, 'CHARGED', { strong: true, step: 0, range: b.finisher_range,
+      damage: b.charged_damage, knockback: 0, stun_seconds: b.charged_stun_seconds,
+      electoral_damage: b.electoral_damage_on_finisher_percent_points });
+    return;
+  }
+  if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id
+    || actor.dash_active || c.stun_ticks || c.press_tick != null) return;
+  if (type === 'PressAttack') { c.press_tick = sim.state.tick; c.press_airborne = airborne(actor); }
+  if (type === 'Jump' && !airborne(actor) && !interrupted(actor) && Math.abs(c.knockback_velocity) <= 0.02) {
+    cancelCharge(actor); c.jump_tick = sim.state.tick; c.height = 0;
+    actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
+  }
+}
+
 export function beginCombatTick(sim) {
   const { state, config, hz } = sim;
   updateMobileCombat(sim);
   for (const actor of combatActors(state)) {
     actor.moving = !!actor.dash_active;
+    updateActions(sim, actor);
     const c = actor.combat;
     if (sim.state.tick > c.combo_expires_tick) c.combo_step = 0;
     c.engaged = false;
@@ -84,10 +110,7 @@ export function ultimateBlockedReason(sim, actor) {
   if (activeCampaignStyle(sim.config, actor).ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return 'Bardellisation déjà utilisée pour cette vie.';
   if (actor.ultimate_effect) return 'Un effet d’ultime est encore actif.';
   if (actor.special_charge < sim.config.balance.special_charge.required_points) return `Ultime chargé à ${Math.floor(100 * actor.special_charge / sim.config.balance.special_charge.required_points)} % : touche des adversaires pour le recharger.`;
-  if (actor.combat.attack_id) return 'Attaque en cours : appuie sur R après la fin du coup.';
-  if (actor.dash_active) return 'Esquive en cours : appuie sur R après le dash.';
-  if (actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || Math.abs(actor.combat.knockback_velocity) > 0.02) return 'Impact ou étourdissement en cours : attends de reprendre le contrôle.';
-  if (!actionAllowed(sim, actor)) return 'Interaction en cours : termine-la ou quitte la zone avant de lancer l’ultime.';
+  if (actor.combat.stun_ticks > 0) return 'Personnage étourdi : attends de reprendre le contrôle.';
   return null;
 }
 
@@ -95,6 +118,15 @@ export function activateUltimate(sim, actor) {
   if (ultimateBlockedReason(sim, actor)) return;
   const style = activeCampaignStyle(sim.config, actor);
   if (!style || style.ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return;
+  cancelCharge(actor);
+  sim.state.attacks = sim.state.attacks.filter(a => a.owner_id !== actor.id);
+  Object.assign(actor.combat, { attack_id: null, buffer_until_tick: -1, requested_direction: null, hitstop_ticks: 0, knockback_velocity: 0 });
+  actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
+  actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false; actor.interaction_active = false;
+  actor.interaction_locked = false; actor.axis = 0;
+  const meeting = sim.state.campaign_events?.find(e => e.id === actor.crisis_meeting_id && e.attempt?.candidate_id === actor.id);
+  if (meeting) { meeting.attempt = null; meeting.retry_tick = sim.state.tick + sim.secondsToTicks(1); sim.emit('InterruptCrisisMeeting', { campaign_event_id: meeting.id, candidate_id: actor.id }); }
+  actor.crisis_meeting_id = null;
   changeCharge(sim, actor, 0); actor.combat.combo_step = 0;
   actor.active_ultimate_id = style.ultimate.kind;
   sim.emit('UltimateActivated', { candidate_id: actor.id, kind: style.ultimate.kind });
@@ -135,7 +167,7 @@ function triggerSpecial(sim, actor) {
 
 function meleeTargets(sim, owner, attack) {
   const radius = sim.config.balance.candidate_combat.target_radius;
-  return combatActors(sim.state).filter(t => enemies(owner, t) && !attack.hit_ids.includes(t.id)
+  return combatActors(sim.state).filter(t => verticalHit(sim.config, owner, t, attack) && enemies(owner, t) && !attack.hit_ids.includes(t.id)
     && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
     && distance(sim.state, owner.x, t.x) <= attack.range + radius)
     .sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
@@ -160,7 +192,7 @@ function updateAttacks(sim) {
         for (const target of (attack.kind === 'SCARF' ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
-          if (attack.kind === 'CANDIDATE' && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
+          if (['CANDIDATE', 'CHARGED'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
         }
         }
       }
@@ -180,7 +212,7 @@ function updateProjectiles(sim) {
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     if (updateMolotov(sim, p, step)) continue;
     const radius = config.balance.candidate_combat.target_radius;
-    const targets = combatActors(state).filter(t => enemies(owner, t) && !p.hit_ids.includes(t.id)
+    const targets = combatActors(state).filter(t => verticalHit(config, owner, t, p) && enemies(owner, t) && !p.hit_ids.includes(t.id)
       && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT')
       && combatDelta(state, p.x, t.x) * p.direction >= -radius
       && combatDelta(state, p.x, t.x) * p.direction <= step + radius)

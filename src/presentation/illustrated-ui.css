@@ -54,3 +54,19 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
   opacity: var(--damage-opacity, 0); }
 #damage-feedback[hidden] { display: none; }
 #touch-controls, #game-menu { z-index: 2; }
+
+/* Reserve the upper row so the other actions never move when the ultimate appears. */
+.touch-actions { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 8px; align-items: end; }
+#touch-controls #jump-touch { grid-column: 1; grid-row: 2; }
+#touch-controls #attack-touch { grid-column: 2; grid-row: 2; }
+#touch-controls #ultimate-touch { grid-column: 2; grid-row: 1; }
+#touch-controls #bardella-armed { grid-column: 1; grid-row: 1; }
+#touch-controls #attack-touch.charging { background: linear-gradient(to right, #89cddd var(--focus, 0%), #e5e0cded var(--focus, 0%)); }
+
+#touch-controls { align-items: flex-end; }
+#touch-controls .touch-actions { grid-template-rows: minmax(48px, auto) auto; }
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+  #touch-controls { display: flex; }
+  #touch-controls .touch-directions, #touch-controls #jump-touch, #touch-controls #attack-touch { display: none; }
+  #touch-controls .touch-actions { margin-left: auto; }
+}

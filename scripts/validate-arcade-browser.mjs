@@ -37,7 +37,13 @@ async function open(viewport, touch = true) {
   await page.evaluate(async () => {
     const { GameSimulation } = await import('/src/simulation/game-simulation.js');
     const get = GameSimulation.prototype.getState;
-    GameSimulation.prototype.getState = function () { const value = get.call(this); window.testState = value; return value; };
+    GameSimulation.prototype.getState = function (...args) { const value = get.apply(this, args); window.testSimulation = this; window.testState = value; return value; };
+    const { PeerSession } = await import('/src/network/peer-session.js');
+    const receive = PeerSession.prototype.receive;
+    PeerSession.prototype.receive = function (peer, packet) {
+      receive.call(this, peer, packet);
+      if (peer.snapshot) window.receivedState = peer.snapshot;
+    };
   });
   return page;
 }
@@ -134,7 +140,7 @@ try {
   await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }] });
   await guest.waitForTimeout(800); await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await host.waitForFunction(x => window.testState.candidates.find(c => c.faction_id === 'le_pen').x > x + 1, x);
-  report.flows.push('Deux téléphones : connexion directe, départ synchronisé et déplacement invité');
+  report.flows.push('Deux navigateurs tactiles : connexion directe, départ synchronisé et déplacement invité');
   await guest.locator('#pause-touch').click(); await host.locator('#help').waitFor();
   await guest.locator('#pause-home').click(); await host.locator('#disconnect-message').waitFor();
   await fits(host, '#start-menu', 'Déconnexion');
@@ -149,7 +155,18 @@ try {
   const x3 = await host.evaluate(() => window.testState.candidates.find(c => c.faction_id === 'philippe').x);
   await third.keyboard.down('ArrowRight'); await third.waitForTimeout(800); await third.keyboard.up('ArrowRight');
   await host.waitForFunction(x => window.testState.candidates.find(c => c.faction_id === 'philippe').x > x + 1, x3);
-  report.flows.push('Trois téléphones : troisième candidat contrôlé à distance, aucune API utilisée');
+  report.flows.push('Trois navigateurs tactiles : troisième candidat contrôlé à distance, aucune API utilisée');
+  await host.evaluate(() => window.testSimulation.applyCommand({ type: 'DebugAdvanceCampaign', remaining: 0 }));
+  for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'FIRST_ROUND_ARENA' && window.receivedState.arena.tick > 20);
+  await host.evaluate(() => window.testSimulation.applyCommand({ type: 'DebugFinishArena', factionId: 'philippe' }));
+  for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'SECOND_ROUND_SPRINT');
+  await host.evaluate(async () => {
+    const { finishSprint } = await import('/src/simulation/match-lifecycle.js');
+    for (const e of window.testSimulation.state.electorate) e.support = { melenchon: 60, le_pen: 30, philippe: 0, neutral: 10 };
+    finishSprint(window.testSimulation);
+  });
+  for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'RESULTS');
+  report.flows.push('Trois navigateurs : fin du décompte, duel, élimination et résultat synchronisés sans déconnexion');
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.layoutErrors, []);
   console.log(JSON.stringify(report, null, 2));

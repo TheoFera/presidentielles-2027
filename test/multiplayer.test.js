@@ -6,15 +6,71 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignStyleSystem, CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
 import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
-import { encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
+import { PeerSession, encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
+import { stateDelta, applyStateDelta, presentationState } from '../src/network/state-stream.js';
+import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
 
 test('L’invitation directe conserve la description et refuse une réponse utilisée comme invitation', () => {
   const data = { type: 'offer', id: 'joueur-2', fingerprint: 'abc', description: { type: 'offer', sdp: 'v=0\r\na=candidate:1 local\r\n' } };
   const encoded = encodeInvitation(data);
-  assert.deepEqual(decodeInvitation(encoded, 'offer'), { version: 1, ...data });
+  assert.deepEqual(decodeInvitation(encoded, 'offer'), { version: 2, ...data });
   assert.throws(() => decodeInvitation(encoded, 'answer'));
   assert.throws(() => decodeInvitation('un code invalide', 'offer'));
-  assert.throws(() => decodeInvitation(encodeInvitation({ ...data, version: 2 }), 'offer'));
+  assert.throws(() => decodeInvitation(encodeInvitation({ ...data, version: 1 }), 'offer'));
+});
+
+test('Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne', () => {
+  const sim = new GameSimulation(campaignConfig(), 2027);
+  let baseline, received;
+  const transfer = () => {
+    const delta = stateDelta(sim.state, baseline);
+    baseline = delta.next;
+    received = applyStateDelta(received, JSON.parse(JSON.stringify(delta.packet)));
+    assert.deepEqual(received, presentationState(sim.state));
+    return JSON.stringify(delta.packet).length;
+  };
+  transfer(); startArena(sim); transfer();
+  const saved = JSON.stringify(sim.state.campaign_snapshot);
+  assert.equal(sim.getState({ presentation: true }).campaign_snapshot, null);
+  assert.equal(JSON.stringify(sim.state.campaign_snapshot), saved);
+  sim.step([]);
+  assert.ok(transfer() < JSON.stringify(sim.state).length / 5, 'Le duel ne retransmet pas le monde figé');
+  finishArena(sim, 'philippe'); transfer();
+  for (const e of sim.state.electorate) e.support = { melenchon: 60, le_pen: 30, philippe: 0, neutral: 10 };
+  finishSprint(sim); transfer();
+  assert.equal(received.phase, 'RESULTS');
+});
+
+test('Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée', t => {
+  const errors = [], snapshots = [];
+  const host = new PeerSession({ ended: error => errors.push(error) }, 'test');
+  const guest = new PeerSession({ ended: error => errors.push(error), snapshot: state => snapshots.push(state) }, 'test');
+  guest.room = { phase: 'playing' };
+  let saturated = true, maxBuffered = 0;
+  const incoming = { readyState: 'open', bufferedAmount: 0 };
+  const receiver = { connection: { close() {} } }; guest.bindChannel(receiver, incoming);
+  const channel = { readyState: 'open', bufferedAmount: 0, send(text) {
+    if (saturated) { const error = new Error('full'); error.name = 'OperationError'; throw error; }
+    this.bufferedAmount += Buffer.byteLength(text); maxBuffered = Math.max(maxBuffered, this.bufferedAmount);
+    incoming.onmessage({ data: text });
+  } };
+  const peer = { connection: { close() {} } }; host.bindChannel(peer, channel); host.peers.set('guest', peer);
+  t.after(() => { host.close(); guest.close(); });
+  const first = { tick: 1, text: 'é'.repeat(300000), campaign_snapshot: { huge: 'ignored' } };
+  assert.equal(host.send(peer, 'snapshot', first), true);
+  assert.equal(host.send(peer, 'snapshot', { ...first, tick: 2 }), false);
+  assert.equal(host.send(peer, 'ping', {}), true);
+  saturated = false;
+  while (peer.outbox.length) { channel.bufferedAmount = 0; channel.onbufferedamountlow(); }
+  assert.equal(snapshots.length, 1);
+  assert.equal(snapshots[0].tick, 1);
+  channel.bufferedAmount = 0;
+  host.send(peer, 'snapshot', { ...first, tick: 3 });
+  while (peer.outbox.length) { channel.bufferedAmount = 0; channel.onbufferedamountlow(); }
+  assert.equal(snapshots[1].tick, 3);
+  assert.equal(snapshots[1].text, first.text);
+  assert.ok(maxBuffered < 65000);
+  assert.deepEqual(errors, []);
 });
 
 test('L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée', () => {

@@ -75,6 +75,8 @@ async function start() {
   let remote = new Map();
   let networkElapsed = 0;
   let networkBusy = false;
+  let snapshotReceivedAt = 0;
+  let snapshotInterval = 100;
   let simulationSpeed = 1;
   let wasHidden = false;
   let noticeRemaining = 0;
@@ -138,7 +140,11 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
     if (state.campaign_style_selection) return;
-    if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
+    if (key === 'attack-cancel') { human.cancelAttack(); }
+    else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
+    else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
+    else if (key === 'arrowup') { if (!paused) human.jump(); }
+    else if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
     else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) {
       if (!paused) {
         const view = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
@@ -242,6 +248,9 @@ async function start() {
       },
       snapshot: snapshot => {
         if (!session || session.host || menu.active) return;
+        const now = performance.now();
+        snapshotInterval = snapshotReceivedAt ? Math.max(50, Math.min(250, now - snapshotReceivedAt)) : 100;
+        snapshotReceivedAt = now;
         if (snapshot.multiplayer_profile) stylesDisplay.profile = snapshot.multiplayer_profile;
         previous = state; state = { ...snapshot, local_candidate_id: session.candidateId };
         if (previous.phase !== state.phase) { previous = state; input.clear(); renderer.resetCamera(); }
@@ -268,7 +277,7 @@ async function start() {
       const controller = remote.get(candidate.id);
       const recent = controller && performance.now() - controller.seen < 1000;
       const commands = [{ type: 'Move', candidateId: candidate.id, axis: recent ? controller.axis : 0 }, { type: 'InteractionPresence', candidateId: candidate.id, active: true }, { type: 'SetCampaignActive', candidateId: candidate.id, active: true }, ...(recent ? controller.actions.splice(0) : [])];
-      if (!recent) commands.push({ type: 'HoldCampaignStyle', candidateId: candidate.id, active: false });
+      if (!recent) commands.push({ type: 'CancelAttack', candidateId: candidate.id }, { type: 'HoldCampaignStyle', candidateId: candidate.id, active: false });
       return commands;
     });
   }
@@ -299,7 +308,7 @@ async function start() {
           const changedCamera = pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
           simulation.step(commands);
-          state = simulation.getState();
+          state = simulation.getState({ presentation: true });
           const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= previous.tick);
           if (rejected && !previous.events.some(e => e.id === rejected.id)) notify(rejected.reason, 4);
           if (state.phase !== previous.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
@@ -322,7 +331,13 @@ async function start() {
       damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       const ultimateButton = document.getElementById('ultimate-touch');
       const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
-      ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = ratio < 1 || fighter.is_ko || !!fighter.combat.attack_id || fighter.combat.stun_ticks > 0 || fighter.dash_active || !!fighter.ultimate_effect || fighter.bardella_guardian_armed;
+      ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
+      const heldTicks = fighter.combat.press_tick == null ? 0 : combatView.tick - fighter.combat.press_tick;
+      const chargeRatio = fighter.combat.charge_active ? Math.min(1, heldTicks / (config.balance.candidate_combat.charge_ready_seconds * config.balance.simulation_architecture.fixed_tick_hz)) : 0;
+      const attackButton = document.getElementById('attack-touch');
+      attackButton.classList.toggle('charging', chargeRatio > 0);
+      attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
+      attackButton.textContent = chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper';
       ultimateButton.classList.toggle('ready', ratio >= 1);
       ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
       ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
@@ -345,7 +360,8 @@ async function start() {
       hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
       notice.hidden = state.phase === 'RESULTS';
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
-      renderer.draw(viewState, paused ? viewState : previous, paused || session && !session.host ? 1 : clock.alpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+      const renderAlpha = session && !session.host ? Math.min(1, (now - snapshotReceivedAt) / snapshotInterval) : clock.alpha;
+      renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);

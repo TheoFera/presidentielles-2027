@@ -201,7 +201,7 @@ export class WorldRenderer {
     const candidate = entity.role === 'CANDIDAT';
     const height = this.metrics.characterHeight * (candidate ? 1 : this.p.npc_height_multiplier);
     const pixel = height / 27;
-    const ground = this.metrics.groundY;
+    const ground = this.metrics.groundY - (entity.combat?.height || 0) * this.metrics.characterHeight;
     const faction = entity.presentation_name === 'Journaliste' ? { color: '#566477', symbol: 'TV' } : this.p.factions[entity.faction_id];
     const recentlyHit = state.tick - (entity.combat?.last_hit?.tick ?? -100) < 3 && entity.combat?.last_hit?.target_id === entity.id;
     const tone = recentlyHit ? '#eee5c8' : entity.role === 'CRS' ? '#394b61' : faction?.color || this.p.neutral_tone;
@@ -215,7 +215,7 @@ export class WorldRenderer {
     ctx.translate(Math.round(x), Math.round(ground));
     ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.55 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
     ctx.fillStyle = '#32403a25';
-    ctx.fillRect(-8 * pixel, -pixel, 16 * pixel, pixel);
+    ctx.fillRect(-8 * pixel, (entity.combat?.height || 0) * this.metrics.characterHeight - pixel, 16 * pixel, pixel);
     ctx.scale(pixel, pixel);
     const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
     const outline = this.p.outline_tone;
@@ -265,10 +265,6 @@ export class WorldRenderer {
       rect(direction > 0 ? 5 : -reach, y, reach - 3, attack.strong ? 5 : 3, outline);
       rect(direction > 0 ? reach - 1 : -reach, y, 4, attack.strong ? 5 : 3, this.p.skin_tone);
       if (!windup && attack.strong) rect(direction > 0 ? reach + 4 : -reach - 4, y - 2, 2, 9, '#fff2c5');
-    }
-    if (candidate && entity.special_charge >= this.config.balance.special_charge.required_points) {
-      for (const eye of [-1, 3]) { rect(eye - 1, -25, 3, 1, '#ffe277'); rect(eye, -26, 1, 3, '#ffe277'); }
-      rect(-5, -30, 2, 2, '#ffe277'); rect(5, -31, 2, 2, '#ffe277');
     }
     ctx.restore();
     if (persuading) {

@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: L’invitation directe conserve la description et refuse une réponse utilisée comme invitation
+ok 1 - L’invitation directe conserve la description et refuse une réponse utilisée comme invitation
+  ---
+  duration_ms: 2.3461
+  ...
+# Subtest: Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne
+ok 2 - Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne
+  ---
+  duration_ms: 62.5237
+  ...
+# Subtest: Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée
+ok 3 - Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée
+  ---
+  duration_ms: 11.3112
+  ...
+# Subtest: L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée
+ok 4 - L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée
+  ---
+  duration_ms: 0.6327
+  ...
+# Subtest: Les commandes réseau sont limitées au candidat attribué et excluent le débogage
+ok 5 - Les commandes réseau sont limitées au candidat attribué et excluent le débogage
+  ---
+  duration_ms: 0.41
+  ...
+# Subtest: Salons : candidats uniques, autorisations, préparation de tous les joueurs et fermeture
+ok 6 - Salons : candidats uniques, autorisations, préparation de tous les joueurs et fermeture
+  ---
+  duration_ms: 124.3462
+  ...
+# Subtest: Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé
+ok 7 - Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé
+  ---
+  duration_ms: 22.675
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 458.8404

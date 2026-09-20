@@ -27,6 +27,8 @@ Les liens utilisent les canaux de données WebRTC, sans caméra, microphone ni r
 
 Gardez le jeu et l’écran de l’hôte ouverts pendant la partie. Chaque joueur possède sa caméra et ses commandes. La pause est partagée ; masquer l’onglet pendant la partie demande une pause. Le choix du style suspend également la campagne. Les styles débloqués de l’hôte sont utilisés pour tous. Une déconnexion termine la session avec un message ; rechargez puis recréez le salon pour rejouer.
 
+Les mises à jour directes transmettent uniquement les champs modifiés. La sauvegarde de campagne nécessaire après le duel reste chez l’hôte. Les fragments sont envoyés progressivement, selon la place disponible dans le navigateur ; une image devenue ancienne est ignorée si l’envoi précédent attend encore. Les déplacements des invités sont interpolés entre deux mises à jour pour atténuer les saccades. Après cette mise à jour, **rechargez le jeu sur tous les appareils et créez de nouvelles invitations** : les anciennes invitations ne sont plus compatibles.
+
 ### Option : serveur sur un ordinateur du Wi-Fi
 
 **Lancer le jeu.cmd** ouvre désormais aussi le jeu au réseau local. Il n’est plus nécessaire de lancer un second fichier. L’ancien **Lancer le multijoueur.cmd** appelle le même lanceur. Dans le menu Multijoueur, sélectionnez **Avec un serveur local**.
@@ -41,6 +43,7 @@ Le mode serveur fonctionne aussi si ce serveur Node.js est hébergé sur Interne
 - `scripts/validate-arcade-browser.mjs` vérifie les menus à partir de 320 × 568 et en paysage, ainsi qu’une partie directe à deux puis trois navigateurs avec toutes les API HTTP multijoueurs bloquées.
 - Playwright est fourni via `CAMPAIGN_TEST_NODE_MODULES`. Le mode `ARCADE_LOOPBACK_ICE=1` désactive uniquement la dissimulation mDNS **dans le navigateur de test**, pour les machines incapables de résoudre leurs propres noms locaux. Le jeu n’utilise aucun réglage spécial du navigateur.
 - Ces tests émulent les écrans et les gestes tactiles sur ordinateur. Ils ne remplacent pas un essai sur des téléphones physiques et leur Wi-Fi.
+- Le parcours réseau vérifie aussi, à trois navigateurs, la fin du décompte, le duel du premier tour, l’élimination et le résultat final. Un test automatisé simule la saturation de la file d’envoi et vérifie la reprise sans perte de fragments ni désynchronisation.
 
 ### Sur téléphone et GitHub Pages
 

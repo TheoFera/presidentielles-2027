@@ -10,7 +10,7 @@ import { convertInfluence, createPolls, refreshElectoralState, updatePolls } fro
 import { triggerMeeting } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
-import { combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
+import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
@@ -33,7 +33,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 8, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 9, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, transactions: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -78,7 +78,9 @@ export class GameSimulation {
   }
 
   secondsToTicks(seconds) { return Math.ceil(seconds * this.hz - 1e-9); }
-  getState() { return clone(this.state); }
+  getState({ presentation = false } = {}) {
+    return clone(presentation ? { ...this.state, campaign_snapshot: null } : this.state);
+  }
   exportSnapshot() { return JSON.stringify(this.state, null, 2); }
 
   /** Snapshot import is atomic. Invalid saves never damage the live game. */
@@ -279,7 +281,7 @@ export class GameSimulation {
     state.tick++;
     beginCombatTick(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || candidate.crisis_meeting_id || interrupted(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || candidate.crisis_meeting_id || movementBlocked(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;

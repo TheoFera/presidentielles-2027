@@ -2,7 +2,7 @@ import { aiCombatCommands } from './ai-combat.js';
 import { aiSettings } from './ai-settings.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { random } from './world.js';
-import { combatState, interrupted } from './combat-state.js';
+import { movementBlocked, combatState, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, updateCombat, wallBlockedPosition } from './combat.js';
 import { combatPosition } from './combat-geometry.js';
 
@@ -52,7 +52,7 @@ export class ArenaSimulation {
     this.state.tick++;
     beginCombatTick(this);
     for (const c of this.state.candidates) {
-      if (interrupted(c)) continue;
+      if (movementBlocked(c)) continue;
       c.x = wallBlockedPosition(this, c, combatPosition(this.state, c.x + c.axis * this.config.prototype.movement.candidate_speed_units_per_second / this.hz));
       c.moving = c.axis !== 0; if (c.axis) c.facing = c.axis;
     }

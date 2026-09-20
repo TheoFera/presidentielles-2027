@@ -4,6 +4,14 @@ export function drawCombatEffects(renderer, state, debug) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   ctx.save();
   for (const c of state.candidates) {
+    if (c.combat?.charge_active) {
+      const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * 1.1;
+      const progress = Math.min(1, (state.tick - c.combat.press_tick) / (hz * config.balance.candidate_combat.charge_ready_seconds));
+      ctx.fillStyle = '#203940'; ctx.fillRect(x - 22, y, 44, 6);
+      ctx.fillStyle = progress >= 1 ? '#c5f8ff' : '#63bed1'; ctx.fillRect(x - 21, y + 1, 42 * progress, 4);
+    }
+  }
+  for (const c of state.candidates) {
     if (!c.dash_active) continue;
     const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * .45;
     ctx.strokeStyle = state.tick <= c.dash_invulnerable_until_tick ? '#c5f8ff' : '#e9dfcc88'; ctx.lineWidth = 3;
@@ -54,7 +62,7 @@ export function drawCombatEffects(renderer, state, debug) {
     const age = (state.tick - hit.tick) / hz;
     const duration = hit.strong ? 0.3 : 0.16;
     if (age > duration) continue;
-    const x = renderer.screenX(hit.x); const y = m.groundY - m.characterHeight * 0.65;
+    const x = renderer.screenX(hit.x); const y = m.groundY - m.characterHeight * (0.65 + (hit.height || 0));
     const size = (hit.strong ? 27 : 12) * (1 + age * 2);
     ctx.globalAlpha = 1 - age / duration;
     ctx.fillStyle = hit.strong ? '#f4cf76' : '#fff2c9'; ctx.strokeStyle = '#4c4035'; ctx.lineWidth = 1.5;

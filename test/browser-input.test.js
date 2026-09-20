@@ -77,7 +77,7 @@ test('Deux pouces : marcher et frapper sans interrompre le déplacement', t => {
   get('attack-touch').send('pointerdown', { pointerId: 2 });
   get('attack-touch').send('pointerup', { pointerId: 2 });
   assert.equal(human.axis, 1);
-  assert.deepEqual(actions, ['attack']);
+  assert.deepEqual(actions, ['attack-press', 'attack-release']);
   get('move-right').send('pointerup', { pointerId: 1 });
   assert.equal(human.axis, 0);
 });

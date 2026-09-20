@@ -52,7 +52,11 @@ export function strategicAICommands(state, config, c) {
   const settings = aiSettings(state, config);
   const commands = (axis, purchase = false) => [{ type: 'SetCampaignActive', candidateId: c.id, active: state.ai_enabled },
     { type: 'InteractionPresence', candidateId: c.id, active: state.ai_enabled && purchase }, { type: 'Move', candidateId: c.id, axis }];
-  if (!state.ai_enabled || c.is_ko) return commands(0);
+  if (!state.ai_enabled || c.is_ko) return [...commands(0), { type: 'CancelAttack', candidateId: c.id }];
+  if (c.combat.press_tick != null) {
+    const target = nearestEnemy(state, c, settings.detection_range);
+    return target ? aiCombatCommands(state, config, c, target) : [...commands(0), { type: 'CancelAttack', candidateId: c.id }];
+  }
   const go = (x, radius, purchase = false) => {
     const d = ringDelta(c.x, x, state.world.length), arrived = Math.abs(d) <= radius;
     return commands(arrived ? 0 : Math.sign(d), arrived && purchase);

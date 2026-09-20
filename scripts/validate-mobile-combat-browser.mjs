@@ -47,7 +47,7 @@ try {
    assert.equal(await page.locator('#ultimate-touch').evaluate(e=>e.style.getPropertyValue('--charge')),'60%');
    await load(faction,i,10); await page.waitForSelector('#ultimate-touch.ready');
    const boxes=await page.locator('#ultimate-touch, #attack-touch').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return{x:r.x,right:r.right,y:r.y,height:r.height};}));
-   assert.ok(boxes[0].right<boxes[1].x);assert.equal(boxes[0].height,boxes[1].height);
+   assert.ok(boxes[0].y + boxes[0].height <= boxes[1].y);assert.equal(boxes[0].x, boxes[1].x);assert.equal(boxes[0].height,boxes[1].height);
    await page.screenshot({path:path.join(output,`pret-${styles[i].id}.png`)});
    await page.locator('#ultimate-touch').tap(); await page.waitForSelector('#ultimate-touch',{state:'hidden'});
    const state=await save(),c=state.candidates.find(c=>c.id===state.local_candidate_id);

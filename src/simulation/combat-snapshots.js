@@ -12,6 +12,10 @@ export function validateCombatSnapshot(state, sim, fail) {
       || !Number.isInteger(c.combo_step) || c.combo_step < 0 || c.combo_step > 3 || !Number.isInteger(c.buffer_until_tick)
       || !Number.isFinite(c.knockback_velocity) || typeof c.engaged !== 'boolean' || ![null, -1, 1].includes(c.requested_direction)
       || (c.target_id !== null && typeof c.target_id !== 'string')) fail('état de combat invalide');
+    if (![c.press_tick, c.jump_tick].every(v => v === null || integer(v) && v <= state.tick)
+      || typeof c.charge_active !== 'boolean' || typeof c.press_airborne !== 'boolean'
+      || !finite(c.height) || c.height > sim.config.balance.candidate_combat.jump_height_ratio
+      || c.charge_active && (c.press_tick === null || c.jump_tick !== null)) fail('charge ou saut invalide');
     if (c.attack_id !== null && !state.attacks.some(a => a.id === c.attack_id && a.owner_id === actor.id)) fail('attaque d’unité incohérente');
     if (actor.role === 'CANDIDAT' && actor.special_charge > sim.config.balance.special_charge.required_points) fail('charge spéciale invalide');
     if (actor.role === 'CANDIDAT') {
@@ -38,7 +42,7 @@ export function validateCombatSnapshot(state, sim, fail) {
   }
   for (const attack of state.attacks) {
     if (!counterId(attack.id, 'attack', 'next_attack_id') || !actors.some(a => a.id === attack.owner_id && a.faction_id === attack.faction_id && a.combat.attack_id === attack.id)
-      || !['CANDIDATE', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
+      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
       || ['elapsed_ticks', 'windup_ticks', 'active_ticks', 'recovery_ticks'].some(k => !integer(attack[k]))
       || attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks + attack.recovery_ticks
       || ['range', 'damage', 'knockback', 'electoral_damage'].some(k => !finite(attack[k]))

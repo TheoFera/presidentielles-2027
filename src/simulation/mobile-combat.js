@@ -1,3 +1,5 @@
+import { airborne, cancelCharge } from './combat-actions.js';
+import { attackInput } from './combat.js';
 import { interrupted } from './combat-state.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
@@ -9,16 +11,17 @@ export function initializeMobileCombat(sim, c) {
     special_threshold: sim.config.balance.special_charge.required_points, last_successful_hit_tick: 0, special_decay_started: false,
     special_decay_origin: 0, active_ultimate_id: null, bardella_guardian_armed: false });
 }
-export function actionAllowed(sim, c) {
+export function actionAllowed(sim, c, allowCharge = false) {
   return !!c && !c.eliminated && !c.is_ko && c.campaign_active && !c.campaign_arena_id && !c.crisis_meeting_id
     && !sim.state.campaign_style_selection && !c.style_hold && !c.style_interaction_held && !c.purchase_hold && !c.interaction_locked
-    && !interrupted(c) && Math.abs(c.combat.knockback_velocity) <= 0.02;
+    && !(allowCharge ? c.dash_active || c.combat.stun_ticks || c.combat.hitstop_ticks || c.combat.attack_id : interrupted(c)) && Math.abs(c.combat.knockback_velocity) <= 0.02;
 }
 export function requestDash(sim, c, direction) {
   const d = sim.config.balance.dash;
-  if (![-1, 1].includes(direction) || !actionAllowed(sim, c) || c.dash_charges <= 0 || sim.state.arena_bounds && !d.allowed_in_arena) return;
+  if (![-1, 1].includes(direction) || !actionAllowed(sim, c, true) || airborne(c) || c.dash_charges <= 0 || sim.state.arena_bounds && !d.allowed_in_arena) return;
   const meeting = sim.state.buildings.find(b => b.id === c.interaction_chain_site_id && b.type === 'meeting' && b.meeting_faction_id === c.faction_id && b.meeting_until_tick > sim.state.tick);
   if (meeting && Math.abs(combatDelta(sim.state, c.x, meeting.x)) <= sim.config.balance.buildings.meeting.interaction_radius) return;
+  cancelCharge(c);
   c.dash_charges--; c.dash_active = true; c.dash_direction = direction; c.facing = direction;
   c.dash_until_tick = sim.state.tick + sim.secondsToTicks(d.duration_seconds);
   c.dash_invulnerable_until_tick = sim.state.tick + sim.secondsToTicks(d.invulnerability_seconds);
@@ -70,6 +73,7 @@ export function updateMobileCombat(sim) {
 }
 export function mobileCommand(sim, c, command, activate) {
   if (!c) return false;
+  if (['PressAttack', 'ReleaseAttack', 'CancelAttack', 'Jump'].includes(command.type)) { attackInput(sim, c, command.type); return true; }
   if (command.type === 'Dash') { requestDash(sim, c, command.direction); return true; }
   if (command.type === 'ActivateUltimate') { activate(sim, c); return true; }
   if (!sim.config.prototype.debug.commands_enabled) return false;

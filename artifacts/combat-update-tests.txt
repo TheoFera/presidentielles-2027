@@ -1,0 +1,805 @@
+
+> presidentielles-2027-greybox@0.5.0 test
+> node --test test/multiplayer.test.js test/ai.test.js test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js test/campaign-events.test.js test/campaign-display.test.js test/campaign-styles.test.js test/campaign-sprites.test.js test/visual-assets.test.js test/mobile-combat.test.js test/combat-actions.test.js
+
+TAP version 13
+# Subtest: Trois difficultés configurables, sauvegardées et validées sans bonus économiques
+ok 1 - Trois difficultés configurables, sauvegardées et validées sans bonus économiques
+  ---
+  duration_ms: 331.7426
+  ...
+# Subtest: Chaque IA peut tirer chacun des trois styles de son candidat malgré les cadenas du joueur
+ok 2 - Chaque IA peut tirer chacun des trois styles de son candidat malgré les cadenas du joueur
+  ---
+  duration_ms: 43.5822
+  ...
+# Subtest: L’IA joue réellement l’ultime Hologrammes
+ok 3 - L’IA joue réellement l’ultime Hologrammes
+  ---
+  duration_ms: 38.3615
+  ...
+# Subtest: L’IA joue réellement l’ultime Déferlante encapuchonnée
+ok 4 - L’IA joue réellement l’ultime Déferlante encapuchonnée
+  ---
+  duration_ms: 29.8605
+  ...
+# Subtest: L’IA joue réellement l’ultime Gilet jaune
+ok 5 - L’IA joue réellement l’ultime Gilet jaune
+  ---
+  duration_ms: 37.9626
+  ...
+# Subtest: L’IA joue réellement l’ultime Vague bleu marine
+ok 6 - L’IA joue réellement l’ultime Vague bleu marine
+  ---
+  duration_ms: 46.9956
+  ...
+# Subtest: L’IA joue réellement l’ultime Invocation Zemmour
+ok 7 - L’IA joue réellement l’ultime Invocation Zemmour
+  ---
+  duration_ms: 29.1353
+  ...
+# Subtest: L’IA joue réellement l’ultime Bardellisation
+ok 8 - L’IA joue réellement l’ultime Bardellisation
+  ---
+  duration_ms: 35.4627
+  ...
+# Subtest: L’IA joue réellement l’ultime Protection CRS
+ok 9 - L’IA joue réellement l’ultime Protection CRS
+  ---
+  duration_ms: 47.621
+  ...
+# Subtest: L’IA joue réellement l’ultime Écharpe du maire
+ok 10 - L’IA joue réellement l’ultime Écharpe du maire
+  ---
+  duration_ms: 34.7106
+  ...
+# Subtest: L’IA joue réellement l’ultime Super Européiste
+ok 11 - L’IA joue réellement l’ultime Super Européiste
+  ---
+  duration_ms: 25.6775
+  ...
+# Subtest: Après sa relève, Bardella continue à frapper au lieu de demander un ultime refusé
+ok 12 - Après sa relève, Bardella continue à frapper au lieu de demander un ultime refusé
+  ---
+  duration_ms: 31.2986
+  ...
+# Subtest: Conquête : territoire du joueur ou d’une IA, mêmes décisions et trajet circulaire
+ok 13 - Conquête : territoire du joueur ou d’une IA, mêmes décisions et trajet circulaire
+  ---
+  duration_ms: 41.4858
+  ...
+# Subtest: Un objectif de conquête persiste, puis est remplacé après sa capture
+ok 14 - Un objectif de conquête persiste, puis est remplacé après sa capture
+  ---
+  duration_ms: 38.8061
+  ...
+# Subtest: CAMPAIGN : attaque et démobilise les soutiens adverses
+ok 15 - CAMPAIGN : attaque et démobilise les soutiens adverses
+  ---
+  duration_ms: 117.1159
+  ...
+# Subtest: SECOND_ROUND_SPRINT : attaque et démobilise les soutiens adverses
+ok 16 - SECOND_ROUND_SPRINT : attaque et démobilise les soutiens adverses
+  ---
+  duration_ms: 70.316
+  ...
+# Subtest: L’IA capture son QG par maintien et paie le prix normal dès qu’elle a deux soutiens
+ok 17 - L’IA capture son QG par maintien et paie le prix normal dès qu’elle a deux soutiens
+  ---
+  duration_ms: 317.2775
+  ...
+# Subtest: Offensive complète : affaiblir les soutiens, neutraliser puis reprendre un site du joueur
+ok 18 - Offensive complète : affaiblir les soutiens, neutraliser puis reprendre un site du joueur
+  ---
+  duration_ms: 1042.5741
+  ...
+# Subtest: Le cabinet administratif de Philippe cible une fermeture adverse
+ok 19 - Le cabinet administratif de Philippe cible une fermeture adverse
+  ---
+  duration_ms: 64.0505
+  ...
+# Subtest: L’IA déclenche un raid disponible dans la direction des bâtiments ennemis
+ok 20 - L’IA déclenche un raid disponible dans la direction des bâtiments ennemis
+  ---
+  duration_ms: 35.039
+  ...
+# Subtest: Difficulté : cadence de combat distincte, dash offensif et repli après blessure
+ok 21 - Difficulté : cadence de combat distincte, dash offensif et repli après blessure
+  ---
+  duration_ms: 99.1889
+  ...
+# Subtest: La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
+ok 22 - La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
+  ---
+  duration_ms: 24.0155
+  ...
+# Subtest: Reprise déterministe : objectifs, styles, RNG et décisions ne dépendent pas du contrôleur en mémoire
+ok 23 - Reprise déterministe : objectifs, styles, RNG et décisions ne dépendent pas du contrôleur en mémoire
+  ---
+  duration_ms: 2943.3364
+  ...
+# Subtest: Neuf cartes, trois par candidat : choix obligatoire et deux cadenas
+ok 24 - Neuf cartes, trois par candidat : choix obligatoire et deux cadenas
+  ---
+  duration_ms: 127.4013
+  ...
+# Subtest: Deux pouces : marcher et frapper sans interrompre le déplacement
+ok 25 - Deux pouces : marcher et frapper sans interrompre le déplacement
+  ---
+  duration_ms: 9.0881
+  ...
+# Subtest: Deux directions opposées et relâchement indépendant des doigts
+ok 26 - Deux directions opposées et relâchement indépendant des doigts
+  ---
+  duration_ms: 1.9285
+  ...
+# Subtest: Pause, changement d’onglet et perte de focus libèrent les commandes
+ok 27 - Pause, changement d’onglet et perte de focus libèrent les commandes
+  ---
+  duration_ms: 2.2884
+  ...
+# Subtest: Le clavier et le déplacement tactile sur le monde restent disponibles
+ok 28 - Le clavier et le déplacement tactile sur le monde restent disponibles
+  ---
+  duration_ms: 3.0583
+  ...
+# Subtest: Double appui directionnel : relâchement obligatoire, maintien et répétitions ignorés
+ok 29 - Double appui directionnel : relâchement obligatoire, maintien et répétitions ignorés
+  ---
+  duration_ms: 1.9331
+  ...
+# Subtest: Deux directions différentes ou annulation tactile ne déclenchent pas de dash
+ok 30 - Deux directions différentes ou annulation tactile ne déclenchent pas de dash
+  ---
+  duration_ms: 1.3476
+  ...
+# Subtest: Toutes les variantes du catalogue s’affichent au déclenchement et à la fin
+ok 31 - Toutes les variantes du catalogue s’affichent au déclenchement et à la fin
+  ---
+  duration_ms: 1542.8376
+  ...
+# Subtest: Une collecte plafonnée affiche son montant sans chercher une durée absente
+ok 32 - Une collecte plafonnée affiche son montant sans chercher une durée absente
+  ---
+  duration_ms: 32.9568
+  ...
+# Subtest: Les effets de financement gèrent zéro, les effets cumulés et les paramètres absents
+ok 33 - Les effets de financement gèrent zéro, les effets cumulés et les paramètres absents
+  ---
+  duration_ms: 29.3819
+  ...
+# Subtest: 232 variantes, quotas et saison cyclique
+ok 34 - 232 variantes, quotas et saison cyclique
+  ---
+  duration_ms: 29.5321
+  ...
+# Subtest: 15 jours calmes, accélération et plafond de trois actifs
+ok 35 - 15 jours calmes, accélération et plafond de trois actifs
+  ---
+  duration_ms: 87.7217
+  ...
+# Subtest: Choc territorial piloté par le JSON conserve toujours 100 %
+ok 36 - Choc territorial piloté par le JSON conserve toujours 100 %
+  ---
+  duration_ms: 39.9951
+  ...
+# Subtest: Meeting payé, attaque interdite, interruption puis récompense unique
+ok 37 - Meeting payé, attaque interdite, interruption puis récompense unique
+  ---
+  duration_ms: 43.1646
+  ...
+# Subtest: Scandale : cinq points nationaux au KO, aucun malus à expiration
+ok 38 - Scandale : cinq points nationaux au KO, aucun malus à expiration
+  ---
+  duration_ms: 69.03
+  ...
+# Subtest: Piège humain : monde avance, candidat absent, commande vers arène
+ok 39 - Piège humain : monde avance, candidat absent, commande vers arène
+  ---
+  duration_ms: 55.9043
+  ...
+# Subtest: Piège IA : durée déterministe puis retour
+ok 40 - Piège IA : durée déterministe puis retour
+  ---
+  duration_ms: 67.6821
+  ...
+# Subtest: Financement : blocage, durée, rendement puis restauration
+ok 41 - Financement : blocage, durée, rendement puis restauration
+  ---
+  duration_ms: 32.0113
+  ...
+# Subtest: Fermeture : QG exclu, site neutralisé et recapturable
+ok 42 - Fermeture : QG exclu, site neutralisé et recapturable
+  ---
+  duration_ms: 28.4201
+  ...
+# Subtest: Anti-répétition, snapshot et continuation déterministe
+ok 43 - Anti-répétition, snapshot et continuation déterministe
+  ---
+  duration_ms: 349.1804
+  ...
+# Subtest: Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
+ok 44 - Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
+  ---
+  duration_ms: 36.3158
+  ...
+# Subtest: IA se dirige vers un Meeting, et poursuit son occupant adverse
+ok 45 - IA se dirige vers un Meeting, et poursuit son occupant adverse
+  ---
+  duration_ms: 54.2761
+  ...
+# Subtest: Sauvegarde d’arène, reprise et J0 ferment les événements proprement
+ok 46 - Sauvegarde d’arène, reprise et J0 ferment les événements proprement
+  ---
+  duration_ms: 197.161
+  ...
+# Subtest: Sauvegarde corrompue rejetée sans modifier le jeu
+ok 47 - Sauvegarde corrompue rejetée sans modifier le jeu
+  ---
+  duration_ms: 51.1864
+  ...
+# Subtest: Quitter le Meeting annule sans déplacement ni attaque sur le même tick
+ok 48 - Quitter le Meeting annule sans déplacement ni attaque sur le même tick
+  ---
+  duration_ms: 35.7003
+  ...
+# Subtest: Les journalistes restent des adversaires disponibles même si leur modèle est KO
+ok 49 - Les journalistes restent des adversaires disponibles même si leur modèle est KO
+  ---
+  duration_ms: 32.4134
+  ...
+# Subtest: Neuf PNG de styles distincts et cinq sprites d’ultimes réellement transparents
+ok 50 - Neuf PNG de styles distincts et cinq sprites d’ultimes réellement transparents
+  ---
+  duration_ms: 423.2921
+  ...
+# Subtest: Chaque style charge son PNG, transformations puis retour au sprite du style
+ok 51 - Chaque style charge son PNG, transformations puis retour au sprite du style
+  ---
+  duration_ms: 2.2692
+  ...
+# Subtest: Neuf styles, trois par candidat, trois déblocages persistants par défaut
+ok 52 - Neuf styles, trois par candidat, trois déblocages persistants par défaut
+  ---
+  duration_ms: 8.3344
+  ...
+# Subtest: Premier QG : choix obligatoire, monde figé, styles verrouillés refusés
+ok 53 - Premier QG : choix obligatoire, monde figé, styles verrouillés refusés
+  ---
+  duration_ms: 67.8659
+  ...
+# Subtest: Changer remplace le bonus, vide la charge et conserve scores, bâtiments et PNJ
+ok 54 - Changer remplace le bonus, vide la charge et conserve scores, bâtiments et PNJ
+  ---
+  duration_ms: 46.005
+  ...
+# Subtest: Maintien au QG : trois secondes, annulation et interruptions
+ok 55 - Maintien au QG : trois secondes, annulation et interruptions
+  ---
+  duration_ms: 328.6184
+  ...
+# Subtest: Un événement garde ses multiplicateurs après changement de style
+ok 56 - Un événement garde ses multiplicateurs après changement de style
+  ---
+  duration_ms: 41.5781
+  ...
+# Subtest: Coup dans le vide : zéro charge ; contact normal : charge configurée
+ok 57 - Coup dans le vide : zéro charge ; contact normal : charge configurée
+  ---
+  duration_ms: 66.6661
+  ...
+# Subtest: Hologrammes : activation selon le mode du style
+ok 58 - Hologrammes : activation selon le mode du style
+  ---
+  duration_ms: 44.3602
+  ...
+# Subtest: Hologrammes : sauvegarde pendant l’ultime
+ok 59 - Hologrammes : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 145.7266
+  ...
+# Subtest: Déferlante encapuchonnée : activation selon le mode du style
+ok 60 - Déferlante encapuchonnée : activation selon le mode du style
+  ---
+  duration_ms: 50.6391
+  ...
+# Subtest: Déferlante encapuchonnée : sauvegarde pendant l’ultime
+ok 61 - Déferlante encapuchonnée : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 115.9259
+  ...
+# Subtest: Gilet jaune : activation selon le mode du style
+ok 62 - Gilet jaune : activation selon le mode du style
+  ---
+  duration_ms: 36.5047
+  ...
+# Subtest: Gilet jaune : sauvegarde pendant l’ultime
+ok 63 - Gilet jaune : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 87.9421
+  ...
+# Subtest: Vague bleu marine : activation selon le mode du style
+ok 64 - Vague bleu marine : activation selon le mode du style
+  ---
+  duration_ms: 38.0517
+  ...
+# Subtest: Vague bleu marine : sauvegarde pendant l’ultime
+ok 65 - Vague bleu marine : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 109.9072
+  ...
+# Subtest: Invocation Zemmour : activation selon le mode du style
+ok 66 - Invocation Zemmour : activation selon le mode du style
+  ---
+  duration_ms: 31.1784
+  ...
+# Subtest: Invocation Zemmour : sauvegarde pendant l’ultime
+ok 67 - Invocation Zemmour : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 91.8349
+  ...
+# Subtest: Bardellisation : activation selon le mode du style
+ok 68 - Bardellisation : activation selon le mode du style
+  ---
+  duration_ms: 31.0984
+  ...
+# Subtest: Bardellisation : sauvegarde pendant l’ultime
+ok 69 - Bardellisation : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 87.7726
+  ...
+# Subtest: Protection CRS : activation selon le mode du style
+ok 70 - Protection CRS : activation selon le mode du style
+  ---
+  duration_ms: 34.6436
+  ...
+# Subtest: Protection CRS : sauvegarde pendant l’ultime
+ok 71 - Protection CRS : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 88.0505
+  ...
+# Subtest: Écharpe du maire : activation selon le mode du style
+ok 72 - Écharpe du maire : activation selon le mode du style
+  ---
+  duration_ms: 28.1766
+  ...
+# Subtest: Écharpe du maire : sauvegarde pendant l’ultime
+ok 73 - Écharpe du maire : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 69.7188
+  ...
+# Subtest: Super Européiste : activation selon le mode du style
+ok 74 - Super Européiste : activation selon le mode du style
+  ---
+  duration_ms: 30.8472
+  ...
+# Subtest: Super Européiste : sauvegarde pendant l’ultime
+ok 75 - Super Européiste : sauvegarde pendant l’ultime
+  ---
+  duration_ms: 73.6398
+  ...
+# Subtest: Vague : dommages d’ultime sans recharge
+ok 76 - Vague : dommages d’ultime sans recharge
+  ---
+  duration_ms: 23.645
+  ...
+# Subtest: Déferlante : sept silhouettes, apparition puis disparition complète
+ok 77 - Déferlante : sept silhouettes, apparition puis disparition complète
+  ---
+  duration_ms: 31.7406
+  ...
+# Subtest: Écharpe : allonge, plusieurs cibles et retour au mouvement normal
+ok 78 - Écharpe : allonge, plusieurs cibles et retour au mouvement normal
+  ---
+  duration_ms: 30.9701
+  ...
+# Subtest: Feu : zone temporaire, brûlure rafraîchie et nettoyage au changement
+ok 79 - Feu : zone temporaire, brûlure rafraîchie et nettoyage au changement
+  ---
+  duration_ms: 33.6664
+  ...
+# Subtest: Zemmour : un PNJ intercepte la bulle et deux coups suffisent
+ok 80 - Zemmour : un PNJ intercepte la bulle et deux coups suffisent
+  ---
+  duration_ms: 27.1434
+  ...
+# Subtest: Bardellisation : une seule relève ; KO suivant et respawn sous forme Marine
+ok 81 - Bardellisation : une seule relève ; KO suivant et respawn sous forme Marine
+  ---
+  duration_ms: 24.237
+  ...
+# Subtest: Super Européiste : riposte en mêlée, aucun renvoi à distance, nettoyage au KO
+ok 82 - Super Européiste : riposte en mêlée, aucun renvoi à distance, nettoyage au KO
+  ---
+  duration_ms: 28.7467
+  ...
+# Subtest: Le maintien et les styles se sauvegardent ; une sauvegarde invalide est atomiquement rejetée
+ok 83 - Le maintien et les styles se sauvegardent ; une sauvegarde invalide est atomiquement rejetée
+  ---
+  duration_ms: 94.5982
+  ...
+# Subtest: Charge : seuil exact à 6 ticks, prête à 45, aucun coup avant relâchement
+ok 84 - Charge : seuil exact à 6 ticks, prête à 45, aucun coup avant relâchement
+  ---
+  duration_ms: 235.6788
+  ...
+# Subtest: Protection : dégâts reçus, aucun recul/stun, seul le troisième coup brise la charge
+ok 85 - Protection : dégâts reçus, aucun recul/stun, seul le troisième coup brise la charge
+  ---
+  duration_ms: 38.9617
+  ...
+# Subtest: La frappe chargée reste protégée jusqu’à sa récupération ; un KO reste possible
+ok 86 - La frappe chargée reste protégée jusqu’à sa récupération ; un KO reste possible
+  ---
+  duration_ms: 29.4668
+  ...
+# Subtest: Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (campagne)
+ok 87 - Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (campagne)
+  ---
+  duration_ms: 33.2458
+  ...
+# Subtest: Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (arène)
+ok 88 - Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (arène)
+  ---
+  duration_ms: 39.0614
+  ...
+# Subtest: Dash : annule seulement s’il peut partir, sans frappe fantôme au relâchement
+ok 89 - Dash : annule seulement s’il peut partir, sans frappe fantôme au relâchement
+  ---
+  duration_ms: 34.7435
+  ...
+# Subtest: Troisième coup : sort de la portée de mêlée ; recul limité aux bords de l’arène
+ok 90 - Troisième coup : sort de la portée de mêlée ; recul limité aux bords de l’arène
+  ---
+  duration_ms: 60.703
+  ...
+# Subtest: Saut : sommet à 1,8 hauteur, durée 24 ticks, attaques possibles, pas de dash ni double saut
+ok 91 - Saut : sommet à 1,8 hauteur, durée 24 ticks, attaques possibles, pas de dash ni double saut
+  ---
+  duration_ms: 54.8768
+  ...
+# Subtest: Maintien commencé en vol : ne devient pas une charge à l’atterrissage
+ok 92 - Maintien commencé en vol : ne devient pas une charge à l’atterrissage
+  ---
+  duration_ms: 39.0475
+  ...
+# Subtest: Ultime : annule charge, dash, recul, interaction et hitstop ; préserve le saut
+ok 93 - Ultime : annule charge, dash, recul, interaction et hitstop ; préserve le saut
+  ---
+  duration_ms: 206.7465
+  ...
+# Subtest: Sauvegarde : charge et saut reprennent à l’identique ; ancien format refusé
+ok 94 - Sauvegarde : charge et saut reprennent à l’identique ; ancien format refusé
+  ---
+  duration_ms: 84.7402
+  ...
+# Subtest: Réseau : appui/relâchement autorisés et attribués au bon candidat ; priorité ultime locale
+ok 95 - Réseau : appui/relâchement autorisés et attribués au bon candidat ; priorité ultime locale
+  ---
+  duration_ms: 1.9833
+  ...
+# Subtest: IA : termine sa charge et privilégie le combo contre une charge adverse
+ok 96 - IA : termine sa charge et privilégie le combo contre une charge adverse
+  ---
+  duration_ms: 40.3561
+  ...
+# Subtest: melenchon : 3 esquives, distance et recharge séquentielle exacte
+ok 97 - melenchon : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 78.218
+  ...
+# Subtest: melenchon : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+ok 98 - melenchon : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 38.4126
+  ...
+# Subtest: le_pen : 3 esquives, distance et recharge séquentielle exacte
+ok 99 - le_pen : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 33.7122
+  ...
+# Subtest: le_pen : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+ok 100 - le_pen : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 33.5756
+  ...
+# Subtest: philippe : 3 esquives, distance et recharge séquentielle exacte
+ok 101 - philippe : 3 esquives, distance et recharge séquentielle exacte
+  ---
+  duration_ms: 37.7754
+  ...
+# Subtest: philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+ok 102 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du dash
+  ---
+  duration_ms: 45.9234
+  ...
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+ok 103 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+  ---
+  duration_ms: 220.4864
+  ...
+# Subtest: Décharge linéaire : 100 ou 60 %, stable 10 s, zéro à 15 s ; nouveau hit interrompt
+ok 104 - Décharge linéaire : 100 ou 60 %, stable 10 s, zéro à 15 s ; nouveau hit interrompt
+  ---
+  duration_ms: 256.6469
+  ...
+# Subtest: Combo : 1, 2, finisher fort puis retour au premier coup
+ok 105 - Combo : 1, 2, finisher fort puis retour au premier coup
+  ---
+  duration_ms: 43.7783
+  ...
+# Subtest: Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; changement annule
+ok 106 - Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; changement annule
+  ---
+  duration_ms: 119.0003
+  ...
+# Subtest: Hologrammes : commande R prioritaire pendant un coup, refus pendant le stun
+ok 107 - Hologrammes : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 32.5957
+  ...
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
+ok 108 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 34.1216
+  ...
+# Subtest: Déferlante encapuchonnée : commande R prioritaire pendant un coup, refus pendant le stun
+ok 109 - Déferlante encapuchonnée : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 28.9875
+  ...
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+ok 110 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 26.7601
+  ...
+# Subtest: Gilet jaune : commande R prioritaire pendant un coup, refus pendant le stun
+ok 111 - Gilet jaune : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 32.7686
+  ...
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+ok 112 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 26.0526
+  ...
+# Subtest: Vague bleu marine : commande R prioritaire pendant un coup, refus pendant le stun
+ok 113 - Vague bleu marine : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 41.8743
+  ...
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+ok 114 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 26.0807
+  ...
+# Subtest: Invocation Zemmour : commande R prioritaire pendant un coup, refus pendant le stun
+ok 115 - Invocation Zemmour : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 27.5403
+  ...
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+ok 116 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 30.5543
+  ...
+# Subtest: Bardellisation : commande R prioritaire pendant un coup, refus pendant le stun
+ok 117 - Bardellisation : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 25.1971
+  ...
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
+ok 118 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 24.8318
+  ...
+# Subtest: Protection CRS : commande R prioritaire pendant un coup, refus pendant le stun
+ok 119 - Protection CRS : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 24.9458
+  ...
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
+ok 120 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 26.883
+  ...
+# Subtest: Écharpe du maire : commande R prioritaire pendant un coup, refus pendant le stun
+ok 121 - Écharpe du maire : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 28.5214
+  ...
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+ok 122 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 28.7275
+  ...
+# Subtest: Super Européiste : commande R prioritaire pendant un coup, refus pendant le stun
+ok 123 - Super Européiste : commande R prioritaire pendant un coup, refus pendant le stun
+  ---
+  duration_ms: 30.9667
+  ...
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
+ok 124 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+  ---
+  duration_ms: 28.5466
+  ...
+# Subtest: Sauvegarde de dash et validation atomique des champs
+ok 125 - Sauvegarde de dash et validation atomique des champs
+  ---
+  duration_ms: 90.0128
+  ...
+# Subtest: Cibles valides : unités adverses, invocation configurable ; alliés et décor exclus
+ok 126 - Cibles valides : unités adverses, invocation configurable ; alliés et décor exclus
+  ---
+  duration_ms: 173.9836
+  ...
+# Subtest: Dash : limites de l’arène conservées et recharge suspendue en debug
+ok 127 - Dash : limites de l’arène conservées et recharge suspendue en debug
+  ---
+  duration_ms: 34.4984
+  ...
+# Subtest: Zone de feu : aucune application pendant les frames, brûlure possible ensuite
+ok 128 - Zone de feu : aucune application pendant les frames, brûlure possible ensuite
+  ---
+  duration_ms: 24.1908
+  ...
+# Subtest: Traverser Super Européiste ne déclenche aucune riposte
+ok 129 - Traverser Super Européiste ne déclenche aucune riposte
+  ---
+  duration_ms: 25.8892
+  ...
+# Subtest: Bulles des militants : dégâts réels, aucun recul ajouté ni retournement du recul existant
+ok 130 - Bulles des militants : dégâts réels, aucun recul ajouté ni retournement du recul existant
+  ---
+  duration_ms: 25.3713
+  ...
+# Subtest: Bords rouges : dégâts cumulés, impact local, récupération et faible résistance
+ok 131 - Bords rouges : dégâts cumulés, impact local, récupération et faible résistance
+  ---
+  duration_ms: 70.7828
+  ...
+# Subtest: Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
+ok 132 - Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
+  ---
+  duration_ms: 23.386
+  ...
+# Subtest: L’invitation directe conserve la description et refuse une réponse utilisée comme invitation
+ok 133 - L’invitation directe conserve la description et refuse une réponse utilisée comme invitation
+  ---
+  duration_ms: 11.2553
+  ...
+# Subtest: Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne
+ok 134 - Le flux différentiel restitue la campagne, le duel et le résultat sans transmettre la sauvegarde interne
+  ---
+  duration_ms: 140.2857
+  ...
+# Subtest: Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée
+ok 135 - Un canal saturé attend, reprend ses fragments et conserve la base après une image ignorée
+  ---
+  duration_ms: 25.0385
+  ...
+# Subtest: L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée
+ok 136 - L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée
+  ---
+  duration_ms: 1.2625
+  ...
+# Subtest: Les commandes réseau sont limitées au candidat attribué et excluent le débogage
+ok 137 - Les commandes réseau sont limitées au candidat attribué et excluent le débogage
+  ---
+  duration_ms: 0.6467
+  ...
+# Subtest: Salons : candidats uniques, autorisations, préparation de tous les joueurs et fermeture
+ok 138 - Salons : candidats uniques, autorisations, préparation de tous les joueurs et fermeture
+  ---
+  duration_ms: 258.7601
+  ...
+# Subtest: Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé
+ok 139 - Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé
+  ---
+  duration_ms: 59.5124
+  ...
+# Subtest: Le paquet GitHub Pages contient uniquement le jeu et charge ses réglages depuis un sous-chemin
+ok 140 - Le paquet GitHub Pages contient uniquement le jeu et charge ses réglages depuis un sous-chemin
+  ---
+  duration_ms: 2272.1264
+  ...
+# Subtest: 36 sites préexistants : règles géographiques, tirage seedé, caps et services garantis
+ok 141 - 36 sites préexistants : règles géographiques, tirage seedé, caps et services garantis
+  ---
+  duration_ms: 61.8819
+  ...
+# Subtest: Premier Local capturé = QG, second = Permanence, succession circulaire déterministe
+ok 142 - Premier Local capturé = QG, second = Permanence, succession circulaire déterministe
+  ---
+  duration_ms: 8.5174
+  ...
+# Subtest: Capture et améliorations continues : coût, présence et arrêt au niveau autorisé
+ok 143 - Capture et améliorations continues : coût, présence et arrêt au niveau autorisé
+  ---
+  duration_ms: 1070.889
+  ...
+# Subtest: Fermeture : S et M comptent, SO non ; pression hostile réduit la présence effective
+ok 144 - Fermeture : S et M comptent, SO non ; pression hostile réduit la présence effective
+  ---
+  duration_ms: 16.4008
+  ...
+# Subtest: Local SO : caps 2/5/illimité et Raid seulement au niveau 3
+ok 145 - Local SO : caps 2/5/illimité et Raid seulement au niveau 3
+  ---
+  duration_ms: 8.9352
+  ...
+# Subtest: Financement participatif : lancement N1 à 5 k€, cagnotte progressive, versement final et relance manuelle
+ok 146 - Financement participatif : lancement N1 à 5 k€, cagnotte progressive, versement final et relance manuelle
+  ---
+  duration_ms: 2140.4497
+  ...
+# Subtest: Institut et Salle neutres : paiement à l’usage, snapshot figé et Meeting chez l’adversaire
+ok 147 - Institut et Salle neutres : paiement à l’usage, snapshot figé et Meeting chez l’adversaire
+  ---
+  duration_ms: 799.8327
+  ...
+# Subtest: Imprimerie neutre : tracts à 2 k€ achetés à la chaîne sans quitter le bâtiment
+ok 148 - Imprimerie neutre : tracts à 2 k€ achetés à la chaîne sans quitter le bâtiment
+  ---
+  duration_ms: 253.7759
+  ...
+# Subtest: Résistance cachée : récupération, KO, perte électorale et respawn au QG
+ok 149 - Résistance cachée : récupération, KO, perte électorale et respawn au QG
+  ---
+  duration_ms: 794.0949
+  ...
+# Subtest: Snapshot v8 : topologie aléatoire et collecte en cours reprennent à l’identique
+ok 150 - Snapshot v8 : topologie aléatoire et collecte en cours reprennent à l’identique
+  ---
+  duration_ms: 757.4815
+  ...
+# Visuel indisponible : bad. Rendu de secours conservé.
+# Subtest: Chaque biome possède ses sept façades, ses trois habitants et ses trois décors
+ok 151 - Chaque biome possède ses sept façades, ses trois habitants et ses trois décors
+  ---
+  duration_ms: 49.531
+  ...
+# Subtest: Les plans défilent à des vitesses distinctes et bouclent sans saut de coordonnées
+ok 152 - Les plans défilent à des vitesses distinctes et bouclent sans saut de coordonnées
+  ---
+  duration_ms: 1.0182
+  ...
+# Subtest: Les décors et les façades conservent leurs proportions natives
+ok 153 - Les décors et les façades conservent leurs proportions natives
+  ---
+  duration_ms: 0.6517
+  ...
+# Subtest: Le cache partage un chargement, protège les voisins et évince les anciens décors
+ok 154 - Le cache partage un chargement, protège les voisins et évince les anciens décors
+  ---
+  duration_ms: 3.2197
+  ...
+# Subtest: Un export absent ne bloque pas une scène et une erreur ne provoque pas de boucle réseau
+ok 155 - Un export absent ne bloque pas une scène et une erreur ne provoque pas de boucle réseau
+  ---
+  duration_ms: 3.8329
+  ...
+# Subtest: Le préchargement relie les deux extrémités de la boucle
+ok 156 - Le préchargement relie les deux extrémités de la boucle
+  ---
+  duration_ms: 0.7447
+  ...
+# Subtest: Le visage du PNJ reste stable après déplacement et conversion ; les journalistes ont leur propre sprite
+ok 157 - Le visage du PNJ reste stable après déplacement et conversion ; les journalistes ont leur propre sprite
+  ---
+  duration_ms: 1.7344
+  ...
+# Subtest: Les animations respectent la priorité KO, impact et action sans modifier la simulation
+ok 158 - Les animations respectent la priorité KO, impact et action sans modifier la simulation
+  ---
+  duration_ms: 0.9876
+  ...
+1..158
+# tests 158
+# suites 0
+# pass 158
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6728.1013

@@ -105,7 +105,7 @@ export function updateStyleEffects(sim) {
     const s = config.balance.specials.fire;
     for (const target of combatActors(state)) {
       if (!enemies(owner, target)) continue;
-      if ((!target.dash_active || state.tick > target.dash_invulnerable_until_tick) && state.tick < power.fire_zone.expires_tick && Math.abs(combatDelta(state, power.fire_zone.x, target.x)) <= s.radius) {
+      if ((target.combat.height || 0) <= 0.15 && (!target.dash_active || state.tick > target.dash_invulnerable_until_tick) && state.tick < power.fire_zone.expires_tick && Math.abs(combatDelta(state, power.fire_zone.x, target.x)) <= s.radius) {
         power.burns[target.id] ??= { next_tick: state.tick, expires_tick: state.tick };
         power.burns[target.id].expires_tick = state.tick + sim.secondsToTicks(s.burn_seconds);
       }

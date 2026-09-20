@@ -26,7 +26,7 @@ export function characterAnimation(entity, state) {
   if (entity.combat?.stun_ticks > 0) return Math.abs(entity.combat.knockback_velocity || 0) > 0.01 ? 'knockback' : 'hurt';
   if (attack?.kind === 'SPECIAL') return attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'special_start' : 'special_recovery';
   if (attack) return attack.strong ? 'attack_heavy' : attack.step === 2 ? 'attack_light_2' : 'attack_light_1';
-  if (entity.charging || entity.combat?.charge_ticks > 0) return 'charged_attack';
+  if (entity.combat?.charge_active) return 'charged_attack';
   if (entity.special_active || entity.special_until_tick > state.tick) return 'special_start';
   if (entity.persuasion_target_ids?.length) return 'persuade';
   if (entity.persuasion) return 'persuade_listen';
@@ -43,7 +43,8 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const sprite = renderer.assets.get(id);
   if (!sprite) { void renderer.assets.load(id); return false; }
   const { ctx, metrics: m, p } = renderer;
-  const feetY = m.groundY + m.characterHeight * 0.06;
+  const groundY = m.groundY + m.characterHeight * 0.06;
+  const feetY = groundY - (entity.combat?.height || 0) * m.characterHeight;
   const candidate = entity.role === 'CANDIDAT';
   const height = m.characterHeight * (candidate ? 1 : p.npc_height_multiplier);
   const width = height * sprite.naturalWidth / sprite.naturalHeight;
@@ -58,7 +59,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const faction = p.factions[entity.faction_id];
   ctx.save();
   ctx.imageSmoothingEnabled = true;
-  ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, feetY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
   if (entity.role === 'ENCAPUCHONNE' && state.tick < entity.ready_tick) {
     ctx.beginPath(); ctx.rect(x - width, feetY - height * 1.1, width * 2, height * 1.1); ctx.clip();
     ctx.translate(0, height * (1 - (state.tick - entity.spawn_tick) / Math.max(1, entity.ready_tick - entity.spawn_tick)));
@@ -116,7 +117,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
     ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, feetY - height - 9, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
   }
   if (animation === 'convert') { ctx.font = 'bold 16px system-ui'; ctx.fillStyle = faction?.color || '#476e5d'; ctx.fillText('♥', x, feetY - height - 8); }
-  if (animation === 'ko' || candidate && entity.special_charge >= renderer.config.balance.special_charge.required_points) {
+  if (animation === 'ko') {
     ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#ffd66b'; ctx.strokeStyle = '#51412e'; ctx.lineWidth = 2;
     const headX = animation === 'ko' ? x - height * 0.85 : x;
     const headY = animation === 'ko' ? feetY - 20 : feetY - height - 6;

@@ -11,6 +11,6 @@ export function commandAllowed(state, command, debugEnabled) {
   if (command.type === 'DebugFinishArena') return state.phase === GamePhase.FIRST_ROUND_ARENA;
   if (command.type === 'DebugStartSprint') return [GamePhase.CAMPAIGN, GamePhase.FIRST_ROUND_ARENA].includes(state.phase);
   if (['DebugSprint10', 'DebugForceTie'].includes(command.type)) return state.phase === GamePhase.SECOND_ROUND_SPRINT;
-  if (state.phase === GamePhase.FIRST_ROUND_ARENA) return ['Dash', 'ActivateUltimate', 'DebugSetDashCharges', 'DebugRefillDashCharges', 'DebugDisableDashRecharge', 'DebugSetUltimateCharge', 'DebugEmptyUltimateCharge', 'DebugForceUltimateDecay', 'DebugArmBardella', 'DebugDisarmBardella', 'Move', 'Attack', 'SetCampaignActive', 'DebugFillSpecial', 'DebugSetAIEnabled', 'DebugSelectCandidate'].includes(command.type);
+  if (state.phase === GamePhase.FIRST_ROUND_ARENA) return ['PressAttack', 'ReleaseAttack', 'CancelAttack', 'Jump', 'Dash', 'ActivateUltimate', 'DebugSetDashCharges', 'DebugRefillDashCharges', 'DebugDisableDashRecharge', 'DebugSetUltimateCharge', 'DebugEmptyUltimateCharge', 'DebugForceUltimateDecay', 'DebugArmBardella', 'DebugDisarmBardella', 'Move', 'Attack', 'SetCampaignActive', 'DebugFillSpecial', 'DebugSetAIEnabled', 'DebugSelectCandidate'].includes(command.type);
   return isWorldPhase(state);
 }

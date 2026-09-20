@@ -1,9 +1,10 @@
 import { sanitizeCommands } from './shared-commands.js';
+import { stateDelta, applyStateDelta } from './state-stream.js';
 
 const factions = ['melenchon', 'le_pen', 'philippe'];
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
-  const bytes = new TextEncoder().encode(JSON.stringify({ version: 1, ...value }));
+  const bytes = new TextEncoder().encode(JSON.stringify({ version: 2, ...value }));
   return 'P27:' + btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
 }
 export function decodeInvitation(text, type) {
@@ -11,7 +12,7 @@ export function decodeInvitation(text, type) {
     const value = String(text).trim();
     if (!value.startsWith('P27:') || value.length > 30000) throw new Error();
     const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(value.slice(4)), c => c.charCodeAt(0))));
-    if (data.version !== 1 || data.type !== type || typeof data.id !== 'string' || data.id.length > 40 || typeof data.description?.sdp !== 'string' || data.description.type !== type) throw new Error();
+    if (data.version !== 2 || data.type !== type || typeof data.id !== 'string' || data.id.length > 40 || typeof data.description?.sdp !== 'string' || data.description.type !== type) throw new Error();
     return data;
   } catch { throw new Error(type === 'offer' ? 'Invitation invalide. Collez le texte complet qui commence par P27:.' : 'Réponse invalide. Collez la réponse complète de votre ami.'); }
 }
@@ -79,6 +80,9 @@ export class PeerSession {
   }
   bindChannel(peer, channel) {
     peer.channel = channel;
+    peer.outbox = [];
+    channel.bufferedAmountLowThreshold = 16000;
+    channel.onbufferedamountlow = () => this.pump(peer);
     channel.onopen = () => {
       if (this.closed || peer.cancelled) return;
       peer.connected = true; peer.seen = Date.now(); clearTimeout(peer.timeout);
@@ -94,8 +98,8 @@ export class PeerSession {
         if (typeof event.data !== 'string' || event.data.length > 50000) throw new Error();
         const part = JSON.parse(event.data);
         if (!Number.isInteger(part.n) || part.n < 0 || part.n > 249 || !Number.isInteger(part.total) || part.total < 1 || part.total > 250 || typeof part.data !== 'string' || part.data.length > 8000) throw new Error();
-        if (part.n === 0) { peer.sequence = part.id; peer.next = 0; peer.buffer = ''; }
-        if (peer.sequence !== part.id || part.n !== peer.next++) throw new Error();
+        if (part.n === 0) { peer.sequence = part.id; peer.next = 0; peer.total = part.total; peer.buffer = ''; }
+        if (peer.sequence !== part.id || part.total !== peer.total || part.n !== peer.next++) throw new Error();
         peer.buffer += part.data;
         if (peer.buffer.length > 2_000_000) throw new Error();
         if (part.n === part.total - 1) { const packet = JSON.parse(peer.buffer); peer.buffer = ''; peer.seen = Date.now(); this.receive(peer, packet); }
@@ -106,15 +110,36 @@ export class PeerSession {
   }
   send(peer, type, data) {
     if (peer.channel?.readyState !== 'open') return false;
-    if (peer.channel.bufferedAmount > 1_000_000) {
-      if (type === 'snapshot') return false;
-      throw new Error('Connexion trop lente. Rapprochez-vous du point Wi-Fi.');
-    }
+    // Skip stale frames before encoding. Never accumulate snapshots on a slow link.
+    if (type === 'snapshot' && (peer.outbox.length || peer.channel.bufferedAmount > 32000)) return false;
+    const delta = type === 'snapshot' ? stateDelta(data, peer.baseline) : null;
+    if (delta) data = delta.packet;
     const json = JSON.stringify({ type, data });
     if (json.length > 2_000_000) throw new Error('La partie est trop volumineuse pour la connexion.');
+    if (peer.outbox.length >= 100) throw new Error('La connexion ne répond plus. Reconnectez les joueurs.');
     const serial = ++this.serial, total = Math.ceil(json.length / 8000);
-    for (let n = 0; n < total; n++) peer.channel.send(JSON.stringify({ id: serial, n, total, data: json.slice(n * 8000, (n + 1) * 8000) }));
+    peer.outbox.push({ json, serial, total, n: 0 });
+    if (delta) peer.baseline = delta.next;
+    this.pump(peer);
     return true;
+  }
+  pump(peer) {
+    if (this.closed || peer.cancelled || peer.channel?.readyState !== 'open') return;
+    clearTimeout(peer.retry);
+    try {
+      // Yield between small bursts; one snapshot must not flood SCTP's send queue.
+      let sent = 0;
+      while (peer.outbox.length && peer.channel.bufferedAmount < 32000 && sent < 4) {
+        const item = peer.outbox[0], n = item.n;
+        peer.channel.send(JSON.stringify({ id: item.serial, n, total: item.total, data: item.json.slice(n * 8000, (n + 1) * 8000) }));
+        item.n++; sent++;
+        if (item.n === item.total) peer.outbox.shift();
+      }
+    } catch (error) {
+      if (error.name !== 'OperationError') { this.fail('L’envoi des données a échoué. Reconnectez les joueurs.'); return; }
+      // A full browser queue is temporary: retry the same fragment, in order.
+    }
+    if (peer.outbox.length) peer.retry = setTimeout(() => this.pump(peer), 16);
   }
   broadcast(type, data) { for (const peer of this.peers.values()) if (peer.connected) this.send(peer, type, data); }
   publishRoom() { this.broadcast('room', this.room); this.callbacks.room(this.room); }
@@ -129,7 +154,10 @@ export class PeerSession {
       else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
     } else {
       if (packet.type === 'room') { this.room = packet.data; this.callbacks.room(this.room); }
-      else if (packet.type === 'snapshot' && this.room.phase === 'playing') this.callbacks.snapshot(packet.data);
+      else if (packet.type === 'snapshot' && this.room.phase === 'playing') {
+        peer.snapshot = applyStateDelta(peer.snapshot, packet.data);
+        this.callbacks.snapshot(peer.snapshot);
+      }
       else if (packet.type === 'ended') this.fail(String(packet.data.message));
     }
   }
@@ -155,7 +183,7 @@ export class PeerSession {
   }
   cancelInvite() {
     if (!this.pending) return;
-    const peer = this.pending; peer.cancelled = true; clearTimeout(peer.timeout); peer.connection.close(); this.peers.delete(peer.id); this.pending = null;
+    const peer = this.pending; peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry); peer.connection.close(); this.peers.delete(peer.id); this.pending = null;
   }
   setReady(player) { player.ready = true; if (this.room.players.every(p => p.ready)) this.room.phase = 'playing'; this.publishRoom(); }
   async request(action, data = {}) {
@@ -171,13 +199,17 @@ export class PeerSession {
     else throw new Error('Cette action n’est pas disponible à cette étape.');
     return { ok: true };
   }
-  fail(message) { if (this.closed) return; this.close(); this.callbacks.ended(message); }
+  fail(message) { if (this.closed || this.closing) return; this.close(); this.callbacks.ended(message); }
   close() {
-    if (this.closed) return;
-    this.closed = true; clearInterval(this.heartbeat);
+    if (this.closed || this.closing) return;
+    this.closing = true;
+    clearInterval(this.heartbeat);
     for (const peer of this.peers.values()) {
       try { this.send(peer, this.host ? 'ended' : 'leave', { message: 'L’hôte a fermé la partie.' }); } catch { /* The link may already be gone. */ }
-      peer.cancelled = true; clearTimeout(peer.timeout); peer.connection.close();
+    }
+    this.closed = true;
+    for (const peer of this.peers.values()) {
+      peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry); peer.connection.close();
     }
     this.peers.clear();
   }

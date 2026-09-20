@@ -1,0 +1,237 @@
+✖ Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines (95.7866ms)
+✔ Une attente annule le combo ; le coup manqué ne charge rien ; anticipation et recul sont simulés (52.223ms)
+✔ Les Neutres, alliés et démobilisés sont exclus des impacts ; le SO possède 90 de résistance (26.8493ms)
+✔ Dégâts électoraux proportionnels uniquement dans les territoires contrôlés, vers les Neutres (3.7698ms)
+✔ Un Militant attaque à distance, ignore les S comme cible prioritaire et reprend sa prospection (119.7751ms)
+✔ Vitesse des Militants réduite et plafonnée à deux fois celle du joueur (3.0738ms)
+✖ Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet (3.4557ms)
+✖ Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée (3.4461ms)
+✖ Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau (3.5764ms)
+✔ Défense SO : intercepte un candidat dans son biome, cesse la poursuite à sa sortie (544.587ms)
+✖ Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome (4.9277ms)
+✖ Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante (3.5571ms)
+✖ Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant (4.415ms)
+✖ Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes (10.8727ms)
+✖ Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen (51.437ms)
+✔ Plusieurs SO augmentent la pression par leurs attaques, sans ajouter de PV au candidat (498.2356ms)
+✖ Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence (97.3897ms)
+✖ CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles (91.515ms)
+✖ Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement (17.5208ms)
+✔ Humain et IA passent par Attack ; l’appui bref est conservé et ne se répète pas (13.9379ms)
+✔ Combat déterministe à plusieurs FPS, y compris projectiles et unités temporaires (418.3866ms)
+✖ L’attaque et la vague traversent correctement la jonction du monde (7.7711ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 9
+ℹ fail 13
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2658.4237
+
+✖ failing tests:
+
+test at test\combat.test.js:45:1
+✖ Combo : 8 + 8 + 14 démobilise un S et un M, sans mort ni perte des origines (95.7866ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 4
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:54:12)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.start (node:internal/test_runner/test:877:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 4,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:116:1
+✖ Local SO : seuil de 5 S, débit de 70, aucun S consommé ; Philippe obtient un Cabinet (3.4557ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'x')
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:120:25)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:130:1
+✖ Équipement SO : plus proche Militant du biome, collecte physique, origines conservées, file sérialisée (3.4461ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:131:45)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:145:1
+✖ Amélioration des bâtiments factionnels : repère distinct, trois niveaux, coûts et services par niveau (3.5764ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:147:54)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:167:1
+✖ Raid directionnel : paiement 45, départ groupé, délai anti-spam, expiration et retour au biome (4.9277ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:168:45)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:180:1
+✖ Cabinet : cible directionnelle éligible, fermeture avec perte de niveaux et effets ; reconstruction payante (3.5571ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:181:61)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:195:1
+✖ Fermeture d’un Local SO : annule les équipements, rembourse les commandes non livrées, libère le Militant (4.415ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'owner_id')
+      at own (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:42:55)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:196:60)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:206:1
+✖ Les trois spéciaux utilisent le même Attack, consomment la charge et expirent sans unités permanentes (10.8727ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  10 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:210:42)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 10,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:220:1
+✖ Vague : S démobilisé, M perd 85 %, SO perd 35 %, pas de déplacement de Le Pen (51.437ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'SYMPATHISANT'
+  - 'DEMOBILISE'
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:229:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'SYMPATHISANT',
+    expected: 'DEMOBILISE',
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:243:1
+✖ Hologrammes : se ruent sur les adversaires et frappent sans produire d’influence (97.3897ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(sim.state.hit_results.some(h => h.source_id.startsWith('temporary:')))
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:247:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '=='
+  }
+
+test at test\combat.test.js:252:1
+✖ CRS : suivent Philippe, bloquent l’approche et interceptent les projectiles (91.515ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:256:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual'
+  }
+
+test at test\combat.test.js:265:1
+✖ Snapshot corrompu : charge, attaque, temporaire permanent et SO de Philippe refusés atomiquement (17.5208ms)
+  TypeError [Error]: Cannot set properties of undefined (setting 'expires_tick')
+      at s.temporary_units.<computed>.temporary (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:268:114)
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:269:36)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+
+test at test\combat.test.js:295:1
+✖ L’attaque et la vague traversent correctement la jonction du monde (7.7711ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'SYMPATHISANT'
+  - 'DEMOBILISE'
+  
+      at TestContext.<anonymous> (file:///C:/Users/ferat/AppData/Local/Temp/combat-baseline-z5lwll30/test/combat.test.js:299:10)
+      at Test.runInAsyncScope (node:async_hooks:211:14)
+      at Test.run (node:internal/test_runner/test:979:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+      at Test.postRun (node:internal/test_runner/test:1090:19)
+      at Test.run (node:internal/test_runner/test:1018:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:677:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'SYMPATHISANT',
+    expected: 'DEMOBILISE',
+    operator: 'strictEqual'
+  }

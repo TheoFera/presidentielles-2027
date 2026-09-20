@@ -13,13 +13,13 @@
   <body>
     <section id="start-menu" aria-label="Menu de Présidentielles 2027"><p class="boot-message" role="status">Préparation du jeu…</p></section>
     <main id="game" inert aria-label="Prototype jouable de Présidentielles 2027">
-      <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour attaquer, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
+      <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour frapper au relâchement, maintenir 1,5 seconde pour charger, flèche haut pour sauter, R pour l’ultime, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
       <div id="touch-controls" aria-label="Commandes tactiles">
         <div class="touch-directions">
           <button id="move-left" aria-label="Marcher à gauche">←</button>
           <button id="move-right" aria-label="Marcher à droite">→</button>
         </div>
-        <div class="touch-actions"><span id="bardella-armed" hidden>✦ Protection active</span><button id="ultimate-touch" hidden disabled aria-label="Ultime"><span>Ultime</span></button><button id="attack-touch" aria-label="Attaquer">Frapper</button></div>
+        <div class="touch-actions"><span id="bardella-armed" hidden>✦ Protection active</span><button id="jump-touch" aria-label="Sauter">Sauter</button><button id="ultimate-touch" hidden disabled aria-label="Ultime"><span>Ultime</span></button><button id="attack-touch" aria-label="Attaquer">Frapper</button></div>
       </div>
       <nav id="game-menu" aria-label="Menu du jeu">
         <button id="pause-touch" aria-label="Aide et pause">Pause</button>
@@ -37,7 +37,7 @@
       </div>
       <div id="notice" role="status"></div>
       <div id="network-status" hidden role="status"></div>
-      <div id="hint">← → ou Q / D : marcher · Double appui : esquiver · Espace / J : frapper · R : ultime · H : aide · F3 : débogage</div>
+      <div id="hint">← → ou Q / D : marcher · Double appui : esquiver · Espace / J : frapper ou charger · ↑ : sauter · R : ultime · H : aide · F3 : débogage</div>
       <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
       <div id="phase-banner" hidden role="status"></div>
       <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
@@ -57,8 +57,8 @@
           <button data-help-tab="election" aria-selected="false">Élection</button>
         </nav>
         <div class="help-page" data-help-page="controls">
-          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>Échap / P / H</dt><dd>Pause</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Touchez <strong>Frapper</strong> ou <strong>Ultime</strong> pour attaquer.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
-          <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo. Touchez vos adversaires pour charger l’ultime.</p><p>Devant votre QG, maintenez <strong>E</strong> ou <strong>Changer de style</strong> pendant 3 secondes.</p><p>Changer de style remet la charge de l’ultime à zéro.</p></article>
+          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper au relâchement ; maintenir 1,5 s pour charger</dd><dt>↑</dt><dd>Sauter et frapper en l’air</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>Échap / P / H</dt><dd>Pause</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Relâchez <strong>Frapper</strong> pour attaquer. Maintenez 1,5 s pour charger. <strong>Sauter</strong> permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
+          <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo : la troisième repousse et brise une charge. Pendant la charge, vous recevez les dégâts mais résistez aux interruptions. Un dash annule la charge. Touchez vos adversaires pour remplir l’ultime, prioritaire sauf pendant un étourdissement.</p><p>Devant votre QG, maintenez <strong>E</strong> ou <strong>Changer de style</strong> pendant 3 secondes.</p><p>Changer de style remet la charge de l’ultime à zéro.</p></article>
         </div>
         <div class="help-page" data-help-page="field" hidden>
           <article><h2>Rassemblez des voix</h2><p>Restez près d’un passant neutre : il devient automatiquement sympathisant. Vos partisans augmentent aussi vos revenus.</p><p>Restez devant le repère d’un bâtiment pour interagir ou acheter, avec assez d’argent et de soutiens.</p><p id="balance-help"></p></article>

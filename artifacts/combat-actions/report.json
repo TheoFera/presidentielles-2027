@@ -1,0 +1,11 @@
+{
+  "flows": [
+    "Sauter à gauche de Frapper ; Ultime au-dessus ; progression visible à 60 %.",
+    "Espace maintenu : charge prête, personnage immobile, frappe chargée uniquement au relâchement.",
+    "Dash annule la charge, sans coup au relâchement.",
+    "Flèche haut : saut réel, attaque aérienne, retour au sol.",
+    "R active immédiatement l’ultime pendant une charge.",
+    "Maintien tactile : frappe chargée au relâchement ; annulation tactile sans frappe."
+  ],
+  "errors": []
+}

@@ -1,3 +1,4 @@
+import { actionState } from './combat-actions.js';
 import { ringDelta } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
 import { aiNoise } from './ai-settings.js';
@@ -75,6 +76,7 @@ export function clearCampaignUltimate(sim, candidate, resetLife = false) {
   state.powers = state.powers.filter(p => p.owner_id !== candidate.id);
   state.projectiles = state.projectiles.filter(p => p.owner_id !== candidate.id && !ids.has(p.owner_id));
   state.attacks = state.attacks.filter(a => a.owner_id !== candidate.id && !ids.has(a.owner_id));
+  Object.assign(candidate.combat, actionState());
   candidate.combat.combo_step = 0; candidate.combat.combo_expires_tick = 0;
   candidate.combat.attack_id = null; candidate.combat.buffer_until_tick = -1;
   candidate.ultimate_effect = null; candidate.style_hold = null; candidate.style_interaction_held = false;
@@ -129,14 +131,14 @@ export class CampaignStyleSystem {
       }
       return true;
     }
-    if (c && (command.type === 'Attack' || command.type === 'Move' && command.axis)) { c.style_hold = null; c.style_interaction_held = false; }
+    if (c && (['Attack', 'PressAttack', 'Jump'].includes(command.type) || command.type === 'Move' && command.axis)) { c.style_hold = null; c.style_interaction_held = false; }
     return false;
   }
   static update(sim) {
     for (const c of sim.state.candidates) {
       if (sim.state.campaign_style_selection) break;
       if (!c.current_campaign_style && c.headquarters_site_id && !c.eliminated) { this.headquartersEstablished(sim, c); continue; }
-      if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
+      if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.charge_active || c.combat.jump_tick != null || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
       c.style_hold ??= { start_tick: sim.state.tick, hits: c.hits_received, x: c.x };
       if (c.hits_received !== c.style_hold.hits || c.x !== c.style_hold.x) { c.style_hold = null; c.style_interaction_held = false; continue; }
       if (sim.state.tick - c.style_hold.start_tick >= sim.secondsToTicks(styleSettings(sim.config).hold_seconds)) this.open(sim, c);

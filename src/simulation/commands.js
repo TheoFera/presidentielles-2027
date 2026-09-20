@@ -10,6 +10,10 @@ export const teleport = (candidateId, subzoneId) => ({ type: 'DebugTeleport', ca
 export const demobilize = npcId => ({ type: 'DebugDemobilize', npcId });
 export const dash = (candidateId, direction) => ({ type: 'Dash', candidateId, direction });
 export const activateUltimate = candidateId => ({ type: 'ActivateUltimate', candidateId });
+export const pressAttack = candidateId => ({ type: 'PressAttack', candidateId });
+export const releaseAttack = candidateId => ({ type: 'ReleaseAttack', candidateId });
+export const cancelAttack = candidateId => ({ type: 'CancelAttack', candidateId });
+export const jump = candidateId => ({ type: 'Jump', candidateId });
 export const attack = (candidateId, direction = null) => ({ type: 'Attack', candidateId, direction });
 export const fillSpecial = candidateId => ({ type: 'DebugFillSpecial', candidateId });
 export const controlZone = candidateId => ({ type: 'DebugControlZone', candidateId });

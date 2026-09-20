@@ -11,19 +11,25 @@ export class Controller {
 }
 
 export class LocalHumanController extends Controller {
-  constructor() { super(); this.axis = 0; this.pendingTap = 0; }
+  constructor() { super(); this.axis = 0; this.pendingTap = 0; this.attackEvents = []; }
   setAxis(axis) { this.axis = Math.sign(axis); if (this.axis) this.pendingTap = this.axis; }
   dash(direction) { this.dashPending = direction; }
-  ultimate() { this.ultimatePending = true; }
-  reset() { this.dashPending = 0; this.ultimatePending = false; this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
+  ultimate() { this.ultimatePending = true; this.attackEvents = []; this.attackPending = false; this.dashPending = 0; this.jumpPending = false; }
+  pressAttack() { this.attackEvents.push('PressAttack'); }
+  releaseAttack() { this.attackEvents.push('ReleaseAttack'); }
+  cancelAttack() { this.attackEvents = ['CancelAttack']; }
+  jump() { this.jumpPending = true; }
+  reset() { this.cancelAttack(); this.jumpPending = false; this.dashPending = 0; this.ultimatePending = false; this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
   attack() { this.attackPending = true; }
   commands(_state, candidateId) {
     // Preserve a key press released between two simulation ticks.
     const axis = this.axis || this.pendingTap;
     this.pendingTap = 0;
     const commands = [setCampaignActive(candidateId, true), interactionPresence(candidateId), move(candidateId, axis)];
+    if (this.ultimatePending) { this.ultimatePending = false; this.attackEvents = []; this.attackPending = false; this.dashPending = 0; this.jumpPending = false; return [...commands, { type: 'ActivateUltimate', candidateId }]; }
+    if (this.jumpPending) { commands.push({ type: 'Jump', candidateId }); this.jumpPending = false; }
     if (this.dashPending) { commands.push({ type: 'Dash', candidateId, direction: this.dashPending }); this.dashPending = 0; }
-    if (this.ultimatePending) { commands.push({ type: 'ActivateUltimate', candidateId }); this.ultimatePending = false; }
+    for (const type of this.attackEvents.splice(0)) commands.push({ type, candidateId });
     if (this.attackPending) { commands.push(attack(candidateId)); this.attackPending = false; }
     return commands;
   }
@@ -39,6 +45,7 @@ export class AIController extends Controller {
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) return arenaAICommands(state.arena, this.config, candidateId, state.ai_enabled);
     const candidate = state.candidates.find(c => c.id === candidateId);
     if (!candidate || candidate.eliminated) return [];
+    if (candidate.combat.press_tick != null && !candidate.campaign_arena_id) return [{ type: state.ai_enabled && state.tick - candidate.combat.press_tick >= Math.ceil(this.config.balance.candidate_combat.charge_ready_seconds * this.config.balance.simulation_architecture.fixed_tick_hz) ? 'ReleaseAttack' : !state.ai_enabled ? 'CancelAttack' : 'Move', candidateId, axis: 0 }];
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
     if (state.ai_enabled && !candidate.is_ko) {
       const eventCommands = campaignAICommands(state, this.config, candidate);

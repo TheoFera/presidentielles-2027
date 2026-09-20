@@ -1,14 +1,15 @@
 export class BrowserInput {
   constructor(canvas, human, onAction, anchorRatio, touchPauseRadius, doubleTapWindow = 300) {
     this.doubleTapWindow = doubleTapWindow; this.lastTap = null; this.lastAxis = 0;
-    this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
+    this.attackSources = new Set(); this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
     this.human = human; this.onAction = onAction; this.canvas = canvas; this.anchorRatio = anchorRatio;
     window.addEventListener('keydown', event => {
       if (document.getElementById('game')?.inert) return;
       if (event.target.closest?.('#campaign-styles')) return;
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();
-      if (key === ' ') event.preventDefault();
+      if ([' ', 'arrowup'].includes(key)) event.preventDefault();
+      if ([' ', 'j'].includes(key)) { if (!event.repeat) this.pressAttack(key); return; }
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) event.preventDefault();
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) { this.keys.add(key); this.update(); }
       else if (!event.repeat) {
@@ -16,10 +17,17 @@ export class BrowserInput {
         onAction(key);
       }
     });
-    window.addEventListener('keyup', event => { this.keys.delete(event.key.toLowerCase()); this.update(); });
+    window.addEventListener('keyup', event => { const key = event.key.toLowerCase(); if ([' ', 'j'].includes(key)) this.releaseAttack(key); this.keys.delete(key); this.update(); });
     window.addEventListener('blur', () => this.clear());
     document.getElementById('ultimate-touch')?.addEventListener('pointerdown', event => { event.preventDefault(); onAction('ultimate'); });
-    document.getElementById('attack-touch').addEventListener('pointerdown', event => { event.preventDefault(); onAction('attack'); });
+    document.getElementById('jump-touch')?.addEventListener('pointerdown', event => { event.preventDefault(); onAction('arrowup'); });
+    const attackButton = document.getElementById('attack-touch');
+    attackButton.addEventListener('pointerdown', event => { if (event.button !== 0) return; event.preventDefault(); attackButton.setPointerCapture(event.pointerId); this.pressAttack(`pointer:${event.pointerId}`); });
+    attackButton.addEventListener('pointerup', event => this.releaseAttack(`pointer:${event.pointerId}`));
+    for (const type of ['pointercancel', 'lostpointercapture']) attackButton.addEventListener(type, event => {
+      if (this.attackSources.has(`pointer:${event.pointerId}`)) { this.attackSources.clear(); onAction('attack-cancel'); }
+    });
+    attackButton.addEventListener('contextmenu', event => event.preventDefault());
     document.getElementById('pause-touch').addEventListener('click', () => onAction('h'));
     document.getElementById('fullscreen-touch').addEventListener('click', () => onAction('f'));
     const release = event => {
@@ -65,8 +73,17 @@ export class BrowserInput {
       else this.lastTap = { axis, time: now };
     }
     this.lastAxis = axis;
-    if (left && right && !this.pointerAxis) this.human.reset();
+    if (left && right && !this.pointerAxis) this.human.setAxis(0);
     else this.human.setAxis(this.pointerAxis || Number(right) - Number(left));
   }
-  clear() { this.lastTap = null; this.lastAxis = 0; this.keys.clear(); this.pointers.clear(); this.pointerAxis = 0; this.human.reset(); }
+  pressAttack(source) {
+    if (this.attackSources.has(source)) return;
+    if (!this.attackSources.size) this.onAction('attack-press');
+    this.attackSources.add(source);
+  }
+  releaseAttack(source) {
+    if (!this.attackSources.delete(source)) return;
+    if (!this.attackSources.size) this.onAction('attack-release');
+  }
+  clear() { this.attackSources.clear(); this.lastTap = null; this.lastAxis = 0; this.keys.clear(); this.pointers.clear(); this.pointerAxis = 0; this.human.reset(); }
 }

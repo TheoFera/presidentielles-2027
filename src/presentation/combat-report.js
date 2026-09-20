@@ -13,6 +13,7 @@ export function combatReport(state, config, candidate, npc, building) {
     `Territoires contrôlés : ${controlledZones(state, config, candidate.faction_id).length}`,
     `Pertes électorales cumulées : ${f(candidate.electoral_damage_received)} point(s) · ${candidate.hits_received} coup(s) reçu(s)`,
     `Cible : ${c.target_id || 'Aucune'}`, `Attaque : ${attack ? `${attackNames[attack.kind]} · ${attack.id}` : 'Aucune'}`,
+    `Charge : ${c.charge_active ? 'active' : 'inactive'} · saut : ${f(c.height || 0)} hauteur(s)`,
     `Combo : ${c.combo_step} / 3 · délai restant ${f(Math.max(0, c.combo_expires_tick - state.tick) / hz)} s`,
     `Étourdissement : ${f(c.stun_ticks / hz)} s · arrêt d’impact : ${f(c.hitstop_ticks / hz)} s`,
     `Vitesse de recul : ${f(c.knockback_velocity)} u/s`,

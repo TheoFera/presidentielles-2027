@@ -1,3 +1,4 @@
+import { actionState, armored, cancelCharge, charging, verticalHit } from './combat-actions.js';
 import { clearCampaignUltimate } from './campaign-styles.js';
 import { tryBardellisation } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
@@ -5,13 +6,14 @@ import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
 
-export const combatState = () => ({ attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
+export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
 export const combatActors = state => [...state.candidates.filter(c => !c.eliminated && !c.campaign_arena_id), ...state.npcs, ...state.temporary_units];
 export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_arena_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && a.faction_id !== b.faction_id;
-export const interrupted = actor => actor.combat && (actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
-export const canCampaign = actor => !actor.style_hold && !actor.style_interaction_held && !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
+export const interrupted = actor => actor.combat && (charging(actor) || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
+export const movementBlocked = actor => actor.combat && (actor.combat.charge_active || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id && actor.combat.jump_tick == null);
+export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
   return state.electorate.filter(e => leadership(e.support, config).controller === faction);
@@ -45,17 +47,19 @@ export function demobilizeUnit(sim, npc) {
 
 /** The simulation computes every hit; the renderer never chooses a victim. */
 export function hit(sim, source, target, spec, attackId) {
+  if (!verticalHit(sim.config, source, target, spec)) return null;
   if (!enemies(source, target) || sim.state.arena_bounds && sim.state.eliminated_faction) return null;
   const { state, config } = sim;
   if (target.dash_active && state.tick <= target.dash_invulnerable_until_tick) { sim.emit('DashEvadedHit', { candidate_id: target.id, attack_id: attackId }); return null; }
+  const protectedHit = armored(state, target) && !(spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind));
   const retaliate = target.role === 'CANDIDAT' && target.ultimate_effect?.kind === 'EUROPE' && target.ultimate_effect.expires_tick > state.tick && !spec.ranged && !spec.retaliation;
   let revived = false;
   const direction = spec.direction || Math.sign(combatDelta(state, source.x, target.x)) || source.facing;
   const result = { id: `hit:${state.next_hit_id++}`, tick: state.tick, attack_id: attackId,
-    source_id: source.id, target_id: target.id, damage: 0, electoral_damage: 0, knockback: spec.knockback, direction, x: target.x, strong: !!spec.strong };
+    source_id: source.id, target_id: target.id, damage: 0, electoral_damage: 0, knockback: spec.knockback, direction, x: target.x, height: target.combat.height || 0, strong: !!spec.strong };
   if (target.role === 'CANDIDAT' && state.arena_bounds) {
     const damage = config.balance.first_round_arena.damage;
-    const key = spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
+    const key = spec.kind === 'CHARGED' ? 'charged' : spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
     const dealt = source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1) : damage[key] * (state.campaign_damage_multiplier || 1);
     result.damage = Math.min(target.arena_hp, dealt);
     result.score_damage = result.damage; result.arena_hp_before = target.arena_hp;
@@ -86,14 +90,15 @@ export function hit(sim, source, target, spec, attackId) {
     result.damage = Math.min(target.hidden_durability, spec.damage * multiplier);
     target.hidden_durability = Math.max(0, target.hidden_durability - result.damage);
   }
-  if (spec.knockback > 0) target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
-  target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(spec.stun_seconds ?? config.balance.candidate_combat.hit_stun_seconds));
+  if (!protectedHit && spec.knockback > 0) target.combat.knockback_velocity = direction * Math.max(Math.abs(target.combat.knockback_velocity), spec.knockback);
+  if (!protectedHit) target.combat.stun_ticks = Math.max(target.combat.stun_ticks, sim.secondsToTicks(spec.stun_seconds ?? config.balance.candidate_combat.hit_stun_seconds));
   const stop = spec.no_hitstop ? 0 : sim.secondsToTicks(spec.strong ? config.balance.candidate_combat.finisher_hitstop_seconds : config.balance.candidate_combat.light_hitstop_seconds);
-  target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
+  if (!protectedHit) target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
   source.combat.last_hit = result; target.combat.last_hit = result;
   source.combat.target_id = target.id;
-  if (spec.kind !== 'BURN') target.combat.attack_id = null;
+  if (!protectedHit && spec.kind !== 'BURN') { target.combat.attack_id = null; target.combat.buffer_until_tick = -1; cancelCharge(target); }
+  if (protectedHit) result.knockback = 0;
   if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
   if (revived) { target.combat = combatState(); target.axis = 0; }
   if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0) {

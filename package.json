@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node scripts/build-pages.mjs",
     "start": "node scripts/serve.mjs",
-    "test": "node --test test/multiplayer.test.js test/ai.test.js test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js test/campaign-events.test.js test/campaign-display.test.js test/campaign-styles.test.js test/campaign-sprites.test.js test/visual-assets.test.js test/mobile-combat.test.js",
+    "test": "node --test test/multiplayer.test.js test/ai.test.js test/browser-input.test.js test/pages.test.js test/refonte-sites.test.js test/campaign-events.test.js test/campaign-display.test.js test/campaign-styles.test.js test/campaign-sprites.test.js test/visual-assets.test.js test/mobile-combat.test.js test/combat-actions.test.js",
     "test:ia": "node --test test/ai.test.js",
     "test:multijoueur": "node --test test/multiplayer.test.js",
     "test:parcours": "node scripts/validate-milestone2.mjs",
@@ -16,7 +16,7 @@
     "test:partie": "node scripts/validate-milestone5.mjs",
     "test:campagne": "node scripts/validate-campaign.mjs",
     "test:styles": "node --test test/campaign-styles.test.js",
-    "test:combat-mobile": "node --test test/mobile-combat.test.js test/browser-input.test.js test/campaign-styles.test.js"
+    "test:combat-mobile": "node --test test/combat-actions.test.js test/mobile-combat.test.js test/browser-input.test.js test/campaign-styles.test.js"
   },
   "engines": {
     "node": ">=24"
