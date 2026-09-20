@@ -49,35 +49,26 @@
         <p id="third-name" class="subtle"></p><p id="tie-detail" class="subtle"></p>
         <div class="result-actions"><button id="replay">Rejouer</button><button id="return">Retour à l’accueil</button></div>
       </section>
-      <section id="help" class="panel" hidden aria-label="Aide et pause">
-        <span class="eyebrow">PRÉSIDENTIELLES 2027 · GUIDE DE CAMPAGNE</span>
-        <h1>Faire campagne, à pied.</h1>
-        <p>À J0, les trois candidats rejoignent le plateau médiatique : leur score devient leur jauge. Le premier à 0 est éliminé. Retour immédiat au monde pour <strong>60 secondes de sprint, influence ×10</strong>, puis résultat. Si ton candidat est éliminé, tu peux suivre la fin en spectateur.</p>
-        <p>Approche-toi d’un habitant neutre et reste à côté. Il deviendra automatiquement <strong>Sympathisant</strong>, sans touche ni argent.</p>
-        <p>Chaque partisan recruté augmente ton <strong>revenu passif</strong> selon son biome d’origine. Cette contribution continue lorsqu’il se déplace ou devient Militant ou Service d’ordre, et cesse s’il est démobilisé. Le gain par seconde apparaît sous ton argent ; son détail par biome est disponible avec F3.</p>
-        <p id="budget-help"></p>
-        <p>Chaque sous-zone possède un <strong>plafond de population d’origine</strong>. Les Neutres, Sympathisants, Militants, Services d’ordre et PNJ démobilisés y comptent, même lorsqu’ils partent ailleurs. À la limite, les apparitions s’arrêtent : recruter ne crée pas de place supplémentaire. F3 affiche le nombre et le plafond de la sous-zone actuelle.</p>
-        <p>Ton premier Local devient ton <strong>QG</strong> : choisis alors un style parmi trois grandes cartes. Un seul style est actif ; les deux autres commencent verrouillés. Pour changer ensuite, reviens devant ton QG et maintiens <strong>E</strong> ou <strong>CHANGER DE STYLE</strong> pendant trois secondes, sans bouger. Le nouveau style remplace le précédent et remet la charge de l’ultime à zéro. Les PNJ gardent toujours leur apparence habituelle.</p>
-        <p>Avec assez de Sympathisants dans la sous-zone, un emplacement devient constructible. Reste devant son <strong>billet</strong> pour payer automatiquement. À l’Imprimerie, chaque paiement commande un tract : un Sympathisant vient le chercher et devient Militant.</p>
-        <dl>
-          <dt>← → / Q D / A D</dt><dd>Marcher à gauche ou à droite</dd>
-          <dt>E (maintenir devant le QG)</dt><dd>Ouvrir les styles de campagne</dd>
-          <dt>Double appui ← / → ou Q / D</dt><dd>Esquive directionnelle</dd>
-          <dt>R</dt><dd>Activer l’ultime chargé</dd>
-          <dt>Espace / J</dt><dd>Frapper : léger → léger → fort</dd>
-          <dt>H / Échap / P</dt><dd>Afficher l’aide et mettre en pause</dd>
-          <dt>F</dt><dd>Passer en plein écran</dd>
-          <dt>F3</dt><dd>Afficher ou masquer le débogage</dd>
-        </dl>
-        <p class="subtle">Trois appuis rapprochés forment le combo. Les coups réussis chargent le pouvoir : quand le bouton Ultime est plein, appuie dessus (ou sur R) pour l’activer. La charge commence à baisser après 10 secondes sans toucher et disparaît en 5 secondes. Pour Bardella, ce bouton arme une relève au prochain KO, une seule fois par vie. Un coup dans le vide ou un dégât d’ultime ne recharge rien. Personne ne meurt : les unités démobilisées rentrent à leur point d’origine.</p>
-        <p class="subtle">Local SO : équipement au centre, raid à gauche ou à droite. Cabinet de Philippe : fermeture vers la gauche ou la droite. Le petit repère ↑ à droite de la porte sert à améliorer ces bâtiments.</p>
-        <p class="subtle" id="poll-help"></p>
-        <p class="subtle">Meeting : construis le podium, éloigne-toi puis reviens au micro pour payer l’événement. Il convainc localement et renforce temporairement les Sympathisants et Militants du secteur. Le repère ↑ à droite sert à améliorer le lieu. Un billet grisé indique qu’il faut attendre ou réunir les fonds.</p>
-        <p class="subtle">Sur téléphone : maintiens une flèche pour marcher et touche « Frapper » avec l’autre pouce pour attaquer. Relâche la flèche pour t’arrêter et convaincre. « Pause » ouvre cette aide. Le mode paysage est conseillé.</p>
-        <p class="subtle" id="balance-help"></p>
-        <p class="subtle">Un achat ou une amélioration de bâtiment par visite : éloigne-toi, puis reviens pour le niveau suivant. À l’Imprimerie, rester sur place commande plusieurs tracts, dans la limite de la file et des fonds. Les Militants recrutent seuls ; les Sympathisants restent dans leur secteur.</p>
-        <button id="resume">Reprendre la campagne</button>
-        <button id="pause-home">Retour au menu principal</button>
+<section id="help" class="panel" hidden aria-label="Aide et pause">
+        <span class="eyebrow">PRÉSIDENTIELLES 2027</span><h1>Pause</h1>
+        <nav class="help-tabs" aria-label="Pages du guide">
+          <button data-help-tab="controls" aria-selected="true">Commandes</button>
+          <button data-help-tab="field" aria-selected="false">Terrain</button>
+          <button data-help-tab="election" aria-selected="false">Élection</button>
+        </nav>
+        <div class="help-page" data-help-page="controls">
+          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>Échap / P / H</dt><dd>Pause</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Touchez <strong>Frapper</strong> ou <strong>Ultime</strong> pour attaquer.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
+          <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo. Touchez vos adversaires pour charger l’ultime.</p><p>Devant votre QG, maintenez <strong>E</strong> ou <strong>Changer de style</strong> pendant 3 secondes.</p><p>Changer de style remet la charge de l’ultime à zéro.</p></article>
+        </div>
+        <div class="help-page" data-help-page="field" hidden>
+          <article><h2>Rassemblez des voix</h2><p>Restez près d’un passant neutre : il devient automatiquement sympathisant. Vos partisans augmentent aussi vos revenus.</p><p>Restez devant le repère d’un bâtiment pour interagir ou acheter, avec assez d’argent et de soutiens.</p><p id="balance-help"></p></article>
+          <article><h2>Développez votre camp</h2><p>Le premier Local devient votre QG. L’Imprimerie transforme vos sympathisants en militants grâce aux tracts.</p><p>Éloignez-vous puis revenez pour un nouvel achat. L’Imprimerie permet plusieurs commandes sur place.</p><p id="poll-help"></p></article>
+        </div>
+        <div class="help-page" data-help-page="election" hidden>
+          <article><h2>La course à l’Élysée</h2><p>À J0, votre score devient votre jauge sur le plateau télévisé. Le premier candidat à zéro est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong>, avec une influence multipliée par 10.</p><p>Le meilleur score final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
+          <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, la pause est partagée. Gardez tous le jeu ouvert.</p></article>
+        </div>
+        <div class="help-actions"><button id="resume">Reprendre</button><button id="pause-home">Menu principal</button></div>
       </section>
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>

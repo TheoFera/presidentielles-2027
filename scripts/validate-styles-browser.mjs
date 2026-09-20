@@ -45,10 +45,10 @@ try {
       assert.equal(await page.locator('.campaign-style-cancel').count(), 0);
       await page.keyboard.press('Escape'); assert.equal(await page.locator('#campaign-styles').evaluate(d => d.open), true);
       const layout = await page.locator('.campaign-style-card').evaluateAll(cards => cards.map(c => {
-        const r = c.getBoundingClientRect(); return { style: c.dataset.styleId, x: r.x, right: r.right, width: r.width, sprite: c.querySelector('canvas').dataset.spriteId };
+        const r = c.getBoundingClientRect(); return { style: c.dataset.styleId, x: r.x, y: r.y, right: r.right, width: r.width, sprite: c.querySelector('canvas').dataset.spriteId };
       }));
       assert.ok(layout.every(c => c.x >= 0 && c.right <= viewport.width + 1));
-      assert.ok(layout[0].x < layout[1].x && layout[1].x < layout[2].x);
+      assert.ok(viewport.width <= 600 && viewport.height > 500 ? layout[0].y < layout[1].y && layout[1].y < layout[2].y : layout[0].x < layout[1].x && layout[1].x < layout[2].x);
       report.cards.push(...layout.map(c => ({ ...c, viewport })));
       await page.screenshot({ path: path.join(output, `${faction}-${viewport.width}x${viewport.height}.png`) });
       await page.locator('.campaign-style-card:not(:disabled)').click(); await page.waitForSelector('#campaign-styles', { state: 'hidden' });

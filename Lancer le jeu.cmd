@@ -7,5 +7,6 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+echo Solo et multijoueur Wi-Fi : gardez cette fenêtre ouverte pendant la partie.
 node scripts/serve.mjs --open
 pause

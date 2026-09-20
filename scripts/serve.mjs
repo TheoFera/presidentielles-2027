@@ -4,11 +4,12 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { createMultiplayerHandler } from './multiplayer-server.mjs';
+import { connectionInfo, lanAddresses } from './lan-addresses.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.PORT || 2027);
-const host = process.env.HOST || '127.0.0.1';
-const multiplayer = createMultiplayerHandler();
+const host = process.env.HOST || '0.0.0.0';
+const multiplayer = createMultiplayerHandler({ status: req => connectionInfo(req, port, host) });
 const url = `http://localhost:${port}`;
 function openBrowser() {
   if (!process.argv.includes('--open')) return;
@@ -48,5 +49,6 @@ server.on('error', error => {
 });
 server.listen(port, host, () => {
   console.log(`Prototype prêt : ${url}\nLaisse ce terminal ouvert. Ctrl+C pour arrêter.`);
+  for (const address of lanAddresses(port, host)) console.log(`Même Wi-Fi : ${address}`);
   openBrowser();
 });

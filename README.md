@@ -6,24 +6,41 @@ L’IA mène des offensives contre les implantations adverses et utilise les tro
 
 ## Lancer et jouer
 
-### Menu de démarrage
+### Menus arcade
 
-Le jeu s’ouvre sur **Solo** et **Multijoueur**. En Solo, choisis Mélenchon, Le Pen ou Philippe, puis consulte les consignes et les contrôles pendant le chargement des images. **Commencer la campagne** lance la simulation : le temps ne passe pas dans les menus. L’aide en pause et les résultats permettent de revenir à l’accueil.
+Accueil, choix du candidat, tutoriel, salon, invitation, pause, résultats et styles de campagne tiennent chacun sur un écran, en portrait comme en paysage. Les commandes tactiles sont présentées sur téléphone. L’aide en pause propose trois onglets : Commandes, Terrain et Élection. La partie attend que vous appuyiez sur **C’est parti !** ou **Je suis prêt**.
 
-### Multijoueur : deux ou trois appareils
+### Multijoueur entre téléphones, sans ordinateur
 
-Sur le même réseau Wi-Fi, l’hôte lance **Lancer le multijoueur.cmd**. La fenêtre affiche l’adresse IPv4 de son ordinateur. Chaque joueur ouvre `http://ADRESSE-IP:2027` dans son navigateur, en remplaçant `ADRESSE-IP` par cette adresse (par exemple `http://192.168.1.20:2027`). Si Windows le demande, autorise Node.js sur le réseau privé.
+Deux ou trois téléphones peuvent utiliser le mode **Entre téléphones · Wi-Fi**. Tous ouvrent la même version du jeu dans leur navigateur depuis le site publié, puis se connectent au même Wi-Fi. Le téléphone qui crée le salon calcule la partie ; les autres échangent leurs actions directement avec lui.
 
-1. L’hôte choisit **Multijoueur**, son candidat, puis **Créer un salon**.
-2. Les autres choisissent un candidat différent et saisissent le code du salon.
-3. À partir de deux joueurs, l’hôte peut préparer la partie. À deux, le troisième candidat est contrôlé par l’ordinateur.
-4. Chacun lit le tutoriel puis clique sur **Je suis prêt**. La campagne commence lorsque tous les joueurs sont prêts.
+1. Sur le téléphone hôte : **Multijoueur → choisir son candidat → Créer un salon → Inviter un joueur**.
+2. L’hôte copie l’invitation et l’envoie à un ami (par exemple dans une messagerie).
+3. L’ami ouvre **Multijoueur**, choisit un candidat différent, colle l’invitation dans **Rejoindre**, puis copie et renvoie sa **réponse** à l’hôte.
+4. L’hôte colle cette réponse dans **Réponse de votre ami**, puis touche **Connecter le joueur**. Les deux appareils reviennent au salon.
+5. Pour un troisième joueur, l’hôte crée **une nouvelle invitation** et répète l’échange. À deux joueurs, le troisième candidat reste piloté par l’ordinateur.
+6. L’hôte touche **Préparer la partie**. Chacun lit le tutoriel puis touche **Je suis prêt**.
 
-Chaque appareil possède sa caméra et ses commandes habituelles. La pause est partagée ; masquer un onglet met la partie en pause. Le choix de style d’un joueur suspend aussi la campagne. Une déconnexion termine le salon avec un message explicite. Il faut alors créer un nouveau salon ; les salons ne sont pas sauvegardés. L’hôte garde son onglet ouvert : son navigateur calcule la partie, et le serveur relaie les commandes et l’état du monde.
+Le code court affiché identifie le salon ; en connexion directe, il ne suffit pas pour le rejoindre. Il faut copier les textes complets commençant par `P27:`. L’invitation et la réponse remplacent le service de mise en relation : aucun serveur de parties, compte, application à installer ni fichier `.cmd` n’est nécessaire sur les téléphones. La page du jeu doit d’abord être publiée et accessible, notamment sur GitHub Pages.
 
-**Pour jouer à distance par Internet**, il faut héberger ce serveur Node.js sur une adresse accessible aux joueurs, avec HTTPS et prise en charge des connexions SSE. Le serveur se lance avec `HOST=0.0.0.0` et le port défini par `PORT` (2027 par défaut). Aucun service public n’est déployé automatiquement. GitHub Pages conserve le mode Solo et explique l’absence de serveur lorsqu’on ouvre Multijoueur.
+Les liens utilisent les canaux de données WebRTC, sans caméra, microphone ni relais de parties. Le service STUN public de Google aide à trouver un chemin réseau lorsque la découverte locale ne suffit pas ; il ne reçoit pas l’état du jeu. Les connexions locales restent utilisables s’il ne répond pas. Voir le [principe de l’échange de connexion](https://webrtc.org/getting-started/peer-connections). Autorisez l’accès au réseau local si le navigateur le demande. Un réseau invité qui isole ses appareils, un VPN ou un blocage des échanges locaux peut empêcher la liaison ; utilisez alors un réseau qui autorise les communications entre appareils.
 
-Vérification du serveur et des règles multijoueurs : `npm run test:multijoueur`. Le script `scripts/validate-start-menu-browser.mjs` vérifie les parcours dans Chrome, avec Playwright accessible via `CAMPAIGN_TEST_NODE_MODULES`.
+Gardez le jeu et l’écran de l’hôte ouverts pendant la partie. Chaque joueur possède sa caméra et ses commandes. La pause est partagée ; masquer l’onglet pendant la partie demande une pause. Le choix du style suspend également la campagne. Les styles débloqués de l’hôte sont utilisés pour tous. Une déconnexion termine la session avec un message ; rechargez puis recréez le salon pour rejouer.
+
+### Option : serveur sur un ordinateur du Wi-Fi
+
+**Lancer le jeu.cmd** ouvre désormais aussi le jeu au réseau local. Il n’est plus nécessaire de lancer un second fichier. L’ancien **Lancer le multijoueur.cmd** appelle le même lanceur. Dans le menu Multijoueur, sélectionnez **Avec un serveur local**.
+
+L’hôte crée un salon et copie l’adresse affichée. Les autres appareils ouvrent cette adresse : le code est prérempli. La fenêtre du serveur doit rester ouverte ; Windows peut demander d’autoriser Node.js sur le réseau privé. Le port par défaut est 2027 ; `HOST=127.0.0.1` permet de limiter volontairement le serveur à l’ordinateur.
+
+Le mode serveur fonctionne aussi si ce serveur Node.js est hébergé sur Internet avec HTTPS et prise en charge de SSE. Aucun hébergement de serveur n’est déployé par ce changement.
+
+### Vérifications des menus et du réseau
+
+- `npm test` inclut les règles de salon, les invitations directes, les commandes autorisées et les adresses réseau.
+- `scripts/validate-arcade-browser.mjs` vérifie les menus à partir de 320 × 568 et en paysage, ainsi qu’une partie directe à deux puis trois navigateurs avec toutes les API HTTP multijoueurs bloquées.
+- Playwright est fourni via `CAMPAIGN_TEST_NODE_MODULES`. Le mode `ARCADE_LOOPBACK_ICE=1` désactive uniquement la dissimulation mDNS **dans le navigateur de test**, pour les machines incapables de résoudre leurs propres noms locaux. Le jeu n’utilise aucun réglage spécial du navigateur.
+- Ces tests émulent les écrans et les gestes tactiles sur ordinateur. Ils ne remplacent pas un essai sur des téléphones physiques et leur Wi-Fi.
 
 ### Sur téléphone et GitHub Pages
 

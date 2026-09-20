@@ -5,6 +5,24 @@ import { createMultiplayerHandler, sanitizeCommands } from '../scripts/multiplay
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignStyleSystem, CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
+import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
+import { encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
+
+test('L’invitation directe conserve la description et refuse une réponse utilisée comme invitation', () => {
+  const data = { type: 'offer', id: 'joueur-2', fingerprint: 'abc', description: { type: 'offer', sdp: 'v=0\r\na=candidate:1 local\r\n' } };
+  const encoded = encodeInvitation(data);
+  assert.deepEqual(decodeInvitation(encoded, 'offer'), { version: 1, ...data });
+  assert.throws(() => decodeInvitation(encoded, 'answer'));
+  assert.throws(() => decodeInvitation('un code invalide', 'offer'));
+  assert.throws(() => decodeInvitation(encodeInvitation({ ...data, version: 2 }), 'offer'));
+});
+
+test('L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée', () => {
+  const interfaces = { loopback: [{ family: 'IPv4', address: '127.0.0.1', internal: true }], wifi: [{ family: 'IPv4', address: '192.168.1.25', internal: false }], ethernet: [{ family: 'IPv4', address: '10.0.0.2', internal: false }], ipv6: [{ family: 'IPv6', address: '::1', internal: true }] };
+  assert.deepEqual(lanAddresses(2028, '0.0.0.0', interfaces), ['http://192.168.1.25:2028', 'http://10.0.0.2:2028']);
+  assert.deepEqual(lanAddresses(2028, '127.0.0.1', interfaces), []);
+  assert.equal(connectionInfo({ socket: { localAddress: '::ffff:10.0.0.2' } }, 2028, '0.0.0.0', interfaces).join_urls[0], 'http://10.0.0.2:2028');
+});
 
 test('Les commandes réseau sont limitées au candidat attribué et excluent le débogage', () => {
   assert.deepEqual(sanitizeCommands([{ type: 'Move', candidateId: 'candidate:philippe', axis: 1, money: 999 }], 'le_pen'), [{ type: 'Move', candidateId: 'candidate:le_pen', axis: 1 }]);

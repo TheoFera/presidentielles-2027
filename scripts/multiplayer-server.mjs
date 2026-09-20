@@ -1,22 +1,11 @@
 import { randomBytes } from 'node:crypto';
 
 const factions = ['melenchon', 'le_pen', 'philippe'];
-const allowed = new Set(['Move', 'Attack', 'Dash', 'ActivateUltimate', 'SetCampaignActive', 'InteractionPresence', 'HoldCampaignStyle', 'SelectCampaignStyle', 'CancelCampaignStyle']);
-export function sanitizeCommands(commands, faction) {
-  if (!Array.isArray(commands) || commands.length > 20) throw new Error('Commandes invalides.');
-  return commands.map(command => {
-    if (!command || !allowed.has(command.type)) throw new Error('Commande interdite.');
-    const clean = { type: command.type, candidateId: `candidate:${faction}` };
-    if (command.type === 'Move') clean.axis = [-1, 0, 1].includes(command.axis) ? command.axis : 0;
-    if (['Attack', 'Dash'].includes(command.type)) clean.direction = [-1, 1].includes(command.direction) ? command.direction : null;
-    if (['SetCampaignActive', 'InteractionPresence', 'HoldCampaignStyle'].includes(command.type)) clean.active = command.active === true;
-    if (command.type === 'SelectCampaignStyle') clean.styleId = String(command.styleId || '').slice(0, 80);
-    return clean;
-  });
-}
+import { sanitizeCommands } from '../src/network/shared-commands.js';
+export { sanitizeCommands } from '../src/network/shared-commands.js';
 
 // Rooms live only in memory; no accounts or personal information are stored.
-export function createMultiplayerHandler() {
+export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
   const view = room => ({ code: room.code, phase: room.phase, paused: room.paused, players: room.players.map(p => ({ id: p.id, faction: p.faction, host: p.host, ready: p.ready })) });
   const send = (player, type, data) => {
@@ -40,7 +29,7 @@ export function createMultiplayerHandler() {
     if (!url.pathname.startsWith('/api/multiplayer')) return false;
     const reply = (status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
     try {
-      if (url.pathname === '/api/multiplayer/status' && req.method === 'GET') { reply(200, { available: true }); return true; }
+      if (url.pathname === '/api/multiplayer/status' && req.method === 'GET') { reply(200, status(req)); return true; }
       if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}` && req.headers.origin !== `https://${req.headers.host}`) throw new Error('Origine de connexion refusée.');
       if (url.pathname === '/api/multiplayer/events' && req.method === 'GET') {
         const room = rooms.get(url.searchParams.get('code'));

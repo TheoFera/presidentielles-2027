@@ -61,9 +61,9 @@ try {
     await mobile.locator('#start-campaign').click(); assert.equal(await mobile.locator('#start-menu').isVisible(), false);
   }
   const host = page; const guest = await pageAt({ width: 1024, height: 768 });
-  await host.locator('#multiplayer').click(); await host.locator('#create-room').click(); await host.locator('.room-code').waitFor();
+  await host.locator('#multiplayer').click(); await host.locator('#network-method').selectOption('server'); await host.locator('#create-room').click(); await host.locator('.room-code').waitFor();
   const code = (await host.locator('.room-code').textContent()).trim();
-  await guest.locator('#multiplayer').click(); await guest.locator('#room-code').fill(code);
+  await guest.locator('#multiplayer').click(); await guest.locator('#network-method').selectOption('server'); await guest.locator('#room-code').fill(code);
   await guest.locator('button[type="submit"]').click(); await guest.locator('#room-error').filter({ hasText: 'déjà pris' }).waitFor();
   await guest.locator('#multiplayer-candidate').selectOption('le_pen'); await guest.locator('button[type="submit"]').click();
   await host.locator('#launch-room:not([disabled])').waitFor();
@@ -82,15 +82,15 @@ try {
   await host.locator('#disconnect-message').waitFor();
   // The same room flow also supports three humans, with no AI taking over a guest.
   await host.locator('#back-to-home').click();
-  await host.locator('#multiplayer').click(); await host.locator('#create-room').click(); await host.locator('.room-code').waitFor();
+  await host.locator('#multiplayer').click(); await host.locator('#network-method').selectOption('server'); await host.locator('#create-room').click(); await host.locator('.room-code').waitFor();
   const nextCode = (await host.locator('.room-code').textContent()).trim();
   const third = await pageAt();
   for (const [client, faction] of [[guest, 'le_pen'], [third, 'philippe']]) {
-    await client.locator('#multiplayer').click(); await client.locator('#room-code').fill(nextCode);
+    await client.locator('#multiplayer').click(); await client.locator('#network-method').selectOption('server'); await client.locator('#room-code').fill(nextCode);
     await client.locator('#multiplayer-candidate').selectOption(faction); await client.locator('button[type="submit"]').click();
     await client.locator('.room-code').waitFor();
   }
-  await host.waitForFunction(() => document.querySelectorAll('#room-players p').length === 3);
+  await host.waitForFunction(() => document.querySelectorAll('#room-players .lobby-player:not(.vacant)').length === 3);
   await host.locator('#launch-room').click();
   for (const client of [host, guest, third]) { await client.locator('#start-campaign:not([disabled])').waitFor(); await client.locator('#start-campaign').click(); }
   await third.locator('#start-menu').waitFor({ state: 'hidden' });
@@ -101,8 +101,8 @@ try {
   // Static hosting reports the missing server and keeps Solo accessible.
   const offline = await pageAt();
   await offline.route('**/api/multiplayer/status', route => route.fulfill({ status: 404, body: 'Absent' }));
-  await offline.locator('#multiplayer').click(); await offline.locator('#server-status').filter({ hasText: 'nécessite un serveur' }).waitFor();
-  assert.equal(await offline.locator('#room-form').isVisible(), false);
+  await offline.locator('#multiplayer').click(); await offline.locator('#network-method').selectOption('server'); await offline.locator('#server-status').filter({ hasText: 'nécessite un serveur' }).waitFor();
+  assert.equal(await offline.locator('#create-room').isDisabled(), true);
   await offline.locator('#menu-back').click(); await offline.locator('#solo').waitFor();
   assert.deepEqual(errors, []);
   await writeFile(path.join(output, 'report.json'), JSON.stringify({ success: true, errors, checks: ['accueil et clavier', 'candidat transmis à la simulation', 'annulation du chargement', 'tutoriel mobile portrait et paysage', 'salon avec candidat unique', 'départ synchronisé', 'déplacement invité', 'pause partagée', 'déconnexion'] }, null, 2));

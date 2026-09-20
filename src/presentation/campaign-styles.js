@@ -8,7 +8,7 @@ export class CampaignStylesDisplay {
     this.dialog.setAttribute('aria-labelledby', 'campaign-styles-title');
     this.dialog.addEventListener('cancel', e => { e.preventDefault(); this.cancel(); });
     this.dialog.addEventListener('keydown', e => e.stopPropagation());
-    this.dialog.addEventListener('close', () => { if (this.state?.campaign_style_selection?.candidate_id === this.state?.local_candidate_id) this.dialog.showModal(); });
+    this.dialog.addEventListener('close', () => { if (this.state?.campaign_style_selection && this.state.campaign_style_selection.candidate_id === this.state.local_candidate_id) this.dialog.showModal(); });
     this.hold = document.createElement('button'); this.hold.id = 'change-campaign-style'; this.hold.type = 'button'; this.hold.hidden = true;
     this.label = document.createElement('span'); this.label.textContent = 'CHANGER DE STYLE';
     const help = document.createElement('small'); help.textContent = `Maintenir E ou ici · ${styleSettings(config).hold_seconds.toLocaleString('fr-FR')} s`;

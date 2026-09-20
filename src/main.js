@@ -16,7 +16,8 @@ import { DebugPanel } from './presentation/debug.js';
 import { ElectoralDisplay } from './presentation/electoral.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
-import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby } from './presentation/multiplayer.js';
+import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
+import { PeerSession } from './network/peer-session.js';
 
 function showError(error, duringGame = false) {
   console.error(error);
@@ -50,12 +51,24 @@ async function start() {
   const money = document.getElementById('money');
   const funds = document.getElementById('funds');
   const campaignBudget = document.getElementById('campaign-budget');
-  document.getElementById('budget-help').textContent = `Chaque candidat peut dépenser au maximum ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ sur toute la partie, premier et second tours compris. Tous les achats comptent. Un achat dépassant le plafond est bloqué, même si ta trésorerie suffit. Les remboursements ne remettent pas ce compteur à zéro.`;
+  document.getElementById('budget-help').textContent = `Plafond de dépenses : ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ par candidat sur toute la partie. Les remboursements ne rétablissent pas ce budget.`;
   const notice = document.getElementById('notice');
   const hint = document.getElementById('hint');
   if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = 'Maintiens une flèche pour marcher · Frapper pour attaquer · Pause pour l’aide';
   let pending = [];
   let paused = true;
+  let wakeLock = null;
+  let wakePending = false;
+  async function keepScreenAwake() {
+    if (paused || menu?.active || document.hidden) { try { await wakeLock?.release(); } catch { /* Already released by the browser. */ } wakeLock = null; return; }
+    if (!navigator.wakeLock || wakeLock && !wakeLock.released || wakePending) return;
+    wakePending = true;
+    try {
+      const lock = await navigator.wakeLock.request('screen');
+      if (paused || menu?.active || document.hidden) await lock.release(); else wakeLock = lock;
+    } catch { /* The browser may refuse in battery-saving mode. */ }
+    finally { wakePending = false; }
+  }
   let menu;
   let session = null;
   let roomPhase = null;
@@ -117,6 +130,7 @@ async function start() {
     if (state.campaign_style_selection) return;
     if (session) { session.request('pause', { paused: force }).catch(error => session?.fail(error.message)); return; }
     paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
+    void keepScreenAwake();
     simulation.applyCommand({ type: 'HoldCampaignStyle', candidateId: state.local_candidate_id, active: false });
     if (!paused || !showHelp) canvas.focus();
     else { document.getElementById('resume').focus({ preventScroll: true }); document.getElementById('help').scrollTop = 0; }
@@ -150,6 +164,10 @@ async function start() {
   }, () => { input.clear(); pending = []; clock.reset(); });
   document.getElementById('resume').addEventListener('click', () => togglePause(false));
   document.getElementById('pause-home').addEventListener('click', () => returnHome());
+  document.querySelectorAll('[data-help-tab]').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('[data-help-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab === button)));
+    document.querySelectorAll('[data-help-page]').forEach(page => { page.hidden = page.dataset.helpPage !== button.dataset.helpTab; });
+  }));
   document.addEventListener('visibilitychange', () => {
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
@@ -160,14 +178,15 @@ async function start() {
   // Help values follow the configuration too.
   const durationText = document.getElementById('balance-help');
   const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
-  document.getElementById('poll-help').textContent = `Les Instituts sont deux services neutres rares. Reste devant et paie ${format(config.balance.buildings.institut_sondage.poll_cost)} k € pour obtenir un nouveau snapshot ; il ne s’actualise jamais tout seul.`;
-  durationText.textContent = `Tous les sites existent dès le départ. Capture d’un Local : ${format(config.balance.buildings.permanence.capture_cost)} k € avec ${config.balance.buildings.permanence.required_presence_N1} présences politiques. Le premier devient le QG. Un tract : ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k €. Les améliorations s’enchaînent tant que tu restes devant et que l’argent et la présence suffisent.`;
+  document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
+  durationText.textContent = `Local : ${format(config.balance.buildings.permanence.capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€.`;
   const currency = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals });
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
   }
   function returnHome() {
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
+    void keepScreenAwake();
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
@@ -184,10 +203,12 @@ async function start() {
       new Promise((_, reject) => setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000)),
     ]);
   }
-  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); }
+  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
-    if (room.phase === 'lobby') {
+    if (room.phase === 'pairing') {
+      showPeerAnswer(menu, session, returnHome);
+    } else if (room.phase === 'lobby') {
       if (menu.screen !== 'lobby') showLobby(menu, session, returnHome); else updateLobby(menu, session);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
       menu.selected = session.candidateId.split(':')[1];
@@ -196,13 +217,15 @@ async function start() {
       if (roomPhase !== 'playing') { menu.close(); play(); }
       const changed = paused !== room.paused;
       paused = room.paused; help.hidden = !paused;
+      void keepScreenAwake();
       if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; if (paused) document.getElementById('resume').focus(); else canvas.focus(); }
     }
     roomPhase = room.phase;
   }
   async function connectRoom(action, data) {
     const generation = menu.generation;
-    const nextSession = new MultiplayerSession({
+    const Session = data.transport === 'direct' ? PeerSession : MultiplayerSession;
+    const nextSession = new Session({
       room: roomChanged,
       commands: packet => {
         if (!session?.host || paused) return;
@@ -228,13 +251,14 @@ async function start() {
         menu.element.querySelector('#disconnect-message').textContent = message;
         menu.element.querySelector('#back-to-home').onclick = () => menu.home();
       },
-    });
-    await nextSession.connect(action, data);
+    }, state.config_fingerprint);
+    try { await nextSession.connect(action, data); } catch (error) { nextSession.close(); throw error; }
     if (menu.generation !== generation) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room);
   }
   menu = new StartMenu({ prepare, play, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
   menu.leave = stopSession;
+  if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
 
   function matchCommands() {
     if (!session) return collectCommands(state, human, ai);

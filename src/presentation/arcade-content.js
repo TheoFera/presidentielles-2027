@@ -1,0 +1,18 @@
+import { visualManifest } from './visual-manifest.js';
+
+export const CANDIDATES = [
+  { id: 'melenchon', name: 'Jean-Luc Mélenchon', short: 'Mélenchon', description: 'Rassemblez vos soutiens.' },
+  { id: 'le_pen', name: 'Marine Le Pen', short: 'Le Pen', description: 'Mobilisez votre camp.' },
+  { id: 'philippe', name: 'Édouard Philippe', short: 'Philippe', description: 'Développez votre implantation.' },
+];
+export const portrait = candidate => visualManifest[`character-${candidate.id}`].file;
+
+export function homeContent() {
+  return `<div class="menu-home"><div class="home-title"><span class="eyebrow">LE COMBAT DES URNES</span><h1 tabindex="-1">Présidentielles<span>2027</span></h1><p class="menu-intro">Trois candidats. Une seule présidence.</p></div><div class="arcade-cast" aria-hidden="true">${CANDIDATES.map(c => `<img src="${portrait(c)}" alt="" draggable="false">`).join('')}<span class="versus">VS</span></div><div class="mode-grid"><button class="mode-card" id="solo"><span class="mode-number">1 JOUEUR</span><strong>Solo</strong><small>Affrontez l’ordinateur</small></button><button class="mode-card" id="multiplayer"><span class="mode-number">2–3 JOUEURS</span><strong>Multijoueur</strong><small>Défiez vos amis</small></button></div><p class="menu-note home-note">CHOISISSEZ VOTRE MODE · CLAVIER OU TACTILE</p></div>`;
+}
+export function candidatesContent(selected) {
+  return `<p class="menu-intro">Votre candidat face à deux adversaires contrôlés par l’ordinateur.</p><div class="candidate-grid">${CANDIDATES.map((c, i) => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge">${c.id === selected ? 'J1 · Votre choix' : `0${i + 1} · Sélectionner`}</span><img src="${portrait(c)}" alt="" draggable="false"><strong>${c.short}</strong><small>${c.description}</small></button>`).join('')}</div><footer class="menu-footer"><span class="menu-note">Choisissez votre style au QG pendant la partie.</span><button id="prepare-game" class="menu-primary">Valider →</button></footer>`;
+}
+export function tutorialContent(candidate) {
+  return `<span class="eyebrow">SOLO · ${candidate.name}</span><p class="menu-intro mission">Parcourez la France pour récolter le plus de voix et gagner la présidentielle. Attention à vos rivaux !</p><div class="tutorial-grid"><article class="tutorial-card"><h2>01 · Sur le terrain</h2><p><strong>Convaincre</strong><br>Restez devant un passant neutre : la persuasion est automatique.</p><p><strong>Interagir</strong><br>Restez devant le repère d’un bâtiment. Un achat exige assez d’argent et de soutiens.</p></article><article class="tutorial-card"><h2>02 · Aux commandes</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R / E maintenu</dt><dd>Ultime / style au QG</dd><dt>Échap / P / H</dt><dd>Pause</dd></dl><div class="touch-guide"><p><strong>← →</strong> Maintenez pour marcher.</p><p><strong>Frapper / Ultime</strong> Touchez pour attaquer.</p><p><strong>Double appui</strong> sur une flèche pour esquiver.</p><p>Relâchez pour convaincre. <strong>Pause</strong> ouvre l’aide.</p></div></article></div><div class="loading-strip"><progress class="menu-loading" aria-label="Chargement de la campagne"></progress><p id="loading-status" role="status">Chargement du monde…</p></div><footer class="menu-footer"><span class="menu-note">La partie attend votre départ.</span><button id="start-campaign" class="menu-primary" disabled>Chargement…</button></footer>`;
+}
