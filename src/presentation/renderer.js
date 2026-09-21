@@ -62,7 +62,12 @@ export class WorldRenderer {
     const smoothing = 1 - Math.pow(1 - this.config.balance.camera.follow_smoothing, elapsed * this.p.smoothing_reference_hz);
     this.cameraX = wrap(this.cameraX + ringDelta(this.cameraX, playerX + lookAhead, state.world.length) * smoothing, state.world.length);
     this.screenX = x => m.anchorX + ringDelta(this.cameraX, x, state.world.length) * m.pixelsPerUnit;
-    ctx.setTransform(this.canvas.width / this.width, 0, 0, this.canvas.height / this.height, 0, 0);
+    // Crop the whole scene around the player and ground, preserving their screen anchors.
+    const zoom = this.config.balance.camera.framing_zoom ?? 1;
+    const scaleX = this.canvas.width / this.width;
+    const scaleY = this.canvas.height / this.height;
+    ctx.setTransform(scaleX * zoom, 0, 0, scaleY * zoom,
+      scaleX * m.anchorX * (1 - zoom), scaleY * m.groundY * (1 - zoom));
     ctx.imageSmoothingEnabled = false;
     const zone = zoneAt(state.world, playerX);
     preloadWorld(this, state, zone);

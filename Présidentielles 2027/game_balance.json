@@ -7,6 +7,7 @@
     "second_round_influence_multiplier": 10
   },
   "camera": {
+    "framing_zoom": 1.25,
     "zoom_close": 1.18,
     "zoom_medium": 1,
     "zoom_far": 0.84,

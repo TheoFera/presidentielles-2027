@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choisir le cadrage — Présidentielles 2027</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111c27;color:#f7f0dd;font:16px system-ui}main{max-width:1440px;margin:auto;padding:24px}h1{margin:0;font-size:28px}p{color:#bdc9cf;line-height:1.6}nav{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}button,select{font:inherit;padding:10px 16px;border:1px solid #71818b;border-radius:8px;background:#253744;color:inherit;cursor:pointer}button[aria-pressed=true]{background:#f4ce7b;color:#172330;border-color:#f4ce7b}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}article{min-width:0;border:1px solid #425563;border-radius:12px;overflow:hidden;background:#1c2d3a}h2{font-size:19px;margin:14px 16px 4px}article p{margin:4px 16px 14px;font-size:14px}canvas{display:block;width:100%;aspect-ratio:16/9}.phone canvas{max-width:640px;margin:auto}.single{grid-template-columns:1fr}.single article{max-width:1280px;width:100%;margin:auto}#source{position:fixed;left:-2000px;width:1280px;height:720px}small{display:block;color:#bdc9cf;margin-top:18px}@media(max-width:760px){.grid{grid-template-columns:1fr}main{padding:14px}}
+</style>
+<main>
+<h1>Quel cadrage préfères-tu ?</h1>
+<p>Même scène, quatre cadrages. Le zoom agrandit tout le décor et les personnages, coupe le ciel et les côtés, et conserve la ligne du sol. Le jeu actuel n’est pas modifié.</p>
+<nav aria-label="Affichage"><button data-mode="all" aria-pressed="true">Comparer les 4 vues</button><button data-mode="0">Vue actuelle</button><button data-mode="1">A · +20 %</button><button data-mode="2">B · +35 %</button><button data-mode="3">C · +50 %</button><button id="phone" aria-pressed="false">Aperçu réduit · téléphone paysage</button><select id="zone" aria-label="Quartier"></select></nav>
+<div class="grid" id="views"></div>
+<small>Étude du cadrage du monde, sans les menus ni les boutons tactiles. L’aperçu téléphone réduit l’affichage à 640 px maximum : le cadrage reste identique. Les bâtiments hauts peuvent sortir de l’image avec les zooms les plus forts.</small>
+<p id="status" role="status">Chargement des visuels du jeu…</p>
+</main><canvas id="source"></canvas>
+<script type="module">
+import {loadConfig} from './config.js';
+import {GameSimulation} from './simulation/game-simulation.js';
+import {WorldRenderer} from './presentation/renderer.js';
+const options=[['Vue actuelle',1,'Référence · toute la largeur actuelle.'],['A · Zoom doux',1.2,'Personnages +20 % · environ 17 % de largeur en moins.'],['B · Zoom équilibré',1.35,'Personnages +35 % · environ 26 % de largeur en moins.'],['C · Zoom marqué',1.5,'Personnages +50 % · environ 33 % de largeur en moins.']];
+const views=document.querySelector('#views');
+for(const [title,zoom,note] of options){const card=document.createElement('article');card.innerHTML=`<h2>${title}</h2><p>${note}</p><canvas width="1280" height="720" aria-label="${title}"></canvas>`;views.append(card)}
+document.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));const mode=button.dataset.mode;views.classList.toggle('single',mode!=='all');[...views.children].forEach((card,i)=>card.hidden=mode!=='all'&&Number(mode)!==i)});
+document.querySelector('#phone').onclick=e=>{const active=views.classList.toggle('phone');e.currentTarget.setAttribute('aria-pressed',String(active));};
+try{
+const config=await loadConfig();
+// Keep the comparison based on the original framing, without stacking the live zoom.
+config.balance.camera.framing_zoom=1;
+const sim=new GameSimulation(config,config.prototype.seed,'candidate:melenchon');
+const state=sim.getState();const player=state.candidates.find(c=>c.id===state.local_candidate_id);
+const renderer=new WorldRenderer(document.querySelector('#source'),config);
+const zoneSelect=document.querySelector('#zone');
+for(const biome of config.layout.biomes){const zone=state.world.subzones.find(z=>z.biome_id===biome.id);if(!zone)continue;const option=document.createElement('option');option.value=zone.start+zone.width/2;option.textContent=({paris_19e:'Paris · 19e',banlieue:'Banlieue',periurbain_usine:'Périurbain · usines',campagne:'Campagne',retraites:'Quartier des retraités',quartiers_riches:'Quartiers riches'})[biome.id]||biome.name||biome.label||biome.id;zoneSelect.append(option)}
+zoneSelect.onchange=()=>{player.x=Number(zoneSelect.value);renderer.resetCamera();};
+const targets=[...views.querySelectorAll('canvas')];
+function draw(){renderer.draw(state,state,0,1/60);const source=renderer.canvas;const ground=config.layout.visual_layout.player_ground_y_ratio;const anchor=config.layout.visual_layout.camera_anchor_x_ratio;targets.forEach((canvas,i)=>{const z=options[i][1];const w=source.width/z,h=source.height/z;canvas.getContext('2d').drawImage(source,(source.width-w)*anchor,(source.height-h)*ground,w,h,0,0,canvas.width,canvas.height)});document.querySelector('#status').textContent=renderer.assets.status().pending?'Chargement des visuels du jeu…':'Prêt · sélectionne une vue pour l’agrandir.';requestAnimationFrame(draw)}draw();
+}catch(error){document.querySelector('#status').textContent=`Impossible de charger l’aperçu : ${error.message}`;console.error(error)}
+</script>
+</html>
