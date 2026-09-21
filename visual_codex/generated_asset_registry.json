@@ -3081,6 +3081,32 @@
       "prompt_file": "docs/MELENCHON_ANIMATIONS.md",
       "status": "generated_pending_qa",
       "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-le-pen-combat-v1",
+      "file": "assets/generated/animations/le-pen-base-combat-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "assets/generated/characters/character-le_pen.png",
+      "prompt_file": "docs/CANDIDATE_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-philippe-combat-v1",
+      "file": "assets/generated/animations/philippe-base-combat-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "assets/generated/characters/character-philippe.png",
+      "prompt_file": "docs/CANDIDATE_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
     }
   ]
 }

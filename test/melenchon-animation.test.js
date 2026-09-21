@@ -6,6 +6,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { combatState } from '../src/simulation/combat-state.js';
 import { CombatPoseTracker, melenchonPose, usesMelenchonCombat, drawMelenchonCombat, MELENCHON_SPRITE, MELENCHON_FRAMES } from '../src/presentation/melenchon-combat.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { combatAtlases, usesCandidateCombat } from '../src/presentation/melenchon-combat.js';
 
 function setup() {
   const config = campaignConfig(), sim = new GameSimulation(config, 42), state = sim.state;
@@ -99,4 +100,30 @@ test('Rendu : repère au sol, hauteur de saut, miroir et découpe de l’atlas s
   assert.equal(JSON.stringify(state),before);
   renderer.assets = {get:()=>null,load:()=>null};
   assert.equal(drawMelenchonCombat(renderer,c,200,state),false);
+});
+
+for (const faction of ['le_pen','philippe']) test(faction+' : atlas, poses, costumes et transformations', async () => {
+  const {config,state,c} = setup(); c.faction_id=faction;
+  const definition=combatAtlases[faction];
+  const bytes=await readFile(new URL(visualManifest[definition.sprite].file));
+  assert.equal(bytes[25],6); assert.equal(definition.frames.length,16);
+  for (const [x,y,w,h,px,py] of definition.frames) {
+    assert.ok(x>=0 && y>=0 && x+w<=bytes.readUInt32BE(16) && y+h<=bytes.readUInt32BE(20));
+    assert.ok(px>=x && px<=x+w && py>=y && py<=y+h);
+  }
+  assert.equal(usesCandidateCombat(c,state),true);
+  c.current_campaign_style=definition.style; assert.equal(usesCandidateCombat(c,state),true);
+  const requested=[],calls=[],image={};
+  const renderer={config,metrics:{characterHeight:100,groundY:400},ctx:new Proxy({},{get:(_,name)=>(...args)=>calls.push([name,...args])}),assets:{get:id=>{requested.push(id);return image;}}};
+  for (const step of [1,2,3]) {
+    attack(state,c,step).elapsed_ticks=3;
+    assert.equal(drawMelenchonCombat(renderer,c,200,state),true);
+    assert.equal(melenchonPose(c,state,config).frame,step===1?3:step===2?5:7);
+  }
+  assert.ok(requested.every(id=>id===definition.sprite));
+  assert.ok(calls.filter(c=>c[0]==='drawImage').every(c=>c[1]===image));
+  c.current_campaign_style=faction==='le_pen'?'le_pen_zemmouriste':'philippe_notable';
+  assert.equal(usesCandidateCombat(c,state),false);
+  c.current_campaign_style=null;c.bardella_form=true;assert.equal(usesCandidateCombat(c,state),false);
+  c.bardella_form=false;c.ultimate_effect={kind:'EUROPE',expires_tick:100};assert.equal(usesCandidateCombat(c,state),false);
 });

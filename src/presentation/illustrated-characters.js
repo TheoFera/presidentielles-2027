@@ -1,4 +1,4 @@
-import { drawMelenchonCombat } from './melenchon-combat.js';
+import { drawCandidateCombat } from './melenchon-combat.js';
 import { specialCharacterAssetId } from './campaign-style-art.js';
 import { zoneAt } from '../simulation/world.js';
 
@@ -40,7 +40,7 @@ export function characterAnimation(entity, state) {
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
-  if (drawMelenchonCombat(renderer, entity, x, state)) return true;
+  if (drawCandidateCombat(renderer, entity, x, state)) return true;
   const id = characterAssetId(entity, state);
   const sprite = renderer.assets.get(id);
   if (!sprite) { void renderer.assets.load(id); return false; }

@@ -1,3 +1,4 @@
+import { additionalCombatAtlases } from './candidate-combat-atlases.js';
 import { combatDelta } from '../simulation/combat-geometry.js';
 import { enemies } from '../simulation/combat-state.js';
 
@@ -21,12 +22,14 @@ export const MELENCHON_WIDTH_STRETCH = 1.06;
 export const MELENCHON_JUMP_SCALE = 1.06;
 export const MELENCHON_CHARGED_SCALE = 1.06;
 
-export function usesMelenchonCombat(entity, state) {
-  return entity.role === 'CANDIDAT' && entity.faction_id === 'melenchon' && !entity.bardella_form
-    && !entity.presentation_name
-    && (!entity.current_campaign_style || entity.current_campaign_style === 'melenchon_universaliste')
+export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases };
+export function usesCandidateCombat(entity, state) {
+  const atlas = combatAtlases[entity.faction_id];
+  return !!atlas && entity.role === 'CANDIDAT' && !entity.bardella_form && !entity.presentation_name
+    && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style)
     && !(entity.ultimate_effect && entity.ultimate_effect.expires_tick > state.tick);
 }
+export const usesMelenchonCombat = (entity,state) => entity.faction_id === 'melenchon' && usesCandidateCombat(entity,state);
 
 // Visual memory only: does not block persuasion, change facing, or modify saved state.
 export class CombatPoseTracker {
@@ -50,7 +53,7 @@ export class CombatPoseTracker {
 }
 
 export function melenchonPose(entity, state, config, guard = false) {
-  if (!usesMelenchonCombat(entity, state) || entity.is_ko || entity.arena_hp <= 0
+  if (!usesCandidateCombat(entity, state) || entity.is_ko || entity.arena_hp <= 0
     || entity.combat?.stun_ticks > 0 || entity.dash_active) return null;
   const c = entity.combat, hz = config.balance.simulation_architecture.fixed_tick_hz;
   const attack = state.attacks.find(a => a.id === c.attack_id);
@@ -82,13 +85,14 @@ export function melenchonPose(entity, state, config, guard = false) {
 }
 
 export function drawMelenchonCombat(renderer, entity, x, state) {
-  if (!usesMelenchonCombat(entity, state)) return false;
+  if (!usesCandidateCombat(entity, state)) return false;
   renderer.combatPoseTracker ??= new CombatPoseTracker();
   const guard = renderer.combatPoseTracker.active(entity, state, renderer.config);
   const pose = melenchonPose(entity, state, renderer.config, guard);
   if (!pose) return false;
-  const atlas = renderer.assets.get(MELENCHON_SPRITE);
-  if (!atlas) { void renderer.assets.load(MELENCHON_SPRITE); return false; }
+  const definition = combatAtlases[entity.faction_id];
+  const atlas = renderer.assets.get(definition.sprite);
+  if (!atlas) { void renderer.assets.load(definition.sprite); return false; }
   const { ctx, metrics: m } = renderer;
   const floor = m.groundY + m.characterHeight * .06;
   const feet = floor - (entity.combat.height || 0) * m.characterHeight;
@@ -97,7 +101,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
-  const [sx,sy,sw,sh,px,py] = MELENCHON_FRAMES[pose.frame];
+  const [sx,sy,sw,sh,px,py] = definition.frames[pose.frame];
   const scale = m.characterHeight / MELENCHON_REFERENCE_HEIGHT;
   const jumpScale = pose.name === 'jump' || pose.name === 'jump_attack' ? MELENCHON_JUMP_SCALE : 1;
   const chargedScale = pose.frame === 9 || pose.frame === 10 ? MELENCHON_CHARGED_SCALE : 1;
@@ -111,3 +115,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   ctx.restore();
   return true;
 }
+
+// Generic names for the shared candidate renderer; legacy exports remain compatible.
+export const candidateCombatPose = melenchonPose;
+export const drawCandidateCombat = drawMelenchonCombat;
