@@ -1,5 +1,6 @@
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
+  "character-melenchon-combat-v4": { file: new URL("../../assets/generated/animations/melenchon-base-combat-v4.png", import.meta.url).href },
   "character-melenchon": { file: new URL("../../assets/generated/characters/melenchon.png", import.meta.url).href },
   "npc-bobo-0": { file: new URL("../../assets/generated/npc/npc-bobo-0.png", import.meta.url).href },
   "building-campaign_local-bobo": { file: new URL("../../assets/generated/buildings/building-campaign_local-bobo.png", import.meta.url).href },

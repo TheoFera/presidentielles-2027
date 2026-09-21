@@ -3025,6 +3025,62 @@
       ],
       "status": "generated_pending_qa",
       "date": "2026-09-13"
+    },
+    {
+      "asset_id": "character-melenchon-combat-v1",
+      "file": "assets/generated/animations/melenchon-base-combat-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "assets/generated/characters/melenchon.png",
+      "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0c023-6baa-7751-9b05-e8b89e6f9360\\exec-876a1ba5-235b-4aac-a49f-9f446a5432d2.png",
+      "prompt_file": "docs/MELENCHON_ANIMATIONS.md",
+      "prompt": "Mélenchon base : atlas 4 × 4, garde, deux poings, coup de pied, charge et saut. Prompts complets dans docs/MELENCHON_ANIMATIONS.md.",
+      "date": "2026-09-21",
+      "status": "generated_pending_qa"
+    },
+    {
+      "asset_id": "character-melenchon-combat-v2",
+      "file": "assets/generated/animations/melenchon-base-combat-v2.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "assets/generated/characters/melenchon.png",
+      "source_file": "C:/Users/ferat/.codex/generated_images/01a0c023-6baa-7751-9b05-e8b89e6f9360/exec-660ccc91-30df-4c1a-a95d-6bed75ae1f7e.png",
+      "prompt_file": "docs/MELENCHON_ANIMATIONS.md",
+      "prompt": "Correction des contours fins et proportions selon le sprite original. Voir documentation.",
+      "date": "2026-09-21",
+      "status": "generated_pending_qa"
+    },
+    {
+      "asset_id": "character-melenchon-combat-v3",
+      "file": "assets/generated/animations/melenchon-base-combat-v3.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "assets/generated/characters/melenchon.png",
+      "prompt_file": "docs/MELENCHON_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-melenchon-combat-v4",
+      "file": "assets/generated/animations/melenchon-base-combat-v4.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "source_reference": "Image Codex 21 sept. 2026, 19_10_35.png (planche choisie par l’utilisateur)",
+      "prompt_file": "docs/MELENCHON_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
     }
   ]
 }

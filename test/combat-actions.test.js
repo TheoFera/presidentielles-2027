@@ -115,9 +115,48 @@ test('Saut : hauteur et durée configurées, attaques possibles, pas de dash ni 
 });
 
 test('Maintien commencé en vol : ne devient pas une charge à l’atterrissage', () => {
-  const { sim, c } = setup(); input(sim, c, 'Jump'); input(sim, c, 'PressAttack'); ticks(sim, 60);
+  const { sim, c } = setup(); input(sim, c, 'Jump'); input(sim, c, 'PressAttack'); updateCombat(sim);
+  assert.equal(sim.state.attacks[0].windup_ticks, 0);
+  ticks(sim, 60, true);
   assert.equal(c.combat.charge_active, false); input(sim, c, 'ReleaseAttack'); updateCombat(sim);
-  assert.equal(sim.state.attacks[0].kind, 'CANDIDATE');
+  assert.equal(sim.state.attacks.length, 0);
+});
+
+for (const arena of [false, true]) test(`Saut prioritaire et frappe aérienne immédiate (${arena ? 'arène' : 'campagne'})`, () => {
+  for (const phase of ['windup','active','recovery','charge','dash']) {
+    const { sim, c, enemy } = setup(arena); enemy.x = c.x + 10;
+    if (phase === 'dash') requestDash(sim,c,1);
+    else {
+      input(sim,c,'PressAttack');
+      if (phase === 'charge') ticks(sim,6);
+      else {
+        input(sim,c,'ReleaseAttack'); updateCombat(sim);
+        const a=sim.state.attacks[0]; a.elapsed_ticks=phase==='windup'?0:phase==='active'?a.windup_ticks:a.windup_ticks+a.active_ticks;
+        c.combat.hitstop_ticks=2;
+      }
+    }
+    input(sim,c,'Jump');
+    assert.equal(c.combat.jump_tick,sim.state.tick,phase);
+    assert.equal(c.combat.attack_id,null); assert.equal(sim.state.attacks.length,0);
+    assert.equal(c.dash_active,false); assert.equal(c.combat.hitstop_ticks,0);
+    input(sim,c,'ReleaseAttack'); assert.equal(c.combat.buffer_until_tick,-1);
+    input(sim,c,'PressAttack'); updateCombat(sim);
+    assert.equal(sim.state.attacks.length,1); assert.equal(sim.state.attacks[0].windup_ticks,0);
+    input(sim,c,'ReleaseAttack'); assert.equal(c.combat.buffer_until_tick,-1);
+  }
+});
+
+test('Dash immédiat en récupération : annulation atomique, refus sans réserve ou pendant un stun', () => {
+  for (const arena of [false,true]) {
+    const {sim,c}=setup(arena);
+    input(sim,c,'PressAttack');input(sim,c,'ReleaseAttack');updateCombat(sim);
+    const a=sim.state.attacks[0];a.elapsed_ticks=a.windup_ticks+a.active_ticks;c.combat.hitstop_ticks=2;
+    c.dash_charges=0;requestDash(sim,c,1);assert.equal(c.combat.attack_id,a.id);
+    c.dash_charges=1;c.combat.stun_ticks=3;requestDash(sim,c,1);assert.equal(c.combat.attack_id,a.id);
+    input(sim,c,'Jump');assert.equal(c.combat.jump_tick,null);
+    c.combat.stun_ticks=0;requestDash(sim,c,1);assert.equal(c.dash_active,true);
+    assert.equal(c.combat.attack_id,null);assert.equal(sim.state.attacks.length,0);assert.equal(c.combat.hitstop_ticks,0);
+  }
 });
 
 test('Ultime : annule charge, dash, recul, interaction et hitstop ; préserve le saut', () => {

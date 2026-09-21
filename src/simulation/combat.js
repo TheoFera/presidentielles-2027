@@ -13,11 +13,18 @@ export function requestAttack(sim, actor, direction = null) {
   if ([-1, 1].includes(direction)) actor.combat.requested_direction = direction;
 }
 
+export function cancelCurrentAttack(sim, actor) {
+  cancelCharge(actor);
+  sim.state.attacks = sim.state.attacks.filter(a => a.owner_id !== actor.id);
+  Object.assign(actor.combat, { attack_id: null, buffer_until_tick: -1, requested_direction: null, hitstop_ticks: 0 });
+}
+
 export function attackInput(sim, actor, type) {
   if (type === 'CancelAttack') { cancelCharge(actor); actor.combat.buffer_until_tick = -1; return; }
   const c = actor.combat, b = sim.config.balance.candidate_combat;
   if (type === 'ReleaseAttack') {
     if (c.press_tick == null) return;
+    if (c.press_airborne) { cancelCharge(actor); return; }
     const ready = !c.press_airborne && charging(actor) && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_ready_seconds);
     cancelCharge(actor);
     if (!ready) { requestAttack(sim, actor); return; }
@@ -29,11 +36,16 @@ export function attackInput(sim, actor, type) {
     return;
   }
   if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id
-    || actor.dash_active || c.stun_ticks || c.press_tick != null) return;
-  if (type === 'PressAttack') { c.press_tick = sim.state.tick; c.press_airborne = airborne(actor); }
-  if (type === 'Jump' && !airborne(actor) && !interrupted(actor) && Math.abs(c.knockback_velocity) <= 0.02) {
-    cancelCharge(actor); c.jump_tick = sim.state.tick; c.height = 0;
+    || c.stun_ticks) return;
+  if (type === 'Jump' && !airborne(actor) && Math.abs(c.knockback_velocity) <= 0.02) {
+    cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.height = 0;
+    actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
     actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
+    return;
+  }
+  if (type === 'PressAttack' && !actor.dash_active && c.press_tick == null) {
+    if (airborne(actor)) { c.press_tick = sim.state.tick; c.press_airborne = true; requestAttack(sim, actor); return; }
+    c.press_tick = sim.state.tick; c.press_airborne = false;
   }
 }
 
@@ -97,6 +109,7 @@ function startCandidateAttack(sim, actor) {
   const strong = c.combo_step === 3;
   const scarf = actor.ultimate_effect?.kind === 'SCARF' && actor.ultimate_effect.expires_tick > sim.state.tick;
   makeAttack(sim, actor, scarf ? 'SCARF' : 'CANDIDATE', { step: c.combo_step, strong,
+    ...(airborne(actor) ? { windup_ticks: 0 } : {}),
     range: scarf ? b.specials.scarf.range : strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
     damage: scarf ? b.specials.scarf.damage : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
     knockback: scarf ? b.specials.scarf.knockback : strong ? b.candidate_combat.finisher_knockback : b.candidate_combat.light_knockback,
