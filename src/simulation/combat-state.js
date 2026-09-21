@@ -47,8 +47,8 @@ export function demobilizeUnit(sim, npc) {
 
 /** The simulation computes every hit; the renderer never chooses a victim. */
 export function hit(sim, source, target, spec, attackId) {
-  if (!verticalHit(sim.config, source, target, spec)) return null;
   if (!enemies(source, target) || sim.state.arena_bounds && sim.state.eliminated_faction) return null;
+  if (!verticalHit(sim.config, source, target, spec)) return null;
   const { state, config } = sim;
   if (target.dash_active && state.tick <= target.dash_invulnerable_until_tick) { sim.emit('DashEvadedHit', { candidate_id: target.id, attack_id: attackId }); return null; }
   const protectedHit = armored(state, target) && !(spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind));

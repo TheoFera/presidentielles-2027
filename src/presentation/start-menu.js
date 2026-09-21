@@ -2,8 +2,8 @@ import { CANDIDATES, homeContent, candidatesContent, tutorialContent } from './a
 export { CANDIDATES } from './arcade-content.js';
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer }) {
-    Object.assign(this, { prepare, play, multiplayer, selected: 'melenchon', generation: 0 });
+  constructor({ prepare, play, multiplayer, combat }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, selected: 'melenchon', generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -50,7 +50,7 @@ export class StartMenu {
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', 'Prêt pour la campagne ?', tutorialContent(candidate), () => multiplayer ? this.home() : this.candidates());
+    this.page('loading', 'Prêt pour la campagne ?', tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
     if (multiplayer) {
       this.element.querySelector('.eyebrow').textContent = `MULTIJOUEUR · ${candidate.name}`;
       this.element.querySelector('.menu-footer .menu-note').textContent = 'Départ quand tous sont prêts · Styles de l’hôte.';

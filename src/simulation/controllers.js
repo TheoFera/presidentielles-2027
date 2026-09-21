@@ -45,7 +45,12 @@ export class AIController extends Controller {
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) return arenaAICommands(state.arena, this.config, candidateId, state.ai_enabled);
     const candidate = state.candidates.find(c => c.id === candidateId);
     if (!candidate || candidate.eliminated) return [];
-    if (candidate.combat.press_tick != null && !candidate.campaign_arena_id) return [{ type: state.ai_enabled && state.tick - candidate.combat.press_tick >= Math.ceil(this.config.balance.candidate_combat.charge_ready_seconds * this.config.balance.simulation_architecture.fixed_tick_hz) ? 'ReleaseAttack' : !state.ai_enabled ? 'CancelAttack' : 'Move', candidateId, axis: 0 }];
+    if (candidate.combat.press_tick != null && !candidate.campaign_arena_id) {
+      if (!state.ai_enabled) return [{ type: 'CancelAttack', candidateId }];
+      const readyTicks = Math.ceil(this.config.balance.candidate_combat.charge_ready_seconds * this.config.balance.simulation_architecture.fixed_tick_hz);
+      return state.tick - candidate.combat.press_tick >= readyTicks
+        ? [{ type: 'ReleaseAttack', candidateId }] : [{ type: 'Move', candidateId, axis: 0 }];
+    }
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
     if (state.ai_enabled && !candidate.is_ko) {
       const eventCommands = campaignAICommands(state, this.config, candidate);

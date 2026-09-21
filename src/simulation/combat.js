@@ -1,5 +1,5 @@
 import { airborne, charging, cancelCharge, updateActions, verticalHit } from './combat-actions.js';
-import { updateMobileCombat, successfulNormalHit, changeCharge, actionAllowed } from './mobile-combat.js';
+import { updateMobileCombat, successfulNormalHit, changeCharge } from './mobile-combat.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEffects } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';

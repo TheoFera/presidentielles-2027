@@ -29,7 +29,7 @@ export function verticalHit(config, source, target, spec) {
   const bottom = target.combat?.height || 0, top = bottom + height(target);
   let low, high;
   if (spec.kind === 'WAVE') { low = 0; high = 1.65; }
-  else if (['VERBAL', 'BUBBLE'].includes(spec.kind)) { low = 0.75; high = 1.05; }
+  else if (['VERBAL', 'BUBBLE'].includes(spec.kind)) { low = 0.65; high = 0.9; }
   else if (spec.kind === 'SURGE') { low = 0; high = 1; }
   else { low = (source.combat?.height || 0) + height(source) * 0.3; high = low + height(source) * 0.65; }
   return bottom <= high && top >= low;

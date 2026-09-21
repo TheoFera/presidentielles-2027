@@ -1,3 +1,5 @@
+> Mise à jour : voir [Charge, saut et ultime](COMBAT_CHARGE_SAUT.md) pour les règles et commandes actuelles. Le contenu ci-dessous décrit le jalon précédent.
+
 # Jalon combat mobile — validation du 14 septembre 2026
 
 Le combat existant et les neuf ultimes sont conservés. La simulation à 30 ticks/s valide les commandes ; la présentation affiche le résultat. Le temps du navigateur sert uniquement à reconnaître les doubles appuis.

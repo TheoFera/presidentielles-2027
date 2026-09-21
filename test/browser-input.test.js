@@ -82,6 +82,31 @@ test('Deux pouces : marcher et frapper sans interrompre le déplacement', t => {
   assert.equal(human.axis, 0);
 });
 
+test('Frapper au clavier : maintien sans répétition et un seul relâchement pour Espace/J', t => {
+  const { win, actions } = setup(t);
+  win.send('keydown', { key: ' ', repeat: false });
+  win.send('keydown', { key: ' ', repeat: true });
+  win.send('keydown', { key: 'j', repeat: false });
+  win.send('keyup', { key: ' ' });
+  assert.deepEqual(actions, ['attack-press']);
+  win.send('keyup', { key: 'j' });
+  assert.deepEqual(actions, ['attack-press', 'attack-release']);
+});
+
+test('Annulation tactile et perte de focus : aucun relâchement ne déclenche une frappe', t => {
+  const { get, win, actions } = setup(t);
+  get('attack-touch').send('pointerdown'); get('attack-touch').send('pointercancel'); get('attack-touch').send('pointerup');
+  assert.deepEqual(actions, ['attack-press', 'attack-cancel']);
+  win.send('keydown', { key: ' ', repeat: false }); win.send('blur'); win.send('keyup', { key: ' ' });
+  assert.equal(actions.at(-1), 'attack-press');
+});
+
+test('Flèche haut : commande de saut distincte, sans répétition automatique', t => {
+  const { win, actions, human } = setup(t);
+  win.send('keydown', { key: 'ArrowUp', repeat: false }); win.send('keydown', { key: 'ArrowUp', repeat: true });
+  assert.deepEqual(actions, ['arrowup']); assert.equal(human.axis, 0);
+});
+
 test('Deux directions opposées et relâchement indépendant des doigts', t => {
   const { get, human } = setup(t);
   get('move-left').send('pointerdown', { pointerId: 1 });

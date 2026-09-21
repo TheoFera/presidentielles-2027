@@ -30,6 +30,8 @@ function showError(error, duringGame = false) {
 
 async function start() {
   const config = await loadConfig();
+  const chargeDuration = `${config.balance.candidate_combat.charge_ready_seconds.toLocaleString('fr-FR')} s`;
+  document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
   const profile = loadCampaignProfile();
   try { saveCampaignProfile(profile); } catch { console.warn('Le profil ne peut pas être enregistré dans ce navigateur.'); }
   let simulation = new GameSimulation(config, config.prototype.seed, 'candidate:melenchon', profile);
@@ -54,7 +56,7 @@ async function start() {
   document.getElementById('budget-help').textContent = `Plafond de dépenses : ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ par candidat sur toute la partie. Les remboursements ne rétablissent pas ce budget.`;
   const notice = document.getElementById('notice');
   const hint = document.getElementById('hint');
-  if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = 'Maintiens une flèche pour marcher · Frapper pour attaquer · Pause pour l’aide';
+  if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = `Flèches : marcher · Frapper : relâcher ou maintenir ${chargeDuration} · Sauter · Pause : aide`;
   let pending = [];
   let paused = true;
   let wakeLock = null;
@@ -265,7 +267,7 @@ async function start() {
     if (menu.generation !== generation) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room);
   }
-  menu = new StartMenu({ prepare, play, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
+  menu = new StartMenu({ prepare, play, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
   menu.leave = stopSession;
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
 

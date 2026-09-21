@@ -39,6 +39,7 @@ try {
     await page.locator('#load').setInputFiles({ name: 'combat.json', mimeType: 'application/json', buffer: Buffer.from(snapshot(charge)) });
     if (await page.locator('#help').isVisible()) await page.locator('#resume').click();
     await page.waitForSelector('#touch-controls', { state: 'visible' });
+    await page.waitForFunction(value => document.getElementById('ultimate-touch').style.getPropertyValue('--charge') === `${value * 10}%`, charge);
   }
   async function state() {
     await page.locator('#save').evaluate(e => e.click());
@@ -79,8 +80,8 @@ try {
   assert.equal(dashed.events.some(e => e.type === 'AttackStarted'), false);
   report.flows.push('Dash annule la charge, sans coup au relâchement.');
 
-  await load(); await page.keyboard.press('ArrowUp'); await page.waitForTimeout(280);
-  const jumping = await state(); assert.ok(local(jumping).combat.height > 1.5);
+  await load(); await page.keyboard.press('ArrowUp'); await page.waitForTimeout(config.balance.candidate_combat.jump_duration_seconds * 350);
+  const jumping = await state(); assert.ok(local(jumping).combat.height > config.balance.candidate_combat.jump_height_ratio * 0.8);
   await page.screenshot({ path: path.join(output, 'saut.png') });
   await page.keyboard.press('Space'); await page.waitForTimeout(90);
   assert.ok((await state()).events.some(e => e.type === 'AttackStarted' && e.kind === 'CANDIDATE'));
