@@ -21,6 +21,7 @@ export class StartMenu {
   }
   get active() { return !this.element.hidden; }
   page(screen, title, content, back = () => this.home()) {
+    this.cleanup?.(); this.cleanup = null;
     this.back = back;
     this.screen = screen; this.generation++; this.element.dataset.screen = screen;
     this.element.hidden = false; this.game.inert = true;
@@ -75,5 +76,5 @@ export class StartMenu {
       if (generation === this.generation) this.element.querySelector('#loading-status').textContent = 'La préparation a échoué. Revenez à la sélection pour réessayer.';
     }
   }
-  close() { this.generation++; this.element.hidden = true; this.game.inert = false; }
+  close() { this.cleanup?.(); this.cleanup = null; this.generation++; this.element.hidden = true; this.game.inert = false; }
 }

@@ -9,11 +9,38 @@ import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
 import { PeerSession, encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
 import { stateDelta, applyStateDelta, presentationState } from '../src/network/state-stream.js';
 import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
+import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
+
+test('Les QR animés se reconstruisent dans le désordre, sans mélanger deux invitations', async () => {
+  const offer = encodeInvitation({ type: 'offer', id: 'test-qr', description: { type: 'offer', sdp: Array.from({ length: 900 }, (_, i) => `candidate:${i}`).join('\n') } });
+  const frames = await qrFrames(offer);
+  assert.ok(frames.length > 1);
+  const collector = new QrCollector();
+  const other = await qrFrames(encodeInvitation({ type: 'answer', id: 'other', description: { type: 'answer', sdp: 'v=0' } }));
+  await collector.add(frames.at(-1)); await collector.add(frames.at(-1));
+  await collector.add(other[0]);
+  let result;
+  for (const frame of frames.slice(0, -1).reverse()) result = await collector.add(frame);
+  assert.equal(result.value, offer);
+  await assert.rejects(() => collector.add('https://example.com'));
+  await assert.rejects(() => collector.add('P27Q:1:t:1:0:126:a'));
+  await assert.rejects(() => collector.add('P27Q:1:t:1:0:1:corrompu'));
+});
+
+test('Le scan sait aussi relire des QR non compressés', async () => {
+  const compressor = globalThis.CompressionStream;
+  try {
+    globalThis.CompressionStream = undefined;
+    const value = 'P27:' + 'a'.repeat(700), frames = await qrFrames(value), collector = new QrCollector();
+    let result; for (const frame of frames) result = await collector.add(frame);
+    assert.equal(result.value, value);
+  } finally { globalThis.CompressionStream = compressor; }
+});
 
 test('L’invitation directe conserve la description et refuse une réponse utilisée comme invitation', () => {
   const data = { type: 'offer', id: 'joueur-2', fingerprint: 'abc', description: { type: 'offer', sdp: 'v=0\r\na=candidate:1 local\r\n' } };
   const encoded = encodeInvitation(data);
-  assert.deepEqual(decodeInvitation(encoded, 'offer'), { version: 2, ...data });
+  assert.deepEqual(decodeInvitation(encoded, 'offer'), { version: 3, ...data });
   assert.throws(() => decodeInvitation(encoded, 'answer'));
   assert.throws(() => decodeInvitation('un code invalide', 'offer'));
   assert.throws(() => decodeInvitation(encodeInvitation({ ...data, version: 1 }), 'offer'));
@@ -100,14 +127,21 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   assert.equal(host.status, 200);
   const auth = { code: host.code, token: host.token };
   assert.equal((await request('start', auth)).status, 400);
-  assert.equal((await request('join', { code: host.code, faction: 'melenchon' })).status, 400);
+  assert.equal(host.room.players[0].faction, null);
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon' })).status, 400);
   const guest = await request('join', { code: host.code, faction: 'le_pen' });
   const guestAuth = { code: guest.code, token: guest.token };
+  assert.equal(guest.room.players[1].faction, null);
+  assert.equal((await request('start', auth)).status, 400);
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon' })).status, 200);
+  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400);
+  assert.equal((await request('choose', { ...guestAuth, faction: 'le_pen' })).status, 200);
   assert.equal(guest.room.players.length, 2);
   assert.ok(!JSON.stringify(guest.room).includes(host.token));
   assert.equal((await request('start', guestAuth)).status, 400);
   assert.equal((await request('pause', { ...auth, token: 'intrus' })).status, 400);
   assert.equal((await request('start', auth)).status, 200);
+  assert.equal((await request('choose', { ...guestAuth, faction: 'philippe' })).status, 400);
   assert.equal((await request('join', { code: host.code, faction: 'philippe' })).status, 400);
   assert.equal((await request('ready', auth)).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);

@@ -1,0 +1,27 @@
+{
+  "camera": "Images du jeu transmises à une caméra simulée, décodage jsQR réel",
+  "loopbackIce": true,
+  "errors": [],
+  "layouts": [
+    "Deux QR 320x568",
+    "Deux QR 390x844",
+    "Deux QR 667x375",
+    "Deux QR 844x390",
+    "Deux QR 1440x900",
+    "Caméra refusée",
+    "Scanner invitation",
+    "Réponse joueur 2 320x568",
+    "Réponse joueur 2 667x375",
+    "Réponse joueur 2 390x844",
+    "Scanner invitation",
+    "Réponse joueur 3 320x568",
+    "Réponse joueur 3 667x375",
+    "Réponse joueur 3 390x844",
+    "Choix du candidat après connexion",
+    "Choix du candidat après connexion",
+    "Choix du candidat après connexion"
+  ],
+  "flows": [
+    "Deux invitations simultanées, lecture réelle des QR animés, réponses dans l’ordre inverse, copie des invitations et réponses, choix des candidats après connexion, trois joueurs démarrent, caméras arrêtées"
+  ]
+}

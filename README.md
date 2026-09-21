@@ -14,14 +14,18 @@ Accueil, choix du candidat, tutoriel, salon, invitation, pause, résultats et st
 
 Deux ou trois téléphones peuvent utiliser le mode **Entre téléphones · Wi-Fi**. Tous ouvrent la même version du jeu dans leur navigateur depuis le site publié, puis se connectent au même Wi-Fi. Le téléphone qui crée le salon calcule la partie ; les autres échangent leurs actions directement avec lui.
 
-1. Sur le téléphone hôte : **Multijoueur → choisir son candidat → Créer un salon → Inviter un joueur**.
-2. L’hôte copie l’invitation et l’envoie à un ami (par exemple dans une messagerie).
-3. L’ami ouvre **Multijoueur**, choisit un candidat différent, colle l’invitation dans **Rejoindre**, puis copie et renvoie sa **réponse** à l’hôte.
-4. L’hôte colle cette réponse dans **Réponse de votre ami**, puis touche **Connecter le joueur**. Les deux appareils reviennent au salon.
-5. Pour un troisième joueur, l’hôte crée **une nouvelle invitation** et répète l’échange. À deux joueurs, le troisième candidat reste piloté par l’ordinateur.
-6. L’hôte touche **Préparer la partie**. Chacun lit le tutoriel puis touche **Je suis prêt**.
+1. Sur le téléphone hôte : **Multijoueur → Créer un salon → Inviter mes amis**.
+2. L’hôte affiche **deux QR codes simultanément**, pour les places joueur 2 et joueur 3 (l’hôte est le joueur 1). Chaque invité utilise une place différente ; aucun candidat n’est encore attribué.
+3. L’ami ouvre **Multijoueur → Scanner un QR**, autorise la caméra et vise l’une des places. Il reste dans le jeu.
+4. L’ami affiche sa réponse sous forme de QR. L’hôte touche **Scanner une réponse** et vise son écran. Les QR défilent : gardez le cadre quelques secondes, jusqu’à lecture complète. **Agrandir** facilite la lecture d’une invitation sur un petit écran.
+5. Les deux invités peuvent lire leurs invitations en même temps. L’hôte scanne ensuite leurs réponses **dans l’ordre de son choix** ; chaque place indique **Connecté**. À deux joueurs, ignorez l’autre QR : le candidat libre reste piloté par l’ordinateur.
+6. Une fois connectés, tous les joueurs **choisissent leur candidat dans le salon**. Un candidat choisi devient indisponible pour les autres. L’hôte touche **Voir le salon**, choisit aussi son candidat, puis **Préparer la partie**. Le lancement attend que tous les joueurs connectés aient choisi. Chacun lit ensuite le tutoriel puis touche **Je suis prêt**.
 
-Le code court affiché identifie le salon ; en connexion directe, il ne suffit pas pour le rejoindre. Il faut copier les textes complets commençant par `P27:`. L’invitation et la réponse remplacent le service de mise en relation : aucun serveur de parties, compte, application à installer ni fichier `.cmd` n’est nécessaire sur les téléphones. La page du jeu doit d’abord être publiée et accessible, notamment sur GitHub Pages.
+Sans caméra : **Copier l’invitation** sous chaque QR copie le code de cette place sans l’afficher. L’invité utilise **Mode texte** pour le coller, puis **Copier la réponse**. L’hôte ouvre **Mode texte** et colle la réponse de l’un ou l’autre invité. Les invitations déjà copiées restent valides lorsqu’on change d’écran. Le choix des candidats se fait également après connexion en mode serveur local.
+
+Le scan fonctionne depuis le site **HTTPS** (ou `localhost` pour les tests sur ordinateur). Une adresse locale en `http://192.168…` ne permet pas d’utiliser la caméra sur téléphone. Aucun service de mise en relation n’est utilisé ; génération et lecture des QR sont intégrées au jeu, sans CDN. Les images de caméra restent sur l’appareil. La caméra s’arrête après le scan, à l’annulation, au changement d’écran ou lorsque la page est masquée. Si la caméra est refusée ou absente, les boutons **Mode texte** conservent l’échange manuel d’invitation et de réponse.
+
+Le code court affiché identifie le salon ; en connexion directe, il ne suffit pas pour le rejoindre. En mode texte, il faut copier les textes complets commençant par `P27:` ; les QR transportent ces mêmes informations automatiquement. L’invitation et la réponse remplacent le service de mise en relation : aucun serveur de parties, compte, application à installer ni fichier `.cmd` n’est nécessaire sur les téléphones. La page du jeu doit d’abord être publiée et accessible, notamment sur GitHub Pages.
 
 Les liens utilisent les canaux de données WebRTC, sans caméra, microphone ni relais de parties. Le service STUN public de Google aide à trouver un chemin réseau lorsque la découverte locale ne suffit pas ; il ne reçoit pas l’état du jeu. Les connexions locales restent utilisables s’il ne répond pas. Voir le [principe de l’échange de connexion](https://webrtc.org/getting-started/peer-connections). Autorisez l’accès au réseau local si le navigateur le demande. Un réseau invité qui isole ses appareils, un VPN ou un blocage des échanges locaux peut empêcher la liaison ; utilisez alors un réseau qui autorise les communications entre appareils.
 
@@ -44,6 +48,7 @@ Le mode serveur fonctionne aussi si ce serveur Node.js est hébergé sur Interne
 - Playwright est fourni via `CAMPAIGN_TEST_NODE_MODULES`. Le mode `ARCADE_LOOPBACK_ICE=1` désactive uniquement la dissimulation mDNS **dans le navigateur de test**, pour les machines incapables de résoudre leurs propres noms locaux. Le jeu n’utilise aucun réglage spécial du navigateur.
 - Ces tests émulent les écrans et les gestes tactiles sur ordinateur. Ils ne remplacent pas un essai sur des téléphones physiques et leur Wi-Fi.
 - Le parcours réseau vérifie aussi, à trois navigateurs, la fin du décompte, le duel du premier tour, l’élimination et le résultat final. Un test automatisé simule la saturation de la file d’envoi et vérifie la reprise sans perte de fragments ni désynchronisation.
+- `scripts/validate-qr-browser.mjs` transmet les images des QR à des caméras simulées : le décodeur lit réellement les QR animés. Il vérifie deux invitations simultanées, des réponses dans l’ordre inverse, le lancement à trois, le refus de caméra, l’arrêt des pistes vidéo et les petits écrans. La connexion WebRTC de ce test utilise le réglage mDNS de test décrit ci-dessus ; les caméras physiques restent à vérifier sur téléphone.
 
 ### Sur téléphone et GitHub Pages
 
@@ -54,7 +59,7 @@ Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni install
 3. Envoie les modifications sur `main`, ou lance **Actions → Publier le jeu sur GitHub Pages → Run workflow**. Les tests passent avant la publication.
 4. Après la réussite du déploiement, ouvre l’adresse affichée dans **Settings → Pages** depuis Safari ou Chrome sur ton téléphone. L’adresse attendue est https://theofera.github.io/presidentielles-2027/ ; elle n’est utilisable qu’après activation et publication.
 
-Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. La partie est locale à chaque onglet : recharger la page la recommence.
+Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. En Solo, la partie est locale à chaque onglet : recharger la page la recommence. En multijoueur, recharger la page quitte la session.
 
 `npm run build` prépare le dossier `dist/` avec uniquement la page, le code du jeu et ses quatre fichiers de réglages. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
 

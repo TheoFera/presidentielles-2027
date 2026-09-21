@@ -64,8 +64,9 @@ try {
   await host.locator('#multiplayer').click(); await host.locator('#network-method').selectOption('server'); await host.locator('#create-room').click(); await host.locator('.room-code').waitFor();
   const code = (await host.locator('.room-code').textContent()).trim();
   await guest.locator('#multiplayer').click(); await guest.locator('#network-method').selectOption('server'); await guest.locator('#room-code').fill(code);
-  await guest.locator('button[type="submit"]').click(); await guest.locator('#room-error').filter({ hasText: 'déjà pris' }).waitFor();
-  await guest.locator('#multiplayer-candidate').selectOption('le_pen'); await guest.locator('button[type="submit"]').click();
+  await guest.locator('button[type="submit"]').click();
+  await guest.locator('[data-choose="le_pen"]:not([disabled])').click();
+  await host.locator('[data-choose="melenchon"]:not([disabled])').click();
   await host.locator('#launch-room:not([disabled])').waitFor();
   await host.screenshot({ path: path.join(output, 'salon.png') });
   await host.locator('#launch-room').click();
@@ -87,9 +88,11 @@ try {
   const third = await pageAt();
   for (const [client, faction] of [[guest, 'le_pen'], [third, 'philippe']]) {
     await client.locator('#multiplayer').click(); await client.locator('#network-method').selectOption('server'); await client.locator('#room-code').fill(nextCode);
-    await client.locator('#multiplayer-candidate').selectOption(faction); await client.locator('button[type="submit"]').click();
+    await client.locator('button[type="submit"]').click();
     await client.locator('.room-code').waitFor();
+    await client.locator(`[data-choose="${faction}"]:not([disabled])`).click();
   }
+  await host.locator('[data-choose="melenchon"]:not([disabled])').click();
   await host.waitForFunction(() => document.querySelectorAll('#room-players .lobby-player:not(.vacant)').length === 3);
   await host.locator('#launch-room').click();
   for (const client of [host, guest, third]) { await client.locator('#start-campaign:not([disabled])').waitFor(); await client.locator('#start-campaign').click(); }

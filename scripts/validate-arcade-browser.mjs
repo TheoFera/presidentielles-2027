@@ -49,6 +49,7 @@ async function open(viewport, touch = true) {
 }
 async function fits(page, selector, name) {
   await page.locator(selector).waitFor();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const overflow = await page.locator(selector).evaluate(root => {
     const width = window.visualViewport?.width || innerWidth, height = window.visualViewport?.height || innerHeight;
     return [root, ...root.querySelectorAll('*')].filter(e => {
@@ -61,7 +62,7 @@ async function fits(page, selector, name) {
     });
   });
   if (overflow.length) {
-    await page.screenshot({ path: path.join(output, 'overflow.png') });
+    await page.screenshot({ path: path.join(output, `overflow-${report.layouts.length}.png`) });
     report.layoutErrors.push({ name, overflow }); console.log(JSON.stringify({ name, overflow }));
   }
   report.layouts.push(name);
@@ -81,7 +82,7 @@ try {
     for (const tab of ['controls', 'field', 'election']) { await page.locator(`[data-help-tab="${tab}"]`).click(); await fits(page, '#help', `Pause ${tab} ${label}`); }
     await page.locator('#pause-home').click(); await page.locator('#multiplayer').click();
     await fits(page, '#start-menu', `Multijoueur ${label}`);
-    await page.locator('#room-code').fill('erreur'); await page.locator('button[type="submit"]').click();
+    await page.locator('#text-join').click(); await page.locator('#room-code').fill('erreur'); await page.locator('button[type="submit"]').click();
     await page.locator('#room-error').filter({ hasText: 'invalide' }).waitFor();
     await fits(page, '#start-menu', `Erreur de connexion ${label}`);
     if (viewport.width < 500) {
@@ -92,7 +93,7 @@ try {
     }
     await page.locator('#create-room').click(); await page.locator('#invite-player').waitFor();
     await fits(page, '#start-menu', `Salon ${label}`);
-    await page.locator('#invite-player').click(); await page.locator('#copy-signal:not([disabled])').waitFor();
+    await page.locator('#invite-player').click(); await page.locator('#text-invite').click(); await page.locator('#copy-signal:not([disabled])').waitFor();
     await fits(page, '#start-menu', `Invitation ${label}`);
     await page.locator('#menu-back').click(); await page.locator('#menu-back').click();
     await solo(page); await page.locator('#pause-touch').click();
@@ -119,15 +120,19 @@ try {
   const third = await open({ width: 320, height: 568 });
   await host.locator('#multiplayer').click(); await host.locator('#create-room').click();
   async function pair(client, faction) {
-    await host.locator('#invite-player').click(); await host.locator('#copy-signal:not([disabled])').waitFor();
+    await host.locator('#invite-player').click(); await host.locator('#text-invite').click(); await host.locator('#copy-signal:not([disabled])').waitFor();
     const invitation = await host.locator('#outgoing-code').inputValue();
-    await client.locator('#multiplayer').click(); await client.locator('#multiplayer-candidate').selectOption(faction);
-    await client.locator('#room-code').fill(invitation); await client.locator('button[type="submit"]').click();
-    await client.locator('#outgoing-code').waitFor(); await fits(client, '#start-menu', `Réponse ${faction}`);
+    await client.locator('#multiplayer').click();
+    await client.locator('#text-join').click(); await client.locator('#room-code').fill(invitation); await client.locator('button[type="submit"]').click();
+    await client.locator('#text-answer').click(); await client.locator('#outgoing-code').waitFor(); await fits(client, '#start-menu', `Réponse ${faction}`);
     const answer = await client.locator('#outgoing-code').inputValue();
     await host.locator('#answer-code').fill(answer); await host.locator('#accept-peer').click();
-    await host.locator('#launch-room:not([disabled])').waitFor({ timeout: 30000 });
+    await host.locator('#room-players').waitFor({ timeout: 30000 });
     await client.locator('#room-players').waitFor({ timeout: 30000 });
+    await client.locator(`[data-choose="${faction}"]`).click();
+    await client.locator(`[data-choose="${faction}"]`).filter({ hasText: 'Votre candidat' }).waitFor();
+    if (await host.locator('[data-choose="melenchon"]').isEnabled()) await host.locator('[data-choose="melenchon"]').click();
+    await host.locator('#launch-room:not([disabled])').waitFor();
   }
   await pair(guest, 'le_pen');
   await host.locator('#launch-room').click();

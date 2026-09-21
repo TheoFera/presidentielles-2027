@@ -217,7 +217,8 @@ async function start() {
     if (room.phase === 'pairing') {
       showPeerAnswer(menu, session, returnHome);
     } else if (room.phase === 'lobby') {
-      if (menu.screen !== 'lobby') showLobby(menu, session, returnHome); else updateLobby(menu, session);
+      if (menu.screen === 'qr-invite') menu.roomUpdate?.();
+      else if (menu.screen !== 'lobby') showLobby(menu, session, returnHome); else updateLobby(menu, session);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
       menu.selected = session.candidateId.split(':')[1];
       void menu.loading({ multiplayer: true, ready: () => session.request('ready') });
@@ -264,7 +265,7 @@ async function start() {
       },
     }, state.config_fingerprint);
     try { await nextSession.connect(action, data); } catch (error) { nextSession.close(); throw error; }
-    if (menu.generation !== generation) { nextSession.close(); return; }
+    if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room);
   }
   menu = new StartMenu({ prepare, play, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });

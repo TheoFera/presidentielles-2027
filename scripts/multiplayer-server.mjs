@@ -1,13 +1,13 @@
 import { randomBytes } from 'node:crypto';
+import { chooseCandidate, candidatesReady } from '../src/network/lobby.js';
 
-const factions = ['melenchon', 'le_pen', 'philippe'];
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
 
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, phase: room.phase, paused: room.paused, players: room.players.map(p => ({ id: p.id, faction: p.faction, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, phase: room.phase, paused: room.paused, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, host: p.host, ready: p.ready })) });
   const send = (player, type, data) => {
     if (player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000) player.stream.write(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
   };
@@ -46,7 +46,6 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       const data = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
       const action = url.pathname.split('/').at(-1);
       if (['create', 'join'].includes(action)) {
-        if (!factions.includes(data.faction)) throw new Error('Choisissez un candidat.');
         let room;
         if (action === 'create') {
           if (rooms.size >= 32) throw new Error('Le serveur est plein. Réessayez plus tard.');
@@ -57,9 +56,8 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
           if (!room) throw new Error('Ce code ne correspond à aucun salon.');
           if (room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
           if (room.players.length >= 3) throw new Error('Ce salon est complet.');
-          if (room.players.some(p => p.faction === data.faction)) throw new Error('Ce candidat est déjà pris. Choisissez-en un autre.');
         }
-        const player = { id: randomBytes(8).toString('hex'), token: randomBytes(24).toString('hex'), host: action === 'create', faction: data.faction, ready: false, seen: Date.now() };
+        const player = { id: randomBytes(8).toString('hex'), slot: [1, 2, 3].find(s => !room.players.some(p => p.slot === s)), token: randomBytes(24).toString('hex'), host: action === 'create', faction: null, ready: false, seen: Date.now() };
         room.players.push(player); room.touched = Date.now(); changed(room);
         reply(200, { code: room.code, token: player.token, id: player.id, room: view(room) }); return true;
       }
@@ -71,8 +69,11 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       else if (action === 'leave') {
         if (player.host || room.phase !== 'lobby') close(room, 'Un joueur a quitté la partie.');
         else { player.stream?.end(); room.players = room.players.filter(p => p !== player); changed(room); }
+      } else if (action === 'choose') {
+        chooseCandidate(room, player.id, data.faction); changed(room);
       } else if (action === 'start') {
         if (!player.host || room.phase !== 'lobby' || room.players.length < 2) throw new Error('Il faut être l’hôte et réunir au moins deux joueurs.');
+        if (!candidatesReady(room)) throw new Error('Chaque joueur doit choisir son candidat.');
         room.phase = 'loading'; room.players.forEach(p => { p.ready = false; }); changed(room);
       } else if (action === 'ready') {
         if (room.phase !== 'loading') throw new Error('La préparation n’a pas commencé.');

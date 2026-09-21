@@ -1,10 +1,11 @@
 import { sanitizeCommands } from './shared-commands.js';
 import { stateDelta, applyStateDelta } from './state-stream.js';
+import { chooseCandidate, candidatesReady } from './lobby.js';
 
 const factions = ['melenchon', 'le_pen', 'philippe'];
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
-  const bytes = new TextEncoder().encode(JSON.stringify({ version: 2, ...value }));
+  const bytes = new TextEncoder().encode(JSON.stringify({ version: 3, ...value }));
   return 'P27:' + btoa(Array.from(bytes, b => String.fromCharCode(b)).join(''));
 }
 export function decodeInvitation(text, type) {
@@ -12,7 +13,7 @@ export function decodeInvitation(text, type) {
     const value = String(text).trim();
     if (!value.startsWith('P27:') || value.length > 30000) throw new Error();
     const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(value.slice(4)), c => c.charCodeAt(0))));
-    if (data.version !== 2 || data.type !== type || typeof data.id !== 'string' || data.id.length > 40 || typeof data.description?.sdp !== 'string' || data.description.type !== type) throw new Error();
+    if (data.version !== 3 || data.type !== type || typeof data.id !== 'string' || data.id.length > 40 || typeof data.description?.sdp !== 'string' || data.description.type !== type) throw new Error();
     return data;
   } catch { throw new Error(type === 'offer' ? 'Invitation invalide. Collez le texte complet qui commence par P27:.' : 'Réponse invalide. Collez la réponse complète de votre ami.'); }
 }
@@ -37,29 +38,27 @@ export class PeerSession {
     Object.assign(this, { callbacks, fingerprint, direct: true, closed: false, peers: new Map(), serial: 0, id: id() });
   }
   get host() { return this.isHost; }
-  get candidateId() { return `candidate:${this.faction}`; }
+  get candidateId() { return `candidate:${this.room?.players.find(p => p.id === this.id)?.faction}`; }
   async connect(action, data) {
     if (typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas la connexion directe. Essayez un navigateur à jour.');
-    if (!factions.includes(data.faction)) throw new Error('Choisissez un candidat.');
-    this.faction = data.faction; this.isHost = action === 'create';
+    this.isHost = action === 'create';
     if (this.host) {
       this.code = id().slice(0, 6).toUpperCase();
-      this.room = { code: this.code, phase: 'lobby', paused: false, players: [{ id: this.id, faction: this.faction, host: true, ready: false }] };
+      this.room = { code: this.code, phase: 'lobby', paused: false, players: [{ id: this.id, slot: 1, faction: null, host: true, ready: false }] };
     } else {
       const offer = decodeInvitation(data.code, 'offer');
       this.checkFingerprint(offer);
       if (!/^[A-F0-9]{6}$/.test(offer.code)) throw new Error('Le code du salon est invalide. Demandez une nouvelle invitation.');
-      if (!Array.isArray(offer.players) || offer.players.length < 1 || offer.players.length > 2 || offer.players.some(p => !factions.includes(p.faction) || typeof p.id !== 'string')) throw new Error('Invitation invalide.');
-      if (offer.players.some(p => p.faction === this.faction)) throw new Error('Ce candidat est déjà pris. Choisissez-en un autre.');
+      if (![2, 3].includes(offer.slot) || !Array.isArray(offer.players) || offer.players.length < 1 || offer.players.length > 2 || offer.players.some(p => p.faction !== null && !factions.includes(p.faction) || typeof p.id !== 'string')) throw new Error('Invitation invalide.');
       this.id = offer.id; this.code = offer.code;
-      this.room = { code: this.code, phase: 'pairing', players: [...offer.players, { id: this.id, faction: this.faction, host: false, ready: false }] };
+      this.room = { code: this.code, phase: 'pairing', players: [...offer.players, { id: this.id, slot: offer.slot, faction: null, host: false, ready: false }] };
       const peer = this.makePeer('host');
       peer.connection.ondatachannel = event => this.bindChannel(peer, event.channel);
       await peer.connection.setRemoteDescription(offer.description);
       await peer.connection.addIceCandidate(null);
       await peer.connection.setLocalDescription(await peer.connection.createAnswer());
       await gather(peer.connection);
-      this.answer = encodeInvitation({ type: 'answer', id: this.id, fingerprint: this.fingerprint, faction: this.faction, description: peer.connection.localDescription.toJSON() });
+      this.answer = encodeInvitation({ type: 'answer', id: this.id, fingerprint: this.fingerprint, description: peer.connection.localDescription.toJSON() });
     }
     this.heartbeat = setInterval(() => {
       const now = Date.now();
@@ -87,8 +86,7 @@ export class PeerSession {
       if (this.closed || peer.cancelled) return;
       peer.connected = true; peer.seen = Date.now(); clearTimeout(peer.timeout);
       if (this.host) {
-        this.room.players.push({ id: peer.id, faction: peer.faction, host: false, ready: false });
-        if (this.pending === peer) this.pending = null;
+        this.room.players.push({ id: peer.id, slot: peer.slot, faction: null, host: false, ready: false });
         this.publishRoom();
       }
     };
@@ -149,11 +147,17 @@ export class PeerSession {
     if (this.host) {
       const player = this.room.players.find(p => p.id === peer.id);
       if (!player) return;
+      if (packet.type === 'choose') {
+        try { chooseCandidate(this.room, player.id, packet.data.faction); this.publishRoom(); }
+        catch (error) { this.send(peer, 'selectionError', { message: error.message }); }
+        return;
+      }
       if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction) });
       else if (packet.type === 'ready' && this.room.phase === 'loading') this.setReady(player);
       else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
     } else {
-      if (packet.type === 'room') { this.room = packet.data; this.callbacks.room(this.room); }
+      if (packet.type === 'room') { this.room = packet.data; this.selectionError = ''; this.callbacks.room(this.room); }
+      else if (packet.type === 'selectionError') { this.selectionError = String(packet.data.message); this.callbacks.room(this.room); }
       else if (packet.type === 'snapshot' && this.room.phase === 'playing') {
         peer.snapshot = applyStateDelta(peer.snapshot, packet.data);
         this.callbacks.snapshot(peer.snapshot);
@@ -161,37 +165,49 @@ export class PeerSession {
       else if (packet.type === 'ended') this.fail(String(packet.data.message));
     }
   }
-  async invite() {
+  async invite(slot = [2, 3].find(s => !this.room.players.some(p => p.slot === s))) {
     if (!this.host || this.room.phase !== 'lobby' || this.room.players.length >= 3) throw new Error('Le salon ne peut plus accueillir de joueur.');
-    this.cancelInvite();
-    const peer = this.makePeer(id()); this.pending = peer;
+    if (![2, 3].includes(slot) || this.room.players.some(p => p.slot === slot)) throw new Error('Cette place est déjà occupée.');
+    const existing = [...this.peers.values()].find(p => p.slot === slot && !p.cancelled);
+    if (existing) return existing.invitation;
+    const peer = this.makePeer(id()); peer.slot = slot;
+    peer.invitation = this.prepareInvitation(peer);
+    try { return await peer.invitation; } catch (error) { this.cancelInvite(peer.id); throw error; }
+  }
+  async prepareInvitation(peer) {
     this.bindChannel(peer, peer.connection.createDataChannel('campagne'));
     await peer.connection.setLocalDescription(await peer.connection.createOffer());
     await gather(peer.connection);
     if (!peer.connection.localDescription.sdp.includes('a=candidate:')) throw new Error('Aucun accès au Wi-Fi détecté. Autorisez le réseau local dans le navigateur.');
-    return encodeInvitation({ type: 'offer', id: peer.id, code: this.code, fingerprint: this.fingerprint, players: this.room.players, description: peer.connection.localDescription.toJSON() });
+    return encodeInvitation({ type: 'offer', id: peer.id, slot: peer.slot, code: this.code, fingerprint: this.fingerprint, players: this.room.players, description: peer.connection.localDescription.toJSON() });
   }
   async accept(text) {
     const answer = decodeInvitation(text, 'answer'); this.checkFingerprint(answer);
-    const peer = this.pending;
-    if (!peer || peer.id !== answer.id) throw new Error('Cette réponse appartient à une autre invitation.');
-    if (!factions.includes(answer.faction) || this.room.players.some(p => p.faction === answer.faction)) throw new Error('Ce candidat est déjà pris. Votre ami doit choisir un autre candidat.');
-    peer.faction = answer.faction;
-    await peer.connection.setRemoteDescription(answer.description);
-    await peer.connection.addIceCandidate(null);
+    const peer = this.peers.get(answer.id);
+    if (!this.host || this.room.phase !== 'lobby' || !peer || peer.cancelled) throw new Error('Cette réponse appartient à une autre invitation.');
+    if (peer.connected || peer.accepting) return;
+    peer.accepting = true;
+    try {
+      await peer.connection.setRemoteDescription(answer.description);
+      await peer.connection.addIceCandidate(null);
+    } catch (error) { peer.accepting = false; throw error; }
     peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.fail('Les appareils ne se trouvent pas. Vérifiez le même Wi-Fi et son autorisation dans le navigateur.'); }, 25000);
   }
-  cancelInvite() {
-    if (!this.pending) return;
-    const peer = this.pending; peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry); peer.connection.close(); this.peers.delete(peer.id); this.pending = null;
+  cancelInvite(peerId = null) {
+    for (const peer of this.peers.values()) if (!peer.connected && (!peerId || peer.id === peerId)) {
+      peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry); peer.connection.close(); this.peers.delete(peer.id);
+    }
   }
   setReady(player) { player.ready = true; if (this.room.players.every(p => p.ready)) this.room.phase = 'playing'; this.publishRoom(); }
   async request(action, data = {}) {
     if (this.closed) throw new Error('La connexion est fermée.');
     if (!this.host) {
-      if (!['commands', 'ready', 'pause'].includes(action) || !this.send(this.peers.get('host'), action, data)) throw new Error('La connexion à l’hôte n’est pas prête.');
+      if (!['commands', 'ready', 'pause', 'choose'].includes(action) || !this.send(this.peers.get('host'), action, data)) throw new Error('La connexion à l’hôte n’est pas prête.');
+    } else if (action === 'choose') {
+      chooseCandidate(this.room, this.id, data.faction); this.publishRoom();
     } else if (action === 'start') {
       if (this.room.players.length < 2 || this.room.phase !== 'lobby') throw new Error('Il faut au moins deux joueurs connectés.');
+      if (!candidatesReady(this.room)) throw new Error('Chaque joueur doit choisir son candidat.');
       this.cancelInvite(); this.room.phase = 'loading'; this.room.players.forEach(p => { p.ready = false; }); this.publishRoom();
     } else if (action === 'ready' && this.room.phase === 'loading') this.setReady(this.room.players[0]);
     else if (action === 'pause' && this.room.phase === 'playing') { this.room.paused = data.paused === true; this.publishRoom(); }
