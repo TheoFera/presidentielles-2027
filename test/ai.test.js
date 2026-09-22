@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController } from '../src/simulation/controllers.js';
-import { AI_DIFFICULTIES, aiSettings } from '../src/simulation/ai-settings.js';
-import { chooseAIObjective } from '../src/simulation/ai-strategy.js';
+import { AI_DIFFICULTIES, aiSettings, aiNoise } from '../src/simulation/ai-settings.js';
+import { chooseAIObjective, strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { aiCombatCommands } from '../src/simulation/ai-combat.js';
 import { aiEconomicTarget } from '../src/simulation/economy.js';
 import { CAMPAIGN_STYLES, CampaignStyleSystem, chooseAICampaignStyle } from '../src/simulation/campaign-styles.js';
@@ -176,9 +176,47 @@ test('Difficulté : cadence de combat distincte, dash offensif et repli après b
   const { sim, config, ai } = make('difficile'); const c = isolate(sim); const n = supporter(sim, 'melenchon', c.x + 8);
   assert.ok(aiCombatCommands(sim.state, config, c, n).some(c => c.type === 'Dash'));
   c.resistance = 10; n.x = c.x + 1;
+  for(let seed=1;seed<1000;seed++){if(aiNoise(seed,`${c.id}:retreat:${c.ko_started_tick}`)<AI_DIFFICULTIES.difficile.retreat_chance){sim.state.seed=seed;break;}}
   const commands = ai.commands(sim.state, c.id);
   assert.equal(commands.find(c => c.type === 'Move').axis, -1);
   assert.equal(commands.find(c => c.type === 'SetAIObjective').objective.purpose, 'RECOVER');
+});
+
+for(const difficulty of ['facile','normal','difficile'])test(`Combat ${difficulty} : la majorité reste au contact à faible résistance, choix stable et sauvegardable`,()=>{
+  const {sim,config}=make(difficulty),c=isolate(sim);supporter(sim,'melenchon',c.x+1);c.resistance=5;
+  let retreats=0;const rng=sim.state.rng_state;
+  for(let seed=1;seed<=200;seed++){
+    sim.state.seed=seed;c.ai_objective=null;
+    const a=strategicAICommands(sim.state,config,c);
+    assert.deepEqual(a,strategicAICommands(sim.state,config,c));
+    const retreatsNow=a.some(a=>a.type==='SetAIObjective'&&a.objective.purpose==='RECOVER');
+    retreats+=retreatsNow?1:0;
+    if(!retreatsNow)assert.equal(a.find(a=>a.type==='Move').axis,0);
+  }
+  assert.ok(retreats>5&&retreats<65,`${retreats}/200 replis`);assert.equal(sim.state.rng_state,rng);
+  sim.state.seed=42;
+  const restored=new GameSimulation(config);restored.importSnapshot(sim.exportSnapshot());
+  assert.deepEqual(strategicAICommands(restored.state,config,restored.state.candidates.find(a=>a.id===c.id)),strategicAICommands(sim.state,config,c));
+});
+
+test('Repli : délai non renouvelé, puis combat si l’adversaire reste au contact',()=>{
+  const {sim,config}=make(),c=isolate(sim);supporter(sim,'melenchon',c.x+1);c.resistance=5;
+  for(let seed=1;seed<1000;seed++){if(aiNoise(seed,`${c.id}:retreat:${c.ko_started_tick}`)<AI_DIFFICULTIES.normal.retreat_chance){sim.state.seed=seed;break;}}
+  c.ai_objective=strategicAICommands(sim.state,config,c).find(a=>a.type==='SetAIObjective').objective;
+  const deadline=c.ai_objective.expires_tick;
+  sim.state.tick+=10;
+  assert.equal(strategicAICommands(sim.state,config,c).find(a=>a.type==='SetAIObjective').objective.expires_tick,deadline);
+  for(const tick of [deadline,deadline+30]){
+    sim.state.tick=tick;const a=strategicAICommands(sim.state,config,c);
+    assert.equal(a.find(a=>a.type==='Move').axis,0);assert.ok(!a.some(a=>a.type==='SetAIObjective'&&a.objective.purpose==='RECOVER'));
+  }
+});
+
+test('Combat : poursuivre brièvement un candidat repoussé pour finir l’échange',()=>{
+  const {sim,config}=make(),c=isolate(sim),enemy=sim.state.candidates.find(a=>a.faction_id==='melenchon');
+  enemy.x=c.x+3;c.combat.target_id=enemy.id;c.combat.last_hit={tick:0,target_id:enemy.id};sim.state.tick=30;
+  const a=strategicAICommands(sim.state,config,c);
+  assert.equal(a.find(a=>a.type==='Move').axis,1);assert.equal(a.find(a=>a.type==='InteractionPresence').active,false);
 });
 
 test('La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile', () => {

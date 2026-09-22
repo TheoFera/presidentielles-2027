@@ -5,6 +5,7 @@ import { combatDelta, combatPosition } from './combat-geometry.js';
 import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
+import { random } from './world.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
@@ -38,6 +39,13 @@ export function demobilizeUnit(sim, npc) {
   npc.role = 'DEMOBILISE'; npc.faction_id = null; npc.hidden_durability = 0; npc.persuasion = null;
   npc.task = null; npc.raid = null; npc.persuasion_target_ids = []; npc.combat = combatState();
   npc.combat.knockback_velocity = velocity; npc.demobilized_tick = sim.state.tick;
+  // Sample once, using the saved RNG, and keep the destination throughout the return.
+  const point = sim.state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
+  const zone = sim.state.world.subzones.find(z => z.id === npc.origin_subzone_id);
+  const margin = sim.config.prototype.world.arrival_epsilon_units;
+  const spread = sim.config.prototype.world.respawn_spread_units;
+  const min = Math.max(zone.start + margin, point.x - spread), max = Math.min(zone.end - margin, point.x + spread);
+  npc.roam_target_x = min + random(sim.state) * (max - min);
   for (const building of sim.state.buildings) for (const order of building.queue) if (order.assigned_npc_id === npc.id) order.assigned_npc_id = null;
   for (const neutral of sim.state.npcs) if (neutral.persuasion?.actor_id === npc.id) neutral.persuasion = null;
   for (const actor of combatActors(sim.state)) actor.persuasion_target_ids = actor.persuasion_target_ids?.filter(id => id !== npc.id) || [];
@@ -81,7 +89,7 @@ export function hit(sim, source, target, spec, attackId) {
       const koLoss = electoralDamage(sim, target.faction_id, config.balance.candidate_combat.ko_electoral_damage_percent_points);
       result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
       target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
-      target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds);
+      target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds + config.balance.candidate_combat.ko_ground_seconds);
       target.respawn_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_respawn_seconds);
       sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss });
     }

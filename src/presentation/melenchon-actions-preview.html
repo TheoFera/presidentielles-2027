@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><title>Mélenchon — nouveaux mouvements</title>
+<style>body{margin:0;padding:24px;background:#202b30;color:#fff2d6;font:16px system-ui}h1{margin:0 0 10px}p{color:#ccd8d9}button{padding:10px 18px;margin-bottom:20px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.tile{background:#e7e3d7;color:#25383d;border-radius:12px;overflow:hidden}.tile strong{display:block;padding:12px}canvas{display:block;width:100%;height:auto}</style>
+<h1>Mélenchon · Nouveaux mouvements</h1><p>Animations en boucle, avec le rendu du jeu. Les commandes restent prioritaires sur les animations.</p>
+<p><a style="color:#b7e9ff" href="?candidate=melenchon">Mélenchon</a> · <a style="color:#b7e9ff" href="?candidate=le_pen">Marine Le Pen</a> · <a style="color:#b7e9ff" href="?candidate=philippe">Édouard Philippe</a></p>
+<p><a id="guard-link" style="color:#b7e9ff" href="melenchon-guard-preview.html">Essayer la marche en garde avec déplacement et arrêts</a></p>
+<button id="pause">Mettre en pause</button><div class="grid" id="gallery"></div>
+<script type="module">
+import {loadConfig} from '../config.js';
+import {GameSimulation} from '../simulation/game-simulation.js';
+import {WorldRenderer} from './renderer.js';
+import {combatAtlases} from './melenchon-combat.js';
+import {candidateExtraAtlases} from './candidate-extra-poses.js';
+const config=await loadConfig(), scenes=[];
+const requested=new URLSearchParams(location.search).get('candidate'),faction=combatAtlases[requested]?requested:'melenchon';
+const name={melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'}[faction];
+document.title=name+' — nouveaux mouvements';document.querySelector('h1').textContent=name+' · Nouveaux mouvements';
+document.querySelector('#guard-link').href='melenchon-guard-preview.html?candidate='+faction;
+const specs=[['Repos original','idle'],['Marche','walk'],['Marche en garde','guard'],['Dash','dash'],['Coup léger reçu','light'],['Coup fort reçu','heavy'],['Recul','recoil'],['Étourdissement','stun'],['Chute puis KO','ko'],['Saut et atterrissage','landing'],['Persuasion','persuade'],['Achat / capture en cours','interaction'],['Déclenchement d’ultime','ultimate']];
+for(const [label,kind] of specs){
+ const div=document.createElement('div');div.className='tile';const title=document.createElement('strong');title.textContent=label;div.append(title);
+ const canvas=document.createElement('canvas');canvas.width=300;canvas.height=255;div.append(canvas);gallery.append(div);
+ const renderer=new WorldRenderer(canvas,config);renderer.resizeObserver.disconnect();
+ await Promise.all(['character-'+faction,combatAtlases[faction].sprite,...Object.values(candidateExtraAtlases[faction]||{}).map(a=>a.sprite)].map(id=>renderer.assets.load(id)));
+ canvas.width=300;canvas.height=255;renderer.metrics={...renderer.metrics,characterHeight:155,groundY:232};
+ const sim=new GameSimulation(config,42),state=sim.state,c=state.candidates.find(a=>a.faction_id===faction);state.npcs=[];state.candidates.forEach((a,i)=>a.x=300+i*100);c.x=100;c.facing=1;
+ if(kind==='guard')state.candidates.find(a=>a.id!==c.id).x=103;
+ scenes.push({kind,renderer,state,c});
+}
+let paused=false,tick=0,last=performance.now();
+pause.onclick=()=>{paused=!paused;pause.textContent=paused?'Reprendre':'Mettre en pause';};
+function draw(){
+ for(const {kind,renderer:r,state:s,c}of scenes){
+  s.tick=tick;const age=tick%60,start=tick-age;
+  c.moving=['walk','guard'].includes(kind);c.axis=c.moving?1:0;c.is_ko=false;c.dash_active=false;c.combat.stun_ticks=0;c.combat.knockback_velocity=0;c.combat.attack_id=null;c.combat.jump_tick=null;c.combat.height=0;c.purchase_hold=null;c.persuasion_target_ids=[];s.attacks=[];
+  if(kind==='guard'){c.x=100+tick*config.prototype.movement.candidate_speed_units_per_second/30;s.candidates.find(a=>a.id!==c.id).x=c.x+3;}
+  if(kind==='dash'&&age<8){c.dash_active=true;c.dash_direction=1;c.dash_until_tick=start+Math.ceil(config.balance.dash.duration_seconds*30);}
+  const hitDuration=kind==='light'?Math.ceil(config.balance.candidate_combat.light_stun_seconds*30):25;
+  if(['light','heavy','recoil','stun'].includes(kind)&&age<hitDuration){c.combat.stun_ticks=Math.max(0,(kind==='recoil'?6:hitDuration)-age);c.combat.last_hit={tick:kind==='stun'?start-20:start,target_id:c.id,strong:kind!=='light'};if(kind==='recoil')c.combat.knockback_velocity=config.balance.candidate_combat.finisher_knockback*Math.pow(1-config.balance.candidate_combat.knockback_decay_per_second/30,age);}
+  if(kind==='ko'){c.is_ko=true;c.ko_started_tick=start;}
+  if(kind==='landing'){const duration=Math.ceil(config.balance.candidate_combat.jump_duration_seconds*30);if(age<duration){c.combat.jump_tick=start;c.combat.height=config.balance.candidate_combat.jump_height_ratio*4*(age/duration)*(1-age/duration);}}
+  if(kind==='persuade')c.persuasion_target_ids=['preview'];
+  if(kind==='interaction')c.purchase_hold={kind:'CAPTURE',elapsed_ticks:age,required_ticks:60};
+  if(kind==='ultimate'&&age<20){c.combat.attack_id='preview';s.attacks=[{id:'preview',owner_id:c.id,kind:'SPECIAL',elapsed_ticks:age,windup_ticks:8,active_ticks:4,recovery_ticks:8}];}
+  r.ctx.setTransform(1,0,0,1,0,0);r.ctx.fillStyle='#e7e3d7';r.ctx.fillRect(0,0,300,255);r.ctx.fillStyle='#c2c7b8';r.ctx.fillRect(0,232,300,23);
+  r.drawPerson(c,145,s);
+ }
+}
+function loop(now){if(!paused&&now-last>=1000/30){tick++;last=now;draw();}requestAnimationFrame(loop);}
+window.previewTick=value=>{paused=true;tick=value;pause.textContent='Reprendre';draw();};
+draw();window.galleryReady=true;requestAnimationFrame(loop);
+</script></html>

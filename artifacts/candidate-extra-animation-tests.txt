@@ -1,0 +1,95 @@
+TAP version 13
+# Subtest: Les nouvelles planches de Marine et Philippe contiennent 16 poses RGBA cadrées
+ok 1 - Les nouvelles planches de Marine et Philippe contiennent 16 poses RGBA cadrées
+  ---
+  duration_ms: 8.1295
+  ...
+# Subtest: Les autres candidats ont leurs propres poses avec les priorités communes
+ok 2 - Les autres candidats ont leurs propres poses avec les priorités communes
+  ---
+  duration_ms: 25.6123
+  ...
+# Subtest: Les poses distinctes utilisent leur atlas transparent
+ok 3 - Les poses distinctes utilisent leur atlas transparent
+  ---
+  duration_ms: 2.4071
+  ...
+# Subtest: Proximité : entrée en garde, marge de sortie et maintien deux secondes sans modifier le jeu
+ok 4 - Proximité : entrée en garde, marge de sortie et maintien deux secondes sans modifier le jeu
+  ---
+  duration_ms: 9.9961
+  ...
+# Subtest: Pas de garde pour les alliés, les sympathisants inoffensifs ou un candidat KO ; jonction circulaire gérée
+ok 5 - Pas de garde pour les alliés, les sympathisants inoffensifs ou un candidat KO ; jonction circulaire gérée
+  ---
+  duration_ms: 7.8209
+  ...
+# Subtest: Deux poings distincts et coup de pied final synchronisés sur préparation, activité et récupération
+ok 6 - Deux poings distincts et coup de pied final synchronisés sur préparation, activité et récupération
+  ---
+  duration_ms: 8.5781
+  ...
+# Subtest: Charge configurable, coup puissant distinct, saut normal et coup de pied aérien
+ok 7 - Charge configurable, coup puissant distinct, saut normal et coup de pied aérien
+  ---
+  duration_ms: 8.0505
+  ...
+# Subtest: Interruption immédiate : stun, KO, dash et ultime remplacent la pose ; autres skins inchangés
+ok 8 - Interruption immédiate : stun, KO, dash et ultime remplacent la pose ; autres skins inchangés
+  ---
+  duration_ms: 6.3236
+  ...
+# Subtest: Rendu : repère au sol, hauteur de saut, miroir et découpe de l’atlas sans altérer la simulation
+ok 9 - Rendu : repère au sol, hauteur de saut, miroir et découpe de l’atlas sans altérer la simulation
+  ---
+  duration_ms: 8.4482
+  ...
+# Subtest: le_pen : atlas, poses, costumes et transformations
+ok 10 - le_pen : atlas, poses, costumes et transformations
+  ---
+  duration_ms: 13.2578
+  ...
+# Subtest: philippe : atlas, poses, costumes et transformations
+ok 11 - philippe : atlas, poses, costumes et transformations
+  ---
+  duration_ms: 10.455
+  ...
+# Subtest: Animations supplémentaires : découpes transparentes valides
+ok 12 - Animations supplémentaires : découpes transparentes valides
+  ---
+  duration_ms: 5.3901
+  ...
+# Subtest: Mélenchon : déplacements, vrais impacts reçus, KO, interactions et priorités
+ok 13 - Mélenchon : déplacements, vrais impacts reçus, KO, interactions et priorités
+  ---
+  duration_ms: 6.5846
+  ...
+# Subtest: Atterrissage : durée visuelle, remise à zéro et absence de mutation des sauvegardes
+ok 14 - Atterrissage : durée visuelle, remise à zéro et absence de mutation des sauvegardes
+  ---
+  duration_ms: 7.6735
+  ...
+# Subtest: Cycle de garde : distance réelle, arrêts, demi-tour, téléportation et aucun état sauvegardé modifié
+ok 15 - Cycle de garde : distance réelle, arrêts, demi-tour, téléportation et aucun état sauvegardé modifié
+  ---
+  duration_ms: 17.0019
+  ...
+# Subtest: Marche en garde : appuis fournis par la distance ; réaction légère sans blocage
+ok 16 - Marche en garde : appuis fournis par la distance ; réaction légère sans blocage
+  ---
+  duration_ms: 5.6979
+  ...
+# Subtest: Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol conservé
+ok 17 - Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol conservé
+  ---
+  duration_ms: 29.4913
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 308.5703

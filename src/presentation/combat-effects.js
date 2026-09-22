@@ -52,6 +52,14 @@ export function drawCombatEffects(renderer, state, debug) {
       ctx.fillStyle = '#ff833c'; ctx.beginPath(); ctx.moveTo(-4,-12); ctx.lineTo(3,-26); ctx.lineTo(6,-12); ctx.fill(); ctx.restore();
     } else {
       ctx.fillStyle = '#f4f0df'; ctx.strokeStyle = renderer.p.factions[p.faction_id].color; ctx.lineWidth = 2;
+      if(p.kind==='BUBBLE') {
+        const b=config.balance.specials.zemmour, w=m.pixelsPerUnit*b.bubble_width_units, h=m.characterHeight*b.bubble_height;
+        const y=m.groundY-m.characterHeight*(b.bubble_bottom+b.bubble_height);
+        ctx.beginPath();ctx.roundRect(x-w/2,y,w,h,Math.min(5,h/3));ctx.fill();ctx.stroke();
+        ctx.fillStyle=ctx.strokeStyle;ctx.font=`bold ${Math.max(7,Math.min(10,h*.7))}px monospace`;ctx.textAlign='center';
+        ctx.fillText(p.label||'!?',x,y+h*.76,Math.max(1,w-4));
+        continue;
+      }
       const y = m.groundY - m.characterHeight * 0.9;
       ctx.beginPath(); ctx.roundRect(x - (p.kind === 'BUBBLE' ? 33 : 15), y, p.kind === 'BUBBLE' ? 66 : 30, 20, 8); ctx.fill(); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x - 5, y + 19); ctx.lineTo(x - 10, y + 26); ctx.lineTo(x + 1, y + 20); ctx.fill(); ctx.stroke();

@@ -332,7 +332,8 @@ export class GameSimulation {
     const radius = this.config.prototype.persuasion.radius_units;
     const maxTargets = this.config.balance.persuasion.max_simultaneous_targets_per_actor;
     // Gameplay sees an actor's activity intention, never its input source or camera ownership.
-    const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')].filter(canCampaign);
+    const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')]
+      .filter(actor => canCampaign(actor) && !actor.moving && !actor.axis && Math.abs(actor.combat?.knockback_velocity || 0) <= 0.02);
     const claims = [];
     for (const actor of eligible) {
       for (const npc of state.npcs) {
@@ -378,10 +379,10 @@ export class GameSimulation {
       if (npc.role === 'MILITANT' && npc.task?.kind === 'COLLECT_EQUIPMENT') { updateEquipmentCollector(this, npc); continue; }
       if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
       if (npc.role === 'DEMOBILISE') {
-        const delta = ringDelta(npc.x, origin.x, state.world.length);
+        const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
         const step = this.config.balance.physical_units.demobilized.move_speed / this.hz;
         if (Math.abs(delta) <= step) {
-          npc.x = origin.x; npc.role = 'NEUTRE'; npc.roam_target_x = origin.x; npc.roam_wait_ticks = this.waitTicks();
+          npc.x = npc.roam_target_x; npc.role = 'NEUTRE'; npc.roam_wait_ticks = this.waitTicks();
           this.emit('NpcReturnedHome', { npc_id: npc.id, social_point_id: origin.id });
         } else {
           npc.facing = Math.sign(delta); npc.x = wrap(npc.x + npc.facing * step, state.world.length); npc.moving = true;

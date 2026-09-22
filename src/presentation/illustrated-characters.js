@@ -29,7 +29,7 @@ export function characterAnimation(entity, state) {
   if (attack) return attack.strong ? 'attack_heavy' : attack.step === 2 ? 'attack_light_2' : 'attack_light_1';
   if (entity.combat?.charge_active) return 'charged_attack';
   if (entity.special_active || entity.special_until_tick > state.tick) return 'special_start';
-  if (entity.persuasion_target_ids?.length) return 'persuade';
+  if (!entity.moving && !entity.axis && entity.persuasion_target_ids?.length) return 'persuade';
   if (entity.persuasion) return 'persuade_listen';
   if (entity.converted_tick >= 0 && state.tick - entity.converted_tick < 12) return 'convert';
   if (entity.purchase_hold || entity.task?.phase === 'PICKUP') return 'interact_hold';

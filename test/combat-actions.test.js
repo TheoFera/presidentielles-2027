@@ -11,6 +11,7 @@ import { requestDash } from '../src/simulation/mobile-combat.js';
 import { LocalHumanController } from '../src/simulation/controllers.js';
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 import { aiCombatCommands } from '../src/simulation/ai-combat.js';
+import { updateCandidateResistance } from '../src/simulation/candidate-resistance.js';
 
 function setup(arena = false) {
   let sim = new GameSimulation(campaignConfig(), 42);
@@ -26,6 +27,43 @@ function ticks(sim, count, combat = false) {
   for (let i = 0; i < count; i++) { sim.state.tick++; beginCombatTick(sim); if (combat) updateCombat(sim); }
 }
 const input = (sim, c, type) => sim.applyCommand({ type, candidateId: c.id });
+
+for (const arena of [false,true]) test(`Poings : cinq ticks de réaction sans aucun recul (${arena?'arène':'campagne'})`,()=>{
+  for(const step of [1,2]){
+    const {sim,c,enemy}=setup(arena),x=enemy.x;
+    c.combat.combo_step=step-1;c.combat.combo_expires_tick=100;
+    input(sim,c,'Attack');
+    for(let i=0;i<10&&!enemy.combat.stun_ticks;i++)ticks(sim,1,true);
+    assert.equal(enemy.combat.stun_ticks,5);assert.equal(enemy.combat.knockback_velocity,0);
+    ticks(sim,4,true);assert.equal(enemy.combat.stun_ticks,1);assert.equal(enemy.x,x);
+    ticks(sim,1,true);assert.equal(enemy.combat.stun_ticks,0);assert.equal(enemy.x,x);
+  }
+});
+
+for(const arena of [false,true])for(const kind of [1,2,3,'charged'])test(`Un coup touche plusieurs adversaires une seule fois : ${kind} (${arena?'arène':'campagne'})`,()=>{
+  const {sim,c,enemy}=setup(arena),other=sim.state.candidates.find(t=>t.id!==c.id&&t.id!==enemy.id);
+  assert.ok(other);other.x=c.x+1.2;
+  if(kind==='charged'){input(sim,c,'PressAttack');ticks(sim,sim.secondsToTicks(sim.config.balance.candidate_combat.charge_ready_seconds));input(sim,c,'ReleaseAttack');}
+  else{c.combat.combo_step=kind-1;c.combat.combo_expires_tick=100;input(sim,c,'Attack');}
+  const hp=t=>arena?t.arena_hp:t.resistance,before=[hp(enemy),hp(other)];
+  ticks(sim,1,true);const a=sim.state.attacks.find(a=>a.owner_id===c.id);
+  for(let i=0;i<15&&a.hit_ids.length<2;i++)ticks(sim,1,true);
+  assert.equal(a.hit_ids.length,2);assert.ok(hp(enemy)<before[0]);assert.ok(hp(other)<before[1]);
+  const after=[hp(enemy),hp(other)];ticks(sim,12,true);
+  assert.deepEqual([hp(enemy),hp(other)],after);assert.equal(new Set(a.hit_ids).size,2);
+});
+
+test('KO : corps visible une demi-seconde supplémentaire, réapparition inchangée et sauvegarde fidèle',()=>{
+  const {sim,c,enemy}=setup();hit(sim,enemy,c,{kind:'CANDIDATE',damage:200,knockback:0},'ko');
+  assert.equal(c.disappear_tick,36);assert.equal(c.respawn_tick,90);
+  const copy=new GameSimulation(sim.config);copy.importSnapshot(sim.exportSnapshot());
+  for(const instance of [sim,copy]){
+    const actor=instance.state.candidates.find(a=>a.id===c.id);
+    instance.state.tick=35;updateCandidateResistance(instance);assert.equal(actor.disappeared,false);assert.equal(actor.is_ko,true);
+    instance.state.tick=36;updateCandidateResistance(instance);assert.equal(actor.disappeared,true);
+    instance.state.tick=90;updateCandidateResistance(instance);assert.equal(actor.is_ko,false);assert.equal(actor.disappeared,false);
+  }
+});
 
 test('Charge : seuils configurés à la tick près, aucun coup avant relâchement', () => {
   const baseline = setup().sim;
@@ -198,8 +236,14 @@ test('IA : termine sa charge et privilégie le combo contre une charge adverse',
   const { sim, c, enemy } = setup(); input(sim, c, 'PressAttack'); ticks(sim, sim.secondsToTicks(sim.config.balance.candidate_combat.charge_ready_seconds));
   assert.ok(aiCombatCommands(sim.state, sim.config, c, enemy).some(c => c.type === 'ReleaseAttack'));
   attackInput(sim, c, 'CancelAttack'); enemy.combat.charge_active = true; c.combat.combo_step = 2;
-  sim.state.tick = 49;
-  assert.ok(aiCombatCommands(sim.state, sim.config, c, enemy).some(c => c.type === 'Attack'));
+  let attacks=0;
+  for(let tick=49;tick<109;tick++) {
+    sim.state.tick=tick;
+    const commands=aiCombatCommands(sim.state,sim.config,c,enemy);
+    assert.ok(!commands.some(c=>c.type==='PressAttack'));
+    attacks+=commands.some(c=>c.type==='Attack');
+  }
+  assert.ok(attacks>0);
 });
 
 test('Réglages modifiables : plusieurs hauteurs et durées sans dépendance aux anciennes valeurs', () => {

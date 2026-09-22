@@ -8,7 +8,7 @@ import { startSolo } from './browser-start.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(path.join(process.env.CAMPAIGN_TEST_NODE_MODULES, 'playwright'));
-const output = path.resolve('artifacts/melenchon-animation'); await mkdir(output, { recursive:true });
+const output = path.resolve(process.env.CAMPAIGN_TEST_ARTIFACTS || 'artifacts/melenchon-animation'); await mkdir(output, { recursive:true });
 const config = campaignConfig(), base = process.env.CAMPAIGN_TEST_URL || 'http://localhost:2027';
 function snapshot(step = 0, distance = 1.7) {
   const sim = new GameSimulation(config,42); sim.state.ai_enabled = false; sim.state.npcs = [];

@@ -110,6 +110,7 @@ function startCandidateAttack(sim, actor) {
   const scarf = actor.ultimate_effect?.kind === 'SCARF' && actor.ultimate_effect.expires_tick > sim.state.tick;
   makeAttack(sim, actor, scarf ? 'SCARF' : 'CANDIDATE', { step: c.combo_step, strong,
     ...(airborne(actor) ? { windup_ticks: 0 } : {}),
+    stun_seconds: !scarf && !strong ? b.candidate_combat.light_stun_seconds : b.candidate_combat.hit_stun_seconds,
     range: scarf ? b.specials.scarf.range : strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
     damage: scarf ? b.specials.scarf.damage : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
     knockback: scarf ? b.specials.scarf.knockback : strong ? b.candidate_combat.finisher_knockback : b.candidate_combat.light_knockback,
@@ -200,9 +201,9 @@ function updateAttacks(sim) {
           kind: 'VERBAL', x: actor.x, direction: attack.direction, speed: s.projectile_speed, remaining_range: s.projectile_range,
           hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
         attack.launched = true;
-      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (attack.kind === 'SCARF' || attack.hit_ids.length === 0)) {
+      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (['CANDIDATE','CHARGED','SCARF'].includes(attack.kind) || attack.hit_ids.length === 0)) {
         const targets = meleeTargets(sim, actor, attack);
-        for (const target of (attack.kind === 'SCARF' ? targets : targets.slice(0, 1))) {
+        for (const target of (['CANDIDATE','CHARGED','SCARF'].includes(attack.kind) ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
           if (['CANDIDATE', 'CHARGED'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
@@ -224,7 +225,7 @@ function updateProjectiles(sim) {
     if (p.kind === 'BUBBLE') { const target = combatActors(state).find(t => t.id === p.target_id && enemies(owner,t)); if (target) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     if (updateMolotov(sim, p, step)) continue;
-    const radius = config.balance.candidate_combat.target_radius;
+    const radius = p.kind === 'BUBBLE' ? config.balance.specials.zemmour.bubble_hit_radius : config.balance.candidate_combat.target_radius;
     const targets = combatActors(state).filter(t => verticalHit(config, owner, t, p) && enemies(owner, t) && !p.hit_ids.includes(t.id)
       && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT')
       && combatDelta(state, p.x, t.x) * p.direction >= -radius

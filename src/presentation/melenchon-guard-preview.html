@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><title>Mélenchon — essai de marche en garde</title>
+<style>body{margin:0;padding:24px;background:#202b30;color:#fff2d6;font:16px system-ui}h1{font-size:24px}p{max-width:850px;line-height:1.5}canvas{width:min(100%,960px);height:auto;display:block;border-radius:12px}button{padding:12px 18px;margin:6px;touch-action:none;font:inherit}a{color:#b7e9ff}</style>
+<h1>Mélenchon · Marche en garde</h1>
+<p><a href="?candidate=melenchon">Mélenchon</a> · <a href="?candidate=le_pen">Marine Le Pen</a> · <a href="?candidate=philippe">Édouard Philippe</a></p>
+<p>La démonstration alterne déplacement, arrêt et changement de direction. Les pieds suivent la distance parcourue. Pour essayer toi-même, maintiens une flèche du clavier ou un bouton de déplacement.</p>
+<button id="left">← Aller à gauche</button><button id="stop">S’arrêter</button><button id="right">Aller à droite →</button><button id="auto">Reprendre la démonstration</button>
+<canvas id="view" width="960" height="360"></canvas><p id="status" aria-live="off"></p>
+<p><a id="actions-link" href="melenchon-actions-preview.html">Voir les autres animations</a></p>
+<details><summary>Comparer les positions des jambes, image par image</summary><p>Appuis resserrés, avancée du pied avant, transfert du poids et retour du pied arrière.</p><img style="width:min(100%,960px);background:#e7e3d7;border-radius:12px" src="../../assets/generated/animations/melenchon-guard-step-v4.png" alt="Huit poses de garde avec des écarts et angles de jambes distincts"></details>
+<script type="module">
+import {loadConfig} from '../config.js';
+import {GameSimulation} from '../simulation/game-simulation.js';
+import {WorldRenderer} from './renderer.js';
+import {combatAtlases} from './melenchon-combat.js';
+import {candidateExtraAtlases} from './candidate-extra-poses.js';
+import {visualManifest} from './visual-manifest.js';
+const requested=new URLSearchParams(location.search).get('candidate'),faction=combatAtlases[requested]?requested:'melenchon';
+const name={melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'}[faction];
+document.title=name+' — marche en garde';document.querySelector('h1').textContent=name+' · Marche en garde';
+document.querySelector('#actions-link').href='melenchon-actions-preview.html?candidate='+faction;
+const extra=candidateExtraAtlases[faction]||{};
+if(extra.guardStep||extra.movement)document.querySelector('details img').src=visualManifest[(extra.guardStep||extra.movement).sprite].file;
+const config=await loadConfig(),sim=new GameSimulation(config,42,'candidate:'+faction),canvas=document.querySelector('#view'),r=new WorldRenderer(canvas,config);
+r.resizeObserver.disconnect();canvas.width=960;canvas.height=360;r.metrics={...r.metrics,characterHeight:170,groundY:300,pixelsPerUnit:90};
+const c=sim.state.candidates.find(a=>a.faction_id===faction),enemy=sim.state.candidates.find(a=>a.id!==c.id);sim.state.ai_enabled=false;sim.state.npcs=[];
+sim.state.candidates.forEach(a=>{a.x=a===c?100:a===enemy?104.8:300;a.axis=0;a.money=0;});c.facing=1;enemy.facing=-1;
+await Promise.all(['character-'+faction,'character-'+enemy.faction_id,combatAtlases[faction].sprite,combatAtlases[enemy.faction_id].sprite,...Object.values(extra).map(a=>a.sprite)].map(id=>r.assets.load(id)));
+let automatic=true,axis=0,direction=1,wait=0,accumulator=0,last=performance.now(),previous=c.x;
+function manual(value){automatic=false;axis=value;}
+for(const [id,value]of [['left',-1],['right',1]]){const b=document.getElementById(id);b.onpointerdown=e=>{b.setPointerCapture(e.pointerId);manual(value);};b.onpointerup=()=>manual(0);b.onpointercancel=()=>manual(0);b.onlostpointercapture=()=>manual(0);}
+document.querySelector('#stop').onclick=()=>manual(0);document.querySelector('#auto').onclick=()=>{automatic=true;wait=0;};
+window.onkeydown=e=>{if(['ArrowLeft','ArrowRight'].includes(e.code)){e.preventDefault();manual(e.code==='ArrowLeft'?-1:1);}};
+window.onkeyup=e=>{if(['ArrowLeft','ArrowRight'].includes(e.code))manual(0);};window.onblur=()=>manual(0);
+function step(){
+ previous=c.x;
+ if(automatic){if(wait>0){axis=0;wait--;}else{axis=direction;if(c.x>=103.1&&direction===1||c.x<=100&&direction===-1){direction*=-1;wait=15;axis=0;}}}
+ if(c.x<=99.9&&axis<0||c.x>=103.3&&axis>0)axis=0;
+ sim.step([{type:'Move',candidateId:c.id,axis}]);
+}
+function draw(alpha){
+ const ctx=r.ctx;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#e7e3d7';ctx.fillRect(0,0,960,360);ctx.fillStyle='#b5bdb0';ctx.fillRect(0,310,960,50);
+ ctx.strokeStyle='#929b8c';ctx.lineWidth=1;for(let x=0;x<960;x+=45){ctx.beginPath();ctx.moveTo(x,310);ctx.lineTo(x-20,360);ctx.stroke();}
+ const screen=x=>160+(x-100)*90;
+ r.drawPerson(enemy,screen(enemy.x),sim.state);r.drawPerson(c,screen(previous+(c.x-previous)*alpha),sim.state);
+ document.querySelector('#status').textContent=c.moving?'Déplacement — cycle synchronisé sur la distance':'À l’arrêt — garde';
+}
+function loop(now){accumulator+=Math.min(100,now-last);last=now;while(accumulator>=1000/30){step();accumulator-=1000/30;draw(1);}draw(accumulator/(1000/30));requestAnimationFrame(loop);}
+window.guardPreview={sim,renderer:r,manual,advance(n){for(let i=0;i<n;i++){step();draw(1);}},get candidate(){return c;}};
+draw(1);window.galleryReady=true;requestAnimationFrame(loop);
+</script></html>

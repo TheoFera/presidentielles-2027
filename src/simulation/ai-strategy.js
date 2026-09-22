@@ -1,6 +1,6 @@
 import { FACTIONS, ringDelta, zoneAt } from './world.js';
 import { aiNoise, aiSettings } from './ai-settings.js';
-import { aiCombatCommands } from './ai-combat.js';
+import { aiCombatCommands, aiAttackRange } from './ai-combat.js';
 import { aiEconomicTarget, buildingOffers } from './economy.js';
 import { canBeHit, nearestEnemy } from './combat-state.js';
 import { styleInfluenceMultiplier } from './campaign-styles.js';
@@ -34,7 +34,7 @@ export function chooseAIObjective(state, config, c) {
     const frontier = state.electorate.some(n => e.adjacent_subzone_ids.includes(n.subzone_id) && n.controller === c.faction_id);
     const rivalSupport = Math.max(...FACTIONS.filter(f => f !== c.faction_id).map(f => e.support[f]));
     const score = (enemyOwned ? settings.enemy_priority : allied ? -35 : 12) + (threatened ? 40 : 0)
-      + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 6 + Math.min(12, enemies.length * 2)
+      + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 8 + Math.min(12, enemies.length * 2)
       - enemies.filter(n => ['MILITANT', 'SERVICE_D_ORDRE'].includes(n.role)).length * 3
       + e.electoral_weight * 2 - Math.max(0, rivalSupport - e.support[c.faction_id]) * 0.2
       + (styleInfluenceMultiplier(config, c, zone.biome_id) - 1) * 30
@@ -62,17 +62,22 @@ export function strategicAICommands(state, config, c) {
     return commands(arrived ? 0 : Math.sign(d), arrived && purchase);
   };
   const danger = nearestEnemy(state, c, settings.detection_range);
-  // Repli avec hystérésis : se mettre hors de portée puis récupérer avant de repartir.
-  const recovering = c.ai_objective?.purpose === 'RECOVER' && c.resistance < config.balance.candidate_combat.resistance_max * 0.8;
-  if (recovering || danger && c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio) {
+  // Décision stable pour cette vie : une minorité se replie, les autres tiennent le combat.
+  const cautious = aiNoise(state.seed, `${c.id}:retreat:${c.ko_started_tick}`) < settings.retreat_chance;
+  const recovering = cautious && c.ai_objective?.purpose === 'RECOVER' && c.ai_objective.expires_tick > state.tick
+    && c.resistance < config.balance.candidate_combat.resistance_max * 0.55;
+  const previousRetreat = c.ai_objective?.purpose === 'RECOVER';
+  if (recovering || cautious && !previousRetreat && danger && c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio) {
     const safeZones = state.world.subzones.map(z => ({ z, danger: [...state.candidates, ...state.npcs, ...state.temporary_units]
       .filter(n => hostile(c, n) && distance(state, z.center, n.x) <= config.balance.candidate_combat.recovery_safe_distance + z.width / 2).length }))
       .sort((a, b) => a.danger - b.danger || distance(state, c.x, a.z.center) - distance(state, c.x, b.z.center));
     const safe = safeZones[0].z;
     const result = danger ? commands(-(Math.sign(ringDelta(c.x, danger.x, state.world.length)) || c.facing)) : go(safe.center, 1);
     if (danger && settings.dash && c.dash_charges > 0) result.push({ type: 'Dash', candidateId: c.id, direction: result[2].axis });
-    return [{ type: 'SetAIObjective', candidateId: c.id, objective: { subzone_id: safe.id, purpose: 'RECOVER', expires_tick: state.tick + 10 * config.balance.simulation_architecture.fixed_tick_hz } }, ...result];
+    return [{ type: 'SetAIObjective', candidateId: c.id, objective: { subzone_id: safe.id, purpose: 'RECOVER', expires_tick: recovering ? c.ai_objective.expires_tick : state.tick + 6 * config.balance.simulation_architecture.fixed_tick_hz } }, ...result];
   }
+  // Un repli expiré sous pression débouche sur un combat, pas sur un nouveau délai de fuite.
+  if (previousRetreat && danger && c.resistance < config.balance.candidate_combat.resistance_max * 0.55) return aiCombatCommands(state, config, c, danger);
   const objective = chooseAIObjective(state, config, c);
   const plan = objective === c.ai_objective ? [] : [{ type: 'SetAIObjective', candidateId: c.id, objective }];
   const zone = state.world.subzones.find(z => z.id === objective.subzone_id);
@@ -80,10 +85,11 @@ export function strategicAICommands(state, config, c) {
   // Ne pas poursuivre un candidat à travers toute la carte : défendre au contact,
   // ou éliminer les soutiens qui tiennent réellement l’objectif de conquête.
   const opponent = nearestEnemy(state, c, settings.detection_range, n =>
-    distance(state, c.x, n.x) <= config.balance.candidate_combat.light_range
+    distance(state, c.x, n.x) <= aiAttackRange(config,c)
     || n.combat?.target_id === c.id
-    || zoneAt(state.world, n.x).id === zone.id);
-  if (opponent) return [...plan, ...aiCombatCommands(state, config, c, opponent)];
+    || c.combat.target_id === n.id && state.tick - (c.combat.last_hit?.tick ?? -Infinity) <= 4 * config.balance.simulation_architecture.fixed_tick_hz
+    || n.role !== 'CANDIDAT' && zoneAt(state.world, n.x).id === zone.id);
+  if (opponent && (!c.purchase_hold || distance(state,c.x,opponent.x) <= config.balance.physical_units.militant.verbal_range)) return [...plan, ...aiCombatCommands(state, config, c, opponent)];
   const retained = state.npcs.find(n => n.role === 'NEUTRE' && n.persuasion?.actor_id === c.id);
   if (retained) return [...plan, ...commands(0)];
   // Finir une transaction engagée évite de remettre son compteur à zéro.
@@ -94,12 +100,15 @@ export function strategicAICommands(state, config, c) {
   }
   const economic = aiEconomicTarget(state, config, c, objective);
   if (economic) return [...plan, ...go(economic.x, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true)];
+  const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id)
+    .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
+  // Reduce opposing presence before recruiting if it sustains an enemy site.
+  const enemySite = state.buildings.some(b=>b.subzone_id===zone.id && b.owner_id && b.owner_id!==c.faction_id && b.state==='ACTIVE');
+  if (here && enemySite && defenders[0]) return [...plan, ...aiCombatCommands(state,config,c,defenders[0])];
   const targets = state.npcs.filter(n => n.role === 'NEUTRE' && !n.persuasion && zoneAt(state.world, n.x).id === zone.id)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   if (targets[0]) return [...plan, ...go(targets[0].x, config.prototype.persuasion.radius_units * config.prototype.ai.stop_distance_radius_ratio)];
   // Après avoir recruté, traverser la zone pour en chasser les soutiens adverses.
-  const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id)
-    .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   if (here && defenders[0]) return [...plan, ...aiCombatCommands(state, config, c, defenders[0])];
   return [...plan, ...go(zone.center, config.prototype.persuasion.radius_units)];
 }

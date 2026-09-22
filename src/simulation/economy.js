@@ -210,7 +210,8 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
     if (building.id === candidate.purchase_latch_target_id) continue;
     const local = building.subzone_id === (objective?.subzone_id ?? zone.id);
     // Les investissements hors objectif restent de courts détours sur le trajet.
-    if (!local && (objective?.purpose === 'SETUP' || distance(state, candidate.x, building.x) > 4)) continue;
+    const detour = building.owner_id === candidate.faction_id ? 10 : 4;
+    if (!local && (objective?.purpose === 'SETUP' || distance(state, candidate.x, building.x) > detour)) continue;
     for (const offer of buildingOffers(state, config, candidate, building)) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
       if (!offer.enabled || candidate.money - offer.cost < (firstHQ ? 0 : settings.minimum_cash_reserve)) continue;
@@ -235,7 +236,7 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
       const priority = offer.kind === 'CAPTURE' ? (!candidate.headquarters_site_id && building.type === 'permanence' ? 0
         : building.type === 'tour_communication' ? 2 : building.type === 'financement' ? 4 : 5)
         : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
-        : offer.kind === 'FUNDRAISE' ? 3 : offer.kind === 'PRINT' ? 5 : offer.kind === 'EQUIP' ? 6
+        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'FUNDRAISE' ? 3 : offer.kind === 'PRINT' ? 5 : offer.kind === 'EQUIP' ? 6
         : offer.kind === 'MEETING' ? 7 : 8;
       options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer,
         rank: priority + distance(state, candidate.x, offer.x) * 0.35 });

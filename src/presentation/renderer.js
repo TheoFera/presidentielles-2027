@@ -45,7 +45,7 @@ export class WorldRenderer {
     this.canvas.height = Math.max(1, Math.round(rect.height * pixelRatio));
   }
 
-  resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); }
+  resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); }
 
   draw(state, previous, alpha, elapsed, debug = false) {
     if (state.phase === 'FIRST_ROUND_ARENA') { drawArena(this, state.arena, previous.arena, alpha); return; }

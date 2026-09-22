@@ -1,4 +1,6 @@
 import { additionalCombatAtlases } from './candidate-combat-atlases.js';
+import { candidateExtraAtlases, candidateExtraPose } from './candidate-extra-poses.js';
+import { MelenchonMotionTracker } from './melenchon-extra-poses.js';
 import { combatDelta } from '../simulation/combat-geometry.js';
 import { enemies } from '../simulation/combat-state.js';
 
@@ -25,7 +27,7 @@ export const MELENCHON_CHARGED_SCALE = 1.06;
 export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases };
 export function usesCandidateCombat(entity, state) {
   const atlas = combatAtlases[entity.faction_id];
-  return !!atlas && entity.role === 'CANDIDAT' && !entity.bardella_form && !entity.presentation_name
+  return !!atlas && (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME' && entity.faction_id === 'melenchon') && !entity.bardella_form && !entity.presentation_name
     && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style)
     && !(entity.ultimate_effect && entity.ultimate_effect.expires_tick > state.tick);
 }
@@ -60,12 +62,16 @@ export function melenchonPose(entity, state, config, guard = false) {
   const inAir = c.jump_tick != null;
   const result = (frame, name, phase = null) => ({ frame, name, phase, direction: attack?.direction || entity.facing });
   if (attack) {
-    if (!['CANDIDATE', 'CHARGED'].includes(attack.kind)) return null;
+    if (!['CANDIDATE', 'CHARGED', 'HOLOGRAM'].includes(attack.kind)) return null;
     const phase = attack.elapsed_ticks < attack.windup_ticks ? 'windup'
       : attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'active' : 'recovery';
     const earlyRecovery = attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks + Math.ceil(attack.recovery_ticks * .35);
     if (inAir) return result(phase === 'recovery' && !earlyRecovery ? 14 : 15, 'jump_attack', phase);
     if (attack.kind === 'CHARGED') return result(phase === 'windup' ? 9 : phase === 'active' || earlyRecovery ? 10 : 11, 'charged_kick', phase);
+    if (attack.kind === 'HOLOGRAM') {
+      const second=Number(attack.id.split(':').at(-1))%2===0;
+      return result(phase==='windup'?(second?4:2):phase==='active'||earlyRecovery?(second?5:3):0,second?'attack_2':'attack_1',phase);
+    }
     const frames = attack.step === 3 ? [6,7] : attack.step === 2 ? [4,5] : [2,3];
     return result(phase === 'windup' ? frames[0] : phase === 'active' || earlyRecovery ? frames[1] : 0,
       attack.step === 3 ? 'attack_3_finisher' : `attack_${attack.step}`, phase);
@@ -79,34 +85,53 @@ export function melenchonPose(entity, state, config, guard = false) {
     const duration = Math.ceil(config.balance.candidate_combat.jump_duration_seconds * hz - 1e-9);
     return result(elapsed <= 2 ? 12 : elapsed < duration / 2 ? 13 : 14, 'jump');
   }
-  if (entity.purchase_hold || entity.style_hold || entity.persuasion_target_ids?.length) return null;
+  if (entity.purchase_hold || entity.style_hold || !entity.moving && !entity.axis && entity.persuasion_target_ids?.length) return null;
   if (guard) return result(Math.floor(state.tick / (hz * .35)) % 2, entity.moving ? 'combat_walk' : 'combat_idle');
   return null;
 }
 
 export function drawMelenchonCombat(renderer, entity, x, state) {
   if (!usesCandidateCombat(entity, state)) return false;
+  if(entity.role==='HOLOGRAMME' && state.tick < (entity.ready_tick || 0)) return false;
   renderer.combatPoseTracker ??= new CombatPoseTracker();
   const guard = renderer.combatPoseTracker.active(entity, state, renderer.config);
-  const pose = melenchonPose(entity, state, renderer.config, guard);
+  let extra=null;
+  if(candidateExtraAtlases[entity.faction_id]) {
+    renderer.melenchonMotionTracker ??= new MelenchonMotionTracker();
+    const landing=renderer.melenchonMotionTracker.landing(entity,state,renderer.config);
+    const c=entity.combat;
+    const walking=guard && entity.moving && !entity.is_ko && !entity.dash_active && !c.attack_id && !c.charge_active && c.jump_tick==null && !c.stun_ticks && Math.abs(c.knockback_velocity)<=.02;
+    const frame=renderer.melenchonMotionTracker.walk(entity,state,renderer.config,walking);
+    extra=candidateExtraPose(entity,state,renderer.config,guard,landing,frame);
+  }
+  const pose = extra || melenchonPose(entity, state, renderer.config, guard);
   if (!pose) return false;
-  const definition = combatAtlases[entity.faction_id];
+  const definition = extra ? candidateExtraAtlases[entity.faction_id][extra.sheet] : combatAtlases[entity.faction_id];
   const atlas = renderer.assets.get(definition.sprite);
   if (!atlas) { void renderer.assets.load(definition.sprite); return false; }
   const { ctx, metrics: m } = renderer;
   const floor = m.groundY + m.characterHeight * .06;
   const feet = floor - (entity.combat.height || 0) * m.characterHeight;
   const breathing = pose.name === 'combat_idle' ? Math.sin(state.tick / 6) * m.characterHeight * .006 : 0;
-  const step = pose.name === 'combat_walk' ? Math.sin(state.tick * .65) * m.characterHeight * .02 : 0;
+  const step = !extra && pose.name === 'combat_walk' ? Math.sin(state.tick * .65) * m.characterHeight * .02 : 0;
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
   const [sx,sy,sw,sh,px,py] = definition.frames[pose.frame];
-  const scale = m.characterHeight / MELENCHON_REFERENCE_HEIGHT;
+  const scale = m.characterHeight / (extra ? definition.referenceHeight || 360 : MELENCHON_REFERENCE_HEIGHT);
   const jumpScale = pose.name === 'jump' || pose.name === 'jump_attack' ? MELENCHON_JUMP_SCALE : 1;
-  const chargedScale = pose.frame === 9 || pose.frame === 10 ? MELENCHON_CHARGED_SCALE : 1;
-  const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * jumpScale * chargedScale;
-  const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale;
+  const chargedScale = !extra && (pose.frame === 9 || pose.frame === 10) ? MELENCHON_CHARGED_SCALE : 1;
+  const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06
+    : ['attack_3_finisher','interaction_hold','ko_fall','ko_ground'].includes(pose.name) ? 1.06 : 1;
+  const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * jumpScale * chargedScale * actionScale;
+  const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (!extra && pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale * actionScale;
+  if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
+  const clip=definition.clips?.[pose.frame];
+  if(clip) {
+    ctx.beginPath();
+    clip.forEach(([cx,cy],index)=>ctx[index?'lineTo':'moveTo']((cx-px)*horizontalScale,(cy-py)*verticalScale));
+    ctx.closePath();ctx.clip();
+  }
   ctx.drawImage(atlas,sx,sy,sw,sh,(sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
   if (pose.name === 'charge_ready') {
     ctx.strokeStyle = '#a9e9f0'; ctx.lineWidth = 1.4;

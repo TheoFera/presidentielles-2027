@@ -1,5 +1,17 @@
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
+  'character-le-pen-movement-v1': { file: new URL('../../assets/generated/animations/le-pen-movement-v1.png', import.meta.url).href },
+  'character-le-pen-actions-v1': { file: new URL('../../assets/generated/animations/le-pen-actions-v1.png', import.meta.url).href },
+  'character-philippe-movement-v1': { file: new URL('../../assets/generated/animations/philippe-movement-v1.png', import.meta.url).href },
+  'character-philippe-actions-v1': { file: new URL('../../assets/generated/animations/philippe-actions-v1.png', import.meta.url).href },
+  'character-melenchon-guard-step-v4': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v4.png', import.meta.url).href },
+  'character-melenchon-guard-step-v2': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v2.png', import.meta.url).href },
+  'character-melenchon-guard-step-v1': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v1.png', import.meta.url).href },
+  'character-melenchon-grounded-walk-v1': { file: new URL('../../assets/generated/animations/melenchon-grounded-walk-v1.png', import.meta.url).href },
+  'character-melenchon-shuffle-signature-v1': { file: new URL('../../assets/generated/animations/melenchon-shuffle-signature-v1.png', import.meta.url).href },
+  'character-melenchon-fighter-walk-hit-v1': { file: new URL('../../assets/generated/animations/melenchon-fighter-walk-hit-v1.png', import.meta.url).href },
+  'character-melenchon-actions-v1': { file: new URL('../../assets/generated/animations/melenchon-actions-v1.png', import.meta.url).href },
+  'character-melenchon-movement-v1': { file: new URL('../../assets/generated/animations/melenchon-movement-v1.png', import.meta.url).href },
   "character-philippe-combat-v1": { file: new URL("../../assets/generated/animations/philippe-base-combat-v1.png", import.meta.url).href },
   "character-le-pen-combat-v1": { file: new URL("../../assets/generated/animations/le-pen-base-combat-v1.png", import.meta.url).href },
   "character-melenchon-combat-v4": { file: new URL("../../assets/generated/animations/melenchon-base-combat-v4.png", import.meta.url).href },

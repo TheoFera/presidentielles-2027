@@ -3107,6 +3107,151 @@
       "prompt_file": "docs/CANDIDATE_ANIMATIONS.md",
       "status": "generated_pending_qa",
       "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-melenchon-movement-v1",
+      "file": "assets/generated/animations/melenchon-movement-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_file": "docs/MELENCHON_EXTRA_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-melenchon-actions-v1",
+      "file": "assets/generated/animations/melenchon-actions-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "prompt_file": "docs/MELENCHON_EXTRA_ANIMATIONS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-21"
+    },
+    {
+      "asset_id": "character-melenchon-shuffle-signature-v1",
+      "file": "assets/generated/animations/melenchon-shuffle-signature-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "prompt_file": "docs/GAMEPLAY_ADJUSTMENTS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "asset_id": "character-melenchon-fighter-walk-hit-v1",
+      "file": "assets/generated/animations/melenchon-fighter-walk-hit-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "source_reference": "assets/generated/animations/melenchon-base-combat-v4.png",
+      "prompt_file": "docs/MELENCHON_ANIMATION_REFINEMENTS.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "asset_id": "character-melenchon-grounded-walk-v1",
+      "file": "assets/generated/animations/melenchon-grounded-walk-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "source_reference": "assets/generated/animations/melenchon-base-combat-v4.png",
+      "prompt_file": "docs/MELENCHON_GROUNDED_WALK.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "asset_id": "character-melenchon-guard-step-v1",
+      "file": "assets/generated/animations/melenchon-guard-step-v1.png",
+      "transparent": true,
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "source_reference": "assets/generated/animations/melenchon-base-combat-v4.png",
+      "prompt_file": "docs/MELENCHON_GUARD_STEP.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "asset_id": "character-melenchon-guard-step-v2",
+      "file": "assets/generated/animations/melenchon-guard-step-v2.png",
+      "transparent": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "source_reference": "assets/generated/animations/melenchon-guard-step-v1.png",
+      "prompt_file": "docs/MELENCHON_GUARD_AMPLITUDE.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "asset_id": "character-melenchon-guard-step-v4",
+      "file": "assets/generated/animations/melenchon-guard-step-v4.png",
+      "transparent": true,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "source_reference": "assets/generated/characters/melenchon.png",
+      "prompt_file": "docs/HAIR_AND_AI_BALANCE.md",
+      "status": "generated_pending_qa",
+      "date": "2026-09-22"
+    },
+    {
+      "key": "le-pen-movement-v1",
+      "id": "character-le-pen-movement-v1",
+      "asset_id": "character-le-pen-movement-v1",
+      "file": "assets/generated/animations/le-pen-movement-v1.png",
+      "transparent": true,
+      "prompt": "Production 2D French comic game sprite sheet, transparent RGBA, EXACT 4 columns x4 rows =16 independent full-body poses, generous transparent gutters and no overlap, no text, no shadows. Reference1 fixes candidate IDENTITY and crisp fine contours; reference2 fixes approved combat anatomical scale, proportions, outfit and right-facing angle. Preserve recognizable face and original hairstyle precisely, sharply inked clean hair edges without thick borders or grey/colored fringe. Same head size and anatomy all cells, upright figure about 290px tall for 1254x1254 canvas. Bent/lying poses naturally shorter, never scaled up to fill cell. All face RIGHT. Subject: Marine Le Pen, blonde shoulder-length hair, navy pantsuit and white blouse, black low shoes. Row-major frames 0..15: first TWO ROWS are 8 distinct fighting advance walk poses: 0 compact guard; 1 front shoe slides ahead close to floor; 2 widest step front heel lands; 3 weight transfers onto front knee, rear heel peels; 4 rear shoe travels forward low; 5 rear leg catches up behind front; 6 narrowest balanced guard; 7 starting the next step. Leg silhouettes must be VERY DIFFERENT: widest foot spacing at least twice narrowest, visible knee-angle changes, no crossing, no high knees, no kicking or bouncing. Torso stable. Third row: frame8 dash preparation low forward lean; frame9 dash burst long rear leg trailing; frame10 dash braking lead foot planted; frame11 LIGHT HIT received, both feet planted in balanced guard, small shoulder flinch and chin tuck, NO backward lean or step. Fourth row: frame12 recovery from light hit still feet planted; frame13 heavy hit upper body knocked backward; frame14 heavy hit stronger loss of balance; frame15 sliding backwards from knockback, facing right. Keep head and hip anchors aligned per cell.",
+      "date": "2026-09-22",
+      "status": "generated_pending_qa",
+      "source_reference": "assets/generated/characters/character-le_pen.png"
+    },
+    {
+      "key": "le-pen-actions-v1",
+      "id": "character-le-pen-actions-v1",
+      "asset_id": "character-le-pen-actions-v1",
+      "file": "assets/generated/animations/le-pen-actions-v1.png",
+      "transparent": true,
+      "prompt": "Production 2D French comic game sprite sheet, transparent RGBA, EXACT 4 columns x4 rows =16 independent full-body poses, generous transparent gutters and no overlap, no text, no shadows. Reference1 fixes candidate IDENTITY and crisp fine contours; reference2 fixes approved combat anatomical scale, proportions, outfit and right-facing angle. Preserve recognizable face and original hairstyle precisely, sharply inked clean hair edges without thick borders or grey/colored fringe. Same head size and anatomy all cells, upright figure about 290px tall for 1254x1254 canvas. Bent/lying poses naturally shorter, never scaled up to fill cell. All face RIGHT. Subject: Marine Le Pen, blonde shoulder-length hair, navy pantsuit and white blouse, black low shoes. Row-major frames0..15. Row1: 0 stunned slumped but standing; 1 alternate stunned pose subtle head tilt; 2 landing bent knees absorbing impact; 3 landing recovery almost standing. Row2: 4 persuasion open palm calmly explaining; 5 second persuasion conversational hand gesture; 6 UPRIGHT building signing, paper in left hand at waist, right hand brings pen; 7 upright pen signing a small stroke. Row3: 8 upright finishing signature; 9 upright lifts pen slightly to confirm; 10 KO fall beginning knees buckle upper body recoils; 11 KO collapsing sideways near floor. Row4: 12 KO almost down supported by elbow; 13 KO fully lying down, head left feet right, natural original anatomical size, no enlargement; 14 ultimate activation gathering energy hands near chest; 15 ultimate release opening both arms assertively. No magical FX, no written words, no hats or extra props except paper+pen in frames6..9. Remain dressed exactly as references.",
+      "date": "2026-09-22",
+      "status": "generated_pending_qa",
+      "source_reference": "assets/generated/characters/character-le_pen.png"
+    },
+    {
+      "key": "philippe-movement-v1",
+      "id": "character-philippe-movement-v1",
+      "asset_id": "character-philippe-movement-v1",
+      "file": "assets/generated/animations/philippe-movement-v1.png",
+      "transparent": true,
+      "prompt": "Production 2D French comic game sprite sheet, transparent RGBA, EXACT 4 columns x4 rows =16 independent full-body poses, generous transparent gutters and no overlap, no text, no shadows. Reference1 fixes candidate IDENTITY and crisp fine contours; reference2 fixes approved combat anatomical scale, proportions, outfit and right-facing angle. Preserve recognizable face and original hairstyle precisely, sharply inked clean hair edges without thick borders or grey/colored fringe. Same head size and anatomy all cells, upright figure about 290px tall for 1254x1254 canvas. Bent/lying poses naturally shorter, never scaled up to fill cell. All face RIGHT. Subject: Édouard Philippe, balding head, black round glasses, short salt-and-pepper beard, charcoal suit white shirt navy tie, black shoes. Row-major frames 0..15: first TWO ROWS are 8 distinct fighting advance walk poses: 0 compact guard; 1 front shoe slides ahead close to floor; 2 widest step front heel lands; 3 weight transfers onto front knee, rear heel peels; 4 rear shoe travels forward low; 5 rear leg catches up behind front; 6 narrowest balanced guard; 7 starting the next step. Leg silhouettes must be VERY DIFFERENT: widest foot spacing at least twice narrowest, visible knee-angle changes, no crossing, no high knees, no kicking or bouncing. Torso stable. Third row: frame8 dash preparation low forward lean; frame9 dash burst long rear leg trailing; frame10 dash braking lead foot planted; frame11 LIGHT HIT received, both feet planted in balanced guard, small shoulder flinch and chin tuck, NO backward lean or step. Fourth row: frame12 recovery from light hit still feet planted; frame13 heavy hit upper body knocked backward; frame14 heavy hit stronger loss of balance; frame15 sliding backwards from knockback, facing right. Keep head and hip anchors aligned per cell.",
+      "date": "2026-09-22",
+      "status": "generated_pending_qa",
+      "source_reference": "assets/generated/characters/character-philippe.png"
+    },
+    {
+      "key": "philippe-actions-v1",
+      "id": "character-philippe-actions-v1",
+      "asset_id": "character-philippe-actions-v1",
+      "file": "assets/generated/animations/philippe-actions-v1.png",
+      "transparent": true,
+      "prompt": "Production 2D French comic game sprite sheet, transparent RGBA, EXACT 4 columns x4 rows =16 independent full-body poses, generous transparent gutters and no overlap, no text, no shadows. Reference1 fixes candidate IDENTITY and crisp fine contours; reference2 fixes approved combat anatomical scale, proportions, outfit and right-facing angle. Preserve recognizable face and original hairstyle precisely, sharply inked clean hair edges without thick borders or grey/colored fringe. Same head size and anatomy all cells, upright figure about 290px tall for 1254x1254 canvas. Bent/lying poses naturally shorter, never scaled up to fill cell. All face RIGHT. Subject: Édouard Philippe, balding head, black round glasses, short salt-and-pepper beard, charcoal suit white shirt navy tie, black shoes. Row-major frames0..15. Row1: 0 stunned slumped but standing; 1 alternate stunned pose subtle head tilt; 2 landing bent knees absorbing impact; 3 landing recovery almost standing. Row2: 4 persuasion open palm calmly explaining; 5 second persuasion conversational hand gesture; 6 UPRIGHT building signing, paper in left hand at waist, right hand brings pen; 7 upright pen signing a small stroke. Row3: 8 upright finishing signature; 9 upright lifts pen slightly to confirm; 10 KO fall beginning knees buckle upper body recoils; 11 KO collapsing sideways near floor. Row4: 12 KO almost down supported by elbow; 13 KO fully lying down, head left feet right, natural original anatomical size, no enlargement; 14 ultimate activation gathering energy hands near chest; 15 ultimate release opening both arms assertively. No magical FX, no written words, no hats or extra props except paper+pen in frames6..9. Remain dressed exactly as references.",
+      "date": "2026-09-22",
+      "status": "generated_pending_qa",
+      "source_reference": "assets/generated/characters/character-philippe.png"
     }
   ]
 }

@@ -8,6 +8,8 @@ export function validateConfig(config) {
   };
   positive(config.balance.simulation_architecture.fixed_tick_hz, 'fixed_tick_hz');
   const combat = config.balance.candidate_combat;
+  positive(combat.light_stun_seconds, 'étourdissement des coups légers');
+  positive(combat.ko_ground_seconds, 'maintien au sol après KO');
   if (combat.charge_activation_seconds >= combat.charge_ready_seconds) throw new Error('Configuration : la préparation doit commencer avant que la charge soit prête.');
   positive(config.balance.first_round_arena.damage.charged, 'dégâts chargés en arène');
   const dash = config.balance.dash, charge = config.balance.special_charge;
@@ -107,11 +109,12 @@ export function validateConfig(config) {
   positive(config.balance.physical_units.militant.move_speed, 'vitesse du Militant');
   positive(config.balance.physical_units.militant.max_player_speed_multiplier, 'limite de vitesse du Militant');
   for (const [section, fields] of [
-    [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'light_knockback', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second']],
+    [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second']],
     [config.balance.physical_units.militant, ['verbal_range', 'verbal_cooldown_seconds', 'verbal_damage', 'projectile_speed', 'projectile_range']],
     [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_duration_seconds', 'raid_cooldown_seconds']],
     [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit']],
   ]) for (const field of fields) positive(section[field], field);
+  if (!Number.isFinite(config.balance.candidate_combat.light_knockback) || config.balance.candidate_combat.light_knockback < 0) throw new Error('Le recul léger doit être positif ou nul.');
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;

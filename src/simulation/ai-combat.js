@@ -3,12 +3,18 @@ import { airborne } from './combat-actions.js';
 import { aiSettings, aiNoise } from './ai-settings.js';
 import { combatDelta } from './combat-geometry.js';
 
+export function aiAttackRange(config,c) {
+  const range=c.ultimate_effect?.kind==='SCARF'?config.balance.specials.scarf.range:config.balance.candidate_combat.light_range;
+  return range+config.balance.candidate_combat.target_radius*0.5;
+}
+
 /** Combat commun à la campagne, au sprint et aux arènes. */
 export function aiCombatCommands(state, config, c, target) {
   const settings = aiSettings(state, config), d = combatDelta(state, c.x, target.x);
   const direction = Math.sign(d) || c.facing;
   const range = c.ultimate_effect?.kind === 'SCARF' ? config.balance.specials.scarf.range : config.balance.candidate_combat.light_range;
-  const close = Math.abs(d) <= range;
+  // Viser à l’intérieur de la portée réelle, avec une marge pour ne pas frapper au pixel près.
+  const close = Math.abs(d) <= aiAttackRange(config,c);
   const result = [{ type: 'SetCampaignActive', candidateId: c.id, active: true },
     { type: 'InteractionPresence', candidateId: c.id, active: false },
     { type: 'Move', candidateId: c.id, axis: close ? 0 : direction }];
@@ -29,6 +35,7 @@ export function aiCombatCommands(state, config, c, target) {
     if (c.facing !== direction) result[2].axis = direction;
     else result.push({ type: 'ActivateUltimate', candidateId: c.id });
   } else if (close) {
+    if (aiNoise(state.seed, `${c.id}:opportunity:${state.tick}`) > settings.attack_chance) return result;
     const roll = aiNoise(state.rng_state, `${c.id}:combat:${state.tick}`);
     const frequency = settings.label === 'Facile' ? 0.015 : settings.label === 'Difficile' ? 0.07 : 0.04;
     if (!airborne(c) && !target.combat.charge_active && c.combat.combo_step === 0 && roll < frequency) result.push({ type: 'PressAttack', candidateId: c.id });
