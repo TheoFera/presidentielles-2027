@@ -19,6 +19,11 @@ import { StartMenu } from './presentation/start-menu.js';
 import { installLandscape, portraitPhone } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
+import { outgoingCommands } from './network/shared-commands.js';
+
+function setText(element, text) {
+  if (element.textContent !== text) element.textContent = text;
+}
 
 function showError(error, duringGame = false) {
   console.error(error);
@@ -190,6 +195,7 @@ async function start() {
   document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
   durationText.textContent = `Local : ${format(config.balance.buildings.permanence.capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€.`;
   const currency = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals });
+  const incomeFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
   }
@@ -212,9 +218,13 @@ async function start() {
     onProgress(0);
     try {
       await Promise.race([
-        Promise.all(ids.map(id => renderer.assets.load(id).then(() => onProgress(++loaded / ids.length)))),
+        Promise.all(ids.map(id => renderer.assets.load(id).then(() => onProgress(++loaded / ids.length * .95)))),
         new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000); }),
       ]);
+      // Prepare the first complete frame behind the loading screen. In
+      // particular, texture uploads must not become simulation catch-up time.
+      renderer.draw(state, state, 1, 0);
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       onProgress(1);
     } finally { clearTimeout(timeout); }
   }
@@ -304,7 +314,7 @@ async function start() {
     const activeSession = session;
     if (!session.host && paused) return;
     const action = session.host ? 'snapshot' : 'commands';
-    const data = session.host ? { state: { ...state, multiplayer_profile: profile } } : { commands: [...human.commands(state, session.candidateId), ...pending.splice(0)] };
+    const data = session.host ? { state: { ...state, multiplayer_profile: profile } } : { commands: outgoingCommands([...human.commands(state, session.candidateId), ...pending.splice(0)]) };
     networkBusy = true;
     session.request(action, data).catch(error => activeSession.fail(error.message)).finally(() => { networkBusy = false; });
   }
@@ -351,7 +361,7 @@ async function start() {
       const attackButton = document.getElementById('attack-touch');
       attackButton.classList.toggle('charging', chargeRatio > 0);
       attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
-      attackButton.textContent = chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper';
+      setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
       ultimateButton.classList.toggle('ready', ratio >= 1);
       ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
       ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
@@ -362,14 +372,14 @@ async function start() {
         currentDay = state.days_remaining;
         if (config.balance.display.show_day_change_flash) notify(`J-${currentDay}`, config.prototype.presentation.day_flash_seconds);
       }
-      const income = incomePerSecond(state, config, candidate.faction_id).toLocaleString('fr-FR', { maximumFractionDigits: 2 });
-      money.textContent = `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`;
-      campaignBudget.textContent = `Plafond restant : ${currency.format(remainingCampaignBudget(candidate, config))} ${config.balance.display.currency_label}`;
+      const income = incomeFormat.format(incomePerSecond(state, config, candidate.faction_id));
+      setText(money, `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`);
+      setText(campaignBudget, `Plafond restant : ${currency.format(remainingCampaignBudget(candidate, config))} ${config.balance.display.currency_label}`);
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('game-menu').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS';
       electoralDisplay.update(state, candidate.faction_id);
-      if (noticeRemaining <= 0) notice.textContent = '';
+      if (noticeRemaining <= 0) setText(notice, '');
       hint.style.opacity = hintRemaining > 0 ? '1' : '0';
       hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
       notice.hidden = state.phase === 'RESULTS';

@@ -24,13 +24,19 @@ export class CampaignDisplay {
  let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-expanded','false');const toggle=()=>{const expanded=card.classList.toggle('expanded');card.setAttribute('aria-expanded',String(expanded));};card.onclick=toggle;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}};this.root.append(card);this.cards.set(e.id,card);}
  const zone=state.world.subzones.find(z=>z.id===e.target_subzone_id),names=e.target_candidate_ids.map(id=>this.config.prototype.presentation.factions[state.candidates.find(c=>c.id===id).faction_id].name).join(', ');
  card.style.order = e.start_tick; card.dataset.family = e.family; card.style.setProperty('--event-icon', eventIconData[e.family] || 'none');
- const heading=document.createElement('strong');heading.textContent=e.title;card.setAttribute('aria-label',e.title+' : afficher ou masquer les détails');
- const narrative=document.createElement('span');narrative.className='campaign-card-narrative';narrative.textContent=e.description;
+ const heading=e.title;
+ const narrative=e.description;
  const effect=e.family==='CRISE_FINANCEMENT' ? fundingEffectText(e.parameters) : e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
  const winner=e.winner&&this.config.prototype.presentation.factions[e.winner]?.name;
- const detail=document.createElement('span');detail.textContent=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
- const timer=document.createElement('small');timer.textContent=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au Meeting : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
- const contentKey=[heading.textContent,narrative.textContent,detail.textContent,timer.textContent].join('\n');if(card.dataset.contentKey!==contentKey){card.replaceChildren(heading,narrative,detail,timer);card.dataset.contentKey=contentKey;}card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
+ const detail=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
+ const timer=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au Meeting : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
+ const contentKey=[heading,narrative,detail,timer].join('\n');
+ if(card.dataset.contentKey!==contentKey){
+   if(!card.children.length){const nodes=['strong','span','span','small'].map(tag=>document.createElement(tag));nodes[1].className='campaign-card-narrative';card.append(...nodes);}
+   [heading,narrative,detail,timer].forEach((text,index)=>{if(card.children[index].textContent!==text)card.children[index].textContent=text;});
+   card.setAttribute('aria-label',e.title+' : afficher ou masquer les détails');card.dataset.contentKey=contentKey;
+ }
+ card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
  }
  }
 }

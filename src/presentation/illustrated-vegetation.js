@@ -3,12 +3,23 @@ import { seasonAt } from '../simulation/campaign-events.js';
 const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 const ink = '#374637';
 const seasonalCanopies = new WeakMap();
+const canopyFilters = ['saturate(.7)', 'hue-rotate(-55deg) saturate(.85)', 'grayscale(.8)', 'hue-rotate(8deg) saturate(.7) brightness(1.13)'];
+function canopyVariant(image, filter) {
+  const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+  const context = canvas.getContext('2d'); context.filter = filter; context.drawImage(image, 0, 0); return canvas;
+}
+export async function prepareVegetationImage(image) {
+  if (seasonalCanopies.has(image)) return;
+  const variants = [];
+  for (const filter of canopyFilters) {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    variants.push(canopyVariant(image, filter));
+  }
+  seasonalCanopies.set(image, variants);
+}
 function canopySeasons(image) {
   if (seasonalCanopies.has(image)) return seasonalCanopies.get(image);
-  const variants = ['saturate(.7)', 'hue-rotate(-55deg) saturate(.85)', 'grayscale(.8)', 'hue-rotate(8deg) saturate(.7) brightness(1.13)'].map(filter => {
-    const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
-    const context = canvas.getContext('2d'); context.filter = filter; context.drawImage(image, 0, 0); return canvas;
-  });
+  const variants = canopyFilters.map(filter => canopyVariant(image, filter));
   seasonalCanopies.set(image, variants); return variants;
 }
 const shapes = [

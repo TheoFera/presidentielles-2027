@@ -9,6 +9,17 @@ import { visualManifest } from './visual-manifest.js';
 import { drawIllustratedCharacter } from './illustrated-characters.js';
 import { preloadWorld, drawIllustratedSky, drawIllustratedDistance, drawIllustratedMiddle, drawIllustratedStreet, drawIllustratedZone, drawIllustratedGround } from './illustrated-world.js';
 import { drawSeasonalScenery } from './illustrated-vegetation.js';
+import { prepareSceneryImage } from './illustrated-world.js';
+import { prepareVegetationImage } from './illustrated-vegetation.js';
+import { prepareBuildingImage } from './illustrated-buildings.js';
+
+async function prepareImage(id, image) {
+  // Let the browser paint and handle input between preparation jobs.
+  await new Promise(resolve => setTimeout(resolve, 0));
+  prepareSceneryImage(id, image);
+  if (id.startsWith('building-')) prepareBuildingImage(image);
+  if (id.startsWith('vegetation-')) await prepareVegetationImage(image);
+}
 
 export function compositionMetrics(config, width, height) {
   const ratios = config.layout.visual_layout;
@@ -26,7 +37,7 @@ export class WorldRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.config = config;
-    this.assets = new VisualAssets(visualManifest, {limit: 80});
+    this.assets = new VisualAssets(visualManifest, {limit: 80, prepareImage});
     this.p = config.prototype.presentation;
     this.width = this.p.reference_width;
     this.height = this.p.reference_height;
@@ -41,8 +52,10 @@ export class WorldRenderer {
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     const pixelRatio = Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio);
-    this.canvas.width = Math.max(1, Math.round(rect.width * pixelRatio));
-    this.canvas.height = Math.max(1, Math.round(rect.height * pixelRatio));
+    const width = Math.max(1, Math.round(rect.width * pixelRatio));
+    const height = Math.max(1, Math.round(rect.height * pixelRatio));
+    if (this.canvas.width !== width) this.canvas.width = width;
+    if (this.canvas.height !== height) this.canvas.height = height;
   }
 
   resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); }

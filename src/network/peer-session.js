@@ -1,5 +1,5 @@
 import { sanitizeCommands } from './shared-commands.js';
-import { stateDelta, applyStateDelta } from './state-stream.js';
+import { encodePresentationState, encodeStateDelta, applyStateDelta } from './state-stream.js';
 import { chooseCandidate, candidatesReady } from './lobby.js';
 
 const factions = ['melenchon', 'le_pen', 'philippe'];
@@ -106,18 +106,26 @@ export class PeerSession {
     channel.onclose = () => { if (!this.closed && !peer.cancelled && peer.connected) this.fail('Un joueur a quitté la partie ou perdu la connexion.'); };
     channel.onerror = () => { if (!this.closed && !peer.cancelled) this.fail('La connexion entre les téléphones a été interrompue.'); };
   }
-  send(peer, type, data) {
+  canSend(peer, type) {
     if (peer.channel?.readyState !== 'open') return false;
     // Skip stale frames before encoding. Never accumulate snapshots on a slow link.
     if (type === 'snapshot' && (peer.outbox.length || peer.channel.bufferedAmount > 32000)) return false;
-    const delta = type === 'snapshot' ? stateDelta(data, peer.baseline) : null;
-    if (delta) data = delta.packet;
-    const json = JSON.stringify({ type, data });
+    return true;
+  }
+  send(peer, type, data) {
+    if (!this.canSend(peer, type)) return false;
+    const encoded = type === 'snapshot' ? encodePresentationState(data) : null;
+    const json = encoded
+      ? `{"type":"snapshot","data":${encodeStateDelta(encoded, peer.baseline)}}`
+      : JSON.stringify({ type, data });
+    return this.enqueue(peer, json, encoded);
+  }
+  enqueue(peer, json, baseline = null) {
     if (json.length > 2_000_000) throw new Error('La partie est trop volumineuse pour la connexion.');
     if (peer.outbox.length >= 100) throw new Error('La connexion ne répond plus. Reconnectez les joueurs.');
     const serial = ++this.serial, total = Math.ceil(json.length / 8000);
     peer.outbox.push({ json, serial, total, n: 0 });
-    if (delta) peer.baseline = delta.next;
+    if (baseline) peer.baseline = baseline;
     this.pump(peer);
     return true;
   }
@@ -139,7 +147,22 @@ export class PeerSession {
     }
     if (peer.outbox.length) peer.retry = setTimeout(() => this.pump(peer), 16);
   }
-  broadcast(type, data) { for (const peer of this.peers.values()) if (peer.connected) this.send(peer, type, data); }
+  broadcast(type, data) {
+    if (type !== 'snapshot') {
+      for (const peer of this.peers.values()) if (peer.connected) this.send(peer, type, data);
+      return;
+    }
+    const peers = [...this.peers.values()].filter(peer => peer.connected && this.canSend(peer, type));
+    if (!peers.length) return;
+    const encoded = encodePresentationState(data), packets = new Map();
+    for (const peer of peers) {
+      // Guests that received the same last frame share both the field encoding
+      // and the final packet. A slow guest keeps its own baseline until enqueue.
+      if (!this.canSend(peer, type)) continue;
+      if (!packets.has(peer.baseline)) packets.set(peer.baseline, `{"type":"snapshot","data":${encodeStateDelta(encoded, peer.baseline)}}`);
+      this.enqueue(peer, packets.get(peer.baseline), encoded);
+    }
+  }
   publishRoom() { this.broadcast('room', this.room); this.callbacks.room(this.room); }
   receive(peer, packet) {
     if (packet.type === 'ping') return;

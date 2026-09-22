@@ -8,10 +8,15 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
   const view = room => ({ code: room.code, phase: room.phase, paused: room.paused, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, host: p.host, ready: p.ready })) });
-  const send = (player, type, data) => {
-    if (player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000) player.stream.write(`event: ${type}\ndata: ${JSON.stringify(data)}\n\n`);
+  const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
+  const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
+  const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
+  const broadcast = (room, type, data, guestsOnly = false) => {
+    const players = room.players.filter(p => (!guestsOnly || !p.host) && writable(p));
+    if (!players.length) return;
+    const message = encodeEvent(type, data);
+    for (const player of players) player.stream.write(message);
   };
-  const broadcast = (room, type, data) => room.players.forEach(p => send(p, type, data));
   const changed = room => broadcast(room, 'room', view(room));
   const close = (room, message) => { broadcast(room, 'ended', { message }); rooms.delete(room.code); room.players.forEach(p => p.stream?.end()); };
   const sweep = setInterval(() => {
@@ -89,7 +94,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       } else if (action === 'snapshot') {
         if (!player.host || room.phase !== 'playing') throw new Error('Seul l’hôte peut mettre à jour la partie.');
         if (!data.state || !Number.isInteger(data.state.tick) || !Array.isArray(data.state.candidates)) throw new Error('État invalide.');
-        room.players.filter(p => !p.host).forEach(p => send(p, 'snapshot', data.state));
+        broadcast(room, 'snapshot', data.state, true);
       } else throw new Error('Action inconnue.');
       reply(200, { ok: true });
     } catch (error) { if (!res.headersSent) reply(400, { error: error.message }); else res.end(); }

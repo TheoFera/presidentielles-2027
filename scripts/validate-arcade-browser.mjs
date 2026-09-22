@@ -115,9 +115,10 @@ try {
     await page.locator('#results').waitFor(); await fits(page, '#results', `Résultats ${label}`);
     await page.context().close();
   }
-  const host = await open({ width: 390, height: 844 });
+  // Real phones must turn to landscape before using menus and game controls.
+  const host = await open({ width: 844, height: 390 });
   const guest = await open({ width: 844, height: 390 });
-  const third = await open({ width: 320, height: 568 });
+  const third = await open({ width: 667, height: 375 });
   await host.locator('#multiplayer').click(); await host.locator('#create-room').click();
   async function pair(client, faction) {
     await host.locator('#invite-player').click(); await host.locator('#text-invite').click(); await host.locator('#copy-signal:not([disabled])').waitFor();

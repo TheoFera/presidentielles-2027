@@ -20,6 +20,22 @@ import { updateStrategicSites } from './strategic-sites.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
+const presentationWorlds = new WeakMap();
+function presentationWorld(world) {
+  if (!presentationWorlds.has(world)) {
+    // World geometry is static for a match. Share a detached, read-only copy
+    // between render snapshots; mutable gameplay data is still copied per tick.
+    const freeze = value => {
+      if (value && typeof value === 'object') {
+        for (const child of Object.values(value)) freeze(child);
+        Object.freeze(value);
+      }
+      return value;
+    };
+    presentationWorlds.set(world, freeze(clone(world)));
+  }
+  return presentationWorlds.get(world);
+}
 const byId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
 export class GameSimulation {
@@ -79,7 +95,9 @@ export class GameSimulation {
 
   secondsToTicks(seconds) { return Math.ceil(seconds * this.hz - 1e-9); }
   getState({ presentation = false } = {}) {
-    return clone(presentation ? { ...this.state, campaign_snapshot: null } : this.state);
+    if (!presentation) return clone(this.state);
+    const { world, ...dynamic } = this.state;
+    return { ...clone({ ...dynamic, campaign_snapshot: null }), world: presentationWorld(world) };
   }
   exportSnapshot() { return JSON.stringify(this.state, null, 2); }
 

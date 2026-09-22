@@ -7,9 +7,33 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignStyleSystem, CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
 import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
 import { PeerSession, encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
-import { stateDelta, applyStateDelta, presentationState } from '../src/network/state-stream.js';
+import { stateDelta, applyStateDelta, presentationState, encodePresentationState, encodeStateDelta } from '../src/network/state-stream.js';
+import { outgoingCommands } from '../src/network/shared-commands.js';
+import { LocalHumanController } from '../src/simulation/controllers.js';
 import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
+
+test('Les vues partagent uniquement une géométrie immuable et restent isolées de la simulation', () => {
+  const sim = new GameSimulation(campaignConfig(), 2027);
+  const first = sim.getState({ presentation: true });
+  const second = sim.getState({ presentation: true });
+  assert.deepEqual(first, { ...sim.getState(), campaign_snapshot: null });
+  assert.equal(first.world, second.world);
+  assert.notEqual(first.world, sim.state.world);
+  assert.throws(() => { first.world.subzones[0].start = -1; }, TypeError);
+  first.candidates[0].money = -1;
+  assert.notEqual(first.candidates[0].money, second.candidates[0].money);
+  assert.notEqual(first.candidates[0].money, sim.state.candidates[0].money);
+  const saved = sim.exportSnapshot();
+  sim.importSnapshot(saved);
+  const restored = sim.getState({ presentation: true });
+  assert.notEqual(restored.world, first.world);
+  assert.deepEqual(restored.world, first.world);
+  // Full saves retain the existing independent, editable snapshot contract.
+  const full = sim.getState();
+  full.world.subzones[0].start = -1;
+  assert.notEqual(sim.state.world.subzones[0].start, -1);
+});
 
 test('Les QR animés se reconstruisent dans le désordre, sans mélanger deux invitations', async () => {
   const offer = encodeInvitation({ type: 'offer', id: 'test-qr', description: { type: 'offer', sdp: Array.from({ length: 900 }, (_, i) => `candidate:${i}`).join('\n') } });
@@ -100,6 +124,79 @@ test('Un canal saturé attend, reprend ses fragments et conserve la base après 
   assert.deepEqual(errors, []);
 });
 
+test('L’encodage mutualisé produit exactement le format réseau existant, y compris les suppressions', () => {
+  let baseline;
+  const state = { tick: 0, nested: { value: 1 }, text: 'Élysée « test »\n"\\😀', values: [null, false, 0, -2.5], optional: undefined, campaign_snapshot: { secret: true } };
+  for (let step = 0; step < 5; step++) {
+    state.tick++;
+    state.nested.value++;
+    if (step === 1) state['clé"\\'] = { amount: 0.1 + 0.2 };
+    if (step === 2) delete state.text;
+    if (step === 3) { state.values = []; state.optional = null; }
+    const reference = stateDelta(state, baseline);
+    const encoded = encodePresentationState(state);
+    assert.equal(encodeStateDelta(encoded, baseline), JSON.stringify(reference.packet));
+    assert.deepEqual(encoded, reference.next);
+    baseline = encoded;
+  }
+});
+
+test('Deux invités partagent un encodage ; un invité en retard retrouve exactement le dernier état', t => {
+  const errors = [], deliveries = [[], []], guests = [];
+  const host = new PeerSession({ ended: error => errors.push(error) }, 'test');
+  host.isHost = true;
+  const peers = deliveries.map((snapshots, index) => {
+    const guest = new PeerSession({ ended: error => errors.push(error), snapshot: state => snapshots.push(state) }, 'test');
+    guests.push(guest); guest.room = { phase: 'playing' };
+    const incoming = { readyState: 'open', bufferedAmount: 0 };
+    guest.bindChannel({ connection: { close() {} } }, incoming);
+    const peer = { connection: { close() {} } };
+    host.bindChannel(peer, { readyState: 'open', bufferedAmount: 0, send: data => incoming.onmessage({ data }) });
+    peer.connected = true; host.peers.set(`guest-${index}`, peer);
+    return peer;
+  });
+  t.after(() => { host.close(); guests.forEach(guest => guest.close()); });
+  let encodings = 0;
+  const state = { tick: 1, value: { toJSON() { encodings++; return { count: state.tick, label: 'Même état' }; } } };
+  host.broadcast('snapshot', state);
+  assert.equal(encodings, 1);
+  assert.equal(peers[0].baseline, peers[1].baseline);
+  peers[1].channel.bufferedAmount = 40000;
+  const slowBaseline = peers[1].baseline;
+  state.tick = 2; state.newField = 'Nouveau';
+  host.broadcast('snapshot', state);
+  assert.equal(encodings, 2);
+  assert.equal(peers[1].baseline, slowBaseline);
+  assert.equal(deliveries[1].length, 1);
+  peers[1].channel.bufferedAmount = 0;
+  state.tick = 3; delete state.newField;
+  host.broadcast('snapshot', state);
+  assert.equal(encodings, 3);
+  assert.deepEqual(deliveries[0].at(-1), deliveries[1].at(-1));
+  assert.deepEqual(deliveries[0][0], { tick: 1, value: { count: 1, label: 'Même état' }, campaign_snapshot: null });
+  assert.equal(deliveries[0].at(-1).tick, 3);
+  assert.equal(peers[0].baseline, peers[1].baseline);
+  for (const peer of peers) peer.channel.bufferedAmount = 40000;
+  state.tick = 4; host.broadcast('snapshot', state);
+  assert.equal(encodings, 3, 'Aucun encodage si tous les invités sont saturés');
+  assert.deepEqual(errors, []);
+});
+
+test('Les commandes allégées conservent toutes les actions, leur ordre et l’identité imposée par l’hôte', () => {
+  const human = new LocalHumanController();
+  human.setAxis(1); human.pressAttack(); human.releaseAttack(); human.jump(); human.dash(-1);
+  const commands = human.commands({}, 'candidate:philippe');
+  commands.push({ type: 'HoldCampaignStyle', candidateId: 'candidate:philippe', active: false });
+  const before = JSON.stringify(commands);
+  const compact = outgoingCommands(commands);
+  const relevant = sanitizeCommands(commands, 'le_pen').filter(c => !['SetCampaignActive', 'InteractionPresence'].includes(c.type));
+  assert.deepEqual(sanitizeCommands(compact, 'le_pen'), relevant);
+  assert.equal(JSON.stringify(commands), before, 'Le contrôleur reste inchangé');
+  assert.ok(compact.every(c => !Object.hasOwn(c, 'candidateId')));
+  assert.ok(JSON.stringify(compact).length < before.length / 2);
+  assert.deepEqual(outgoingCommands([]), []);
+});
+
 test('L’adresse Wi-Fi proposée exclut les boucles locales et respecte le port et l’interface utilisée', () => {
   const interfaces = { loopback: [{ family: 'IPv4', address: '127.0.0.1', internal: true }], wifi: [{ family: 'IPv4', address: '192.168.1.25', internal: false }], ethernet: [{ family: 'IPv4', address: '10.0.0.2', internal: false }], ipv6: [{ family: 'IPv6', address: '::1', internal: true }] };
   assert.deepEqual(lanAddresses(2028, '0.0.0.0', interfaces), ['http://192.168.1.25:2028', 'http://10.0.0.2:2028']);
@@ -151,6 +248,48 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   assert.equal((await request('pause', { ...guestAuth, paused: true })).status, 200);
   await request('leave', guestAuth);
   assert.equal((await request('heartbeat', auth)).status, 400);
+});
+
+test('Le serveur local transmet les mêmes états aux deux invités et restitue les commandes allégées', { timeout: 10000 }, async t => {
+  const handler = createMultiplayerHandler(), server = http.createServer(handler), streams = [];
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { streams.forEach(controller => controller.abort()); handler.close(); server.closeAllConnections(); server.close(); });
+  const base = `http://127.0.0.1:${server.address().port}/api/multiplayer/`;
+  async function request(action, data = {}) {
+    const response = await fetch(base + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    const result = await response.json(); assert.equal(response.status, 200, JSON.stringify(result)); return result;
+  }
+  async function listen(auth) {
+    const controller = new AbortController(); streams.push(controller);
+    const response = await fetch(base + 'events?' + new URLSearchParams(auth), { signal: controller.signal });
+    assert.equal(response.status, 200);
+    const reader = response.body.getReader(), decoder = new TextDecoder(); let buffer = '';
+    return async type => {
+      while (true) {
+        let end;
+        while ((end = buffer.indexOf('\n\n')) >= 0) {
+          const message = buffer.slice(0, end); buffer = buffer.slice(end + 2);
+          if (message.startsWith(`event: ${type}\n`)) return JSON.parse(message.slice(message.indexOf('data: ') + 6));
+        }
+        const next = await reader.read(); assert.equal(next.done, false);
+        buffer += decoder.decode(next.value, { stream: true });
+      }
+    };
+  }
+  const host = await request('create'), guest = await request('join', { code: host.code }), third = await request('join', { code: host.code });
+  const auth = [host, guest, third].map(player => ({ code: host.code, token: player.token }));
+  const receive = await Promise.all(auth.map(listen));
+  for (const [i, faction] of ['melenchon', 'le_pen', 'philippe'].entries()) await request('choose', { ...auth[i], faction });
+  await request('start', auth[0]);
+  for (const player of auth) await request('ready', player);
+  for (const tick of [1, 2]) {
+    const state = { tick, candidates: [{ id: 'candidate:melenchon', x: tick * .1 }], message: 'État « partagé »\n😀' };
+    await request('snapshot', { ...auth[0], state });
+    for (const read of receive.slice(1)) assert.deepEqual(await read('snapshot'), state);
+  }
+  const commands = outgoingCommands([{ type: 'Move', candidateId: 'candidate:philippe', axis: 1 }, { type: 'PressAttack' }, { type: 'ReleaseAttack' }]);
+  await request('commands', { ...auth[1], commands });
+  assert.deepEqual(await receive[0]('commands'), { playerId: guest.id, commands: sanitizeCommands(commands, 'le_pen') });
 });
 
 test('Chaque humain choisit son style au QG ; un choix en cours n’est jamais écrasé', () => {

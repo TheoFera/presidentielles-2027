@@ -11,3 +11,9 @@ export function sanitizeCommands(commands, faction) {
     return clean;
   });
 }
+// The host assigns the candidate from the authenticated player and sets these
+// two continuous presence flags itself. Preserve every other command in order.
+export function outgoingCommands(commands) {
+  return commands.filter(command => !['SetCampaignActive', 'InteractionPresence'].includes(command.type))
+    .map(({ candidateId, ...command }) => command);
+}

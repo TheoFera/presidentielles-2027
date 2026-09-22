@@ -23,7 +23,8 @@ export class ElectoralDisplay {
     const sprint = state.phase === 'SECOND_ROUND_SPRINT';
     this.element.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase);
     this.element.classList.toggle('sprint-clock', sprint);
-    this.day.textContent = sprint ? `${Math.ceil(state.sprint_remaining_ticks / this.hz)}` : `J-${state.days_remaining}`;
+    const dayText = sprint ? `${Math.ceil(state.sprint_remaining_ticks / this.hz)}` : `J-${state.days_remaining}`;
+    if (this.day.textContent !== dayText) this.day.textContent = dayText;
     this.day.setAttribute('aria-label', sprint ? `${this.day.textContent} secondes avant le second tour` : `J-${state.days_remaining}`);
     const poll = state.polls[faction];
     const snapshot = poll.lastPollSnapshot;

@@ -16,6 +16,7 @@ export function buildingGeometry(renderer, building, sprite) {
 }
 
 const signSlots = new WeakMap();
+export function prepareBuildingImage(image) { signSlot(image); }
 // Find the uninterrupted light sign panel in the illustration, once per loaded sprite.
 // Keep its paper texture and ink border instead of drawing a second placard above it.
 function signSlot(sprite) {

@@ -5,13 +5,17 @@ import { seasonAt } from '../simulation/campaign-events.js';
 
 const masked = new WeakMap();
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
+const groupCache = new WeakMap();
 export const sceneryParallax = Object.freeze({ street: 1, middle: .55, distant: .26 });
 export function sceneryGroups(world) {
-  return world.subzones.filter(z => z.local_index === 0).map(z => {
+  if (groupCache.has(world)) return groupCache.get(world);
+  const groups = world.subzones.filter(z => z.local_index === 0).map(z => {
     const zones = world.subzones.filter(s => s.biome_index === z.biome_index);
     const width = zones.reduce((sum,s) => sum + s.width, 0);
     return { biome: biomeNames[z.biome_index], index:z.biome_index, start:z.start, center:z.start+width/2, width };
   });
+  groupCache.set(world, groups);
+  return groups;
 }
 export function sceneryProjection(camera, center, worldLength, pixelsPerUnit, anchor, speed) { return anchor + ringDelta(camera, center, worldLength) * pixelsPerUnit * speed; }
 export const backgroundAssetId = zone => `background-${zone.index}`;
@@ -63,6 +67,28 @@ export function drawIllustratedSky(renderer, state) {
 
 const distantStrips = new WeakMap();
 const landscapeEdges = new WeakMap();
+function distantJoin(image) {
+  if (distantStrips.has(image)) return distantStrips.get(image);
+  const strip = document.createElement('canvas'); strip.width = image.naturalWidth; strip.height = image.naturalHeight;
+  const c = strip.getContext('2d'); c.drawImage(image, 0, 0);
+  // Same opaque, irregular contour used by the lazy rendering path.
+  c.globalCompositeOperation = 'destination-in'; c.fillStyle = '#000'; c.beginPath();
+  const edge = y => 12 + 7 * Math.sin(y * .19) + 4 * Math.sin(y * .53);
+  c.moveTo(edge(0), 0);
+  for (let y = 0; y <= strip.height; y += 2) c.lineTo(edge(y), y);
+  c.lineTo(strip.width - edge(strip.height), strip.height);
+  for (let y = strip.height; y >= 0; y -= 2) c.lineTo(strip.width - edge(y + 13), y);
+  c.closePath(); c.fill();
+  distantStrips.set(image, strip);
+  return strip;
+}
+
+export function prepareSceneryImage(id, image) {
+  if (id.startsWith('landscape-')) landscapeJoin(image);
+  else if (id.startsWith('distant-') && id !== 'distant-clouds') distantJoin(image);
+  else if (id.startsWith('street-')) streetBaseline(image);
+}
+
 function landscapeJoin(image) {
   if(landscapeEdges.has(image))return landscapeEdges.get(image);
   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
@@ -84,21 +110,7 @@ export function drawIllustratedDistance(renderer, state) {
     const w = group.width*m.pixelsPerUnit*sceneryParallax.distant+36;
     if(group.x+w/2<0||group.x-w/2>width) continue;
     const image = renderer.assets.get(`distant-${group.biome}`); if(!image) continue;
-    let strip = distantStrips.get(image);
-    if(!strip) {
-      strip=document.createElement('canvas');strip.width=image.naturalWidth;strip.height=image.naturalHeight;
-      const c=strip.getContext('2d');c.drawImage(image,0,0);
-      // Interleave the low woodland ends along a leaf-sized contour. The
-      // overlapping ink stays opaque, so no tree dissolves into the sky.
-      c.globalCompositeOperation='destination-in';c.fillStyle='#000';c.beginPath();
-      const edge=y=>12+7*Math.sin(y*.19)+4*Math.sin(y*.53);
-      c.moveTo(edge(0),0);
-      for(let y=0;y<=strip.height;y+=2)c.lineTo(edge(y),y);
-      c.lineTo(strip.width-edge(strip.height),strip.height);
-      for(let y=strip.height;y>=0;y-=2)c.lineTo(strip.width-edge(y+13),y);
-      c.closePath();c.fill();
-      distantStrips.set(image,strip);
-    }
+    const strip = distantJoin(image);
     const h=sceneryImageHeight(image,w);
     const base=m.groundY-height*.32;
     ctx.drawImage(strip,0,strip.height-24,strip.width,24,group.x-w/2,base-1,w,m.groundY-base+1);

@@ -66,6 +66,59 @@ test('Le préchargement relie les deux extrémités de la boucle', () => {
   assert.deepEqual(neighboringSubzones([],0),[]);
 });
 
+test('Une image chargée à la demande reste disponible lorsque les images protégées dépassent la capacité', async () => {
+  const images = [];
+  const manifest = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`image-${i}`, { file: `${i}` }]));
+  const cache = new VisualAssets(manifest, { limit: 4, createImage: () => { const image = {}; images.push(image); return image; } });
+  const protectedIds = Object.keys(manifest).slice(0, 6);
+  cache.protectedIds = new Set(protectedIds);
+  for (const id of Object.keys(manifest)) {
+    const loading = cache.load(id); images.at(-1).onload(); await loading;
+  }
+  for (const id of protectedIds) assert.ok(cache.get(id));
+  assert.ok(cache.get('image-11'));
+  assert.equal(cache.cache.size, 7, 'La réserve reste bornée');
+  assert.equal(await cache.load('image-11'), images.at(-1));
+  assert.equal(images.length, 12, 'Aucun rechargement de la dernière image');
+});
+
+test('Le chargement attend le décodage et la préparation sans dépasser la concurrence prévue', async () => {
+  const images = [];
+  let finishDecode, finishPreparation;
+  const decoding = new Promise(resolve => { finishDecode = resolve; });
+  const preparation = new Promise(resolve => { finishPreparation = resolve; });
+  const cache = new VisualAssets({ a: { file: 'a' }, b: { file: 'b' }, c: { file: 'c' } }, {
+    concurrency: 1,
+    createImage: () => { const image = { decode: () => decoding }; images.push(image); return image; },
+    prepareImage: () => preparation,
+  });
+  const pending = cache.preload(['a', 'b', 'c', 'a']);
+  assert.equal(images.length, 1);
+  const loaded = images[0].onload();
+  assert.equal(cache.get('a'), null);
+  finishDecode(); await Promise.resolve();
+  assert.equal(cache.get('a'), null);
+  assert.equal(images.length, 1);
+  finishPreparation(); await loaded;
+  assert.ok(cache.get('a')); assert.equal(images.length, 2);
+  images[1].onerror();
+  assert.equal(images.length, 3, 'Une erreur libère la file');
+  await images[2].onload();
+  assert.deepEqual(await pending, [images[0], null, images[2]]);
+  assert.equal(cache.status().pending, 0);
+});
+
+test('Un navigateur refusant decode conserve une image chargée et le rendu de secours de préparation', async () => {
+  const image = { decode: async () => { throw new Error('Décodage indisponible'); } };
+  const cache = new VisualAssets({ a: { file: 'a' } }, {
+    createImage: () => image,
+    prepareImage: async () => { throw new Error('Préparation indisponible'); },
+  });
+  const loading = cache.load('a'); await image.onload();
+  assert.equal(await loading, image);
+  assert.equal(cache.get('a'), image);
+});
+
 test('Le visage du PNJ reste stable après déplacement et conversion ; les journalistes ont leur propre sprite', () => {
   const state={world:{subzones:[{id:'origine',biome_id:'banlieue'}]}};
   const entity={id:'citoyen-12',origin_subzone_id:'origine',role:'NEUTRE',x:3};

@@ -66,8 +66,12 @@ try {
  await load('melenchon',0,10);await page.waitForSelector('#ultimate-touch.ready');
  await page.waitForTimeout(11000);const fill=await page.locator('#ultimate-touch').evaluate(e=>parseFloat(e.style.getPropertyValue('--charge')));assert.ok(fill>30&&fill<95,fill);
  await page.waitForSelector('#ultimate-touch',{state:'hidden',timeout:6500});report.flows.push('Décharge réelle du bouton après 10 secondes, disparition à 15 secondes');
- await page.setViewportSize({width:390,height:844});await load('le_pen',2,10);
- await page.waitForSelector('#ultimate-touch.ready');await page.screenshot({path:path.join(output,'mobile-portrait.png')});
+ await load('le_pen',2,10);await page.waitForSelector('#ultimate-touch.ready');
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForSelector('#landscape-gate',{state:'visible'});
+ assert.equal(await page.locator('#game').evaluate(element=>element.inert),true);
+ await page.screenshot({path:path.join(output,'mobile-portrait.png')});
+ report.flows.push('Portrait : écran de rotation visible, commandes du jeu inactives');
  assert.equal(await page.locator('#error').isVisible(),false);assert.deepEqual(report.errors,[]);
  await writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 } finally { await browser.close(); }

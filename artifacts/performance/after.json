@@ -1,0 +1,64 @@
+{
+  "loadingMs": 4600.451999999999,
+  "gameplayStartedAt": 4939.800000011921,
+  "transitions": [
+    {
+      "zone": 0,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 1,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 2,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 3,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 4,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 5,
+      "protected": 91,
+      "repeatedLoads": 0
+    },
+    {
+      "zone": 0,
+      "protected": 91,
+      "repeatedLoads": 0
+    }
+  ],
+  "requests": 113,
+  "drawMedianMs": 1.199999988079071,
+  "drawP95Ms": 1.9000000357627869,
+  "snapshotMeanMs": 0.9709999996423722,
+  "longTasks": [
+    {
+      "start": 316.89999997615814,
+      "duration": 134
+    },
+    {
+      "start": 1986.800000011921,
+      "duration": 121
+    },
+    {
+      "start": 2276.5,
+      "duration": 899
+    },
+    {
+      "start": 5797.5,
+      "duration": 56
+    }
+  ],
+  "errors": []
+}

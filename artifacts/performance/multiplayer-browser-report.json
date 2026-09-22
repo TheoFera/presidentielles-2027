@@ -1,0 +1,17 @@
+{
+  "loopbackIce": true,
+  "layouts": [
+    "Réponse le_pen",
+    "Déconnexion",
+    "Réponse le_pen",
+    "Réponse philippe",
+    "Salon complet"
+  ],
+  "layoutErrors": [],
+  "flows": [
+    "Deux navigateurs tactiles : connexion directe, départ synchronisé et déplacement invité",
+    "Trois navigateurs tactiles : troisième candidat contrôlé à distance, aucune API utilisée",
+    "Trois navigateurs : fin du décompte, duel, élimination et résultat synchronisés sans déconnexion"
+  ],
+  "errors": []
+}

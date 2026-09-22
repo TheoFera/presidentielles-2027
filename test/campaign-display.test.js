@@ -66,6 +66,26 @@ test('Une collecte plafonnée affiche son montant sans chercher une durée absen
   assert.doesNotMatch(textOf(display, event), /Durée des collectes/);
 });
 
+test('Les cartes conservent leurs éléments lorsque seul le compte à rebours change', t => {
+  installDocument(t);
+  const config = campaignConfig();
+  const { sim, event } = startVariant(config, config.campaignCatalog.find(v => v.family === 'CRISE_FINANCEMENT'));
+  const display = new CampaignDisplay(sim.config);
+  display.update(sim.state);
+  const nodes = [...display.cards.get(event.id).children];
+  const previousText = textOf(display, event);
+  const createElement = document.createElement;
+  let created = 0;
+  document.createElement = (...args) => { created++; return createElement(...args); };
+  display.update(sim.state);
+  assert.equal(created, 0);
+  assert.equal(textOf(display, event), previousText);
+  sim.state.tick += sim.hz;
+  display.update(sim.state);
+  assert.equal(created, 0);
+  display.cards.get(event.id).children.forEach((node, i) => assert.equal(node, nodes[i]));
+});
+
 test('Les effets de financement gèrent zéro, les effets cumulés et les paramètres absents', t => {
   installDocument(t);
   const config = campaignConfig();
