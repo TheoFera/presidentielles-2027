@@ -1,4 +1,5 @@
 import { CANDIDATES, homeContent, candidatesContent, tutorialContent } from './arcade-content.js';
+import { enterLandscape, syncOrientation } from './landscape.js';
 export { CANDIDATES } from './arcade-content.js';
 
 export class StartMenu {
@@ -25,16 +26,19 @@ export class StartMenu {
     this.back = back;
     this.screen = screen; this.generation++; this.element.dataset.screen = screen;
     this.element.hidden = false; this.game.inert = true;
-    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header"><span class="menu-brand">Présidentielles 2027</span>${screen !== 'home' ? '<button id="menu-back">← Retour</button>' : '<span class="menu-brand">ÉDITION ARCADE</span>'}</header>${title ? `<h1 tabindex="-1">${title}</h1>` : ''}${content}</div>`;
+    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${screen !== 'home' ? '<button id="menu-back">← Retour</button>' : '<span></span>'}<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
+    this.element.querySelector('#menu-fullscreen').onclick = () => void enterLandscape();
+    syncOrientation();
     (this.element.querySelector('h1') || this.element.querySelector('button'))?.focus({ preventScroll: true });
     this.element.scrollTop = 0;
   }
   home() {
     this.leave?.();
     this.page('home', '', homeContent());
-    this.element.querySelector('#solo').onclick = () => this.candidates();
-    this.element.querySelector('#multiplayer').onclick = () => this.multiplayer(this);
+    const mobileLandscape = () => { if (window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
+    this.element.querySelector('#solo').onclick = () => { mobileLandscape(); this.candidates(); };
+    this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this); };
   }
   candidates() {
     this.page('candidates', 'Choisissez votre candidat', candidatesContent(this.selected));
@@ -43,7 +47,7 @@ export class StartMenu {
         this.selected = button.dataset.candidate;
         this.element.querySelectorAll('[data-candidate]').forEach(card => {
           const selected = card.dataset.candidate === this.selected;
-          card.setAttribute('aria-pressed', String(selected)); card.querySelector('.candidate-badge').textContent = selected ? 'Votre candidat' : 'Sélectionner';
+          card.setAttribute('aria-pressed', String(selected));
         });
       };
     });
@@ -51,18 +55,26 @@ export class StartMenu {
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', 'Prêt pour la campagne ?', tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
+    this.page('loading', 'En route vers l’Élysée', tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
     if (multiplayer) {
-      this.element.querySelector('.eyebrow').textContent = `MULTIJOUEUR · ${candidate.name}`;
-      this.element.querySelector('.menu-footer .menu-note').textContent = 'Départ quand tous sont prêts · Styles de l’hôte.';
+      this.element.querySelector('.eyebrow').textContent = `MULTIJOUEUR · ${candidate.short}`;
+      this.element.querySelector('.menu-footer .menu-note').textContent = 'Départ quand tous sont prêts.';
     }
     const generation = this.generation;
     try {
-      await Promise.all([this.prepare(`candidate:${this.selected}`), new Promise(resolve => setTimeout(resolve, 1800))]);
+      // Let the loading screen paint before constructing the world.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (generation !== this.generation) return;
+      await this.prepare(`candidate:${this.selected}`, ratio => {
+        if (generation !== this.generation) return;
+        this.element.querySelector('progress').value = ratio;
+        this.element.querySelector('#loading-percent').textContent = `${Math.round(ratio * 100)} %`;
+      });
       if (generation !== this.generation) return;
       const progress = this.element.querySelector('progress'); progress.max = 1; progress.value = 1;
-      this.element.querySelector('#loading-status').textContent = 'Chargement terminé. À vous de jouer !';
-      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'C’est parti !';
+      this.element.querySelector('#loading-percent').textContent = '100 %';
+      this.element.querySelector('#loading-status').textContent = 'Prêt !';
+      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Jouer ➜';
       button.onclick = async () => {
         if (!ready) { this.close(); this.play(); return; }
         button.disabled = true; button.textContent = 'En attente…';
@@ -73,8 +85,11 @@ export class StartMenu {
       };
       if (multiplayer) button.textContent = 'Je suis prêt →';
     } catch {
-      if (generation === this.generation) this.element.querySelector('#loading-status').textContent = 'La préparation a échoué. Revenez à la sélection pour réessayer.';
+      if (generation !== this.generation) return;
+      this.element.querySelector('#loading-status').textContent = 'Chargement interrompu.';
+      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Réessayer';
+      button.onclick = () => void this.loading({ multiplayer, ready });
     }
   }
-  close() { this.cleanup?.(); this.cleanup = null; this.generation++; this.element.hidden = true; this.game.inert = false; }
+  close() { this.cleanup?.(); this.cleanup = null; this.generation++; this.element.hidden = true; syncOrientation(); }
 }

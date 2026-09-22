@@ -3252,6 +3252,26 @@
       "date": "2026-09-22",
       "status": "generated_pending_qa",
       "source_reference": "assets/generated/characters/character-philippe.png"
+    },
+    {
+      "key": "menu-accueil",
+      "id": "menu-accueil",
+      "file": "assets/generated/menus/accueil.png",
+      "transparent": false,
+      "date": "2026-09-22",
+      "status": "approved",
+      "source_reference": "Illustration fournie par l’utilisateur",
+      "prompt": "Conserver la composition ; retirer les commandes dessinées pour superposer des boutons accessibles. Pour les candidats, neutraliser le repère de sélection."
+    },
+    {
+      "key": "menu-candidats",
+      "id": "menu-candidats",
+      "file": "assets/generated/menus/candidats.png",
+      "transparent": false,
+      "date": "2026-09-22",
+      "status": "approved",
+      "source_reference": "Illustration fournie par l’utilisateur",
+      "prompt": "Conserver la composition ; retirer les commandes dessinées pour superposer des boutons accessibles. Pour les candidats, neutraliser le repère de sélection."
     }
   ]
 }

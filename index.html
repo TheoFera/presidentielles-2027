@@ -9,8 +9,15 @@
   <link rel="stylesheet" href="src/style.css">
   <link rel="stylesheet" href="src/presentation/illustrated-ui.css">
   <link rel="stylesheet" href="src/presentation/start-menu.css">
+  <link rel="stylesheet" href="src/presentation/game-menu.css">
+  <link rel="preload" as="image" href="assets/generated/menus/accueil.png">
   </head>
   <body>
+    <section id="landscape-gate" hidden aria-label="Orientation du téléphone">
+      <div class="rotate-phone" aria-hidden="true">↻</div>
+      <h2>Tournez votre téléphone</h2><p>Le jeu se joue en paysage.</p>
+      <button id="landscape-fullscreen">Plein écran</button>
+    </section>
     <section id="start-menu" aria-label="Menu de Présidentielles 2027"><p class="boot-message" role="status">Préparation du jeu…</p></section>
     <main id="game" inert aria-label="Prototype jouable de Présidentielles 2027">
       <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour frapper au relâchement, maintenir pour charger, flèche haut pour sauter, R pour l’ultime, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>

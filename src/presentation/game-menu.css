@@ -1,0 +1,108 @@
+/* Illustrated game menus. The 16:9 stage keeps art and hit targets aligned. */
+:root { --menu-home-art: url('../../assets/generated/menus/accueil.png'); --menu-candidates-art: url('../../assets/generated/menus/candidats.png'); }
+.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap !important; border: 0 !important; }
+#start-menu { padding: max(12px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); background: linear-gradient(#061329df, #061329ee), var(--menu-candidates-art) center / cover; }
+#start-menu::before, #start-menu::after { display: none; }
+#start-menu .menu-shell { width: min(1150px, 100%); }
+#start-menu .menu-header { min-height: 44px; }
+#start-menu button, #help button, #results button { border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714, 0 0 10px #138cff66; }
+#start-menu button:hover, #help button:hover, #results button:hover { filter: brightness(1.16); }
+#start-menu button:active:not(:disabled), #help button:active, #results button:active { transform: translateY(2px); }
+#start-menu button:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+#start-menu #menu-fullscreen { font-size: 26px; line-height: 1; width: 48px; padding: 5px; }
+#start-menu #menu-back { font-family: Impact, 'Arial Black', sans-serif; font-size: clamp(16px, 2cqw, 25px); }
+#start-menu h1 { color: #ffe879; text-shadow: 2px 3px 0 #061128, 0 0 16px #167aff66; }
+#start-menu .menu-primary, #help #resume, #results #replay { color: white; border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); box-shadow: inset 0 2px 0 white, 0 5px 0 #04270b, 0 0 15px #66ff2a66; text-shadow: 1px 2px 1px #092309; }
+#start-menu .tutorial-card, #start-menu .lobby-player, #start-menu .qr-card, .help-page article { border-radius: 16px; background: linear-gradient(145deg, #1c3556ee, #081326f5); border: 2px solid #85c5f8; box-shadow: inset 0 1px 0 #ffffff70, 0 5px 15px #0005; }
+#start-menu input, #start-menu select { border-radius: 8px; }
+
+/* No cropped illustration, including on tall desktop windows or wide phones. */
+#start-menu:is([data-screen='home'], [data-screen='candidates']) { display: grid; place-items: center; padding: 0; background: #040c1d; }
+#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-shell { flex: none; display: block; width: min(100cqw, 177.7778cqh); height: auto; aspect-ratio: 16 / 9; max-height: 100%; container-type: size; margin: 0; background: var(--menu-home-art) center / 100% 100% no-repeat; }
+#start-menu[data-screen='candidates'] .menu-shell { background-image: var(--menu-candidates-art); }
+#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-header { position: absolute; z-index: 3; inset: max(2%, env(safe-area-inset-top)) max(1.8%, env(safe-area-inset-right)) auto max(1.8%, env(safe-area-inset-left)); pointer-events: none; }
+#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-header button { pointer-events: auto; }
+#start-menu .menu-home { display: block; position: absolute; inset: 0; }
+#start-menu .menu-home .mode-grid { position: absolute; left: 20.5%; right: 19%; bottom: 5%; height: 15%; display: grid; grid-template-columns: .94fr 1.06fr; gap: 4cqw; }
+#start-menu .arcade-button { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 1000; text-transform: uppercase; color: white; letter-spacing: .015em; border-radius: 3cqw; border: max(3px, .35cqw) solid #0a1020; outline: 2px solid #8df0ff; outline-offset: -8px; text-shadow: 2px 3px 0 #050e27, -1px -1px 0 #050e27, 1px -1px 0 #050e27, -1px 1px 0 #050e27; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #002e78, 0 5px 0 #000b, 0 0 15px #27ddff99; }
+#start-menu .mode-card { min-width: 0; height: 100%; min-height: 44px; padding: 1cqw 2cqw; display: flex; justify-content: space-between; align-items: center; gap: .7cqw; background: linear-gradient(#10daff, #087cf1 27%, #0142af 55%, #0051d8 72%, #05c5ff); }
+#start-menu .mode-card strong { font-size: clamp(22px, 4.5cqw, 76px); letter-spacing: -.025em; }
+#start-menu #multiplayer { background: linear-gradient(#ff75aa, #ff075d 27%, #d00050 55%, #ed0067 72%, #ff1ba1); outline-color: #ff9bd7; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #70042e, 0 5px 0 #000b, 0 0 15px #ff1f7f99; }
+#start-menu #multiplayer strong { font-size: clamp(17px, 3.5cqw, 58px); }
+#start-menu .mode-card > span { color: #8deeff; font-size: 3cqw; text-shadow: 0 2px 0 #004386; }
+#start-menu #multiplayer > span { color: #ffbbe0; text-shadow: 0 2px 0 #7f0138; }
+
+#start-menu[data-screen='candidates'] .candidate-grid { position: absolute; inset: 25% 12% 15%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3%; padding: 0; }
+#start-menu[data-screen='candidates'] .candidate-card { display: block; position: relative; min-height: 0; padding: 0; border: 3px solid transparent; border-radius: 12%; background: transparent; box-shadow: none; transition: background .15s, box-shadow .15s; }
+#start-menu[data-screen='candidates'] .candidate-card:hover { background: #ffffff12; filter: none; }
+#start-menu[data-screen='candidates'] .candidate-card[aria-pressed='true'] { border-color: #ffea8199; box-shadow: 0 0 20px #ffd21b99, inset 0 0 24px #ffc00033; background: linear-gradient(transparent 80%, #ffe75938); }
+#start-menu .candidate-badge { display: none; position: absolute; top: 0; right: 0; padding: .35cqw .8cqw; color: #111d36; background: linear-gradient(#fffbaa, #ffd320); border: 3px solid #151a28; border-radius: 10px; box-shadow: 0 0 12px #fff2a4; font: 1000 clamp(16px, 2.8cqw, 46px)/1.1 Impact, 'Arial Black', sans-serif; transform: translate(10%, -35%) rotate(5deg); }
+#start-menu [aria-pressed='true'] .candidate-badge { display: block; }
+#start-menu[data-screen='candidates'] .menu-footer { position: absolute; right: 3%; bottom: 3%; margin: 0; }
+#start-menu #prepare-game { font-size: clamp(20px, 4cqw, 66px); padding: .9cqw 2.4cqw; border-radius: 2.4cqw; outline-color: #d6ffad; background: linear-gradient(#8aff1d, #31d00a 40%, #08971a 60%, #38e30a); box-shadow: inset 0 3px 0 #fff, inset 0 -6px 0 #077b27, 0 5px 0 #06160d, 0 0 20px #78ff3270; }
+
+/* A real asset progress bar and a short visual introduction. */
+#start-menu[data-screen='loading'] .menu-shell { max-width: 1120px; }
+.loading-scene { flex: 1; min-height: 0; display: grid; grid-template-columns: .75fr 1.4fr; gap: 4%; }
+.loading-candidate { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-height: 0; padding: 10px; background: radial-gradient(ellipse at 50% 75%, #268ffc55, transparent 68%); }
+.loading-candidate::after { content: ''; position: absolute; bottom: 22px; height: 7%; width: 88%; border: 3px solid #a5e5ff; border-radius: 50%; box-shadow: 0 0 20px #00c8ff, inset 0 0 20px #0084ff; z-index: -1; }
+.loading-candidate img { width: 100%; height: 85%; min-height: 0; object-fit: contain; filter: drop-shadow(0 0 10px #79bbff55); }
+.loading-candidate .eyebrow { margin-top: 8px; color: white !important; }
+.loading-guide { display: flex; flex-direction: column; justify-content: center; gap: clamp(8px, 2cqh, 24px); }
+.loading-guide h2 { margin: 0; font: 900 clamp(22px, 4.3cqh, 40px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; color: #ffe980; }
+.loading-tips { display: grid; gap: clamp(8px, 2cqh, 22px); }
+.loading-tips p { display: grid; grid-template-columns: 46px 1fr; column-gap: 12px; align-items: center; }
+.loading-tips p > span { grid-row: 1 / 3; display: grid; place-items: center; width: 44px; height: 44px; font-size: 26px; background: #153c66; border: 2px solid #70c4ff; border-radius: 12px; color: #ffe779; }
+.loading-tips strong { font-size: clamp(15px, 2.8cqh, 24px); }
+.loading-tips small { color: #c5d9ef; font-size: clamp(11px, 1.8cqh, 16px); }
+.landscape-reminder { color: #ffe585; font-size: clamp(12px, 2cqh, 17px); }
+.landscape-reminder span { font-size: 1.4em; margin-right: 6px; }
+.loading-caption { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #9eeaff; }
+.menu-loading { height: 18px; border: 2px solid #abdfff; border-radius: 12px; overflow: hidden; appearance: none; background: #071327; }
+.menu-loading::-webkit-progress-bar { background: #071327; }
+.menu-loading::-webkit-progress-value { background: linear-gradient(#aeffff, #1ec9ff 50%, #0089ff); border-radius: 8px; transition: width .15s; }
+.menu-loading::-moz-progress-bar { background: linear-gradient(#aeffff, #1ec9ff 50%, #0089ff); border-radius: 8px; }
+#start-menu[data-screen='loading'] .menu-footer { margin-top: 0; }
+#start-menu #start-campaign { font-size: clamp(18px, 3cqh, 30px); padding: 12px 32px; border-radius: 16px; outline: none; }
+#start-menu #start-campaign:focus-visible, #start-menu #prepare-game:focus-visible { outline: 3px solid white; outline-offset: 4px; }
+#start-menu #start-campaign:disabled { background: #263a52; border-color: #7593ad; box-shadow: inset 0 2px 0 #93b3ce; opacity: .8; }
+#help, #results { background: linear-gradient(#061329ed, #061329f5), var(--menu-candidates-art) center / cover; }
+#campaign-styles { background: linear-gradient(#061329e8, #061329f5), var(--menu-candidates-art) center / cover; }
+#campaign-styles .campaign-style-card { border-radius: 16px; box-shadow: inset 0 2px 0 #ffffff70, 0 5px 15px #0005; }
+
+#landscape-gate { position: fixed; inset: 0; z-index: 100; background: radial-gradient(ellipse at center, #153d73, #050e21 75%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; padding: 28px; text-align: center; }
+#landscape-gate[hidden] { display: none; }
+#landscape-gate h2 { margin: 0; font: 900 27px/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; color: #ffe777; }
+#landscape-gate p { margin: 0; color: #cbdef4; }
+.rotate-phone { width: 100px; height: 60px; display: grid; place-items: center; border: 4px solid #9aefff; border-radius: 12px; font-size: 48px; line-height: 1; color: #ffe777; box-shadow: 0 0 25px #0099ff66; transform: rotate(-15deg); }
+#landscape-fullscreen { min-height: 48px; margin-top: 8px; padding: 12px 24px; border: 2px solid #9eefff; border-radius: 12px; background: linear-gradient(#177ce4, #064396); color: #fff; font-size: 17px; font-weight: 800; }
+@media (any-pointer: coarse) { .loading-tips .keyboard-guide { display: none; } }
+@media (max-height: 500px) {
+  #start-menu { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  #start-menu .menu-shell { gap: 6px; }
+  #start-menu .menu-header { min-height: 40px; }
+  #start-menu .menu-header button { min-height: 40px; }
+  #start-menu #menu-back { padding: 6px 12px; }
+  #start-menu #menu-fullscreen { width: 42px; font-size: 25px; }
+  #start-menu[data-screen='loading'] h1 { font-size: 24px; }
+  .loading-guide { gap: 6px; }
+  .loading-guide h2 { font-size: 21px; }
+  .loading-tips { gap: 6px; }
+  .loading-tips p { grid-template-columns: 32px 1fr; column-gap: 8px; }
+  .loading-tips p > span { width: 30px; height: 30px; font-size: 20px; border-radius: 8px; }
+  .loading-tips strong { font-size: 14px; }
+  .loading-tips small, .landscape-reminder { font-size: 11px; }
+  .loading-candidate .eyebrow { font-size: 10px; margin-top: 3px; }
+  #start-menu #start-campaign { min-height: 44px; padding: 8px 24px; font-size: 20px; }
+  .menu-loading { height: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .menu-loading::-webkit-progress-value { transition: none; } }
+@media (max-height: 350px) {
+  .loading-guide h2 { display: none; }
+  .loading-guide, .loading-tips { gap: 4px; }
+  .loading-tips p > span { width: 26px; height: 26px; font-size: 18px; }
+  .loading-tips strong { font-size: 13px; }
+  .loading-candidate { padding: 2px; }
+  .loading-candidate img { height: 0; flex: 1; }
+  .landscape-reminder span { font-size: 1em; }
+}

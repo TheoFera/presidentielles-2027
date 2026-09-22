@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "errors": [],
+  "checks": [
+    "portrait bloqué",
+    "rotation vers paysage",
+    "sélection des trois candidats",
+    "commandes tactiles",
+    "petits écrans paysage",
+    "pause après rotation",
+    "progression réelle",
+    "échec et nouvelle tentative",
+    "annulation du chargement"
+  ]
+}

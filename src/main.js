@@ -16,6 +16,7 @@ import { DebugPanel } from './presentation/debug.js';
 import { ElectoralDisplay } from './presentation/electoral.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
+import { installLandscape, portraitPhone } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 
@@ -198,7 +199,7 @@ async function start() {
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
-  async function prepare(candidateId) {
+  async function prepare(candidateId, onProgress = () => {}) {
     paused = true; help.hidden = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
@@ -206,12 +207,18 @@ async function start() {
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
     renderer.artZone = null;
     renderer.draw(state, state, 1, 0);
-    await Promise.race([
-      renderer.assets.preload([...renderer.assets.protectedIds]),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000)),
-    ]);
+    const ids = [...renderer.assets.protectedIds];
+    let loaded = 0, timeout;
+    onProgress(0);
+    try {
+      await Promise.race([
+        Promise.all(ids.map(id => renderer.assets.load(id).then(() => onProgress(++loaded / ids.length)))),
+        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000); }),
+      ]);
+      onProgress(1);
+    } finally { clearTimeout(timeout); }
   }
-  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
+  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); if (portraitPhone()) togglePause(true); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
     if (room.phase === 'pairing') {
@@ -270,6 +277,10 @@ async function start() {
   }
   menu = new StartMenu({ prepare, play, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
   menu.leave = stopSession;
+  window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => {
+    input.clear();
+    if (portraitPhone() && !menu.active && !paused) togglePause(true);
+  });
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
 
   function matchCommands() {
@@ -373,4 +384,5 @@ async function start() {
   requestAnimationFrame(frame);
 }
 
+installLandscape();
 start().catch(showError);

@@ -1,4 +1,4 @@
-/* Full-screen arcade menus. Flexible artwork yields space to readable text and controls. */
+/* Shared layout for menus, multiplayer forms and in-game panels. */
 :root { --arcade-bg: #080e23; --arcade-card: #131e3c; --arcade-ink: #f2f5ff; --arcade-muted: #b4c4e7; --arcade-cyan: #63edff; --arcade-pink: #ff5b94; --arcade-gold: #ffe275; }
 #start-menu { position: fixed; inset: 0; height: var(--menu-height, 100dvh); z-index: 10; overflow: hidden; container-type: size; padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); color: var(--arcade-ink); background: radial-gradient(ellipse at 75% 35%, #54206466, transparent 65%), radial-gradient(ellipse at 10% 90%, #084a7366, transparent 65%), var(--arcade-bg); color-scheme: dark; }
 #start-menu::before { content: ''; position: absolute; inset: 5px; border: 1px solid #63edff55; box-shadow: inset 0 0 30px #3d5ca52b; pointer-events: none; }
