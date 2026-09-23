@@ -20,6 +20,10 @@ export function sceneryGroups(world) {
 export function sceneryProjection(camera, center, worldLength, pixelsPerUnit, anchor, speed) { return anchor + ringDelta(camera, center, worldLength) * pixelsPerUnit * speed; }
 export const backgroundAssetId = zone => `background-${zone.index}`;
 export const sceneryImageHeight = (image, width) => width * image.naturalHeight / image.naturalWidth;
+export function sceneryVisible(renderer, left, width) {
+  const view = renderer.visibleWorld;
+  return left + width >= (view?.left ?? 0) && left <= (view?.right ?? renderer.width);
+}
 export function scenerySeasonFilter(progress) {
   const season=seasonAt(progress||0), values=[[1,0,1],[.65,.3,1],[.24,0,1.06],[1.08,.06,1.08]];
   const current=values[season.index],next=values[(season.index+1)%4];
@@ -109,6 +113,7 @@ export function drawIllustratedDistance(renderer, state) {
   for (const group of groups) {
     const w = group.width*m.pixelsPerUnit*sceneryParallax.distant+36;
     if(group.x+w/2<0||group.x-w/2>width) continue;
+    if (!sceneryVisible(renderer, group.x - w / 2, w)) continue;
     const image = renderer.assets.get(`distant-${group.biome}`); if(!image) continue;
     const strip = distantJoin(image);
     const h=sceneryImageHeight(image,w);
@@ -131,6 +136,7 @@ export function drawIllustratedMiddle(renderer,state) {
     for(let i=0;i<repeats;i++) {
     const w=group.w/repeats+(separated?80:0);
     const x=group.x+group.w*((i+.5)/repeats-.5);
+    if (!sceneryVisible(renderer, x - w / 2, w)) continue;
     const h=sceneryImageHeight(image,w);
     const base=m.groundY-(separated?height*.12:0);
     const strip=separated?landscapeJoin(image):image;
@@ -174,6 +180,7 @@ export function drawIllustratedStreet(renderer,state) {
       const x=sceneryProjection(renderer.cameraX,center,state.world.length,m.pixelsPerUnit,m.anchorX,sceneryParallax.street);
       const w=group.width*m.pixelsPerUnit/2+2;
       if(x+w/2<0||x-w/2>width)continue;
+      if (!sceneryVisible(renderer, x - w / 2, w)) continue;
       const h=sceneryImageHeight(image,w);
       // Anchor the opaque masonry, not the PNG's transparent lower fringe.
       // One physical pixel overlaps the pavement to avoid a filtering seam.

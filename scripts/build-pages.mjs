@@ -36,7 +36,7 @@ export async function buildPages(output = defaultTarget) {
   for (const file of files) {
     const source = await readFile(resolve(root, file), 'utf8');
     // URL du manifeste, url() CSS et attributs HTML : chemins PNG littéraux.
-    for (const [asset] of source.matchAll(/assets\/generated\/[a-z]+\/[a-z0-9_-]+\.png/g)) {
+    for (const [asset] of source.matchAll(/assets\/generated\/(?:[a-z0-9_-]+\/)+[a-z0-9_-]+\.png/g)) {
       if (asset.startsWith('assets/generated/masters/')) throw new Error('Un original ne doit pas être référencé par le jeu.');
       images.add(asset);
     }

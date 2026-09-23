@@ -3,6 +3,7 @@ import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
 import { drawElectoralBuilding } from './electoral.js';
 import { drawIllustratedBuilding, buildingGeometry } from './illustrated-buildings.js';
+import { formatNumber } from './number-format.js';
 
 const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE', tour_communication: 'COMMUNICATION' };
 
@@ -81,7 +82,7 @@ export function drawInfrastructure(renderer, state) {
     }
     if (building.type === 'financement' && building.funding_completed_tick !== null
       && state.tick - building.funding_completed_tick < config.balance.buildings.financement.completion_feedback_seconds * config.balance.simulation_architecture.fixed_tick_hz) {
-      const payout = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(building.funding_last_payout);
+      const payout = formatNumber(building.funding_last_payout, 1);
       ctx.fillStyle = '#f4dc72'; ctx.font = 'bold 15px system-ui'; ctx.fillText(`+${payout} k €`, x, top - 18);
     }
     if (building.state === 'CLOSED') {
@@ -120,7 +121,7 @@ export function drawBanknote(renderer, state) {
   ctx.fillText('€', x - w / 2 + 11, y + 20);
   ctx.fillStyle = offer.enabled ? '#354b35' : '#745e50';
   ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
-  const price = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals }).format(offer.cost);
+  const price = formatNumber(offer.cost, config.balance.display.currency_precision_decimals);
   ctx.fillText(`${price} ${config.balance.display.currency_label}`, x + 8, y + 19);
     if (candidate.purchase_hold?.key === offer.key) {
     ctx.fillStyle = '#637c51';

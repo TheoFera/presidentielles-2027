@@ -5,19 +5,22 @@
   import {loadConfig} from '../../src/config.js';
   import {GameSimulation} from '../../src/simulation/game-simulation.js';
   import {WorldRenderer} from '../../src/presentation/renderer.js';
-  import {combatAtlases} from '../../src/presentation/melenchon-combat.js';
+  import {combatAtlases,combatAtlasFor} from '../../src/presentation/melenchon-combat.js';
+  import {previewSkin} from './animation-preview-skins.js';
   const config=await loadConfig();
   const requested=new URLSearchParams(location.search).get('candidate');
   const faction=combatAtlases[requested]?requested:'le_pen';
-  document.getElementById('heading').textContent=({melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'})[faction]+' · Costume de base';
+  const skin=previewSkin(faction),definition=combatAtlasFor({faction_id:faction,current_campaign_style:skin});
+  document.getElementById('heading').textContent=({melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'})[faction]+' · '+(skin?document.querySelector('select').selectedOptions[0].textContent:'Costume de base');
   const specs=[['Sprite de base','base'],['Garde',null],['Poing 1 · préparation',1,0],['Poing 1 · impact',1,3],['Poing 2 · impact',2,3],['Pied · préparation',3,0],['Pied · impact',3,3],['Charge · concentration','focus'],['Charge · prête','ready'],['Charge · frappe','charged',3],['Saut','jump'],['Saut · coup de pied','air',3],['Coup vers la gauche','left',3]];
   for(const [label,kind,elapsed] of specs){
     const div=document.createElement('div');div.className='tile';const title=document.createElement('strong');title.textContent=label;div.append(title);
     const canvas=document.createElement('canvas');canvas.width=300;canvas.height=255;div.append(canvas);document.getElementById('gallery').append(div);
-    const r=new WorldRenderer(canvas,config);r.resizeObserver.disconnect();await r.assets.load(combatAtlases[faction].sprite);await r.assets.load('character-'+faction);
+    const r=new WorldRenderer(canvas,config);r.resizeObserver.disconnect();await r.assets.load(definition.sprite);await r.assets.load('character-'+faction);if(skin)await r.assets.load('character-style-'+skin.replaceAll('_','-'));
     // Fixed drawing coordinates; CSS scales these static previews without clearing them.
     canvas.width=300;canvas.height=255;r.metrics={...r.metrics,characterHeight:155,groundY:232};r.ctx.fillStyle='#e7e3d7';r.ctx.fillRect(0,0,300,255);r.ctx.fillStyle='#c2c7b8';r.ctx.fillRect(0,232,300,23);
     const sim=new GameSimulation(config,42),s=sim.state,c=s.candidates.find(c=>c.faction_id===faction);s.npcs=[];s.tick=60;s.candidates.forEach(c=>c.x=300);c.x=100;c.facing=1;const enemy=s.candidates.find(e=>e.id!==c.id);enemy.x=103;
+    c.current_campaign_style=skin;
     if(kind==='base'){enemy.x=200;}
     else if(['focus','ready'].includes(kind)){c.combat.charge_active=true;c.combat.press_tick=kind==='ready'?0:59;}
     else if(kind==='jump'){c.combat.jump_tick=54;c.combat.height=.3;}

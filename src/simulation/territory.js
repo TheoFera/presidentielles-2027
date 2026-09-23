@@ -50,7 +50,18 @@ export function incomeBreakdown(state, config, factionId) {
 }
 
 export function incomePerSecond(state, config, factionId) {
-  return incomeBreakdown(state, config, factionId).total;
+  if (state.eliminated_faction === factionId) return 0;
+  const counts = Object.create(null);
+  for (const npc of state.npcs) {
+    if (npc.faction_id === factionId && ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role)) {
+      counts[npc.origin_biome_id] = (counts[npc.origin_biome_id] || 0) + 1;
+    }
+  }
+  const money = config.balance.money;
+  // Preserve the breakdown's biome order and count × rate arithmetic exactly.
+  let supporters = 0;
+  for (const biome of config.layout.biomes) supporters += (counts[biome.id] || 0) * money.supporter_income_per_second_by_origin_biome[biome.id];
+  return (money.base_passive_income_per_second + supporters) * (factionId === 'philippe' ? money.philippe_income_multiplier : 1);
 }
 
 export function localPersuasionMultiplier(state, config, actor) {
@@ -92,29 +103,52 @@ export function meetingMultiplier(state, config, zoneId, faction) {
 /** Source accounting is separate from transfers, so all towers use the same control state. */
 export function refreshInfluenceSources(state, config) {
   const tower = config.balance.buildings.tour_communication;
+  // These indexes live only for this calculation. Nothing survives a movement,
+  // conversion, construction, import, or change of phase, even within one tick.
+  const units = new Map(), permanences = new Map(), candidates = new Map(), meetings = new Map();
+  const towers = new Map(FACTIONS.map(f => [f, { base: 0, level: null }]));
+  const append = (map, id, value) => { if (!map.has(id)) map.set(id, []); map.get(id).push(value); };
+  for (const npc of state.npcs) {
+    if (npc.role === 'SYMPATHISANT' || npc.role === 'MILITANT') append(units, zoneAt(state.world, npc.x).id, npc);
+  }
+  for (const building of state.buildings) {
+    if (building.state !== 'ACTIVE') continue;
+    if (building.type === 'permanence') append(permanences, building.subzone_id, building);
+    if (building.type === 'tour_communication' && towers.has(building.owner_id)) {
+      const source = towers.get(building.owner_id);
+      source.base += tower.global_influence_per_second_by_level[building.level - 1];
+      if (source.level === null) source.level = Math.max(1, building.level || 1);
+    }
+    if (building.type === 'meeting' && building.meeting_until_tick > state.tick) {
+      if (!meetings.has(building.subzone_id)) meetings.set(building.subzone_id, new Map());
+      const zoneMeetings = meetings.get(building.subzone_id);
+      zoneMeetings.set(building.meeting_faction_id, Math.max(zoneMeetings.get(building.meeting_faction_id) ?? 1,
+        config.balance.buildings.meeting.ally_influence_multiplier_by_level[building.meeting_level - 1]));
+    }
+  }
+  for (const candidate of state.candidates) {
+    if (!candidate.eliminated && !candidate.campaign_arena_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
+      && !candidate.combat.engaged) append(candidates, zoneAt(state.world, candidate.x).id, candidate);
+  }
   for (const zone of state.world.subzones) {
     const election = state.electorate.find(e => e.subzone_id === zone.id);
     const sources = Object.fromEntries(FACTIONS.map(f => [f, emptySources()]));
-    for (const npc of localUnits(state, zone.id)) {
+    for (const npc of units.get(zone.id) || []) {
       if (npc.role === 'SYMPATHISANT') sources[npc.faction_id].sympathisants += config.balance.physical_units.sympathisant.local_influence_per_second;
       if (npc.role === 'MILITANT') sources[npc.faction_id].militants += config.balance.physical_units.militant.influence_per_second;
     }
-    for (const building of state.buildings) {
-      if (building.subzone_id === zone.id && building.type === 'permanence' && building.state === 'ACTIVE') {
-        const value = config.balance.buildings.permanence.local_influence_by_level[building.level - 1];
-        sources[building.owner_id].permanence += value * (building.headquarters ? config.balance.buildings.permanence.hq_influence_multiplier : 1);
-      }
+    for (const building of permanences.get(zone.id) || []) {
+      const value = config.balance.buildings.permanence.local_influence_by_level[building.level - 1];
+      sources[building.owner_id].permanence += value * (building.headquarters ? config.balance.buildings.permanence.hq_influence_multiplier : 1);
     }
-    for (const candidate of state.candidates) {
-      if (!candidate.eliminated && !candidate.campaign_arena_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
-        && !candidate.combat.engaged && zoneAt(state.world, candidate.x).id === zone.id) sources[candidate.faction_id].candidate += config.balance.influence.candidate_presence_per_second;
+    for (const candidate of candidates.get(zone.id) || []) {
+      sources[candidate.faction_id].candidate += config.balance.influence.candidate_presence_per_second;
     }
     for (const faction of FACTIONS) {
       const source = sources[faction];
-      source.meeting = (source.sympathisants + source.militants) * (meetingMultiplier(state, config, zone.id, faction) - 1);
-      source.tower_base = state.buildings.filter(b => b.type === 'tour_communication' && b.state === 'ACTIVE' && b.owner_id === faction)
-        .reduce((sum, b) => sum + tower.global_influence_per_second_by_level[b.level - 1], 0);
-      const level = Math.max(1, state.buildings.find(b => b.type === 'tour_communication' && b.state === 'ACTIVE' && b.owner_id === faction)?.level || 1);
+      source.meeting = (source.sympathisants + source.militants) * ((meetings.get(zone.id)?.get(faction) ?? 1) - 1);
+      source.tower_base = towers.get(faction).base;
+      const level = towers.get(faction).level ?? 1;
       source.tower_multiplier = election.controller === faction ? tower.controlled_zone_multiplier_by_level[level - 1]
         : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier_by_level[level - 1] : tower.distant_zone_multiplier_by_level[level - 1];
       source.tower = source.tower_base * source.tower_multiplier * (state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.second_round.tower_influence_multiplier : 1);

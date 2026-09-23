@@ -9,23 +9,25 @@
 import {loadConfig} from '../config.js';
 import {GameSimulation} from '../simulation/game-simulation.js';
 import {WorldRenderer} from './renderer.js';
-import {combatAtlases} from './melenchon-combat.js';
-import {candidateExtraAtlases} from './candidate-extra-poses.js';
+import {combatAtlases,combatAtlasFor} from './melenchon-combat.js';
+import {extraAtlasesFor} from './candidate-extra-poses.js';
+import {previewSkin,skinQuery} from './animation-preview-skins.js';
 const config=await loadConfig(), scenes=[];
 const requested=new URLSearchParams(location.search).get('candidate'),faction=combatAtlases[requested]?requested:'melenchon';
+const skin=previewSkin(faction),actor={faction_id:faction,current_campaign_style:skin};
 const name={melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'}[faction];
 document.title=name+' — nouveaux mouvements';document.querySelector('h1').textContent=name+' · Nouveaux mouvements';
-document.querySelector('#guard-link').href='melenchon-guard-preview.html?candidate='+faction;
+document.querySelector('#guard-link').href='melenchon-guard-preview.html'+skinQuery(faction,skin);
 const specs=[['Repos original','idle'],['Marche','walk'],['Marche en garde','guard'],['Dash','dash'],['Coup léger reçu','light'],['Coup fort reçu','heavy'],['Recul','recoil'],['Étourdissement','stun'],['Chute puis KO','ko'],['Saut et atterrissage','landing'],['Persuasion','persuade'],['Achat / capture en cours','interaction'],['Déclenchement d’ultime','ultimate']];
 for(const [label,kind] of specs){
  const div=document.createElement('div');div.className='tile';const title=document.createElement('strong');title.textContent=label;div.append(title);
  const canvas=document.createElement('canvas');canvas.width=300;canvas.height=255;div.append(canvas);gallery.append(div);
  const renderer=new WorldRenderer(canvas,config);renderer.resizeObserver.disconnect();
- await Promise.all(['character-'+faction,combatAtlases[faction].sprite,...Object.values(candidateExtraAtlases[faction]||{}).map(a=>a.sprite)].map(id=>renderer.assets.load(id)));
+ await Promise.all(['character-'+faction,combatAtlasFor(actor).sprite,...(skin?['character-style-'+skin.replaceAll('_','-')]:[]),...Object.values(extraAtlasesFor(actor)||{}).map(a=>a.sprite)].map(id=>renderer.assets.load(id)));
  canvas.width=300;canvas.height=255;renderer.metrics={...renderer.metrics,characterHeight:155,groundY:232};
  const sim=new GameSimulation(config,42),state=sim.state,c=state.candidates.find(a=>a.faction_id===faction);state.npcs=[];state.candidates.forEach((a,i)=>a.x=300+i*100);c.x=100;c.facing=1;
  if(kind==='guard')state.candidates.find(a=>a.id!==c.id).x=103;
- scenes.push({kind,renderer,state,c});
+ c.current_campaign_style=skin;scenes.push({kind,renderer,state,c});
 }
 let paused=false,tick=0,last=performance.now();
 pause.onclick=()=>{paused=!paused;pause.textContent=paused?'Reprendre':'Mettre en pause';};

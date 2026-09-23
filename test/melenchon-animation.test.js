@@ -6,7 +6,8 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { combatState } from '../src/simulation/combat-state.js';
 import { CombatPoseTracker, melenchonPose, usesMelenchonCombat, drawMelenchonCombat, MELENCHON_SPRITE, MELENCHON_FRAMES } from '../src/presentation/melenchon-combat.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
-import { combatAtlases, usesCandidateCombat } from '../src/presentation/melenchon-combat.js';
+import { combatAtlases, combatAtlasFor, usesCandidateCombat } from '../src/presentation/melenchon-combat.js';
+import { skinAnimationAtlases, skinAnimationFor } from '../src/presentation/skin-animation-atlases.js';
 import {additionalExtraAtlases} from '../src/presentation/candidate-extra-atlases.js';
 import {candidateExtraPose} from '../src/presentation/candidate-extra-poses.js';
 
@@ -58,6 +59,32 @@ function attack(state, c, step = 1, kind = 'CANDIDATE') {
   const a = { id: 'attack:1', owner_id: c.id, direction: -1, step, kind, elapsed_ticks: 0, windup_ticks: 3, active_ticks: 3, recovery_ticks: 6 };
   state.attacks = [a]; c.combat.attack_id = a.id; return a;
 }
+
+test('Les six tenues supplémentaires couvrent combat, mouvements et interactions sans changer de costume', async () => {
+  assert.equal(Object.keys(skinAnimationAtlases).length,6);
+  for(const [style,skin] of Object.entries(skinAnimationAtlases)) {
+    const {config,state,c}=setup();c.faction_id=skin.faction;c.current_campaign_style=style;
+    assert.equal(skinAnimationFor(c),skin);assert.equal(usesCandidateCombat(c,state),true);
+    for(const definition of [skin.combat,...Object.values(skin.extras)]) {
+      assert.equal(definition.frames.length,16);
+      const bytes=await readFile(new URL(visualManifest[definition.sprite].file));
+      assert.equal(bytes[25],6);
+      for(const [x,y,w,h,px,py] of definition.frames){
+        assert.ok(x>=0&&y>=0&&w>0&&h>0&&x+w<=bytes.readUInt32BE(16)&&y+h<=bytes.readUInt32BE(20),definition.sprite);
+        assert.ok(px>=x&&px<=x+w&&py>=y&&py<=y+h);
+      }
+    }
+    const requested=[],renderer={config,metrics:{characterHeight:100,groundY:400},ctx:new Proxy({},{get:()=>()=>{}}),assets:{get:id=>{requested.push(id);return {};}}};
+    attack(state,c).elapsed_ticks=3;
+    drawMelenchonCombat(renderer,c,200,state);assert.equal(requested.at(-1),skin.combat.sprite);
+    assert.equal(combatAtlasFor(c),skin.combat);
+    state.attacks=[];c.combat.attack_id=null;c.moving=true;c.axis=1;state.candidates.find(a=>a.id!==c.id).x=c.x+1;
+    const pose=candidateExtraPose(c,state,config,true,null,7);assert.equal(pose.sheet,'movement');assert.equal(pose.frame,7);
+    c.moving=false;c.axis=0;c.purchase_hold={};drawMelenchonCombat(renderer,c,200,state);assert.equal(requested.at(-1),skin.extras.actions.sprite);
+    c.current_campaign_style='skin_inconnu';assert.equal(usesCandidateCombat(c,state),false);
+    c.current_campaign_style=style;c.faction_id=skin.faction==='philippe'?'melenchon':'philippe';assert.equal(skinAnimationFor(c),null);
+  }
+});
 
 test('Les poses distinctes utilisent leur atlas transparent', async () => {
   assert.equal(MELENCHON_SPRITE, 'character-melenchon-combat-v4');
@@ -116,14 +143,14 @@ test('Charge configurable, coup puissant distinct, saut normal et coup de pied a
   assert.equal(melenchonPose(c,state,config).frame,15);
 });
 
-test('Interruption immédiate : stun, KO, dash et ultime remplacent la pose ; autres skins inchangés', () => {
+test('Interruption immédiate : stun, KO, dash et ultime remplacent la pose pour tous les skins', () => {
   const {config,state,c} = setup(); attack(state,c);
   c.combat.stun_ticks = 1; assert.equal(melenchonPose(c,state,config),null); c.combat.stun_ticks = 0;
   c.is_ko = true; assert.equal(melenchonPose(c,state,config),null); c.is_ko = false;
   c.dash_active = true; assert.equal(melenchonPose(c,state,config),null); c.dash_active = false;
   state.attacks[0].kind = 'SPECIAL'; assert.equal(melenchonPose(c,state,config),null);
   for (const skin of [null,'melenchon_universaliste']) { c.current_campaign_style = skin; assert.equal(usesMelenchonCombat(c,state),true); }
-  for (const skin of ['melenchon_populiste','melenchon_communautariste']) { c.current_campaign_style = skin; assert.equal(usesMelenchonCombat(c,state),false); }
+  for (const skin of ['melenchon_populiste','melenchon_communautariste']) { c.current_campaign_style = skin; assert.equal(usesMelenchonCombat(c,state),true); }
 });
 
 test('Rendu : repère au sol, hauteur de saut, miroir et découpe de l’atlas sans altérer la simulation', () => {
@@ -163,7 +190,7 @@ for (const faction of ['le_pen','philippe']) test(faction+' : atlas, poses, cost
   assert.ok(requested.every(id=>id===definition.sprite));
   assert.ok(calls.filter(c=>c[0]==='drawImage').every(c=>c[1]===image));
   c.current_campaign_style=faction==='le_pen'?'le_pen_zemmouriste':'philippe_notable';
-  assert.equal(usesCandidateCombat(c,state),false);
+  assert.equal(usesCandidateCombat(c,state),true);
   c.current_campaign_style=null;c.bardella_form=true;assert.equal(usesCandidateCombat(c,state),false);
   c.bardella_form=false;c.ultimate_effect={kind:'EUROPE',expires_tick:100};assert.equal(usesCandidateCombat(c,state),false);
 });

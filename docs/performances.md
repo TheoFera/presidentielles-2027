@@ -69,3 +69,19 @@ node scripts/validate-arcade-browser.mjs
 ```
 
 `CAMPAIGN_TEST_NODE_MODULES` doit pointer vers le dossier contenant Playwright. L’option `ARCADE_LOOPBACK_ICE` est réservée au test de plusieurs navigateurs sur la même machine ; elle ne modifie pas le jeu. Les téléphones physiques et leurs réseaux Wi-Fi restent à tester séparément.
+
+## Troisième passe : navigateur mobile, 23 septembre 2026
+
+Les calculs d’influence regroupent les unités, bâtiments et candidats une fois par appel, au lieu de rechercher les mêmes éléments pour chaque zone et chaque camp. Ces regroupements sont reconstruits à chaque appel : un déplacement, une conversion, un import ou une construction au même tick reste immédiatement pris en compte. L’ordre des additions et les deux actualisations par tick sont conservés. Le calcul des revenus évite de créer le tableau détaillé lorsque seul le total est nécessaire. Ces gains concernent aussi l’hôte multijoueur, sans modifier le protocole ou les fréquences de synchronisation.
+
+Le dessin écarte les images de décor entièrement hors du cadrage, avec une marge de sécurité de deux pixels physiques. Les images, filtres de saison, animations et résolutions restent identiques. Les formateurs de nombres français sont réutilisés, et les textes inchangés des jauges d’arène ne sont plus remplacés.
+
+### Vérifications et mesures
+
+- `test/performance-invariants.test.js` compare l’algorithme précédent et le nouveau sur 36 états successivement modifiés au même tick : unités, bâtiments, meetings, contrôle des zones, styles, combat et élimination. Les états et revenus sont strictement identiques, arrondis compris. Ce test fait partie de la suite principale.
+- `node scripts/validate-simulation-performance.mjs` : six séries alternées après échauffement, avec 201 unités et 3 000 calculs par série sous Node 24. Médiane de l’influence : **649,15 → 155,38 ms**, soit **76 % de temps en moins**. Revenus des trois camps : **20,18 → 14,12 ms**, soit **30 % de moins**. Ces résultats mesurent ces fonctions isolées, pas les FPS.
+- `node scripts/validate-mobile-render.mjs artifacts/performance-mobile/reference-sources.json` : **48 scènes identiques pixel par pixel**, six biomes, quatre saisons, jonctions de décor, deux densités de pixels, écran 844 × 390. Le nombre d’appels au dessin d’images passe de **687 à 591** pour chaque série de 24 scènes, soit **14 % de moins**. Le fichier de référence contient les sources enregistrées avant cette passe ; les modifications de costumes déjà présentes sont conservées dans les deux versions. Sans argument, le script vérifie seulement le rendu courant et les chargements.
+- `node scripts/validate-mobile-combat-browser.mjs` : parcours des neuf styles, commandes tactiles, dash, clavier, décharge du pouvoir et écran de rotation réussis, sans erreur JavaScript.
+- Suite principale sous Node 24 : **221 tests réussis sur 225**. Les quatre échecs sont reproduits avec l’ancien calcul : trois concernent les costumes en cours de modification, le quatrième le chemin d’une image de costume dans le test d’export. Les anciens tests `economy` et `electoral`, hors suite principale, ont également les mêmes 34 échecs avant et après. Aucun de ces échecs n’est introduit par cette passe. La construction de `dist/` réussit.
+
+Les rapports se trouvent dans `artifacts/performance-mobile/`. Le profil de marche de dix secondes (`scripts/profile-mobile-render.mjs`, Chrome avec processeur ralenti ×4) reste variable : le 95e percentile des intervalles d’affichage passe de 16,1 à 14,1 ms, mais cela ne démontre pas un gain constant de FPS. Les mesures ont été faites sur ordinateur avec émulation mobile, pas sur un téléphone physique. Les grosses images et le coût du dessin restent des postes importants ; cette passe ne réduit pas leur qualité.

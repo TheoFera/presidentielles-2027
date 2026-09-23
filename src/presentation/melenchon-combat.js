@@ -1,5 +1,6 @@
 import { additionalCombatAtlases } from './candidate-combat-atlases.js';
-import { candidateExtraAtlases, candidateExtraPose } from './candidate-extra-poses.js';
+import { extraAtlasesFor, candidateExtraPose } from './candidate-extra-poses.js';
+import { skinAnimationFor } from './skin-animation-atlases.js';
 import { MelenchonMotionTracker } from './melenchon-extra-poses.js';
 import { combatDelta } from '../simulation/combat-geometry.js';
 import { enemies } from '../simulation/combat-state.js';
@@ -25,10 +26,11 @@ export const MELENCHON_JUMP_SCALE = 1.06;
 export const MELENCHON_CHARGED_SCALE = 1.06;
 
 export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases };
+export const combatAtlasFor = entity => skinAnimationFor(entity)?.combat || combatAtlases[entity.faction_id];
 export function usesCandidateCombat(entity, state) {
   const atlas = combatAtlases[entity.faction_id];
   return !!atlas && (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME' && entity.faction_id === 'melenchon') && !entity.bardella_form && !entity.presentation_name
-    && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style)
+    && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style || !!skinAnimationFor(entity))
     && !(entity.ultimate_effect && entity.ultimate_effect.expires_tick > state.tick);
 }
 export const usesMelenchonCombat = (entity,state) => entity.faction_id === 'melenchon' && usesCandidateCombat(entity,state);
@@ -96,7 +98,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   renderer.combatPoseTracker ??= new CombatPoseTracker();
   const guard = renderer.combatPoseTracker.active(entity, state, renderer.config);
   let extra=null;
-  if(candidateExtraAtlases[entity.faction_id]) {
+  if(extraAtlasesFor(entity)) {
     renderer.melenchonMotionTracker ??= new MelenchonMotionTracker();
     const landing=renderer.melenchonMotionTracker.landing(entity,state,renderer.config);
     const c=entity.combat;
@@ -106,7 +108,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   }
   const pose = extra || melenchonPose(entity, state, renderer.config, guard);
   if (!pose) return false;
-  const definition = extra ? candidateExtraAtlases[entity.faction_id][extra.sheet] : combatAtlases[entity.faction_id];
+  const definition = extra ? extraAtlasesFor(entity)[extra.sheet] : combatAtlasFor(entity);
   const atlas = renderer.assets.get(definition.sprite);
   if (!atlas) { void renderer.assets.load(definition.sprite); return false; }
   const { ctx, metrics: m } = renderer;
@@ -118,7 +120,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
   const [sx,sy,sw,sh,px,py] = definition.frames[pose.frame];
-  const scale = m.characterHeight / (extra ? definition.referenceHeight || 360 : MELENCHON_REFERENCE_HEIGHT);
+  const scale = m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT));
   const jumpScale = pose.name === 'jump' || pose.name === 'jump_attack' ? MELENCHON_JUMP_SCALE : 1;
   const chargedScale = !extra && (pose.frame === 9 || pose.frame === 10) ? MELENCHON_CHARGED_SCALE : 1;
   const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06

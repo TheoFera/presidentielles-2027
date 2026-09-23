@@ -1,0 +1,218 @@
+[
+  {
+    "id": "melenchon_populiste",
+    "slug": "melenchon-populiste",
+    "kind": "combat",
+    "source": "assets/generated/animations/melenchon-base-combat-v4.png",
+    "prompt": "Edit reference 1 sprite sheet: preserve EXACTLY its sixteen poses, cell positions, silhouettes, face identity, head size, anatomy, fine clean ink contours and transparent background. Change ONLY the clothing to match reference 2: Mélenchon populiste blue worker jacket with rolled cuffs, open white shirt, small red neckerchief tied in front (NOT long scarf), black trousers and dark shoes. Every pose wears this outfit. No black suit jacket, no long red scarf. Retain precise full body poses and same consistent scale. 4x4 sheet, transparent gutters, no text, no extra poses, no shadow. Reference 1 is edit target; reference 2 is outfit reference.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/melenchon-base-combat-v4.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-populiste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-populiste-combat-v1.png"
+  },
+  {
+    "id": "melenchon_populiste",
+    "slug": "melenchon-populiste",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Mélenchon, grey swept-back hair, rectangular black glasses; blue worker jacket rolled cuffs, open white shirt, small tied red neckerchief (no long scarf), black trousers. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-populiste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-populiste-movement-v1.png"
+  },
+  {
+    "id": "melenchon_populiste",
+    "slug": "melenchon-populiste",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Mélenchon, grey swept-back hair, rectangular black glasses; blue worker jacket rolled cuffs, open white shirt, small tied red neckerchief (no long scarf), black trousers. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-populiste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-populiste-actions-v1.png"
+  },
+  {
+    "id": "melenchon_communautariste",
+    "slug": "melenchon-communautariste",
+    "kind": "combat",
+    "source": "assets/generated/animations/melenchon-base-combat-v4.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Mélenchon, grey swept-back hair, rectangular black glasses; dark plum four-pocket jacket, cream shirt, long plum burgundy scarf, black trousers. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT. Row1 guard standing, lower guard, left punch windup, straight left punch. Row2 right punch windup, straight right punch, front kick knee windup, horizontal front kick. Row3 charge crouch, charged kick knee high ready, powerful extended kick, kick recovery. Row4 jump crouch launch, airborne tuck, airborne descending guard, airborne horizontal flying kick. Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/melenchon-base-combat-v4.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-communautariste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-communautariste-combat-v1.png"
+  },
+  {
+    "id": "melenchon_communautariste",
+    "slug": "melenchon-communautariste",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Mélenchon, grey swept-back hair, rectangular black glasses; dark plum four-pocket jacket, cream shirt, long plum burgundy scarf, black trousers. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-communautariste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-communautariste-movement-v1.png"
+  },
+  {
+    "id": "melenchon_communautariste",
+    "slug": "melenchon-communautariste",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Mélenchon, grey swept-back hair, rectangular black glasses; dark plum four-pocket jacket, cream shirt, long plum burgundy scarf, black trousers. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-melenchon-communautariste.png"
+    ],
+    "file": "assets/generated/animations/skins/melenchon-communautariste-actions-v1.png"
+  },
+  {
+    "id": "le_pen_gouvernement",
+    "slug": "le-pen-gouvernement",
+    "kind": "combat",
+    "source": "assets/generated/animations/le-pen-base-combat-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; light sky blue pantsuit, white blouse, pearl necklace, navy low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT. Row1 guard standing, lower guard, left punch windup, straight left punch. Row2 right punch windup, straight right punch, front kick knee windup, horizontal front kick. Row3 charge crouch, charged kick knee high ready, powerful extended kick, kick recovery. Row4 jump crouch launch, airborne tuck, airborne descending guard, airborne horizontal flying kick. Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/le-pen-base-combat-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-gouvernement.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-gouvernement-combat-v1.png"
+  },
+  {
+    "id": "le_pen_gouvernement",
+    "slug": "le-pen-gouvernement",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; light sky blue pantsuit, white blouse, pearl necklace, navy low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-gouvernement.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-gouvernement-movement-v1.png"
+  },
+  {
+    "id": "le_pen_gouvernement",
+    "slug": "le-pen-gouvernement",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; light sky blue pantsuit, white blouse, pearl necklace, navy low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-gouvernement.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-gouvernement-actions-v1.png"
+  },
+  {
+    "id": "le_pen_zemmouriste",
+    "slug": "le-pen-zemmouriste",
+    "kind": "combat",
+    "source": "assets/generated/animations/le-pen-base-combat-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; black pantsuit, burgundy turtleneck, small gold brooch, black low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT. Row1 guard standing, lower guard, left punch windup, straight left punch. Row2 right punch windup, straight right punch, front kick knee windup, horizontal front kick. Row3 charge crouch, charged kick knee high ready, powerful extended kick, kick recovery. Row4 jump crouch launch, airborne tuck, airborne descending guard, airborne horizontal flying kick. Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/le-pen-base-combat-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-zemmouriste.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-zemmouriste-combat-v1.png"
+  },
+  {
+    "id": "le_pen_zemmouriste",
+    "slug": "le-pen-zemmouriste",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; black pantsuit, burgundy turtleneck, small gold brooch, black low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-zemmouriste.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-zemmouriste-movement-v1.png"
+  },
+  {
+    "id": "le_pen_zemmouriste",
+    "slug": "le-pen-zemmouriste",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Marine Le Pen, blonde shoulder length hair; black pantsuit, burgundy turtleneck, small gold brooch, black low shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-le-pen-zemmouriste.png"
+    ],
+    "file": "assets/generated/animations/skins/le-pen-zemmouriste-actions-v1.png"
+  },
+  {
+    "id": "philippe_europeiste",
+    "slug": "philippe-europeiste",
+    "kind": "combat",
+    "source": "assets/generated/animations/philippe-base-combat-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; royal blue suit, white shirt, gold yellow tie, EU circle-of-stars lapel pin, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT. Row1 guard standing, lower guard, left punch windup, straight left punch. Row2 right punch windup, straight right punch, front kick knee windup, horizontal front kick. Row3 charge crouch, charged kick knee high ready, powerful extended kick, kick recovery. Row4 jump crouch launch, airborne tuck, airborne descending guard, airborne horizontal flying kick. Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-base-combat-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-europeiste.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-europeiste-combat-v1.png"
+  },
+  {
+    "id": "philippe_europeiste",
+    "slug": "philippe-europeiste",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; royal blue suit, white shirt, gold yellow tie, EU circle-of-stars lapel pin, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-europeiste.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-europeiste-movement-v1.png"
+  },
+  {
+    "id": "philippe_europeiste",
+    "slug": "philippe-europeiste",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; royal blue suit, white shirt, gold yellow tie, EU circle-of-stars lapel pin, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-europeiste.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-europeiste-actions-v1.png"
+  },
+  {
+    "id": "philippe_notable",
+    "slug": "philippe-notable",
+    "kind": "combat",
+    "source": "assets/generated/animations/philippe-base-combat-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; charcoal suit, white shirt, navy tie, diagonal French tricolor mayor sash with gold tassels, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT. Row1 guard standing, lower guard, left punch windup, straight left punch. Row2 right punch windup, straight right punch, front kick knee windup, horizontal front kick. Row3 charge crouch, charged kick knee high ready, powerful extended kick, kick recovery. Row4 jump crouch launch, airborne tuck, airborne descending guard, airborne horizontal flying kick. Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-base-combat-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-notable.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-notable-combat-v1.png"
+  },
+  {
+    "id": "philippe_notable",
+    "slug": "philippe-notable",
+    "kind": "movement",
+    "source": "assets/generated/animations/philippe-movement-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; charcoal suit, white shirt, navy tie, diagonal French tricolor mayor sash with gold tassels, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-movement-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-notable.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-notable-movement-v1.png"
+  },
+  {
+    "id": "philippe_notable",
+    "slug": "philippe-notable",
+    "kind": "actions",
+    "source": "assets/generated/animations/philippe-actions-v1.png",
+    "prompt": "Create a precise costume variant of reference1's sprite sheet. Reference1 is POSE/layout guide ONLY; reference2 is the authoritative character IDENTITY, face, hair, outfit and fine ink STYLE. Subject: Édouard Philippe, balding head, round black glasses, salt-and-pepper beard; charcoal suit, white shirt, navy tie, diagonal French tricolor mayor sash with gold tassels, black shoes. Match reference2 precisely. Reproduce ALL 16 poses of reference1 in the SAME row-major order, same anatomy, head size, position and proportion across poses. Keep each whole silhouette INSIDE its own cell with at least 12px transparent gutters; no overlaps. 4x4 grid, transparent RGBA background, no text, no floor/shadows. Crisp thin outlines especially hair, no halo. Bent/lying poses naturally shorter, never enlarged to fill cell. All face RIGHT.  Preserve the CHARACTER of reference2 in every cell, never the reference1 character if different.",
+    "refs": [
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/animations/philippe-actions-v1.png",
+      "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-notable.png"
+    ],
+    "file": "assets/generated/animations/skins/philippe-notable-actions-v1.png"
+  }
+]

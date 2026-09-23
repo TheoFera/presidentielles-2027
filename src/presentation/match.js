@@ -1,5 +1,6 @@
 import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
+import { formatNumber } from './number-format.js';
 
 export function drawArena(renderer, state, previous, alpha) {
   const { ctx, canvas, width, height } = renderer;
@@ -89,8 +90,10 @@ export class MatchDisplay {
     this.banner.hidden = !this.banner.textContent || state.match_tick - state.phase_started_match_tick > this.config.balance.simulation_architecture.fixed_tick_hz * 4;
     if (arena) for (const c of state.arena.candidates) {
       const card = this.cards.get(c.id);
-      card.name.textContent = `${names[c.faction_id].symbol} · ${names[c.faction_id].name}${c.id === state.local_candidate_id ? ' · Vous' : ''}`;
-      card.value.textContent = c.arena_hp > 0 && c.arena_hp < 0.1 ? '< 0,1 %' : `${c.arena_hp.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+      const name = `${names[c.faction_id].symbol} · ${names[c.faction_id].name}${c.id === state.local_candidate_id ? ' · Vous' : ''}`;
+      const value = c.arena_hp > 0 && c.arena_hp < 0.1 ? '< 0,1 %' : `${formatNumber(c.arena_hp, 1, 1)} %`;
+      if (card.name.textContent !== name) card.name.textContent = name;
+      if (card.value.textContent !== value) card.value.textContent = value;
       card.fill.style.width = `${c.arena_initial_hp ? c.arena_hp / c.arena_initial_hp * 100 : 0}%`;
       card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }

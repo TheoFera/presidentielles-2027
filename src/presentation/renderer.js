@@ -81,6 +81,11 @@ export class WorldRenderer {
     const scaleY = this.canvas.height / this.height;
     ctx.setTransform(scaleX * zoom, 0, 0, scaleY * zoom,
       scaleX * m.anchorX * (1 - zoom), scaleY * m.groundY * (1 - zoom));
+    // Visible logical coordinates after framing, with two physical pixels of
+    // safety for image filtering at the canvas edge. No resolution reduction.
+    const padding = 2 / (scaleX * zoom);
+    this.visibleWorld = { left: m.anchorX * (1 - 1 / zoom) - padding,
+      right: m.anchorX + (this.width - m.anchorX) / zoom + padding };
     ctx.imageSmoothingEnabled = false;
     const zone = zoneAt(state.world, playerX);
     preloadWorld(this, state, zone);

@@ -32,4 +32,6 @@ Character: Edouard Philippe, bald on top with dark side hair, round black glasse
 
 Les poses supplémentaires de Marine Le Pen et Édouard Philippe (marche en garde, réactions, interactions et KO) sont décrites dans [CANDIDATE_EXTRA_ANIMATIONS.md](CANDIDATE_EXTRA_ANIMATIONS.md), avec les chemins des quatre planches et leurs prompts.
 
+Les variantes pour les autres tenues de campagne sont décrites dans [SKIN_ANIMATIONS.md](SKIN_ANIMATIONS.md).
+
 Tests de sélection des sprites, des poses et des costumes, transparence et limites des découpes. Vérification navigateur des treize aperçus de chacun des trois candidats avec le rendu réel du jeu ; captures dans `artifacts/candidate-animations/`. Script : `scripts/validate-candidate-atlases-browser.mjs`.

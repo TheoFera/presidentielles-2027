@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, rm, writeFile, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative as pathRelative } from 'node:path';
 import { buildPages } from '../scripts/build-pages.mjs';
 import { validateConfig } from '../src/config.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
@@ -26,7 +26,7 @@ test('Le paquet GitHub Pages contient uniquement le jeu et charge ses réglages 
     assert.ok((await stat(join(output, included))).size > 0, included);
   }
   for (const asset of Object.values(visualManifest)) {
-    const path = fileURLToPath(asset.file).split(/[\\/]/).slice(-4).join('/');
+    const path = pathRelative(fileURLToPath(new URL('../', import.meta.url)), fileURLToPath(asset.file));
     assert.ok((await stat(join(output, path))).size > 0, path);
   }
   const exported = await readdir(output, { recursive: true, withFileTypes: true });
