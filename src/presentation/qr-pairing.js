@@ -3,7 +3,7 @@ import { copySignal } from './copy-signal.js';
 
 export function showQrInvitations(menu, session, back, textMode) {
   const slots = [2, 3];
-  menu.page('qr-invite', 'Invitez vos amis', `<p class="menu-intro">Hôte : joueur 1. Un QR par ami. Vous choisirez vos candidats une fois connectés.</p><div class="qr-invitations">${slots.map(slot => `<article class="qr-card" data-qr-slot="${slot}"><h2>Joueur ${slot}</h2><div class="qr-display"><p>Préparation…</p></div><p class="qr-player-status" role="status">Place libre</p><div class="qr-card-actions"><button type="button" class="qr-enlarge" disabled>Agrandir</button><button type="button" class="qr-copy" disabled>Copier l’invitation</button></div></article>`).join('')}</div><p id="qr-host-status" class="menu-status" role="status">Chacun choisit un QR différent.</p><footer class="qr-actions"><button id="scan-answers" class="menu-primary">Scanner une réponse</button><button id="qr-back-lobby">Voir le salon</button><button id="text-invite">Mode texte</button></footer>`, back);
+  menu.page('qr-invite', 'Invitez vos amis', `<p class="menu-intro">Hôte : joueur 1. Un QR par ami. Vous choisirez vos candidats une fois connectés.</p><div class="qr-invitations">${slots.map(slot => `<article class="qr-card" data-qr-slot="${slot}"><h2>Joueur ${slot}</h2><div class="qr-display"><p>Préparation…</p></div><p class="qr-player-status" role="status">Place libre</p><div class="qr-card-actions"><button type="button" class="qr-enlarge" disabled>Agrandir</button><button type="button" class="qr-copy" disabled>Copier l’invitation</button></div></article>`).join('')}</div><p id="qr-host-status" class="menu-status" role="status">Chacun choisit un QR différent.</p><footer class="qr-actions"><button id="scan-answers" class="menu-primary">Scanner une réponse</button><button id="text-invite">Mode texte</button></footer>`, back);
   const generation = menu.generation, stops = new Map();
   let stopScanner, closeZoom;
   menu.cleanup = () => { stops.forEach(stop => stop()); stopScanner?.(); closeZoom?.(); menu.roomUpdate = null; };
@@ -22,7 +22,7 @@ export function showQrInvitations(menu, session, back, textMode) {
     }
     const full = session.room.players.length === 3;
     menu.element.querySelector('#scan-answers').disabled = full;
-    status.textContent = full ? '3/3 joueurs connectés ! Ouvrez le salon pour lancer.' : `${session.room.players.length}/3 joueurs connectés · Scannez les réponses dans l’ordre de votre choix.`;
+    status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${session.room.players.length}/3 joueurs connectés · Scannez les réponses dans l’ordre de votre choix.`;
   };
   menu.element.querySelector('#scan-answers').onclick = () => {
     stopScanner = scanQr({ title: 'Scannez la réponse d’un ami', accept: async value => {
@@ -30,7 +30,6 @@ export function showQrInvitations(menu, session, back, textMode) {
       if (menu.generation === generation) status.textContent = 'Réponse lue. Connexion au joueur…';
     } });
   };
-  menu.element.querySelector('#qr-back-lobby').onclick = back;
   menu.element.querySelector('#text-invite').onclick = textMode;
   for (const slot of slots) {
     if (session.room.players.some(p => p.slot === slot)) continue;

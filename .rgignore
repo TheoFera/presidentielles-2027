@@ -1,0 +1,12 @@
+# Filtre les recherches courantes, sans retirer les fichiers de Git.
+/artifacts/
+/dist/
+/.codex-remote-attachments/
+/assets/
+/visual_codex/
+/codex_visual_overhaul_pack_v2/
+*.zip
+/GUIDE_*.md
+/JALON_*_SPEC.md
+/VALIDATION_*.md
+/src/vendor/*.js

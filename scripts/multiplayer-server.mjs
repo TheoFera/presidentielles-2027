@@ -77,7 +77,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       } else if (action === 'choose') {
         chooseCandidate(room, player.id, data.faction); changed(room);
       } else if (action === 'start') {
-        if (!player.host || room.phase !== 'lobby' || room.players.length < 2) throw new Error('Il faut être l’hôte et réunir au moins deux joueurs.');
+        if (!player.host || room.phase !== 'lobby' || room.players.length !== 3) throw new Error('Il faut être l’hôte et réunir trois joueurs.');
         if (!candidatesReady(room)) throw new Error('Chaque joueur doit choisir son candidat.');
         room.phase = 'loading'; room.players.forEach(p => { p.ready = false; }); changed(room);
       } else if (action === 'ready') {

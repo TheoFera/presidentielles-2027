@@ -17,7 +17,7 @@ import { ElectoralDisplay } from './presentation/electoral.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
 import { installLandscape, portraitPhone } from './presentation/landscape.js';
-import { MultiplayerSession, showMultiplayerSetup, showLobby, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
+import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
 
@@ -234,8 +234,7 @@ async function start() {
     if (room.phase === 'pairing') {
       showPeerAnswer(menu, session, returnHome);
     } else if (room.phase === 'lobby') {
-      if (menu.screen === 'qr-invite') menu.roomUpdate?.();
-      else if (menu.screen !== 'lobby') showLobby(menu, session, returnHome); else updateLobby(menu, session);
+      updateLobby(menu, session, returnHome);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
       menu.selected = session.candidateId.split(':')[1];
       void menu.loading({ multiplayer: true, ready: () => session.request('ready') });

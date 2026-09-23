@@ -4,7 +4,7 @@ export { CANDIDATES } from './arcade-content.js';
 
 export class StartMenu {
   constructor({ prepare, play, multiplayer, combat }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, selected: 'melenchon', generation: 0 });
+    Object.assign(this, { prepare, play, multiplayer, combat, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -41,17 +41,19 @@ export class StartMenu {
     this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this); };
   }
   candidates() {
+    this.selected = null;
     this.page('candidates', 'Choisissez votre candidat', candidatesContent(this.selected));
     this.element.querySelectorAll('[data-candidate]').forEach(button => {
       button.onclick = () => {
         this.selected = button.dataset.candidate;
+        this.element.querySelector('#prepare-game').disabled = false;
         this.element.querySelectorAll('[data-candidate]').forEach(card => {
           const selected = card.dataset.candidate === this.selected;
           card.setAttribute('aria-pressed', String(selected));
         });
       };
     });
-    this.element.querySelector('#prepare-game').onclick = () => this.loading();
+    this.element.querySelector('#prepare-game').onclick = () => { if (this.selected) void this.loading(); };
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);

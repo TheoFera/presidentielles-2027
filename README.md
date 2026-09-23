@@ -1,5 +1,7 @@
 # Présidentielles 2027 — cinquième jalon jouable
 
+Pour travailler avec Codex et préparer les fichiers de la future application mobile : [guide d'optimisation du projet](docs/optimisation-projet.md). `npm run build` produit le dossier `dist/` à embarquer et affiche son poids.
+
 Une partie complète : **campagne → arène à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
 
 L’IA mène des offensives contre les implantations adverses et utilise les trois styles de chaque candidat. Les niveaux **facile, normal et difficile** sont configurables dans le code : voir [le fonctionnement et les réglages de l’IA](docs/intelligence-artificielle.md).

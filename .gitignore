@@ -15,3 +15,7 @@ coverage/
 dist/
 Thumbs.db
 Desktop.ini
+
+# Rapports locaux et pièces jointes (les fichiers déjà suivis restent suivis)
+artifacts/
+.codex-remote-attachments/

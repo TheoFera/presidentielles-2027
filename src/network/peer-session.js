@@ -229,7 +229,7 @@ export class PeerSession {
     } else if (action === 'choose') {
       chooseCandidate(this.room, this.id, data.faction); this.publishRoom();
     } else if (action === 'start') {
-      if (this.room.players.length < 2 || this.room.phase !== 'lobby') throw new Error('Il faut au moins deux joueurs connectés.');
+      if (this.room.players.length !== 3 || this.room.phase !== 'lobby') throw new Error('Il faut trois joueurs connectés.');
       if (!candidatesReady(this.room)) throw new Error('Chaque joueur doit choisir son candidat.');
       this.cancelInvite(); this.room.phase = 'loading'; this.room.players.forEach(p => { p.ready = false; }); this.publishRoom();
     } else if (action === 'ready' && this.room.phase === 'loading') this.setReady(this.room.players[0]);

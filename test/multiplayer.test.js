@@ -230,9 +230,15 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   const guestAuth = { code: guest.code, token: guest.token };
   assert.equal(guest.room.players[1].faction, null);
   assert.equal((await request('start', auth)).status, 400);
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon' })).status, 400);
+  const third = await request('join', { code: host.code });
+  const thirdAuth = { code: third.code, token: third.token };
+  assert.ok(third.room.players.every(player => player.faction === null));
   assert.equal((await request('choose', { ...auth, faction: 'melenchon' })).status, 200);
   assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400);
   assert.equal((await request('choose', { ...guestAuth, faction: 'le_pen' })).status, 200);
+  assert.equal((await request('start', auth)).status, 400);
+  assert.equal((await request('choose', { ...thirdAuth, faction: 'philippe' })).status, 200);
   assert.equal(guest.room.players.length, 2);
   assert.ok(!JSON.stringify(guest.room).includes(host.token));
   assert.equal((await request('start', guestAuth)).status, 400);
@@ -243,6 +249,8 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   assert.equal((await request('ready', auth)).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);
   assert.equal((await request('ready', guestAuth)).status, 200);
+  assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);
+  assert.equal((await request('ready', thirdAuth)).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'Move', axis: 1 }] })).status, 200);
   assert.equal((await request('snapshot', { ...guestAuth, state: { tick: 1, candidates: [] } })).status, 400);
   assert.equal((await request('pause', { ...guestAuth, paused: true })).status, 200);
