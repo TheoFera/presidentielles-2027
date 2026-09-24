@@ -31,7 +31,7 @@ export function usesCandidateCombat(entity, state) {
   const atlas = combatAtlases[entity.faction_id];
   return !!atlas && (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME' && entity.faction_id === 'melenchon') && !entity.bardella_form && !entity.presentation_name
     && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style || !!skinAnimationFor(entity))
-    && !(entity.ultimate_effect && entity.ultimate_effect.expires_tick > state.tick);
+    && !(entity.ultimate_effect && entity.ultimate_effect.kind !== 'SCARF' && entity.ultimate_effect.expires_tick > state.tick);
 }
 export const usesMelenchonCombat = (entity,state) => entity.faction_id === 'melenchon' && usesCandidateCombat(entity,state);
 
@@ -125,7 +125,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   const chargedScale = !extra && (pose.frame === 9 || pose.frame === 10) ? MELENCHON_CHARGED_SCALE : 1;
   const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06
     : ['attack_3_finisher','interaction_hold','ko_fall','ko_ground'].includes(pose.name) ? 1.06 : 1;
-  const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * jumpScale * chargedScale * actionScale;
+  const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * jumpScale * chargedScale * actionScale * (pose.name==='ultimate'&&entity.faction_id==='le_pen'?1.12:1);
   const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (!extra && pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale * actionScale;
   if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
   const clip=definition.clips?.[pose.frame];

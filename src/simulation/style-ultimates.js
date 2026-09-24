@@ -2,6 +2,28 @@ import { activeCampaignStyle, clearCampaignUltimate } from './campaign-styles.js
 import { combatActors, combatState, enemies, hit, nearestEnemy } from './combat-state.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 
+// Independent, seeded choices: replaying a saved tick gives the same movement
+// without adding fields to snapshots or consuming the global AI random stream.
+export function surgeMotionPlan(state, unit, hz) {
+  const salt=[...`${state.seed}:${unit.id}`].reduce((n,c)=>Math.imul(n^c.charCodeAt(0),16777619)>>>0,2166136261);
+  const interval=Math.max(3,Math.round(hz*(.18+(salt%23)/100)));
+  const age=Math.max(0,state.tick-unit.ready_tick);
+  let value=(salt^Math.imul(Math.floor(age/interval)+1,0x9e3779b9))>>>0;
+  value=Math.imul(value^(value>>>16),0x45d9f3b)>>>0;
+  value=(value^(value>>>16))>>>0;
+  return { direction:value&1?1:-1, speed:.6+((value>>>1)%71)/100, pause:(value>>>9)%9===0, pursue:(value>>>13)%3===0 };
+}
+
+function surgeTurns(seed, id, startTick, roamingTicks) {
+  const index=Number(id.split(':').at(-1))||0,count=3+(index%2),ticks=[];
+  for(let turn=1;turn<=count;turn++) {
+    const salt=[...`${seed}:${id}:${turn}`].reduce((n,c)=>Math.imul(n^c.charCodeAt(0),16777619)>>>0,2166136261);
+    const base=turn/(count+1),jitter=((salt%101)/100-.5)*.12;
+    ticks.push(startTick+Math.round(roamingTicks*(base+jitter)));
+  }
+  return ticks.sort((a,b)=>a-b);
+}
+
 export function tryBardellisation(sim, candidate) {
   if (activeCampaignStyle(sim.config, candidate)?.ultimate.kind !== 'BARDELLA' || candidate.bardellisation_used || !candidate.bardella_guardian_armed) return false;
   clearCampaignUltimate(sim, candidate);
@@ -34,19 +56,29 @@ export function startStyleUltimate(sim, actor, power) {
   const settings = sim.config.balance.specials;
   if (power.kind === 'SURGE') {
     const s = settings.surge;
-    power.expires_tick += sim.secondsToTicks(s.duration_seconds + s.appearance_seconds);
-    for (let i = 0; i < s.count; i++) temporary(sim, actor, power, 'ENCAPUCHONNE', actor.x + (i - 3) * 0.65, 9999,
-      { spawn_tick: sim.state.tick, ready_tick: sim.state.tick + sim.secondsToTicks(s.appearance_seconds), contact_ticks: {}, sweep_origin: actor.x, sweep_direction: i % 2 ? -1 : 1 });
+    const readyTick=sim.state.tick+sim.secondsToTicks(s.appearance_seconds);
+    const returnTick=readyTick+sim.secondsToTicks(s.duration_seconds);
+    power.return_tick=returnTick;
+    power.expires_tick=returnTick+sim.secondsToTicks(s.return_seconds);
+    for (let i = 0; i < s.count; i++) {
+      const unit=temporary(sim,actor,power,'ENCAPUCHONNE',actor.x-actor.facing*.08,9999,
+        { spawn_tick:sim.state.tick,ready_tick:readyTick,return_tick:returnTick,contact_ticks:{},sweep_origin:actor.x,
+          sweep_direction:i%2?1:-1,surge_segment:0,surge_index:i });
+      unit.surge_turn_ticks=surgeTurns(sim.state.seed,unit.id,readyTick,returnTick-readyTick);
+    }
   } else if (power.kind === 'ZEMMOUR') {
     const s = settings.zemmour;
     power.expires_tick += sim.secondsToTicks(s.duration_seconds);
     temporary(sim, actor, power, 'ZEMMOUR', actor.x - actor.facing * 1.5, s.durability, { next_shot_tick: sim.state.tick, shot_count: 0 });
   } else if (power.kind === 'FIRE') {
-    const target = nearestEnemy(sim.state, actor, sim.state.world.length, t => t.role === 'CANDIDAT');
+    const target = nearestEnemy(sim.state,actor,sim.state.world.length,t=>t.role==='CANDIDAT')
+      || nearestEnemy(sim.state,actor,sim.state.world.length);
     const targetX = target?.x ?? combatPosition(sim.state, actor.x + actor.facing * 6);
     const delta = combatDelta(sim.state, actor.x, targetX), travel = Math.max(0.1, Math.abs(delta));
-    power.expires_tick += sim.secondsToTicks(travel / settings.fire.projectile_speed + settings.fire.duration_seconds + settings.fire.burn_seconds);
-    createStyleProjectile(sim, actor, power, 'MOLOTOV', settings.fire, { target_x: targetX, direction: Math.sign(delta) || actor.facing, remaining_range: travel });
+    const launchTick=sim.state.tick+sim.secondsToTicks(settings.fire.launch_delay_seconds);
+    power.expires_tick += sim.secondsToTicks(settings.fire.launch_delay_seconds+travel/settings.fire.projectile_speed+settings.fire.duration_seconds+settings.fire.burn_seconds);
+    createStyleProjectile(sim,actor,power,'MOLOTOV',settings.fire,{target_id:target?.id??null,target_x:targetX,direction:Math.sign(delta)||actor.facing,
+      remaining_range:travel,initial_range:travel,launch_tick:launchTick,launched:false});
     actor.ultimate_effect = { kind: 'FIRE', expires_tick: sim.state.tick + sim.secondsToTicks(0.9) };
   } else if (['SCARF', 'EUROPE'].includes(power.kind)) {
     power.expires_tick += sim.secondsToTicks(settings[power.kind.toLowerCase()].duration_seconds);
@@ -58,10 +90,27 @@ export function startStyleUltimate(sim, actor, power) {
 export function updateStyleTemporary(sim, unit) {
   const { state, config } = sim;
   if (unit.role === 'ENCAPUCHONNE') {
-    if (state.tick < unit.ready_tick) return true;
     const s = config.balance.specials.surge;
-    unit.x = combatPosition(state, unit.x + unit.sweep_direction * s.speed / sim.hz); unit.moving = true;
-    if (Math.abs(combatDelta(state, unit.sweep_origin, unit.x)) > 7) unit.sweep_direction *= -1;
+    const owner=state.candidates.find(candidate=>candidate.id===unit.owner_id);
+    if(!owner)return true;
+    if(state.tick<unit.ready_tick){unit.x=combatPosition(state,owner.x-owner.facing*.08);unit.moving=false;return true;}
+    if(state.tick>=unit.return_tick){
+      const destination=combatPosition(state,owner.x-owner.facing*.08),delta=combatDelta(state,unit.x,destination);
+      unit.facing=Math.sign(delta)||owner.facing;unit.moving=Math.abs(delta)>.08;
+      const step=s.return_speed/sim.hz;
+      unit.x=Math.abs(delta)<=step?destination:combatPosition(state,unit.x+Math.sign(delta)*step);
+      return true;
+    }
+    while(unit.surge_segment<unit.surge_turn_ticks.length&&state.tick>=unit.surge_turn_ticks[unit.surge_segment]){
+      unit.sweep_direction*=-1;unit.surge_segment++;
+    }
+    const plan=surgeMotionPlan(state,unit,sim.hz);
+    let direction=unit.sweep_direction;
+    const offset=combatDelta(state,unit.sweep_origin,unit.x);
+    if(Math.abs(offset)>6.5)direction=-Math.sign(offset);
+    unit.sweep_direction=direction;
+    unit.moving=!plan.pause;
+    if(unit.moving)unit.x=combatPosition(state,unit.x+direction*s.speed*plan.speed/sim.hz);
     unit.facing = unit.sweep_direction;
     for (const target of combatActors(state)) {
       if (!enemies(unit, target) || Math.abs(combatDelta(state, unit.x, target.x)) > s.range || state.tick < (unit.contact_ticks[target.id] ?? 0)) continue;

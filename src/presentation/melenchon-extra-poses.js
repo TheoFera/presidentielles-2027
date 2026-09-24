@@ -41,6 +41,7 @@ export function melenchonExtraPose(actor,state,config,guard,landingAge=null,walk
   const pose=(sheet,frame,name)=>({sheet,frame,name,direction:actor.facing,extra:true});
   const cycle=(frames,seconds=.12)=>frames[Math.floor(tick/(hz*seconds))%frames.length];
   const incoming=c.last_hit?.target_id===actor.id?c.last_hit:null;
+  const surge=actor.faction_id==='melenchon'&&state.powers.find(power=>power.owner_id===actor.id&&power.kind==='SURGE');
   if(actor.is_ko || actor.arena_hp<=0) {
     const age=tick-(actor.is_ko?actor.ko_started_tick:incoming?.tick);
     const duration=Math.max(1,Math.ceil(config.balance.candidate_combat.ko_fall_seconds*hz));
@@ -60,6 +61,7 @@ export function melenchonExtraPose(actor,state,config,guard,landingAge=null,walk
     return {...pose('movement',age<=0?4:age>=duration-1?6:5,'dash'),direction:actor.dash_direction};
   }
   const attack=state.attacks.find(a=>a.id===c.attack_id);
+  if(surge&&(tick<surge.started_tick+Math.ceil(config.balance.specials.surge.appearance_seconds*hz)||tick>=surge.return_tick)) return pose('actions',15,'ultimate');
   if(attack?.kind==='SPECIAL') return pose('actions',attack.elapsed_ticks<attack.windup_ticks?14:15,'ultimate');
   if(attack || c.charge_active || c.jump_tick!=null) return null;
   if(!actor.moving && !actor.axis && (actor.purchase_hold || actor.style_hold || actor.style_interaction_held)) return pose('shuffle',cycle([4,5,6,7],.3),'interaction_hold');

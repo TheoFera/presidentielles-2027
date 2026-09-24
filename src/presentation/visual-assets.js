@@ -25,6 +25,19 @@ export class VisualAssets {
     return Promise.all([...new Set(ids)].map(id => this.load(id)));
   }
 
+  async loadRequired(ids, onProgress = () => {}) {
+    const required = [...new Set(ids)];
+    // Only an explicit loading-screen attempt retries failures. Draw calls keep
+    // their non-retrying fallback, avoiding a network loop during gameplay.
+    for (const id of required) this.failures.delete(id);
+    let completed = 0;
+    await Promise.all(required.map(async id => {
+      const image = await this.load(id);
+      if (!image) throw new Error('Certaines images n’ont pas pu être chargées. Réessayez.');
+      onProgress(++completed / required.length);
+    }));
+  }
+
   load(id) {
     if (this.cache.has(id)) return this.cache.get(id).promise;
     const source = this.manifest[id];

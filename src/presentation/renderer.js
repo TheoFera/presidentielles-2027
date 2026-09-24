@@ -89,7 +89,8 @@ export class WorldRenderer {
     ctx.imageSmoothingEnabled = false;
     const zone = zoneAt(state.world, playerX);
     preloadWorld(this, state, zone);
-    const illustrated = !!this.assets.get(`background-${zone.index}`);
+    const biome = ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches'][zone.biome_index];
+    const illustrated = !!(this.assets.get(`landscape-${biome}`) || this.assets.get(`background-strip-${biome}`));
     const palette = this.p.biome_palettes[zone.biome_id];
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, 0, this.width, this.height);

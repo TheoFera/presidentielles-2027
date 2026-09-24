@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { VisualAssets, neighboringSubzones } from '../src/presentation/visual-assets.js';
 import { characterAssetId, characterAnimation, npcVariantCounts } from '../src/presentation/illustrated-characters.js';
-import { sceneryProjection, sceneryParallax, sceneryImageHeight } from '../src/presentation/illustrated-world.js';
-import { buildingGeometry } from '../src/presentation/illustrated-buildings.js';
+import { sceneryProjection, sceneryParallax, sceneryImageHeight, worldAssetIds, preloadWorld } from '../src/presentation/illustrated-world.js';
+import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
+import { GameSimulation } from '../src/simulation/game-simulation.js';
+import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { access } from 'node:fs/promises';
 
@@ -57,6 +59,46 @@ test('Un export absent ne bloque pas une scène et une erreur ne provoque pas de
   assert.equal(await cache.load('absent'),null);
   const pending=cache.load('bad'); images[0].onerror(); assert.equal(await pending,null);
   assert.equal(await cache.load('bad'),null); assert.equal(images.length,1); assert.deepEqual(cache.status().failed,['bad']);
+});
+
+test('Le démarrage refuse une image absente et Réessayer relance uniquement les échecs', async () => {
+  const images = [], progress = [];
+  const cache = new VisualAssets({ good: { file: 'good' }, bad: { file: 'bad' } }, {
+    createImage: () => { const image = {}; images.push(image); return image; },
+  });
+  const first = cache.loadRequired(['good', 'bad'], ratio => progress.push(ratio));
+  const rejected = assert.rejects(first, /images/);
+  await images[0].onload(); images[1].onerror(); await rejected;
+  assert.deepEqual(progress, [.5]);
+  assert.equal(await cache.load('bad'), null, 'Le dessin ne relance pas une image en échec');
+  const retry = cache.loadRequired(['good', 'bad']);
+  assert.equal(images.length, 3, 'L’image réussie reste réutilisée');
+  await images[2].onload(); await retry;
+  assert.deepEqual(cache.status().failed, []);
+  await assert.rejects(cache.loadRequired(['non-déclarée']), /images/);
+});
+
+test('Le chargement complet et les changements de zone conservent tous les sprites de la carte', async () => {
+  const state = new GameSimulation(campaignConfig()).getState();
+  let created = 0;
+  const assets = new VisualAssets(visualManifest, { limit: 4, createImage: () => {
+    created++;
+    const image = { set src(value) { queueMicrotask(() => image.onload()); } };
+    return image;
+  } });
+  const renderer = { assets }, ids = worldAssetIds(visualManifest, state);
+  for (const building of state.buildings) assert.ok(ids.includes(buildingAssetId(building, state.world)));
+  for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');
+  preloadWorld(renderer, state, state.world.subzones[0]);
+  await assets.loadRequired(ids);
+  assert.equal(created, ids.length);
+  for (const zone of [...state.world.subzones, ...state.world.subzones.toReversed()]) {
+    preloadWorld(renderer, state, zone);
+    for (const id of ids) assert.ok(assets.get(id), `${id} reste disponible en zone ${zone.index}`);
+    assert.equal(assets.status().pending, 0);
+  }
+  assert.equal(created, ids.length, 'Aucun sprite recréé aux changements de zone');
 });
 
 test('Le préchargement relie les deux extrémités de la boucle', () => {

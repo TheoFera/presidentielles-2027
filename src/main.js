@@ -214,19 +214,28 @@ async function start() {
     renderer.artZone = null;
     renderer.draw(state, state, 1, 0);
     const ids = [...renderer.assets.protectedIds];
-    let loaded = 0, timeout;
+    let timeout, finished = false, restartTimeout;
     onProgress(0);
     try {
       await Promise.race([
-        Promise.all(ids.map(id => renderer.assets.load(id).then(() => onProgress(++loaded / ids.length * .95)))),
-        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Le chargement a pris trop de temps.')), 30000); }),
+        new Promise((_, reject) => {
+          restartTimeout = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => reject(new Error('Le chargement ne progresse plus. Vérifiez votre connexion et réessayez.')), 30000);
+          };
+          restartTimeout();
+        }),
+        renderer.assets.loadRequired(ids, ratio => {
+          if (finished) return;
+          restartTimeout(); onProgress(ratio * .95);
+        }),
       ]);
       // Prepare the first complete frame behind the loading screen. In
       // particular, texture uploads must not become simulation catch-up time.
       renderer.draw(state, state, 1, 0);
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       onProgress(1);
-    } finally { clearTimeout(timeout); }
+    } finally { finished = true; clearTimeout(timeout); }
   }
   function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); if (portraitPhone()) togglePause(true); void keepScreenAwake(); }
   function roomChanged(room) {

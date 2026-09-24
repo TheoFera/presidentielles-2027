@@ -1,5 +1,4 @@
 import { ringDelta } from '../simulation/world.js';
-import { neighboringSubzones } from './visual-assets.js';
 import { buildingAssetId } from './illustrated-buildings.js';
 import { seasonAt } from '../simulation/campaign-events.js';
 
@@ -31,24 +30,31 @@ export function scenerySeasonFilter(progress) {
   return `saturate(${saturation}) sepia(${sepia}) brightness(${brightness})`;
 }
 
-export function preloadWorld(renderer, state, zone) {
-  if (renderer.artZone === zone.index) return;
-  renderer.artZone = zone.index;
-  const neighbors = neighboringSubzones(state.world.subzones, zone.index);
-  const wanted = new Set(neighbors.map(backgroundAssetId));
-  wanted.add('background-arena');
-  wanted.add('distant-clouds');
-  for (const index of [(zone.biome_index+5)%6,zone.biome_index,(zone.biome_index+1)%6]) {
-    wanted.add(`background-strip-${biomeNames[index]}`); wanted.add(`distant-${biomeNames[index]}`);
-    wanted.add(`street-${biomeNames[index]}`); wanted.add(`landscape-${biomeNames[index]}`);
+export function worldAssetIds(manifest, state) {
+  const wanted = new Set(['background-arena', 'distant-clouds']);
+  const separated = biomeNames.every(biome => manifest[`landscape-${biome}`]);
+  for (const biome of biomeNames) {
+    wanted.add(`distant-${biome}`); wanted.add(`street-${biome}`);
+    // The old panoramas are only a fallback; retaining them as well would
+    // consume mobile memory without drawing a single additional pixel.
+    wanted.add(`${separated ? 'landscape' : 'background-strip'}-${biome}`);
   }
   for (const building of state.buildings) {
-    if (neighbors.some(z => z.id === building.subzone_id)) wanted.add(buildingAssetId(building, state.world));
+    wanted.add(buildingAssetId(building, state.world));
   }
-  for (const id of Object.keys(renderer.assets.manifest)) {
-    if (/^(character-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-)/.test(id)) wanted.add(id);
+  for (const id of Object.keys(manifest)) {
+    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-)/.test(id)) wanted.add(id);
   }
-  void renderer.assets.keep([...wanted]);
+  return [...wanted];
+}
+
+export function preloadWorld(renderer, state, zone) {
+  if (renderer.artZone === zone.index && renderer.artWorld === state.world) return;
+  renderer.artZone = zone.index;
+  renderer.artWorld = state.world;
+  // Pin the complete playable map, including remote buildings and animation
+  // variants, before play. Crossing a boundary no longer evicts visible art.
+  void renderer.assets.keep(worldAssetIds(renderer.assets.manifest, state));
 }
 
 export function drawIllustratedSky(renderer, state) {

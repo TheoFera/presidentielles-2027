@@ -159,9 +159,11 @@ function triggerSpecial(sim, actor) {
   } else if (kind === 'WAVE') {
     const s = config.balance.specials.le_pen_navy_wave;
     const range = s.range_screens * config.prototype.world.units_per_screen;
-    power.expires_tick += sim.secondsToTicks(range / s.travel_speed);
+    const launchTick=state.tick+sim.secondsToTicks(s.launch_delay_seconds);
+    power.expires_tick=launchTick+sim.secondsToTicks(range/s.travel_speed);
     state.projectiles.push({ id: `projectile:${state.next_projectile_id++}`, power_id: power.id, owner_id: actor.id, faction_id: actor.faction_id,
-      kind: 'WAVE', x: actor.x, direction: actor.facing, speed: s.travel_speed, remaining_range: range, hit_ids: [], damage: s.candidate_resistance_damage, knockback: s.knockback, electoral_damage: s.candidate_electoral_damage_percent_points });
+      kind:'WAVE',x:actor.x,direction:actor.facing,speed:s.travel_speed,remaining_range:range,launch_tick:launchTick,launched:false,
+      hit_ids:[],damage:s.candidate_resistance_damage,knockback:s.knockback,electoral_damage:s.candidate_electoral_damage_percent_points });
   } else {
     const hologram = kind === 'HOLOGRAMS';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
@@ -222,6 +224,15 @@ function updateProjectiles(sim) {
     if (state.arena_bounds && state.eliminated_faction) break;
     const owner = combatActors(state).find(a => a.id === p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
+    if(p.launch_tick!=null&&state.tick<p.launch_tick)continue;
+    if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;}
+    if(p.kind==='MOLOTOV'&&!p.launched){
+      const target=combatActors(state).find(actor=>actor.id===p.target_id&&enemies(owner,actor));
+      const targetX=target?.x??p.target_x??combatPosition(state,owner.x+owner.facing*6);
+      const delta=combatDelta(state,owner.x,targetX);
+      p.x=owner.x;p.target_x=targetX;p.direction=Math.sign(delta)||owner.facing;
+      p.remaining_range=Math.max(.1,Math.abs(delta));p.initial_range=p.remaining_range;p.launched=true;
+    }
     if (p.kind === 'BUBBLE') { const target = combatActors(state).find(t => t.id === p.target_id && enemies(owner,t)); if (target) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     if (updateMolotov(sim, p, step)) continue;

@@ -1,4 +1,5 @@
 import { drawStyleEffects } from './style-effects.js';
+import { drawUltimateProjectile } from './ultimate-sprites.js';
 export function drawCombatEffects(renderer, state, debug) {
   const { ctx, metrics: m, config } = renderer;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
@@ -20,6 +21,7 @@ export function drawCombatEffects(renderer, state, debug) {
   for (const p of state.projectiles) {
     const x = renderer.screenX(p.x);
     if (x < -100 || x > renderer.width + 100) continue;
+    if (drawUltimateProjectile(renderer, p, state)) continue;
     if (p.kind === 'WAVE') {
       const h = m.characterHeight * 1.65;
       const width = m.pixelsPerUnit * 1.8;

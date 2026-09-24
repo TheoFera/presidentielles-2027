@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 
 
-def components(path):
+def components(path, rows=4, clip_all=False, band_height=8, clip_margin=2):
     im = Image.open(path)
     alpha = np.asarray(im.getchannel('A'))
     mask = alpha > 100
@@ -45,8 +45,8 @@ def components(path):
     cols = [[] for _ in range(4)]
     for b in large: cols[min(3,int(((b[0]+b[2])/2)/(im.width/4)))].append(b)
     ordered=[]
-    if all(len(c)==4 for c in cols):
-        ordered=[cols[c][r] for r in range(4) for c in range(4)]
+    if all(len(c)==rows for c in cols):
+        ordered=[cols[c][r] for r in range(rows) for c in range(4)]
     clips = {}
     if ordered:
         keys = {id(b):key for key,b in groups.items()}
@@ -54,20 +54,20 @@ def components(path):
             x,y,x2,y2,_ = box
             key = keys[id(box)]
             overlaps = any(root(i) != key and b[0]<x2+2 and b[2]>x-2 and b[1]<y2+2 and b[3]>y-2 for i,b in enumerate(bounds))
-            if not overlaps: continue
+            if not overlaps and not clip_all: continue
             bands = {}
             for i,b in enumerate(bounds):
                 if root(i) != key: continue
-                band = (b[1]-y)//8
+                band = (b[1]-y)//band_height
                 if band not in bands: bands[band] = [b[0],b[2]]
                 else:
                     bands[band][0] = min(bands[band][0],b[0])
                     bands[band][1] = max(bands[band][1],b[2])
             left, right = [], []
             for band,(a,b) in sorted(bands.items()):
-                top=max(0,y+band*8-2); bottom=min(im.height,y+band*8+10)
-                left.extend([[max(0,a-2),top],[max(0,a-2),bottom]])
-                right.extend([[min(im.width,b+2),top],[min(im.width,b+2),bottom]])
+                top=max(0,y+band*band_height-clip_margin); bottom=min(im.height,y+(band+1)*band_height+clip_margin)
+                left.extend([[max(0,a-clip_margin),top],[max(0,a-clip_margin),bottom]])
+                right.extend([[min(im.width,b+clip_margin),top],[min(im.width,b+clip_margin),bottom]])
             clips[index] = left + right[::-1]
     return {'size':im.size,'count':len(large),'columns':[len(c) for c in cols], 'bounds':ordered or large, 'clips':clips}
 

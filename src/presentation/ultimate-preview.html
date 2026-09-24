@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animations des ultimes</title>
+<style>body{margin:0;padding:24px;background:#202b30;color:#fff2d6;font:16px system-ui}h1{margin:0 0 10px}p{max-width:950px;color:#ccd9da}button{font:inherit;padding:8px 16px;margin:0 10px 16px 0;border-radius:8px;border:0;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.tile{background:#e7e3d7;color:#25383d;border-radius:12px;overflow:hidden}.tile strong{display:block;padding:12px}canvas{display:block;width:100%;height:auto}@media(max-width:750px){.grid{grid-template-columns:1fr}body{padding:12px}}</style>
+<h1>Animations des ultimes</h1>
+<p>Les pouvoirs ci-dessous utilisent la simulation du jeu. L’écharpe atteint la ligne pointillée à l’impact. Les hologrammes conservent leurs animations de combat habituelles.</p>
+<button id="pause">Mettre en pause</button><button id="replay">Rejouer</button><button id="flip">Inverser la direction</button>
+<div class="grid" id="gallery"></div>
+<script type="module">
+import {loadConfig} from '../config.js';
+import {GameSimulation} from '../simulation/game-simulation.js';
+import {activateUltimate,beginCombatTick,updateCombat,requestAttack,attackInput} from '../simulation/combat.js';
+import {tryBardellisation} from '../simulation/style-ultimates.js';
+import {WorldRenderer} from './renderer.js';
+import {drawCombatEffects} from './combat-effects.js';
+import {ultimateAtlases} from './ultimate-sprite-data.js';
+const config=await loadConfig(),hz=config.balance.simulation_architecture.fixed_tick_hz;
+const specs=[['philippe','philippe_notable','Écharpe · portée réelle et frappe aérienne'],['le_pen','le_pen_souverainiste','Vague · lancement et déferlement'],['melenchon','melenchon_populiste','Feu · lancer, projectile et flammes'],['melenchon','melenchon_communautariste','Déferlement · course et attaques'],['philippe','philippe_gestionnaire','CRS · garde et coups de bouclier'],['le_pen','le_pen_zemmouriste','Zemmour · prise de parole et projectiles'],['le_pen','le_pen_gouvernement','Bardella · transformation et combat'],['philippe','philippe_europeiste','Europe · transformation, combat et protection']];
+let direction=1,paused=false;
+const previews=[];
+for(const [faction,style,label]of specs){
+  const tile=document.createElement('div');tile.className='tile';const title=document.createElement('strong');title.textContent=label;
+  const canvas=document.createElement('canvas');canvas.width=600;canvas.height=360;tile.append(title,canvas);document.querySelector('#gallery').append(tile);
+  const r=new WorldRenderer(canvas,config);r.resizeObserver.disconnect();canvas.width=600;canvas.height=360;r.width=600;r.height=360;r.metrics={...r.metrics,characterHeight:140,groundY:325,pixelsPerUnit:48};
+  await r.assets.preload([...Object.values(ultimateAtlases).map(a=>a.sprite),...Object.keys(r.assets.manifest).filter(id=>id.startsWith('character-'))]);
+  const preview={r,faction,style};previews.push(preview);
+}
+function reset(p){
+  p.sim=new GameSimulation(config,42);const s=p.sim.state;s.npcs=[];
+  p.c=s.candidates.find(c=>c.faction_id===p.faction);p.c.x=100;p.c.facing=direction;p.c.current_campaign_style=p.style;p.c.special_charge=config.balance.special_charge.required_points;
+  for(const c of s.candidates)if(c!==p.c){c.x=100+direction*(p.style==='philippe_gestionnaire'?2.4:4.6);c.resistance=1000;c.facing=-direction;}
+  activateUltimate(p.sim,p.c);
+  if(p.style==='le_pen_gouvernement')tryBardellisation(p.sim,p.c);
+  p.r.screenX=x=>(direction>0?130:470)+(x-100)*48;
+  p.r.combatPoseTracker?.clear();p.r.melenchonMotionTracker?.clear();
+}
+function advance(p){
+  const {sim,c}=p,s=sim.state;s.tick++;beginCombatTick(sim);
+  if(p.style==='melenchon_communautariste'&&s.tick>=35&&s.tick<=72){c.x+=direction*.035;c.facing=direction;}
+  if(s.tick%22===12&&['philippe_notable','philippe_europeiste','le_pen_gouvernement'].includes(p.style))requestAttack(sim,c,direction);
+  if(s.tick===55&&p.style==='philippe_notable'){attackInput(sim,c,'Jump');requestAttack(sim,c,direction);}
+  if(s.tick===42&&p.style==='philippe_europeiste'){
+    const enemy=s.candidates.find(actor=>actor!==c);enemy.x=c.x+direction*.8;enemy.facing=-direction;requestAttack(sim,enemy,-direction);
+  }
+  updateCombat(sim);
+  if(s.tick>hz*5)reset(p);
+}
+function draw(p){
+  const {r,sim,c}=p,s=sim.state,ctx=r.ctx;ctx.clearRect(0,0,600,360);ctx.fillStyle='#e7e3d7';ctx.fillRect(0,0,600,360);ctx.fillStyle='#bbc3b6';ctx.fillRect(0,325,600,35);
+  if(p.style==='philippe_notable'){const x=r.screenX(c.x+direction*config.balance.specials.scarf.range);ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#788476';ctx.beginPath();ctx.moveTo(x,35);ctx.lineTo(x,325);ctx.stroke();ctx.restore();}
+  // Les unités temporaires passent derrière leur invocateur, comme en jeu.
+  for(const actor of [...s.temporary_units,...s.candidates])if(!actor.expired&&!actor.disappeared)r.drawPerson(actor,r.screenX(actor.x),s);
+  drawCombatEffects(r,s,false);
+}
+for(const p of previews){reset(p);draw(p);}
+document.querySelector('#pause').onclick=()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'Reprendre':'Mettre en pause';};
+document.querySelector('#replay').onclick=()=>previews.forEach(p=>{reset(p);draw(p);});
+document.querySelector('#flip').onclick=()=>{direction*=-1;previews.forEach(p=>{reset(p);draw(p);});};
+window.ultimatePreview={previews,setPaused:v=>{paused=v;},advance:ticks=>{for(let i=0;i<ticks;i++)previews.forEach(advance);previews.forEach(draw);},reset:()=>previews.forEach(reset)};
+window.galleryReady=true;
+setInterval(()=>{if(!paused){previews.forEach(advance);previews.forEach(draw);}},1000/hz);
+</script></html>

@@ -150,6 +150,7 @@
     "le_pen_navy_wave": {
       "range_screens": 0.7,
       "travel_speed": 15,
+      "launch_delay_seconds": 0.3,
       "sympathisant_instant_demobilize": true,
       "militant_damage_fraction_of_full_durability": 0.85,
       "service_ordre_damage_fraction_of_full_durability": 0.35,
@@ -175,6 +176,8 @@
       "count": 7,
       "appearance_seconds": 0.25,
       "duration_seconds": 2.5,
+      "return_seconds": 0.45,
+      "return_speed": 22,
       "speed": 8,
       "range": 0.7,
       "damage": 10,
@@ -184,7 +187,8 @@
     },
     "fire": {
       "duration_seconds": 5.5,
-      "projectile_speed": 18,
+      "projectile_speed": 16,
+      "launch_delay_seconds": 0.22,
       "radius": 3,
       "burn_seconds": 2,
       "damage_per_second": 7.5,
@@ -196,8 +200,8 @@
       "shots_per_second": 0.8,
       "projectile_speed": 9,
       "projectile_range": 35,
-      "damage": 10,
-      "knockback": 1,
+      "damage": 4,
+      "knockback": 0,
       "bubble_labels": [
         "ARABES",
         "ISLAM"

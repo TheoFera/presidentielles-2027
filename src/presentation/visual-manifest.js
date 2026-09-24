@@ -1,5 +1,13 @@
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
+  'ultimate-europe-v1': { file: new URL('../../assets/generated/animations/ultimates/europe-v1.png', import.meta.url).href },
+  'ultimate-bardella-v1': { file: new URL('../../assets/generated/animations/ultimates/bardella-v1.png', import.meta.url).href },
+  'ultimate-zemmour-v1': { file: new URL('../../assets/generated/animations/ultimates/zemmour-v1.png', import.meta.url).href },
+  'ultimate-wall-v1': { file: new URL('../../assets/generated/animations/ultimates/wall-v1.png', import.meta.url).href },
+  'ultimate-surge-v1': { file: new URL('../../assets/generated/animations/ultimates/surge-v1.png', import.meta.url).href },
+  'ultimate-fire-v1': { file: new URL('../../assets/generated/animations/ultimates/fire-v1.png', import.meta.url).href },
+  'ultimate-wave-v1': { file: new URL('../../assets/generated/animations/ultimates/wave-v1.png', import.meta.url).href },
+  'ultimate-scarf-v1': { file: new URL('../../assets/generated/animations/ultimates/scarf-v1.png', import.meta.url).href },
   'character-skin-philippe-notable-actions-v1': { file: new URL('../../assets/generated/animations/skins/philippe-notable-actions-v1.png', import.meta.url).href },
   'character-skin-philippe-notable-movement-v1': { file: new URL('../../assets/generated/animations/skins/philippe-notable-movement-v1.png', import.meta.url).href },
   'character-skin-philippe-notable-combat-v1': { file: new URL('../../assets/generated/animations/skins/philippe-notable-combat-v1.png', import.meta.url).href },

@@ -36,7 +36,7 @@ export function validateCampaignConfig(config){
    if(!['MANUAL','MANUAL_GUARDIAN'].includes(style.ultimate.activation_mode)||!['HOLOGRAMS','WAVE','WALL','SURGE','FIRE','ZEMMOUR','BARDELLA','SCARF','EUROPE'].includes(style.ultimate.kind))fail(style.id+' / ultime');
  }
  for(const key of ['surge','fire','zemmour','scarf','europe']){
-   const power=config.balance.specials[key];if(!power||Object.values(power).some(value=>typeof value==='number'&&!positive(value)))fail('ultime '+key);
+   const power=config.balance.specials[key];if(!power||Object.entries(power).some(([field,value])=>typeof value==='number'&&(field==='knockback'?(!Number.isFinite(value)||value<0):!positive(value))))fail('ultime '+key);
  }
  if(!Array.isArray(config.balance.specials.zemmour.bubble_labels)||!config.balance.specials.zemmour.bubble_labels.length||config.balance.specials.zemmour.bubble_labels.some(s=>typeof s!=='string'||!s.trim()))fail('textes des bulles');
  if(!b||!positive(b.max_simultaneous_events)||!positive(b.initial_event_delay_days)||!positive(b.notification_display_seconds)||!positive(b.notification_arrival_seconds)||b.notification_arrival_seconds>b.notification_display_seconds||!Array.isArray(b.frequency_curve)||b.frequency_curve.some(row=>row.length!==3||!positive(row[1])||row[2]<row[1]))fail('calendrier, annonces ou fréquence');

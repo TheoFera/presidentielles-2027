@@ -3470,6 +3470,94 @@
       "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-notable.png",
       "date": "2026-09-23",
       "status": "validated"
+    },
+    {
+      "id": "ultimate-scarf-v1",
+      "key": "ultimate-scarf-v1",
+      "asset_id": "ultimate-scarf-v1",
+      "file": "assets/generated/animations/ultimates/scarf-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite atlas for a side-view French caricature fighting game. Reference image defines EXACT Édouard Philippe identity, slim proportions, bald head, beard, suit, sash, thin crisp ink contours and detailed painted shading. No background, no floor, no text, no grid, no shadows, no glow. Exactly EIGHT isolated sprites in a strict FOUR-column TWO-row equal-cell grid, generous transparent gutters, all facing RIGHT. Row 1: four full-body consecutive frames of Philippe whipping his detachable blue-white-red mayor sash at a distant opponent: 1 pulls sash back with right hand near shoulder, 2 winds torso and leads with elbow, 3 fully extends right fist horizontally at chest height with forward weight, 4 recoils arm returning to guard. Keep consistent head/body size and ground baseline in these four cells. IMPORTANT draw just a SHORT fabric grip held in his attacking hand; the separate long sash is assembled by game code. Row 2: ONLY the long tricolor fabric sash without any character/hand, four consecutive fluid whip shapes: 1 gathered curved loop, 2 unfurling sinuous wave, 3 stretched almost horizontal left-to-right lash with gold tassels at far right, 4 curling recoil. Each ribbon anchored at LEFT-middle and tip at RIGHT-middle, spans nearly full cell width. Cloth must look like actual folded blue-white-red fabric with fine dark edges, not three colored laser lines. No extra objects, exactly eight sprites. Preserve the reference's face, hairline cleanliness, anatomy and fine outlines. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-style-philippe-notable.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-wave-v1",
+      "key": "ultimate-wave-v1",
+      "asset_id": "ultimate-wave-v1",
+      "file": "assets/generated/animations/ultimates/wave-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly EIGHT sprites, TWO rows. Row1: Marine Le Pen full body in reference blue suit summons an ocean wave: 1 brings hands toward torso, 2 raises forearms, 3 thrusts both open palms forward right, 4 lowers arms returning to guard. Row2: FOUR independent animation frames of the same large upright blue ocean wave moving RIGHT, crest curling forward, foamy white crest, detailed blue water folds; wave completely fills its cell vertically, transparent surroundings, no person. Each wave has same height and flat base, sequence crest builds, curls, crashes forward, curls anew. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-le_pen.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-fire-v1",
+      "key": "ultimate-fire-v1",
+      "asset_id": "ultimate-fire-v1",
+      "file": "assets/generated/animations/ultimates/fire-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly EIGHT sprites, TWO rows. Row1: full-body Mélenchon in yellow vest THROWING a small flaming bottle: 1 bottle held near shoulder, 2 arm drawn back, 3 arm fully extended forward after release with EMPTY hand, 4 settling back to standing. Row2: cells1 and2 ONLY a small tilted green bottle with burning rag, two flight tumble frames; cells3 and4 ONLY a broad patch of richly drawn orange/yellow fire on ground, two flickering frames, wide and shallow with black fine contours, no bottle/person. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-ultimate-melenchon-gilet-jaune.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-surge-v1",
+      "key": "ultimate-surge-v1",
+      "asset_id": "ultimate-surge-v1",
+      "file": "assets/generated/animations/ultimates/surge-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly EIGHT full-body hooded fighter sprites, TWO rows. Row1: four running cycle poses with clearly alternating planted and lifted legs, forward leaning shoulders, black hood and gloves as reference; show both legs visibly changing positions in true running gait. Row2: four consecutive attack poses: 1 shoulder lowered arm drawn back, 2 committed shoulder-charge right, 3 forceful short punch right, 4 recovering to running guard. NO weapons, no other characters. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-ultimate-encapuchonne.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-wall-v1",
+      "key": "ultimate-wall-v1",
+      "asset_id": "ultimate-wall-v1",
+      "file": "assets/generated/animations/ultimates/wall-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly EIGHT full-body CRS guard sprites, TWO rows. Row1: 1 standing guard behind riot shield, 2 advancing right left leg forward, 3 advancing right right leg forward, 4 solid braced shield blocking an impact. Row2: attack sequence 1 draws shield back, 2 shield bash thrust fully right with stepping foot, 3 baton strike forward above shield, 4 settles to guarded stance. Preserve helmet face armor transparent shield and tricolor badge exactly. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/crs-0.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-zemmour-v1",
+      "key": "ultimate-zemmour-v1",
+      "asset_id": "ultimate-zemmour-v1",
+      "file": "assets/generated/animations/ultimates/zemmour-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly EIGHT sprites, TWO rows. Row1: full-body Éric Zemmour speaking aggressively to RIGHT: 1 standing arms bent, 2 draws breath cheeks slightly puffed and hand raised, 3 points finger right mouth clearly open shouting, 4 settles with hand lowering and mouth closing. Row2: FOUR independent EMPTY comic speech-projectile bubbles, NO TEXT, ivory fill thin dark blue contour with short backward tail on LEFT, faint blue dynamic ink accents contained inside cell, sequence compact oval, elongated oval, slightly compressed, elongated taper. These are small horizontal projectiles, not dialogue panels. Landscape canvas 1536x1024.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-ultimate-zemmour.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-bardella-v1",
+      "key": "ultimate-bardella-v1",
+      "asset_id": "ultimate-bardella-v1",
+      "file": "assets/generated/animations/ultimates/bardella-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly SIXTEEN full-body Jordan Bardella sprites, FOUR rows FOUR columns. Row1: guard, left-step walk guard, right-step walk guard, forward dash. Row2: punch1 preparation, punch1 full extension, punch2 preparation, punch2 full extension. Row3: high-kick preparation knee raised, high-kick extension, charging crouched focus, charged powerful straight kick. Row4: airborne knees bent, airborne flying kick right, small recoil taking a hit, transformation arrival standing proudly fists by sides. Young slick brown hair navy suit blue tie, exact reference. Square canvas 1536x1536.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-ultimate-bardella.png",
+      "date": "2026-09-23",
+      "status": "validated"
+    },
+    {
+      "id": "ultimate-europe-v1",
+      "key": "ultimate-europe-v1",
+      "asset_id": "ultimate-europe-v1",
+      "file": "assets/generated/animations/ultimates/europe-v1.png",
+      "transparent": true,
+      "prompt": "Create a production-ready TRANSPARENT PNG sprite sheet for a side-view French caricature fighting game. Reference defines exact identity, outfit, anatomical proportions, crisp thin ink contours, clean hair edges and detailed painted shading. All figures face RIGHT. No background, grid, text, floor, cast shadows, blur or extraneous effects. Strict FOUR equal columns with generous transparent gutters between EVERY sprite. Consistent head and body size in character frames, aligned feet per row; do not stretch crouched poses to standing height. Each cell contains precisely the described sprite. Exactly SIXTEEN sprites, FOUR rows FOUR columns. Row1: full-body superhero Philippe guard, left-step walk guard, right-step walk guard, forward dash with cape trailing. Row2: full-body punch preparation, full-extension straight punch, knee raised kick preparation, fully extended kick. Row3: full-body charging focus, powerful charged kick, airborne knees bent, airborne flying kick. Row4: ONLY FOUR blue/gold energy barrier animation frames WITHOUT person: tall hollow elliptical shield ring sized to surround a standing hero, transparent empty center, twelve gold EU stars embedded on perimeter, thin electric blue ink highlights, pulse quiet/ripple/impact flare/settling. Keep center empty and transparent, no letters. Exact reference superhero identity costume and proportions. Square canvas1536x1536.",
+      "source_reference": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/generated/characters/character-ultimate-philippe-super-europeiste.png",
+      "date": "2026-09-23",
+      "status": "validated"
     }
   ]
 }

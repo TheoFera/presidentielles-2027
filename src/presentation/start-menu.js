@@ -86,9 +86,9 @@ export class StartMenu {
         }
       };
       if (multiplayer) button.textContent = 'Je suis prêt →';
-    } catch {
+    } catch (error) {
       if (generation !== this.generation) return;
-      this.element.querySelector('#loading-status').textContent = 'Chargement interrompu.';
+      this.element.querySelector('#loading-status').textContent = error.message || 'Chargement interrompu.';
       const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Réessayer';
       button.onclick = () => void this.loading({ multiplayer, ready });
     }

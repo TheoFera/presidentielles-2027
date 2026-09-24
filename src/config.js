@@ -120,7 +120,10 @@ export function validateConfig(config) {
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
   if (!Number.isInteger(so.max_queue_length) || so.max_queue_length < 1 || so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
   for (const value of [...so.baton_cost_by_level, ...so.equipment_seconds_by_level, so.pickup_seconds]) positive(value, 'équipement SO');
-  for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') positive(value, `pouvoir.${key}`);
+  for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') {
+    if(key==='knockback'){if(!Number.isFinite(value)||value<0)throw new Error('Configuration : recul du pouvoir invalide.');}
+    else positive(value, `pouvoir.${key}`);
+  }
   positive(config.balance.physical_units.militant.reconsider_seconds, 'réévaluation du Militant');
   if (!Number.isInteger(config.balance.physical_units.militant.nearby_zone_radius) || config.balance.physical_units.militant.nearby_zone_radius < 1) throw new Error('Configuration : rayon de prospection invalide.');
   positive(config.layout.electoral_weights?.default, 'poids électoral par défaut');
