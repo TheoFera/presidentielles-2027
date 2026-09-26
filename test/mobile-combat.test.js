@@ -11,6 +11,8 @@ import { requestDash, successfulNormalHit } from '../src/simulation/mobile-comba
 function setup(faction = 'melenchon', index = 0) {
   const sim = new GameSimulation(campaignConfig(), 42);
   sim.state.npcs = []; sim.state.ai_enabled = false;
+  // Les essais de combat commencent avec des candidats encore en lice.
+  for (const fighter of sim.state.candidates) sim.state.actualGameState.national_support[fighter.faction_id] = 1;
   const c = sim.state.candidates.find(c => c.faction_id === faction);
   CampaignStyleSystem.select(sim, c, CAMPAIGN_STYLES[faction][index].id, true);
   sim.state.candidates.forEach((a, i) => { a.x = 100 + i * 100; a.axis = 0; a.money = 0; });

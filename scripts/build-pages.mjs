@@ -16,6 +16,12 @@ async function sourceFiles(directory = 'src') {
   return files;
 }
 
+async function generatedPngFiles(directory) {
+  return (await readdir(resolve(root, directory), { withFileTypes: true }))
+    .filter(entry => entry.isFile() && entry.name.endsWith('.png'))
+    .map(entry => `${directory}/${entry.name}`);
+}
+
 // Prévisualisations, archives, documents et originaux restent dans le projet.
 export async function buildPages(output = defaultTarget) {
   const target = resolve(output instanceof URL ? fileURLToPath(output) : output);
@@ -41,6 +47,9 @@ export async function buildPages(output = defaultTarget) {
       images.add(asset);
     }
   }
+  // Les 120 PNJ sont déclarés par une boucle dans le manifeste afin d'éviter
+  // 120 lignes répétitives ; l'export doit donc inclure explicitement ce dossier.
+  for (const asset of await generatedPngFiles('assets/generated/npc-v2')) images.add(asset);
   files.push(...images, ...configNames.map(name => `Présidentielles 2027/${name}`));
   // Vérifier les entrées avant de remplacer le dernier export.
   for (const file of files) {

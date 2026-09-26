@@ -1,5 +1,5 @@
 import { CampaignStyleSystem } from './campaign-styles.js';
-import { fundingModifiers } from './campaign-events.js';
+import { scatterMoney } from './money.js';
 import { random, ringDelta, zoneAt } from './world.js';
 import { buildingSettings, factionVariant, isCapturable, presenceForLevel } from './building-rules.js';
 import { stableIdOrder } from './territory.js';
@@ -77,13 +77,12 @@ export function createInfrastructure(world, config, rngState) {
       hostile_pressure: 0, current_effective_presence: 0, next_level_available: false, level_lock_reason: null,
       queue: [], last_action_tick: -1, delivered_count: 0, variant: null, headquarters: false,
       raid_ready_tick: 0, closure_ready_tick: 0,
-      funding_state: 'INACTIVE', funding_started_tick: null, funding_end_tick: null, funding_duration_ticks: 0,
-      funding_progress_01: 0, funding_influence_factor: null, funding_campaign_progression_factor: null,
-      funding_random_factor: null, funding_target_payout: 0, funding_accumulated_payout: 0,
-      funding_expected_payout: 0, funding_last_payout: 0, funding_completed_tick: null,
+      stored_money_cents: 0, last_collection_cents: 0, last_collection_tick: null,
       meeting_ready_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
       meeting_banned_until_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
-      meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 1, meetings_held: 0,
+      meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 1, meeting_faction_id: null, meetings_held: 0,
+      meeting_candidate_id: null, meeting_hold_ticks: 0, meeting_pause_ticks: 0, meeting_wave_tick: -1,
+      next_broadcast_tick: 0,
       last_poll_candidate_id: null, last_poll_tick: null };
   });
   return { buildings, slots };
@@ -109,7 +108,7 @@ export function currentMaintainThreshold(state, config, building) {
   const s = buildingSettings(config, building);
   let required = presenceForLevel(s, 'maintain_presence', building.level);
   const anchor = state.buildings.find(b => b.type === 'permanence' && b.owner_id === building.owner_id && b.state === 'ACTIVE'
-    && b.biome_id === building.biome_id && b.level >= 3);
+    && b.biome_id === building.biome_id);
   if (anchor) required -= config.balance.buildings.permanence.biome_maintain_presence_reduction_by_level[anchor.level - 1];
   return Math.max(0, required);
 }
@@ -135,15 +134,17 @@ export function captureSite(sim, building, candidate) {
 
 export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
   if (!isCapturable(building) || building.owner_id === null) return false;
+  if (building.type === 'financement' && building.stored_money_cents) {
+    scatterMoney(sim, building.x, building.stored_money_cents);
+    sim.emit('FundingDropped', { target_id: building.id, amount_cents: building.stored_money_cents });
+    building.stored_money_cents = 0;
+  }
   const oldOwner = building.owner_id; const wasHeadquarters = building.headquarters; const oldX = building.x;
   building.owner_id = null; building.level = 0; building.state = 'NEUTRAL'; building.active = false; building.neutral = true;
+  building.next_broadcast_tick = 0;
   building.capture_progress = 0; building.closure_progress = 0; building.current_political_presence = 0; building.current_effective_presence = 0;
   building.hostile_pressure = 0; building.variant = null; building.headquarters = false;
-  building.funding_state = 'INACTIVE'; building.funding_started_tick = null; building.funding_end_tick = null;
-  building.funding_duration_ticks = 0; building.funding_progress_01 = 0; building.funding_influence_factor = null;
-  building.funding_campaign_progression_factor = null; building.funding_random_factor = null;
-  building.funding_target_payout = 0; building.funding_accumulated_payout = 0; building.funding_expected_payout = 0;
-  building.funding_last_payout = 0; building.funding_completed_tick = null;
+  building.last_collection_cents = 0; building.last_collection_tick = null;
   for (const order of building.queue) {
     const worker = sim.state.npcs.find(n => n.id === order.assigned_npc_id); if (worker) worker.task = null;
   }
@@ -159,50 +160,9 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
   return true;
 }
 
-export function startFundingCampaign(sim, building) {
-  const s = sim.config.balance.buildings.financement;
-  const modifiers = fundingModifiers(sim.state, building.owner_id);
-  if (!modifiers.can_start_new_campaign || building.funding_state === 'RUNNING') return false;
-  const duration = s.campaign_duration_min + random(sim.state) * (s.campaign_duration_max - s.campaign_duration_min);
-  const randomFactor = s.random_min + random(sim.state) * (s.random_max - s.random_min);
-  const score = sim.state.actualGameState.national_support[building.owner_id];
-  const influenceFactor = 1 + score / 100 * s.influence_factor;
-  const campaignProgressionFactor = s.campaign_progression_factor_start
-    + sim.state.campaign_progress_01 * (s.campaign_progression_factor_end - s.campaign_progression_factor_start);
-  const rawTarget = s.payout_base * s.payout_level_multiplier[building.level - 1]
-    * influenceFactor * campaignProgressionFactor * randomFactor * modifiers.payout_multiplier;
-  const target = Math.min(modifiers.payout_max ?? Infinity, rawTarget);
-  building.funding_state = 'RUNNING'; building.funding_duration_ticks = sim.secondsToTicks(duration * modifiers.campaign_duration_multiplier);
-  building.funding_started_tick = sim.state.tick; building.funding_end_tick = sim.state.tick + building.funding_duration_ticks;
-  building.funding_progress_01 = 0; building.funding_influence_factor = influenceFactor;
-  building.funding_campaign_progression_factor = campaignProgressionFactor; building.funding_random_factor = randomFactor;
-  building.funding_target_payout = target; building.funding_accumulated_payout = 0;
-  // Alias conservé pour les outils et rapports existants.
-  building.funding_expected_payout = target;
-  sim.emit('FundingCampaignStarted', { target_id: building.id, owner_id: building.owner_id,
-    duration_ticks: building.funding_duration_ticks, target_payout: target });
-  return true;
-}
-
 export function updateStrategicSites(sim) {
   const { state, config, hz } = sim;
   for (const building of state.buildings) {
-    if (building.funding_state === 'RUNNING') {
-      const elapsed = Math.max(0, state.tick - building.funding_started_tick);
-      building.funding_progress_01 = Math.min(1, elapsed / building.funding_duration_ticks);
-      building.funding_accumulated_payout = building.funding_target_payout * building.funding_progress_01;
-    }
-    if (building.funding_state === 'RUNNING' && state.tick >= building.funding_end_tick) {
-      const candidate = state.candidates.find(c => c.faction_id === building.owner_id);
-      if (candidate && !candidate.eliminated && building.state === 'ACTIVE') {
-        const payout = building.funding_accumulated_payout;
-        candidate.money += payout; candidate.total_earned += payout;
-        sim.emit('FundingCampaignCompleted', { target_id: building.id, candidate_id: candidate.id, payout });
-        building.funding_last_payout = payout; building.funding_completed_tick = state.tick; building.last_action_tick = state.tick;
-      }
-      building.funding_state = 'COMPLETED'; building.funding_started_tick = null; building.funding_end_tick = null;
-      building.funding_progress_01 = 1;
-    }
     if (!isCapturable(building) || building.state !== 'ACTIVE') continue;
     building.current_political_presence = localPoliticalPresence(state, building.subzone_id, building.owner_id);
     building.hostile_pressure = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.faction_id !== building.owner_id

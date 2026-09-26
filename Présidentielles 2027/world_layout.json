@@ -1,6 +1,7 @@
 {
   "world_type": "horizontal_loop",
   "screens_per_subzone": 1,
+  "total_electors": 200,
   "note": "Les densités/spawns sont des paramètres de gameplay fictifs destinés au prototype, pas des affirmations sociologiques.",
   "population_growth_note": "La fréquence est calculée automatiquement avec la durée de la campagne, la population initiale et le plafond de chaque sous-biome, afin d’atteindre le plafond au premier tour.",
   "neutral_population_growth": {
@@ -20,19 +21,19 @@
           "id": "paris_a",
           "concept": "Canal, cafés, vélos",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 14
+          "max_npcs_by_origin": 11
         },
         {
           "id": "paris_b",
           "concept": "Place de quartier, commerces",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 16
+          "max_npcs_by_origin": 12
         },
         {
           "id": "paris_c",
           "concept": "Quartier mixte vers banlieue",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 14
+          "max_npcs_by_origin": 11
         }
       ]
     },
@@ -44,19 +45,19 @@
           "id": "banlieue_a",
           "concept": "Cité dortoir vers quartier bobo",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 14
+          "max_npcs_by_origin": 12
         },
         {
           "id": "banlieue_b",
           "concept": "Marché populaire central",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 14
+          "max_npcs_by_origin": 12
         },
         {
           "id": "banlieue_c",
           "concept": "Pavillons modestes vers périurbain",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 10
         }
       ]
     },
@@ -92,19 +93,19 @@
           "id": "campagne_a",
           "concept": "Entrée village",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 11
         },
         {
           "id": "campagne_b",
           "concept": "Cœur village, mairie, place",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 12
         },
         {
           "id": "campagne_c",
           "concept": "Champs vers pavillons retraités",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 8
+          "max_npcs_by_origin": 11
         }
       ]
     },
@@ -116,19 +117,19 @@
           "id": "retraites_a",
           "concept": "Pavillons, pelouses très tondues, haies",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 11
         },
         {
           "id": "retraites_b",
           "concept": "Pharmacie, square, salle associative",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 12
         },
         {
           "id": "retraites_c",
           "concept": "Retraités aisés vers quartiers riches",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 8
+          "max_npcs_by_origin": 11
         }
       ]
     },
@@ -140,19 +141,19 @@
           "id": "riches_a",
           "concept": "Résidentiel bourgeois",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 8
+          "max_npcs_by_origin": 9
         },
         {
           "id": "riches_b",
           "concept": "Avenue élégante, boutiques",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 12
         },
         {
           "id": "riches_c",
           "concept": "Haussmannien vers Paris 19e",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 8
+          "max_npcs_by_origin": 9
         }
       ]
     }

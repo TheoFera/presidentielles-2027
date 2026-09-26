@@ -1,3 +1,29 @@
+import { buildingAssetId } from './illustrated-buildings.js';
+import { ringDelta } from '../simulation/world.js';
+
+const MEETING_SPRITE_HEIGHT_IN_CHARACTERS = 1.7;
+const MEETING_SPRITE_GROUND_ANCHOR = 0.88;
+const MEETING_FOREGROUND_DECK_START = 0.70;
+const MEETING_FOREGROUND_SIDE_WIDTH = 0.24;
+
+export function isOnMeetingStage(entity, config, state) {
+  if (entity.role !== 'CANDIDAT' || entity.combat.height < config.balance.buildings.meeting.podium_height) return false;
+  if (entity.podium_site_id) return true;
+  // Pendant le saut, le personnage passe derrière le premier plan dès qu'il atteint l'estrade.
+  return entity.combat.jump_tick != null && !!state?.buildings.some(building => building.type === 'meeting'
+    && building.state === 'ACTIVE' && Math.abs(ringDelta(entity.x, building.x, state.world.length))
+      <= config.balance.buildings.meeting.podium_half_width);
+}
+
+function meetingSpriteFrame(renderer, state, building) {
+  const sprite = renderer.assets.get(buildingAssetId(building, state.world));
+  if (!sprite) return null;
+  const height = renderer.metrics.characterHeight * MEETING_SPRITE_HEIGHT_IN_CHARACTERS;
+  const width = height * sprite.naturalWidth / sprite.naturalHeight;
+  return { sprite, width, height, left: renderer.screenX(building.x) - width / 2,
+    top: renderer.metrics.groundY - height * MEETING_SPRITE_GROUND_ANCHOR };
+}
+
 export const territoryColors = { melenchon: '#b94e54', le_pen: '#30496b', philippe: '#e9e9e2', contested: '#9da79e' };
 
 /** Rounding the published values preserves a displayed total of 100.0 %. */
@@ -47,7 +73,7 @@ export class ElectoralDisplay {
       path.setAttribute('data-zone', zone.subzone_id); svg.append(path);
     });
     this.circle.append(svg);
-    const labels = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe', neutral: 'Neutres' };
+    const labels = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe', neutral: 'Neutres', pending: 'À apparaître' };
     const rounded = roundedPollScores(snapshot.national_support);
     for (const faction of Object.keys(labels)) {
       const span = document.createElement('span');
@@ -57,7 +83,7 @@ export class ElectoralDisplay {
       const dot = document.createElement('i'); dot.style.background = territoryColors[faction] || territoryColors.contested;
       span.append(dot, `${value} %`); this.scores.append(span);
     }
-    this.scores.title = poll.active ? 'Dernier sondage : mesure périodique' : 'Dernière mesure conservée : Institut fermé';
+    this.scores.title = 'Dernier sondage acheté : les chiffres restent ceux de cette mesure.';
   }
 }
 
@@ -82,6 +108,7 @@ export function drawTerritoryFlags(renderer, state) {
 }
 
 export function drawElectoralBuilding(renderer, state, building) {
+  if (building.type === 'meeting') { drawMeetingPodium(renderer, state, building); return; }
   const { ctx, metrics: m, config, p, height, width } = renderer;
   const x = renderer.screenX(building.x);
   if (x < -70 || x > width + 70) return;
@@ -138,4 +165,71 @@ export function drawElectoralBuilding(renderer, state, building) {
   if (building.level >= 3 && building.type === 'tour_communication') { ctx.fillStyle = color; ctx.fillRect(x - 20, ground - height * 0.36, 7, 22); }
   if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120,126,123,${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(x - 43, ground - height * 0.56, 86, height * 0.56); }
   ctx.restore();
+}
+
+function drawMeetingPodium(renderer, state, building) {
+  const { ctx, metrics: m, config, width } = renderer;
+  const x = renderer.screenX(building.x);
+  if (x < -m.characterHeight || x > width + m.characterHeight) return;
+  const settings = config.balance.buildings.meeting;
+  const color = config.prototype.presentation.factions[building.meeting_faction_id]?.color || '#7d8a78';
+  const top = m.groundY - settings.podium_height * m.characterHeight;
+  const halfWidth = settings.podium_half_width * m.pixelsPerUnit;
+  const spriteId = buildingAssetId(building, state.world);
+  const frame = meetingSpriteFrame(renderer, state, building);
+  if (!frame) void renderer.assets.load(spriteId);
+  ctx.save(); ctx.textAlign = 'center';
+  let progressY = top - 25;
+  if (frame) {
+    // Les six détourage ont leur pied à environ 88 % de leur hauteur. L'estrade
+    // dessinée se superpose ainsi au plancher physique situé à 0,3 personnage.
+    ctx.drawImage(frame.sprite, frame.left, frame.top, frame.width, frame.height);
+    progressY = frame.top - 12;
+  } else {
+    ctx.fillStyle = '#69776b'; ctx.fillRect(x - halfWidth, top, halfWidth * 2, m.groundY - top);
+    ctx.fillStyle = '#c2b58d'; ctx.fillRect(x - halfWidth - 3, top - 5, halfWidth * 2 + 6, 5);
+    ctx.strokeStyle = '#4b5b4d'; ctx.strokeRect(x - halfWidth, top, halfWidth * 2, m.groundY - top);
+    ctx.fillStyle = '#536a59'; ctx.fillRect(x - 4, top - 13, 8, 8);
+  }
+  if (building.meeting_candidate_id) {
+    const progress = building.meeting_hold_ticks / (settings.hold_seconds * config.balance.simulation_architecture.fixed_tick_hz);
+    ctx.fillStyle = '#e6eadb'; ctx.fillRect(x - 29, progressY, 58, 5);
+    ctx.fillStyle = color; ctx.fillRect(x - 29, progressY, 58 * progress, 5);
+    ctx.fillStyle = '#28392c'; ctx.font = 'bold 10px system-ui';
+    ctx.fillText(`${Math.floor(building.meeting_hold_ticks / config.balance.simulation_architecture.fixed_tick_hz)} / 15 s`, x, progressY - 5);
+  }
+  const elapsed = (state.tick - building.meeting_wave_tick) / config.balance.simulation_architecture.fixed_tick_hz;
+  if (building.meeting_wave_tick >= 0 && elapsed >= 0 && elapsed < settings.wave_visual_seconds) {
+    const zone = state.world.subzones.find(item => item.id === building.subzone_id);
+    const progress = elapsed / settings.wave_visual_seconds;
+    const radius = Math.max(building.x - zone.start, zone.end - building.x) * m.pixelsPerUnit * progress;
+    ctx.globalAlpha = 1 - progress; ctx.strokeStyle = color; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(Math.max(renderer.screenX(zone.start), x - radius), top - 14);
+    ctx.lineTo(Math.min(renderer.screenX(zone.end), x + radius), top - 14); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Les candidats sur l'estrade passent derrière son bord et ses poteaux ; les passants au sol seront dessinés ensuite. */
+export function drawMeetingForeground(renderer, state) {
+  const { ctx, config } = renderer;
+  for (const building of state.buildings) {
+    if (building.type !== 'meeting' || !state.candidates.some(candidate => isOnMeetingStage(candidate, config, state)
+      && (candidate.podium_site_id === building.id || candidate.combat.jump_tick != null
+        && Math.abs(ringDelta(candidate.x, building.x, state.world.length)) <= config.balance.buildings.meeting.podium_half_width))) continue;
+    const frame = meetingSpriteFrame(renderer, state, building);
+    if (!frame) continue;
+    const { sprite, left, top, width, height } = frame;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(left, top, width, renderer.metrics.groundY - top); ctx.clip();
+    const sourceY = sprite.naturalHeight * MEETING_FOREGROUND_DECK_START;
+    ctx.drawImage(sprite, 0, sourceY, sprite.naturalWidth, sprite.naturalHeight - sourceY,
+      left, top + height * MEETING_FOREGROUND_DECK_START, width, height * (1 - MEETING_FOREGROUND_DECK_START));
+    const sourceSide = sprite.naturalWidth * MEETING_FOREGROUND_SIDE_WIDTH;
+    ctx.drawImage(sprite, 0, 0, sourceSide, sprite.naturalHeight,
+      left, top, width * MEETING_FOREGROUND_SIDE_WIDTH, height);
+    ctx.drawImage(sprite, sprite.naturalWidth - sourceSide, 0, sourceSide, sprite.naturalHeight,
+      left + width * (1 - MEETING_FOREGROUND_SIDE_WIDTH), top, width * MEETING_FOREGROUND_SIDE_WIDTH, height);
+    ctx.restore();
+  }
 }

@@ -82,11 +82,11 @@ test('IA : cadence normale intermédiaire et décisions répétables sans consom
  assert.ok(attacks>=25&&attacks<40);assert.equal(sim.state.rng_state,rng);
 });
 
-test('IA : un bâtiment allié améliorable justifie un court détour hors objectif',()=>{
+test('IA : un bâtiment déjà construit ne propose plus de détour pour une amélioration',()=>{
  const {sim,c}=setup();c.money=1000;
  const site=sim.state.buildings.find(b=>b.type==='permanence');captureSite(sim,site,c);c.x=site.x+5;
  for(let i=0;i<8;i++){const n=sim.spawn(sim.state.world.subzones.find(z=>z.id===site.subzone_id),site.x);if(n){n.role='SYMPATHISANT';n.faction_id=c.faction_id;n.hidden_durability=30;}}
  const objective={purpose:'CONQUER',subzone_id:'different-zone'};
  const target=aiEconomicTarget(sim.state,sim.config,c,objective);
- assert.ok(target);assert.equal(target.offer.kind,'UPGRADE');assert.equal(target.id,site.id);
+ assert.ok(!target || target.offer.kind!=='UPGRADE');
 });

@@ -1,12 +1,13 @@
 import { clearCampaignUltimate } from './campaign-styles.js';
 import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
+import { completePopulation } from './spawns.js';
 import { ArenaSimulation } from './arena-simulation.js';
 import { FACTIONS } from './world.js';
 import { combatState, demobilizeUnit, combatActors } from './combat-state.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { refreshElectoralState, updatePolls } from './electoral-state.js';
-import { refreshInfluenceSources } from './territory.js';
+import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export const initialMatchState = () => ({
@@ -20,8 +21,9 @@ export function startArena(sim) {
   for (const e of sim.state.campaign_events || []) if (e.status === 'ACTIVE') resolveCampaignEvent(sim, e, 'EXPIRED');
   const s = sim.state;
   if (s.phase !== GamePhase.CAMPAIGN) return false;
+  completePopulation(sim);
   s.days_remaining = 0; s.campaign_day_remaining = 0; s.campaign_elapsed_days = sim.config.balance.time.starting_days_before_first_round; s.campaign_progress_01 = 1;
-  refreshElectoralState(s, sim.config);
+  refreshElectoralState(s);
   s.telemetry.j0_scores = clone(s.actualGameState.national_support);
   for (const c of s.candidates) {
     const charge = c.special_charge; clearCampaignUltimate(sim, c); c.special_charge = charge; c.bardella_form = false;
@@ -78,10 +80,9 @@ export function finishArena(sim, eliminated) {
   for (const c of s.candidates) {
     if (c.purchase_hold && s.buildings.find(b => b.id === c.purchase_hold.target_id)?.abandoned_by === eliminated) c.purchase_hold = null;
   }
-  for (const e of s.electorate) { e.support.neutral += e.support[eliminated]; e.support[eliminated] = 0; e.net_change_per_second[eliminated] = 0; }
   s.polls[eliminated] = { active: false, next_poll_tick: null, lastPollSnapshot: null };
   for (const f of s.finalists) if (s.polls[f].active) s.polls[f].next_poll_tick = Math.min(s.polls[f].next_poll_tick, s.tick + sim.secondsToTicks(sim.config.balance.second_round.poll_refresh_seconds));
-  refreshElectoralState(s, sim.config); refreshInfluenceSources(s, sim.config); updatePolls(sim);
+  refreshElectoralState(s); updatePolls(sim);
   s.telemetry.sprint_start_scores = clone(s.actualGameState.national_support);
   sim.emit('SprintStarted', { eliminated_faction: eliminated, finalists: [...s.finalists] });
   return true;
@@ -89,7 +90,7 @@ export function finishArena(sim, eliminated) {
 
 export function finishSprint(sim) {
   const s = sim.state;
-  refreshElectoralState(s, sim.config);
+  refreshElectoralState(s);
   const scores = s.actualGameState.national_support;
   const [a, b] = s.finalists;
   // Equality at floating-point precision only, never equality of the displayed rounded poll.
@@ -123,17 +124,20 @@ export function applyMatchDebug(sim, command) {
   if (command.type === 'DebugSprint10') { s.sprint_remaining_ticks = sim.secondsToTicks(10); return true; }
   if (command.type === 'DebugForceTie') {
     const [a, b] = s.finalists;
-    for (const e of s.electorate) e.support[a] = e.support[b] = (e.support[a] + e.support[b]) / 2;
-    refreshElectoralState(s, sim.config); s.sprint_remaining_ticks = 0; finishSprint(sim); return true;
+    refreshElectoralState(s);
+    let difference = s.actualGameState.national_counts[a] - s.actualGameState.national_counts[b];
+    const donor = difference > 0 ? a : b;
+    while (difference !== 0) {
+      const npc = s.npcs.find(n => n.role === 'SYMPATHISANT' && n.faction_id === donor);
+      if (!npc) break;
+      neutralizeSupporter(sim, npc, 'DÉBOGAGE');
+      difference += difference > 0 ? -1 : 1;
+    }
+    refreshElectoralState(s); s.sprint_remaining_ticks = 0; finishSprint(sim); return true;
   }
   if (command.type === 'DebugNeutral50All') {
-    const camps = s.finalists.length ? s.finalists : FACTIONS;
-    for (const e of s.electorate) {
-      const sum = camps.reduce((sum, f) => sum + e.support[f], 0);
-      for (const f of camps) e.support[f] = sum ? e.support[f] * 50 / sum : 50 / camps.length;
-      e.support.neutral = 50;
-    }
-    refreshElectoralState(s, sim.config); refreshInfluenceSources(s, sim.config); return true;
+    for (const npc of s.npcs.filter(n => n.role === 'SYMPATHISANT')) if (Number(n.id.slice(4)) % 2 === 0) neutralizeSupporter(sim, npc, 'DÉBOGAGE');
+    refreshElectoralState(s); return true;
   }
   return false;
 }

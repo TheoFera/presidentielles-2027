@@ -18,7 +18,11 @@ function setup(arena = false) {
   sim.state.npcs = []; sim.state.ai_enabled = false;
   sim.state.candidates.forEach((c, i) => { c.x = 100 + 100 * i; c.axis = 0; c.money = 0; });
   CampaignStyleSystem.select(sim, sim.state.candidates[0], CAMPAIGN_STYLES[sim.state.candidates[0].faction_id][0].id, true);
-  if (arena) sim = new ArenaSimulation(sim.config, ArenaSimulation.create(sim.config, sim.state));
+  if (arena) {
+    // Ces tests isolent le combat : chaque combattant doit avoir au moins une voix pour entrer dans l'arène.
+    for (const fighter of sim.state.candidates) sim.state.actualGameState.national_support[fighter.faction_id] = 10;
+    sim = new ArenaSimulation(sim.config, ArenaSimulation.create(sim.config, sim.state));
+  }
   const [c, enemy] = sim.state.candidates;
   c.x = arena ? 8 : 100; enemy.x = c.x + 1; c.facing = 1;
   return { sim, c, enemy };
@@ -218,7 +222,7 @@ test('Sauvegarde : charge et saut reprennent à l’identique ; ancien format re
   const restored = new GameSimulation(sim.config, 42); restored.importSnapshot(sim.exportSnapshot());
   ticks(sim, 40, true); ticks(restored, 40, true); assert.deepEqual(sim.state, restored.state);
   const snapshot = JSON.parse(sim.exportSnapshot()); snapshot.snapshot_version = 8;
-  assert.throws(() => restored.importSnapshot(snapshot), /version/);
+  assert.throws(() => restored.importSnapshot(snapshot), /ancienne sauvegarde/);
 });
 
 test('Réseau : appui/relâchement autorisés et attribués au bon candidat ; priorité ultime locale', () => {

@@ -1,6 +1,7 @@
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { zoneAt } from './world.js';
 import { distance, localUnits, stableIdOrder } from './territory.js';
+import { releaseDonation } from './money.js';
 
 export function moveNpcTowards(simulation, npc, destination, speed) {
   if (npc.role === 'MILITANT') speed = Math.min(speed, simulation.config.prototype.movement.candidate_speed_units_per_second * Math.min(2, simulation.config.balance.physical_units.militant.max_player_speed_multiplier));
@@ -29,6 +30,7 @@ export function updateCollector(simulation, npc) {
   if (order.state !== 'READY') { task.phase = 'WAIT_PRINT'; return; }
   task.phase = 'PICKUP'; task.elapsed_ticks++;
   if (task.elapsed_ticks < simulation.secondsToTicks(config.balance.buildings.imprimerie.pickup_seconds)) return;
+  releaseDonation(simulation, npc);
   npc.role = 'MILITANT';
   npc.hidden_durability = config.balance.physical_units.militant.hidden_durability;
   npc.promoted_tick = state.tick;

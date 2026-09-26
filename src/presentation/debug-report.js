@@ -1,4 +1,4 @@
-import { buildingOffer, buildingOffers } from '../simulation/economy.js';
+import { buildingOffer } from '../simulation/economy.js';
 import { FACTIONS, zoneAt } from '../simulation/world.js';
 import { incomeBreakdown, localUnits, populationByOrigin, waitingAtPoint } from '../simulation/territory.js';
 import { remainingCampaignBudget } from '../simulation/campaign-budget.js';
@@ -7,7 +7,7 @@ import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
 export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
-export const reasonNames = { FUNDING_CRISIS: 'Collectes bloquées par la crise', CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine', SO_LIMIT: 'Cap de SO atteint pour ce Local', LEVEL_REQUIRED: 'Niveau 3 requis', CAMPAIGN_RUNNING: 'Campagne de financement en cours', ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
+export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine', SO_LIMIT: 'Cap de SO atteint pour ce Local', ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
   const f = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
@@ -35,10 +35,9 @@ export function managementReport(state, config, candidate, npc, building) {
       const s = units.filter(n => n.faction_id === faction && n.role === 'SYMPATHISANT').length;
       const m = units.filter(n => n.faction_id === faction && n.role === 'MILITANT').length;
       const so = units.filter(n => n.faction_id === faction && n.role === 'SERVICE_D_ORDRE').length;
-      return `${names[faction].name} : implantation ${s} S · ${m} M · ${so} SO\n  Influence : ${f(election.influence_per_second[faction])} point/s avant résistance\n  Soutien : ${f(election.support[faction])} % · variation nette ${f(election.net_change_per_second[faction])} point/s`;
+      return `${names[faction].name} : ${s} sympathisants + ${m} militants + ${so} SO = ${election.support[faction]} voix dans cette sous-zone`;
     }),
-    `Électorat abstrait neutre : ${f(election.support.neutral)} %`,
-    'PNJ physiques et électorat abstrait sont distincts.',
+    `Neutres présents : ${election.support.neutral} · PNJ à apparaître ici : ${election.support.pending}`,
   ];
   if (npc) {
     const task = npc.task;
@@ -56,18 +55,17 @@ export function managementReport(state, config, candidate, npc, building) {
   if (building) {
     const settings = buildingSettings(config, building, candidate.faction_id);
     const offer = buildingOffer(state, config, candidate, building);
-    const upgradeOffer = buildingOffers(state, config, candidate, building).find(candidateOffer => candidateOffer.kind === 'UPGRADE');
     const price = offer?.cost ?? (building.state === 'NEUTRAL' ? settings.capture_cost : null);
     lines.push('', '— BÂTIMENT INSPECTÉ —', `${buildingLabel(building, candidate.faction_id)} · ${building.id}`,
       `${building.subzone_id} · x=${f(building.x)}`,
       `Propriétaire : ${building.owner_id ? names[building.owner_id].name : building.ownership_model === 'neutral_service' ? 'Service neutre, jamais possédé' : 'Aucun'}`,
-      `Niveau : ${building.level} · état : ${building.state === 'NEUTRAL' ? 'Neutre' : 'En activité'}${building.headquarters ? ' · QG' : ''}`,
+      `État : ${building.state === 'NEUTRAL' ? 'Neutre' : 'En activité'}${building.headquarters ? ' · QG' : ''}`,
       `Présence politique : ${building.current_political_presence} · seuil ${building.required_presence} · pression SO ${f(building.hostile_pressure)} · effective ${f(building.current_effective_presence)}`,
       `Fermeture : ${f(building.closure_progress * 100)} % · capture : ${f(building.capture_progress * 100)} %`,
       `Coût actuel : ${price === null ? 'Aucune dépense disponible' : `${f(price)} k €`}`,
-      `Prochain niveau : ${building.level < settings.max_level ? building.level + 1 : 'aucun'} · verrou : ${(upgradeOffer?.reason || (building.type !== 'financement' && offer?.reason)) ? reasonNames[upgradeOffer?.reason || offer.reason] : 'aucun'}`);
-    if (building.type === 'financement') lines.push(`Financement : ${building.funding_state} · progression ${f(building.funding_progress_01 * 100)} % · reste ${building.funding_end_tick ? f((building.funding_end_tick - state.tick) / hz) : 0} s\n  Cagnotte ${f(building.funding_accumulated_payout)} / ${f(building.funding_target_payout)} k € · score ×${f(building.funding_influence_factor || 0)} · calendrier ×${f(building.funding_campaign_progression_factor || 0)} · hasard ×${f(building.funding_random_factor || 0)}\n  Dernier encaissement : ${f(building.funding_last_payout)} k €`);
-    if (building.type === 'meeting') lines.push(`Meeting actif : ${building.meeting_until_tick > state.tick ? `niveau ${building.meeting_level} pour ${building.meeting_faction_id} · encore ${f((building.meeting_until_tick - state.tick) / hz)} s` : 'aucun'}\n  Prochain segment proposé : ${offer?.meeting_level || 'aucun'} · coût ${offer?.kind === 'MEETING' ? `${f(offer.cost)} k €` : 'indisponible'} · segments achetés : ${building.meetings_held}`);
+      `Disponibilité : ${offer?.reason ? reasonNames[offer.reason] : 'action possible'}`);
+    if (building.type === 'financement') lines.push(`Cagnotte : ${f(building.stored_money_cents / 100)} € · dernière collecte : ${f(building.last_collection_cents / 100)} €`);
+    if (building.type === 'meeting') lines.push(`Promontoire : ${building.meeting_candidate_id ? `${building.meeting_faction_id} · ${f(building.meeting_hold_ticks / hz)} / 15 s · pause ${f(building.meeting_pause_ticks / hz)} / 5 s` : 'aucun meeting en cours'} · meetings validés : ${building.meetings_held}`);
     if (building.type === 'institut_sondage') lines.push(`Dernier payeur : ${building.last_poll_candidate_id || 'aucun'} · âge : ${building.last_poll_tick === null ? 'aucun sondage' : `${f((state.tick - building.last_poll_tick) / hz)} s`}`);
     if (building.type === 'imprimerie' || building.variant === 'service_ordre') {
       lines.push(`File : ${building.queue.length}/${settings.max_queue_length} · équipements récupérés : ${building.delivered_count}`);
@@ -77,17 +75,15 @@ export function managementReport(state, config, candidate, npc, building) {
   }
   const income = incomeBreakdown(state, config, candidate.faction_id);
   lines.push('', '— ÉCONOMIE DU CANDIDAT —', `Argent exact : ${f(candidate.money)} k €`,
-    `Revenu passif total : ${f(income.total)} k €/s`,
-    `Avant bonus : base ${f(income.base)} + partisans ${f(income.supporters)} + financements ${f(income.buildings)} k €/s`,
-    `Multiplicateur du candidat : ×${f(income.multiplier)}`,
-    'Partisans par biome d’origine (Sympathisants, Militants et Services d’ordre) :',
+    `Dons portés : ${f(income.held_eur)} € · cagnottes : ${f(income.stored_eur)} €`,
+    'Sympathisants par biome d’origine :',
     ...config.layout.biomes.map(biome => {
       const source = income.byBiome[biome.id];
-      return `  ${biome.display_name} : ${source.count} × ${f(source.rate)} = ${f(source.income)} k €/s avant bonus`;
+      return `  ${biome.display_name} : ${source.count} × ${f(source.donation_eur)} € · dons portés ${f(source.held_eur)} €`;
     }),
     `Revenus cumulés : ${f(candidate.total_earned)} k € · dépenses cumulées : ${f(candidate.total_spent)} k €`,
     `Plafond de campagne : ${f(config.balance.money.campaign_spending_limit)} k € · reste dépensable : ${f(remainingCampaignBudget(candidate, config))} k €`,
-    `Constructions : ${f(candidate.spending.BUILD)} · améliorations : ${f(candidate.spending.UPGRADE)} · tracts : ${f(candidate.spending.PRINT)} k €`,
+    `Constructions : ${f(candidate.spending.BUILD)} · tracts : ${f(candidate.spending.PRINT)} k €`,
     candidate.purchase_hold ? `Paiement : ${candidate.purchase_hold.target_id}\n  ${f(candidate.purchase_hold.elapsed_ticks / hz)} / ${f(candidate.purchase_hold.required_ticks / hz)} s · ${f(candidate.purchase_hold.cost)} k €` : 'Paiement : aucun',
     ...state.transactions.filter(t => t.candidate_id === candidate.id).slice(-5).map(t => `${t.id} · −${f(t.cost)} k € · ${transactionNames[t.kind]} · ${t.target_id}`),
     combatReport(state, config, candidate, npc, building));

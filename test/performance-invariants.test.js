@@ -3,39 +3,34 @@ import assert from 'node:assert/strict';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { FACTIONS } from '../src/simulation/world.js';
-import { CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
-import { refreshInfluenceSources, incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
-import { refreshInfluenceReference } from './fixtures/influence-reference.js';
+import { refreshElectoralState } from '../src/simulation/electoral-state.js';
+import { completePopulation } from '../src/simulation/spawns.js';
+import { incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
 import { formatNumber } from '../src/presentation/number-format.js';
 import { sceneryVisible } from '../src/presentation/illustrated-world.js';
 
-test('Les calculs indexés restent identiques à la référence après mutations au même tick', () => {
-  const config = campaignConfig(), state = new GameSimulation(config).getState();
+test('Les voix restent celles des PNJ après mutations au même tick', () => {
+  const config = campaignConfig(), sim = new GameSimulation(config);
+  completePopulation(sim);
+  const { state } = sim;
   for (let variant = 0; variant < 36; variant++) {
-    // Deliberately keep the tick unchanged: a tick-based memo would be stale.
-    state.phase = variant % 2 ? 'CAMPAIGN' : 'SECOND_ROUND_SPRINT';
-    state.eliminated_faction = variant % 4 === 0 ? 'philippe' : null;
-    state.npcs = Array.from({ length: 201 }, (_, i) => ({ id: `n:${i}`, x: (i * 67 + variant * 11) % state.world.length,
-      faction_id: FACTIONS[(i + variant) % 3], role: ['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'][i % 4],
-      origin_biome_id: config.layout.biomes[(i + variant) % 6].id }));
-    state.buildings.forEach((b, i) => {
-      b.state = (i + variant) % 5 === 0 ? 'CLOSED' : 'ACTIVE'; b.owner_id = FACTIONS[(i + variant) % 3];
-      b.level = 1 + (i + variant) % 3; b.headquarters = i % 7 === 0;
-      b.meeting_faction_id = FACTIONS[i % 3]; b.meeting_level = 1 + i % config.balance.buildings.meeting.ally_influence_multiplier_by_level.length;
-      b.meeting_until_tick = state.tick + (i % 3 - 1);
+    // Même tick : le recomptage ne doit dépendre d'aucun cache temporel.
+    state.npcs.forEach((npc, index) => {
+      npc.x = (index * 67 + variant * 11) % state.world.length;
+      npc.role = ['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'][index % 4];
+      npc.faction_id = npc.role === 'NEUTRE' ? null : FACTIONS[(index + variant) % 3];
     });
-    state.electorate.forEach((e, i) => { e.controller = [...FACTIONS, null][(i + variant) % 4]; });
-    state.candidates.forEach((c, i) => {
-      c.current_campaign_style = CAMPAIGN_STYLES[c.faction_id][variant % 3].id;
-      c.x = variant % 2 ? state.world.length - .01 : i * 41;
-      c.eliminated = c.faction_id === state.eliminated_faction; c.is_ko = (variant + i) % 5 === 0;
-      c.combat.engaged = (variant + i) % 7 === 0; c.campaign_arena_id = variant % 11 === 0 ? 'arena:test' : null;
-      c.combat.attack_id = variant % 13 === 0 ? 'attack:test' : null;
-    });
-    const expected = structuredClone(state);
-    refreshInfluenceReference(expected, config); refreshInfluenceSources(state, config);
-    assert.deepEqual(state, expected, `Variante ${variant} : aucune différence de règle ou d’arrondi`);
-    for (const faction of FACTIONS) assert.equal(incomePerSecond(state, config, faction), incomeBreakdown(state, config, faction).total);
+    refreshElectoralState(state);
+    const expected = { melenchon: 0, le_pen: 0, philippe: 0, neutral: 0, pending: 0 };
+    for (const npc of state.npcs) expected[npc.role === 'NEUTRE' ? 'neutral' : npc.faction_id]++;
+    assert.deepEqual(state.actualGameState.national_counts, expected);
+    assert.equal(Object.values(expected).reduce((sum, count) => sum + count, 0), 200);
+    for (const faction of FACTIONS) {
+      assert.equal(state.actualGameState.national_support[faction], expected[faction] / 2);
+      assert.equal(incomePerSecond(state, config, faction), 0);
+      assert.equal(Object.values(incomeBreakdown(state, config, faction).byBiome).reduce((sum, biome) => sum + biome.count, 0),
+        state.npcs.filter(npc => npc.role === 'SYMPATHISANT' && npc.faction_id === faction).length);
+    }
   }
 });
 

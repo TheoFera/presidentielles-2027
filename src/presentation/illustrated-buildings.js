@@ -1,8 +1,9 @@
 import { biomeArtId } from './illustrated-characters.js';
 import { zoneAt } from '../simulation/world.js';
 import { factionVariant } from '../simulation/building-rules.js';
+import { formatEuros } from './money.js';
 
-const families = { permanence: 'campaign_local', financement: 'financement', tour_communication: 'communication', faction: 'security_admin_slot', imprimerie: 'imprimerie', meeting: 'meeting_hall', institut_sondage: 'polling_institute' };
+const families = { permanence: 'campaign_local', financement: 'financement', tour_communication: 'communication', faction: 'security_admin_slot', imprimerie: 'imprimerie', meeting: 'meeting_stage', institut_sondage: 'polling_institute' };
 export function buildingAssetId(building, world) {
   return `building-${families[building.type]}-${biomeArtId(zoneAt(world, building.x).biome_id)}`;
 }
@@ -55,7 +56,7 @@ export function drawIllustratedBuilding(renderer, state, building) {
   if (x + w < 0 || x - w > width) return true;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
   const variant = building.type === 'faction' ? building.variant || factionVariant(candidate.faction_id) : building.type;
-  const label = building.headquarters ? 'QG' : ({ permanence: 'PERMANENCE', financement: 'FINANCEMENT', tour_communication: 'COMMUNICATION', service_ordre: 'LOCAL SO', cabinet_administratif: 'CABINET', imprimerie: 'IMPRIMERIE', meeting: 'SALLE DE MEETING', institut_sondage: 'SONDAGES' }[variant] || 'LOCAL');
+  const label = building.headquarters ? 'QG' : ({ permanence: 'PERMANENCE', financement: 'FINANCEMENT', tour_communication: 'COMMUNICATION', service_ordre: 'LOCAL SO', cabinet_administratif: 'CABINET', imprimerie: 'IMPRIMERIE', meeting: 'PROMONTOIRE', institut_sondage: 'SONDAGES' }[variant] || 'LOCAL');
   const runningMeeting = building.type === 'meeting' && building.meeting_until_tick > state.tick;
   const faction = p.factions[service ? (runningMeeting ? building.meeting_faction_id : null) : building.owner_id];
   const ownershipAlpha = 1 - Math.min(1, building.closure_progress || 0);
@@ -85,10 +86,10 @@ export function drawIllustratedBuilding(renderer, state, building) {
     ctx.fillStyle = '#f6ecd9'; ctx.fillRect(x - 23, top + h * 0.48, 46, 18);
     ctx.fillStyle = '#303b41'; ctx.font = 'bold 8px system-ui'; ctx.fillText(variant === 'cabinet_administratif' ? 'DOSSIERS' : 'ÉQUIPEMENT', x, top + h * 0.48 + 12);
   }
-  if (building.funding_state === 'RUNNING') {
-    ctx.fillStyle = '#403d33'; ctx.fillRect(left + 16, top + h * 0.7, w - 32, 8);
-    ctx.fillStyle = '#f3d37b'; ctx.fillRect(left + 18, top + h * 0.7 + 2, (w - 36) * building.funding_progress_01, 4);
-    ctx.font = 'bold 19px system-ui'; ctx.fillText('€', x, top + h * 0.64);
+  if (building.type === 'financement' && building.state === 'ACTIVE') {
+    ctx.fillStyle = '#403d33'; ctx.fillRect(left + 12, top + h * 0.68, w - 24, 20);
+    ctx.fillStyle = '#f3d37b'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`Cagnotte : ${formatEuros(building.stored_money_cents)}`, x, top + h * 0.68 + 14);
   }
   if (building.type === 'imprimerie' && building.queue?.length) {
     ctx.fillStyle = '#fff1d2'; for (let i = 0; i < Math.min(8, building.queue.length); i++) ctx.fillRect(x + 20 + i, m.groundY - 25 - i * 3, 18, 3);
@@ -114,9 +115,6 @@ export function drawIllustratedBuilding(renderer, state, building) {
   }
   if (building.state === 'ACTIVE' && building.type === 'financement' && building.level < config.balance.buildings.financement.max_level) {
     ctx.font = 'bold 8px system-ui'; ctx.fillStyle = '#343c3d'; ctx.fillText('↑ AMÉLIORER', renderer.screenX(building.x + config.balance.buildings.financement.upgrade_offset), m.groundY - 8);
-  }
-  if (building.type === 'financement' && building.funding_completed_tick !== null && state.tick - building.funding_completed_tick < config.balance.buildings.financement.completion_feedback_seconds * config.balance.simulation_architecture.fixed_tick_hz) {
-    ctx.fillStyle = '#936826'; ctx.font = 'bold 13px system-ui'; ctx.fillText(`+${building.funding_last_payout.toLocaleString('fr-FR')} k €`, x, top - 18);
   }
   ctx.restore();
   return true;

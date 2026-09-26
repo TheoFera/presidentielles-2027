@@ -26,8 +26,11 @@ function isolate(sim, faction = 'le_pen') {
   return c;
 }
 function supporter(sim, faction, x) {
-  const n = sim.spawn(zoneAt(sim.state.world, x), x);
+  const n = sim.spawn(zoneAt(sim.state.world, x), x) || sim.state.npcs.find(n => n.role === 'NEUTRE');
+  if (!n) throw new Error('Ce scénario requiert un PNJ physique disponible.');
+  n.x = x;
   n.role = 'SYMPATHISANT'; n.faction_id = faction; n.hidden_durability = 30;
+  n.next_donation_tick = sim.state.tick + sim.secondsToTicks(30);
   return n;
 }
 
@@ -102,14 +105,15 @@ test('Un objectif de conquête persiste, puis est remplacé après sa capture', 
   const e = sim.state.electorate[0];
   c.ai_objective = { subzone_id: e.subzone_id, purpose: 'CONQUER', expires_tick: 1000 };
   assert.equal(chooseAIObjective(sim.state, config, c), c.ai_objective);
-  e.support = { melenchon: 10, le_pen: 70, philippe: 10, neutral: 10 }; refreshElectoralState(sim.state, config);
+  supporter(sim, c.faction_id, sim.state.world.subzones.find(z => z.id === e.subzone_id).center);
+  refreshElectoralState(sim.state, config);
   assert.notEqual(chooseAIObjective(sim.state, config, c).subzone_id, e.subzone_id);
 });
 
 for (const phase of ['CAMPAIGN', 'SECOND_ROUND_SPRINT']) test(`${phase} : attaque et démobilise les soutiens adverses`, () => {
   const { sim, config, ai } = make(); const c = isolate(sim); config.balance.ai_economy.enabled = false;
-  sim.state.phase = phase;
   const enemy = supporter(sim, 'melenchon', c.x + 1); enemy.hidden_durability = 1;
+  sim.state.phase = phase;
   assert.ok(ai.commands(sim.state, c.id).some(c => c.type === 'Attack'));
   // Éviter la transition de phase de ce scénario isolé.
   sim.state.phase = 'CAMPAIGN';
@@ -123,7 +127,7 @@ test('L’IA capture son QG par maintien et paie le prix normal dès qu’elle a
   supporter(sim, c.faction_id, c.x); supporter(sim, c.faction_id, c.x + 0.1);
   for (let i = 0; i < sim.secondsToTicks(3); i++) sim.step(ai.commands(sim.state, c.id));
   assert.equal(hq.owner_id, c.faction_id); assert.equal(c.headquarters_site_id, hq.id);
-  assert.equal(c.spending.CAPTURE, sim.config.balance.buildings.permanence.capture_cost);
+  assert.equal(c.spending.CAPTURE, sim.config.balance.buildings.permanence.first_headquarters_capture_cost);
   assert.ok(c.current_campaign_style);
 });
 
@@ -131,11 +135,13 @@ test('Offensive complète : affaiblir les soutiens, neutraliser puis reprendre u
   const { sim, ai } = make(); const c = isolate(sim); c.money = 200;
   const player = sim.state.candidates.find(c => c.faction_id === 'melenchon');
   const site = sim.state.buildings.find(b => b.type === 'financement');
+  captureSite(sim, sim.state.buildings.find(b => b.type === 'permanence'), c);
   captureSite(sim, site, player); c.x = site.x - 3;
   // Ce scénario commence après l’installation du QG pour tester l’offensive seule.
   sim.state.tick = sim.secondsToTicks(80);
   c.ai_objective = { subzone_id: site.subzone_id, purpose: 'CONQUER', expires_tick: sim.state.tick + sim.secondsToTicks(100) };
   const defenders = [supporter(sim, player.faction_id, site.x), supporter(sim, player.faction_id, site.x + 0.2)];
+  supporter(sim, c.faction_id, site.x - 0.2); supporter(sim, c.faction_id, site.x - 0.3);
   for (const n of defenders) n.hidden_durability = 8;
   let neutralized = false;
   for (let i = 0; i < sim.secondsToTicks(90) && site.owner_id !== c.faction_id; i++) {

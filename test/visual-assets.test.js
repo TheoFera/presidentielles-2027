@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { VisualAssets, neighboringSubzones } from '../src/presentation/visual-assets.js';
-import { characterAssetId, characterAnimation, npcVariantCounts } from '../src/presentation/illustrated-characters.js';
+import { characterAssetId, characterAnimation, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../src/presentation/illustrated-characters.js';
 import { sceneryProjection, sceneryParallax, sceneryImageHeight, worldAssetIds, preloadWorld } from '../src/presentation/illustrated-world.js';
 import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
@@ -9,9 +9,9 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { access } from 'node:fs/promises';
 
-test('Chaque biome possède ses sept façades, ses trois habitants et ses trois décors', async () => {
+test('Chaque biome possède ses sept façades, ses vingt habitants et ses trois décors', async () => {
   for (const biome of ['bobo','banlieue','periurbain','campagne','retraites','riches']) {
-    for (const family of ['campaign_local','financement','communication','security_admin_slot','imprimerie','meeting_hall','polling_institute']) {
+    for (const family of ['campaign_local','financement','communication','security_admin_slot','imprimerie','meeting_hall','meeting_stage','polling_institute']) {
       const id = `building-${family}-${biome}`;
       assert.ok(visualManifest[id], id); await access(new URL(visualManifest[id].file));
     }
@@ -167,6 +167,30 @@ test('Le visage du PNJ reste stable après déplacement et conversion ; les jour
   const before=characterAssetId(entity,state);
   assert.equal(characterAssetId({...entity,role:'MILITANT',faction_id:'philippe',x:300},state),before);
   assert.match(characterAssetId({id:'journaliste-1',role:'CANDIDAT',faction_id:'melenchon',presentation_name:'Journaliste'},{}),/^journalist-/);
+});
+
+test('Un quart des PNJ emprunte une apparence aux deux biomes voisins', () => {
+  for (let homeIndex = 0; homeIndex < npcBiomeOrder.length; homeIndex++) {
+    const home = npcBiomeOrder[homeIndex];
+    const previous = npcBiomeOrder[(homeIndex + npcBiomeOrder.length - 1) % npcBiomeOrder.length];
+    const next = npcBiomeOrder[(homeIndex + 1) % npcBiomeOrder.length];
+    const selected = Array.from({length:800}, (_, index) => npcVisualBiome({id:`npc:${index}`}, home));
+    assert.ok(selected.every(biome => [home, previous, next].includes(biome)));
+    const neighboringShare = selected.filter(biome => biome !== home).length / selected.length;
+    assert.ok(neighboringShare >= 0.23 && neighboringShare <= 0.27, `${home}: ${neighboringShare}`);
+  }
+});
+
+test('Une zone utilise ses vingt apparences avant d’autoriser un doublon', () => {
+  const npcs = Array.from({length:21}, (_, index) => ({
+    id:`npc:${index + 1}`, origin_subzone_id:'banlieue_a', role:'NEUTRE', x:index,
+  }));
+  const state={npcs,world:{subzones:[{id:'banlieue_a',biome_id:'banlieue',start:0,end:100,width:100}]}};
+  const assets=npcs.map(npc => npcAppearanceAssetId(npc,state,'banlieue'));
+  assert.equal(new Set(assets.slice(0,20)).size,20);
+  assert.ok(assets.slice(0,20).includes(assets[20]));
+  assert.equal(assets.slice(0,20).filter(id => id.startsWith('npc-banlieue-')).length,15);
+  assert.equal(characterAssetId(npcs[20],state),assets[20]);
 });
 
 test('Les animations respectent la priorité KO, impact et action sans modifier la simulation', () => {

@@ -5,7 +5,46 @@ import { zoneAt } from '../simulation/world.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
 const hash = value => [...String(value)].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 0);
-export const npcVariantCounts = Object.freeze({bobo:3,banlieue:4,periurbain:5,campagne:4,retraites:4,riches:4});
+export const npcVariantCounts = Object.freeze({bobo:20,banlieue:20,periurbain:20,campagne:20,retraites:20,riches:20});
+export const npcBiomeOrder = Object.freeze(['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']);
+
+export function npcVisualBiome(entity, homeBiome) {
+  const index = npcBiomeOrder.indexOf(homeBiome);
+  if (index < 0) return 'bobo';
+  const neighborRoll = hash(`${entity.id}:biome`) % 8;
+  if (neighborRoll > 1) return homeBiome;
+  const direction = neighborRoll === 0 ? -1 : 1;
+  return npcBiomeOrder[(index + direction + npcBiomeOrder.length) % npcBiomeOrder.length];
+}
+
+const npcSequence = entity => {
+  const match = /^npc:(\d+)$/.exec(entity.id);
+  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+};
+
+export function npcAppearanceAssetId(entity, state, homeBiome) {
+  const count = npcVariantCounts[homeBiome] || 20;
+  const zoneId = entity.origin_subzone_id || homeBiome;
+  const zoneNpcs = (state.npcs || [])
+    .filter(npc => (npc.origin_subzone_id || homeBiome) === zoneId)
+    .sort((a, b) => npcSequence(a) - npcSequence(b) || String(a.id).localeCompare(String(b.id)));
+  const position = zoneNpcs.findIndex(npc => npc.id === entity.id);
+  const cyclePosition = position >= 0 ? position % count : hash(`${entity.id}:slot`) % count;
+
+  // Chaque sous-zone possède un cycle fixe de vingt apparences : quinze
+  // locales et cinq empruntées aux deux biomes voisins. Le pas 7 mélange le
+  // cycle tout en visitant exactement une fois chacun des vingt emplacements.
+  const slot = (cyclePosition * 7 + hash(`${zoneId}:skin-order`)) % count;
+  const homeIndex = npcBiomeOrder.indexOf(homeBiome);
+  let biome = homeBiome;
+  if (homeIndex >= 0 && slot >= 15) {
+    const previousShare = 2 + (hash(zoneId) % 2);
+    const direction = slot < 15 + previousShare ? -1 : 1;
+    biome = npcBiomeOrder[(homeIndex + direction + npcBiomeOrder.length) % npcBiomeOrder.length];
+  }
+  const variant = (slot + hash(`${zoneId}:skin-variant`)) % (npcVariantCounts[biome] || count);
+  return `npc-${biome}-${variant}`;
+}
 
 export function characterAssetId(entity, state) {
   const variation = hash(entity.id);
@@ -17,8 +56,8 @@ export function characterAssetId(entity, state) {
   if (entity.role === 'SERVICE_D_ORDRE') return `security-${variation % 2}`;
   const origin = state.world?.subzones.find(z => z.id === entity.origin_subzone_id)
     || (state.world?.subzones.length ? zoneAt(state.world, entity.x) : null);
-  const biome = biomeArtId(origin?.biome_id || 'bobo');
-  return `npc-${biome}-${variation % (npcVariantCounts[biome] || 3)}`;
+  const homeBiome = biomeArtId(origin?.biome_id || 'bobo');
+  return npcAppearanceAssetId(entity, state, homeBiome);
 }
 
 // Animation follows simulation events; no animation can delay or mutate a command.
@@ -57,9 +96,11 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const walking = ['walk', 'run', 'demobilised_return'].includes(animation);
   const stride = walking ? Math.sin(time * (animation === 'run' ? 20 : 13)) : 0;
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
-  const attacking = animation.startsWith('attack');
+  const attacking = candidate && animation.startsWith('attack');
   const windup = attack && attack.elapsed_ticks < attack.windup_ticks;
-  const action = attacking ? (windup ? -0.09 : attack?.strong ? 0.23 : 0.16) : animation === 'knockback' ? -0.25 : animation === 'special_start' ? -0.1 : animation === 'special_recovery' ? 0.07 : animation === 'interact_hold' ? 0.04 : 0;
+  const action = candidate
+    ? attacking ? (windup ? -0.09 : attack?.strong ? 0.23 : 0.16) : animation === 'knockback' ? -0.25 : animation === 'special_start' ? -0.1 : animation === 'special_recovery' ? 0.07 : animation === 'interact_hold' ? 0.04 : 0
+    : 0;
   const faction = p.factions[entity.faction_id];
   ctx.save();
   ctx.imageSmoothingEnabled = true;
@@ -74,7 +115,8 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025);
   ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.5 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
   if (entity.role === 'HOLOGRAMME') { ctx.globalAlpha *= Math.min(1, (state.tick - (entity.spawn_tick || 0)) / Math.max(1, (entity.ready_tick || 1) - (entity.spawn_tick || 0))); ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
-  const breathing = 1 + Math.sin(time * 3) * 0.008;
+  // Les PNJ restent statiques au repos ; seule la marche reçoit un léger mouvement procédural.
+  const breathing = walking ? 1 + Math.sin(time * 3) * 0.004 : 1;
   ctx.scale(1 / breathing, breathing);
   // Deform the two leg regions around a fixed hip seam, reusing the master identity.
   if (walking) {

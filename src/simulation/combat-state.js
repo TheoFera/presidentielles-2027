@@ -4,8 +4,10 @@ import { tryBardellisation } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
+import { applyOpinionDelta } from './npc-votes.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
 import { random } from './world.js';
+import { releaseDonation, dropCandidateMoney } from './money.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
@@ -17,23 +19,19 @@ export const movementBlocked = actor => actor.combat && (actor.combat.charge_act
 export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_arena_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
-  return state.electorate.filter(e => leadership(e.support, config).controller === faction);
+  return state.electorate.filter(e => e.controller === faction);
 }
 
 export function electoralDamage(sim, faction, amount) {
-  const zones = controlledZones(sim.state, sim.config, faction);
-  const total = zones.reduce((s, e) => s + e.support[faction], 0);
-  let removed = 0;
-  for (const zone of zones) {
-    const loss = Math.min(zone.support[faction], amount * zone.support[faction] / total);
-    zone.support[faction] -= loss; zone.support.neutral += loss; removed += loss;
-  }
-  refreshElectoralState(sim.state, sim.config);
-  return removed;
+  if (!sim.state.npcs?.length) return 0;
+  const changed = applyOpinionDelta(sim, faction, -amount, { source: 'COMBAT' });
+  refreshElectoralState(sim.state);
+  return changed * 100 / sim.config.layout.total_electors;
 }
 
 export function demobilizeUnit(sim, npc) {
   if (!['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role)) return;
+  releaseDonation(sim, npc);
   const oldFaction = npc.faction_id;
   const velocity = npc.combat?.knockback_velocity || 0;
   npc.role = 'DEMOBILISE'; npc.faction_id = null; npc.hidden_durability = 0; npc.persuasion = null;
@@ -90,8 +88,13 @@ export function hit(sim, source, target, spec, attackId) {
       result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
       target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
       target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds + config.balance.candidate_combat.ko_ground_seconds);
-      target.respawn_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_respawn_seconds);
-      sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss });
+      const progress = Math.max(0, Math.min(1, state.campaign_progress_01));
+      const combat = config.balance.candidate_combat;
+      const respawnSeconds = combat.ko_respawn_min_seconds + (combat.ko_respawn_max_seconds - combat.ko_respawn_min_seconds)
+        * Math.pow(progress, combat.ko_respawn_progress_exponent);
+      target.respawn_tick = state.tick + sim.secondsToTicks(respawnSeconds);
+      const dropped_cents = dropCandidateMoney(sim, target);
+      sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss, dropped_cents });
     }
   } else {
     const multiplier = localUnitDamageMultiplier(state, config, target);

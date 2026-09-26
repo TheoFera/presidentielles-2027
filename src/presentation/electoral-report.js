@@ -1,37 +1,21 @@
-import { FACTIONS } from '../simulation/world.js';
-
 export function electoralReport(state, config, candidate) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
-  const f = v => Number.isFinite(v) ? v.toLocaleString('fr-FR', { maximumFractionDigits: 5 }) : '—';
-  const names = { melenchon: 'M', le_pen: 'LP', philippe: 'EP', neutral: 'N' };
-  const scores = support => Object.entries(names).map(([id, name]) => `${name} ${f(support[id])} %`).join(' · ');
+  const names = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe', neutral: 'Neutres', pending: 'À apparaître' };
+  const scores = support => Object.entries(names).map(([id, name]) => `${name} ${support[id].toLocaleString('fr-FR', { maximumFractionDigits: 1 })} %`).join(' · ');
   const poll = state.polls[candidate.faction_id];
-  const lines = ['', '— CONQUÊTE ET INFORMATION —', `J-${state.days_remaining} · score national réel :`, scores(state.actualGameState.national_support),
-    `Contrôles : M ${state.actualGameState.controlled_counts.melenchon} · LP ${state.actualGameState.controlled_counts.le_pen} · EP ${state.actualGameState.controlled_counts.philippe} · contestées ${state.actualGameState.controlled_counts.contested}`,
-    `Règle : ≥ ${f(config.balance.influence.control_min_leader_percent)} % et ≥ ${f(config.balance.influence.control_required_lead_points)} points d’avance sur le deuxième candidat.`,
-    `Institut neutre : sondage ponctuel à l’achat · ${poll.lastPollSnapshot ? 'mesure disponible' : 'aucune mesure'}`,
-    poll.lastPollSnapshot ? `Dernier sondage affiché (tick ${poll.lastPollSnapshot.measured_tick}) :\n${scores(poll.lastPollSnapshot.national_support)}\nÂge : ${f((state.tick - poll.lastPollSnapshot.measured_tick) / hz)} s · prochain : nouvel achat nécessaire` : 'Sondage : jamais publié ; cercle et scores masqués.',
-    `Présence candidat : ${f(config.balance.influence.candidate_presence_per_second)} /s · gain LP ×${f(config.balance.influence.le_pen_gain_multiplier)}`,
-    '', '— LES 18 SOUS-ZONES, DANS L’ORDRE —'];
-  for (const e of state.electorate) {
-    lines.push(`${e.subzone_id} · poids ${f(e.electoral_weight)} · tête ${names[e.leader] || 'égalité'} · contrôle ${names[e.controller] || 'contesté'}`,
-      `  ${scores(e.support)}`, `  Voisines : ${e.adjacent_subzone_ids.join(' / ')} · biomes voisins : ${e.adjacent_biome_ids.join(' / ')}`);
-    for (const faction of FACTIONS) {
-      const s = e.influence_sources[faction];
-      lines.push(`  ${names[faction]} ${f(e.influence_per_second[faction])}/s : S ${f(s.sympathisants)} + M ${f(s.militants)} + Permanence ${f(s.permanence)} + candidat ${f(s.candidate)} + bonus Meeting ${f(s.meeting)} + Tour ${f(s.tower_base)}×${f(s.tower_multiplier)} ; ensemble ×${f(s.faction_multiplier)}`);
-    }
+  const lines = ['', '— ÉLECTEURS PHYSIQUES —', `${state.npcs.length} / ${config.layout.total_electors} PNJ apparus`,
+    `Voix actuelles : ${Object.entries(names).map(([id, name]) => `${name} ${state.actualGameState.national_counts[id]}`).join(' · ')}`,
+    `Pourcentages : ${scores(state.actualGameState.national_support)}`,
+    `Territoires contrôlés : ${Object.entries(state.actualGameState.controlled_counts).map(([id, count]) => `${names[id] || 'Contestés'} ${count}`).join(' · ')}`,
+    poll.lastPollSnapshot ? `Dernier sondage acheté il y a ${((state.tick - poll.lastPollSnapshot.measured_tick) / hz).toFixed(1)} s : ${scores(poll.lastPollSnapshot.national_support)}` : 'Aucun sondage acheté.',
+    '', '— SOUS-ZONES —'];
+  for (const zone of state.electorate) {
+    lines.push(`${zone.subzone_id} · ${Object.entries(names).map(([id, name]) => `${name} ${zone.support[id]}`).join(' · ')} · contrôle ${names[zone.controller] || 'contesté'}`);
   }
-  lines.push('', '— TOURS ET MEETINGS —');
-  for (const b of state.buildings.filter(b => b.type === 'tour_communication' && b.owner_id || b.type === 'meeting')) {
-    const settings = config.balance.buildings[b.type];
-    if (b.type === 'tour_communication') lines.push(`${b.subzone_id} · Tour ${names[b.owner_id]} · niveau ${b.level} · ${b.state === 'ACTIVE' ? `base ${f(settings.global_influence_per_second_by_level[b.level - 1])}/s` : 'fermée : influence nulle'}`);
-    else lines.push(`${b.subzone_id} · Salle neutre · ${b.meeting_until_tick > state.tick ? `Meeting ${names[b.meeting_faction_id]} niveau ${b.meeting_level} · impulsion ${f(settings.influence_burst_by_level[b.meeting_level - 1])}` : 'aucun Meeting actif'}`,
-      `  Bonus actif : ${b.meeting_until_tick > state.tick ? `×${f(settings.ally_influence_multiplier_by_level[b.meeting_level - 1])}, encore ${f((b.meeting_until_tick - state.tick) / hz)} s` : 'aucun'} · segments achetés : ${b.meetings_held}`);
-  }
-  const impact = [...state.hit_results].reverse().find(hit => hit.electoral_changes?.length);
-  if (impact) {
-    lines.push('', `— AVANT / APRÈS LE COUP ${impact.id} —`);
-    for (const e of impact.electoral_changes) lines.push(`${e.subzone_id} : ${scores(e.before)}\n  → ${scores(e.after)}\n  Contrôle : ${names[e.controller_before] || 'contesté'} → ${names[e.controller_after] || 'contesté'}`);
+  lines.push('', '— COMMUNICATION ET MEETINGS —');
+  for (const building of state.buildings.filter(item => item.type === 'tour_communication' && item.owner_id || item.type === 'meeting')) {
+    if (building.type === 'tour_communication') lines.push(`${building.subzone_id} · Tour ${names[building.owner_id]} · ${building.state === 'ACTIVE' ? 'une action toutes les 15 s' : 'inactive'}`);
+    else lines.push(`${building.subzone_id} · Promontoire · ${building.meeting_candidate_id ? `meeting de ${names[building.meeting_faction_id]} : ${(building.meeting_hold_ticks / hz).toFixed(1)} / 15 s` : 'disponible'} · meetings validés : ${building.meetings_held}`);
   }
   return lines.join('\n');
 }

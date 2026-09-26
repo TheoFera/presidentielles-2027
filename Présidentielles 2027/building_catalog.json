@@ -45,7 +45,7 @@
     "financement": {
       "ownership_model": "capturable",
       "preexisting_in_world": true,
-      "cycle_based": true,
+      "collects_supporter_donations": true,
       "can_be_targeted_by_philippe": true
     },
     "tour_communication": {
@@ -70,11 +70,7 @@
       "ownership_model": "neutral_service",
       "preexisting_in_world": true,
       "pay_per_use": true,
-      "continuous_levels_while_present": [
-        50,
-        100,
-        150
-      ],
+      "visual_style": "outdoor_podium",
       "can_be_targeted_by_philippe": true,
       "targeting_effect": "temporary_candidate_ban"
     }

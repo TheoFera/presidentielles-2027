@@ -4,6 +4,7 @@ import { buildingLabel, buildingSettings, factionVariant } from '../simulation/b
 import { drawElectoralBuilding } from './electoral.js';
 import { drawIllustratedBuilding, buildingGeometry } from './illustrated-buildings.js';
 import { formatNumber } from './number-format.js';
+import { formatEuros } from './money.js';
 
 const labels = { permanence: 'PERMANENCE', financement: 'FINANCEMENT', imprimerie: 'IMPRIMERIE', tour_communication: 'COMMUNICATION' };
 
@@ -13,8 +14,9 @@ export function drawInfrastructure(renderer, state) {
   const settings = p.infrastructure;
   const h = settings.height_ratio * height;
   for (const building of state.buildings) {
+    if (building.type === 'meeting') { drawElectoralBuilding(renderer, state, building); continue; }
     if (drawIllustratedBuilding(renderer, state, building)) continue;
-    if (['institut_sondage', 'meeting'].includes(building.type)) { drawElectoralBuilding(renderer, state, building); continue; }
+    if (building.type === 'institut_sondage') { drawElectoralBuilding(renderer, state, building); continue; }
     const w = (building.type === 'faction' ? settings.faction_width_ratio : settings.width_ratio) * width;
     const x = renderer.screenX(building.x);
     if (x + w / 2 < 0 || x - w / 2 > width) continue;
@@ -75,15 +77,9 @@ export function drawInfrastructure(renderer, state) {
     if (building.level >= 3 && building.ownership_model !== 'neutral_service') { ctx.fillStyle = faction?.color || '#78817d'; ctx.fillRect(left + w - 36, top - 28, 18, 24); }
     if (building.headquarters) { ctx.strokeStyle = '#f0d36a'; ctx.lineWidth = 4; ctx.strokeRect(left - 7, top - 9, w + 14, h + 9); }
     if (building.closure_progress > 0) { ctx.fillStyle = `rgba(120, 126, 123, ${Math.min(0.82, building.closure_progress * 0.82)})`; ctx.fillRect(left, top, w, h); }
-    if (building.type === 'financement' && building.funding_state === 'RUNNING') {
-      ctx.fillStyle = '#e8ce63'; ctx.font = 'bold 18px system-ui'; ctx.fillText(state.tick % 20 < 10 ? '€' : '·€·', x, top + 72);
-      ctx.fillStyle = '#4c574f'; ctx.fillRect(left + 15, top + 145, w - 30, 7);
-      ctx.fillStyle = '#e8ce63'; ctx.fillRect(left + 17, top + 147, (w - 34) * building.funding_progress_01, 3);
-    }
-    if (building.type === 'financement' && building.funding_completed_tick !== null
-      && state.tick - building.funding_completed_tick < config.balance.buildings.financement.completion_feedback_seconds * config.balance.simulation_architecture.fixed_tick_hz) {
-      const payout = formatNumber(building.funding_last_payout, 1);
-      ctx.fillStyle = '#f4dc72'; ctx.font = 'bold 15px system-ui'; ctx.fillText(`+${payout} k €`, x, top - 18);
+    if (building.type === 'financement' && building.state === 'ACTIVE') {
+      ctx.fillStyle = '#4c574f'; ctx.fillRect(left + 12, top + 143, w - 24, 22);
+      ctx.fillStyle = '#f4dc72'; ctx.font = 'bold 12px system-ui'; ctx.fillText(`Cagnotte : ${formatEuros(building.stored_money_cents)}`, x, top + 158);
     }
     if (building.state === 'CLOSED') {
       ctx.fillStyle = '#757c76cc'; ctx.fillRect(left, top + 52, w, h - 52);

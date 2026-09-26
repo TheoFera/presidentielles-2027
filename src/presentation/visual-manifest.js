@@ -1,5 +1,11 @@
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
+  "building-meeting_stage-bobo": { file: new URL("../../assets/generated/buildings/building-meeting_stage-bobo.png", import.meta.url).href },
+  "building-meeting_stage-banlieue": { file: new URL("../../assets/generated/buildings/building-meeting_stage-banlieue.png", import.meta.url).href },
+  "building-meeting_stage-periurbain": { file: new URL("../../assets/generated/buildings/building-meeting_stage-periurbain.png", import.meta.url).href },
+  "building-meeting_stage-campagne": { file: new URL("../../assets/generated/buildings/building-meeting_stage-campagne.png", import.meta.url).href },
+  "building-meeting_stage-retraites": { file: new URL("../../assets/generated/buildings/building-meeting_stage-retraites.png", import.meta.url).href },
+  "building-meeting_stage-riches": { file: new URL("../../assets/generated/buildings/building-meeting_stage-riches.png", import.meta.url).href },
   'ultimate-europe-v1': { file: new URL('../../assets/generated/animations/ultimates/europe-v1.png', import.meta.url).href },
   'ultimate-bardella-v1': { file: new URL('../../assets/generated/animations/ultimates/bardella-v1.png', import.meta.url).href },
   'ultimate-zemmour-v1': { file: new URL('../../assets/generated/animations/ultimates/zemmour-v1.png', import.meta.url).href },
@@ -184,3 +190,12 @@ export const visualManifest = {
   "character-ultimate-philippe-super-europeiste": { file: new URL("../../assets/generated/characters/character-ultimate-philippe-super-europeiste.png", import.meta.url).href },
   "character-ultimate-zemmour": { file: new URL("../../assets/generated/characters/character-ultimate-zemmour.png", import.meta.url).href },
 };
+
+// La planche de casting v2 remplace les anciens PNJ et fournit vingt silhouettes par biome.
+for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) {
+  for (let variant = 0; variant < 20; variant++) {
+    visualManifest[`npc-${biome}-${variant}`] = {
+      file: new URL(`../../assets/generated/npc-v2/npc-${biome}-${variant}.png?v=5`, import.meta.url).href,
+    };
+  }
+}

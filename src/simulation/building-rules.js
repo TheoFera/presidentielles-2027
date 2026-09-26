@@ -5,7 +5,7 @@ export function buildingSettings(config, building, faction = building.owner_id) 
     ? 'faction_slot_melenchon_lepen_service_ordre' : 'faction_slot_philippe_cabinet_administratif'];
 }
 export const buildingLabel = (building, faction = building.owner_id) => ({ permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie',
-  tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Salle de meeting',
+  tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Promontoire de meeting',
   service_ordre: 'Local du service d’ordre', cabinet_administratif: 'Cabinet administratif' })[building.type === 'faction' ? building.variant || factionVariant(faction) : building.type];
 
 export const isNeutralService = building => building.ownership_model === 'neutral_service';

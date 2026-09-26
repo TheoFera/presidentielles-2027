@@ -4,7 +4,8 @@ import { ultimateBlockedReason } from './simulation/combat.js';
 import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
 import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
-import { incomePerSecond } from './simulation/territory.js';
+import { incomeBreakdown } from './simulation/territory.js';
+import { formatEuros } from './presentation/money.js';
 import { remainingCampaignBudget } from './simulation/campaign-budget.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
@@ -193,9 +194,8 @@ async function start() {
   const durationText = document.getElementById('balance-help');
   const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
   document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
-  durationText.textContent = `Local : ${format(config.balance.buildings.permanence.capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€.`;
+  durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Financement : ${format(config.balance.buildings.financement.capture_cost)} k€. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   const currency = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: config.balance.display.currency_precision_decimals });
-  const incomeFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
   }
@@ -380,8 +380,8 @@ async function start() {
         currentDay = state.days_remaining;
         if (config.balance.display.show_day_change_flash) notify(`J-${currentDay}`, config.prototype.presentation.day_flash_seconds);
       }
-      const income = incomeFormat.format(incomePerSecond(state, config, candidate.faction_id));
-      setText(money, `${currency.format(candidate.money)} ${config.balance.display.currency_label}\n+${income} ${config.balance.display.currency_label}/s`);
+      const fundsByPlace = incomeBreakdown(state, config, candidate.faction_id);
+      setText(money, `Poche : ${formatEuros(Math.round(candidate.money * 100000))}\nDons : ${formatEuros(Math.round(fundsByPlace.held_eur * 100))} · Cagnottes : ${formatEuros(Math.round(fundsByPlace.stored_eur * 100))}`);
       setText(campaignBudget, `Plafond restant : ${currency.format(remainingCampaignBudget(candidate, config))} ${config.balance.display.currency_label}`);
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;

@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { captureSite, neutralizeSite, plannedHeadquartersSuccessor, startFundingCampaign, updateStrategicSites } from '../src/simulation/strategic-sites.js';
+import { captureSite, neutralizeSite, plannedHeadquartersSuccessor, updateStrategicSites } from '../src/simulation/strategic-sites.js';
 import { buildingOffers } from '../src/simulation/economy.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { zoneAt } from '../src/simulation/world.js';
+import { completePopulation } from '../src/simulation/spawns.js';
 
 const base = new URL('../Présidentielles 2027/', import.meta.url);
 const [balance, layout, buildings, prototype] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json']
@@ -18,6 +19,7 @@ const candidate = (sim, faction = 'melenchon') => sim.state.candidates.find(c =>
 function unit(sim, role, faction, x) {
   const npc = sim.spawn(zoneAt(sim.state.world, x), x, false);
   npc.role = role; npc.faction_id = faction;
+  if (role === 'SYMPATHISANT') npc.next_donation_tick = sim.state.tick + sim.secondsToTicks(30);
   npc.hidden_durability = sim.config.balance.physical_units[role === 'SERVICE_D_ORDRE' ? 'service_ordre' : role.toLowerCase()].hidden_durability;
   if (role === 'SERVICE_D_ORDRE') { npc.guard_biome_id = zoneAt(sim.state.world, x).biome_id; npc.guard_anchor_x = x; }
   return npc;
@@ -55,17 +57,18 @@ test('Premier Local capturé = QG, second = Permanence, succession circulaire d�
   assert.equal(actor.headquarters_site_id, expected.id); assert.equal(expected.headquarters, true);
 });
 
-test('Capture et améliorations continues : coût, présence et arrêt au niveau autorisé', () => {
+test('Capture unique : niveau 1 et aucune amélioration proposée', () => {
   const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 1000;
   const local = sim.state.buildings.find(s => s.type === 'permanence'); actor.x = local.x;
   for (let i = 0; i < 4; i++) unit(sim, 'SYMPATHISANT', actor.faction_id, local.x + i * 0.05);
   advance(sim, sim.secondsToTicks(2)); assert.equal(local.level, 1); assert.equal(local.headquarters, true);
   sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
-  advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(local.level, 2);
-  advance(sim, sim.secondsToTicks(3)); assert.equal(local.level, 2); assert.equal(buildingOffers(sim.state, sim.config, actor, local)[0].reason, 'INSUFFICIENT_PRESENCE');
+  advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(local.level, 1);
+  advance(sim, sim.secondsToTicks(3)); assert.equal(local.level, 1);
   for (let i = 0; i < 2; i++) unit(sim, 'MILITANT', actor.faction_id, local.x - i * 0.05);
-  advance(sim, sim.secondsToTicks(2)); assert.equal(local.level, 3);
-  assert.equal(actor.spending.CAPTURE, 35); assert.equal(actor.spending.UPGRADE, 145);
+  advance(sim, sim.secondsToTicks(2)); assert.equal(local.level, 1);
+  assert.ok(!buildingOffers(sim.state, sim.config, actor, local).some(o => o.kind === 'UPGRADE'));
+  assert.equal(actor.spending.CAPTURE, 15); assert.equal(actor.spending.UPGRADE, 0);
 });
 
 test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présence effective', () => {
@@ -77,49 +80,39 @@ test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présenc
   assert.equal(allies.length, 2);
 });
 
-test('Local SO : caps 2/5/illimité et Raid seulement au niveau 3', () => {
+test('Local SO : effectif libre et Raid disponible dès le niveau unique', () => {
   const sim = new GameSimulation(config); const actor = candidate(sim); actor.money = 1000; const site = sim.state.buildings.find(s => s.type === 'faction'); captureSite(sim, site, actor);
   unit(sim, 'MILITANT', actor.faction_id, site.x);
-  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').reason, 'LEVEL_REQUIRED');
+  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').reason, 'NO_GUARD');
   for (let i = 0; i < 2; i++) { const guard = unit(sim, 'SERVICE_D_ORDRE', actor.faction_id, site.x); guard.source_site_id = site.id; }
-  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'EQUIP').reason, 'SO_LIMIT');
-  site.level = 2; assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'EQUIP').enabled, true);
-  site.level = 3; assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').enabled, true);
+  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'EQUIP').enabled, true);
+  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').enabled, true);
 });
 
-test('Financement participatif : lancement N1 à 5 k€, cagnotte progressive, versement final et relance manuelle', () => {
+test('Financement : aucun lancement payant et cagnotte reçue au passage', () => {
   const sim = new GameSimulation(config, 31415); sim.state.ai_enabled = false;
   const actor = candidate(sim); const site = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, site, actor);
-  for (let i = 0; i < 2; i++) unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + i * 0.04);
-  sim.config.balance.money.base_passive_income_per_second = 0; for (const key of Object.keys(sim.config.balance.money.supporter_income_per_second_by_origin_biome)) sim.config.balance.money.supporter_income_per_second_by_origin_biome[key] = 0;
-  actor.x = site.x; actor.money = 100;
+  const supporters = [unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + 1), unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + 1.2)];
+  actor.x = site.x + 10; actor.money = 100;
   const offers = buildingOffers(sim.state, sim.config, actor, site);
-  assert.equal(offers.find(o => o.kind === 'FUNDRAISE').cost, 5); assert.ok(offers.find(o => o.kind === 'UPGRADE'));
-  advance(sim, sim.secondsToTicks(2)); assert.equal(site.level, 1); assert.equal(site.funding_state, 'RUNNING'); assert.equal(actor.money, 95);
-  assert.ok(site.funding_random_factor >= 0.9 && site.funding_random_factor <= 1.1);
-  const before = actor.money; advance(sim, Math.floor(site.funding_duration_ticks / 2));
-  assert.equal(actor.money, before); assert.ok(site.funding_progress_01 > 0 && site.funding_progress_01 < 1);
-  assert.ok(site.funding_accumulated_payout > 0 && site.funding_accumulated_payout < site.funding_target_payout);
-  advance(sim, site.funding_end_tick - sim.state.tick); assert.equal(site.funding_state, 'COMPLETED');
-  assert.ok(Math.abs(actor.money - before - site.funding_target_payout) < 1e-8); assert.equal(site.funding_accumulated_payout, site.funding_target_payout);
-  actor.x += 2; sim.step(); actor.x = site.x; advance(sim, sim.secondsToTicks(2));
-  assert.equal(site.funding_state, 'RUNNING'); assert.ok(Math.abs(actor.money - (before + site.funding_last_payout - 5)) < 1e-8);
-  const copy = new GameSimulation(config, 31415); const copyActor = candidate(copy); const copySite = copy.state.buildings.find(s => s.id === site.id); captureSite(copy, copySite, copyActor); copySite.level = 3;
-  assert.equal(copy.state.seed, sim.state.seed);
+  assert.ok(!offers.some(o => o.kind === 'FUNDRAISE'));
+  supporters.forEach(n => { n.donation_cents = 10000; n.next_donation_tick = sim.state.tick + sim.secondsToTicks(30); });
+  advance(sim, sim.secondsToTicks(2));
+  assert.equal(site.stored_money_cents, 20000); assert.equal(actor.money, 100);
+  actor.x = site.x; sim.step();
+  assert.equal(site.stored_money_cents, 0); assert.equal(actor.money, 100.2);
 });
 
-test('Institut et Salle neutres : paiement à l’usage, snapshot figé et Meeting chez l’adversaire', () => {
+test('Institut et promontoire neutres : sondage figé et meeting de quinze secondes', () => {
   const sim = new GameSimulation(config); const actor = candidate(sim); actor.money = 1000;
   const institute = sim.state.buildings.find(s => s.type === 'institut_sondage'); actor.x = institute.x; advance(sim, sim.secondsToTicks(2));
   const snapshot = structuredClone(sim.state.polls.melenchon.lastPollSnapshot); assert.ok(snapshot); assert.equal(institute.owner_id, null);
   advance(sim, 120); assert.deepEqual(sim.state.polls.melenchon.lastPollSnapshot, snapshot);
   actor.purchase_latch_target_id = null; const hall = sim.state.buildings.find(s => s.type === 'meeting'); actor.x = hall.x;
   unit(sim, 'SYMPATHISANT', actor.faction_id, hall.x); const before = sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon;
-  advance(sim, sim.secondsToTicks(2)); assert.equal(hall.owner_id, null); assert.equal(hall.meeting_faction_id, actor.faction_id); assert.equal(hall.meeting_level, 1);
-  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
-  advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(hall.meeting_level, 2);
-  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
-  advance(sim, sim.secondsToTicks(0.4 + 2)); assert.equal(hall.meeting_level, 3); assert.equal(actor.spending.MEETING, 300);
+  advance(sim, sim.secondsToTicks(2)); assert.equal(hall.owner_id, null); assert.equal(hall.meeting_faction_id, actor.faction_id);
+  actor.podium_site_id = hall.id; actor.combat.height = config.balance.buildings.meeting.podium_height;
+  advance(sim, sim.secondsToTicks(15)); assert.equal(hall.meetings_held, 1); assert.equal(actor.spending.MEETING, config.balance.buildings.meeting.activation_cost);
   assert.ok(sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon > before);
 });
 
@@ -137,17 +130,22 @@ test('Résistance cachée : récupération, KO, perte électorale et respawn au 
   const hq = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, hq, target);
   sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: target.id, styleId: 'melenchon_universaliste' });
   target.x = hq.x + 10; attacker.x = target.x; const election = sim.state.electorate.find(e => e.subzone_id === zoneAt(sim.state.world, target.x).id);
-  election.support = { melenchon: 60, le_pen: 15, philippe: 10, neutral: 15 };
+  completePopulation(sim);
+  sim.state.npcs.slice(0,10).forEach(n => { n.role = 'SYMPATHISANT'; n.faction_id = target.faction_id; });
+  const beforeVotes = sim.state.npcs.filter(n => n.faction_id === target.faction_id).length;
   hit(sim, attacker, target, { damage: 30, electoral_damage: 0.03, knockback: 0 }, 'test:1'); assert.equal(target.resistance, 70);
   attacker.x += 20; advance(sim, sim.secondsToTicks(4 + 2)); assert.ok(target.resistance > 70);
   attacker.x = target.x; for (let i = 0; i < 4 && !target.is_ko; i++) hit(sim, attacker, target, { damage: 40, electoral_damage: 0.03, knockback: 0 }, `test:${i + 2}`);
   assert.equal(target.is_ko, true); assert.ok(target.electoral_damage_received >= config.balance.candidate_combat.ko_electoral_damage_percent_points);
-  advance(sim, sim.secondsToTicks(3)); assert.equal(target.is_ko, false); assert.equal(target.resistance, 100); assert.equal(target.x, hq.x);
+  assert.ok(sim.state.npcs.filter(n => n.faction_id === target.faction_id).length < beforeVotes);
+  advance(sim, target.respawn_tick - sim.state.tick); assert.equal(target.is_ko, false); assert.equal(target.resistance, 100); assert.equal(target.x, hq.x);
 });
 
-test('Snapshot v8 : topologie aléatoire et collecte en cours reprennent à l’identique', () => {
+test('Snapshot v11 : topologie et trajet d’un don reprennent à l’identique', () => {
   const sim = new GameSimulation(config, 73); advance(sim, 50);
-  const actor = candidate(sim); const funding = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, funding, actor); startFundingCampaign(sim, funding); advance(sim, 25);
+  const actor = candidate(sim); const funding = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, funding, actor);
+  const donor = unit(sim, 'SYMPATHISANT', actor.faction_id, funding.x - 3);
+  donor.donation_cents = 10000; advance(sim, 3);
   const restored = new GameSimulation(config, 73); restored.importSnapshot(sim.exportSnapshot());
   advance(sim, 80); advance(restored, 80); assert.deepEqual(restored.state, sim.state);
 });

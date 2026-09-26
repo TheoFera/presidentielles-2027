@@ -3,6 +3,7 @@ import { distance, stableIdOrder } from './territory.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
+import { cancelMeeting } from './electoral-buildings.js';
 
 export function availableMilitants(state, biome, faction) {
   return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === faction && zoneAt(state.world, n.x).biome_id === biome
@@ -91,8 +92,8 @@ export function commitFactionAction(sim, candidate, building, offer) {
     if (!victim || victim.headquarters) return false;
     if (victim.type === 'meeting') {
       const targeted = victim.meeting_faction_id;
+      cancelMeeting(sim, victim);
       victim.meeting_banned_until_by_faction[targeted] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
-      victim.meeting_until_tick = 0; victim.meeting_faction_id = null;
     } else neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
     for (const order of victim.queue) {
       const worker = state.npcs.find(n => n.id === order.assigned_npc_id);

@@ -2,7 +2,7 @@ import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
 import { drawInfrastructure, drawBanknote } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
-import { drawTerritoryFlags } from './electoral.js';
+import { drawMeetingForeground, drawTerritoryFlags, isOnMeetingStage } from './electoral.js';
 import { drawArena } from './match.js';
 import { VisualAssets } from './visual-assets.js';
 import { visualManifest } from './visual-manifest.js';
@@ -12,6 +12,7 @@ import { drawSeasonalScenery } from './illustrated-vegetation.js';
 import { prepareSceneryImage } from './illustrated-world.js';
 import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
+import { drawMoneyPickups, drawMoneyFeedback, drawCarriedDonation } from './money.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
@@ -115,15 +116,24 @@ export class WorldRenderer {
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     if (illustrated) drawIllustratedGround(this);
+    drawMoneyPickups(this, state);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
     const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
-    for (const entity of entities) {
-      if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
-      const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
-      const x = wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
-      this.drawPerson(entity, this.screenX(x), state);
-    }
+    const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
+    const drawEntities = group => {
+      for (const entity of group) {
+        if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
+        const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
+        const x = wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
+        this.drawPerson(entity, this.screenX(x), state);
+        drawCarriedDonation(this, entity, this.screenX(x));
+      }
+    };
+    drawEntities(entities.filter(onMeeting));
+    drawMeetingForeground(this, state);
+    drawEntities(entities.filter(entity => !onMeeting(entity)));
     drawBanknote(this, state);
+    drawMoneyFeedback(this, state);
     drawCombatEffects(this, state, debug);
     drawCampaignMarkers(this, state);
     if (debug) this.drawDebug(state, candidate);

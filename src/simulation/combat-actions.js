@@ -12,14 +12,28 @@ export function armored(state, actor) {
 }
 export function updateActions(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
-  if (actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id) { Object.assign(c, actionState()); return; }
+  if (actor.is_ko || actor.eliminated || actor.campaign_arena_id) { Object.assign(c, actionState()); return; }
   if (c.press_tick != null && !c.press_airborne && !airborne(actor) && !c.attack_id && !c.stun_ticks && Math.abs(c.knockback_velocity) <= 0.02 && !actor.dash_active
     && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_activation_seconds)) {
     c.charge_active = true; actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
   }
   if (airborne(actor)) {
+    const previousHeight = c.height;
     const t = (sim.state.tick - c.jump_tick) / sim.secondsToTicks(b.jump_duration_seconds);
     c.height = b.jump_height_ratio * 4 * t * (1 - t);
+    if (actor.role === 'CANDIDAT' && t >= 0.5 && sim.state.buildings?.length) {
+      const platform = sim.state.buildings.find(site => site.type === 'meeting' && site.state === 'ACTIVE'
+        && Math.abs(((actor.x - site.x + sim.state.world.length / 2 + sim.state.world.length) % sim.state.world.length) - sim.state.world.length / 2)
+          <= sim.config.balance.buildings.meeting.podium_half_width
+        && previousHeight >= sim.config.balance.buildings.meeting.podium_height
+        && c.height <= sim.config.balance.buildings.meeting.podium_height);
+      if (platform) {
+        c.jump_tick = null;
+        c.height = sim.config.balance.buildings.meeting.podium_height;
+        actor.podium_site_id = platform.id;
+        return;
+      }
+    }
     if (t >= 1) { c.jump_tick = null; c.height = 0; }
   }
 }

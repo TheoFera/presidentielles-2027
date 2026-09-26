@@ -3,8 +3,7 @@
   "time": {
     "starting_days_before_first_round": 365,
     "real_seconds_per_game_day": 2.5,
-    "second_round_sprint_seconds": 60,
-    "second_round_influence_multiplier": 10
+    "second_round_sprint_seconds": 60
   },
   "camera": {
     "framing_zoom": 1.25,
@@ -16,19 +15,38 @@
     "look_ahead_ratio": 0.06
   },
   "money": {
-    "base_starting_money": 40,
     "campaign_spending_limit": 16800,
-    "base_passive_income_per_second": 0.12,
-    "supporter_income_per_second_by_origin_biome": {
-      "paris_19e": 0.05,
-      "banlieue": 0.02,
-      "periurbain_usine": 0.04,
-      "campagne": 0.03,
-      "retraites": 0.06,
-      "quartiers_riches": 0.1
+    "starting_pickups": {
+      "default_total_eur": 12000,
+      "philippe_total_eur": 30000,
+      "default_count": 18,
+      "philippe_count": 24,
+      "height_min_ratio": 0.35,
+      "height_max_ratio": 0.65
     },
-    "philippe_starting_money_multiplier": 2.5,
-    "philippe_income_multiplier": 1.3
+    "donation": {
+      "base_eur": 100,
+      "biome_multipliers": {
+        "paris_19e": 1,
+        "banlieue": 0.5,
+        "periurbain_usine": 0.8,
+        "campagne": 1,
+        "retraites": 1.2,
+        "quartiers_riches": 2
+      },
+      "cooldown_min_seconds": 20,
+      "cooldown_max_seconds": 40,
+      "handoff_radius_units": 1.15,
+      "deposit_radius_units": 0.65,
+      "collection_radius_units": 1.15,
+      "ai_handoff_search_radius_units": 12,
+      "ai_funding_collection_threshold_eur": 500
+    },
+    "pickup_radius_units": 0.65,
+    "pickup_height_tolerance_ratio": 0.18,
+    "drop_spread_units": 1.5,
+    "max_drop_pickups": 12,
+    "sprite_tiers_eur": [100, 500, 2000]
   },
   "persuasion": {
     "candidate_base_seconds": 3,
@@ -39,12 +57,10 @@
   "physical_units": {
     "sympathisant": {
       "hidden_durability": 30,
-      "local_influence_per_second": 0.008,
       "task_move_speed": 2.4
     },
     "militant": {
       "hidden_durability": 30,
-      "influence_per_second": 0.035,
       "move_speed": 2.4,
       "verbal_attack_electoral_damage": 0.025,
       "nearby_zone_radius": 1,
@@ -88,7 +104,10 @@
     "ko_electoral_damage_percent_points": 1.5,
     "ko_fall_seconds": 0.7,
     "ko_ground_seconds": 0.5,
-    "ko_respawn_seconds": 3,
+    "ko_respawn_min_seconds": 3,
+    "ko_respawn_max_seconds": 15,
+    "ko_respawn_progress_exponent": 1,
+    "ko_money_drop_ratio": 0.3,
     "light_hit_hidden_damage": 8,
     "finisher_hidden_damage": 14,
     "light_knockback": 0,
@@ -232,6 +251,7 @@
       "max_per_biome": 1,
       "max_per_subzone": 1,
       "capture_cost": 35,
+      "first_headquarters_capture_cost": 15,
       "build_cost": 35,
       "capture_seconds": 2,
       "required_presence_N1": 2,
@@ -242,37 +262,20 @@
       "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
-      "max_level": 3,
-      "upgrade_costs": [
-        55,
-        90
-      ],
-      "local_influence_by_level": [
-        0.018,
-        0.024,
-        0.032
-      ],
+      "max_level": 1,
+      "upgrade_costs": [],
       "local_persuasion_time_multiplier_by_level": [
-        0.95,
-        0.88,
         0.8
       ],
       "sympathisant_damage_multiplier_by_level": [
-        1,
-        0.85,
         0.7
       ],
       "militant_damage_multiplier_by_level": [
-        1,
-        0.82,
         0.65
       ],
       "biome_maintain_presence_reduction_by_level": [
-        0,
-        0,
         1
       ],
-      "hq_influence_multiplier": 1.5,
       "hq_resistance_multiplier": 0.85,
       "purchase_hold_seconds": 2,
       "upgrade_pause_seconds": 0.4
@@ -327,34 +330,23 @@
       "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
-      "max_level": 3,
-      "upgrade_costs": [
-        95,
-        140
-      ],
+      "max_level": 1,
+      "upgrade_costs": [],
       "baton_cost_by_level": [
-        20,
-        18,
-        15
+        20
       ],
       "equipment_seconds_by_level": [
-        6,
-        5,
         4
       ],
       "purchase_hold_seconds": 2,
       "max_queue_length": 8,
       "pickup_seconds": 1,
       "max_active_SO_by_level": [
-        2,
-        5,
         null
       ],
-      "raid_unlock_level": 3,
+      "raid_unlock_level": 1,
       "hostile_pressure_per_SO": 1.25,
       "reaction_speed_multiplier_by_level": [
-        1,
-        1.12,
         1.25
       ]
     },
@@ -375,28 +367,13 @@
       "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
-      "max_level": 3,
-      "upgrade_costs": [
-        110,
-        160
-      ],
+      "max_level": 1,
+      "upgrade_costs": [],
       "close_enemy_building_cost_by_level": [
-        120,
-        135,
-        160
+        120
       ],
       "meeting_ban_seconds": 35,
       "allowed_targets_by_level": [
-        [
-          "financement",
-          "meeting"
-        ],
-        [
-          "financement",
-          "meeting",
-          "service_ordre",
-          "tour_communication"
-        ],
         [
           "financement",
           "meeting",
@@ -416,8 +393,8 @@
       "max_per_candidate": 1,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 15,
-      "build_cost": 15,
+      "capture_cost": 10,
+      "build_cost": 10,
       "capture_seconds": 2,
       "required_presence_N1": 2,
       "required_presence_N2": 4,
@@ -427,32 +404,9 @@
       "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
-      "max_level": 3,
-      "upgrade_costs": [
-        25,
-        40
-      ],
-      "income_per_second_by_level": [
-        0,
-        0,
-        0
-      ],
-      "campaign_duration_min": 20,
-      "campaign_duration_max": 30,
-      "campaign_start_cost": 5,
-      "payout_base": 55,
-      "influence_factor": 1.1,
-      "campaign_progression_factor_start": 0.8,
-      "campaign_progression_factor_end": 1.25,
-      "random_min": 0.9,
-      "random_max": 1.1,
-      "payout_level_multiplier": [
-        1,
-        1.35,
-        1.75
-      ],
+      "max_level": 1,
+      "upgrade_costs": [],
       "purchase_hold_seconds": 2,
-      "campaign_start_seconds": 2,
       "upgrade_offset": 0.95,
       "upgrade_radius": 0.3,
       "completion_feedback_seconds": 2,
@@ -475,31 +429,9 @@
       "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
-      "max_level": 3,
-      "upgrade_costs": [
-        110,
-        160
-      ],
-      "global_influence_per_second_by_level": [
-        0.003,
-        0.002,
-        0.0025
-      ],
-      "controlled_zone_multiplier_by_level": [
-        2.2,
-        2.5,
-        4
-      ],
-      "adjacent_zone_multiplier_by_level": [
-        1.7,
-        2,
-        3
-      ],
-      "distant_zone_multiplier_by_level": [
-        0,
-        1,
-        1
-      ],
+      "max_level": 1,
+      "upgrade_costs": [],
+      "broadcast_interval_seconds": 15,
       "purchase_hold_seconds": 2,
       "global_limit": 1,
       "upgrade_pause_seconds": 0.4
@@ -545,48 +477,25 @@
       "maintain_presence_N3": 0,
       "closure_delay_seconds": 0,
       "max_level": 1,
-      "meeting_max_level": 3,
+      "meeting_max_level": 1,
       "upgrade_costs": [],
       "activation_cost_by_level": [
-        50,
-        100,
-        150
+        50
       ],
-      "influence_burst_by_level": [
-        14,
-        24,
-        36
-      ],
-      "ally_influence_multiplier_by_level": [
-        1.35,
-        1.55,
-        1.8
-      ],
-      "duration_seconds_by_level": [
-        15,
-        22,
-        30
-      ],
-      "internal_cooldown_seconds_by_level": [
-        50,
-        65,
-        80
-      ],
+      "activation_cost": 50,
+      "hold_seconds": 15,
+      "pause_grace_seconds": 5,
+      "cooldown_seconds": 50,
+      "gather_speed": 4.8,
+      "gather_spacing": 0.22,
+      "podium_height": 0.3,
+      "podium_half_width": 0.8,
+      "wave_visual_seconds": 0.8,
       "purchase_hold_seconds": 2,
       "upgrade_pause_seconds": 0.4,
       "interaction_radius": 0.45,
       "pay_per_use": true
     }
-  },
-  "influence": {
-    "le_pen_gain_multiplier": 1.25,
-    "le_pen_home_start_support_bonus_points": 8,
-    "neutral_resistance_curve_power": 1.8,
-    "allow_opponent_conversion_below_neutral_percent": 12,
-    "opponent_conversion_multiplier": 0.3,
-    "control_min_leader_percent": 35,
-    "control_required_lead_points": 4,
-    "candidate_presence_per_second": 0.002
   },
   "first_round_arena": {
     "arena_name": "Plateau médiatique",
@@ -688,8 +597,7 @@
       10,
       30,
       100
-    ],
-    "influence_burst": 20
+    ]
   },
   "faction_interactions": {
     "center_radius": 0.45,
@@ -700,7 +608,6 @@
   },
   "second_round": {
     "poll_refresh_seconds": 2.5,
-    "tower_influence_multiplier": 0.35,
     "meeting_cooldown_seconds": 22,
     "extension_seconds": 15,
     "tie_rule": "REPEAT_OVERTIME",
@@ -767,10 +674,10 @@
           "MAJOR": 1,
           "CRISIS": 1
         },
-        "meeting_hold_seconds": 8,
+        "meeting_hold_seconds": 15,
         "meeting_cost": 80,
-        "local_influence_reward": 12,
-        "biome_influence_reward": 2,
+        "local_conversion_percent": 12,
+        "biome_conversion_percent": 2,
         "interruption_on_hit": true
       },
       "CHOC_OPINION": {
@@ -853,27 +760,9 @@
           "MAJOR": 1,
           "CRISIS": 1
         },
-        "local_influence_reward": 10,
-        "biome_influence_reward": 2,
+        "local_conversion_percent": 10,
+        "biome_conversion_percent": 2,
         "meeting_cost": 80
-      },
-      "CRISE_FINANCEMENT": {
-        "base_weight": 1,
-        "minimum_day": 15,
-        "maximum_day": 365,
-        "duration": 45,
-        "cooldown_days": 20,
-        "minimum_days_between_same_family": 20,
-        "can_overlap": true,
-        "max_simultaneous": 1,
-        "leader_weight": 1,
-        "second_weight": 1,
-        "third_weight": 1,
-        "intensity_weights": {
-          "MINOR": 1,
-          "MAJOR": 1,
-          "CRISIS": 1
-        }
       },
       "FERMETURE_BATIMENT": {
         "base_weight": 1,

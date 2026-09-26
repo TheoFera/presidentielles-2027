@@ -30,6 +30,7 @@ export function createSpawnTimers(simulation) {
 
 export function updateSpawns(simulation) {
   const { state } = simulation;
+  if (state.phase !== 'CAMPAIGN') return;
   if (!simulation.config.layout.neutral_population_growth.enabled) return;
   for (const timer of state.spawn_timers) {
     timer.elapsed_ticks++;
@@ -40,5 +41,15 @@ export function updateSpawns(simulation) {
     // A full camp never banks missed spawns. There is a new seeded delay every attempt.
     timer.elapsed_ticks = 0;
     timer.interval_ticks = spawnIntervalTicks(simulation, zone, point);
+  }
+}
+
+/** Le dernier jour comble les éventuels écarts dus aux arrondis des horloges. */
+export function completePopulation(simulation) {
+  if (simulation.state.phase !== 'CAMPAIGN') return;
+  for (const zone of simulation.state.world.subzones) {
+    while (simulation.state.npcs.filter(npc => npc.origin_subzone_id === zone.id).length < zone.max_npcs_by_origin) {
+      simulation.spawn(zone, undefined, true);
+    }
   }
 }

@@ -34,7 +34,7 @@
       </nav>
       <p id="orientation-hint">Pour mieux voir le jeu, tourne ton téléphone à l’horizontale.</p>
       <div id="funds">
-        <output id="money" aria-label="Argent disponible et revenu passif par seconde"></output>
+        <output id="money" aria-label="Argent en poche, dons chez les sympathisants et cagnottes des financements"></output>
         <output id="campaign-budget" aria-label="Budget de dépenses de campagne restant"></output>
       </div>
       <div id="electoral-display">
@@ -68,11 +68,11 @@
           <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo : la troisième repousse et brise une charge. Pendant la charge, vous recevez les dégâts mais résistez aux interruptions. Un dash annule la charge. Touchez vos adversaires pour remplir l’ultime, prioritaire sauf pendant un étourdissement.</p><p>Devant votre QG, maintenez <strong>E</strong> ou <strong>Changer de style</strong> pendant 3 secondes.</p><p>Changer de style remet la charge de l’ultime à zéro.</p></article>
         </div>
         <div class="help-page" data-help-page="field" hidden>
-          <article><h2>Rassemblez des voix</h2><p>Restez près d’un passant neutre : il devient automatiquement sympathisant. Vos partisans augmentent aussi vos revenus.</p><p>Restez devant le repère d’un bâtiment pour interagir ou acheter, avec assez d’argent et de soutiens.</p><p id="balance-help"></p></article>
+          <article><h2>Rassemblez des voix</h2><p>Sautez pour ramasser les billets dans votre biome. Restez près d’un passant neutre pour en faire un sympathisant : il vous donnera de l’argent quand il sera prêt.</p><p>Un sympathisant dépose aussi ses dons dans un financement de votre camp. Passez devant ce bâtiment pour vider sa cagnotte. Un militant ou un SO ne fait plus de dons.</p><p>Restez devant le repère d’un bâtiment pour interagir ou acheter, avec assez d’argent et de soutiens.</p><p id="balance-help"></p></article>
           <article><h2>Développez votre camp</h2><p>Le premier Local devient votre QG. L’Imprimerie transforme vos sympathisants en militants grâce aux tracts.</p><p>Éloignez-vous puis revenez pour un nouvel achat. L’Imprimerie permet plusieurs commandes sur place.</p><p id="poll-help"></p></article>
         </div>
         <div class="help-page" data-help-page="election" hidden>
-          <article><h2>La course à l’Élysée</h2><p>À J0, votre score devient votre jauge sur le plateau télévisé. Le premier candidat à zéro est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong>, avec une influence multipliée par 10.</p><p>Le meilleur score final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
+          <article><h2>La course à l’Élysée</h2><p>Chaque PNJ convaincu apporte une voix sur 200. À J0, votre score devient votre jauge sur le plateau télévisé. Un candidat à zéro voix est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong> et convainquent les PNJ restants.</p><p>Le meilleur nombre de voix final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
           <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, la pause est partagée. Gardez tous le jeu ouvert.</p></article>
         </div>
         <div class="help-actions"><button id="resume">Reprendre</button><button id="pause-home">Menu principal</button></div>
@@ -129,9 +129,9 @@
         <details id="electoral-tools">
           <summary>Essais de conquête et de sondages</summary>
           <div class="debug-actions">
-            <button id="influence-m">+ Influence Mélenchon (4)</button>
-            <button id="influence-lp">+ Influence Le Pen (5)</button>
-            <button id="influence-ep">+ Influence Philippe (6)</button>
+            <button id="influence-m">Convaincre un PNJ pour Mélenchon (4)</button>
+            <button id="influence-lp">Convaincre un PNJ pour Le Pen (5)</button>
+            <button id="influence-ep">Convaincre un PNJ pour Philippe (6)</button>
             <button id="neutral-50">Neutres à 50 % (7)</button>
             <button id="build-tower">Tour gratuite ici (8)</button>
             <button id="build-institute">Institut gratuit ici (9)</button>
@@ -141,7 +141,7 @@
           <p class="subtle">Outils de test : les constructions ignorent le coût et l’implantation ; le Meeting ignore aussi le délai. La limite globale de Tours reste respectée. En partie normale, tout se paie par présence.</p>
         </details>
         <pre id="debug-text"></pre>
-        <p class="subtle">F3 : fermer · F4 : pause · F6 : ×1 / ×4 / ×5 / ×10 · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · O / U / M : Tour / Institut / Meeting · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local. 4 / 5 / 6 : influence M / LP / EP · 7 : Neutres 50 % · 8 / 9 / 0 : construire Tour / Institut / Meeting · V : lancer le Meeting de test. Raccourcis réservés au débogage.</p>
+        <p class="subtle">F3 : fermer · F4 : pause · F6 : ×1 / ×4 / ×5 / ×10 · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · O / U / M : Tour / Institut / Meeting · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local. 4 / 5 / 6 : convaincre un PNJ pour M / LP / EP · 7 : démobiliser des sympathisants · 8 / 9 / 0 : construire Tour / Institut / Meeting · V : lancer le Meeting de test. Raccourcis réservés au débogage.</p>
       </aside>
       <section id="error" class="panel" hidden role="alert"></section>
     </main>

@@ -1,87 +1,74 @@
-import { FACTIONS } from './world.js';
+import { FACTIONS, zoneAt } from './world.js';
 
-export const SUPPORT_KEYS = [...FACTIONS, 'neutral'];
-export const emptySupport = () => Object.fromEntries(SUPPORT_KEYS.map(f => [f, 0]));
+export const SUPPORT_KEYS = [...FACTIONS, 'neutral', 'pending'];
+export const emptySupport = () => Object.fromEntries(SUPPORT_KEYS.map(key => [key, 0]));
+const votingRole = role => ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(role);
 
-/** Conserves the electorate, including under extreme debug rates and rounding. */
-export function normalizeSupport(support) {
-  for (const f of SUPPORT_KEYS) support[f] = Math.max(0, support[f]);
-  const sum = SUPPORT_KEYS.reduce((s, f) => s + support[f], 0);
-  if (!sum) { support.neutral = 100; return support; }
-  if (Math.abs(sum - 100) > 1e-12) for (const f of SUPPORT_KEYS) support[f] *= 100 / sum;
-  const largest = SUPPORT_KEYS.reduce((a, b) => support[a] >= support[b] ? a : b);
-  support[largest] += 100 - SUPPORT_KEYS.reduce((s, f) => s + support[f], 0);
-  return support;
-}
-
-export function leadership(support, config) {
+export function leadership(support) {
   const order = [...FACTIONS].sort((a, b) => support[b] - support[a] || FACTIONS.indexOf(a) - FACTIONS.indexOf(b));
-  const lead = support[order[0]] - support[order[1]];
-  return { leader: lead > 1e-10 ? order[0] : null,
-    controller: support[order[0]] >= config.balance.influence.control_min_leader_percent
-      && lead >= config.balance.influence.control_required_lead_points ? order[0] : null };
+  const leader = support[order[0]] > support[order[1]] ? order[0] : null;
+  return { leader, controller: leader };
 }
 
+/** Chaque entrée locale est un nombre de PNJ, jamais un pourcentage fictif. */
 export function aggregateNational(electorate) {
-  const result = emptySupport();
-  const total = electorate.reduce((s, e) => s + e.electoral_weight, 0);
-  for (const e of electorate) for (const f of SUPPORT_KEYS) result[f] += e.support[f] * e.electoral_weight / total;
-  return normalizeSupport(result);
+  const counts = emptySupport();
+  const total = electorate.reduce((sum, zone) => sum + zone.electoral_weight, 0);
+  for (const zone of electorate) for (const key of SUPPORT_KEYS) counts[key] += zone.support[key];
+  return Object.fromEntries(SUPPORT_KEYS.map(key => [key, total ? counts[key] * 100 / total : 0]));
 }
 
-export function refreshElectoralState(state, config) {
-  const counts = { melenchon: 0, le_pen: 0, philippe: 0, contested: 0 };
-  for (const e of state.electorate) {
-    normalizeSupport(e.support);
-    Object.assign(e, leadership(e.support, config));
-    counts[e.controller || 'contested']++;
+export function refreshElectoralState(state) {
+  const byZone = new Map(state.electorate.map(zone => [zone.subzone_id, zone]));
+  for (const zone of state.electorate) zone.support = emptySupport();
+  for (const npc of state.npcs) {
+    const zone = byZone.get(zoneAt(state.world, npc.x).id);
+    const key = votingRole(npc.role) && FACTIONS.includes(npc.faction_id) ? npc.faction_id : 'neutral';
+    zone.support[key]++;
   }
-  state.actualGameState = { updated_tick: state.tick, national_support: aggregateNational(state.electorate), controlled_counts: counts };
+  for (const worldZone of state.world.subzones) {
+    const born = state.npcs.filter(npc => npc.origin_subzone_id === worldZone.id).length;
+    byZone.get(worldZone.id).support.pending = worldZone.max_npcs_by_origin - born;
+  }
+  const controlledCounts = { ...Object.fromEntries(FACTIONS.map(faction => [faction, 0])), contested: 0 };
+  for (const zone of state.electorate) {
+    Object.assign(zone, leadership(zone.support));
+    controlledCounts[zone.controller || 'contested']++;
+  }
+  const nationalCounts = emptySupport();
+  for (const zone of state.electorate) for (const key of SUPPORT_KEYS) nationalCounts[key] += zone.support[key];
+  state.actualGameState = {
+    updated_tick: state.tick,
+    national_counts: nationalCounts,
+    national_support: aggregateNational(state.electorate),
+    controlled_counts: controlledCounts,
+    electorate_size: state.world.subzones.reduce((sum, zone) => sum + zone.max_npcs_by_origin, 0),
+  };
 }
 
-/** All receivers draw from the same pre-transfer values, never from loop order. */
-export function convertInfluence(election, budgets, config) {
-  const before = { ...election.support };
-  const settings = config.balance.influence;
-  const resistance = Math.pow(before.neutral / 100, settings.neutral_resistance_curve_power);
-  const requested = FACTIONS.map(f => Math.max(0, budgets[f] || 0) * resistance);
-  const total = requested.reduce((a, b) => a + b, 0);
-  const scale = total ? Math.min(1, before.neutral / total) : 0;
-  for (let i = 0; i < FACTIONS.length; i++) {
-    election.support[FACTIONS[i]] += requested[i] * scale;
-    election.support.neutral -= requested[i] * scale;
-  }
-  if (before.neutral < settings.allow_opponent_conversion_below_neutral_percent) {
-    const transfers = [];
-    for (const receiver of FACTIONS) {
-      const available = FACTIONS.filter(f => f !== receiver).reduce((s, f) => s + before[f], 0);
-      if (!available) continue;
-      for (const donor of FACTIONS.filter(f => f !== receiver)) transfers.push({ donor, receiver,
-        amount: Math.max(0, budgets[receiver] || 0) * (1 - resistance) * settings.opponent_conversion_multiplier * before[donor] / available });
-    }
-    for (const donor of FACTIONS) {
-      const outgoing = transfers.filter(t => t.donor === donor);
-      const demand = outgoing.reduce((s, t) => s + t.amount, 0);
-      const ratio = demand ? Math.min(1, before[donor] / demand) : 0;
-      for (const t of outgoing) { election.support[donor] -= t.amount * ratio; election.support[t.receiver] += t.amount * ratio; }
-    }
-  }
-  normalizeSupport(election.support);
-  return Object.fromEntries(SUPPORT_KEYS.map(f => [f, election.support[f] - before[f]]));
-}
-
-export const createPolls = () => Object.fromEntries(FACTIONS.map(f => [f, { active: false, next_poll_tick: null, lastPollSnapshot: null }]));
+export const createPolls = () => Object.fromEntries(FACTIONS.map(faction => [faction, {
+  active: false, next_poll_tick: null, lastPollSnapshot: null,
+}]));
 
 export function publishPoll(sim, faction, institute) {
+  refreshElectoralState(sim.state);
   const poll = sim.state.polls[faction];
-  poll.lastPollSnapshot = { measured_tick: sim.state.tick, national_support: { ...sim.state.actualGameState.national_support },
-    zones: sim.state.electorate.map(e => ({ subzone_id: e.subzone_id, controller: e.controller, support: { ...e.support }, electoral_weight: e.electoral_weight })) };
-  poll.active = true; poll.next_poll_tick = null;
-  institute.last_poll_candidate_id = `candidate:${faction}`; institute.last_poll_tick = sim.state.tick;
+  poll.lastPollSnapshot = {
+    measured_tick: sim.state.tick,
+    national_support: { ...sim.state.actualGameState.national_support },
+    national_counts: { ...sim.state.actualGameState.national_counts },
+    zones: sim.state.electorate.map(zone => ({
+      subzone_id: zone.subzone_id, controller: zone.controller,
+      support: { ...zone.support }, electoral_weight: zone.electoral_weight,
+    })),
+  };
+  poll.active = true;
+  poll.next_poll_tick = null;
+  institute.last_poll_candidate_id = `candidate:${faction}`;
+  institute.last_poll_tick = sim.state.tick;
   sim.emit('PollPurchased', { faction_id: faction, target_id: institute.id });
 }
 
 export function updatePolls(sim) {
-  // Les sondages sont désormais des snapshots achetés ; aucun rafraîchissement automatique.
   for (const poll of Object.values(sim.state.polls)) poll.next_poll_tick = null;
 }

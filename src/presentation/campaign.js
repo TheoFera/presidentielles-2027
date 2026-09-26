@@ -1,17 +1,7 @@
 import { seasonAt } from '../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../simulation/world.js';
 import { eventIconData } from './illustrated-icons.js';
-const labels={MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',CRISE_FINANCEMENT:'Crise de financement',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
-
-function fundingEffectText(parameters) {
- const effects = [];
- if (parameters.can_start_new_campaign === false) effects.push('Nouvelles collectes bloquées');
- // Chaque variante ne fournit que les paramètres de ses effets ; zéro reste une valeur valide.
- if (Number.isFinite(parameters.payout_multiplier)) effects.push(`Rendement des collectes ×${parameters.payout_multiplier.toLocaleString('fr-FR')}`);
- if (Number.isFinite(parameters.campaign_duration_multiplier)) effects.push(`Durée des collectes ×${parameters.campaign_duration_multiplier.toLocaleString('fr-FR')}`);
- if (Number.isFinite(parameters.payout_max)) effects.push(`Collectes plafonnées à ${parameters.payout_max.toLocaleString('fr-FR')} k€`);
- return effects.join(' · ') || labels.CRISE_FINANCEMENT;
-}
+const labels={MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 
 export class CampaignDisplay {
  constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);}
@@ -26,10 +16,10 @@ export class CampaignDisplay {
  card.style.order = e.start_tick; card.dataset.family = e.family; card.style.setProperty('--event-icon', eventIconData[e.family] || 'none');
  const heading=e.title;
  const narrative=e.description;
- const effect=e.family==='CRISE_FINANCEMENT' ? fundingEffectText(e.parameters) : e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
+ const effect=e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
  const winner=e.winner&&this.config.prototype.presentation.factions[e.winner]?.name;
  const detail=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
- const timer=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au Meeting : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir la position : ${Math.min(e.parameters.meeting_hold_seconds,(state.tick-e.attempt.start_tick)/hz).toFixed(1)} / ${e.parameters.meeting_hold_seconds} s`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
+ const meeting=state.buildings.find(b=>b.id===e.target_site_id);const timer=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au promontoire : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir le promontoire : ${(meeting.meeting_hold_ticks/hz).toFixed(1)} / 15 s${meeting.meeting_pause_ticks?` · remonter sous ${Math.max(0,5-meeting.meeting_pause_ticks/hz).toFixed(1)} s`:''}`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
  const contentKey=[heading,narrative,detail,timer].join('\n');
  if(card.dataset.contentKey!==contentKey){
    if(!card.children.length){const nodes=['strong','span','span','small'].map(tag=>document.createElement(tag));nodes[1].className='campaign-card-narrative';card.append(...nodes);}
@@ -57,7 +47,7 @@ export function drawCampaignMarkers(renderer,state){
  for(const e of state.campaign_events.filter(e=>e.status==='ACTIVE')){
  const b=state.buildings.find(b=>b.id===e.target_site_id);if(!['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT'].includes(e.family))continue;
  const x=renderer.screenX(b.x);ctx.strokeStyle='#ffe078';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,m.groundY-2,36,9,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff1ab';ctx.fillText(e.title,x,m.groundY-140);
- if(e.family==='MEETING_DE_CRISE')ctx.fillText(`Rester ${e.parameters.meeting_hold_seconds} s · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
+ if(e.family==='MEETING_DE_CRISE')ctx.fillText(`Sauter puis rester 15 s · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
  if(e.family==='DEBAT_THEMATIQUE')ctx.fillText(`Premier paiement · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
  }
  for(const c of state.candidates){

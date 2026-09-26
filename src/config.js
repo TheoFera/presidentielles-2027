@@ -26,21 +26,38 @@ export function validateConfig(config) {
   positive(config.balance.persuasion.melenchon_personal_time_multiplier, 'bonus Mélenchon');
   positive(config.balance.time.real_seconds_per_game_day, 'durée du jour');
   positive(config.balance.money.campaign_spending_limit, 'plafond de dépenses de campagne');
-  const supporterIncome = config.balance.money.supporter_income_per_second_by_origin_biome;
-  if (!supporterIncome || typeof supporterIncome !== 'object' || Array.isArray(supporterIncome)) throw new Error('Configuration : revenus des partisans par biome manquants ou invalides.');
+  const money = config.balance.money;
+  const donation = money.donation;
+  const supporterIncome = donation.biome_multipliers;
+  if (!supporterIncome || typeof supporterIncome !== 'object' || Array.isArray(supporterIncome)) throw new Error('Configuration : dons par biome manquants ou invalides.');
   for (const biome of config.layout.biomes) {
     const value = supporterIncome[biome.id];
-    if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : revenu des partisans invalide pour ${biome.id} (nombre positif ou nul attendu).`);
+    if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : don invalide pour ${biome.id}.`);
   }
-  for (const id of Object.keys(supporterIncome)) if (!config.layout.biomes.some(b => b.id === id)) throw new Error(`Configuration : biome de revenu inconnu (${id}).`);
+  for (const id of Object.keys(supporterIncome)) if (!config.layout.biomes.some(b => b.id === id)) throw new Error(`Configuration : biome de don inconnu (${id}).`);
+  for (const key of ['base_eur', 'cooldown_min_seconds', 'cooldown_max_seconds', 'handoff_radius_units', 'deposit_radius_units', 'collection_radius_units',
+    'ai_handoff_search_radius_units', 'ai_funding_collection_threshold_eur']) positive(donation[key], `don.${key}`);
+  if (donation.cooldown_max_seconds < donation.cooldown_min_seconds) throw new Error('Configuration : délais des dons inversés.');
+  const initial = money.starting_pickups;
+  for (const key of ['default_total_eur', 'philippe_total_eur', 'height_min_ratio', 'height_max_ratio']) positive(initial[key], `argent initial.${key}`);
+  if (initial.philippe_total_eur <= initial.default_total_eur || initial.height_min_ratio > initial.height_max_ratio || initial.height_max_ratio >= 1
+    || initial.height_min_ratio <= money.pickup_height_tolerance_ratio) throw new Error('Configuration : montant ou hauteur des billets initiaux invalides.');
+  for (const kind of ['default', 'philippe']) if (!Number.isInteger(initial[`${kind}_count`]) || initial[`${kind}_count`] < 3
+    || !Number.isInteger(initial[`${kind}_total_eur`] / 50) || initial[`${kind}_total_eur`] < 50 * (initial[`${kind}_count`] + 9)) throw new Error('Configuration : répartition initiale impossible.');
+  for (const key of ['pickup_radius_units', 'pickup_height_tolerance_ratio', 'drop_spread_units']) positive(money[key], `argent.${key}`);
+  if (!Number.isInteger(money.max_drop_pickups) || money.max_drop_pickups < 1 || !Array.isArray(money.sprite_tiers_eur)
+    || money.sprite_tiers_eur.length !== 3 || money.sprite_tiers_eur.some((v, i) => !Number.isInteger(v) || v <= 0 || i && v <= money.sprite_tiers_eur[i - 1])) throw new Error('Configuration : pickups ou paliers visuels invalides.');
+  const ko = config.balance.candidate_combat;
+  for (const key of ['ko_respawn_min_seconds', 'ko_respawn_max_seconds', 'ko_respawn_progress_exponent']) positive(ko[key], `KO.${key}`);
+  if (ko.ko_respawn_max_seconds < ko.ko_respawn_min_seconds || !Number.isFinite(ko.ko_money_drop_ratio) || ko.ko_money_drop_ratio < 0 || ko.ko_money_drop_ratio > 1) throw new Error('Configuration : perte d’argent au KO invalide.');
   if (!Number.isInteger(config.balance.time.starting_days_before_first_round) || config.balance.time.starting_days_before_first_round < 1) throw new Error('Configuration : nombre de jours initial invalide.');
-  for (const key of ['second_round_sprint_seconds', 'second_round_influence_multiplier']) positive(config.balance.time[key], key);
+  positive(config.balance.time.second_round_sprint_seconds, 'durée du second tour');
   const arena = config.balance.first_round_arena;
   for (const key of ['width_units', 'edge_margin', 'transition_seconds', 'ai_retarget_seconds', 'ai_variation_units']) positive(arena[key], `arène ${key}`);
   if (arena.width_units >= config.layout.biomes.length * 3 * config.prototype.world.units_per_screen || arena.edge_margin * 2 >= arena.width_units) throw new Error('Configuration : limites du plateau invalides.');
   for (const key of ['light_1', 'light_2', 'heavy', 'hologram', 'wave', 'crs']) positive(arena.damage[key], `dégât d’arène ${key}`);
   const sprint = config.balance.second_round;
-  for (const key of ['poll_refresh_seconds', 'tower_influence_multiplier', 'meeting_cooldown_seconds', 'extension_seconds', 'ai_opponent_detection_range', 'ai_meeting_distance', 'ai_recruit_distance', 'ai_former_third_priority', 'ai_neutral_zone_priority']) positive(sprint[key], `second tour ${key}`);
+  for (const key of ['poll_refresh_seconds', 'meeting_cooldown_seconds', 'extension_seconds', 'ai_opponent_detection_range', 'ai_meeting_distance', 'ai_recruit_distance', 'ai_former_third_priority', 'ai_neutral_zone_priority']) positive(sprint[key], `second tour ${key}`);
   if (!['REPEAT_OVERTIME', 'J0_THEN_SEED'].includes(sprint.tie_rule)) throw new Error('Configuration : règle d’égalité inconnue.');
   positive(config.balance.persuasion.militant_base_seconds, 'temps de persuasion des Militants');
   positive(config.balance.interaction.radius_units, 'portée des interactions');
@@ -60,6 +77,7 @@ export function validateConfig(config) {
     throw new Error('Règle de persuasion inconnue dans prototype_config.json.');
   }
   const ids = new Set();
+  let configuredElectors = 0;
   for (const biome of config.layout.biomes) {
     if (!config.prototype.presentation.biome_palettes[biome.id]) throw new Error(`Palette absente : ${biome.id}.`);
     for (const zone of biome.subzones) {
@@ -68,8 +86,10 @@ export function validateConfig(config) {
       if (!Number.isInteger(zone.initial_neutral_count) || zone.initial_neutral_count < 0 || !Number.isInteger(zone.max_npcs_by_origin)
         || zone.max_npcs_by_origin < 8 || zone.max_npcs_by_origin > 16) throw new Error(`Population ou capacité invalide dans ${zone.id} : plafond entier entre 8 et 16 attendu.`);
       if (zone.initial_neutral_count > zone.max_npcs_by_origin) throw new Error(`Configuration : population initiale supérieure à la capacité dans ${zone.id}.`);
+      configuredElectors += zone.max_npcs_by_origin;
     }
   }
+  if (config.layout.total_electors !== 200 || configuredElectors !== config.layout.total_electors) throw new Error('Configuration : la carte doit contenir exactement 200 électeurs.');
   for (const id of Object.values(config.layout.starting_positions)) if (!ids.has(id)) throw new Error(`Position de départ inconnue : ${id}.`);
   const slotIds = new Set(); const slotsByZone = new Map();
   for (const slot of generation.slots) {
@@ -88,7 +108,7 @@ export function validateConfig(config) {
   for (const type of [...capturableConfigs, 'imprimerie', 'meeting', 'institut_sondage']) {
     const building = config.balance.buildings[type];
     for (const cap of ['global_max', 'max_per_candidate', 'max_per_biome', 'max_per_subzone']) if (!Number.isInteger(building[cap]) || building[cap] < 0) throw new Error(`Configuration : cap invalide (${type}.${cap}).`);
-    if (!Number.isInteger(building.max_level) || building.max_level < 1 || building.upgrade_costs.length !== building.max_level - 1) throw new Error(`Niveaux incohérents : ${type}.`);
+    if (building.max_level !== 1 || building.upgrade_costs.length !== 0) throw new Error(`Niveau unique attendu : ${type}.`);
     for (const key of ['required_presence_N1', 'required_presence_N2', 'required_presence_N3', 'maintain_presence_N1', 'maintain_presence_N2', 'maintain_presence_N3']) if (!Number.isFinite(building[key]) || building[key] < 0) throw new Error(`Seuil invalide : ${type}.${key}.`);
     if (capturableConfigs.includes(type)) { positive(building.capture_cost, `capture ${type}`); positive(building.capture_seconds, `capture ${type}`); positive(building.closure_delay_seconds, `fermeture ${type}`); }
     for (const cost of building.upgrade_costs) positive(cost, `amélioration ${type}`);
@@ -98,13 +118,8 @@ export function validateConfig(config) {
   positive(printer.tract_cost_by_level[0], 'prix du tract'); positive(printer.equipment_seconds_by_level[0], 'durée d’impression');
   if (!Number.isInteger(printer.max_queue_length) || printer.max_queue_length < 1) throw new Error('Configuration : capacité de file invalide.');
   const funding = config.balance.buildings.financement;
-  for (const field of ['campaign_duration_min', 'campaign_duration_max', 'campaign_start_cost', 'payout_base', 'influence_factor',
-    'campaign_progression_factor_start', 'campaign_progression_factor_end', 'random_min', 'random_max', 'campaign_start_seconds',
-    'upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);
-  if (funding.campaign_duration_min > funding.campaign_duration_max || funding.random_min > funding.random_max
-    || funding.campaign_progression_factor_start > funding.campaign_progression_factor_end
-    || funding.payout_level_multiplier.length !== funding.max_level
-    || funding.payout_level_multiplier.some(value => !Number.isFinite(value) || value <= 0)) throw new Error('Configuration : campagne de financement invalide.');
+  for (const field of ['upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);
+  positive(config.balance.buildings.permanence.first_headquarters_capture_cost, 'coût du premier QG');
   positive(config.balance.physical_units.sympathisant.task_move_speed, 'vitesse de collecte');
   positive(config.balance.physical_units.militant.move_speed, 'vitesse du Militant');
   positive(config.balance.physical_units.militant.max_player_speed_multiplier, 'limite de vitesse du Militant');
@@ -133,18 +148,12 @@ export function validateConfig(config) {
   }
   const tower = config.balance.buildings.tour_communication;
   if (!Number.isInteger(tower.global_limit) || tower.global_limit < 1) throw new Error('Configuration : limite globale de Tours invalide.');
-  for (const key of ['controlled_zone_multiplier_by_level', 'adjacent_zone_multiplier_by_level', 'distant_zone_multiplier_by_level']) if (tower[key].length !== 3 || tower[key].some(v => !Number.isFinite(v) || v < 0)) throw new Error(`Configuration : effet de Tour invalide (${key}).`);
+  positive(tower.broadcast_interval_seconds, 'intervalle de communication');
   positive(config.balance.buildings.institut_sondage.poll_cost, 'prix du sondage');
   const meeting = config.balance.buildings.meeting;
   positive(meeting.interaction_radius, 'portée Meeting');
-  if (!Number.isInteger(meeting.meeting_max_level) || meeting.meeting_max_level < 1
-    || ['activation_cost_by_level', 'influence_burst_by_level', 'ally_influence_multiplier_by_level', 'duration_seconds_by_level', 'internal_cooldown_seconds_by_level']
-      .some(key => meeting[key].length !== meeting.meeting_max_level)
-    || meeting.activation_cost_by_level.some(value => !Number.isFinite(value) || value <= 0)
-    || meeting.duration_seconds_by_level.some((duration, i) => duration > meeting.internal_cooldown_seconds_by_level[i])
-    || meeting.ally_influence_multiplier_by_level.some(value => value < 1)) throw new Error('Configuration : bonus ou durée de Meeting incohérents.');
-  for (const [key, value] of Object.entries(config.balance.influence)) if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : influence invalide (${key}).`);
-  for (const key of ['control_min_leader_percent', 'control_required_lead_points', 'allow_opponent_conversion_below_neutral_percent']) if (config.balance.influence[key] > 100) throw new Error(`Configuration : seuil supérieur à 100 (${key}).`);
+  if (meeting.meeting_max_level !== 1 || meeting.activation_cost_by_level.length !== 1) throw new Error('Configuration : un seul meeting est attendu.');
+  for (const key of ['activation_cost', 'hold_seconds', 'pause_grace_seconds', 'cooldown_seconds', 'gather_speed', 'gather_spacing', 'podium_height', 'podium_half_width', 'wave_visual_seconds']) positive(meeting[key], `meeting.${key}`);
   if (!Array.isArray(config.balance.ai_economy.development_order) || config.balance.ai_economy.development_order.some(type => !config.balance.buildings[type])) throw new Error('Configuration : ordre de développement IA invalide.');
   return config;
 }

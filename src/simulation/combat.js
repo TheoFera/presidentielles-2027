@@ -35,10 +35,11 @@ export function attackInput(sim, actor, type) {
       electoral_damage: b.electoral_damage_on_finisher_percent_points });
     return;
   }
-  if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id
+  if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id && type !== 'Jump'
     || c.stun_ticks) return;
   if (type === 'Jump' && !airborne(actor) && Math.abs(c.knockback_velocity) <= 0.02) {
     cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.height = 0;
+    actor.podium_site_id = null;
     actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
     actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
     return;

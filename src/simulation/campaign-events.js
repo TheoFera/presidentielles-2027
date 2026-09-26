@@ -2,10 +2,12 @@ import { aiSettings } from './ai-settings.js';
 import { isHumanCandidate } from './human-candidates.js';
 import { clearCampaignUltimate, activeCampaignStyle, styleTagWeight, styleInfluenceMultiplier } from './campaign-styles.js';
 import { random, ringDelta, wrap, zoneAt, FACTIONS } from './world.js';
-import { aggregateNational, normalizeSupport, refreshElectoralState } from './electoral-state.js';
+import { aggregateNational, refreshElectoralState } from './electoral-state.js';
+import { applyOpinionDelta } from './npc-votes.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { paymentStatus } from './campaign-budget.js';
 import { ArenaSimulation, arenaAICommands } from './arena-simulation.js';
+import { triggerMeeting, cancelMeeting } from './electoral-buildings.js';
 
 export function seasonAt(progress) {
  const t=Math.min(3.999999,Math.max(0,progress % 1)*4), i=Math.floor(t);
@@ -20,22 +22,16 @@ export function initializeCampaign(sim) {
 const active=s=>s.campaign_events.filter(e=>e.status==='ACTIVE');
 const cfg=sim=>sim.config.balance.campaign_events;
 const pick=(rng,items)=>{const sum=items.reduce((n,e)=>n+e.weight,0);if(!(sum>0))return null;let roll=random(rng)*sum;return items.find(e=>(roll-=e.weight)<0)||items.at(-1);};
-export function fundingModifiers(state,faction){
- const p={payout_multiplier:1,campaign_duration_multiplier:1,can_start_new_campaign:true};
- for(const e of active(state))if(e.family==='CRISE_FINANCEMENT'&&e.target_candidate_ids.includes(`candidate:${faction}`)){
- p.payout_multiplier*=e.parameters.payout_multiplier??1;p.campaign_duration_multiplier*=e.parameters.campaign_duration_multiplier??1;p.can_start_new_campaign&&=e.parameters.can_start_new_campaign!==false; if(Number.isFinite(e.parameters.payout_max))p.payout_max=Math.min(p.payout_max??Infinity,e.parameters.payout_max);
- }return p;
-}
 export function transferSupport(sim,record,faction,delta,multiplier=1){
- if(delta>0){delta*=multiplier;const gain=Math.min(record.support.neutral,delta);record.support.neutral-=gain;record.support[faction]+=gain;}
- else {const loss=Math.min(record.support[faction],-delta);record.support[faction]-=loss;record.support.neutral+=loss;}normalizeSupport(record.support);
+ return applyOpinionDelta(sim,faction,delta*multiplier*record.electoral_weight/sim.config.layout.total_electors,{subzoneId:record.subzone_id,source:'ÉVÉNEMENT'});
 }
-function reward(sim,e,faction){for(const r of sim.state.electorate)if(r.biome_id===e.target_biome_id)transferSupport(sim,r,faction,(r.subzone_id===e.target_subzone_id?e.parameters.local_influence_reward:0)+(e.parameters.biome_influence_reward||0),e.style_snapshot[faction]?.biome_multipliers[r.biome_id]??1);}
+function reward(sim,e,faction){for(const r of sim.state.electorate)if(r.biome_id===e.target_biome_id)transferSupport(sim,r,faction,(r.subzone_id===e.target_subzone_id?e.parameters.local_conversion_percent:0)+(e.parameters.biome_conversion_percent||0),e.style_snapshot[faction]?.biome_multipliers[r.biome_id]??1);}
 export function resolveCampaignEvent(sim,e,status='RESOLVED',winner=null){
  if(e.status!=='ACTIVE')return;
+ if(e.family==='MEETING_DE_CRISE'&&status==='EXPIRED'){const site=sim.state.buildings.find(b=>b.id===e.target_site_id);if(site?.meeting_candidate_id)cancelMeeting(sim,site);}
  e.status=status;e.resolved_tick=sim.state.tick;e.winner=winner;
  for(const c of sim.state.candidates){if(c.VULNERABLE_SCANDAL===e.id)c.VULNERABLE_SCANDAL=null;if(c.crisis_meeting_id===e.id)c.crisis_meeting_id=null;if(c.campaign_arena_id===e.id){const a=e.arena?.candidates.find(a=>a.id===c.id);clearCampaignUltimate(sim,c);c.bardella_form=false;c.bardellisation_used ||= !!a?.bardellisation_used;c.campaign_arena_id=null;c.disappeared=false;c.campaign_active=true;c.interaction_active=true;c.axis=0;}}
- if(winner)reward(sim,e,winner);
+ if(winner&&e.family!=='MEETING_DE_CRISE')reward(sim,e,winner);
  sim.state.campaign_director.active_event_ids=active(sim.state).map(e=>e.id);
  sim.emit(status==='EXPIRED'?'CampaignEventExpired':'CampaignEventResolved',{campaign_event_id:e.id,winner});
 }
@@ -104,15 +100,18 @@ export function updateCampaignEvents(sim){
  const s=sim.state;if(s.phase!=='CAMPAIGN')return;
  for(const e of active(s)){
  const p=e.parameters,site=s.buildings.find(b=>b.id===e.target_site_id),target=s.candidates.find(c=>c.id===e.target_candidate_ids[0]);
- if(e.family==='CANDIDAT_FRAGILISE'&&target.is_ko){const national=aggregateNational(s.electorate)[target.faction_id],ratio=Math.min(1,p.ko_poll_loss/Math.max(1e-9,national));for(const r of s.electorate)transferSupport(sim,r,target.faction_id,-r.support[target.faction_id]*ratio);sim.emit('ScandalKOTriggered',{candidate_id:target.id,loss:Math.min(national,p.ko_poll_loss)});resolveCampaignEvent(sim,e);continue;}
+ if(e.family==='CANDIDAT_FRAGILISE'&&target.is_ko){const national=aggregateNational(s.electorate)[target.faction_id];const changed=applyOpinionDelta(sim,target.faction_id,-p.ko_poll_loss,{source:'SCANDALE'});sim.emit('ScandalKOTriggered',{candidate_id:target.id,loss:changed*100/sim.config.layout.total_electors});resolveCampaignEvent(sim,e);continue;}
  if(e.family==='FERMETURE_BATIMENT'&&s.tick>=e.end_tick){if(site.owner_id===target.faction_id&&!site.headquarters){const level=site.level;neutralizeSite(sim,site,'CAMPAIGN_EVENT');if(!p.become_neutral){site.owner_id=target.faction_id;site.state='ACTIVE';site.active=true;site.neutral=false;site.level=p.lose_levels?1:level;}}resolveCampaignEvent(sim,e);continue;}
  if(e.family==='MEETING_DE_CRISE'){
  const attempt=e.attempt,c=attempt&&s.candidates.find(c=>c.id===attempt.candidate_id);
- if(c&&(c.is_ko||c.campaign_arena_id||Math.abs(ringDelta(c.x,site.x,s.world.length))>sim.config.balance.interaction.radius_units||c.axis!==0||p.interruption_on_hit&&c.hits_received>attempt.hits)){c.crisis_meeting_id=null;e.attempt=null;e.retry_tick=s.tick+sim.secondsToTicks(1);sim.emit('InterruptCrisisMeeting',{campaign_event_id:e.id,candidate_id:c.id});}
+ if(c&&!site.meeting_candidate_id){
+   if(site.meeting_wave_tick>=attempt.start_tick){resolveCampaignEvent(sim,e,'RESOLVED',c.faction_id);continue;}
+   c.crisis_meeting_id=null;e.attempt=null;e.retry_tick=s.tick+sim.secondsToTicks(1);sim.emit('InterruptCrisisMeeting',{campaign_event_id:e.id,candidate_id:c.id});
+ }
  if(!e.attempt&&s.tick>=(e.retry_tick||0)){
- const entrant=s.candidates.find(c=>!c.is_ko&&!c.campaign_arena_id&&!c.crisis_meeting_id&&!c.combat.stun_ticks&&!c.combat.attack_id&&!c.combat.charge_active&&c.combat.jump_tick==null&&c.axis===0&&c.interaction_active&&Math.abs(ringDelta(c.x,site.x,s.world.length))<=sim.config.balance.interaction.radius_units&&paymentStatus(c,sim.config,p.meeting_cost).enabled);
- if(entrant){s.transactions.push({id:`transaction:${s.next_transaction_id++}`,tick:s.tick,candidate_id:entrant.id,faction_id:entrant.faction_id,target_id:site.id,kind:'CRISIS_MEETING',cost:p.meeting_cost});if(s.transactions.length>sim.config.balance.debug.transaction_history_limit)s.transactions.shift();entrant.combat.buffer_until_tick=-1;entrant.money-=p.meeting_cost;entrant.total_spent+=p.meeting_cost;entrant.spending.CRISIS_MEETING=(entrant.spending.CRISIS_MEETING||0)+p.meeting_cost;entrant.crisis_meeting_id=e.id;entrant.purchase_hold=null;e.attempt={candidate_id:entrant.id,start_tick:s.tick,hits:entrant.hits_received};sim.emit('StartCrisisMeeting',{campaign_event_id:e.id,candidate_id:entrant.id});}
- }else if(e.attempt && s.tick-e.attempt.start_tick>=sim.secondsToTicks(p.meeting_hold_seconds))resolveCampaignEvent(sim,e,'RESOLVED',s.candidates.find(c=>c.id===e.attempt.candidate_id).faction_id);
+ const entrant=!site.meeting_candidate_id&&s.candidates.find(c=>!c.is_ko&&!c.campaign_arena_id&&!c.crisis_meeting_id&&!c.combat.stun_ticks&&!c.combat.attack_id&&!c.combat.charge_active&&c.combat.jump_tick==null&&c.axis===0&&c.interaction_active&&Math.abs(ringDelta(c.x,site.x,s.world.length))<=sim.config.balance.interaction.radius_units&&paymentStatus(c,sim.config,p.meeting_cost).enabled);
+ if(entrant){s.transactions.push({id:`transaction:${s.next_transaction_id++}`,tick:s.tick,candidate_id:entrant.id,faction_id:entrant.faction_id,target_id:site.id,kind:'CRISIS_MEETING',cost:p.meeting_cost});if(s.transactions.length>sim.config.balance.debug.transaction_history_limit)s.transactions.shift();entrant.combat.buffer_until_tick=-1;entrant.money-=p.meeting_cost;entrant.total_spent+=p.meeting_cost;entrant.spending.CRISIS_MEETING=(entrant.spending.CRISIS_MEETING||0)+p.meeting_cost;entrant.crisis_meeting_id=e.id;entrant.purchase_hold=null;e.attempt={candidate_id:entrant.id,start_tick:s.tick,hits:entrant.hits_received};triggerMeeting(sim,site,entrant.faction_id,entrant.id);sim.emit('StartCrisisMeeting',{campaign_event_id:e.id,candidate_id:entrant.id});}
+ }
  }
  if(e.family==='DEBAT_THEMATIQUE'){
  const entrant=s.candidates.filter(c=>!c.is_ko&&!c.campaign_arena_id&&!c.crisis_meeting_id&&!c.combat.stun_ticks&&!c.combat.attack_id&&!c.combat.charge_active&&c.combat.jump_tick==null&&c.axis===0&&c.interaction_active&&Math.abs(ringDelta(c.x,site.x,s.world.length))<=sim.config.balance.interaction.radius_units&&paymentStatus(c,sim.config,p.meeting_cost).enabled)
@@ -149,14 +148,14 @@ export function campaignAICommands(state,config,c){
  if(!state.ai_enabled||c.is_ko)return null;
  if(c.campaign_arena_id){const event=state.campaign_events.find(e=>e.id===c.campaign_arena_id);return c.id===state.local_candidate_id&&event?.arena?arenaAICommands(event.arena,config,c.id,state.ai_enabled):[];}
  const commands=x=>{const d=ringDelta(c.x,x,state.world.length);return [{type:'Move',candidateId:c.id,axis:Math.abs(d)<0.4?0:Math.sign(d)},{type:'InteractionPresence',candidateId:c.id,active:true}];};
- if(c.crisis_meeting_id)return commands(c.x);
+ if(c.crisis_meeting_id){const event=state.campaign_events.find(e=>e.id===c.crisis_meeting_id),site=state.buildings.find(b=>b.id===event?.target_site_id);const out=commands(site?.x??c.x);if(site&&Math.abs(ringDelta(c.x,site.x,state.world.length))<config.balance.buildings.meeting.podium_half_width*0.4&&c.podium_site_id!==site.id&&c.combat.height<=0&&c.combat.jump_tick==null)out.push({type:'Jump',candidateId:c.id});return out;}
  const period=Math.floor(state.tick/(config.balance.campaign_events.ai_reaction_seconds*settings.event_reaction_multiplier*config.balance.simulation_architecture.fixed_tick_hz));
  const noise=((Math.imul(period+1,1103515245)^state.seed^Math.imul(FACTIONS.indexOf(c.faction_id)+1,12345))>>>0)/4294967296;
  const events=active(state).filter(e=>state.tick-e.start_tick>=config.balance.campaign_events.ai_reaction_seconds*settings.event_reaction_multiplier*config.balance.simulation_architecture.fixed_tick_hz);
  const danger=events.find(e=>e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id));if(danger&&noise<0.8)return commands(state.buildings.find(b=>b.id===c.headquarters_site_id)?.x??c.start_x);
  const options=[];
  for(const e of events){let x,value=0;
- if(['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)&&!e.arena){x=state.buildings.find(b=>b.id===e.target_site_id)?.x;value=e.family==='MEETING_DE_CRISE'?e.parameters.local_influence_reward:10;if(!paymentStatus(c,config,e.parameters.meeting_cost).enabled)continue;}
+ if(['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)&&!e.arena){x=state.buildings.find(b=>b.id===e.target_site_id)?.x;value=e.family==='MEETING_DE_CRISE'?e.parameters.local_conversion_percent:10;if(!paymentStatus(c,config,e.parameters.meeting_cost).enabled)continue;}
  if(e.family==='CANDIDAT_FRAGILISE'&&!e.target_candidate_ids.includes(c.id)){x=state.candidates.find(c=>c.id===e.target_candidate_ids[0]).x;value=15;}
  if(x!==undefined)options.push({x,value:value/(1+Math.abs(ringDelta(c.x,x,state.world.length))/30),hunt:e.family==='CANDIDAT_FRAGILISE'||!!e.attempt&&e.attempt.candidate_id!==c.id});
  }

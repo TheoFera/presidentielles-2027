@@ -87,7 +87,8 @@ test('Le flux différentiel restitue la campagne, le duel et le résultat sans t
   sim.step([]);
   assert.ok(transfer() < JSON.stringify(sim.state).length / 5, 'Le duel ne retransmet pas le monde figé');
   finishArena(sim, 'philippe'); transfer();
-  for (const e of sim.state.electorate) e.support = { melenchon: 60, le_pen: 30, philippe: 0, neutral: 10 };
+  sim.state.npcs.slice(0,60).forEach(n => { n.role = 'SYMPATHISANT'; n.faction_id = 'melenchon'; });
+  sim.state.npcs.slice(60,90).forEach(n => { n.role = 'SYMPATHISANT'; n.faction_id = 'le_pen'; });
   finishSprint(sim); transfer();
   assert.equal(received.phase, 'RESULTS');
 });

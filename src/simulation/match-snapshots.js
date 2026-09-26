@@ -6,7 +6,7 @@ import { validateCombatSnapshot } from './combat-snapshots.js';
 export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
   const integer = n => Number.isInteger(n) && n >= 0;
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-  const support = x => x && [...FACTIONS, 'neutral'].every(f => Number.isFinite(x[f]) && x[f] >= 0 && x[f] <= 100)
+  const support = x => x && [...FACTIONS, 'neutral', 'pending'].every(f => Number.isFinite(x[f]) && x[f] >= 0 && x[f] <= 100)
     && Math.abs(Object.values(x).reduce((a, b) => a + b, 0) - 100) < 1e-7;
   if (!integer(s.match_tick) || !integer(s.phase_started_match_tick) || s.phase_started_match_tick > s.match_tick
     || !integer(s.sprint_elapsed_ticks) || !integer(s.extensions) || !Array.isArray(s.finalists)) fail('horloge de partie invalide');
@@ -25,7 +25,7 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
       || t.eliminated_faction !== s.eliminated_faction) fail('second tour incohérent');
     if (s.npcs.some(n => n.faction_id === s.eliminated_faction) || s.buildings.some(b => b.owner_id === s.eliminated_faction || b.queue.some(o => o.faction_id === s.eliminated_faction))
       || [...s.attacks, ...s.projectiles, ...s.powers, ...s.temporary_units].some(a => a.faction_id === s.eliminated_faction)
-      || s.electorate.some(e => e.support[s.eliminated_faction] !== 0 || e.influence_per_second[s.eliminated_faction] !== 0)) fail('camp éliminé encore actif');
+      || s.electorate.some(e => e.support[s.eliminated_faction] !== 0)) fail('camp éliminé encore actif');
   } else if (s.eliminated_faction !== null || s.finalists.length || s.sprint_remaining_ticks !== null || s.sprint_elapsed_ticks || s.extensions) fail('élimination prématurée');
   if (s.phase === GamePhase.FIRST_ROUND_ARENA) {
     if (nested || !s.campaign_snapshot || s.campaign_snapshot.phase !== GamePhase.CAMPAIGN || s.days_remaining !== 0 || !support(t.j0_scores)) fail('monde gelé absent');

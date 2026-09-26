@@ -1,8 +1,6 @@
-import { styleInfluenceMultiplier } from './campaign-styles.js';
 import { combatDelta } from './combat-geometry.js';
-import { influenceMultiplier, GamePhase } from './phases.js';
-import { FACTIONS, ringDelta, zoneAt } from './world.js';
-import { convertInfluence, leadership, refreshElectoralState } from './electoral-state.js';
+import { FACTIONS, zoneAt } from './world.js';
+import { emptySupport } from './electoral-state.js';
 
 export const stableIdOrder = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 export const distance = (state, a, b) => Math.abs(combatDelta(state, a, b));
@@ -30,39 +28,21 @@ export function populationByOrigin(state, subzoneId) {
 }
 
 export function incomeBreakdown(state, config, factionId) {
-  const money = config.balance.money;
-  const eliminated = state.eliminated_faction === factionId;
   const byBiome = Object.fromEntries(config.layout.biomes.map(b => [b.id, {
-    count: 0, rate: money.supporter_income_per_second_by_origin_biome[b.id], income: 0,
+    count: 0, donation_eur: config.balance.money.donation.base_eur * config.balance.money.donation.biome_multipliers[b.id], held_eur: 0,
   }]));
-  // Recruitment and promotions retain the spawn biome, regardless of current position.
   for (const npc of state.npcs) {
-    if (eliminated || npc.faction_id !== factionId || !['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role)) continue;
+    if (npc.faction_id !== factionId || npc.role !== 'SYMPATHISANT') continue;
     byBiome[npc.origin_biome_id].count++;
+    byBiome[npc.origin_biome_id].held_eur += npc.donation_cents / 100;
   }
-  for (const biome of Object.values(byBiome)) biome.income = biome.count * biome.rate;
-  const supporters = Object.values(byBiome).reduce((sum, biome) => sum + biome.income, 0);
-  // Le Financement paie uniquement à la fin d’une campagne déclenchée sur place.
-  const buildings = 0;
-  const base = eliminated ? 0 : money.base_passive_income_per_second;
-  const multiplier = factionId === 'philippe' ? money.philippe_income_multiplier : 1;
-  return { base, supporters, buildings, multiplier, byBiome, total: (base + supporters + buildings) * multiplier };
+  const held_eur = Object.values(byBiome).reduce((sum, biome) => sum + biome.held_eur, 0);
+  const stored_eur = state.buildings.filter(b => b.type === 'financement' && b.owner_id === factionId)
+    .reduce((sum, b) => sum + b.stored_money_cents / 100, 0);
+  return { byBiome, held_eur, stored_eur };
 }
 
-export function incomePerSecond(state, config, factionId) {
-  if (state.eliminated_faction === factionId) return 0;
-  const counts = Object.create(null);
-  for (const npc of state.npcs) {
-    if (npc.faction_id === factionId && ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role)) {
-      counts[npc.origin_biome_id] = (counts[npc.origin_biome_id] || 0) + 1;
-    }
-  }
-  const money = config.balance.money;
-  // Preserve the breakdown's biome order and count × rate arithmetic exactly.
-  let supporters = 0;
-  for (const biome of config.layout.biomes) supporters += (counts[biome.id] || 0) * money.supporter_income_per_second_by_origin_biome[biome.id];
-  return (money.base_passive_income_per_second + supporters) * (factionId === 'philippe' ? money.philippe_income_multiplier : 1);
-}
+export const incomePerSecond = () => 0;
 
 export function localPersuasionMultiplier(state, config, actor) {
   const subzoneId = zoneAt(state.world, actor.x).id;
@@ -72,102 +52,11 @@ export function localPersuasionMultiplier(state, config, actor) {
 
 export function createElectorate(world, config) {
   return world.subzones.map((zone, index) => {
-    const support = { ...config.layout.starting_support.default };
-    for (const faction of FACTIONS) {
-      if (config.layout.starting_positions[faction] !== zone.id) continue;
-      let bonus = config.layout.starting_support.home_zone_base_bonus_points[faction];
-      if (faction === 'le_pen' && config.layout.starting_support.additional_le_pen_home_bonus_from_balance) bonus += config.balance.influence.le_pen_home_start_support_bonus_points;
-      const actual = Math.min(support.neutral, bonus);
-      support[faction] += actual; support.neutral -= actual;
-    }
     const biomes = config.layout.biomes;
     const biomeIndex = biomes.findIndex(b => b.id === zone.biome_id);
-    return { subzone_id: zone.id, biome_id: zone.biome_id, support, ...leadership(support, config),
-      electoral_weight: config.layout.electoral_weights.by_subzone[zone.id] ?? config.layout.electoral_weights.default,
+    return { subzone_id: zone.id, biome_id: zone.biome_id, support: emptySupport(), leader: null, controller: null,
+      electoral_weight: zone.max_npcs_by_origin,
       adjacent_subzone_ids: [world.subzones[(index + world.subzones.length - 1) % world.subzones.length].id, world.subzones[(index + 1) % world.subzones.length].id],
-      adjacent_biome_ids: [biomes[(biomeIndex + biomes.length - 1) % biomes.length].id, biomes[(biomeIndex + 1) % biomes.length].id],
-      influence_sources: Object.fromEntries(FACTIONS.map(f => [f, emptySources()])),
-      influence_per_second: factionRecord(0), net_change_per_second: factionRecord(0) };
+      adjacent_biome_ids: [biomes[(biomeIndex + biomes.length - 1) % biomes.length].id, biomes[(biomeIndex + 1) % biomes.length].id] };
   });
-}
-
-const emptySources = () => ({ sympathisants: 0, militants: 0, permanence: 0, candidate: 0, meeting: 0,
-  tower: 0, tower_base: 0, tower_multiplier: 1, faction_multiplier: 1 });
-
-export function meetingMultiplier(state, config, zoneId, faction) {
-  return state.buildings.filter(b => b.type === 'meeting' && b.state === 'ACTIVE' && b.meeting_faction_id === faction
-    && b.subzone_id === zoneId && b.meeting_until_tick > state.tick)
-    .reduce((best, b) => Math.max(best, config.balance.buildings.meeting.ally_influence_multiplier_by_level[b.meeting_level - 1]), 1);
-}
-
-/** Source accounting is separate from transfers, so all towers use the same control state. */
-export function refreshInfluenceSources(state, config) {
-  const tower = config.balance.buildings.tour_communication;
-  // These indexes live only for this calculation. Nothing survives a movement,
-  // conversion, construction, import, or change of phase, even within one tick.
-  const units = new Map(), permanences = new Map(), candidates = new Map(), meetings = new Map();
-  const towers = new Map(FACTIONS.map(f => [f, { base: 0, level: null }]));
-  const append = (map, id, value) => { if (!map.has(id)) map.set(id, []); map.get(id).push(value); };
-  for (const npc of state.npcs) {
-    if (npc.role === 'SYMPATHISANT' || npc.role === 'MILITANT') append(units, zoneAt(state.world, npc.x).id, npc);
-  }
-  for (const building of state.buildings) {
-    if (building.state !== 'ACTIVE') continue;
-    if (building.type === 'permanence') append(permanences, building.subzone_id, building);
-    if (building.type === 'tour_communication' && towers.has(building.owner_id)) {
-      const source = towers.get(building.owner_id);
-      source.base += tower.global_influence_per_second_by_level[building.level - 1];
-      if (source.level === null) source.level = Math.max(1, building.level || 1);
-    }
-    if (building.type === 'meeting' && building.meeting_until_tick > state.tick) {
-      if (!meetings.has(building.subzone_id)) meetings.set(building.subzone_id, new Map());
-      const zoneMeetings = meetings.get(building.subzone_id);
-      zoneMeetings.set(building.meeting_faction_id, Math.max(zoneMeetings.get(building.meeting_faction_id) ?? 1,
-        config.balance.buildings.meeting.ally_influence_multiplier_by_level[building.meeting_level - 1]));
-    }
-  }
-  for (const candidate of state.candidates) {
-    if (!candidate.eliminated && !candidate.campaign_arena_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
-      && !candidate.combat.engaged) append(candidates, zoneAt(state.world, candidate.x).id, candidate);
-  }
-  for (const zone of state.world.subzones) {
-    const election = state.electorate.find(e => e.subzone_id === zone.id);
-    const sources = Object.fromEntries(FACTIONS.map(f => [f, emptySources()]));
-    for (const npc of units.get(zone.id) || []) {
-      if (npc.role === 'SYMPATHISANT') sources[npc.faction_id].sympathisants += config.balance.physical_units.sympathisant.local_influence_per_second;
-      if (npc.role === 'MILITANT') sources[npc.faction_id].militants += config.balance.physical_units.militant.influence_per_second;
-    }
-    for (const building of permanences.get(zone.id) || []) {
-      const value = config.balance.buildings.permanence.local_influence_by_level[building.level - 1];
-      sources[building.owner_id].permanence += value * (building.headquarters ? config.balance.buildings.permanence.hq_influence_multiplier : 1);
-    }
-    for (const candidate of candidates.get(zone.id) || []) {
-      sources[candidate.faction_id].candidate += config.balance.influence.candidate_presence_per_second;
-    }
-    for (const faction of FACTIONS) {
-      const source = sources[faction];
-      source.meeting = (source.sympathisants + source.militants) * ((meetings.get(zone.id)?.get(faction) ?? 1) - 1);
-      source.tower_base = towers.get(faction).base;
-      const level = towers.get(faction).level ?? 1;
-      source.tower_multiplier = election.controller === faction ? tower.controlled_zone_multiplier_by_level[level - 1]
-        : state.electorate.some(e => election.adjacent_subzone_ids.includes(e.subzone_id) && e.controller === faction) ? tower.adjacent_zone_multiplier_by_level[level - 1] : tower.distant_zone_multiplier_by_level[level - 1];
-      source.tower = source.tower_base * source.tower_multiplier * (state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.second_round.tower_influence_multiplier : 1);
-      source.faction_multiplier = faction === 'le_pen' ? config.balance.influence.le_pen_gain_multiplier : 1;
-      election.influence_per_second[faction] = (source.sympathisants + source.militants + source.permanence + source.candidate + source.meeting + source.tower) * source.faction_multiplier * influenceMultiplier(state, config) * styleInfluenceMultiplier(config, state.candidates.find(c => c.faction_id === faction), election.biome_id);
-    }
-    election.influence_sources = sources;
-  }
-}
-
-/** Visible recruits generate a rate; they never stand for a number of voters. */
-export function updateInfluence(simulation) {
-  const { state, config, hz } = simulation;
-  refreshElectoralState(state, config);
-  refreshInfluenceSources(state, config);
-  for (const election of state.electorate) {
-    const changes = convertInfluence(election, Object.fromEntries(FACTIONS.map(f => [f, election.influence_per_second[f] / hz])), config);
-    for (const f of FACTIONS) election.net_change_per_second[f] = changes[f] * hz;
-  }
-  refreshElectoralState(state, config);
-  refreshInfluenceSources(state, config);
 }

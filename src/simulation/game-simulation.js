@@ -1,13 +1,14 @@
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { validAIDifficulty } from './ai-settings.js';
-import { CampaignStyleSystem } from './campaign-styles.js';
+import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
-import { createSpawnTimers, updateSpawns } from './spawns.js';
-import { createElectorate, localPersuasionMultiplier, populationByOrigin, refreshInfluenceSources, updateInfluence } from './territory.js';
-import { convertInfluence, createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
-import { triggerMeeting } from './electoral-buildings.js';
+import { createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
+import { createElectorate, localPersuasionMultiplier, populationByOrigin } from './territory.js';
+import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
+import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
+import { triggerMeeting, updateElectoralBuildings, meetingAttendeeStep } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
@@ -18,6 +19,7 @@ import { ArenaSimulation } from './arena-simulation.js';
 import { initialMatchState, startArena, finishArena, finishSprint, applyMatchDebug } from './match-lifecycle.js';
 import { updateStrategicSites } from './strategic-sites.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
+import { initializeMoney, prepareDonations, scheduleNextDonation, settleMoney, updateDonationCourier } from './money.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const presentationWorlds = new WeakMap();
@@ -49,9 +51,9 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 9, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 11, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
-      next_order_id: 1, next_transaction_id: 1, transactions: [],
+      next_order_id: 1, next_transaction_id: 1, next_money_pickup_id: 1, transactions: [], money_pickups: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [],
       phase: GamePhase.CAMPAIGN, days_remaining: config.balance.time.starting_days_before_first_round,
@@ -67,13 +69,13 @@ export class GameSimulation {
         id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
         ai_objective: null,
         x: start.start + start.width * config.prototype.world.candidate_start_ratio,
-        axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0,
+        axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
         resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
         ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
         interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0, interaction_chain_site_id: null,
         total_spent: 0, total_earned: 0, income_per_second: 0, spending: { BUILD: 0, UPGRADE: 0, PRINT: 0 },
-        money: config.balance.money.base_starting_money * (faction === 'philippe' ? config.balance.money.philippe_starting_money_multiplier : 1),
+        money: 0,
         start_x: start.start + start.width * config.prototype.world.candidate_start_ratio, last_hq_x: null,
       });
     }
@@ -85,12 +87,12 @@ export class GameSimulation {
         this.spawn(zone, zone.start + zone.width * ratio, false, points[index % points.length]);
       }
     }
+    initializeMoney(this);
     for (const c of this.state.candidates) initializeMobileCombat(this, c);
     initializeCampaign(this);
     CampaignStyleSystem.initialize(this, profile);
     this.state.spawn_timers = createSpawnTimers(this);
-    refreshElectoralState(this.state, this.config);
-    refreshInfluenceSources(this.state, this.config);
+    refreshElectoralState(this.state);
   }
 
   secondsToTicks(seconds) { return Math.ceil(seconds * this.hz - 1e-9); }
@@ -99,7 +101,11 @@ export class GameSimulation {
     const { world, ...dynamic } = this.state;
     return { ...clone({ ...dynamic, campaign_snapshot: null }), world: presentationWorld(world) };
   }
-  exportSnapshot() { return JSON.stringify(this.state, null, 2); }
+  exportSnapshot() {
+    // Un outil de test ou une commande peut avoir changé un PNJ depuis le dernier tick.
+    refreshElectoralState(this.state);
+    return JSON.stringify(this.state, null, 2);
+  }
 
   /** Snapshot import is atomic. Invalid saves never damage the live game. */
   importSnapshot(json) {
@@ -125,6 +131,7 @@ export class GameSimulation {
   }
 
   spawn(zone, x, announce = true, originPoint = null) {
+    if (this.state.phase !== GamePhase.CAMPAIGN || this.state.npcs.length >= this.config.layout.total_electors) return null;
     if (populationByOrigin(this.state, zone.id) >= zone.max_npcs_by_origin) return null;
     const points = this.state.world.socialPoints.filter(p => p.subzone_id === zone.id);
     const point = originPoint || points[Math.floor(random(this.state) * points.length)];
@@ -135,7 +142,8 @@ export class GameSimulation {
       x: wrap(x, this.state.world.length), facing: random(this.state) < 0.5 ? -1 : 1,
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
-      combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1,
+      combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null,
+      donation_cents: 0, next_donation_tick: null,
     };
     this.state.npcs.push(npc);
     if (announce) this.emit('NeutralSpawned', { npc_id: npc.id, subzone_id: zone.id });
@@ -186,17 +194,16 @@ export class GameSimulation {
     switch (command.type) {
       case 'DebugAddInfluence': {
         if (!candidate || !FACTIONS.includes(command.factionId)) break;
-        const election = this.state.electorate.find(e => e.subzone_id === zoneAt(this.state.world, candidate.x).id);
-        convertInfluence(election, { [command.factionId]: this.config.balance.debug.influence_burst }, this.config);
-        this.emit('DebugInfluenceAdded', { faction_id: command.factionId, subzone_id: election.subzone_id });
+        const zone = zoneAt(this.state.world, candidate.x);
+        applyOpinionDelta(this, command.factionId, 100 / this.config.layout.total_electors, { subzoneId: zone.id, source: 'DÉBOGAGE' });
         break;
       }
       case 'DebugNeutral50': {
         if (!candidate) break;
-        const election = this.state.electorate.find(e => e.subzone_id === zoneAt(this.state.world, candidate.x).id);
-        const total = FACTIONS.reduce((s, f) => s + election.support[f], 0);
-        for (const f of FACTIONS) election.support[f] = total ? election.support[f] * 50 / total : 50 / FACTIONS.length;
-        election.support.neutral = 50;
+        const zone = zoneAt(this.state.world, candidate.x);
+        for (const npc of this.state.npcs.filter(n => zoneAt(this.state.world, n.x).id === zone.id && n.role === 'SYMPATHISANT')) {
+          if (random(this.state) < 0.5) neutralizeSupporter(this, npc, 'DÉBOGAGE');
+        }
         break;
       }
       case 'DebugBuildElectoral': {
@@ -210,16 +217,17 @@ export class GameSimulation {
       }
       case 'DebugMeeting': {
         if (!candidate) break;
-        const building = this.state.buildings.find(b => b.type === 'meeting' && b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id);
-        if (building) triggerMeeting(this, building);
+        const building = this.state.buildings.find(b => b.type === 'meeting' && b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.state === 'ACTIVE');
+        if (building) triggerMeeting(this, building, candidate.faction_id, candidate.id);
         break;
       }
       case 'DebugControlZone': {
         if (!candidate) break;
         const zone = zoneAt(this.state.world, candidate.x);
-        const record = this.state.electorate.find(e => e.subzone_id === zone.id);
-        record.support = { melenchon: 15, le_pen: 15, philippe: 15, neutral: 20, [candidate.faction_id]: 50 };
-        if (this.state.eliminated_faction) { record.support.neutral += record.support[this.state.eliminated_faction]; record.support[this.state.eliminated_faction] = 0; }
+        for (const npc of this.state.npcs.filter(n => zoneAt(this.state.world, n.x).id === zone.id)) {
+          if (npc.role === 'SYMPATHISANT' && npc.faction_id !== candidate.faction_id) neutralizeSupporter(this, npc, 'DÉBOGAGE');
+          if (npc.role === 'NEUTRE') convertNeutral(this, npc, candidate.faction_id, 'DÉBOGAGE');
+        }
         this.emit('DebugZoneControlled', { subzone_id: zone.id, candidate_id: candidate.id });
         break;
       }
@@ -230,6 +238,7 @@ export class GameSimulation {
         const npc = this.spawn(zone, candidate.x + candidate.facing * this.config.balance.debug.combat_spawn_distance);
         if (!npc) { this.emit('DebugSpawnCapacityReached', { subzone_id: zone.id }); break; }
         npc.role = command.role; npc.faction_id = command.factionId;
+        if (npc.role === 'SYMPATHISANT') scheduleNextDonation(this, npc);
         npc.hidden_durability = this.config.balance.physical_units[command.role === 'SERVICE_D_ORDRE' ? 'service_ordre' : command.role.toLowerCase()].hidden_durability;
         npc.guard_biome_id = command.role === 'SERVICE_D_ORDRE' ? zoneAt(this.state.world, npc.x).biome_id : null;
         npc.guard_anchor_x = command.role === 'SERVICE_D_ORDRE' ? npc.x : null;
@@ -275,8 +284,7 @@ export class GameSimulation {
         break;
       }
     }
-    refreshElectoralState(this.state, this.config);
-    refreshInfluenceSources(this.state, this.config);
+    refreshElectoralState(this.state);
   }
 
   step(commands = []) {
@@ -299,10 +307,17 @@ export class GameSimulation {
     state.tick++;
     beginCombatTick(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || candidate.crisis_meeting_id || movementBlocked(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || movementBlocked(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
+      if (candidate.podium_site_id) {
+        const podium = state.buildings.find(b => b.id === candidate.podium_site_id);
+        if (!podium || Math.abs(ringDelta(candidate.x, podium.x, state.world.length)) > this.config.balance.buildings.meeting.podium_half_width) {
+          candidate.podium_site_id = null;
+          candidate.combat.height = 0;
+        }
+      }
     }
     updateSpawns(this);
     for (const npc of state.npcs) {
@@ -317,9 +332,12 @@ export class GameSimulation {
     updateEconomy(this);
     updateProduction(this);
     updateEquipmentProduction(this);
+    prepareDonations(this);
     this.updateNpcs();
+    updateElectoralBuildings(this);
     updateStrategicSites(this);
-    updateInfluence(this);
+    settleMoney(this);
+    refreshElectoralState(state);
     const days = state.phase === GamePhase.SECOND_ROUND_SPRINT ? 0 : Math.max(0,
       this.config.balance.time.starting_days_before_first_round - (state.campaign_time_offset || 0) - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));
     if (days !== state.days_remaining) { state.days_remaining = days; this.emit('DayChanged', { days_remaining: days }); }
@@ -328,7 +346,11 @@ export class GameSimulation {
     state.campaign_progress_01 = state.campaign_elapsed_days / this.config.balance.time.starting_days_before_first_round;
     if (state.phase === GamePhase.CAMPAIGN && !state.campaign_style_selection) CampaignEventDirector.update(this);
     updatePolls(this);
-    if (state.phase === GamePhase.CAMPAIGN && days === 0 && !state.campaign_style_selection) startArena(this);
+    if (state.phase === GamePhase.CAMPAIGN && days === 0 && !state.campaign_style_selection) {
+      completePopulation(this);
+      refreshElectoralState(state);
+      startArena(this);
+    }
     else if (state.phase === GamePhase.SECOND_ROUND_SPRINT) {
       state.sprint_elapsed_ticks++; state.sprint_remaining_ticks = Math.max(0, state.sprint_remaining_ticks - 1);
       state.electorate.forEach((e, i) => {
@@ -342,7 +364,10 @@ export class GameSimulation {
     const settings = this.config.balance.persuasion;
     const base = actor.role === 'MILITANT' ? settings.militant_base_seconds
       : settings.candidate_base_seconds * (actor.faction_id === 'melenchon' ? settings.melenchon_personal_time_multiplier : 1);
-    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor));
+    const candidate = this.state.candidates.find(item => item.faction_id === actor.faction_id);
+    const biome = zoneAt(this.state.world, actor.x).biome_id;
+    const style = Math.max(0.1, styleInfluenceMultiplier(this.config, candidate, biome));
+    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) / style);
   }
 
   updatePersuasion() {
@@ -376,12 +401,8 @@ export class GameSimulation {
       npc.persuasion.elapsed_ticks++;
       npc.facing = ringDelta(npc.x, actor.x, state.world.length) < 0 ? -1 : 1;
       if (npc.persuasion.elapsed_ticks >= npc.persuasion.required_ticks) {
-        npc.role = 'SYMPATHISANT'; npc.faction_id = actor.faction_id;
-        npc.hidden_durability = this.config.balance.physical_units.sympathisant.hidden_durability;
-        npc.converted_tick = state.tick; npc.persuasion = null;
-        npc.roam_wait_ticks = this.waitTicks();
+        convertNeutral(this, npc, actor.faction_id, 'PERSUASION');
         actor.persuasion_target_ids = actor.persuasion_target_ids.filter(id => id !== npc.id);
-        this.emit('NpcConverted', { npc_id: npc.id, actor_id: actor.id, faction_id: actor.faction_id });
       }
     }
   }
@@ -393,7 +414,9 @@ export class GameSimulation {
       if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
       npc.moving = false;
       const origin = state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
+      if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
       if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
+      if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }
       if (npc.role === 'MILITANT' && npc.task?.kind === 'COLLECT_EQUIPMENT') { updateEquipmentCollector(this, npc); continue; }
       if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
       if (npc.role === 'DEMOBILISE') {

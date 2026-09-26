@@ -2,12 +2,34 @@ import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { formatNumber } from './number-format.js';
 
+const ARENA_ZOOM = 1.45;
+const ARENA_SIDE_PADDING_UNITS = 2;
+
+export function arenaCamera(candidates, width, arenaWidthUnits) {
+  const positions = candidates.map(candidate => candidate.x);
+  const left = Math.min(...positions);
+  const right = Math.max(...positions);
+  const basePixelsPerUnit = width / arenaWidthUnits;
+  const fittedPixelsPerUnit = width / Math.max(right - left + ARENA_SIDE_PADDING_UNITS * 2, 1);
+  return {
+    center: (left + right) / 2,
+    pixelsPerUnit: Math.max(basePixelsPerUnit, Math.min(basePixelsPerUnit * ARENA_ZOOM, fittedPixelsPerUnit)),
+  };
+}
+
 export function drawArena(renderer, state, previous, alpha) {
   const { ctx, canvas, width, height } = renderer;
   const original = renderer.metrics;
-  renderer.metrics = { ...original, groundY: height * 0.79, pixelsPerUnit: width / renderer.config.balance.first_round_arena.width_units };
+  const arenaWidth = renderer.config.balance.first_round_arena.width_units;
+  const camera = arenaCamera(state.candidates, width, arenaWidth);
+  renderer.metrics = {
+    ...original,
+    groundY: height * 0.79,
+    characterHeight: original.characterHeight * ARENA_ZOOM,
+    pixelsPerUnit: camera.pixelsPerUnit,
+  };
   const m = renderer.metrics;
-  renderer.screenX = x => x * m.pixelsPerUnit;
+  renderer.screenX = x => width / 2 + (x - camera.center) * m.pixelsPerUnit;
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
@@ -64,7 +86,7 @@ export class MatchDisplay {
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
     this.spectator.hidden = !sprint || !eliminated;
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
-      this.banner.textContent = arena ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Influence ×${this.config.balance.time.second_round_influence_multiplier}` : '';
+      this.banner.textContent = arena ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
       if (this.phase !== state.phase) {
         const fade = document.getElementById('phase-fade');
         fade.getAnimations().forEach(a => a.cancel());

@@ -1,7 +1,6 @@
 /** Shared protocol values. No scene, DOM or input-device dependency. */
 export const GamePhase = Object.freeze({ CAMPAIGN: 'CAMPAIGN', FIRST_ROUND_ARENA: 'FIRST_ROUND_ARENA', SECOND_ROUND_SPRINT: 'SECOND_ROUND_SPRINT', RESULTS: 'RESULTS' });
 export const isWorldPhase = state => [GamePhase.CAMPAIGN, GamePhase.SECOND_ROUND_SPRINT].includes(state.phase);
-export const influenceMultiplier = (state, config) => state.phase === GamePhase.SECOND_ROUND_SPRINT ? config.balance.time.second_round_influence_multiplier : 1;
 
 export function commandAllowed(state, command, debugEnabled) {
   if (!command || typeof command.type !== 'string' || state.phase === GamePhase.RESULTS) return false;
