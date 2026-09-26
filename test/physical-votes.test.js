@@ -7,7 +7,7 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes.js';
 import { triggerMeeting, updateElectoralBuildings } from '../src/simulation/electoral-buildings.js';
 import { startArena, finishArena } from '../src/simulation/match-lifecycle.js';
-import { buildingOffers } from '../src/simulation/economy.js';
+import { aiEconomicTarget, buildingOffers, nearestOffer } from '../src/simulation/economy.js';
 import { strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { zoneAt } from '../src/simulation/world.js';
 
@@ -84,8 +84,8 @@ test('le meeting exige le promontoire et son onde reste dans la sous-zone', () =
   local[0].role = 'SYMPATHISANT'; local[0].faction_id = 'le_pen';
   const outside = sim.state.npcs.find(npc => zoneAt(sim.state.world, npc.x).id !== podium.subzone_id);
   outside.role = 'SYMPATHISANT'; outside.faction_id = 'le_pen';
-  assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
   candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
+  assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
   advance(sim, sim.secondsToTicks(15));
   assert.equal(podium.meetings_held, 1);
   assert.equal(local[0].role, 'NEUTRE');
@@ -98,8 +98,8 @@ test('le meeting garde sa progression cinq secondes puis s’annule', () => {
   const podium = sim.state.buildings.find(building => building.type === 'meeting');
   const candidate = sim.state.candidates[0];
   candidate.x = podium.x;
-  triggerMeeting(sim, podium, 'melenchon', candidate.id);
   candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
+  triggerMeeting(sim, podium, 'melenchon', candidate.id);
   advance(sim, 60);
   assert.equal(podium.meeting_hold_ticks, 60);
   candidate.podium_site_id = null; candidate.combat.height = 0;
@@ -114,14 +114,52 @@ test('le meeting garde sa progression cinq secondes puis s’annule', () => {
   assert.equal(podium.meetings_held, 0);
 });
 
-test('l’IA saute sur le promontoire du meeting qu’elle vient de lancer', () => {
+test('l’IA remonte sur le promontoire si elle tombe pendant son meeting', () => {
   const sim = make();
   const podium = sim.state.buildings.find(building => building.type === 'meeting');
   const candidate = sim.state.candidates.find(item => item.faction_id === 'le_pen');
   candidate.x = podium.x;
   sim.state.ai_enabled = true;
+  candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
   assert.equal(triggerMeeting(sim, podium, candidate.faction_id, candidate.id), true);
+  candidate.podium_site_id = null; candidate.combat.height = 0;
   assert.ok(strategicAICommands(sim.state, config, candidate).some(command => command.type === 'Jump'));
+});
+
+test('depuis le sol, le meeting ne s’affiche pas et ne peut pas être payé ; sur scène, il devient disponible', () => {
+  const cfg = structuredClone(config);
+  cfg.balance.buildings.meeting.required_presence_N1 = 0;
+  const sim = new GameSimulation(cfg, 42);
+  sim.state.ai_enabled = false;
+  const podium = sim.state.buildings.find(building => building.type === 'meeting');
+  const candidate = sim.state.candidates[0];
+  candidate.x = podium.x; candidate.axis = 0; candidate.money = 1000;
+  assert.equal(buildingOffers(sim.state, cfg, candidate, podium)[0].reason, 'NOT_ON_STAGE');
+  assert.notEqual(nearestOffer(sim.state, cfg, candidate)?.kind, 'MEETING');
+  assert.equal(triggerMeeting(sim, podium, candidate.faction_id, candidate.id), false);
+  const before = candidate.money;
+  advance(sim, sim.secondsToTicks(3));
+  assert.equal(candidate.money, before);
+  assert.equal(podium.meeting_candidate_id, null);
+  candidate.podium_site_id = podium.id;
+  candidate.combat.height = cfg.balance.buildings.meeting.podium_height;
+  assert.equal(nearestOffer(sim.state, cfg, candidate)?.kind, 'MEETING');
+  advance(sim, sim.secondsToTicks(2));
+  assert.equal(podium.meeting_candidate_id, candidate.id);
+  assert.equal(candidate.money, before - cfg.balance.buildings.meeting.activation_cost);
+});
+
+test('l’IA conserve un meeting disponible comme objectif même avant de monter sur scène', () => {
+  const cfg = structuredClone(config);
+  cfg.balance.buildings.meeting.required_presence_N1 = 0;
+  const sim = new GameSimulation(cfg, 42);
+  const podium = sim.state.buildings.find(building => building.type === 'meeting');
+  sim.state.buildings = [podium];
+  const candidate = sim.state.candidates[1];
+  candidate.x = podium.x; candidate.money = 1000;
+  const target = aiEconomicTarget(sim.state, cfg, candidate);
+  assert.equal(target?.id, podium.id);
+  assert.equal(target.offer.reason, 'NOT_ON_STAGE');
 });
 
 test('les bâtiments n’offrent plus d’amélioration', () => {

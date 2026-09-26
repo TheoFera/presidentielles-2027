@@ -35,16 +35,22 @@ export function validateConfig(config) {
     if (!Number.isFinite(value) || value < 0) throw new Error(`Configuration : don invalide pour ${biome.id}.`);
   }
   for (const id of Object.keys(supporterIncome)) if (!config.layout.biomes.some(b => b.id === id)) throw new Error(`Configuration : biome de don inconnu (${id}).`);
-  for (const key of ['base_eur', 'cooldown_min_seconds', 'cooldown_max_seconds', 'handoff_radius_units', 'deposit_radius_units', 'collection_radius_units',
+  for (const key of ['base_eur', 'cooldown_min_seconds', 'cooldown_max_seconds', 'handoff_radius_units', 'handoff_toss_distance_units', 'handoff_toss_seconds', 'deposit_radius_units', 'collection_radius_units',
     'ai_handoff_search_radius_units', 'ai_funding_collection_threshold_eur']) positive(donation[key], `don.${key}`);
   if (donation.cooldown_max_seconds < donation.cooldown_min_seconds) throw new Error('Configuration : délais des dons inversés.');
   const initial = money.starting_pickups;
   for (const key of ['default_total_eur', 'philippe_total_eur', 'height_min_ratio', 'height_max_ratio']) positive(initial[key], `argent initial.${key}`);
+  for (const key of ['minimum_spacing_units', 'near_start_min_distance_units', 'near_start_max_distance_units', 'zone_edge_margin_ratio']) positive(initial[key], `argent initial.${key}`);
   if (initial.philippe_total_eur <= initial.default_total_eur || initial.height_min_ratio > initial.height_max_ratio || initial.height_max_ratio >= 1
-    || initial.height_min_ratio <= money.pickup_height_tolerance_ratio) throw new Error('Configuration : montant ou hauteur des billets initiaux invalides.');
+    || initial.height_min_ratio <= money.pickup_height_tolerance_ratio || initial.near_start_max_distance_units < initial.near_start_min_distance_units
+    || initial.zone_edge_margin_ratio >= 0.5) throw new Error('Configuration : montant ou placement des billets initiaux invalides.');
   for (const kind of ['default', 'philippe']) if (!Number.isInteger(initial[`${kind}_count`]) || initial[`${kind}_count`] < 3
     || !Number.isInteger(initial[`${kind}_total_eur`] / 50) || initial[`${kind}_total_eur`] < 50 * (initial[`${kind}_count`] + 9)) throw new Error('Configuration : répartition initiale impossible.');
-  for (const key of ['pickup_radius_units', 'pickup_height_tolerance_ratio', 'drop_spread_units']) positive(money[key], `argent.${key}`);
+  for (const key of ['pickup_radius_units', 'pickup_height_tolerance_ratio', 'drop_spread_units', 'pickup_sprite_base_width_px',
+    'pickup_sprite_width_per_tier_px', 'ground_pickup_visual_offset_px', 'elevated_pickup_visual_offset_px',
+    'pickup_hover_amplitude_px', 'pickup_hover_period_seconds']) positive(money[key], `argent.${key}`);
+  if (!Number.isFinite(money.pickup_halo_opacity) || money.pickup_halo_opacity < 0 || money.pickup_halo_opacity > 1)
+    throw new Error('Configuration : intensité du halo des billets invalide.');
   if (!Number.isInteger(money.max_drop_pickups) || money.max_drop_pickups < 1 || !Array.isArray(money.sprite_tiers_eur)
     || money.sprite_tiers_eur.length !== 3 || money.sprite_tiers_eur.some((v, i) => !Number.isInteger(v) || v <= 0 || i && v <= money.sprite_tiers_eur[i - 1])) throw new Error('Configuration : pickups ou paliers visuels invalides.');
   const ko = config.balance.candidate_combat;

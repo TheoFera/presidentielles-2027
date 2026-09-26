@@ -8,8 +8,9 @@ import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes
 import { hit } from '../src/simulation/combat-state.js';
 import { updateCollector } from '../src/simulation/tasks.js';
 import { chooseAIObjective, strategicAICommands } from '../src/simulation/ai-strategy.js';
-import { moneyTier } from '../src/presentation/money.js';
+import { formatCarriedMoney, moneyTier } from '../src/presentation/money.js';
 import { zoneAt } from '../src/simulation/world.js';
+import { addMoneyPickup } from '../src/simulation/money.js';
 
 const root = new URL('../Présidentielles 2027/', import.meta.url);
 const load = async name => JSON.parse(await readFile(new URL(`${name}.json`, root), 'utf8'));
@@ -18,17 +19,31 @@ const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.a
 const config = validateConfig({ balance, layout, buildings, prototype, campaignCatalog });
 const make = () => { const sim = new GameSimulation(config, 17); sim.state.ai_enabled = false; return sim; };
 
+test('le compteur affiche seulement l’argent transporté dans un format compact', () => {
+  assert.equal(formatCarriedMoney(0), '0 €');
+  assert.equal(formatCarriedMoney(0.05), '50 €');
+  assert.equal(formatCarriedMoney(47.4), '47,4 k €');
+});
+
 test('départ à zéro, totaux physiques exacts et billets accessibles au saut', () => {
   const sim = make();
   assert.deepEqual(sim.state.candidates.map(c => c.money), [0, 0, 0]);
   for (const [faction, expected] of [['melenchon', 12000], ['le_pen', 12000], ['philippe', 30000]]) {
     const start = sim.state.candidates.find(c => c.faction_id === faction);
     const money = sim.state.money_pickups.filter(p => zoneAt(sim.state.world, p.x).biome_id === zoneAt(sim.state.world, start.start_x).biome_id);
+    assert.equal(money.length, faction === 'philippe' ? config.balance.money.starting_pickups.philippe_count : config.balance.money.starting_pickups.default_count);
     assert.equal(money.reduce((sum, p) => sum + p.amount_cents, 0) / 100, expected);
-    assert.ok(money.every(p => p.height_ratio > config.balance.money.pickup_height_tolerance_ratio));
+    assert.ok(money.every(p => p.height_ratio >= 0.9 && p.height_ratio <= config.balance.money.starting_pickups.height_max_ratio));
+    assert.ok(money.some(p => Math.abs(p.x - start.start_x) <= config.balance.money.starting_pickups.near_start_max_distance_units));
+    const positions = money.map(p => p.x).sort((a, b) => a - b);
+    const gaps = positions.slice(1).map((x, index) => x - positions[index]);
+    assert.ok(gaps.every(gap => gap >= config.balance.money.starting_pickups.minimum_spacing_units), `${faction} : ${gaps.join(', ')}`);
+    assert.ok(Math.max(...gaps) - Math.min(...gaps) > 2);
   }
   assert.notEqual(moneyTier(config, 5000), moneyTier(config, 50000));
-  const candidate = sim.state.candidates[0], pickup = sim.state.money_pickups.find(p => p.amount_cents === 5000);
+  const candidate = sim.state.candidates[0];
+  const pickup = sim.state.money_pickups.filter(p => zoneAt(sim.state.world, p.x).biome_id === zoneAt(sim.state.world, candidate.start_x).biome_id)
+    .sort((a, b) => b.height_ratio - a.height_ratio)[0];
   candidate.x = pickup.x;
   sim.step(); assert.ok(sim.state.money_pickups.includes(pickup));
   sim.step([{ type: 'Jump', candidateId: candidate.id }]);
@@ -37,13 +52,21 @@ test('départ à zéro, totaux physiques exacts et billets accessibles au saut',
   assert.ok(candidate.money > 0);
 });
 
-test('seul un sympathisant donne ; remise directe puis trajet et dépôt au financement', () => {
+test('seul un sympathisant donne ; il se tourne, lance le billet puis va au financement', () => {
   const sim = make(), candidate = sim.state.candidates[0];
   const npc = sim.state.npcs.find(n => n.origin_biome_id === 'banlieue');
   convertNeutral(sim, npc, candidate.faction_id);
-  npc.x = candidate.x; npc.roam_target_x = npc.x; npc.next_donation_tick = sim.state.tick;
+  npc.x = candidate.x + 2; npc.roam_target_x = npc.x; npc.next_donation_tick = sim.state.tick;
   sim.step();
-  assert.equal(candidate.money, 0.05); assert.equal(npc.donation_cents, 0);
+  const dropped = sim.state.money_pickups.find(p => p.toss_origin_x != null && p.amount_cents === 5000);
+  assert.ok(dropped); assert.equal(candidate.money, 0); assert.equal(npc.donation_cents, 0);
+  assert.equal(npc.facing, -1); assert.ok(dropped.collect_after_tick > sim.state.tick);
+  const copy = make(); copy.importSnapshot(sim.exportSnapshot());
+  assert.deepEqual(copy.state.money_pickups.find(p => p.id === dropped.id), dropped);
+  candidate.x = dropped.x;
+  sim.step(); assert.ok(sim.state.money_pickups.includes(dropped));
+  for (let i = 0; i < sim.secondsToTicks(config.balance.money.donation.handoff_toss_seconds) + 1; i++) sim.step();
+  assert.ok(!sim.state.money_pickups.includes(dropped)); assert.equal(candidate.money, 0.05);
   assert.ok(npc.next_donation_tick > sim.state.tick);
   const building = sim.state.buildings.find(b => b.type === 'financement');
   captureSite(sim, building, candidate);
@@ -136,6 +159,14 @@ test('l’IA va chercher un don prêt et revient vider une cagnotte', () => {
   const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, candidate);
   const funding = sim.state.buildings.find(b => b.type === 'financement'); captureSite(sim, funding, candidate);
   funding.stored_money_cents = 50000; candidate.x = funding.x - 3;
+  assert.equal(strategicAICommands(sim.state, sim.config, candidate).find(c => c.type === 'Move').axis, 1);
+});
+
+test('l’IA ramasse aussi un don tombé après la capture du QG', () => {
+  const sim = make(), candidate = sim.state.candidates[1]; sim.state.ai_enabled = true;
+  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, candidate);
+  sim.state.money_pickups = [];
+  addMoneyPickup(sim, candidate.x + 2, 0, 10000);
   assert.equal(strategicAICommands(sim.state, sim.config, candidate).find(c => c.type === 'Move').axis, 1);
 });
 

@@ -143,7 +143,7 @@ export class GameSimulation {
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
       combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null,
-      donation_cents: 0, next_donation_tick: null,
+      donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1,
     };
     this.state.npcs.push(npc);
     if (announce) this.emit('NeutralSpawned', { npc_id: npc.id, subzone_id: zone.id });
@@ -413,6 +413,7 @@ export class GameSimulation {
     for (const npc of state.npcs) {
       if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
       npc.moving = false;
+      if (npc.role === 'SYMPATHISANT' && npc.handoff_until_tick > state.tick) continue;
       const origin = state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
       if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
       if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }

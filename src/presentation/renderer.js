@@ -12,7 +12,7 @@ import { drawSeasonalScenery } from './illustrated-vegetation.js';
 import { prepareSceneryImage } from './illustrated-world.js';
 import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
-import { drawMoneyPickups, drawMoneyFeedback, drawCarriedDonation } from './money.js';
+import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
@@ -116,7 +116,6 @@ export class WorldRenderer {
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     if (illustrated) drawIllustratedGround(this);
-    drawMoneyPickups(this, state);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
     const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
@@ -126,12 +125,12 @@ export class WorldRenderer {
         const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
         const x = wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
         this.drawPerson(entity, this.screenX(x), state);
-        drawCarriedDonation(this, entity, this.screenX(x));
       }
     };
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
     drawEntities(entities.filter(entity => !onMeeting(entity)));
+    drawMoneyPickups(this, state);
     drawBanknote(this, state);
     drawMoneyFeedback(this, state);
     drawCombatEffects(this, state, debug);
@@ -266,7 +265,8 @@ export class WorldRenderer {
     rect(-8, -19 + swing, 3, 10, outline);
     rect(-7, -18 + swing, 2, 6, tone);
     rect(-7, -12 + swing, 2, 3, this.p.skin_tone);
-    const raised = celebrating ? -5 + Math.round(Math.sin(time * 7)) : persuading || entity.task?.phase === 'PICKUP' ? -3 : -swing;
+    const raised = celebrating ? -5 + Math.round(Math.sin(time * 7)) : persuading || entity.task?.phase === 'PICKUP'
+      || entity.handoff_until_tick > state.tick ? -3 : -swing;
     rect(6, -19 + raised, 3, 10, outline);
     rect(6, -18 + raised, 2, 6, tone);
     rect(6, -12 + raised, 2, 3, this.p.skin_tone);

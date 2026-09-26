@@ -72,6 +72,7 @@ export function characterAnimation(entity, state) {
   if (!entity.moving && !entity.axis && entity.persuasion_target_ids?.length) return 'persuade';
   if (entity.persuasion) return 'persuade_listen';
   if (entity.converted_tick >= 0 && state.tick - entity.converted_tick < 12) return 'convert';
+  if (entity.role === 'SYMPATHISANT' && entity.handoff_until_tick > state.tick) return 'interact_hold';
   if (entity.purchase_hold || entity.task?.phase === 'PICKUP') return 'interact_hold';
   if (entity.role === 'DEMOBILISE') return 'demobilised_return';
   if (entity.moving) return entity.combat?.engaged || entity.task?.kind === 'RAID' ? 'run' : 'walk';
@@ -100,7 +101,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const windup = attack && attack.elapsed_ticks < attack.windup_ticks;
   const action = candidate
     ? attacking ? (windup ? -0.09 : attack?.strong ? 0.23 : 0.16) : animation === 'knockback' ? -0.25 : animation === 'special_start' ? -0.1 : animation === 'special_recovery' ? 0.07 : animation === 'interact_hold' ? 0.04 : 0
-    : 0;
+    : animation === 'interact_hold' ? 0.08 : 0;
   const faction = p.factions[entity.faction_id];
   ctx.save();
   ctx.imageSmoothingEnabled = true;

@@ -2,34 +2,24 @@ import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { formatNumber } from './number-format.js';
 
-const ARENA_ZOOM = 1.45;
-const ARENA_SIDE_PADDING_UNITS = 2;
+const ARENA_CHARACTER_SCALE = 1.45;
 
-export function arenaCamera(candidates, width, arenaWidthUnits) {
-  const positions = candidates.map(candidate => candidate.x);
-  const left = Math.min(...positions);
-  const right = Math.max(...positions);
-  const basePixelsPerUnit = width / arenaWidthUnits;
-  const fittedPixelsPerUnit = width / Math.max(right - left + ARENA_SIDE_PADDING_UNITS * 2, 1);
-  return {
-    center: (left + right) / 2,
-    pixelsPerUnit: Math.max(basePixelsPerUnit, Math.min(basePixelsPerUnit * ARENA_ZOOM, fittedPixelsPerUnit)),
-  };
+export function arenaScreenX(x, width, arenaWidthUnits) {
+  return x * width / arenaWidthUnits;
 }
 
 export function drawArena(renderer, state, previous, alpha) {
   const { ctx, canvas, width, height } = renderer;
   const original = renderer.metrics;
   const arenaWidth = renderer.config.balance.first_round_arena.width_units;
-  const camera = arenaCamera(state.candidates, width, arenaWidth);
   renderer.metrics = {
     ...original,
     groundY: height * 0.79,
-    characterHeight: original.characterHeight * ARENA_ZOOM,
-    pixelsPerUnit: camera.pixelsPerUnit,
+    characterHeight: original.characterHeight * ARENA_CHARACTER_SCALE,
+    pixelsPerUnit: width / arenaWidth,
   };
   const m = renderer.metrics;
-  renderer.screenX = x => width / 2 + (x - camera.center) * m.pixelsPerUnit;
+  renderer.screenX = x => arenaScreenX(x, width, arenaWidth);
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);

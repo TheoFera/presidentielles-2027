@@ -36,14 +36,35 @@ export function initializeMoney(sim) {
     for (let i = 2; i < count; i++) { const extra = i === count - 1 ? remaining : Math.min(remaining, Math.floor((totalUnits - count - 9) * weights[i] / sum)); units[i] += extra; remaining -= extra; }
     const biome = zoneAt(sim.state.world, candidate.start_x).biome_id;
     const zones = sim.state.world.subzones.filter(z => z.biome_id === biome);
+    const placement = settings.starting_pickups;
+    const startZone = zoneAt(sim.state.world, candidate.start_x);
+    const firstOffset = placement.near_start_min_distance_units
+      + random(sim.state) * (placement.near_start_max_distance_units - placement.near_start_min_distance_units);
+    const firstDirection = random(sim.state) < 0.5 ? -1 : 1;
+    const edge = startZone.width * placement.zone_edge_margin_ratio;
+    const positions = [Math.max(startZone.start + edge, Math.min(startZone.end - edge, candidate.start_x + firstDirection * firstOffset))];
     for (let i = 0; i < count; i++) {
-      const zone = zones[i % zones.length];
-      const lane = Math.floor(i / zones.length);
-      const lanes = Math.ceil((count - (i % zones.length)) / zones.length);
-      const ratio = 0.15 + 0.7 * (lane + 0.5) / lanes;
-      const jitter = (random(sim.state) - 0.5) * zone.width * 0.035;
+      if (i > 0) {
+        let spaces = zones.map(zone => [zone.start + zone.width * placement.zone_edge_margin_ratio,
+          zone.end - zone.width * placement.zone_edge_margin_ratio]);
+        for (const previous of positions) {
+          spaces = spaces.flatMap(([left, right]) => {
+            const before = previous - placement.minimum_spacing_units;
+            const after = previous + placement.minimum_spacing_units;
+            if (right <= before || left >= after) return [[left, right]];
+            return [[left, Math.min(right, before)], [Math.max(left, after), right]].filter(([a, b]) => b > a);
+          });
+        }
+        const available = spaces.reduce((sum, [left, right]) => sum + right - left, 0);
+        if (available <= 0) throw new Error('Configuration : pas assez de place pour les billets de départ.');
+        let distance = random(sim.state) * available;
+        for (const [left, right] of spaces) {
+          if (distance < right - left) { positions.push(left + distance); break; }
+          distance -= right - left;
+        }
+      }
       const height = settings.starting_pickups.height_min_ratio + random(sim.state) * (settings.starting_pickups.height_max_ratio - settings.starting_pickups.height_min_ratio);
-      addMoneyPickup(sim, zone.start + zone.width * ratio + jitter, height, units[i] * 5000);
+      addMoneyPickup(sim, positions[i], height, units[i] * 5000);
     }
   }
 }
@@ -114,8 +135,14 @@ export function settleMoney(sim) {
     const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_arena_id
       && Math.abs(ringDelta(c.x, npc.x, state.world.length)) <= config.balance.money.donation.handoff_radius_units);
     if (!candidate) continue;
-    candidate.money += thousands(npc.donation_cents); candidate.total_earned += thousands(npc.donation_cents);
-    sim.emit('DonationHandedOver', { npc_id: npc.id, candidate_id: candidate.id, amount_cents: npc.donation_cents });
+    const direction = Math.sign(ringDelta(npc.x, candidate.x, state.world.length)) || candidate.facing;
+    const tossTicks = Math.max(1, sim.secondsToTicks(config.balance.money.donation.handoff_toss_seconds));
+    const pickup = addMoneyPickup(sim, npc.x + direction * config.balance.money.donation.handoff_toss_distance_units, 0, npc.donation_cents);
+    pickup.toss_origin_x = npc.x;
+    pickup.toss_started_tick = state.tick;
+    pickup.collect_after_tick = state.tick + tossTicks;
+    npc.facing = direction; npc.moving = false; npc.handoff_until_tick = pickup.collect_after_tick;
+    sim.emit('DonationDropped', { npc_id: npc.id, candidate_id: candidate.id, pickup_id: pickup.id, amount_cents: npc.donation_cents });
     npc.donation_cents = 0;
     if (npc.task?.kind === 'DELIVER_DONATION') npc.task = null;
     scheduleNextDonation(sim, npc);
@@ -133,6 +160,7 @@ export function settleMoney(sim) {
   }
   for (let i = state.money_pickups.length - 1; i >= 0; i--) {
     const pickup = state.money_pickups[i];
+    if (pickup.collect_after_tick > state.tick) continue;
     const candidate = state.candidates.find(c => !c.eliminated && !c.is_ko && !c.campaign_arena_id
       && Math.abs(ringDelta(c.x, pickup.x, state.world.length)) <= config.balance.money.pickup_radius_units
       && Math.abs(c.combat.height - pickup.height_ratio * config.balance.candidate_combat.jump_height_ratio)

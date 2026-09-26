@@ -110,8 +110,8 @@ test('Institut et promontoire neutres : sondage figé et meeting de quinze secon
   advance(sim, 120); assert.deepEqual(sim.state.polls.melenchon.lastPollSnapshot, snapshot);
   actor.purchase_latch_target_id = null; const hall = sim.state.buildings.find(s => s.type === 'meeting'); actor.x = hall.x;
   unit(sim, 'SYMPATHISANT', actor.faction_id, hall.x); const before = sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon;
-  advance(sim, sim.secondsToTicks(2)); assert.equal(hall.owner_id, null); assert.equal(hall.meeting_faction_id, actor.faction_id);
   actor.podium_site_id = hall.id; actor.combat.height = config.balance.buildings.meeting.podium_height;
+  advance(sim, sim.secondsToTicks(2)); assert.equal(hall.owner_id, null); assert.equal(hall.meeting_faction_id, actor.faction_id);
   advance(sim, sim.secondsToTicks(15)); assert.equal(hall.meetings_held, 1); assert.equal(actor.spending.MEETING, config.balance.buildings.meeting.activation_cost);
   assert.ok(sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon > before);
 });

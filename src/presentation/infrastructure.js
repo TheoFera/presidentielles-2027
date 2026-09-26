@@ -1,7 +1,7 @@
 import { localSympathisants } from '../simulation/territory.js';
 import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
-import { drawElectoralBuilding } from './electoral.js';
+import { drawElectoralBuilding, meetingSpriteFrame } from './electoral.js';
 import { drawIllustratedBuilding, buildingGeometry } from './illustrated-buildings.js';
 import { formatNumber } from './number-format.js';
 import { formatEuros } from './money.js';
@@ -104,10 +104,22 @@ export function drawBanknote(renderer, state) {
   const offer = nearestOffer(state, config, candidate);
   if (!offer) return;
   const building = state.buildings.find(b => b.id === offer.target_id);
-  const x = renderer.screenX(offer.x ?? building.x);
+  let x = renderer.screenX(offer.x ?? building.x);
   const w = p.infrastructure.banknote_width;
   const h = p.infrastructure.banknote_height;
-  const y = Math.max(60, buildingGeometry(renderer, building).top - h - 24);
+  let y = Math.max(60, buildingGeometry(renderer, building).top - h - 24);
+  if (building.type === 'meeting') {
+    const frame = meetingSpriteFrame(renderer, state, building);
+    if (frame) {
+      const left = renderer.visibleWorld?.left ?? 0;
+      const right = renderer.visibleWorld?.right ?? renderer.width;
+      const besideRight = frame.left + frame.width + w / 2 + 12;
+      const besideLeft = frame.left - w / 2 - 12;
+      x = besideRight + w / 2 + 8 < right ? besideRight : besideLeft;
+      x = Math.max(left + w / 2 + 8, Math.min(right - w / 2 - 8, x));
+      y = Math.max(42, Math.min(m.groundY - h - 12, frame.deckY - m.characterHeight * 0.9));
+    }
+  }
   ctx.save();
   ctx.fillStyle = offer.enabled ? '#fff1ca' : '#e8ddc6';
   ctx.strokeStyle = offer.enabled ? '#4d6648' : '#7e6252';
@@ -145,7 +157,11 @@ export function drawBanknote(renderer, state) {
   }
   if (offer.label || offer.kind === 'REBUILD') {
     if (offer.victim_id) { ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27); }
-    ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label || 'RECONSTRUIRE', x, y - 7);
+    if (building.type === 'meeting') {
+      ctx.fillStyle = '#fff1ca'; ctx.strokeStyle = '#4d6648'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(x - 67, y - 30, 134, 21, 4); ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label || 'RECONSTRUIRE', x, building.type === 'meeting' ? y - 16 : y - 7);
     if (offer.victim_id) {
       const victim = state.buildings.find(b => b.id === offer.victim_id);
       ctx.font = '9px system-ui'; ctx.fillText(`${buildingLabel(victim)} · ${victim.subzone_id}`, x, y - 20);

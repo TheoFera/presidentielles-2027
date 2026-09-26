@@ -1,17 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { arenaCamera } from '../src/presentation/match.js';
+import { arenaScreenX } from '../src/presentation/match.js';
 
-test('le plateau zoome davantage lorsque les combattants restent proches', () => {
-  const camera = arenaCamera([{ x: 7 }, { x: 14 }], 1120, 28);
+test('le plateau conserve une projection fixe, indépendante de la position de l’adversaire', () => {
+  const playerX = arenaScreenX(7, 1120, 28);
+  const journalistNearX = arenaScreenX(14, 1120, 28);
+  const journalistFarX = arenaScreenX(21, 1120, 28);
 
-  assert.equal(camera.center, 10.5);
-  assert.equal(camera.pixelsPerUnit, 58);
-});
-
-test('le plateau recule juste assez pour conserver des combattants éloignés à l’écran', () => {
-  const camera = arenaCamera([{ x: 2 }, { x: 26 }], 1120, 28);
-
-  assert.equal(camera.center, 14);
-  assert.equal(camera.pixelsPerUnit, 40);
+  assert.equal(playerX, 280);
+  assert.equal(journalistNearX - playerX, 280);
+  assert.equal(journalistFarX - playerX, 560);
 });

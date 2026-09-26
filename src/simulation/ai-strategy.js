@@ -2,6 +2,7 @@ import { FACTIONS, ringDelta, zoneAt } from './world.js';
 import { aiNoise, aiSettings } from './ai-settings.js';
 import { aiCombatCommands, aiAttackRange } from './ai-combat.js';
 import { aiEconomicTarget, buildingOffers } from './economy.js';
+import { candidateOnMeetingStage } from './electoral-buildings.js';
 import { canBeHit, nearestEnemy } from './combat-state.js';
 import { styleInfluenceMultiplier } from './campaign-styles.js';
 
@@ -108,9 +109,9 @@ export function strategicAICommands(state, config, c) {
     if (offer) return [...plan, ...go(offer.x, offer.radius * config.prototype.ai.stop_distance_radius_ratio, true)];
   }
   const firstHQCost = config.balance.buildings.permanence.first_headquarters_capture_cost;
-  const pickups = (state.money_pickups || []).filter(p => !c.headquarters_site_id && c.money < firstHQCost
-    ? zoneAt(state.world, p.x).biome_id === zoneAt(state.world, c.start_x).biome_id
-    : p.height_ratio === 0 && distance(state, c.x, p.x) <= config.balance.money.pickup_radius_units);
+  const pickups = (state.money_pickups || []).filter(p => (!c.headquarters_site_id && c.money < firstHQCost
+    && zoneAt(state.world, p.x).biome_id === zoneAt(state.world, c.start_x).biome_id)
+    || p.height_ratio === 0 && distance(state, c.x, p.x) <= config.balance.money.donation.ai_handoff_search_radius_units);
   pickups.sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   if (pickups[0]) {
     const pickup = pickups[0];
@@ -133,6 +134,12 @@ export function strategicAICommands(state, config, c) {
     if (donor) return [...plan, ...go(donor.x, config.balance.money.donation.handoff_radius_units * 0.6)];
   }
   const economic = aiEconomicTarget(state, config, c, objective);
+  if (economic?.type === 'meeting' && !candidateOnMeetingStage(state, config, c, economic)) {
+    const approach = go(economic.x, Math.min(0.25, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio));
+    if (approach[2].axis === 0 && c.combat.height <= 0 && c.combat.jump_tick == null)
+      approach.push({ type: 'Jump', candidateId: c.id });
+    return [...plan, ...approach];
+  }
   if (economic) return [...plan, ...go(economic.x, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true)];
   const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));

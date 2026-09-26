@@ -1,10 +1,26 @@
 import { buildingAssetId } from './illustrated-buildings.js';
 import { ringDelta } from '../simulation/world.js';
 
-const MEETING_SPRITE_HEIGHT_IN_CHARACTERS = 1.7;
 const MEETING_SPRITE_GROUND_ANCHOR = 0.88;
-const MEETING_FOREGROUND_DECK_START = 0.70;
-const MEETING_FOREGROUND_SIDE_WIDTH = 0.24;
+const MEETING_UPPER_HEIGHT_SCALE = 1.45;
+// Bords du plancher dans chaque PNG (les marches et les marges transparentes sont exclues).
+const MEETING_PLATFORM_BOUNDS = {
+  'building-meeting_stage-bobo': [0.006, 0.994],
+  'building-meeting_stage-banlieue': [0.004, 0.996],
+  'building-meeting_stage-periurbain': [0.010, 0.990],
+  'building-meeting_stage-campagne': [0.040, 0.960],
+  'building-meeting_stage-retraites': [0.005, 0.995],
+  'building-meeting_stage-riches': [0.015, 0.985],
+};
+// La coupe suit l'arrière du plancher : les poteaux montent, mais le plateau et ses bords ne bougent pas.
+const MEETING_DECK_SPLIT = {
+  'building-meeting_stage-bobo': 0.67,
+  'building-meeting_stage-banlieue': 0.71,
+  'building-meeting_stage-periurbain': 0.70,
+  'building-meeting_stage-campagne': 0.72,
+  'building-meeting_stage-retraites': 0.76,
+  'building-meeting_stage-riches': 0.73,
+};
 
 export function isOnMeetingStage(entity, config, state) {
   if (entity.role !== 'CANDIDAT' || entity.combat.height < config.balance.buildings.meeting.podium_height) return false;
@@ -15,13 +31,31 @@ export function isOnMeetingStage(entity, config, state) {
       <= config.balance.buildings.meeting.podium_half_width);
 }
 
-function meetingSpriteFrame(renderer, state, building) {
-  const sprite = renderer.assets.get(buildingAssetId(building, state.world));
+export function meetingSpriteFrame(renderer, state, building) {
+  const id = buildingAssetId(building, state.world);
+  const sprite = renderer.assets.get(id);
   if (!sprite) return null;
-  const height = renderer.metrics.characterHeight * MEETING_SPRITE_HEIGHT_IN_CHARACTERS;
-  const width = height * sprite.naturalWidth / sprite.naturalHeight;
-  return { sprite, width, height, left: renderer.screenX(building.x) - width / 2,
-    top: renderer.metrics.groundY - height * MEETING_SPRITE_GROUND_ANCHOR };
+  const [platformLeft, platformRight] = MEETING_PLATFORM_BOUNDS[id];
+  const halfWidth = renderer.config.balance.buildings.meeting.podium_half_width * renderer.metrics.pixelsPerUnit;
+  // La collision définit aussi la largeur dessinée, indépendamment de la résolution et du zoom.
+  const width = halfWidth * 2 / (platformRight - platformLeft);
+  const baseHeight = width * sprite.naturalHeight / sprite.naturalWidth;
+  const deckSplit = MEETING_DECK_SPLIT[id];
+  const deckY = renderer.metrics.groundY - baseHeight * (MEETING_SPRITE_GROUND_ANCHOR - deckSplit);
+  const upperHeight = baseHeight * deckSplit * MEETING_UPPER_HEIGHT_SCALE;
+  const lowerHeight = baseHeight * (1 - deckSplit);
+  return { sprite, width, height: upperHeight + lowerHeight, baseHeight, deckSplit, deckY, upperHeight, lowerHeight,
+    platformLeft, platformRight,
+    left: renderer.screenX(building.x) - halfWidth - platformLeft * width,
+    top: deckY - upperHeight };
+}
+
+export function drawMeetingStageSprite(ctx, frame) {
+  const { sprite, left, top, width, deckSplit, deckY, upperHeight, lowerHeight } = frame;
+  const cut = sprite.naturalHeight * deckSplit;
+  ctx.drawImage(sprite, 0, 0, sprite.naturalWidth, cut, left, top, width, upperHeight);
+  ctx.drawImage(sprite, 0, cut, sprite.naturalWidth, sprite.naturalHeight - cut,
+    left, deckY, width, lowerHeight);
 }
 
 export const territoryColors = { melenchon: '#b94e54', le_pen: '#30496b', philippe: '#e9e9e2', contested: '#9da79e' };
@@ -181,10 +215,8 @@ function drawMeetingPodium(renderer, state, building) {
   ctx.save(); ctx.textAlign = 'center';
   let progressY = top - 25;
   if (frame) {
-    // Les six détourage ont leur pied à environ 88 % de leur hauteur. L'estrade
-    // dessinée se superpose ainsi au plancher physique situé à 0,3 personnage.
-    ctx.drawImage(frame.sprite, frame.left, frame.top, frame.width, frame.height);
-    progressY = frame.top - 12;
+    drawMeetingStageSprite(ctx, frame);
+    progressY = frame.deckY - m.characterHeight * 1.35;
   } else {
     ctx.fillStyle = '#69776b'; ctx.fillRect(x - halfWidth, top, halfWidth * 2, m.groundY - top);
     ctx.fillStyle = '#c2b58d'; ctx.fillRect(x - halfWidth - 3, top - 5, halfWidth * 2 + 6, 5);
@@ -210,7 +242,7 @@ function drawMeetingPodium(renderer, state, building) {
   ctx.restore();
 }
 
-/** Les candidats sur l'estrade passent derrière son bord et ses poteaux ; les passants au sol seront dessinés ensuite. */
+/** L'intérieur des sprites est transparent : micro, banderoles, rambardes et bord passent devant les candidats sur scène. */
 export function drawMeetingForeground(renderer, state) {
   const { ctx, config } = renderer;
   for (const building of state.buildings) {
@@ -219,17 +251,10 @@ export function drawMeetingForeground(renderer, state) {
         && Math.abs(ringDelta(candidate.x, building.x, state.world.length)) <= config.balance.buildings.meeting.podium_half_width))) continue;
     const frame = meetingSpriteFrame(renderer, state, building);
     if (!frame) continue;
-    const { sprite, left, top, width, height } = frame;
+    const { left, top, width } = frame;
     ctx.save();
     ctx.beginPath(); ctx.rect(left, top, width, renderer.metrics.groundY - top); ctx.clip();
-    const sourceY = sprite.naturalHeight * MEETING_FOREGROUND_DECK_START;
-    ctx.drawImage(sprite, 0, sourceY, sprite.naturalWidth, sprite.naturalHeight - sourceY,
-      left, top + height * MEETING_FOREGROUND_DECK_START, width, height * (1 - MEETING_FOREGROUND_DECK_START));
-    const sourceSide = sprite.naturalWidth * MEETING_FOREGROUND_SIDE_WIDTH;
-    ctx.drawImage(sprite, 0, 0, sourceSide, sprite.naturalHeight,
-      left, top, width * MEETING_FOREGROUND_SIDE_WIDTH, height);
-    ctx.drawImage(sprite, sprite.naturalWidth - sourceSide, 0, sourceSide, sprite.naturalHeight,
-      left + width * (1 - MEETING_FOREGROUND_SIDE_WIDTH), top, width * MEETING_FOREGROUND_SIDE_WIDTH, height);
+    drawMeetingStageSprite(ctx, frame);
     ctx.restore();
   }
 }

@@ -1,7 +1,6 @@
 /* Papier, encre et touches de faction : tous les textes restent accessibles. */
 #money, #day { color: #fff5df; font-weight: 850; paint-order: stroke fill; -webkit-text-stroke: 1.8px #253438; text-shadow: 1px 3px 0 #253438; letter-spacing: -.025em; }
 #money { font-size: clamp(18px, 2.45cqw, 33px); }
-#campaign-budget { color: #fff8e8; font-weight: 750; text-shadow: -1px -1px #26373a, 1px 1px #26373a, 0 2px #26373a; }
 #day { font-size: clamp(17px, 2.2cqw, 29px); }
 button, select, .file-button { border: 2px solid #354044; border-radius: 8px 6px 9px 5px; background: #fff5df; box-shadow: 0 2px 0 #857661; font-weight: 650; }
 button:hover, .file-button:hover { background: #f5dfad; }

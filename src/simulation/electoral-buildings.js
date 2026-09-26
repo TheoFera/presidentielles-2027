@@ -4,13 +4,20 @@ import { refreshElectoralState } from './electoral-state.js';
 import { paymentStatus } from './campaign-budget.js';
 import { localPoliticalPresence } from './strategic-sites.js';
 
+export function candidateOnMeetingStage(state, config, candidate, building) {
+  return !!building && candidate?.podium_site_id === building.id
+    && candidate.combat.height >= config.balance.buildings.meeting.podium_height
+    && Math.abs(ringDelta(candidate.x, building.x, state.world.length)) <= config.balance.buildings.meeting.podium_half_width;
+}
+
 export function meetingOffers(state, config, candidate, building) {
   if (building.ownership_model !== 'neutral_service' || building.state !== 'ACTIVE') return [];
   const settings = config.balance.buildings.meeting;
   const reason = building.meeting_candidate_id ? 'COOLDOWN'
     : state.tick < building.meeting_banned_until_by_faction[candidate.faction_id] ? 'ADMINISTRATIVE_BAN'
       : state.tick < building.meeting_ready_by_faction[candidate.faction_id] ? 'COOLDOWN'
-        : localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings.required_presence_N1 ? 'INSUFFICIENT_PRESENCE' : null;
+        : localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
+          : !candidateOnMeetingStage(state, config, candidate, building) ? 'NOT_ON_STAGE' : null;
   const cost = settings.activation_cost;
   return [{ target_id: building.id, kind: 'MEETING', key: `${building.id}:MEETING:${candidate.faction_id}`,
     cost, x: wrap(building.x, state.world.length), radius: settings.interaction_radius, label: 'LANCER LE MEETING',
@@ -21,7 +28,7 @@ export function meetingOffers(state, config, candidate, building) {
 export function triggerMeeting(sim, building, faction, candidateId = `candidate:${faction}`) {
   if (building.meeting_candidate_id || building.state !== 'ACTIVE') return false;
   const candidate = sim.state.candidates.find(c => c.id === candidateId && c.faction_id === faction && !c.eliminated);
-  if (!candidate) return false;
+  if (!candidate || !candidateOnMeetingStage(sim.state, sim.config, candidate, building)) return false;
   building.meeting_candidate_id = candidate.id;
   building.meeting_faction_id = faction;
   building.meeting_started_tick = sim.state.tick;
@@ -94,9 +101,7 @@ export function updateElectoralBuildings(sim) {
     if (building.type === 'meeting' && building.meeting_candidate_id) {
       const candidate = state.candidates.find(c => c.id === building.meeting_candidate_id);
       const holding = candidate && !candidate.is_ko && !candidate.eliminated && !candidate.combat.stun_ticks
-        && candidate.podium_site_id === building.id
-        && candidate.combat.height >= meeting.podium_height
-        && Math.abs(ringDelta(candidate.x, building.x, state.world.length)) <= meeting.podium_half_width;
+        && candidateOnMeetingStage(state, config, candidate, building);
       if (holding) {
         building.meeting_hold_ticks++;
         building.meeting_pause_ticks = 0;

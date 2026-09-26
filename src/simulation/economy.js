@@ -3,7 +3,7 @@ import { biomeSympathisants, distance, localSympathisants, stableIdOrder } from 
 import { buildingSettings } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
 import { canCampaign } from './combat-state.js';
-import { meetingOffers, triggerMeeting } from './electoral-buildings.js';
+import { candidateOnMeetingStage, meetingOffers, triggerMeeting } from './electoral-buildings.js';
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, createInfrastructure, localPoliticalPresence } from './strategic-sites.js';
 import { publishPoll } from './electoral-state.js';
@@ -72,7 +72,9 @@ export function buildingOffers(state, config, candidate, building) {
 
 export function nearestOffer(state, config, candidate) {
   const offers = state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id).flatMap(b => buildingOffers(state, config, candidate, b));
-  return offers.filter(o => distance(state, candidate.x, o.x) <= o.radius)
+  return offers.filter(o => distance(state, candidate.x, o.x) <= o.radius
+    && (o.kind !== 'MEETING' || candidateOnMeetingStage(state, config, candidate,
+      state.buildings.find(building => building.id === o.target_id))))
     .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))[0] || null;
 }
 
@@ -207,7 +209,8 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
       const firstFunding = building.type === 'financement' && offer.kind === 'CAPTURE'
         && !state.buildings.some(b => b.type === 'financement' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
-      if (!offer.enabled || candidate.money - offer.cost < (firstHQ || firstFunding ? 0 : settings.minimum_cash_reserve)) continue;
+      if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')
+        || candidate.money - offer.cost < (firstHQ || firstFunding ? 0 : settings.minimum_cash_reserve)) continue;
       if (offer.kind === 'POLL') continue;
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {

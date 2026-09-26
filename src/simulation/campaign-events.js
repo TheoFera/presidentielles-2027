@@ -7,7 +7,7 @@ import { applyOpinionDelta } from './npc-votes.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { paymentStatus } from './campaign-budget.js';
 import { ArenaSimulation, arenaAICommands } from './arena-simulation.js';
-import { triggerMeeting, cancelMeeting } from './electoral-buildings.js';
+import { triggerMeeting, cancelMeeting, candidateOnMeetingStage } from './electoral-buildings.js';
 
 export function seasonAt(progress) {
  const t=Math.min(3.999999,Math.max(0,progress % 1)*4), i=Math.floor(t);
@@ -109,7 +109,7 @@ export function updateCampaignEvents(sim){
    c.crisis_meeting_id=null;e.attempt=null;e.retry_tick=s.tick+sim.secondsToTicks(1);sim.emit('InterruptCrisisMeeting',{campaign_event_id:e.id,candidate_id:c.id});
  }
  if(!e.attempt&&s.tick>=(e.retry_tick||0)){
- const entrant=!site.meeting_candidate_id&&s.candidates.find(c=>!c.is_ko&&!c.campaign_arena_id&&!c.crisis_meeting_id&&!c.combat.stun_ticks&&!c.combat.attack_id&&!c.combat.charge_active&&c.combat.jump_tick==null&&c.axis===0&&c.interaction_active&&Math.abs(ringDelta(c.x,site.x,s.world.length))<=sim.config.balance.interaction.radius_units&&paymentStatus(c,sim.config,p.meeting_cost).enabled);
+ const entrant=!site.meeting_candidate_id&&s.candidates.find(c=>!c.is_ko&&!c.campaign_arena_id&&!c.crisis_meeting_id&&!c.combat.stun_ticks&&!c.combat.attack_id&&!c.combat.charge_active&&c.combat.jump_tick==null&&c.axis===0&&c.interaction_active&&candidateOnMeetingStage(s,sim.config,c,site)&&Math.abs(ringDelta(c.x,site.x,s.world.length))<=sim.config.balance.interaction.radius_units&&paymentStatus(c,sim.config,p.meeting_cost).enabled);
  if(entrant){s.transactions.push({id:`transaction:${s.next_transaction_id++}`,tick:s.tick,candidate_id:entrant.id,faction_id:entrant.faction_id,target_id:site.id,kind:'CRISIS_MEETING',cost:p.meeting_cost});if(s.transactions.length>sim.config.balance.debug.transaction_history_limit)s.transactions.shift();entrant.combat.buffer_until_tick=-1;entrant.money-=p.meeting_cost;entrant.total_spent+=p.meeting_cost;entrant.spending.CRISIS_MEETING=(entrant.spending.CRISIS_MEETING||0)+p.meeting_cost;entrant.crisis_meeting_id=e.id;entrant.purchase_hold=null;e.attempt={candidate_id:entrant.id,start_tick:s.tick,hits:entrant.hits_received};triggerMeeting(sim,site,entrant.faction_id,entrant.id);sim.emit('StartCrisisMeeting',{campaign_event_id:e.id,candidate_id:entrant.id});}
  }
  }
@@ -161,5 +161,5 @@ export function campaignAICommands(state,config,c){
  }
  for(const e of state.campaign_events.filter(e=>e.family==='FERMETURE_BATIMENT'&&e.status==='RESOLVED'&&e.target_candidate_ids.includes(c.id)&&state.tick-e.resolved_tick<30*config.balance.simulation_architecture.fixed_tick_hz)){const site=state.buildings.find(b=>b.id===e.target_site_id);if(site.owner_id===null)options.push({x:site.x,value:4});}
  options.sort((a,b)=>b.value-a.value);const chosen=options[0];if(!chosen||noise>settings.event_interest)return null;
- const out=commands(chosen.x);if(chosen.hunt&&Math.abs(ringDelta(c.x,chosen.x,state.world.length))<=config.balance.candidate_combat.light_range)out.push({type:'Attack',candidateId:c.id,direction:Math.sign(ringDelta(c.x,chosen.x,state.world.length))||1});return out;
+ const out=commands(chosen.x);const meetingEvent=events.find(e=>e.family==='MEETING_DE_CRISE'&&state.buildings.find(b=>b.id===e.target_site_id)?.x===chosen.x);if(meetingEvent&&Math.abs(ringDelta(c.x,chosen.x,state.world.length))<0.4&&c.podium_site_id!==meetingEvent.target_site_id&&c.combat.height<=0&&c.combat.jump_tick==null)out.push({type:'Jump',candidateId:c.id});if(chosen.hunt&&Math.abs(ringDelta(c.x,chosen.x,state.world.length))<=config.balance.candidate_combat.light_range)out.push({type:'Attack',candidateId:c.id,direction:Math.sign(ringDelta(c.x,chosen.x,state.world.length))||1});return out;
 }

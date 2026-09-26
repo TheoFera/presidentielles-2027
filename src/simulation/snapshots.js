@@ -38,7 +38,8 @@ export function validateSnapshot(next, simulation, nested = false) {
   const validPosition = x => Number.isFinite(x) && x >= 0 && x < next.world.length;
   for (const pickup of next.money_pickups) if (!/^money:\d+$/.test(pickup.id) || Number(pickup.id.slice(6)) >= next.next_money_pickup_id
     || !validPosition(pickup.x) || !finite(pickup.height_ratio) || pickup.height_ratio > config.balance.money.starting_pickups.height_max_ratio
-    || !integer(pickup.amount_cents, 1)) fail('billet au sol invalide');
+    || !integer(pickup.amount_cents, 1) || pickup.toss_origin_x !== undefined
+      && (!validPosition(pickup.toss_origin_x) || !integer(pickup.toss_started_tick) || !integer(pickup.collect_after_tick, pickup.toss_started_tick + 1))) fail('billet au sol invalide');
   if (!candidateIds.has(next.local_candidate_id)) fail('contrôle local inconnu');
   for (const candidate of next.candidates) {
     const objective = candidate.ai_objective;
@@ -129,6 +130,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!integer(npc.donation_cents) || (npc.role === 'SYMPATHISANT'
       ? !integer(npc.next_donation_tick) || npc.donation_cents > Math.round(config.balance.money.donation.base_eur * config.balance.money.donation.biome_multipliers[npc.origin_biome_id] * 100)
       : npc.next_donation_tick !== null || npc.donation_cents !== 0)) fail('don de sympathisant invalide');
+    if (npc.handoff_until_tick !== undefined && !Number.isInteger(npc.handoff_until_tick)) fail('remise de don invalide');
     if (npc.meeting_target_id !== null && !next.buildings.some(b => b.id === npc.meeting_target_id && b.type === 'meeting' && b.meeting_candidate_id)) fail('ralliement de PNJ invalide');
     const p = npc.persuasion;
     if (p && (npc.role !== 'NEUTRE' || !actorIds.has(p.actor_id) || !integer(p.elapsed_ticks) || !integer(p.required_ticks, 1) || p.required_ticks <= p.elapsed_ticks)) fail('persuasion invalide');
