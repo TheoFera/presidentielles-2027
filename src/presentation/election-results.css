@@ -1,0 +1,206 @@
+/* Soirée électorale : plateau télé plein écran, mêmes illustrations et couleurs que le menu. */
+#results.election-results { position: absolute; inset: 0; transform: none; width: 100%; height: 100%; max-height: none; padding: 0; border: 0; border-radius: 0; z-index: 30; background: #040b1f; color: #fff; text-align: left; overflow: hidden; }
+
+#results > .election-stage { width: auto; margin: 0; }
+.election-stage { --gold: #ffd35a; --ink: #071433; --party: #2f6fe4; --party-dark: #0c2a78; position: absolute; inset: 0; overflow: hidden; isolation: isolate; container-type: size; color: #fff; font-family: system-ui, sans-serif; }
+.election-stage [data-faction='melenchon'] { --party: #e3363f; --party-dark: #7a0d18; }
+.election-stage [data-faction='le_pen'] { --party: #2f6fe4; --party-dark: #0c2a78; }
+.election-stage [data-faction='philippe'] { --party: #e2a53a; --party-dark: #6f420b; }
+.election-screen { --u: min(1cqw, 1.78cqh); position: absolute; inset: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: calc(var(--u) * .9); padding-bottom: calc(var(--u) * .9); }
+.election-stage :is(h1, h2, strong, .election-score, .election-stamp, .election-out, .election-round, .election-majority > span, .election-countdown strong, .election-ticker > b) { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 900; letter-spacing: .02em; }
+.election-stage sup { font-size: .55em; line-height: 0; }
+
+/* Décor de studio : projecteurs, sol quadrillé, grand « 2027 » en filigrane. */
+.election-backdrop { --u: min(1cqw, 1.78cqh); position: absolute; inset: 0; z-index: -1; overflow: hidden; background: radial-gradient(ellipse 55% 42% at 50% 105%, #3aa0ff66, transparent 70%), radial-gradient(ellipse 38% 60% at -4% 45%, #e5333b40, transparent 70%), radial-gradient(ellipse 38% 60% at 104% 45%, #2457d666, transparent 70%), linear-gradient(180deg, #0b2257 0%, #071536 52%, #030818 100%); }
+.election-backdrop::after { content: ''; position: absolute; left: -40%; right: -40%; bottom: -6%; height: 44%; background: repeating-linear-gradient(90deg, #5cc1ff2e 0 2px, transparent 2px 5%), repeating-linear-gradient(0deg, #5cc1ff2e 0 2px, transparent 2px 16%); transform: perspective(60cqh) rotateX(62deg); transform-origin: 50% 100%; -webkit-mask-image: linear-gradient(transparent, #000 70%); mask-image: linear-gradient(transparent, #000 70%); }
+.election-beam { position: absolute; top: -12%; width: 22%; height: 120%; background: linear-gradient(180deg, #bfe4ff3d, transparent 80%); clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); transform-origin: 50% 0; animation: election-sway 7s ease-in-out infinite alternate; }
+.election-beam:first-child { left: 8%; rotate: -22deg; }
+.election-beam:nth-child(2) { right: 8%; rotate: 22deg; animation-delay: -3.5s; }
+.election-watermark { position: absolute; left: 50%; top: 54%; translate: -50% -50%; font: 900 calc(var(--u) * 36)/1 Impact, 'Arial Black', sans-serif; color: transparent; -webkit-text-stroke: max(1px, calc(var(--u) * .15)) #7fc7ff1c; letter-spacing: -.02em; }
+
+/* Bandeau de chaîne. */
+.election-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 1.5); min-height: calc(var(--u) * 3.8); padding: 0 calc(var(--u) * 2); font-size: max(10px, calc(var(--u) * 1.3)); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(#0c1f4ef2, #050d27f2); box-shadow: 0 calc(var(--u) * .3) 0 #0006; border-bottom: calc(var(--u) * .3) solid; border-image: linear-gradient(90deg, #2457d6 33.3%, #fff 33.3% 66.6%, #e5333b 66.6%) 1; }
+.election-brand { display: flex; align-items: center; gap: .4em; white-space: nowrap; }
+.election-brand b, .election-brand strong { font-family: Impact, 'Arial Black', sans-serif; font-size: 1.3em; letter-spacing: .04em; }
+.election-brand strong { color: var(--gold); }
+.election-flag { width: 1.5em; height: 1em; background: linear-gradient(90deg, #2457d6 33.3%, #fff 33.3% 66.6%, #e5333b 66.6%); border-radius: 2px; box-shadow: 0 0 0 1px #fff6; }
+.election-program { color: #a9dcff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.election-program em { font-style: normal; margin-left: .4em; padding: .15em .6em; color: var(--ink); background: #fff; border-radius: 3px; }
+.election-live { display: flex; align-items: stretch; white-space: nowrap; }
+.election-live b { display: flex; align-items: center; gap: .45em; padding: .3em .7em; background: #e5333b; border-radius: 3px 0 0 3px; }
+.election-live b i { width: .6em; height: .6em; border-radius: 50%; background: #fff; animation: election-blink 1.2s ease-in-out infinite; }
+.election-live time { padding: .3em .7em; background: #fff; color: var(--ink); border-radius: 0 3px 3px 0; font-variant-numeric: tabular-nums; }
+
+/* Titre de l’annonce. */
+.election-heading { text-align: center; padding: 0 calc(var(--u) * 3); }
+.election-heading p { display: inline-block; margin: 0 0 calc(var(--u) * .4); padding: .2em .9em; font-size: max(10px, calc(var(--u) * 1.15)); font-weight: 900; letter-spacing: .2em; text-transform: uppercase; background: #e5333b; transform: skewX(-12deg); }
+#results .election-heading h1 { margin: 0; font-size: calc(var(--u) * 3.6); line-height: 1; text-transform: uppercase; color: #fff; background: linear-gradient(#ffffff, #cfe9ff 55%, #7cc4ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 calc(var(--u) * .3) 0 #04102c) drop-shadow(0 0 calc(var(--u) * 1.4) #2f8cff88); }
+#results .election-stage[data-round='second'] .election-heading h1 { background-image: linear-gradient(#fff6c8, var(--gold) 50%, #f29a17); }
+.election-heading h1:focus { outline: none; }
+
+/* Duel : deux portraits, colonne centrale avec cocarde et verdict. */
+.election-duel { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--u) * 20) minmax(0, 1fr); gap: calc(var(--u) * 1.2); padding: 0 calc(var(--u) * 3); min-height: 0; }
+.election-candidate { --cut: calc(var(--u) * 2.2); position: relative; min-height: 0; overflow: hidden; background: radial-gradient(ellipse 75% 55% at 50% 100%, color-mix(in srgb, var(--party) 75%, transparent), transparent 72%), linear-gradient(180deg, #0c1d47, color-mix(in srgb, var(--party-dark) 75%, #06112a)); box-shadow: inset 0 0 0 calc(var(--u) * .25) color-mix(in srgb, var(--party) 80%, #fff), inset 0 0 calc(var(--u) * 4) #000a; clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut))); }
+.election-portrait::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34%; background: linear-gradient(transparent, color-mix(in srgb, var(--party-dark) 88%, #030a1f) 72%); }
+.election-portrait { position: absolute; inset: calc(var(--u) * .25); overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
+/* Recadrage de l’illustration « Choisissez votre candidat » (1672 × 941) : centre, haut et hauteur visibles. */
+.election-art { position: absolute; left: 50%; top: calc(var(--y0) / var(--h) * -100%); height: calc(941 / var(--h) * 100%); aspect-ratio: 1672 / 941; transform: translateX(calc(var(--cx) / -1672 * 100%)); background: var(--menu-candidates-art) 0 0 / 100% 100% no-repeat; }
+.election-portrait .election-art { --h: 380; }
+[data-faction='melenchon'] .election-portrait .election-art { --cx: 440; --y0: 205; }
+[data-faction='le_pen'] .election-portrait .election-art { --cx: 828; --y0: 262; }
+[data-faction='philippe'] .election-portrait .election-art { --cx: 1232; --y0: 252; }
+.election-avatar .election-art { --h: 150; }
+[data-faction='melenchon'] .election-avatar .election-art { --cx: 470; --y0: 270; }
+[data-faction='le_pen'] .election-avatar .election-art { --cx: 822; --y0: 280; }
+[data-faction='philippe'] .election-avatar .election-art { --cx: 1230; --y0: 272; }
+.election-rays { position: absolute; z-index: 1; left: 50%; top: 38%; width: 150%; mix-blend-mode: screen; opacity: .7; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: repeating-conic-gradient(#ffd35a55 0 7deg, transparent 7deg 18deg); -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 62%); mask-image: radial-gradient(circle, #000 15%, transparent 62%); animation: election-spin 24s linear infinite; }
+.election-candidate.is-winner { box-shadow: inset 0 0 0 calc(var(--u) * .35) var(--gold), inset 0 0 calc(var(--u) * 5) #ffd35a66; }
+.election-candidate.is-loser .election-art { filter: grayscale(.6) brightness(.72); }
+.election-candidate.is-loser .election-plate { filter: saturate(.55) brightness(.85) drop-shadow(0 calc(var(--u) * .4) 0 #020816); }
+
+.election-stamp { position: absolute; z-index: 2; top: 7%; right: 6%; --tilt: -8deg; transform: rotate(var(--tilt)); padding: .15em .6em; font-size: calc(var(--u) * 2.3); text-transform: uppercase; color: var(--gold); background: #06122fd9; border: calc(var(--u) * .3) solid var(--gold); border-radius: calc(var(--u) * .5); box-shadow: 0 0 calc(var(--u) * 1.5) #ffd35a88, inset 0 0 calc(var(--u) * .8) #ffd35a55; text-shadow: 0 0 calc(var(--u) * .8) #ffd35aaa; white-space: nowrap; }
+[data-side='right'] .election-stamp { right: auto; left: 6%; --tilt: 8deg; }
+.is-winner .election-stamp { font-size: calc(var(--u) * 2.9); color: var(--ink); background: linear-gradient(#fff3b0, var(--gold) 55%, #f0a01a); border-color: #fff4c4; text-shadow: none; }
+
+/* Plaque « lower third » : nom et score. */
+.election-plate { position: absolute; z-index: 1; left: 3%; right: 3%; bottom: 5%; display: flex; align-items: stretch; filter: drop-shadow(0 calc(var(--u) * .4) 0 #020816); }
+[data-side='right'] .election-plate { flex-direction: row-reverse; }
+.election-name { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * .35); padding: calc(var(--u) * .6) calc(var(--u) * 2) calc(var(--u) * .7) calc(var(--u) * 1.1); color: var(--ink); background: linear-gradient(#ffffff, #dce6f6); border-left: calc(var(--u) * .7) solid var(--party); clip-path: polygon(0 0, 100% 0, calc(100% - var(--u) * 1.2) 100%, 0 100%); }
+[data-side='right'] .election-name { align-items: flex-end; text-align: right; padding: calc(var(--u) * .6) calc(var(--u) * 1.1) calc(var(--u) * .7) calc(var(--u) * 2); border-left: 0; border-right: calc(var(--u) * .7) solid var(--party); clip-path: polygon(0 0, 100% 0, 100% 100%, calc(var(--u) * 1.2) 100%); }
+.election-name h2 { margin: 0; max-width: 100%; font-size: calc(var(--u) * 2.5); line-height: .95; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.election-name h2 small { display: block; font: 800 max(9px, calc(var(--u) * 1.05))/1.2 system-ui, sans-serif; letter-spacing: .08em; color: #3c4d74; }
+.election-chips { display: flex; gap: calc(var(--u) * .4); }
+.election-chips b, .election-you { padding: .1em .55em; font-size: max(9px, calc(var(--u) * 1)); font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--ink); border-radius: 2px; }
+.election-stage .election-you { color: var(--ink); background: #5fe6ff; }
+.election-gauge { display: block; width: 100%; height: max(4px, calc(var(--u) * .5)); overflow: hidden; background: #0714331f; border-radius: 99px; }
+.election-gauge i { display: block; width: var(--p); height: 100%; background: linear-gradient(90deg, var(--party-dark), var(--party)); border-radius: inherit; }
+[data-side='right'] .election-gauge i { margin-left: auto; background: linear-gradient(270deg, var(--party-dark), var(--party)); }
+.election-score { display: flex; align-items: center; margin: 0 0 0 calc(var(--u) * -1.2); padding: 0 calc(var(--u) * 1.4) 0 calc(var(--u) * 2.1); font-size: calc(var(--u) * 4.8); line-height: 1.02; letter-spacing: -.02em; white-space: nowrap; font-variant-numeric: tabular-nums; background: linear-gradient(color-mix(in srgb, var(--party) 85%, #fff), var(--party) 45%, var(--party-dark)); clip-path: polygon(calc(var(--u) * 1.2) 0, 100% 0, 100% 100%, 0 100%); text-shadow: 0 calc(var(--u) * .3) 0 #0007; }
+[data-side='right'] .election-score { margin: 0 calc(var(--u) * -1.2) 0 0; padding: 0 calc(var(--u) * 2.1) 0 calc(var(--u) * 1.4); clip-path: polygon(0 0, 100% 0, calc(100% - var(--u) * 1.2) 100%, 0 100%); }
+.election-score small { align-self: flex-start; margin: .32em 0 0 .08em; font-size: .45em; }
+.is-winner .election-score { color: #2b1800; text-shadow: 0 calc(var(--u) * .2) 0 #fff9; background: linear-gradient(#fff6c8, var(--gold) 45%, #eb9412); }
+
+/* Colonne centrale. */
+.election-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * .8); min-height: 0; text-align: center; }
+.election-cocarde { width: calc(var(--u) * 8); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #fff3 0 1px, transparent 2px) 0 0 / 100% 100%, repeating-conic-gradient(#0000001f 0 6deg, transparent 6deg 12deg), radial-gradient(circle, #2457d6 0 31%, #fff 32% 60%, #e5333b 61%); box-shadow: 0 0 0 calc(var(--u) * .35) var(--gold), 0 0 calc(var(--u) * 3) #ffd35a88, 0 calc(var(--u) * .5) 0 calc(var(--u) * .35) #030a1f; animation: election-breathe 3.2s ease-in-out infinite; }
+.election-round { font-size: max(10px, calc(var(--u) * 1.5)); letter-spacing: .12em; text-transform: uppercase; color: #9fdcff; }
+.election-verdict { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * .4); }
+.election-verdict strong { font-size: calc(var(--u) * 3.3); line-height: 1; text-transform: uppercase; color: #d4def0; filter: drop-shadow(0 calc(var(--u) * .3) 0 #020816); }
+[data-outcome='success'] .election-verdict strong { font-size: calc(var(--u) * 3.6); background: linear-gradient(#fff9d6, var(--gold) 45%, #f2960f); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 calc(var(--u) * .3) 0 #3b1d00) drop-shadow(0 0 calc(var(--u) * 1.2) #ffc93c99); }
+[data-outcome='failure'] .election-verdict strong { border-bottom: calc(var(--u) * .35) solid #e5333b; padding-bottom: .08em; }
+.election-verdict span { font-size: max(10px, calc(var(--u) * 1.2)); line-height: 1.25; color: #e1ecff; font-weight: 700; }
+.election-neutral { display: flex; flex-direction: column; margin: 0; padding: calc(var(--u) * .45) calc(var(--u) * 1.1); font-size: max(9px, calc(var(--u) * 1)); letter-spacing: .06em; text-transform: uppercase; color: #a9c3e6; background: #061232b3; border: 1px solid #7fb6ff40; border-radius: calc(var(--u) * .6); }
+.election-neutral b { font-family: Impact, 'Arial Black', sans-serif; font-size: 1.7em; letter-spacing: .02em; color: #fff; }
+.election-tie { margin: 0; font-size: max(9px, calc(var(--u) * 1)); line-height: 1.25; color: #ffe89a; }
+
+/* Troisième candidat ou barre de majorité. */
+.election-band { justify-self: center; display: flex; align-items: center; gap: calc(var(--u) * 1); max-width: calc(100% - var(--u) * 6); font-size: max(10px, calc(var(--u) * 1.3)); }
+.election-third { padding: calc(var(--u) * .35) calc(var(--u) * 1.6) calc(var(--u) * .35) calc(var(--u) * .35); background: linear-gradient(90deg, #0b1a3fee, #081430ee); border: 1px solid #7fb6ff55; border-radius: 99px; box-shadow: 0 calc(var(--u) * .3) 0 #020816; white-space: nowrap; }
+.election-avatar { position: relative; flex: none; width: calc(var(--u) * 3.6); aspect-ratio: 1; overflow: hidden; border-radius: 50%; border: calc(var(--u) * .22) solid var(--party); filter: grayscale(.85) brightness(.85); }
+.election-out { padding: .12em .6em; color: #fff; background: #e5333b; transform: skewX(-10deg); text-transform: uppercase; letter-spacing: .06em; }
+.election-rank { color: #9fdcff; }
+.election-third strong { text-transform: uppercase; }
+.election-third .election-gauge { width: calc(var(--u) * 9); background: #ffffff1f; }
+.election-third-score { font-family: Impact, 'Arial Black', sans-serif; font-size: 1.35em; font-variant-numeric: tabular-nums; }
+.election-third-score small { font-size: .7em; margin-left: .1em; }
+.election-majority { justify-self: stretch; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: calc(var(--u) * 1.2); max-width: none; margin: 0 calc(var(--u) * 6); font-size: max(11px, calc(var(--u) * 1.6)); text-transform: uppercase; }
+.election-majority > span { padding: .1em .6em; background: var(--party); border-radius: 3px; box-shadow: 0 calc(var(--u) * .25) 0 var(--party-dark); }
+.election-majority-bar { position: relative; height: calc(var(--u) * 1.8); background: #061232; border: calc(var(--u) * .18) solid #ffffff55; border-radius: 99px; box-shadow: 0 calc(var(--u) * .3) 0 #020816, inset 0 calc(var(--u) * .3) calc(var(--u) * .6) #0008; }
+.election-majority-bar i { position: absolute; top: 0; bottom: 0; width: var(--p); background: linear-gradient(color-mix(in srgb, var(--party) 80%, #fff), var(--party) 50%, var(--party-dark)); }
+.election-majority-bar i:first-child { left: 0; border-radius: 99px 0 0 99px; }
+.election-majority-bar i:nth-child(2) { right: 0; border-radius: 0 99px 99px 0; }
+.election-majority-bar em { position: absolute; left: 50%; top: calc(var(--u) * -.7); bottom: calc(var(--u) * -.7); translate: -50% 0; width: calc(var(--u) * .25); background: #fff; box-shadow: 0 0 calc(var(--u) * .6) #fff; font-size: 0; }
+.election-majority-bar em::after { content: 'Majorité'; position: absolute; left: 50%; bottom: 100%; translate: -50% 0; padding: 0 .5em; font: 800 max(8px, calc(var(--u) * .9))/1.4 system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); background: #fff; border-radius: 2px; }
+
+/* Bandeau d’informations défilant et boutons. */
+.election-footer { display: flex; align-items: center; gap: calc(var(--u) * 1.5); padding: 0 calc(var(--u) * 2); min-width: 0; }
+.election-ticker { flex: 1; min-width: 0; display: flex; height: max(28px, calc(var(--u) * 3.2)); overflow: hidden; color: var(--ink); background: linear-gradient(#ffffff, #dfe7f5); border-radius: 3px; box-shadow: 0 calc(var(--u) * .3) 0 #020816; font-size: max(11px, calc(var(--u) * 1.3)); font-weight: 800; }
+.election-ticker > b { display: flex; align-items: center; padding: 0 .9em; color: #fff; background: #e5333b; text-transform: uppercase; letter-spacing: .08em; clip-path: polygon(0 0, 100% 0, calc(100% - .5em) 100%, 0 100%); }
+.election-ticker-window { flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; }
+.election-ticker-track { display: flex; margin: 0; white-space: nowrap; animation: election-ticker calc(var(--items) * 6.5s) linear infinite; }
+.election-ticker-track span { display: inline-flex; align-items: center; }
+.election-ticker-track span::after { content: '◆'; margin: 0 1.1em; color: #e5333b; font-size: .8em; }
+.election-ticker-copy span::after { content: '◆'; }
+.election-actions { display: flex; align-items: center; gap: calc(var(--u) * .9); flex: none; }
+#results .election-actions button { min-height: max(40px, calc(var(--u) * 3.6)); padding: 0 max(12px, calc(var(--u) * 1.6)); font-size: max(13px, calc(var(--u) * 1.35)); white-space: nowrap; }
+#results .election-actions .election-primary { color: #fff; border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); box-shadow: inset 0 2px 0 #fff, 0 5px 0 #04270b, 0 0 15px #66ff2a66; text-shadow: 1px 2px 1px #092309; }
+.election-waiting { padding: .5em 1em; font-size: max(12px, calc(var(--u) * 1.25)); font-weight: 800; color: #cfe6ff; background: #0b1c43d9; border: 1px dashed #8fc4ff88; border-radius: 8px; animation: election-blink 1.8s ease-in-out infinite; }
+
+/* Introduction : horloge de 20 h, volet tricolore et flash. */
+.election-countdown, .election-wipe, .election-flash { display: none; }
+.election-countdown { --u: min(1cqw, 1.78cqh); position: absolute; inset: 0; z-index: 5; place-content: center; justify-items: center; gap: calc(var(--u) * .6); background: radial-gradient(ellipse at center, #173f94, #040b1f 72%); }
+.election-countdown p { margin: 0; padding: .2em .9em; font-size: calc(var(--u) * 1.5); font-weight: 900; letter-spacing: .3em; text-transform: uppercase; background: #e5333b; }
+.election-countdown strong { font-size: calc(var(--u) * 12); line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 0 calc(var(--u) * 3) #5cb8ff, 0 calc(var(--u) * .5) 0 #020816; }
+.election-countdown span { font: 900 calc(var(--u) * 2)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.election-countdown span b { color: var(--gold); }
+.election-wipe { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.election-wipe i { position: absolute; top: -10%; bottom: -10%; width: 40%; left: -60%; transform: skewX(-18deg); }
+.election-wipe i:nth-child(1) { background: #2457d6; }
+.election-wipe i:nth-child(2) { background: #fff; }
+.election-wipe i:nth-child(3) { background: #e5333b; }
+.election-flash { position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(circle at 50% 45%, #fff, #bfe4ff 40%, transparent 75%); opacity: 0; }
+
+.election-stage.is-playing .election-countdown { display: grid; animation: election-out .3s 1.1s both; }
+.election-stage.is-playing .election-countdown strong { animation: election-tick .3s steps(1) 4; }
+.election-stage.is-playing .election-wipe, .election-stage.is-playing .election-flash { display: block; }
+.election-stage.is-playing .election-wipe i { animation: election-wipe .7s cubic-bezier(.6, 0, .3, 1) both; }
+.election-stage.is-playing .election-wipe i:nth-child(1) { animation-delay: .9s; }
+.election-stage.is-playing .election-wipe i:nth-child(2) { animation-delay: .98s; }
+.election-stage.is-playing .election-wipe i:nth-child(3) { animation-delay: 1.06s; }
+.election-stage.is-playing .election-flash { animation: election-flash .6s 1.3s both; }
+.election-stage.is-playing .election-top { animation: election-drop .45s 1.3s both; }
+.election-stage.is-playing .election-heading { animation: election-zoom .55s 1.4s cubic-bezier(.2, .9, .3, 1.3) both; }
+.election-stage.is-playing .election-candidate[data-side='left'] { animation: election-left .65s 1.5s cubic-bezier(.2, .9, .3, 1.1) both; }
+.election-stage.is-playing .election-candidate[data-side='right'] { animation: election-right .65s 1.6s cubic-bezier(.2, .9, .3, 1.1) both; }
+.election-stage.is-playing .election-portrait { animation: election-rise .8s 1.6s cubic-bezier(.2, .8, .3, 1) both; }
+.election-stage.is-playing .election-plate { animation: election-plate .45s 1.85s cubic-bezier(.2, .9, .3, 1.2) both; }
+.election-stage.is-playing :is(.election-gauge i, .election-majority-bar i) { animation: election-fill 1.3s 1.9s cubic-bezier(.2, .8, .2, 1) both; }
+.election-stage.is-playing :is(.election-cocarde, .election-round) { animation: election-pop .5s 1.8s cubic-bezier(.3, 1.5, .5, 1) both, election-breathe 3.2s 2.3s ease-in-out infinite; }
+.election-stage.is-playing .election-round { animation: election-pop .5s 1.9s both; }
+.election-stage.is-playing .election-band { animation: election-up .5s 2.2s both; }
+.election-stage.is-playing .election-footer { animation: election-up .5s 2.4s both; }
+.election-stage.is-playing :is(.election-neutral, .election-tie) { animation: election-up .45s 2.6s both; }
+.election-stage.is-playing .election-stamp { animation: election-stamp .45s 3.2s cubic-bezier(.3, 1.6, .5, 1) both; }
+.election-stage.is-playing .election-verdict { animation: election-slam .55s 3.3s cubic-bezier(.3, 1.5, .5, 1) both; }
+.election-stage.is-playing .election-rays { animation: election-appear .6s 3.2s both, election-spin 24s linear infinite; }
+
+/* Confettis tricolores, seulement pour une qualification ou une victoire du joueur. */
+.election-confetti { position: absolute; inset: 0; z-index: 7; overflow: hidden; pointer-events: none; }
+.election-confetti i { --size: max(7px, min(1cqw, 1.78cqh) * .75); position: absolute; top: -4%; left: var(--x); width: var(--size); height: calc(var(--size) * 1.6); background: var(--c); box-shadow: 0 0 1px #0006; animation: election-confetti var(--fall) var(--delay) cubic-bezier(.25, .4, .6, 1) both; }
+.election-confetti i.is-ribbon { width: calc(var(--size) * .55); height: calc(var(--size) * 2.6); border-radius: 2px; }
+.election-confetti i.is-round { height: var(--size); border-radius: 50%; }
+
+@keyframes election-sway { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes election-spin { to { rotate: 360deg; } }
+@keyframes election-blink { 50% { opacity: .35; } }
+@keyframes election-breathe { 50% { transform: scale(1.06); } }
+@keyframes election-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes election-tick { 0% { transform: scale(1.12); } 50% { transform: scale(1); } }
+@keyframes election-out { to { opacity: 0; visibility: hidden; } }
+@keyframes election-wipe { from { left: -60%; } to { left: 130%; } }
+@keyframes election-flash { 0% { opacity: 0; } 25% { opacity: .75; } to { opacity: 0; } }
+@keyframes election-drop { from { transform: translateY(-110%); opacity: 0; } }
+@keyframes election-zoom { from { transform: scale(1.6); opacity: 0; } }
+@keyframes election-left { from { transform: translateX(-60%); opacity: 0; } }
+@keyframes election-right { from { transform: translateX(60%); opacity: 0; } }
+@keyframes election-rise { from { transform: translateY(18%); opacity: 0; } }
+@keyframes election-plate { from { transform: scaleX(0); opacity: 0; } }
+@keyframes election-fill { from { width: 0; } }
+@keyframes election-pop { from { transform: scale(0); opacity: 0; } }
+@keyframes election-up { from { transform: translateY(60%); opacity: 0; } }
+@keyframes election-appear { from { opacity: 0; } }
+@keyframes election-stamp { from { transform: rotate(var(--tilt)) scale(2.8); opacity: 0; } 65% { transform: rotate(var(--tilt)) scale(.9); opacity: 1; } }
+@keyframes election-slam { from { transform: scale(2.4); opacity: 0; } }
+@keyframes election-confetti { from { transform: translate3d(0, -5cqh, 0) rotate(0) rotateY(0); } 85% { opacity: 1; } to { transform: translate3d(var(--drift), 112cqh, 0) rotate(var(--turn)) rotateY(900deg); opacity: 0; } }
+
+/* Téléphone en paysage : colonne centrale plus large, textes secondaires allégés. */
+@container (max-height: 430px) {
+  .election-duel { grid-template-columns: minmax(0, 1fr) calc(var(--u) * 22) minmax(0, 1fr); padding: 0 calc(var(--u) * 2); }
+  .election-cocarde { width: calc(var(--u) * 6); }
+  .election-third .election-gauge { display: none; }
+  .election-program { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .election-stage *, .election-stage *::before, .election-stage *::after { animation: none !important; }
+  .election-countdown, .election-wipe, .election-flash, .election-confetti { display: none !important; }
+}

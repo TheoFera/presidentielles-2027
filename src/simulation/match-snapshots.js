@@ -1,3 +1,4 @@
+import { rankFirstRound } from './match-lifecycle.js';
 import { FACTIONS } from './world.js';
 import { validAIDifficulty } from './ai-settings.js';
 import { GamePhase } from './phases.js';
@@ -18,6 +19,14 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
   for (const c of s.candidates) if (typeof c.eliminated !== 'boolean' || c.eliminated !== (c.faction_id === s.eliminated_faction)
     || c.eliminated && (c.campaign_active || c.interaction_active || c.axis || c.purchase_hold || c.combat.attack_id)) fail('candidat éliminé incohérent');
   for (const n of s.npcs) if (n.former_eliminated_faction !== undefined && (!s.eliminated_faction || n.former_eliminated_faction !== s.eliminated_faction)) fail('ancienne affiliation incohérente');
+  if (s.phase === GamePhase.FIRST_ROUND_ARENA) fail('ancienne phase de combat électoral');
+  if (s.phase === GamePhase.CAMPAIGN) {
+    if (s.first_round_result !== null) fail('résultat du premier tour prématuré');
+  } else {
+    if (!support(s.telemetry.j0_scores) || !same(s.first_round_result, rankFirstRound(s.telemetry.j0_scores, s.seed))) fail('classement du premier tour invalide');
+    if (s.phase === GamePhase.FIRST_ROUND_RESULTS && (s.days_remaining !== 0 || !same(s.first_round_result.scores, s.actualGameState.national_support))) fail('scores du premier tour incohérents');
+    if ([GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase) && s.eliminated_faction !== s.first_round_result.ranking[2]) fail('qualification incohérente');
+  }
   const late = [GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase);
   if (late) {
     if (!FACTIONS.includes(s.eliminated_faction) || !same(s.finalists, FACTIONS.filter(f => f !== s.eliminated_faction)) || !integer(s.sprint_remaining_ticks)

@@ -630,7 +630,7 @@
     "ai_neutral_zone_priority": 0.3
   },
   "campaign_events": {
-    "event_enabled": true,
+    "event_enabled": false,
     "initial_event_delay_days": 15,
     "notification_display_seconds": 15,
     "notification_arrival_seconds": 6,

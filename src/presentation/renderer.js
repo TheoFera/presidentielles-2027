@@ -1,5 +1,6 @@
 import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
+import { interpolatedPlayerX } from './player-position.js';
 import { drawInfrastructure, drawBanknote } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { drawMeetingForeground, drawTerritoryFlags, isOnMeetingStage } from './electoral.js';
@@ -68,8 +69,7 @@ export class WorldRenderer {
     const ctx = this.ctx;
     const m = this.metrics;
     const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
-    const oldCandidate = previous.candidates.find(c => c.id === candidate.id) || candidate;
-    const playerX = wrap(oldCandidate.x + ringDelta(oldCandidate.x, candidate.x, state.world.length) * alpha, state.world.length);
+    const playerX = interpolatedPlayerX(state, previous, candidate, alpha);
     const lookAhead = candidate.axis * this.config.balance.camera.look_ahead_ratio * this.config.prototype.world.units_per_screen;
     if (this.cameraX === null || this.followedId !== candidate.id) this.cameraX = playerX;
     this.followedId = candidate.id;
@@ -123,7 +123,7 @@ export class WorldRenderer {
       for (const entity of group) {
         if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
         const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
-        const x = wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
+        const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
         this.drawPerson(entity, this.screenX(x), state);
       }
     };

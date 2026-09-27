@@ -98,7 +98,7 @@ export function drawInfrastructure(renderer, state) {
 }
 
 export function drawBanknote(renderer, state) {
-  const { ctx, config, p, metrics: m } = renderer;
+  const { ctx, config, p } = renderer;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
   if (!candidate.interaction_active || !candidate.campaign_active) return;
   const offer = nearestOffer(state, config, candidate);
@@ -113,11 +113,8 @@ export function drawBanknote(renderer, state) {
     if (frame) {
       const left = renderer.visibleWorld?.left ?? 0;
       const right = renderer.visibleWorld?.right ?? renderer.width;
-      const besideRight = frame.left + frame.width + w / 2 + 12;
-      const besideLeft = frame.left - w / 2 - 12;
-      x = besideRight + w / 2 + 8 < right ? besideRight : besideLeft;
       x = Math.max(left + w / 2 + 8, Math.min(right - w / 2 - 8, x));
-      y = Math.max(42, Math.min(m.groundY - h - 12, frame.deckY - m.characterHeight * 0.9));
+      y = Math.max(40, frame.top - h - 8);
     }
   }
   ctx.save();

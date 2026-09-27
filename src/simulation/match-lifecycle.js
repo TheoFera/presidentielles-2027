@@ -2,7 +2,6 @@ import { clearCampaignUltimate } from './campaign-styles.js';
 import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
 import { completePopulation } from './spawns.js';
-import { ArenaSimulation } from './arena-simulation.js';
 import { FACTIONS } from './world.js';
 import { combatState, demobilizeUnit, combatActors } from './combat-state.js';
 import { neutralizeSite } from './strategic-sites.js';
@@ -12,7 +11,7 @@ import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 export const initialMatchState = () => ({
   match_tick: 0, phase_started_match_tick: 0, arena: null, campaign_snapshot: null,
-  eliminated_faction: null, finalists: [], sprint_remaining_ticks: null, sprint_elapsed_ticks: 0, extensions: 0, result: null,
+  eliminated_faction: null, finalists: [], sprint_remaining_ticks: null, sprint_elapsed_ticks: 0, extensions: 0, result: null, first_round_result: null,
   telemetry: { j0_scores: null, eliminated_faction: null, arena_duration_seconds: 0, arena_hits: 0, arena_candidate_hits: 0,
     sprint_start_scores: null, final_scores: null, changed_subzone_ids: [], reconverted_npc_ids: [], sprint_meetings: 0, winner: null },
 });
@@ -28,31 +27,26 @@ export function startArena(sim) {
   for (const c of s.candidates) {
     const charge = c.special_charge; clearCampaignUltimate(sim, c); c.special_charge = charge; c.bardella_form = false;
   }
-  const saved = clone(s); // Full, non-recursive, JSON-compatible world snapshot.
-  s.arena = ArenaSimulation.create(sim.config, s);
-  s.campaign_snapshot = saved;
-  s.phase = GamePhase.FIRST_ROUND_ARENA; s.phase_started_match_tick = s.match_tick;
-  sim.emit('ArenaStarted', { scores: clone(s.telemetry.j0_scores) });
+  s.first_round_result = rankFirstRound(s.telemetry.j0_scores, s.seed);
+  s.phase = GamePhase.FIRST_ROUND_RESULTS; s.phase_started_match_tick = s.match_tick;
+  sim.emit('FirstRoundResults', clone(s.first_round_result));
   return true;
 }
 
-export function finishArena(sim, eliminated) {
-  const old = sim.state;
-  if (old.phase !== GamePhase.FIRST_ROUND_ARENA || !FACTIONS.includes(eliminated)) return false;
-  const telemetry = clone(old.telemetry);
-  telemetry.eliminated_faction = eliminated;
-  telemetry.arena_duration_seconds = old.arena.tick / sim.hz;
-  telemetry.arena_hits = old.arena.hit_count; telemetry.arena_candidate_hits = old.arena.candidate_hit_count;
-  // Restore before neutralising: no arena money, positions, charge or cooldown leaks into the world.
-  sim.state = clone(old.campaign_snapshot);
+// Rotation seeded once: ties never depend on rendering or network timing.
+export function rankFirstRound(scores, seed) {
+  const order = FACTIONS.map((_, i) => FACTIONS[(i + seed % FACTIONS.length) % FACTIONS.length]);
+  const ranking = [...order].sort((a, b) => scores[b] - scores[a]);
+  return { scores: clone(scores), ranking, tie_break: Math.abs(scores[ranking[1]] - scores[ranking[2]]) <= 1e-10 };
+}
+
+export function finishArena(sim) {
   const s = sim.state;
-  for (const c of s.candidates) {
-    const arenaCandidate = old.arena.candidates.find(a => a.id === c.id);
-    clearCampaignUltimate(sim, c); c.bardella_form = false;
-    c.bardellisation_used ||= !!arenaCandidate?.bardellisation_used;
-  }
-  s.match_tick = old.match_tick; s.local_candidate_id = old.local_candidate_id; s.ai_enabled = old.ai_enabled;
-  s.telemetry = telemetry; s.phase = GamePhase.SECOND_ROUND_SPRINT; s.phase_started_match_tick = s.match_tick;
+  if (s.phase !== GamePhase.FIRST_ROUND_RESULTS) return false;
+  const eliminated = s.first_round_result.ranking[2];
+  for (const c of s.candidates) { clearCampaignUltimate(sim, c); c.bardella_form = false; }
+  s.telemetry.eliminated_faction = eliminated;
+  s.phase = GamePhase.SECOND_ROUND_SPRINT; s.phase_started_match_tick = s.match_tick;
   s.eliminated_faction = eliminated; s.finalists = FACTIONS.filter(f => f !== eliminated);
   s.sprint_remaining_ticks = sim.secondsToTicks(sim.config.balance.time.second_round_sprint_seconds);
   for (const c of s.candidates) if (c.faction_id === eliminated) {
@@ -117,9 +111,8 @@ export function applyMatchDebug(sim, command) {
   const s = sim.state;
   if (['DebugForceJ0', 'DebugStartArena'].includes(command.type)) { startArena(sim); return true; }
   if (['DebugFinishArena', 'DebugStartSprint'].includes(command.type)) {
-    if (!FACTIONS.includes(command.factionId)) return true;
     if (s.phase === GamePhase.CAMPAIGN) startArena(sim);
-    finishArena(sim, command.factionId); return true;
+    finishArena(sim); return true;
   }
   if (command.type === 'DebugSprint10') { s.sprint_remaining_ticks = sim.secondsToTicks(10); return true; }
   if (command.type === 'DebugForceTie') {

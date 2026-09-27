@@ -24,6 +24,7 @@ function installDocument(t) {
 }
 
 function startVariant(config, variant) {
+  config.balance.campaign_events.event_enabled = true;
   const sim = new GameSimulation({ ...config, campaignCatalog: [variant] }, 42);
   if (variant.family === 'FERMETURE_BATIMENT') {
     const candidate = sim.state.candidates.find(c => !variant.candidate_target || c.faction_id === variant.candidate_target);

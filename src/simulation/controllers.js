@@ -41,7 +41,7 @@ export class AIController extends Controller {
   commands(state, candidateId) {
     if (state.campaign_style_selection?.candidate_id === candidateId) return state.ai_enabled
       ? [{ type: 'SelectCampaignStyle', candidateId, styleId: DEFAULT_UNLOCKS[state.candidates.find(c => c.id === candidateId).faction_id][0] }] : [];
-    if (state.phase === GamePhase.RESULTS) return [];
+    if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) return arenaAICommands(state.arena, this.config, candidateId, state.ai_enabled);
     const candidate = state.candidates.find(c => c.id === candidateId);
     if (!candidate || candidate.eliminated) return [];
@@ -61,7 +61,7 @@ export class AIController extends Controller {
 }
 
 export function collectCommands(state, human, ai) {
-  if (state.phase === GamePhase.RESULTS) return [];
+  if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
   return state.candidates.filter(c => !c.eliminated).flatMap(candidate =>
     (candidate.id === state.local_candidate_id ? human : ai).commands(state, candidate.id));
 }

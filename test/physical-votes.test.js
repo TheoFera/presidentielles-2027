@@ -149,6 +149,32 @@ test('depuis le sol, le meeting ne s’affiche pas et ne peut pas être payé ; 
   assert.equal(candidate.money, before - cfg.balance.buildings.meeting.activation_cost);
 });
 
+test('le meeting se charge aux deux bords de la scène et rassemble les électeurs', () => {
+  const cfg = structuredClone(config);
+  cfg.balance.buildings.meeting.required_presence_N1 = 0;
+  for (const side of [-1, 1]) {
+    const sim = new GameSimulation(cfg, 42);
+    sim.state.ai_enabled = false;
+    const podium = sim.state.buildings.find(building => building.type === 'meeting');
+    sim.state.buildings = [podium];
+    const candidate = sim.state.candidates[0];
+    for (const other of sim.state.candidates.slice(1)) other.campaign_active = false;
+    candidate.x = podium.x + side * (cfg.balance.buildings.meeting.podium_half_width - 0.05);
+    candidate.axis = 0;
+    candidate.money = 1000;
+    candidate.podium_site_id = podium.id;
+    candidate.combat.height = cfg.balance.buildings.meeting.podium_height;
+    assert.equal(nearestOffer(sim.state, cfg, candidate)?.kind, 'MEETING');
+    sim.step();
+    assert.equal(candidate.purchase_hold?.elapsed_ticks, 1);
+    advance(sim, candidate.purchase_hold.required_ticks - 1);
+    assert.equal(podium.meeting_candidate_id, candidate.id);
+    assert.ok(sim.state.npcs.some(npc => npc.meeting_target_id === podium.id));
+    advance(sim, sim.secondsToTicks(cfg.balance.buildings.meeting.hold_seconds));
+    assert.equal(podium.meetings_held, 1);
+  }
+});
+
 test('l’IA conserve un meeting disponible comme objectif même avant de monter sur scène', () => {
   const cfg = structuredClone(config);
   cfg.balance.buildings.meeting.required_presence_N1 = 0;

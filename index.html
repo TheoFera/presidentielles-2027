@@ -10,8 +10,10 @@
   <link rel="stylesheet" href="src/presentation/illustrated-ui.css">
   <link rel="stylesheet" href="src/presentation/start-menu.css">
   <link rel="stylesheet" href="src/presentation/game-menu.css">
+  <link rel="stylesheet" href="src/presentation/map-wheel.css">
   <link rel="preload" as="image" href="assets/generated/menus/accueil.png">
-  </head>
+    <link rel="stylesheet" href="src/presentation/election-results.css">
+</head>
   <body>
     <section id="landscape-gate" hidden aria-label="Orientation du téléphone">
       <div class="rotate-phone" aria-hidden="true">↻</div>
@@ -28,10 +30,6 @@
         </div>
         <div class="touch-actions"><span id="bardella-armed" hidden>✦ Protection active</span><button id="jump-touch" aria-label="Sauter">Sauter</button><button id="ultimate-touch" hidden disabled aria-label="Ultime"><span>Ultime</span></button><button id="attack-touch" aria-label="Attaquer">Frapper</button></div>
       </div>
-      <nav id="game-menu" aria-label="Menu du jeu">
-        <button id="pause-touch" aria-label="Aide et pause">Pause</button>
-        <button id="fullscreen-touch" aria-label="Passer en plein écran">Plein écran</button>
-      </nav>
       <p id="orientation-hint">Pour mieux voir le jeu, tourne ton téléphone à l’horizontale.</p>
       <div id="funds">
         <output id="money" aria-label="Argent transporté par le candidat"></output>
@@ -39,22 +37,15 @@
       <div id="electoral-display">
         <div id="electoral-circle" hidden></div>
         <output id="day" aria-label="Jours avant le scrutin"></output>
-        <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
       </div>
+      <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
       <div id="notice" role="status"></div>
       <div id="network-status" hidden role="status"></div>
-      <div id="hint">← → ou Q / D : marcher · Double appui : esquiver · Espace / J : frapper ou charger · ↑ : sauter · R : ultime · H : aide · F3 : débogage</div>
       <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
       <div id="phase-banner" hidden role="status"></div>
       <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
       <div id="phase-fade" aria-hidden="true"></div>
-      <section id="results" class="panel" hidden aria-label="Résultat final">
-        <span class="eyebrow">VAINQUEUR</span>
-        <h1 id="winner"></h1><p id="winning-score"></p>
-        <p id="second-score"></p><p id="neutral-score"></p>
-        <p id="third-name" class="subtle"></p><p id="tie-detail" class="subtle"></p>
-        <div class="result-actions"><button id="replay">Rejouer</button><button id="return">Retour à l’accueil</button></div>
-      </section>
+      <section id="results" class="election-results" hidden aria-label="Résultats électoraux"></section>
 <section id="help" class="panel" hidden aria-label="Aide et pause">
         <span class="eyebrow">PRÉSIDENTIELLES 2027</span><h1>Pause</h1>
         <nav class="help-tabs" aria-label="Pages du guide">
@@ -71,7 +62,7 @@
           <article><h2>Développez votre camp</h2><p>Le premier Local devient votre QG. L’Imprimerie transforme vos sympathisants en militants grâce aux tracts.</p><p>Éloignez-vous puis revenez pour un nouvel achat. L’Imprimerie permet plusieurs commandes sur place.</p><p id="poll-help"></p></article>
         </div>
         <div class="help-page" data-help-page="election" hidden>
-          <article><h2>La course à l’Élysée</h2><p>Chaque PNJ convaincu apporte une voix sur 200. À J0, votre score devient votre jauge sur le plateau télévisé. Un candidat à zéro voix est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong> et convainquent les PNJ restants.</p><p>Le meilleur nombre de voix final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
+          <article><h2>La course à l’Élysée</h2><p>Chaque PNJ convaincu apporte une voix sur 200. À J0, la soirée électorale annonce le premier tour : les deux meilleurs scores sont qualifiés, le troisième est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong> et convainquent les PNJ restants.</p><p>Le meilleur nombre de voix final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
           <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, la pause est partagée. Gardez tous le jeu ouvert.</p></article>
         </div>
         <div class="help-actions"><button id="resume">Reprendre</button><button id="pause-home">Menu principal</button></div>
@@ -79,11 +70,10 @@
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>
         <details id="match-tools">
-          <summary>Partie complète : J0, arène et sprint</summary>
+          <summary>Partie complète : J0, annonce et sprint</summary>
           <div class="debug-actions">
-            <button id="force-j0">Forcer J0</button><button id="start-arena">Démarrer l’arène</button>
-            <label>Candidat à éliminer <select id="eliminate-faction"><option value="philippe">Philippe</option><option value="le_pen">Le Pen</option><option value="melenchon">Mélenchon</option></select></label>
-            <button id="finish-arena">Terminer l’arène</button><button id="start-sprint">Démarrer le sprint</button>
+            <button id="force-j0">Forcer J0</button><button id="start-arena">Afficher le premier tour</button>
+            <button id="finish-arena">Continuer au second tour</button><button id="start-sprint">Démarrer le sprint</button>
             <button id="sprint-10">Chrono à 10 s</button><button id="force-tie">Forcer une égalité à l’échéance</button>
             <button id="neutral-all">50 % de Neutres partout</button><button id="real-scores">Afficher le score réel</button>
             <button id="speed-five">Vitesse ×5</button><button id="save-telemetry">Exporter le résumé DEBUG</button>

@@ -56,7 +56,7 @@ class Element extends EventTarget {
 function setup(t) {
   const win = new Element();
   const doc = new Element();
-  const elements = new Map(['attack-touch', 'move-left', 'move-right', 'pause-touch', 'fullscreen-touch'].map(id => [id, new Element()]));
+  const elements = new Map(['attack-touch', 'move-left', 'move-right'].map(id => [id, new Element()]));
   doc.getElementById = id => elements.get(id);
   const oldWindow = globalThis.window, oldDocument = globalThis.document;
   globalThis.window = win; globalThis.document = doc;
@@ -129,8 +129,8 @@ test('Pause, changement d’onglet et perte de focus libèrent les commandes', t
     assert.equal(human.axis, 0);
     assert.equal(input.pointers.size, 0);
   }
-  get('pause-touch').send('click');
-  get('fullscreen-touch').send('click');
+  win.send('keydown', { key: 'h' });
+  win.send('keydown', { key: 'f' });
   assert.deepEqual(actions, ['h', 'f']);
 });
 

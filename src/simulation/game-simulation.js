@@ -1,7 +1,7 @@
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { validAIDifficulty } from './ai-settings.js';
 import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
-import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector } from './campaign-events.js';
+import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector, resolveCampaignEvent } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
@@ -51,7 +51,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 11, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 12, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, next_money_pickup_id: 1, transactions: [], money_pickups: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -110,7 +110,14 @@ export class GameSimulation {
   /** Snapshot import is atomic. Invalid saves never damage the live game. */
   importSnapshot(json) {
     const next = typeof json === 'string' ? JSON.parse(json) : clone(json);
+    if (!this.config.balance.campaign_events.event_enabled) {
+      const previousConfig = { ...this.config, balance: { ...this.config.balance, campaign_events: { ...this.config.balance.campaign_events, event_enabled: true } } };
+      if (next.config_fingerprint === fingerprint(previousConfig)) next.config_fingerprint = fingerprint(this.config);
+    }
     this.state = validateSnapshot(next, this);
+    if (!this.config.balance.campaign_events.event_enabled) {
+      for (const event of this.state.campaign_events.filter(event => event.status === 'ACTIVE')) resolveCampaignEvent(this, event, 'EXPIRED');
+    }
     return this.getState();
   }
 
@@ -152,6 +159,7 @@ export class GameSimulation {
 
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
+    if (command.type === 'ContinueToSecondRound') { finishArena(this); return; }
     if (CampaignStyleSystem.command(this, command)) return;
     if (campaignCommand(this, command)) return;
     if (applyMatchDebug(this, command)) return;
@@ -296,6 +304,7 @@ export class GameSimulation {
       if (this.state.phase !== previousPhase) return; // New phase accepts only the next tick's inputs.
     }
     const state = this.state;
+    if (state.phase === GamePhase.FIRST_ROUND_RESULTS) return;
     if (state.campaign_style_selection) return;
     state.match_tick++;
     if (state.phase === GamePhase.FIRST_ROUND_ARENA) {

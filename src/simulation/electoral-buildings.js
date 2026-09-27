@@ -20,7 +20,7 @@ export function meetingOffers(state, config, candidate, building) {
           : !candidateOnMeetingStage(state, config, candidate, building) ? 'NOT_ON_STAGE' : null;
   const cost = settings.activation_cost;
   return [{ target_id: building.id, kind: 'MEETING', key: `${building.id}:MEETING:${candidate.faction_id}`,
-    cost, x: wrap(building.x, state.world.length), radius: settings.interaction_radius, label: 'LANCER LE MEETING',
+    cost, x: wrap(building.x, state.world.length), radius: settings.podium_half_width, label: 'LANCER LE MEETING',
     required_ticks: Math.ceil(settings.purchase_hold_seconds * config.balance.simulation_architecture.fixed_tick_hz),
     ...paymentStatus(candidate, config, cost, reason) }];
 }

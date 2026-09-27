@@ -1,5 +1,6 @@
 import { buildingAssetId } from './illustrated-buildings.js';
 import { ringDelta } from '../simulation/world.js';
+import { MapWheel } from './map-wheel.js';
 
 const MEETING_SPRITE_GROUND_ANCHOR = 0.88;
 const MEETING_UPPER_HEIGHT_SCALE = 1.45;
@@ -77,36 +78,35 @@ export class ElectoralDisplay {
     this.circle = document.getElementById('electoral-circle');
     this.scores = document.getElementById('poll-scores');
     this.element = document.getElementById('electoral-display');
+    this.wheel = new MapWheel(this.circle);
     this.signature = '';
   }
-  update(state, faction) {
+  update(state, candidate, playerX = candidate.x) {
+    const faction = candidate.faction_id;
     const sprint = state.phase === 'SECOND_ROUND_SPRINT';
-    this.element.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase);
+    const visible = ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase);
+    const studio = state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(candidate.id));
+    this.element.hidden = !visible;
+    this.element.classList.toggle('map-clock-only', studio);
+    document.getElementById('game').classList.toggle('has-map-wheel', visible && !studio);
     this.element.classList.toggle('sprint-clock', sprint);
     const dayText = sprint ? `${Math.ceil(state.sprint_remaining_ticks / this.hz)}` : `J-${state.days_remaining}`;
     if (this.day.textContent !== dayText) this.day.textContent = dayText;
     this.day.setAttribute('aria-label', sprint ? `${this.day.textContent} secondes avant le second tour` : `J-${state.days_remaining}`);
     const poll = state.polls[faction];
     const snapshot = poll.lastPollSnapshot;
-    this.circle.hidden = !snapshot; this.scores.hidden = !snapshot;
+    this.circle.hidden = studio;
+    this.scores.hidden = !visible || studio || !snapshot;
     this.element.classList.toggle('poll-stale', !!snapshot && !poll.active);
-    const signature = `${faction}:${state.seed}:${poll.active}:${snapshot?.measured_tick}:${JSON.stringify(snapshot)}`;
+    this.scores.classList.toggle('poll-stale', !!snapshot && !poll.active);
+    this.wheel.build(state.world);
+    this.wheel.updatePosition(state.world, playerX);
+    const signature = `${this.wheel.layoutKey}:${faction}:${state.seed}:${poll.active}:${snapshot?.measured_tick}:${JSON.stringify(snapshot)}`;
     if (signature === this.signature) return;
     this.signature = signature;
-    this.circle.replaceChildren(); this.scores.replaceChildren();
+    this.wheel.updatePoll(snapshot, territoryColors);
+    this.scores.replaceChildren();
     if (!snapshot) return;
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 80 80'); svg.setAttribute('aria-label', 'Dernier sondage : 18 sous-zones, dans l’ordre du monde');
-    const polar = angle => [40 + 32 * Math.sin(angle), 40 - 32 * Math.cos(angle)];
-    snapshot.zones.forEach((zone, index) => {
-      const angle = Math.PI * 2 / snapshot.zones.length;
-      const start = polar(index * angle + 0.045); const end = polar((index + 1) * angle - 0.045);
-      const path = document.createElementNS(svg.namespaceURI, 'path');
-      path.setAttribute('d', `M${start[0]},${start[1]} A32,32 0 0 1 ${end[0]},${end[1]}`);
-      path.setAttribute('fill', 'none'); path.setAttribute('stroke', territoryColors[zone.controller || 'contested']); path.setAttribute('stroke-width', '5');
-      path.setAttribute('data-zone', zone.subzone_id); svg.append(path);
-    });
-    this.circle.append(svg);
     const labels = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe', neutral: 'Neutres', pending: 'À apparaître' };
     const rounded = roundedPollScores(snapshot.national_support);
     for (const faction of Object.keys(labels)) {

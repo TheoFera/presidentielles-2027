@@ -45,7 +45,7 @@ export function directorWeights(sim){
 }
 export class CampaignEventDirector {
  static start(sim,request={}){
- const s=sim.state,d=s.campaign_director,b=cfg(sim);if(s.phase!=='CAMPAIGN'||active(s).length>=b.max_simultaneous_events)return null;
+ const s=sim.state,d=s.campaign_director,b=cfg(sim);if(!b.event_enabled||s.phase!=='CAMPAIGN'||active(s).length>=b.max_simultaneous_events)return null;
  const {weights,targets,rank,recent}=directorWeights(sim);
  const options=[];
  for(const v of sim.config.campaignCatalog||[]){
@@ -98,6 +98,7 @@ export class CampaignEventDirector {
 }
 export function updateCampaignEvents(sim){
  const s=sim.state;if(s.phase!=='CAMPAIGN')return;
+ if(!cfg(sim).event_enabled){for(const e of active(s))resolveCampaignEvent(sim,e,'EXPIRED');return;}
  for(const e of active(s)){
  const p=e.parameters,site=s.buildings.find(b=>b.id===e.target_site_id),target=s.candidates.find(c=>c.id===e.target_candidate_ids[0]);
  if(e.family==='CANDIDAT_FRAGILISE'&&target.is_ko){const national=aggregateNational(s.electorate)[target.faction_id];const changed=applyOpinionDelta(sim,target.faction_id,-p.ko_poll_loss,{source:'SCANDALE'});sim.emit('ScandalKOTriggered',{candidate_id:target.id,loss:changed*100/sim.config.layout.total_electors});resolveCampaignEvent(sim,e);continue;}
@@ -138,7 +139,7 @@ export function updateCampaignEvents(sim){
  refreshElectoralState(s,sim.config);
 }
 export function campaignCommand(sim,command){
- if(command.type==='DebugStartCampaignEvent'){if(!CampaignEventDirector.start(sim,command))sim.emit('CampaignEventRejected',{reason:'Aucune cible admissible, variante déjà utilisée ou limite d’événements atteinte.'});return true;}
+ if(command.type==='DebugStartCampaignEvent'){if(!cfg(sim).event_enabled||!CampaignEventDirector.start(sim,command))sim.emit('CampaignEventRejected',{reason:!cfg(sim).event_enabled?'Les événements de campagne sont désactivés.':'Aucune cible admissible, variante déjà utilisée ou limite d’événements atteinte.'});return true;}
  if(command.type==='DebugAdvanceCampaign'){if(sim.state.phase==='CAMPAIGN'){const remaining=Number.isFinite(command.remaining)?Math.max(0,command.remaining):Math.max(0,sim.state.days_remaining-(command.days||0));sim.state.campaign_time_offset+=sim.state.days_remaining-remaining;}return true;}
  const c=sim.state.candidates.find(c=>c.id===command.candidateId);if(c?.campaign_arena_id){const e=sim.state.campaign_events.find(e=>e.id===c.campaign_arena_id);if(e?.arena)new ArenaSimulation(sim.config,e.arena).applyCommand(command);return true;}
  if(c?.crisis_meeting_id&&command.type==='Attack')return true;return false;

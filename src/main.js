@@ -13,6 +13,7 @@ import { WorldRenderer } from './presentation/renderer.js';
 import { BrowserInput } from './presentation/input.js';
 import { DebugPanel } from './presentation/debug.js';
 import { ElectoralDisplay } from './presentation/electoral.js';
+import { interpolatedPlayerX } from './presentation/player-position.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
 import { installLandscape, portraitPhone } from './presentation/landscape.js';
@@ -51,6 +52,13 @@ async function start() {
   const campaignDisplay = new CampaignDisplay(config);
   const electoralDisplay = new ElectoralDisplay(config);
   const matchDisplay = new MatchDisplay(config, {
+    isHost: () => !session || session.host, isMultiplayer: () => !!session,
+    continue: () => {
+      if (session && !session.host) return;
+      input.clear(); pending = []; remote.clear(); clock.reset();
+      simulation.applyCommand({ type: 'ContinueToSecondRound' });
+      state = simulation.getState(); previous = state; renderer.resetCamera(); canvas.focus();
+    },
     follow: () => { renderer.resetCamera(); canvas.focus(); },
     replay: () => { if (session) returnHome(); else { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); } }, return: () => returnHome(),
   });
@@ -59,8 +67,6 @@ async function start() {
   const funds = document.getElementById('funds');
   document.getElementById('budget-help').textContent = `Plafond de dépenses : ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ par candidat sur toute la partie. Les remboursements ne rétablissent pas ce budget.`;
   const notice = document.getElementById('notice');
-  const hint = document.getElementById('hint');
-  if (window.matchMedia('(any-pointer: coarse)').matches) hint.textContent = `Flèches : marcher · Frapper : relâcher ou maintenir ${chargeDuration} · Sauter · Pause : aide`;
   let pending = [];
   let paused = true;
   let wakeLock = null;
@@ -89,7 +95,6 @@ async function start() {
   let simulationSpeed = 1;
   let wasHidden = false;
   let noticeRemaining = 0;
-  let hintRemaining = config.prototype.presentation.hint_seconds;
   let previousTime = performance.now();
   let debugElapsed = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
@@ -105,7 +110,7 @@ async function start() {
   };
   function restartMatch(home = false, seed = config.prototype.seed) {
     simulation = new GameSimulation(config, seed, state.local_candidate_id, profile);
-    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
+    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
     debug.toggle(false); togglePause(home); document.getElementById('resume').textContent = home ? 'Commencer la campagne' : 'Reprendre';
   }
   const debug = new DebugPanel(config, {
@@ -148,7 +153,7 @@ async function start() {
   }
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
-    if (state.campaign_style_selection) return;
+    if (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return;
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
     else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
@@ -207,6 +212,7 @@ async function start() {
   function returnHome() {
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
     void keepScreenAwake();
+    matchDisplay.reset();
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
@@ -215,7 +221,7 @@ async function start() {
     stylesDisplay.profile = profile;
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
-    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0; hintRemaining = config.prototype.presentation.hint_seconds;
+    resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
     renderer.artZone = null;
     renderer.draw(state, state, 1, 0);
     const ids = [...renderer.assets.protectedIds];
@@ -307,6 +313,7 @@ async function start() {
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
 
   function matchCommands() {
+    if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
     if (!session) return collectCommands(state, human, ai);
     return state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
       if (candidate.id === state.local_candidate_id) return human.commands(state, candidate.id);
@@ -353,10 +360,9 @@ async function start() {
           if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
         });
       }
-      if (!paused && !document.hidden) { hintRemaining -= elapsed; noticeRemaining -= elapsed; }
+      if (!paused && !document.hidden) { noticeRemaining -= elapsed; }
       networkFrame(elapsed);
       matchDisplay.update(state);
-      document.getElementById('replay').hidden = !!session;
       campaignDisplay.update(state);
       stylesDisplay.update(state);
       const waiting = session && state.campaign_style_selection && state.campaign_style_selection.candidate_id !== state.local_candidate_id;
@@ -366,7 +372,7 @@ async function start() {
       const candidate = matchDisplay.viewedCandidate(state);
       const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
-      damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
+      damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       const ultimateButton = document.getElementById('ultimate-touch');
       const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
       ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
@@ -388,15 +394,12 @@ async function start() {
       }
       setText(money, formatCarriedMoney(candidate.money));
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS' || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('game-menu').hidden = paused || !!state.campaign_style_selection || state.phase === 'RESULTS';
-      electoralDisplay.update(state, candidate.faction_id);
+      document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       if (noticeRemaining <= 0) setText(notice, '');
-      hint.style.opacity = hintRemaining > 0 ? '1' : '0';
-      hint.hidden = hintRemaining < -0.5 || state.phase !== 'CAMPAIGN';
-      notice.hidden = state.phase === 'RESULTS';
+      notice.hidden = ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase);
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
       const renderAlpha = session && !session.host ? Math.min(1, (now - snapshotReceivedAt) / snapshotInterval) : clock.alpha;
+      electoralDisplay.update(state, candidate, interpolatedPlayerX(viewState, paused ? viewState : previous, candidate, paused ? 1 : renderAlpha));
       renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }

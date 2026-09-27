@@ -98,7 +98,8 @@ test('Maintien au QG : trois secondes, annulation et interruptions', () => {
 });
 
 test('Un événement garde ses multiplicateurs après changement de style', () => {
-  const sim = make(), c = sim.state.candidates[0]; choose(sim, c, 'melenchon_universaliste');
+  const config = campaignConfig(); config.balance.campaign_events.event_enabled = true;
+  const sim = new GameSimulation(config, 42, 'candidate:melenchon', allUnlocked()), c = sim.state.candidates[0]; choose(sim, c, 'melenchon_universaliste');
   const event = CampaignEventDirector.start(sim, { family: 'MEETING_DE_CRISE', biomeId: 'paris_19e' }); assert.ok(event);
   const frozen = structuredClone(event.style_snapshot); choose(sim, c, 'melenchon_populiste');
   assert.deepEqual(event.style_snapshot, frozen); assert.equal(frozen.melenchon.biome_multipliers.paris_19e, 1.1);

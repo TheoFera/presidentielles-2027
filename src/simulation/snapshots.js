@@ -16,7 +16,7 @@ export function validateSnapshot(next, simulation, nested = false) {
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 11 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec la nouvelle économie');
+  if (!next || next.snapshot_version !== 12 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec les nouvelles annonces électorales ; commencez une nouvelle partie');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_money_pickup_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');

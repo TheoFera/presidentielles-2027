@@ -28,8 +28,6 @@ export class BrowserInput {
       if (this.attackSources.has(`pointer:${event.pointerId}`)) { this.attackSources.clear(); onAction('attack-cancel'); }
     });
     attackButton.addEventListener('contextmenu', event => event.preventDefault());
-    document.getElementById('pause-touch').addEventListener('click', () => onAction('h'));
-    document.getElementById('fullscreen-touch').addEventListener('click', () => onAction('f'));
     const release = event => {
       if (event.type !== 'pointerup' && this.pointers.has(event.pointerId)) this.lastTap = null;
       this.pointers.delete(event.pointerId);

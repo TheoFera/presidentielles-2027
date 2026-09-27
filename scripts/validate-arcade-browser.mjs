@@ -78,7 +78,7 @@ try {
     await page.locator('#prepare-game').click(); await page.locator('#start-campaign:not([disabled])').waitFor();
     await fits(page, '#start-menu', `Tutoriel ${label}`);
     await page.screenshot({ path: path.join(output, `tutoriel-${label}.png`) });
-    await page.locator('#start-campaign').click(); await page.locator('#pause-touch').click();
+    await page.locator('#start-campaign').click(); await page.keyboard.press('Escape');
     for (const tab of ['controls', 'field', 'election']) { await page.locator(`[data-help-tab="${tab}"]`).click(); await fits(page, '#help', `Pause ${tab} ${label}`); }
     await page.locator('#pause-home').click(); await page.locator('#multiplayer').click();
     await fits(page, '#start-menu', `Multijoueur ${label}`);
@@ -96,7 +96,7 @@ try {
     await page.locator('#invite-player').click(); await page.locator('#text-invite').click(); await page.locator('#copy-signal:not([disabled])').waitFor();
     await fits(page, '#start-menu', `Invitation ${label}`);
     await page.locator('#menu-back').click(); await page.locator('#menu-back').click();
-    await solo(page); await page.locator('#pause-touch').click();
+    await solo(page); await page.keyboard.press('Escape');
     // Import a real mandatory selection to exercise the actual style dialog.
     const sim = new GameSimulation(config, 42); const c = sim.state.candidates.find(c => c.id === sim.state.local_candidate_id);
     const hq = sim.state.buildings.find(b => b.type === 'permanence'); c.x = hq.x; captureSite(sim, hq, c);
@@ -147,7 +147,7 @@ try {
   await guest.waitForTimeout(800); await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await host.waitForFunction(x => window.testState.candidates.find(c => c.faction_id === 'le_pen').x > x + 1, x);
   report.flows.push('Deux navigateurs tactiles : connexion directe, départ synchronisé et déplacement invité');
-  await guest.locator('#pause-touch').click(); await host.locator('#help').waitFor();
+  await guest.keyboard.press('Escape'); await host.locator('#help').waitFor();
   await guest.locator('#pause-home').click(); await host.locator('#disconnect-message').waitFor();
   await fits(host, '#start-menu', 'Déconnexion');
   await host.locator('#back-to-home').click(); await host.locator('#multiplayer').click(); await host.locator('#create-room').click();

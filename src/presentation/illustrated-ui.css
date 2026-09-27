@@ -28,8 +28,6 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 .campaign-card.arriving { transform: none; }
 #campaign-events:has(.arriving) { gap: 7px; }
 @media (max-height: 540px), (max-width: 900px) {
-  #game-menu { top: 6px; right: 8px; gap: 6px; }
-  #game-menu button { font-size: 12px; padding: 5px 8px; min-height: 40px; }
   #campaign-events { top: 54px; right: 8px; width: 28%; max-height: 38%; gap: 4px; }
   .campaign-card { padding: 6px 7px 6px 30px; font-size: 10px; line-height: 1.3; box-shadow: 0 2px 0 #38444544; }
   .campaign-card strong { font-size: 11px; margin: 0; }
@@ -52,7 +50,7 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
   background: radial-gradient(ellipse at center, transparent var(--damage-clear, 50%), rgba(135, 0, 12, .48) 72%, rgba(190, 5, 25, .95) 100%);
   opacity: var(--damage-opacity, 0); }
 #damage-feedback[hidden] { display: none; }
-#touch-controls, #game-menu { z-index: 2; }
+#touch-controls { z-index: 2; }
 
 /* Reserve the upper row so the other actions never move when the ultimate appears. */
 .touch-actions { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 8px; align-items: end; }

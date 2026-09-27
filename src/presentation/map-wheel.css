@@ -1,0 +1,40 @@
+/* Dimensions liées au cadre 16:9, même lorsque le tactile désactive les cqw. */
+#game {
+  --map-size: clamp(104px, min(18vw, 32dvh), 320px);
+  --map-margin: max(8px, min(1vw, 1.78dvh));
+  --map-left-space: calc(var(--map-size) + 2 * var(--map-margin));
+}
+#electoral-display {
+  left: auto; right: var(--map-margin); top: var(--map-margin);
+  width: var(--map-size); height: var(--map-size); transform: none;
+  pointer-events: none; user-select: none;
+}
+#electoral-circle svg { filter: drop-shadow(0 3px 2px #172b3540); overflow: visible; }
+.map-rim { fill: #29383b; stroke: #1c2b30; stroke-width: 3; }
+.map-sector { stroke: none; }
+.map-boundaries { fill: none; stroke: #29383b; }
+.map-zone-divider { stroke-width: 1.5; }
+.map-biome-divider { stroke-width: 4; }
+.map-biome-arc { stroke: #d1ccbb; stroke-width: 2.5; }
+.map-icon { fill: #f2ead5; stroke: #29383b; stroke-width: 1.65; stroke-linejoin: round; stroke-linecap: round; }
+.map-center { fill: #26373b; stroke: #17292d; stroke-width: 4; }
+.map-center-line { fill: none; stroke: #a8a896; stroke-width: 0.8; opacity: .55; }
+.map-player { fill: #fff5df; stroke: #23353a; stroke-width: 3; stroke-linejoin: round; }
+#electoral-display #day { font-size: clamp(14px, min(2.4vw, 4.27dvh), 39px); -webkit-text-stroke: 0; text-shadow: 0 2px #14272b; }
+#electoral-display.sprint-clock #day { color: #ffe0b1; }
+.poll-stale #electoral-circle { opacity: 1; }
+.poll-stale .map-sector { opacity: .5; }
+#poll-scores {
+  top: 2.5%; left: 50%; max-width: 48%; flex-wrap: wrap; justify-content: center;
+  gap: 2px 10px; font-size: clamp(8px, min(1.1vw, 1.96dvh), 14px);
+  pointer-events: none;
+}
+#poll-scores.poll-stale { opacity: .6; }
+#poll-scores.poll-stale::after { content: '·'; color: #8c7060; }
+#game.has-map-wheel #campaign-events { right: var(--map-left-space); top: calc(var(--map-margin) + 54px); width: min(290px, 26%); max-height: 34%; }
+#game.has-map-wheel #notice { right: 22%; }
+#electoral-display.map-clock-only { right: auto; left: 50%; transform: translateX(-50%); width: 8%; height: 14%; }
+@media (max-height: 540px), (max-width: 900px) {
+  #game.has-map-wheel #campaign-events { top: calc(var(--map-margin) + 48px); width: 28%; max-height: 32%; }
+  #poll-scores { left: 29%; max-width: 35%; gap: 2px 6px; }
+}

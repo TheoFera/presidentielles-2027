@@ -21,7 +21,7 @@ export class DebugPanel {
     this.inspectBuilding = document.getElementById('inspect-building');
     this.spawnFaction = document.getElementById('spawn-faction');
     for (const [id, type] of [['force-j0', 'DebugForceJ0'], ['start-arena', 'DebugStartArena'], ['finish-arena', 'DebugFinishArena'], ['start-sprint', 'DebugStartSprint'], ['sprint-10', 'DebugSprint10'], ['force-tie', 'DebugForceTie'], ['neutral-all', 'DebugNeutral50All']]) {
-      document.getElementById(id).addEventListener('click', () => callbacks.queue({ type, factionId: document.getElementById('eliminate-faction').value }));
+      document.getElementById(id).addEventListener('click', () => callbacks.queue({ type }));
     }
     document.getElementById('speed-five').addEventListener('click', callbacks.speedFive);
     document.getElementById('save-telemetry').addEventListener('click', callbacks.saveTelemetry);
@@ -159,7 +159,7 @@ export class DebugPanel {
   update(state, fps) {
     this.campaignReport.textContent = campaignDebugReport(state);
     if (!this.visible) return;
-    const phaseNames = { CAMPAIGN: 'Campagne', FIRST_ROUND_ARENA: 'Premier tour · arène', SECOND_ROUND_SPRINT: 'Sprint du second tour', RESULTS: 'Résultat final' };
+    const phaseNames = { CAMPAIGN: 'Campagne', FIRST_ROUND_RESULTS: 'Résultats du premier tour', FIRST_ROUND_ARENA: 'Premier tour · arène', SECOND_ROUND_SPRINT: 'Sprint du second tour', RESULTS: 'Résultat final' };
     const round = value => typeof value === 'number' ? Math.round(value * 1000) / 1000 : value;
     document.getElementById('match-debug-text').textContent = [
       `Phase : ${phaseNames[state.phase]}`, `Horloge du monde : ${state.tick} · horloge de partie : ${state.match_tick}`,

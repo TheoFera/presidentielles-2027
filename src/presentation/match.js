@@ -1,3 +1,4 @@
+import { ElectionResults, electionModel } from './election-results.js';
 import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { formatNumber } from './number-format.js';
@@ -60,19 +61,18 @@ export class MatchDisplay {
     this.cards = new Map(); this.phase = null; this.extensions = 0; this.followId = null;
     const select = document.getElementById('spectator-follow');
     select.addEventListener('change', () => { this.followId = select.value; callbacks.follow(); });
-    document.getElementById('replay').addEventListener('click', callbacks.replay);
-    document.getElementById('return').addEventListener('click', callbacks.return);
+    this.election = new ElectionResults(this.results);
   }
   viewedCandidate(state) {
     const local = state.candidates.find(c => c.id === state.local_candidate_id);
     return local.eliminated ? state.candidates.find(c => c.id === this.followId && !c.eliminated) || state.candidates.find(c => !c.eliminated) : local;
   }
-  reset() { this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; }
+  reset() { this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
   update(state) {
     const names = this.config.prototype.presentation.factions;
     const arena = state.phase === GamePhase.FIRST_ROUND_ARENA; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
     const finished = state.phase === GamePhase.RESULTS;
-    this.hud.hidden = !arena; this.results.hidden = !finished;
+    this.hud.hidden = !arena; this.results.hidden = !finished && state.phase !== GamePhase.FIRST_ROUND_RESULTS;
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
     this.spectator.hidden = !sprint || !eliminated;
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
@@ -109,17 +109,14 @@ export class MatchDisplay {
       card.fill.style.width = `${c.arena_initial_hp ? c.arena_hp / c.arena_initial_hp * 100 : 0}%`;
       card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }
-    if (finished && this.resultSignature !== JSON.stringify(state.result)) {
-      this.resultSignature = JSON.stringify(state.result);
-      const r = state.result; const percent = f => `${r.scores[f].toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
-      document.getElementById('winner').textContent = names[r.winner].name;
-      document.getElementById('winning-score').textContent = percent(r.winner);
-      document.getElementById('second-score').textContent = `Second : ${names[r.second].name} · ${percent(r.second)}`;
-      document.getElementById('neutral-score').textContent = `Neutres : ${percent('neutral')}`;
-      document.getElementById('third-name').textContent = `Troisième : ${names[state.eliminated_faction].name}`;
-      document.getElementById('tie-detail').textContent = r.tie_break ? 'Égalité départagée selon la règle configurée : score à J0, puis graine.' : '';
-      document.getElementById('replay').focus();
-      console.info('Résumé DEBUG de la partie', JSON.stringify(state.telemetry));
+    const announced = finished || state.phase === GamePhase.FIRST_ROUND_RESULTS;
+    const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;
+    if (signature !== this.resultSignature) {
+      this.resultSignature = signature;
+      if (!announced) this.election.clear();
+      else this.election.render(electionModel(state), { host: this.callbacks.isHost?.() ?? true,
+        multiplayer: this.callbacks.isMultiplayer?.() ?? false, onContinue: this.callbacks.continue,
+        onReplay: this.callbacks.replay, onReturn: this.callbacks.return });
     }
   }
 }
