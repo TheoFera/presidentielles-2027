@@ -14,15 +14,20 @@ export function showQrInvitations(menu, session, back, textMode) {
       const card = menu.element.querySelector(`[data-qr-slot="${slot}"]`);
       if (connected) {
         stops.get(slot)?.(); stops.delete(slot);
+        card.dataset.state = 'connected'; delete card.dataset.peer;
         card.querySelector('.qr-display').innerHTML = '<strong class="qr-connected">✓ Connecté</strong>';
         card.querySelector('.qr-enlarge').disabled = true;
         card.querySelector('.qr-copy').disabled = true;
         card.querySelector('.qr-player-status').textContent = 'Prêt à rejoindre la partie';
+      } else if (card.dataset.state === 'connected' || card.dataset.peer && !session.hasInvite(card.dataset.peer)) {
+        // The player left or the pairing failed: this place gets a fresh invitation.
+        prepare(slot, 'Place libérée · Nouveau QR prêt');
       }
     }
     const full = session.room.players.length === 3;
     menu.element.querySelector('#scan-answers').disabled = full;
-    status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${session.room.players.length}/3 joueurs connectés · Scannez les réponses dans l’ordre de votre choix.`;
+    const notice = session.notice ? `${session.notice} ` : '';
+    status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${notice}${session.room.players.length}/3 joueurs connectés · Scannez les réponses dans l’ordre de votre choix.`;
   };
   menu.element.querySelector('#scan-answers').onclick = () => {
     stopScanner = scanQr({ title: 'Scannez la réponse d’un ami', accept: async value => {
@@ -31,11 +36,18 @@ export function showQrInvitations(menu, session, back, textMode) {
     } });
   };
   menu.element.querySelector('#text-invite').onclick = textMode;
-  for (const slot of slots) {
-    if (session.room.players.some(p => p.slot === slot)) continue;
+  function prepare(slot, ready = 'Place libre') {
     const card = menu.element.querySelector(`[data-qr-slot="${slot}"]`);
-    void session.invite(slot).then(code => {
-      if (menu.generation !== generation || session.room.players.some(p => p.slot === slot)) return;
+    stops.get(slot)?.(); stops.delete(slot);
+    card.dataset.state = 'preparing'; delete card.dataset.peer;
+    card.querySelector('.qr-display').innerHTML = '<p>Préparation…</p>';
+    card.querySelector('.qr-enlarge').disabled = true; card.querySelector('.qr-copy').disabled = true;
+    card.querySelector('.qr-player-status').textContent = ready;
+    const request = session.invite(slot);
+    card.dataset.peer = session.inviteId(slot) ?? '';
+    void request.then(code => {
+      if (menu.generation !== generation || session.room.players.some(p => p.slot === slot) || card.dataset.peer !== (session.inviteId(slot) ?? '')) return;
+      card.dataset.state = 'invite';
       stops.set(slot, animateQr(card.querySelector('.qr-display'), code));
       const copy = card.querySelector('.qr-copy'); copy.disabled = false;
       copy.onclick = () => copySignal(code, status);
@@ -50,8 +62,9 @@ export function showQrInvitations(menu, session, back, textMode) {
         dialog.querySelector('button').onclick = closeZoom;
         dialog.oncancel = event => { event.preventDefault(); closeZoom(); };
       };
-    }).catch(error => { if (menu.generation === generation) card.querySelector('.qr-player-status').textContent = error.message; });
+    }).catch(error => { if (menu.generation === generation) { card.dataset.state = 'error'; delete card.dataset.peer; card.querySelector('.qr-player-status').textContent = error.message; } });
   }
+  for (const slot of slots) if (!session.room.players.some(p => p.slot === slot)) prepare(slot);
   menu.roomUpdate();
 }
 

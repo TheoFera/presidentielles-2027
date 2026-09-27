@@ -318,3 +318,78 @@ test('Chaque humain choisit son style au QG ; un choix en cours n’est jamais �
   CampaignStyleSystem.headquartersEstablished(sim, third);
   assert.ok(third.current_campaign_style);
 });
+
+function lobbyHost() {
+  const rooms = [], ended = [];
+  const host = new PeerSession({ room: room => rooms.push(structuredClone(room)), ended: message => ended.push(message) }, 'test');
+  host.isHost = true;
+  host.room = { code: 'ABC123', phase: 'lobby', paused: false, players: [{ id: 'h', slot: 1, faction: 'melenchon', host: true, ready: false }, { id: 'g2', slot: 2, faction: 'le_pen', host: false, ready: false }, { id: 'g3', slot: 3, faction: null, host: false, ready: false }] };
+  const peer = id => {
+    const sent = [], value = { id, slot: Number(id.slice(1)), connected: true, seen: Date.now(), closed: false, connection: { close() { value.closed = true; } } };
+    host.bindChannel(value, { readyState: 'open', bufferedAmount: 0, send: text => sent.push(text) });
+    value.sent = sent; host.peers.set(id, value); return value;
+  };
+  return { host, rooms, ended, g2: peer('g2'), g3: peer('g3') };
+}
+
+test('Salon direct : un invité perdu libère sa place sans fermer le salon des autres', () => {
+  const { host, rooms, ended, g2, g3 } = lobbyHost();
+  g3.channel.onerror();
+  assert.equal(host.closed, false, 'onerror seul ne coupe plus la connexion');
+  g3.channel.onclose();
+  assert.deepEqual(ended, []);
+  assert.equal(host.closed, false);
+  assert.equal(g3.closed, true);
+  assert.equal(host.peers.has('g3'), false);
+  assert.deepEqual(host.room.players.map(p => p.id), ['h', 'g2']);
+  assert.equal(rooms.at(-1).players.length, 2);
+  assert.ok(g2.sent.some(text => JSON.parse(JSON.parse(text).data).type === 'room'), 'le joueur restant reçoit le salon à jour');
+  assert.ok(host.notice);
+  host.receive(g2, { type: 'leave', data: {} });
+  assert.equal(host.closed, false);
+  assert.deepEqual(host.room.players.map(p => p.id), ['h']);
+  host.close();
+});
+
+test('Salon direct : une invitation qui échoue ne ferme pas le salon', () => {
+  const { host, ended } = lobbyHost();
+  host.room.players.pop(); host.peers.delete('g3');
+  const pending = { id: 'p3', slot: 3, connected: false, seen: Date.now(), connection: { connectionState: 'failed', close() {} } };
+  host.peers.set('p3', pending);
+  host.peerLost(pending, 'Un joueur n’a pas pu se connecter.');
+  assert.deepEqual(ended, []);
+  assert.equal(host.inviteId(3), null);
+  assert.equal(host.hasInvite('p3'), false);
+  assert.equal(host.room.players.length, 2);
+  host.close();
+});
+
+test('En partie, la perte d’un joueur termine toujours la session', () => {
+  const { host, ended, g3 } = lobbyHost();
+  host.room.phase = 'playing';
+  g3.channel.onclose();
+  assert.equal(host.closed, true);
+  assert.equal(ended.length, 1);
+});
+
+test('Serveur local : un invité qui quitte le salon libère sa place, l’hôte garde le salon', async t => {
+  const handler = createMultiplayerHandler();
+  const server = http.createServer(handler);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { handler.close(); server.closeAllConnections(); server.close(); });
+  const base = `http://127.0.0.1:${server.address().port}/api/multiplayer/`;
+  const request = async (action, data = {}) => {
+    const response = await fetch(base + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    return { status: response.status, ...await response.json() };
+  };
+  const host = await request('create');
+  const auth = { code: host.code, token: host.token };
+  const guest = await request('join', { code: host.code });
+  assert.equal((await request('leave', { code: guest.code, token: guest.token })).status, 200);
+  assert.equal((await request('heartbeat', auth)).status, 200);
+  const again = await request('join', { code: host.code });
+  assert.equal(again.status, 200);
+  assert.equal(again.room.players.length, 2);
+  assert.equal((await request('leave', auth)).status, 200);
+  assert.equal((await request('heartbeat', { code: again.code, token: again.token })).status, 400);
+});

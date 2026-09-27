@@ -19,13 +19,20 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
   };
   const changed = room => broadcast(room, 'room', view(room));
   const close = (room, message) => { broadcast(room, 'ended', { message }); rooms.delete(room.code); room.players.forEach(p => p.stream?.end()); };
+  // Before the match, a guest who leaves or goes silent only frees its place.
+  // The host, or anybody once the match is loading or running, ends the room.
+  const remove = (room, player, message) => {
+    if (player.host || room.phase !== 'lobby') { close(room, message); return; }
+    player.stream?.end(); room.players = room.players.filter(p => p !== player); changed(room);
+  };
+  // Phones throttle or suspend hidden pages: the lobby tolerates a longer silence.
+  const silenceLimit = room => room.phase === 'playing' ? 30000 : 120000;
   const sweep = setInterval(() => {
     for (const room of rooms.values()) {
-      if (Date.now() - room.touched > 2 * 60 * 60 * 1000) close(room, 'Le salon a expiré. Créez une nouvelle partie.');
-      else for (const p of room.players) {
-        if (Date.now() - p.seen > 20000) { close(room, 'Un joueur s’est déconnecté. Retournez au salon pour créer une nouvelle partie.'); break; }
-        send(p, 'ping', {});
-      }
+      if (Date.now() - room.touched > 2 * 60 * 60 * 1000) { close(room, 'Le salon a expiré. Créez une nouvelle partie.'); continue; }
+      const silent = room.players.find(p => Date.now() - p.seen > silenceLimit(room));
+      if (silent) { remove(room, silent, 'Un joueur s’est déconnecté. Retournez au salon pour créer une nouvelle partie.'); if (!rooms.has(room.code)) continue; }
+      for (const p of room.players) send(p, 'ping', {});
     }
   }, 5000);
   sweep.unref();
@@ -71,10 +78,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       if (!player) throw new Error('Salon introuvable ou connexion expirée.');
       player.seen = Date.now(); room.touched = Date.now();
       if (action === 'heartbeat') { /* Presence survives a paused or hidden tab. */ }
-      else if (action === 'leave') {
-        if (player.host || room.phase !== 'lobby') close(room, 'Un joueur a quitté la partie.');
-        else { player.stream?.end(); room.players = room.players.filter(p => p !== player); changed(room); }
-      } else if (action === 'choose') {
+      else if (action === 'leave') remove(room, player, 'Un joueur a quitté la partie.'); else if (action === 'choose') {
         chooseCandidate(room, player.id, data.faction); changed(room);
       } else if (action === 'start') {
         if (!player.host || room.phase !== 'lobby' || room.players.length !== 3) throw new Error('Il faut être l’hôte et réunir trois joueurs.');

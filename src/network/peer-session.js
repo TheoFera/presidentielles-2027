@@ -63,8 +63,9 @@ export class PeerSession {
     this.heartbeat = setInterval(() => {
       const now = Date.now();
       for (const peer of this.peers.values()) if (peer.connected) {
-        if (now - peer.seen > (this.room.phase === 'playing' ? 45000 : 180000)) { this.fail('Un téléphone ne répond plus. Gardez le jeu ouvert et reconnectez les joueurs.'); return; }
-        try { this.send(peer, 'ping', {}); } catch (error) { this.fail(error.message); return; }
+        // Phones throttle hidden tabs: the lobby waits longer than a running match.
+        if (now - peer.seen > (this.room.phase === 'playing' ? 45000 : 120000)) { this.peerLost(peer, 'Un téléphone ne répond plus. Gardez le jeu ouvert et reconnectez les joueurs.'); if (this.closed) return; continue; }
+        try { this.send(peer, 'ping', {}); } catch (error) { this.peerLost(peer, error.message); if (this.closed) return; }
       }
     }, 3000);
   }
@@ -72,8 +73,10 @@ export class PeerSession {
   makePeer(peerId) {
     const peer = { id: peerId, connection: new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }), connected: false, seen: Date.now(), buffer: '', sequence: null, cancelled: false };
     this.peers.set(peerId, peer);
+    // 'disconnected' is often transient on mobile Wi-Fi (power saving, roaming):
+    // only a definitive 'failed' ends the link, and the heartbeat covers the rest.
     peer.connection.onconnectionstatechange = () => {
-      if (!this.closed && !peer.cancelled && peer.connection.connectionState === 'failed') this.fail('Connexion impossible. Utilisez le même Wi-Fi, autorisez le réseau local et évitez un réseau invité qui isole les appareils.');
+      if (!this.closed && !peer.cancelled && peer.connection.connectionState === 'failed') this.peerLost(peer, 'Connexion impossible. Utilisez le même Wi-Fi, autorisez le réseau local et évitez un réseau invité qui isole les appareils.');
     };
     return peer;
   }
@@ -101,10 +104,12 @@ export class PeerSession {
         peer.buffer += part.data;
         if (peer.buffer.length > 2_000_000) throw new Error();
         if (part.n === part.total - 1) { const packet = JSON.parse(peer.buffer); peer.buffer = ''; peer.seen = Date.now(); this.receive(peer, packet); }
-      } catch { this.fail('Un message réseau est invalide. Recréez la partie.'); }
+      } catch { this.peerLost(peer, 'Un message réseau est invalide. Recréez la partie.'); }
     };
-    channel.onclose = () => { if (!this.closed && !peer.cancelled && peer.connected) this.fail('Un joueur a quitté la partie ou perdu la connexion.'); };
-    channel.onerror = () => { if (!this.closed && !peer.cancelled) this.fail('La connexion entre les téléphones a été interrompue.'); };
+    channel.onclose = () => { if (!this.closed && !peer.cancelled && peer.connected) this.peerLost(peer, 'Un joueur a quitté la partie ou perdu la connexion.'); };
+    // Mobile Safari reports errors on channels that recover or are about to close:
+    // onclose and the connection state decide, never onerror alone.
+    channel.onerror = () => {};
   }
   canSend(peer, type) {
     if (peer.channel?.readyState !== 'open') return false;
@@ -142,7 +147,7 @@ export class PeerSession {
         if (item.n === item.total) peer.outbox.shift();
       }
     } catch (error) {
-      if (error.name !== 'OperationError') { this.fail('L’envoi des données a échoué. Reconnectez les joueurs.'); return; }
+      if (error.name !== 'OperationError') { this.peerLost(peer, 'L’envoi des données a échoué. Reconnectez les joueurs.'); return; }
       // A full browser queue is temporary: retry the same fragment, in order.
     }
     if (peer.outbox.length) peer.retry = setTimeout(() => this.pump(peer), 16);
@@ -166,7 +171,7 @@ export class PeerSession {
   publishRoom() { this.broadcast('room', this.room); this.callbacks.room(this.room); }
   receive(peer, packet) {
     if (packet.type === 'ping') return;
-    if (packet.type === 'leave') { this.fail('Un joueur a quitté la partie.'); return; }
+    if (packet.type === 'leave') { this.peerLost(peer, 'Un joueur a quitté le salon.'); return; }
     if (this.host) {
       const player = this.room.players.find(p => p.id === peer.id);
       if (!player) return;
@@ -214,18 +219,38 @@ export class PeerSession {
       await peer.connection.setRemoteDescription(answer.description);
       await peer.connection.addIceCandidate(null);
     } catch (error) { peer.accepting = false; throw error; }
-    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.fail('Les appareils ne se trouvent pas. Vérifiez le même Wi-Fi et son autorisation dans le navigateur.'); }, 25000);
+    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.peerLost(peer, 'Un joueur n’a pas pu se connecter. Vérifiez le même Wi-Fi, puis faites-lui scanner le nouveau QR.'); }, 25000);
   }
   cancelInvite(peerId = null) {
     for (const peer of this.peers.values()) if (!peer.connected && (!peerId || peer.id === peerId)) {
       peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry); peer.connection.close(); this.peers.delete(peer.id);
     }
   }
+  // Before the match, one guest's trouble only frees its place: the host and the
+  // other guest stay in the lobby. The host's own link, or any loss once the match
+  // is loading or running, still ends the session for everybody.
+  peerLost(peer, message) {
+    if (this.closed || this.closing || peer.cancelled) return;
+    if (!this.host || this.room.phase !== 'lobby') { this.fail(message); return; }
+    peer.cancelled = true; clearTimeout(peer.timeout); clearTimeout(peer.retry);
+    try { peer.connection.close(); } catch { /* Already closed. */ }
+    this.peers.delete(peer.id);
+    const count = this.room.players.length;
+    this.room.players = this.room.players.filter(p => p.id !== peer.id);
+    this.notice = message;
+    if (this.room.players.length !== count) this.publishRoom(); else this.callbacks.room?.(this.room);
+  }
+  inviteId(slot) { return [...this.peers.values()].find(p => p.slot === slot && !p.cancelled)?.id ?? null; }
+  hasInvite(peerId) { return this.peers.has(peerId) && !this.peers.get(peerId).cancelled; }
   setReady(player) { player.ready = true; if (this.room.players.every(p => p.ready)) this.room.phase = 'playing'; this.publishRoom(); }
   async request(action, data = {}) {
     if (this.closed) throw new Error('La connexion est fermée.');
     if (!this.host) {
-      if (!['commands', 'ready', 'pause', 'choose'].includes(action) || !this.send(this.peers.get('host'), action, data)) throw new Error('La connexion à l’hôte n’est pas prête.');
+      if (!['commands', 'ready', 'pause', 'choose'].includes(action)) throw new Error('Cette action n’est pas disponible à cette étape.');
+      if (!this.send(this.peers.get('host'), action, data)) {
+        // The channel is reopening or closing: onclose and the heartbeat decide.
+        const error = new Error('La connexion à l’hôte n’est pas prête.'); error.transient = true; throw error;
+      }
     } else if (action === 'choose') {
       chooseCandidate(this.room, this.id, data.faction); this.publishRoom();
     } else if (action === 'start') {
@@ -237,6 +262,13 @@ export class PeerSession {
     else if (action === 'snapshot' && this.room.phase === 'playing') this.broadcast('snapshot', data.state);
     else throw new Error('Cette action n’est pas disponible à cette étape.');
     return { ok: true };
+  }
+  // Back from the background: our own timers were frozen, so the other phones'
+  // silence is not theirs. Restart their grace delay and ping them at once.
+  resume() {
+    if (this.closed) return;
+    const now = Date.now();
+    for (const peer of this.peers.values()) if (peer.connected) { peer.seen = now; try { this.send(peer, 'ping', {}); } catch { /* The heartbeat will decide. */ } }
   }
   fail(message) { if (this.closed || this.closing) return; this.close(); this.callbacks.ended(message); }
   close() {

@@ -4,28 +4,58 @@ import { showQrInvitations, showQrAnswer } from './qr-pairing.js';
 import { decodeInvitation } from '../network/peer-session.js';
 import { candidatesReady } from '../network/lobby.js';
 
+// Phones lose the link for a few seconds all the time (screen lock, app switch,
+// Wi-Fi power saving). The browser reconnects the event stream by itself: only a
+// definitive refusal from the server, or a long silence, ends the session.
+const SERVER_GRACE_MS = { lobby: 60000, loading: 60000, playing: 30000 };
 export class MultiplayerSession {
-  constructor(callbacks) { this.callbacks = callbacks; this.room = null; this.source = null; this.closed = false; }
+  constructor(callbacks) { this.callbacks = callbacks; this.room = null; this.source = null; this.closed = false; this.contact = Date.now(); }
   get host() { return this.room?.players.find(p => p.id === this.id)?.host === true; }
   get candidateId() { return `candidate:${this.room.players.find(p => p.id === this.id).faction}`; }
-  async request(action, data = {}) {
-    const response = await fetch(`/api/multiplayer/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: this.code, token: this.token, ...data }), signal: AbortSignal.timeout(10000) });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Connexion impossible.');
+  async request(action, data = {}, options = {}) {
+    let response;
+    try {
+      response = await fetch(`/api/multiplayer/${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: this.code, token: this.token, ...data }), signal: AbortSignal.timeout(10000), ...options });
+    } catch {
+      // Lost packet, timeout or Wi-Fi hiccup: the heartbeat's grace delay decides.
+      const error = new Error('Connexion au serveur momentanément perdue.'); error.transient = true; throw error;
+    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) { const error = new Error(result.error || 'Connexion impossible.'); error.refused = response.status === 400; error.transient = response.status >= 500; throw error; }
+    this.contact = Date.now();
     return result;
   }
+  get grace() { return SERVER_GRACE_MS[this.room?.phase] ?? 60000; }
   async connect(action, data) {
     Object.assign(this, await this.request(action, data));
     this.source = new EventSource(`/api/multiplayer/events?code=${this.code}&token=${this.token}`);
-    this.source.addEventListener('room', event => { this.room = JSON.parse(event.data); this.callbacks.room(this.room); });
-    this.source.addEventListener('commands', event => this.callbacks.commands(JSON.parse(event.data)));
-    this.source.addEventListener('snapshot', event => this.callbacks.snapshot(JSON.parse(event.data)));
+    const seen = () => { this.contact = Date.now(); };
+    this.source.onopen = seen;
+    this.source.addEventListener('ping', seen);
+    this.source.addEventListener('room', event => { seen(); this.room = JSON.parse(event.data); this.callbacks.room(this.room); });
+    this.source.addEventListener('commands', event => { seen(); this.callbacks.commands(JSON.parse(event.data)); });
+    this.source.addEventListener('snapshot', event => { seen(); this.callbacks.snapshot(JSON.parse(event.data)); });
     this.source.addEventListener('ended', event => this.fail(JSON.parse(event.data).message));
-    this.source.onerror = () => this.fail('Connexion au salon interrompue. Vérifiez votre réseau, puis créez ou rejoignez un nouveau salon.');
-    this.heartbeat = setInterval(() => this.request('heartbeat').catch(() => this.fail('Le serveur ne répond plus.')), 4000);
+    // CONNECTING means the browser is already retrying; CLOSED means the server
+    // refused the stream (room closed or player removed).
+    this.source.onerror = () => {
+      if (this.source.readyState === EventSource.CLOSED) this.fail('Connexion au salon interrompue. Le salon a été fermé ou vous en avez été retiré.');
+    };
+    this.heartbeat = setInterval(() => this.beat(), 4000);
   }
+  beat() {
+    if (this.closed) return;
+    if (Date.now() - this.contact > this.grace) { this.fail('Le serveur ne répond plus. Vérifiez le Wi-Fi, puis créez ou rejoignez un nouveau salon.'); return; }
+    if (this.beating) return;
+    this.beating = true;
+    this.request('heartbeat')
+      .catch(error => { if (!error.transient) this.fail(error.message); })
+      .finally(() => { this.beating = false; });
+  }
+  // After the page comes back from the background, the silence was ours: restart the grace delay.
+  resume() { if (this.closed) return; this.contact = Date.now(); this.beat(); }
   fail(message) { if (this.closed) return; this.close(); this.callbacks.ended(message); }
-  close() { this.closed = true; clearInterval(this.heartbeat); this.source?.close(); if (this.token) this.request('leave').catch(() => {}); }
+  close() { this.closed = true; clearInterval(this.heartbeat); this.source?.close(); if (this.token) this.request('leave', {}, { keepalive: true }).catch(() => {}); }
 }
 
 export async function showMultiplayerSetup(menu, connect) {

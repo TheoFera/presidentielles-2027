@@ -65,13 +65,16 @@ async function start() {
   let paused = true;
   let wakeLock = null;
   let wakePending = false;
+  // In multiplayer the screen stays on in the lobby and the pause menu too: a
+  // sleeping phone suspends its page and drops the connection for everybody.
+  const screenIdle = () => document.hidden || (!session && (paused || menu?.active));
   async function keepScreenAwake() {
-    if (paused || menu?.active || document.hidden) { try { await wakeLock?.release(); } catch { /* Already released by the browser. */ } wakeLock = null; return; }
+    if (screenIdle()) { try { await wakeLock?.release(); } catch { /* Already released by the browser. */ } wakeLock = null; return; }
     if (!navigator.wakeLock || wakeLock && !wakeLock.released || wakePending) return;
     wakePending = true;
     try {
       const lock = await navigator.wakeLock.request('screen');
-      if (paused || menu?.active || document.hidden) await lock.release(); else wakeLock = lock;
+      if (screenIdle()) await lock.release(); else wakeLock = lock;
     } catch { /* The browser may refuse in battery-saving mode. */ }
     finally { wakePending = false; }
   }
@@ -136,7 +139,7 @@ async function start() {
   function togglePause(force = !paused, showHelp = true) {
     if (menu?.active) return;
     if (state.campaign_style_selection) return;
-    if (session) { session.request('pause', { paused: force }).catch(error => session?.fail(error.message)); return; }
+    if (session) { session.request('pause', { paused: force }).catch(error => { if (!error.transient) session?.fail(error.message); }); return; }
     paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
     void keepScreenAwake();
     simulation.applyCommand({ type: 'HoldCampaignStyle', candidateId: state.local_candidate_id, active: false });
@@ -184,9 +187,14 @@ async function start() {
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
     wasHidden = true; input.clear(); clock.reset();
-    if (session?.room.phase === 'playing' && document.hidden) session.request('pause', { paused: true }).catch(error => session?.fail(error.message));
-    if (!document.hidden) previousTime = performance.now();
+    if (session?.room.phase === 'playing' && document.hidden) session.request('pause', { paused: true }).catch(error => { if (!error.transient) session?.fail(error.message); });
+    if (!document.hidden) { previousTime = performance.now(); session?.resume?.(); }
+    // The browser releases the wake lock with a hidden page: take it back on return.
+    void keepScreenAwake();
   });
+  // Closing the tab or leaving the page warns the other phones at once instead of
+  // letting them wait for a time-out.
+  window.addEventListener('pagehide', event => { if (!event.persisted && session) stopSession(); });
   // Help values follow the configuration too.
   const durationText = document.getElementById('balance-help');
   const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
@@ -194,6 +202,7 @@ async function start() {
   durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Financement : ${format(config.balance.buildings.financement.capture_cost)} k€. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
+    void keepScreenAwake();
   }
   function returnHome() {
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
@@ -287,7 +296,7 @@ async function start() {
     }, state.config_fingerprint);
     try { await nextSession.connect(action, data); } catch (error) { nextSession.close(); throw error; }
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
-    session = nextSession; roomChanged(session.room);
+    session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
   menu = new StartMenu({ prepare, play, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
   menu.leave = stopSession;
@@ -320,7 +329,8 @@ async function start() {
     const action = session.host ? 'snapshot' : 'commands';
     const data = session.host ? { state: { ...state, multiplayer_profile: profile } } : { commands: outgoingCommands([...human.commands(state, session.candidateId), ...pending.splice(0)]) };
     networkBusy = true;
-    session.request(action, data).catch(error => activeSession.fail(error.message)).finally(() => { networkBusy = false; });
+    // A single lost frame is not fatal: heartbeats and connection states decide.
+    session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
   }
 
   function frame(now) {
