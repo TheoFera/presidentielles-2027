@@ -129,8 +129,10 @@ export function drawBanknote(renderer, state) {
   ctx.fillText('€', x - w / 2 + 11, y + 20);
   ctx.fillStyle = offer.enabled ? '#354b35' : '#745e50';
   ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
-  const price = formatNumber(offer.cost, config.balance.display.currency_precision_decimals);
-  ctx.fillText(`${price} ${config.balance.display.currency_label}`, x + 8, y + 19);
+  const price = offer.cost < 1
+    ? `${formatNumber(offer.cost * 1000, 0)} €`
+    : `${formatNumber(offer.cost, config.balance.display.currency_precision_decimals)} ${config.balance.display.currency_label}`;
+  ctx.fillText(price, x + 8, y + 19);
     if (candidate.purchase_hold?.key === offer.key) {
     ctx.fillStyle = '#637c51';
       ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);

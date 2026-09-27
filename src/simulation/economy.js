@@ -209,8 +209,7 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
       const firstFunding = building.type === 'financement' && offer.kind === 'CAPTURE'
         && !state.buildings.some(b => b.type === 'financement' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
-      if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')
-        || candidate.money - offer.cost < (firstHQ || firstFunding ? 0 : settings.minimum_cash_reserve)) continue;
+      if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')) continue;
       if (offer.kind === 'POLL') continue;
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {

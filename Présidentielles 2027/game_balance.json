@@ -263,9 +263,9 @@
       "max_per_candidate": 6,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 35,
-      "first_headquarters_capture_cost": 15,
-      "build_cost": 35,
+      "capture_cost": 5,
+      "first_headquarters_capture_cost": 5,
+      "build_cost": 5,
       "capture_seconds": 2,
       "required_presence_N1": 2,
       "required_presence_N2": 4,
@@ -313,7 +313,7 @@
       "max_level": 1,
       "upgrade_costs": [],
       "tract_cost_by_level": [
-        2
+        0.1
       ],
       "equipment_seconds_by_level": [
         4
@@ -332,8 +332,8 @@
       "max_per_candidate": 6,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 70,
-      "build_cost": 70,
+      "capture_cost": 15,
+      "build_cost": 15,
       "capture_seconds": 2,
       "required_presence_N1": 3,
       "required_presence_N2": 4,
@@ -346,7 +346,7 @@
       "max_level": 1,
       "upgrade_costs": [],
       "baton_cost_by_level": [
-        20
+        0.5
       ],
       "equipment_seconds_by_level": [
         4
@@ -369,8 +369,8 @@
       "max_per_candidate": 6,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 80,
-      "build_cost": 80,
+      "capture_cost": 30,
+      "build_cost": 30,
       "capture_seconds": 2,
       "required_presence_N1": 3,
       "required_presence_N2": 4,
@@ -383,7 +383,7 @@
       "max_level": 1,
       "upgrade_costs": [],
       "close_enemy_building_cost_by_level": [
-        120
+        5
       ],
       "meeting_ban_seconds": 35,
       "allowed_targets_by_level": [
@@ -406,8 +406,8 @@
       "max_per_candidate": 1,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 10,
-      "build_cost": 10,
+      "capture_cost": 2,
+      "build_cost": 2,
       "capture_seconds": 2,
       "required_presence_N1": 2,
       "required_presence_N2": 4,
@@ -431,8 +431,8 @@
       "max_per_candidate": 1,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 75,
-      "build_cost": 75,
+      "capture_cost": 15,
+      "build_cost": 15,
       "capture_seconds": 2,
       "required_presence_N1": 3,
       "required_presence_N2": 5,
@@ -467,7 +467,7 @@
       "closure_delay_seconds": 0,
       "max_level": 1,
       "upgrade_costs": [],
-      "poll_cost": 24,
+      "poll_cost": 5,
       "purchase_hold_seconds": 2,
       "unlock_circle": true,
       "unlock_national_percentages": true,
@@ -493,9 +493,9 @@
       "meeting_max_level": 1,
       "upgrade_costs": [],
       "activation_cost_by_level": [
-        50
+        10
       ],
-      "activation_cost": 50,
+      "activation_cost": 10,
       "hold_seconds": 15,
       "pause_grace_seconds": 5,
       "cooldown_seconds": 50,
@@ -576,7 +576,6 @@
     "enabled": true,
     "reserve_sympathisants_per_biome": 2,
     "militant_goal_per_biome": 2,
-    "minimum_cash_reserve": 12,
     "development_order": [
       "permanence",
       "financement",
@@ -688,7 +687,7 @@
           "CRISIS": 1
         },
         "meeting_hold_seconds": 15,
-        "meeting_cost": 80,
+        "meeting_cost": 10,
         "local_conversion_percent": 12,
         "biome_conversion_percent": 2,
         "interruption_on_hit": true
@@ -775,7 +774,7 @@
         },
         "local_conversion_percent": 10,
         "biome_conversion_percent": 2,
-        "meeting_cost": 80
+        "meeting_cost": 10
       },
       "FERMETURE_BATIMENT": {
         "base_weight": 1,

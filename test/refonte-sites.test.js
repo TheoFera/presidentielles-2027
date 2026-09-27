@@ -68,7 +68,7 @@ test('Capture unique : niveau 1 et aucune amélioration proposée', () => {
   for (let i = 0; i < 2; i++) unit(sim, 'MILITANT', actor.faction_id, local.x - i * 0.05);
   advance(sim, sim.secondsToTicks(2)); assert.equal(local.level, 1);
   assert.ok(!buildingOffers(sim.state, sim.config, actor, local).some(o => o.kind === 'UPGRADE'));
-  assert.equal(actor.spending.CAPTURE, 15); assert.equal(actor.spending.UPGRADE, 0);
+  assert.equal(actor.spending.CAPTURE, 5); assert.equal(actor.spending.UPGRADE, 0);
 });
 
 test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présence effective', () => {
@@ -116,12 +116,12 @@ test('Institut et promontoire neutres : sondage figé et meeting de quinze secon
   assert.ok(sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon > before);
 });
 
-test('Imprimerie neutre : tracts à 2 k€ achetés à la chaîne sans quitter le bâtiment', () => {
+test('Imprimerie neutre : tracts à 100 € achetés à la chaîne sans quitter le bâtiment', () => {
   const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
   const printer = sim.state.buildings.find(s => s.type === 'imprimerie'); actor.x = printer.x;
   unit(sim, 'SYMPATHISANT', actor.faction_id, printer.x);
   advance(sim, sim.secondsToTicks(4));
-  assert.equal(actor.spending.PRINT, 4); assert.equal(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length, 2);
+  assert.equal(actor.spending.PRINT, 0.2); assert.equal(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length, 2);
   assert.equal(actor.purchase_latch_target_id, null);
 });
 

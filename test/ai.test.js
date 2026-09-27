@@ -154,7 +154,8 @@ test('Offensive complète : affaiblir les soutiens, neutraliser puis reprendre u
 });
 
 test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
-  const { sim, config } = make(); const c = isolate(sim, 'philippe'); c.money = 1000;
+  const { sim, config } = make(); const c = isolate(sim, 'philippe');
+  c.money = config.balance.buildings.faction_slot_philippe_cabinet_administratif.close_enemy_building_cost_by_level[0];
   const cabinet = sim.state.buildings.find(b => b.type === 'faction'); captureSite(sim, cabinet, c); c.x = cabinet.x;
   const rival = sim.state.candidates.find(c => c.faction_id === 'le_pen');
   const victim = sim.state.buildings.find(b => b.type === 'financement'); captureSite(sim, victim, rival);
