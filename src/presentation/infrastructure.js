@@ -1,8 +1,9 @@
-import { localSympathisants } from '../simulation/territory.js';
+import { zoneAt } from '../simulation/world.js';
+import { localPoliticalPresence } from '../simulation/strategic-sites.js';
 import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
 import { drawElectoralBuilding, meetingSpriteFrame } from './electoral.js';
-import { drawIllustratedBuilding, buildingGeometry } from './illustrated-buildings.js';
+import { drawIllustratedBuilding, buildingAssetId, buildingGeometry } from './illustrated-buildings.js';
 import { formatNumber } from './number-format.js';
 import { formatEuros } from './money.js';
 
@@ -104,6 +105,8 @@ export function drawBanknote(renderer, state) {
   const offer = nearestOffer(state, config, candidate);
   if (!offer) return;
   const building = state.buildings.find(b => b.id === offer.target_id);
+  // Pendant un meeting, l'applaudimètre remplace le billet.
+  if (building.type === 'meeting' && building.meeting_candidate_id) return;
   let x = renderer.screenX(offer.x ?? building.x);
   const w = p.infrastructure.banknote_width;
   const h = p.infrastructure.banknote_height;
@@ -130,10 +133,6 @@ export function drawBanknote(renderer, state) {
     ? `${formatNumber(offer.cost * 1000, 0)} €`
     : `${formatNumber(offer.cost, config.balance.display.currency_precision_decimals)} ${config.balance.display.currency_label}`;
   ctx.fillText(price, x + 8, y + 19);
-    if (candidate.purchase_hold?.key === offer.key) {
-    ctx.fillStyle = '#637c51';
-      ctx.fillRect(x - w / 2 + 2, y + h - 3, (w - 4) * candidate.purchase_hold.elapsed_ticks / offer.required_ticks, 2);
-    }
     if (building.ownership_model === 'capturable') {
       const max = buildingSettings(config, building, candidate.faction_id).max_level;
       for (let level = 1; level <= max; level++) {
@@ -150,20 +149,155 @@ export function drawBanknote(renderer, state) {
         ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
       }
     }
-  if (offer.reason === 'CAMPAIGN_BUDGET_EXCEEDED') {
-    ctx.fillStyle = '#7e3737'; ctx.font = '600 11px system-ui';
-    ctx.fillText('Plafond de campagne insuffisant', x, y + h + 14);
+  // Au-dessus du billet : ce que l'achat va faire, en toutes lettres.
+  if (offer.victim_id) {
+    ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27);
+    ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label, x, y - 7);
+    const victim = state.buildings.find(b => b.id === offer.victim_id);
+    ctx.font = '9px system-ui'; ctx.fillText(`${buildingLabel(victim)} · ${victim.subzone_id}`, x, y - 20);
+  } else pill(ctx, x, y - 25, offerTitle(offer, building, candidate), { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui' });
+  // Sous le billet : les conditions, cochées une à une, puis la marche à suivre.
+  const left = (renderer.visibleWorld?.left ?? 0) + 112, right = (renderer.visibleWorld?.right ?? renderer.width) - 112;
+  const infoX = Math.max(left, Math.min(right, x));
+  let rowY = y + h + 6;
+  const need = presenceNeed(state, config, candidate, building, offer);
+  if (need) {
+    const ok = need.current >= need.required;
+    drawPresenceRow(ctx, infoX, rowY, need, p.factions[candidate.faction_id]?.color, ok, `${ok ? '✓' : '✗'} ${need.current}/${need.required} soutiens dans ce quartier`);
+    rowY += 24;
   }
-  if (offer.label || offer.kind === 'REBUILD') {
-    if (offer.victim_id) { ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27); }
-    if (building.type === 'meeting') {
-      ctx.fillStyle = '#fff1ca'; ctx.strokeStyle = '#4d6648'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.roundRect(x - 67, y - 30, 134, 21, 4); ctx.fill(); ctx.stroke();
+  const missing = offer.cost - candidate.money;
+  const hint = offer.reason === 'INSUFFICIENT_FUNDS' || !offer.affordable && missing > 0 ? `✗ Il vous manque ${formatCost(config, missing)}`
+    : offer.reason && offer.reason !== 'INSUFFICIENT_PRESENCE' ? `✗ ${reasonTexts[offer.reason] || 'Indisponible pour le moment'}` : null;
+  if (hint) { pill(ctx, infoX, rowY, hint, { ink: '#8a3a32', border: '#b98474' }); rowY += 24; }
+  if (need && need.current < need.required) {
+    pill(ctx, infoX, rowY, 'Convainquez des passants dans ce quartier', { ink: '#5b4a2f', border: '#c5b48c', font: '600 10px system-ui' });
+  } else if (offer.enabled) {
+    const progress = candidate.purchase_hold?.key === offer.key ? candidate.purchase_hold.elapsed_ticks / offer.required_ticks : 0;
+    pill(ctx, infoX, rowY, progress > 0 ? 'Achat en cours…' : 'Restez immobile ici pour acheter', { ink: '#2f4a30', border: '#4d6648', progress });
+  }
+  ctx.restore();
+}
+
+const reasonTexts = {
+  CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de dépenses de campagne atteint', CANDIDATE_LIMIT: 'Vous en possédez déjà le maximum',
+  GLOBAL_LIMIT: 'Vous avez déjà le maximum de tours', QUEUE_FULL: 'Imprimerie occupée : revenez plus tard',
+  NO_SYMPATHISANT: 'Il faut un de vos sympathisants dans ce biome', NO_MILITANT: 'Aucun de vos militants dans ce biome',
+  NO_GUARD: 'Aucun service d’ordre disponible', SO_LIMIT: 'Plus de place pour un service d’ordre ici',
+  COOLDOWN: 'Pas encore prêt : patientez un peu', ADMINISTRATIVE_BAN: 'Meeting interdit pour vous (temporaire)',
+  NOT_ON_STAGE: 'Sautez sur la scène pour lancer le meeting', NO_BUILDING: 'Aucune cible à portée',
+};
+const kindTitles = { PRINT: 'COMMANDER DES TRACTS', POLL: 'PUBLIER UN SONDAGE', EQUIP: 'ÉQUIPER VOS MILITANTS', REBUILD: 'RECONSTRUIRE' };
+
+function offerTitle(offer, building, candidate) {
+  if (offer.kind === 'CAPTURE') return building.type === 'permanence' && !candidate.headquarters_site_id
+    ? 'FONDER VOTRE QG ICI' : `PRENDRE : ${buildingLabel(building, candidate.faction_id).toUpperCase()}`;
+  if (offer.kind === 'UPGRADE') return `AMÉLIORER → NIVEAU ${building.level + 1}`;
+  return offer.label || kindTitles[offer.kind] || 'ACHETER';
+}
+
+function formatCost(config, cost) {
+  return cost < 1 ? `${formatNumber(cost * 1000, 0)} €`
+    : `${formatNumber(cost, config.balance.display.currency_precision_decimals)} ${config.balance.display.currency_label}`;
+}
+
+/** Soutiens exigés dans le quartier pour prendre ou améliorer ce bâtiment ; null si la règle ne s'applique pas. */
+function presenceNeed(state, config, candidate, building, offer) {
+  if (!['CAPTURE', 'UPGRADE', 'MEETING'].includes(offer.kind)) return null;
+  const settings = buildingSettings(config, building, candidate.faction_id);
+  const required = settings[`required_presence_N${offer.kind === 'UPGRADE' ? building.level + 1 : 1}`] || 0;
+  return required > 0 ? { required, current: localPoliticalPresence(state, building.subzone_id, candidate.faction_id) } : null;
+}
+
+/** Étiquette papier centrée, avec une éventuelle barre de progression intégrée. */
+function pill(ctx, x, y, text, { ink, border, font = '700 10px system-ui', progress = 0 }) {
+  ctx.save();
+  ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const w = ctx.measureText(text).width + 20, h = 19;
+  ctx.fillStyle = '#fff4d6'; ctx.strokeStyle = border; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y, w, h, 9); ctx.fill();
+  if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.beginPath(); ctx.roundRect(x - w / 2, y, w * Math.min(1, progress), h, 9); ctx.fill(); }
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y, w, h, 9); ctx.stroke();
+  ctx.fillStyle = ink; ctx.fillText(text, x, y + h / 2 + 0.5);
+  ctx.restore();
+}
+
+/** Petits personnages : un par soutien exigé, colorés quand le soutien est présent. */
+function drawPawns(ctx, left, centerY, need, color) {
+  const shown = Math.max(need.required, 1);
+  for (let i = 0; i < shown; i++) {
+    const px = left + i * 9 + 4;
+    const filled = i < need.current;
+    ctx.fillStyle = filled ? color || '#4d6648' : '#e6d8b5'; ctx.strokeStyle = filled ? '#263132' : '#a7977a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(px, centerY - 4, 2.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(px - 3.5, centerY - 0.5, 7, 6, [3, 3, 1, 1]); ctx.fill(); ctx.stroke();
+  }
+  return shown * 9;
+}
+
+function drawPresenceRow(ctx, x, y, need, color, ok, text) {
+  ctx.save();
+  ctx.font = '700 10px system-ui'; ctx.textBaseline = 'middle';
+  const pawnsWidth = Math.max(need.required, 1) * 9;
+  const w = pawnsWidth + ctx.measureText(text).width + 26, h = 19, left = x - w / 2;
+  ctx.fillStyle = '#fff4d6'; ctx.strokeStyle = ok ? '#4d6648' : '#b98474'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.roundRect(left, y, w, h, 9); ctx.fill(); ctx.stroke();
+  drawPawns(ctx, left + 9, y + h / 2, need, color);
+  ctx.textAlign = 'left'; ctx.fillStyle = ok ? '#2f4a30' : '#8a3a32';
+  ctx.fillText(text, left + 15 + pawnsWidth, y + h / 2 + 0.5);
+  ctx.restore();
+}
+
+/**
+ * Repères permanents sur les bâtiments libres ou menacés : combien de soutiens il faut dans le quartier.
+ * Près d'une offre, le quartier concerné est délimité et vos soutiens qui comptent sont entourés.
+ */
+export function drawSiteRequirements(renderer, state) {
+  const { ctx, config, p, metrics: m, width } = renderer;
+  const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
+  if (!candidate || candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return;
+  const color = p.factions[candidate.faction_id]?.color;
+  const focus = candidate.interaction_active && candidate.campaign_active ? nearestOffer(state, config, candidate) : null;
+  ctx.save();
+  for (const building of state.buildings) {
+    if (building.ownership_model !== 'capturable' || building.id === focus?.target_id) continue;
+    const x = renderer.screenX(building.x);
+    if (x < -80 || x > width + 80) continue;
+    const open = ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state);
+    const threatened = building.state === 'ACTIVE' && building.owner_id === candidate.faction_id && !building.headquarters && building.closure_progress > 0;
+    if (!open && !threatened) continue;
+    const current = localPoliticalPresence(state, building.subzone_id, candidate.faction_id);
+    const required = open ? buildingSettings(config, building, candidate.faction_id).required_presence_N1 : building.required_presence;
+    if (!required) continue;
+    const sprite = renderer.assets?.get(buildingAssetId(building, state.world));
+    const y = Math.max(8, buildingGeometry(renderer, building, sprite).top - 26);
+    const need = { required, current };
+    if (threatened) {
+      ctx.globalAlpha = 0.7 + 0.3 * Math.sin(state.tick * 0.3);
+      drawPresenceRow(ctx, x, y, need, color, false, `⚠ ${current}/${required} : bâtiment menacé`);
+      ctx.globalAlpha = 1;
+    } else drawPresenceRow(ctx, x, y, need, color, current >= required, `${current}/${required} soutiens`);
+  }
+  const building = focus && state.buildings.find(b => b.id === focus.target_id);
+  if (building && presenceNeed(state, config, candidate, building, focus)) {
+    const zone = state.world.subzones.find(z => z.id === building.subzone_id);
+    ctx.strokeStyle = '#6b5530'; ctx.fillStyle = '#6b5530'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+    ctx.font = '800 9px system-ui'; ctx.textBaseline = 'alphabetic';
+    for (const [edge, side] of [[zone.start, 1], [zone.end, -1]]) {
+      const ex = renderer.screenX(edge);
+      if (ex < -10 || ex > width + 10) continue;
+      ctx.beginPath(); ctx.moveTo(ex, m.groundY - m.characterHeight * 0.7); ctx.lineTo(ex, m.groundY + 4); ctx.stroke();
+      ctx.textAlign = side > 0 ? 'left' : 'right';
+      ctx.fillText(side > 0 ? 'QUARTIER →' : '← QUARTIER', ex + side * 5, m.groundY - m.characterHeight * 0.6);
     }
-    ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label || 'RECONSTRUIRE', x, building.type === 'meeting' ? y - 16 : y - 7);
-    if (offer.victim_id) {
-      const victim = state.buildings.find(b => b.id === offer.victim_id);
-      ctx.font = '9px system-ui'; ctx.fillText(`${buildingLabel(victim)} · ${victim.subzone_id}`, x, y - 20);
+    ctx.setLineDash([]);
+    ctx.strokeStyle = color || '#4d6648'; ctx.lineWidth = 2;
+    for (const npc of state.npcs) {
+      if (npc.faction_id !== candidate.faction_id || !['SYMPATHISANT', 'MILITANT'].includes(npc.role)
+        || zoneAt(state.world, npc.x).id !== building.subzone_id) continue;
+      const nx = renderer.screenX(npc.x);
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(state.tick * 0.2);
+      ctx.beginPath(); ctx.ellipse(nx, m.groundY + m.characterHeight * 0.06, m.characterHeight * 0.2, 5, 0, 0, Math.PI * 2); ctx.stroke();
     }
   }
   ctx.restore();

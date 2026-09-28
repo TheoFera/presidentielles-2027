@@ -1,0 +1,77 @@
+/* Bilan de fin de partie : panneau posé sur le plateau de la soirée électorale. */
+.match-summary { position: absolute; inset: 0; z-index: 8; container-type: size; display: grid; place-items: center; padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); background: #030a1ccc; backdrop-filter: blur(6px); animation: summary-in .35s ease-out; }
+.match-summary-panel { --u: min(1cqw, 1.78cqh); width: min(100%, calc(var(--u) * 96)); max-height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: calc(var(--u) * 1.4); padding: calc(var(--u) * 2) calc(var(--u) * 2.4); overflow: hidden; background: linear-gradient(170deg, #0f2458f2, #071433f7 60%); border: 1px solid #7fc7ff55; border-top: calc(var(--u) * .45) solid var(--gold, #ffd35a); border-radius: calc(var(--u) * 1.2); box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 6) #000a, inset 0 0 calc(var(--u) * 8) #3aa0ff14; }
+.match-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.match-summary-head p { margin: 0; font-size: max(10px, calc(var(--u) * 1.2)); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #a9dcff; }
+.match-summary-head h2 { margin: 0; font-size: max(20px, calc(var(--u) * 3.4)); line-height: 1; text-transform: uppercase; letter-spacing: .02em; }
+.match-summary-head h2:focus { outline: none; }
+#results .match-summary-head button { flex: none; min-height: max(38px, calc(var(--u) * 3.4)); padding: 0 max(12px, calc(var(--u) * 1.4)); font-size: max(13px, calc(var(--u) * 1.3)); white-space: nowrap; }
+
+.summary-chart-card { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: calc(var(--u) * .6); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * .6); background: #020a1f99; border: 1px solid #5cc1ff26; border-radius: calc(var(--u) * .9); }
+.summary-chart-card h3 { margin: 0; font-size: max(11px, calc(var(--u) * 1.3)); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #cfe6ff; }
+.summary-chart-card h3 small { margin-left: .6em; font-size: .85em; font-weight: 600; letter-spacing: .02em; text-transform: none; color: #8fb4d9; }
+.summary-chart { display: block; width: 100%; height: 100%; min-height: 0; overflow: visible; }
+.summary-grid line { stroke: #7fc7ff26; stroke-width: 1; }
+.summary-axis { fill: #8fb4d9; font: 700 11px system-ui, sans-serif; }
+.summary-sprint { fill: #ffd35a14; }
+.summary-sprint-label { fill: #ffd35acc; font: 800 10px system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.summary-series { color: var(--party); }
+.summary-line { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: summary-draw 1.5s cubic-bezier(.3, .7, .3, 1) var(--delay) forwards; }
+.summary-series.is-you .summary-line { stroke-width: 4; filter: drop-shadow(0 0 4px currentColor); }
+.summary-area { fill: currentColor; opacity: 0; animation: summary-area .8s ease-out calc(var(--delay) + 1s) forwards; }
+.summary-dot { fill: currentColor; stroke: #fff; stroke-width: 2; opacity: 0; animation: summary-fade .3s ease-out calc(var(--delay) + 1.4s) forwards; }
+.summary-end { fill: var(--party); font: 900 12px system-ui, sans-serif; paint-order: stroke; stroke: #071433; stroke-width: 3px; opacity: 0; animation: summary-fade .3s ease-out 1.8s forwards; }
+.summary-empty { margin: 0; align-self: center; text-align: center; color: #a9c4e3; font-size: max(12px, calc(var(--u) * 1.3)); }
+
+.summary-camps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--u) * 1.1); }
+.summary-camp { min-width: 0; padding: calc(var(--u) * 1) calc(var(--u) * 1.2); background: linear-gradient(160deg, color-mix(in srgb, var(--party) 24%, #0b1d45), #0a183a); border: 1px solid color-mix(in srgb, var(--party) 55%, transparent); border-left: calc(var(--u) * .4) solid var(--party); border-radius: calc(var(--u) * .8); opacity: 0; animation: summary-rise .45s ease-out forwards; }
+.summary-camp:nth-child(2) { animation-delay: .12s; }
+.summary-camp:nth-child(3) { animation-delay: .24s; }
+.summary-camp.is-you { box-shadow: 0 0 0 1px var(--gold, #ffd35a), 0 0 calc(var(--u) * 2) #ffd35a33; }
+.summary-camp header { display: flex; align-items: center; gap: calc(var(--u) * .8); margin-bottom: calc(var(--u) * .7); }
+.summary-camp header > div { display: grid; min-width: 0; flex: 1; }
+.summary-camp .election-avatar { width: calc(var(--u) * 3.4); filter: none; }
+.summary-camp strong { font-size: max(15px, calc(var(--u) * 2)); line-height: 1; text-transform: uppercase; letter-spacing: .03em; }
+.summary-camp header small { font-size: max(10px, calc(var(--u) * 1.05)); font-weight: 700; color: #c7dcf5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.summary-camp .election-you { flex: none; padding: .2em .55em; font-size: max(10px, calc(var(--u) * 1)); color: var(--ink, #071433); background: var(--gold, #ffd35a); border-radius: 3px; }
+.summary-camp dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: calc(var(--u) * .45); }
+.summary-camp dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.summary-camp dt { font-size: max(10px, calc(var(--u) * 1.1)); color: #a9c4e3; white-space: nowrap; }
+.summary-camp dd { margin: 0; display: flex; align-items: baseline; gap: .45em; font-size: max(13px, calc(var(--u) * 1.6)); font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary-camp dd small { font-size: .62em; font-weight: 700; color: #a9c4e3; }
+
+@keyframes summary-in { from { opacity: 0; } }
+@keyframes summary-draw { to { stroke-dashoffset: 0; } }
+@keyframes summary-fade { to { opacity: 1; } }
+@keyframes summary-area { to { opacity: .14; } }
+@keyframes summary-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Téléphone en paysage : chiffres plus serrés, rang affiché sur une ligne. */
+@container (max-height: 430px) {
+  .match-summary-panel { width: 100%; gap: 6px; padding: 8px 12px; }
+  .match-summary-head p { display: none; }
+  .match-summary-head h2 { font-size: 20px; }
+  #results .match-summary-head button { min-height: 34px; }
+  .summary-chart-card { padding: 6px 10px 2px; gap: 2px; }
+  .summary-chart-card h3 { font-size: 10px; }
+  .summary-axis, .summary-sprint-label { font-size: 15px; }
+  .summary-end { font-size: 16px; }
+  .summary-camps { gap: 8px; }
+  .summary-camp { padding: 5px 9px; }
+  .summary-camp header { margin-bottom: 3px; }
+  .summary-camp .election-avatar { width: 26px; }
+  .summary-camp strong { font-size: 14px; }
+  .summary-camp dl { gap: 0; }
+  .summary-camp dt, .summary-camp header small { font-size: 10px; }
+  .summary-camp dd { font-size: 12px; }
+  .summary-camp dd small { display: none; }
+}
+@container (max-width: 560px) {
+  .summary-camps { grid-template-columns: 1fr; }
+  .summary-camp { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; }
+  .summary-camp header { margin: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .match-summary, .summary-camp, .summary-line, .summary-area, .summary-dot, .summary-end { animation: none; opacity: 1; stroke-dashoffset: 0; }
+  .summary-area { opacity: .14; }
+}

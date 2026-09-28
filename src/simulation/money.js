@@ -12,14 +12,25 @@ export function addMoneyPickup(sim, x, height_ratio, amount_cents) {
   return pickup;
 }
 
-export function scatterMoney(sim, x, amountCents, count = sim.config.balance.money.max_drop_pickups) {
-  if (!amountCents) return;
+// Découpe une somme en plusieurs billets au sol. La somme des billets vaut exactement amountCents.
+// Avec toss, chaque billet part de x, vole jusqu'à sa place et n'est ramassable qu'à l'atterrissage.
+export function scatterMoney(sim, x, amountCents, count = sim.config.balance.money.max_drop_pickups, { toss = false } = {}) {
+  if (!(amountCents > 0)) return [];
   const number = Math.min(count, amountCents);
   const spread = sim.config.balance.money.drop_spread_units;
+  const tossTicks = Math.max(1, sim.secondsToTicks(sim.config.balance.money.donation.handoff_toss_seconds));
+  const pickups = [];
   for (let i = 0; i < number; i++) {
     const amount = Math.floor(amountCents / number) + (i < amountCents % number ? 1 : 0);
-    addMoneyPickup(sim, x + (number === 1 ? 0 : (i / (number - 1) - 0.5) * spread * 2), 0, amount);
+    const pickup = addMoneyPickup(sim, x + (number === 1 ? 0 : (i / (number - 1) - 0.5) * spread * 2), 0, amount);
+    if (toss && number > 1) {
+      pickup.toss_origin_x = wrap(x, sim.state.world.length);
+      pickup.toss_started_tick = sim.state.tick;
+      pickup.collect_after_tick = sim.state.tick + tossTicks;
+    }
+    pickups.push(pickup);
   }
+  return pickups;
 }
 
 export function initializeMoney(sim) {
@@ -176,6 +187,7 @@ export function dropCandidateMoney(sim, candidate) {
   const before = cents(candidate.money);
   const lost = Math.round(before * sim.config.balance.candidate_combat.ko_money_drop_ratio);
   candidate.money = thousands(before - lost);
-  scatterMoney(sim, candidate.x, lost);
+  // Les billets s'éparpillent autour du candidat au lieu d'être aspirés d'un bloc par l'adversaire au contact.
+  scatterMoney(sim, candidate.x, lost, undefined, { toss: true });
   return lost;
 }

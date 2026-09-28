@@ -197,5 +197,16 @@ for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 
     visualManifest[`npc-${biome}-${variant}`] = {
       file: new URL(`../../assets/generated/npc-v2/npc-${biome}-${variant}.png?v=5`, import.meta.url).href,
     };
+    visualManifest[`npc-${biome}-${variant}-militant`] = {
+      file: new URL(`../../assets/generated/npc-militants/npc-${biome}-${variant}-militant.png?v=1`, import.meta.url).href,
+    };
   }
 }
+
+// Cette silhouette avait des trous et des taches parasites au niveau du pantalon.
+visualManifest['npc-banlieue-9'] = {
+  file: new URL('../../assets/generated/npc-v2/npc-banlieue-9-fixed.png?v=1', import.meta.url).href,
+};
+visualManifest['npc-riches-18'] = {
+  file: new URL('../../assets/generated/npc-v2/npc-riches-18-fixed.png?v=1', import.meta.url).href,
+};

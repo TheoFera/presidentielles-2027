@@ -5,6 +5,9 @@ import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaig
 import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
 import { formatCarriedMoney } from './presentation/money.js';
+import { MoneyCounter } from './presentation/money-counter.js';
+import { GameAudio, SoundDirector } from './presentation/audio.js';
+import { recordMatchResult } from './presentation/player-profile.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
@@ -16,7 +19,7 @@ import { ElectoralDisplay } from './presentation/electoral.js';
 import { interpolatedPlayerX } from './presentation/player-position.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
-import { installLandscape, portraitPhone } from './presentation/landscape.js';
+import { installLandscape } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
@@ -40,6 +43,17 @@ async function start() {
   document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
   const profile = loadCampaignProfile();
   try { saveCampaignProfile(profile); } catch { console.warn('Le profil ne peut pas être enregistré dans ce navigateur.'); }
+  // Le profil reste le même objet : les simulations et l'écran des styles gardent leur référence.
+  const account = {
+    get: () => profile,
+    save: patch => { Object.assign(profile, patch); try { Object.assign(profile, saveCampaignProfile(profile)); } catch { /* Stockage indisponible : gardé pour cette session. */ } },
+  };
+  const audio = new GameAudio();
+  // Le navigateur n'autorise le son qu'après un geste de l'utilisateur.
+  for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
+  document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button')) audio.play('ui'); }, true);
+  const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
+  let resultRecorded = false;
   let simulation = new GameSimulation(config, config.prototype.seed, 'candidate:melenchon', profile);
   let state = simulation.getState();
   let previous = state;
@@ -65,14 +79,15 @@ async function start() {
   const help = document.getElementById('help');
   const money = document.getElementById('money');
   const funds = document.getElementById('funds');
+  const moneyCounter = new MoneyCounter(money, formatCarriedMoney);
   document.getElementById('budget-help').textContent = `Plafond de dépenses : ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ par candidat sur toute la partie. Les remboursements ne rétablissent pas ce budget.`;
   const notice = document.getElementById('notice');
   let pending = [];
   let paused = true;
   let wakeLock = null;
   let wakePending = false;
-  // In multiplayer the screen stays on in the lobby and the pause menu too: a
-  // sleeping phone suspends its page and drops the connection for everybody.
+  // In multiplayer the screen stays on in the lobby and the help panel too:
+  // a sleeping phone suspends its page and drops the connection for everybody.
   const screenIdle = () => document.hidden || (!session && (paused || menu?.active));
   async function keepScreenAwake() {
     if (screenIdle()) { try { await wakeLock?.release(); } catch { /* Already released by the browser. */ } wakeLock = null; return; }
@@ -104,19 +119,20 @@ async function start() {
   const queue = command => { pending.push(command); canvas.focus(); };
   const resetPresentation = () => {
     state = simulation.getState(); previous = state; pending = []; clock.reset(); input.clear(); renderer.resetCamera();
-    matchDisplay.reset();
+    matchDisplay.reset(); moneyCounter.reset(); sounds.reset();
+    // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
+    resultRecorded = state.phase === 'RESULTS';
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
   function restartMatch(home = false, seed = config.prototype.seed) {
     simulation = new GameSimulation(config, seed, state.local_candidate_id, profile);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
-    debug.toggle(false); togglePause(home); document.getElementById('resume').textContent = home ? 'Commencer la campagne' : 'Reprendre';
+    debug.toggle(false); paused = home; help.hidden = true; input.clear(); clock.reset(); canvas.focus();
   }
   const debug = new DebugPanel(config, {
     state: () => state, queue, notify,
-    paused: () => paused, speed: () => simulationSpeed,
-    togglePause: () => togglePause(!paused, false),
+    speed: () => simulationSpeed,
     toggleSpeed: () => { const speeds = config.balance.debug.acceleration_multipliers; simulationSpeed = speeds[(speeds.indexOf(simulationSpeed) + 1) % speeds.length]; canvas.focus(); },
     speedFive: () => { simulationSpeed = 5; canvas.focus(); },
     saveTelemetry: () => {
@@ -141,18 +157,15 @@ async function start() {
       notify(`Nouvelle partie · graine ${seed}`);
     },
   });
-  function togglePause(force = !paused, showHelp = true) {
-    if (menu?.active) return;
-    if (state.campaign_style_selection) return;
-    if (session) { session.request('pause', { paused: force }).catch(error => { if (!error.transient) session?.fail(error.message); }); return; }
-    paused = force; help.hidden = !paused || !showHelp; input.clear(); clock.reset();
-    void keepScreenAwake();
-    simulation.applyCommand({ type: 'HoldCampaignStyle', candidateId: state.local_candidate_id, active: false });
-    if (!paused || !showHelp) canvas.focus();
-    else { document.getElementById('resume').focus({ preventScroll: true }); document.getElementById('help').scrollTop = 0; }
+  function toggleHelp() {
+    if (menu?.active || state.campaign_style_selection) return;
+    help.hidden = !help.hidden; input.clear();
+    if (help.hidden) canvas.focus();
+    else { document.getElementById('resume').focus({ preventScroll: true }); help.scrollTop = 0; }
   }
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
+    if (!help.hidden) { if (['h', 'escape'].includes(key)) toggleHelp(); return; }
     if (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return;
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
@@ -167,7 +180,7 @@ async function start() {
       }
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
-    else if (['h', 'escape', 'p'].includes(key)) togglePause();
+    else if (key === 'h') toggleHelp();
     else if (key === 'f3') { if (!session) debug.toggle(); }
     else if (key === 'f') {
       try {
@@ -182,8 +195,8 @@ async function start() {
     if (session && !session.host) { pending.push(command); return; }
     simulation.applyCommand(command); state = simulation.getState();
   }, () => { input.clear(); pending = []; clock.reset(); });
-  document.getElementById('resume').addEventListener('click', () => togglePause(false));
-  document.getElementById('pause-home').addEventListener('click', () => returnHome());
+  document.getElementById('resume').addEventListener('click', toggleHelp);
+  document.getElementById('help-home').addEventListener('click', () => returnHome());
   document.querySelectorAll('[data-help-tab]').forEach(button => button.addEventListener('click', () => {
     document.querySelectorAll('[data-help-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab === button)));
     document.querySelectorAll('[data-help-page]').forEach(page => { page.hidden = page.dataset.helpPage !== button.dataset.helpTab; });
@@ -192,7 +205,6 @@ async function start() {
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
     wasHidden = true; input.clear(); clock.reset();
-    if (session?.room.phase === 'playing' && document.hidden) session.request('pause', { paused: true }).catch(error => { if (!error.transient) session?.fail(error.message); });
     if (!document.hidden) { previousTime = performance.now(); session?.resume?.(); }
     // The browser releases the wake lock with a hidden page: take it back on return.
     void keepScreenAwake();
@@ -248,7 +260,7 @@ async function start() {
       onProgress(1);
     } finally { finished = true; clearTimeout(timeout); }
   }
-  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); if (portraitPhone()) togglePause(true); void keepScreenAwake(); }
+  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
     if (room.phase === 'pairing') {
@@ -261,9 +273,9 @@ async function start() {
     } else if (room.phase === 'playing') {
       if (roomPhase !== 'playing') { menu.close(); play(); }
       const changed = paused !== room.paused;
-      paused = room.paused; help.hidden = !paused;
+      paused = room.paused;
       void keepScreenAwake();
-      if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; if (paused) document.getElementById('resume').focus(); else canvas.focus(); }
+      if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; canvas.focus(); }
     }
     roomPhase = room.phase;
   }
@@ -304,12 +316,9 @@ async function start() {
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
-  menu = new StartMenu({ prepare, play, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
+  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
   menu.leave = stopSession;
-  window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => {
-    input.clear();
-    if (portraitPhone() && !menu.active && !paused) togglePause(true);
-  });
+  window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
 
   function matchCommands() {
@@ -345,7 +354,7 @@ async function start() {
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
-      if (menu.active) { requestAnimationFrame(frame); return; }
+      if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
       if (!paused && !document.hidden && (!session || session.host)) {
         clock.advance(elapsed * simulationSpeed, () => {
           previous = state;
@@ -392,7 +401,12 @@ async function start() {
         currentDay = state.days_remaining;
         if (config.balance.display.show_day_change_flash) notify(`J-${currentDay}`, config.prototype.presentation.day_flash_seconds);
       }
-      setText(money, formatCarriedMoney(candidate.money));
+      moneyCounter.update(candidate.money, candidate.id, elapsed);
+      sounds.update(state, { paused: paused || !help.hidden });
+      if (state.phase === 'RESULTS' && !resultRecorded) {
+        resultRecorded = true;
+        account.save(recordMatchResult(profile, state, { multiplayer: !!session }));
+      }
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       if (noticeRemaining <= 0) setText(notice, '');

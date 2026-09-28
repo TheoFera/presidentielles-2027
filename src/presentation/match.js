@@ -1,4 +1,5 @@
 import { ElectionResults, electionModel } from './election-results.js';
+import { MatchSummary } from './match-summary.js';
 import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { formatNumber } from './number-format.js';
@@ -62,12 +63,19 @@ export class MatchDisplay {
     const select = document.getElementById('spectator-follow');
     select.addEventListener('change', () => { this.followId = select.value; callbacks.follow(); });
     this.election = new ElectionResults(this.results);
+    this.summary = new MatchSummary(this.results);
+  }
+  openSummary() {
+    const stage = this.results.querySelector('.election-stage');
+    if (!stage || !this.latest) return;
+    this.summary.host = stage;
+    this.summary.open(this.latest, () => this.results.querySelector('[data-action="summary"]')?.focus({ preventScroll: true }));
   }
   viewedCandidate(state) {
     const local = state.candidates.find(c => c.id === state.local_candidate_id);
     return local.eliminated ? state.candidates.find(c => c.id === this.followId && !c.eliminated) || state.candidates.find(c => !c.eliminated) : local;
   }
-  reset() { this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
+  reset() { this.summary.close(); this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
   update(state) {
     const names = this.config.prototype.presentation.factions;
     const arena = state.phase === GamePhase.FIRST_ROUND_ARENA; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
@@ -109,14 +117,17 @@ export class MatchDisplay {
       card.fill.style.width = `${c.arena_initial_hp ? c.arena_hp / c.arena_initial_hp * 100 : 0}%`;
       card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }
+    this.latest = state;
     const announced = finished || state.phase === GamePhase.FIRST_ROUND_RESULTS;
     const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;
     if (signature !== this.resultSignature) {
       this.resultSignature = signature;
+      this.summary.close();
       if (!announced) this.election.clear();
       else this.election.render(electionModel(state), { host: this.callbacks.isHost?.() ?? true,
         multiplayer: this.callbacks.isMultiplayer?.() ?? false, onContinue: this.callbacks.continue,
-        onReplay: this.callbacks.replay, onReturn: this.callbacks.return });
+        onReplay: this.callbacks.replay, onReturn: this.callbacks.return,
+        onSummary: finished ? () => this.openSummary() : null });
     }
   }
 }

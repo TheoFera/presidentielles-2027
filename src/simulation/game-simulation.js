@@ -17,6 +17,7 @@ import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from
 import { GamePhase, commandAllowed } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
 import { initialMatchState, startArena, finishArena, finishSprint, applyMatchDebug } from './match-lifecycle.js';
+import { recordMatchHistory } from './match-history.js';
 import { updateStrategicSites } from './strategic-sites.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
 import { initializeMoney, prepareDonations, scheduleNextDonation, settleMoney, updateDonationCourier } from './money.js';
@@ -93,6 +94,7 @@ export class GameSimulation {
     CampaignStyleSystem.initialize(this, profile);
     this.state.spawn_timers = createSpawnTimers(this);
     refreshElectoralState(this.state);
+    recordMatchHistory(this, true);
   }
 
   secondsToTicks(seconds) { return Math.ceil(seconds * this.hz - 1e-9); }
@@ -149,7 +151,7 @@ export class GameSimulation {
       x: wrap(x, this.state.world.length), facing: random(this.state) < 0.5 ? -1 : 1,
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
-      combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null,
+      combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null, meeting_wave_id: null,
       donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1,
     };
     this.state.npcs.push(npc);
@@ -367,6 +369,7 @@ export class GameSimulation {
       });
       if (state.sprint_remaining_ticks === 0) finishSprint(this);
     }
+    recordMatchHistory(this, state.phase !== previousPhase);
   }
 
   persuasionTicks(actor) {

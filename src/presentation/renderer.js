@@ -1,13 +1,13 @@
 import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
 import { interpolatedPlayerX } from './player-position.js';
-import { drawInfrastructure, drawBanknote } from './infrastructure.js';
+import { drawInfrastructure, drawBanknote, drawSiteRequirements } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
-import { drawMeetingForeground, drawTerritoryFlags, isOnMeetingStage } from './electoral.js';
+import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from './electoral.js';
 import { drawArena } from './match.js';
 import { VisualAssets } from './visual-assets.js';
 import { visualManifest } from './visual-manifest.js';
-import { drawIllustratedCharacter } from './illustrated-characters.js';
+import { drawIllustratedCharacter, meetingCrowdRow } from './illustrated-characters.js';
 import { preloadWorld, drawIllustratedSky, drawIllustratedDistance, drawIllustratedMiddle, drawIllustratedStreet, drawIllustratedZone, drawIllustratedGround } from './illustrated-world.js';
 import { drawSeasonalScenery } from './illustrated-vegetation.js';
 import { prepareSceneryImage } from './illustrated-world.js';
@@ -117,7 +117,9 @@ export class WorldRenderer {
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     if (illustrated) drawIllustratedGround(this);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
-    const entities = [...state.npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
+    // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
+    const npcs = [...state.npcs].sort((a, b) => meetingCrowdRow(a) - meetingCrowdRow(b));
+    const entities = [...npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
     const drawEntities = group => {
       for (const entity of group) {
@@ -130,7 +132,9 @@ export class WorldRenderer {
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
     drawEntities(entities.filter(entity => !onMeeting(entity)));
+    drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);
+    drawSiteRequirements(this, state);
     drawBanknote(this, state);
     drawMoneyFeedback(this, state);
     drawCombatEffects(this, state, debug);

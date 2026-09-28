@@ -57,7 +57,7 @@
     "pickup_hover_amplitude_px": 3,
     "pickup_hover_period_seconds": 1.8,
     "pickup_halo_opacity": 0.22,
-    "drop_spread_units": 1.5,
+    "drop_spread_units": 3,
     "max_drop_pickups": 12,
     "sprite_tiers_eur": [100, 500, 2000]
   },
@@ -503,7 +503,7 @@
       "gather_spacing": 0.22,
       "podium_height": 0.3,
       "podium_half_width": 1.35,
-      "wave_visual_seconds": 0.8,
+      "wave_visual_seconds": 1.5,
       "purchase_hold_seconds": 2,
       "upgrade_pause_seconds": 0.4,
       "interaction_radius": 0.45,

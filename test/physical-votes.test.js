@@ -88,9 +88,35 @@ test('le meeting exige le promontoire et son onde reste dans la sous-zone', () =
   assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
   advance(sim, sim.secondsToTicks(15));
   assert.equal(podium.meetings_held, 1);
+  advance(sim, sim.secondsToTicks(config.balance.buildings.meeting.wave_visual_seconds) + 1);
   assert.equal(local[0].role, 'NEUTRE');
   assert.equal(outside.faction_id, 'le_pen');
   assert.equal(sim.state.npcs.filter(npc => zoneAt(sim.state.world, npc.x).id === podium.subzone_id && npc.role === 'NEUTRE').length, 1);
+});
+
+test('l’onde de fin de meeting convertit chaque PNJ quand le cercle l’atteint', () => {
+  const sim = make();
+  const podium = sim.state.buildings.find(building => building.type === 'meeting');
+  const zone = sim.state.world.subzones.find(item => item.id === podium.subzone_id);
+  const candidate = sim.state.candidates[0];
+  for (const other of sim.state.candidates.slice(1)) other.campaign_active = false;
+  candidate.x = podium.x; candidate.axis = 0;
+  const near = sim.state.npcs.find(npc => npc.role === 'NEUTRE');
+  const far = sim.state.npcs.find(npc => npc !== near && npc.role === 'NEUTRE');
+  candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
+  assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
+  advance(sim, sim.secondsToTicks(15) - 1);
+  // Les PNJ restent en place pendant l’onde pour mesurer l’instant de la conversion.
+  const freeze = () => { near.x = podium.x + 0.05; far.x = zone.start + 0.05; near.roam_wait_ticks = far.roam_wait_ticks = 999; };
+  freeze(); sim.step(); freeze();
+  assert.equal(podium.meetings_held, 1);
+  assert.equal(podium.meeting_wave_faction_id, 'melenchon');
+  sim.step(); freeze();
+  assert.equal(near.role, 'SYMPATHISANT');
+  assert.equal(far.role, 'NEUTRE');
+  for (let i = 0; i < sim.secondsToTicks(config.balance.buildings.meeting.wave_visual_seconds); i++) { sim.step(); freeze(); }
+  assert.equal(far.role, 'SYMPATHISANT');
+  assert.equal(podium.meeting_wave_faction_id, null);
 });
 
 test('le meeting garde sa progression cinq secondes puis s’annule', () => {

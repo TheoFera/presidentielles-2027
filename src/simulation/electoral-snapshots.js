@@ -39,6 +39,7 @@ export function validateElectoralSnapshot(state, config, fail) {
     if (!integer(building.meeting_until_tick) || !integer(building.meeting_started_tick, -1) || building.meeting_started_tick > state.tick
       || !integer(building.meeting_hold_ticks) || !integer(building.meeting_pause_ticks) || !integer(building.meetings_held)
       || !integer(building.meeting_wave_tick, -1) || building.meeting_wave_tick > state.tick
+      || building.meeting_wave_faction_id != null && !FACTIONS.includes(building.meeting_wave_faction_id)
       || !building.meeting_ready_by_faction || !building.meeting_banned_until_by_faction
       || FACTIONS.some(faction => !integer(building.meeting_ready_by_faction[faction]) || !integer(building.meeting_banned_until_by_faction[faction]))
       || (building.meeting_candidate_id ? !candidate || candidate.faction_id !== building.meeting_faction_id

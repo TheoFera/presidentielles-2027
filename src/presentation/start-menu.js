@@ -1,10 +1,13 @@
 import { CANDIDATES, homeContent, candidatesContent, tutorialContent } from './arcade-content.js';
 import { enterLandscape, syncOrientation } from './landscape.js';
+import { profileButton, profileContent, cleanNickname } from './player-profile.js';
+const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
 export { CANDIDATES } from './arcade-content.js';
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer, combat }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, selected: null, generation: 0 });
+  constructor({ prepare, play, multiplayer, combat, audio = null, account = null }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -26,9 +29,24 @@ export class StartMenu {
     this.back = back;
     this.screen = screen; this.generation++; this.element.dataset.screen = screen;
     this.element.hidden = false; this.game.inert = true;
-    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${screen !== 'home' ? '<button id="menu-back">← Retour</button>' : '<span></span>'}<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
+    const left = screen !== 'home' ? '<button id="menu-back">← Retour</button>' : this.account ? profileButton(this.account.get()) : '<span></span>';
+    const sound = this.audio ? '<button id="menu-sound" aria-pressed="false"></button>' : '';
+    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button></span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
+    this.element.querySelector('#menu-profile')?.addEventListener('click', () => this.profile());
     this.element.querySelector('#menu-fullscreen').onclick = () => void enterLandscape();
+    const soundButton = this.element.querySelector('#menu-sound');
+    if (soundButton) {
+      const paint = () => {
+        const muted = this.audio.muted;
+        soundButton.innerHTML = muted ? SOUND_OFF : SOUND_ON;
+        soundButton.setAttribute('aria-pressed', String(muted));
+        soundButton.setAttribute('aria-label', muted ? 'Activer le son' : 'Couper le son');
+        soundButton.title = muted ? 'Son coupé' : 'Son activé';
+      };
+      soundButton.onclick = () => { this.audio.unlock(); this.audio.toggle(); paint(); };
+      paint();
+    }
     syncOrientation();
     (this.element.querySelector('h1') || this.element.querySelector('button'))?.focus({ preventScroll: true });
     this.element.scrollTop = 0;
@@ -39,6 +57,14 @@ export class StartMenu {
     const mobileLandscape = () => { if (window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
     this.element.querySelector('#solo').onclick = () => { mobileLandscape(); this.candidates(); };
     this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this); };
+  }
+  profile() {
+    this.page('profile', 'Mon profil', profileContent(this.account.get()));
+    const input = this.element.querySelector('#profile-nickname');
+    const save = () => { const nickname = cleanNickname(input.value); this.account.save({ nickname }); return nickname; };
+    input.addEventListener('input', save);
+    input.addEventListener('change', () => { input.value = save(); });
+    input.addEventListener('keydown', event => { if (event.key === 'Enter') input.blur(); });
   }
   candidates() {
     this.selected = null;
@@ -57,10 +83,9 @@ export class StartMenu {
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', 'En route vers l’Élysée', tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
+    this.page('loading', "Plus qu'1 an avant le premier tour de l'élection présidentielle", tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
     if (multiplayer) {
       this.element.querySelector('.eyebrow').textContent = `MULTIJOUEUR · ${candidate.short}`;
-      this.element.querySelector('.menu-footer .menu-note').textContent = 'Départ quand tous sont prêts.';
     }
     const generation = this.generation;
     try {

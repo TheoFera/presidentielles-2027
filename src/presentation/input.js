@@ -6,6 +6,10 @@ export class BrowserInput {
     window.addEventListener('keydown', event => {
       if (document.getElementById('game')?.inert) return;
       if (event.target.closest?.('#campaign-styles')) return;
+      if (document.getElementById('help')?.hidden === false) {
+        if (['h', 'escape'].includes(event.key.toLowerCase()) && !event.repeat) onAction(event.key.toLowerCase());
+        return;
+      }
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();
       if ([' ', 'arrowup'].includes(key)) event.preventDefault();

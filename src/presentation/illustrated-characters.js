@@ -1,6 +1,7 @@
 import { drawCandidateCombat } from './melenchon-combat.js';
 import { drawUltimateCharacter } from './ultimate-sprites.js';
 import { specialCharacterAssetId } from './campaign-style-art.js';
+import { militantSpriteForFaction } from './militant-sprites.js';
 import { zoneAt } from '../simulation/world.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
@@ -57,7 +58,8 @@ export function characterAssetId(entity, state) {
   const origin = state.world?.subzones.find(z => z.id === entity.origin_subzone_id)
     || (state.world?.subzones.length ? zoneAt(state.world, entity.x) : null);
   const homeBiome = biomeArtId(origin?.biome_id || 'bobo');
-  return npcAppearanceAssetId(entity, state, homeBiome);
+  const appearance = npcAppearanceAssetId(entity, state, homeBiome);
+  return entity.role === 'MILITANT' ? `${appearance}-militant` : appearance;
 }
 
 // Animation follows simulation events; no animation can delay or mutate a command.
@@ -76,24 +78,40 @@ export function characterAnimation(entity, state) {
   if (entity.purchase_hold || entity.task?.phase === 'PICKUP') return 'interact_hold';
   if (entity.role === 'DEMOBILISE') return 'demobilised_return';
   if (entity.moving) return entity.combat?.engaged || entity.task?.kind === 'RAID' ? 'run' : 'walk';
-  if (state.buildings?.some(b => b.type === 'meeting' && b.meeting_until_tick > state.tick && b.meeting_faction_id === entity.faction_id)) return 'meeting';
+  if (entity.meeting_target_id) return 'meeting';
   return 'idle';
+}
+
+/** Rang de profondeur dans la foule d'un meeting : 0 hors meeting, puis 1 (fond) à 3 (devant). */
+export function meetingCrowdRow(entity) {
+  return entity.meeting_target_id ? 1 + (Number(entity.id?.slice(4)) || 0) % 3 : 0;
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
   if (drawUltimateCharacter(renderer, entity, x, state)) return true;
   if (drawCandidateCombat(renderer, entity, x, state)) return true;
   const id = characterAssetId(entity, state);
-  const sprite = renderer.assets.get(id);
-  if (!sprite) { void renderer.assets.load(id); return false; }
+  const source = renderer.assets.get(id);
+  if (!source) { void renderer.assets.load(id); return false; }
   const { ctx, metrics: m, p } = renderer;
-  const groundY = m.groundY + m.characterHeight * 0.06;
-  const feetY = groundY - (entity.combat?.height || 0) * m.characterHeight;
-  const candidate = entity.role === 'CANDIDAT';
-  const height = m.characterHeight * (candidate ? 1 : p.npc_height_multiplier);
-  const width = height * sprite.naturalWidth / sprite.naturalHeight;
+  const faction = p.factions[entity.faction_id];
+  const sprite = entity.role === 'MILITANT' && faction
+    ? militantSpriteForFaction(source, faction.color) : source;
+  const spriteWidth = sprite.naturalWidth || sprite.width;
+  const spriteHeight = sprite.naturalHeight || sprite.height;
   const time = state.tick / renderer.config.balance.simulation_architecture.fixed_tick_hz;
   const animation = characterAnimation(entity, state);
+  // Foule : chaque rang est un peu plus bas et plus grand, comme s'il était plus proche de la caméra.
+  const row = meetingCrowdRow(entity);
+  const seed = Number(entity.id?.slice(4)) || 0;
+  const rally = animation === 'meeting' ? state.buildings?.find(b => b.id === entity.meeting_target_id) : null;
+  const supporter = !!rally && entity.role === 'SYMPATHISANT' && entity.faction_id === rally.meeting_faction_id;
+  const cheer = rally && !entity.moving ? Math.max(0, Math.sin(time * 6.5 + seed * 1.7)) : 0;
+  const groundY = m.groundY + m.characterHeight * (0.06 + (row ? row - 1 : 0) * 0.045);
+  const feetY = groundY - (entity.combat?.height || 0) * m.characterHeight - cheer * m.characterHeight * (supporter ? 0.06 : 0.02);
+  const candidate = entity.role === 'CANDIDAT';
+  const height = m.characterHeight * (candidate ? 1 : p.npc_height_multiplier) * (1 + (row ? row - 1 : 0) * 0.04);
+  const width = height * spriteWidth / spriteHeight;
   const walking = ['walk', 'run', 'demobilised_return'].includes(animation);
   const stride = walking ? Math.sin(time * (animation === 'run' ? 20 : 13)) : 0;
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
@@ -102,7 +120,6 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const action = candidate
     ? attacking ? (windup ? -0.09 : attack?.strong ? 0.23 : 0.16) : animation === 'knockback' ? -0.25 : animation === 'special_start' ? -0.1 : animation === 'special_recovery' ? 0.07 : animation === 'interact_hold' ? 0.04 : 0
     : animation === 'interact_hold' ? 0.08 : 0;
-  const faction = p.factions[entity.faction_id];
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
@@ -113,7 +130,8 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.translate(x, feetY);
   ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (animation === 'ko') ctx.translate(0, -width * .48);
-  ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025);
+  const sway = rally && !entity.moving ? Math.sin(time * 2.4 + seed) * 0.035 : 0;
+  ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025 + sway);
   ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.5 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
   if (entity.role === 'HOLOGRAMME') { ctx.globalAlpha *= Math.min(1, (state.tick - (entity.spawn_tick || 0)) / Math.max(1, (entity.ready_tick || 1) - (entity.spawn_tick || 0))); ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
   // Les PNJ restent statiques au repos ; seule la marche reçoit un léger mouvement procédural.
@@ -121,21 +139,28 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.scale(1 / breathing, breathing);
   // Deform the two leg regions around a fixed hip seam, reusing the master identity.
   if (walking) {
-    const split = Math.floor(sprite.naturalHeight * 0.75);
-    ctx.drawImage(sprite, 0, 0, sprite.naturalWidth, split, -width / 2, -height, width, height * 0.75);
+    const split = Math.floor(spriteHeight * 0.75);
+    ctx.drawImage(sprite, 0, 0, spriteWidth, split, -width / 2, -height, width, height * 0.75);
     for (const side of [0, 1]) {
-      ctx.drawImage(sprite, side * sprite.naturalWidth / 2, split, sprite.naturalWidth / 2, sprite.naturalHeight - split,
+      ctx.drawImage(sprite, side * spriteWidth / 2, split, spriteWidth / 2, spriteHeight - split,
         -width / 2 + side * width / 2, -height * 0.25, width / 2, height * 0.25 - Math.max(0, stride * (side ? -1 : 1)) * 3);
     }
   } else ctx.drawImage(sprite, -width / 2, -height, width, height);
   ctx.shadowBlur = 0;
-  if (!candidate && faction && !['HOLOGRAMME', 'ZEMMOUR', 'ENCAPUCHONNE'].includes(entity.role)) {
-    ctx.fillStyle = faction.color; ctx.strokeStyle = '#263132'; ctx.lineWidth = 1.1;
-    ctx.beginPath(); ctx.roundRect(-width * 0.36, -height * 0.53, width * 0.24, 6, 2); ctx.fill(); ctx.stroke();
-    if (entity.role === 'MILITANT') {
-      ctx.fillStyle = '#fff2d9'; ctx.fillRect(width * 0.3, -height * 0.44, 7, 11);
-      ctx.fillStyle = faction.color; ctx.fillRect(width * 0.3 + 1, -height * 0.44 + 2, 5, 2);
-    }
+  if (faction && ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(entity.role)) {
+    const pinX = width * 0.10;
+    const pinY = -height * (entity.role === 'MILITANT' ? 0.66 : 0.60);
+    const pinRadius = Math.max(4, height * (entity.role === 'MILITANT' ? 0.04 : 0.05));
+    ctx.fillStyle = faction.color;
+    ctx.beginPath();
+    ctx.arc(pinX, pinY, pinRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff5df';
+    ctx.lineWidth = Math.max(2, pinRadius * 0.36);
+    ctx.stroke();
+    ctx.strokeStyle = '#263132';
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
   if (attacking && !windup) {
     ctx.strokeStyle = '#fff1b8'; ctx.lineWidth = attack.strong ? 4 : 2;
@@ -151,7 +176,21 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   }
   ctx.restore();
   ctx.save(); ctx.textAlign = 'center';
-  if (['persuade', 'interact_hold', 'persuade_listen', 'meeting'].includes(animation)) {
+  if (supporter && !entity.moving && seed % 2 === 0) {
+    // Pancarte brandie au rythme des acclamations, texte toujours lisible (dessinée hors du miroir).
+    const side = entity.facing < 0 ? -1 : 1;
+    const stickX = x - side * width * 0.28;
+    const signW = Math.max(18, width * 0.62), signH = Math.max(11, height * 0.17);
+    const signY = feetY - height * 1.02 - signH - cheer * 3;
+    ctx.strokeStyle = '#5a4630'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(stickX, feetY - height * 0.55); ctx.lineTo(stickX, signY + signH); ctx.stroke();
+    ctx.fillStyle = faction.color; ctx.strokeStyle = '#263132'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(stickX - signW / 2, signY, signW, signH, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff9e9'; ctx.font = `800 ${Math.round(signH * 0.62)}px system-ui`; ctx.textBaseline = 'middle';
+    ctx.fillText(faction.symbol || '★', stickX, signY + signH / 2 + 0.5, signW - 4);
+    ctx.textBaseline = 'alphabetic';
+  }
+  if (['persuade', 'interact_hold', 'persuade_listen'].includes(animation)) {
     const wave = Math.sin(time * 5);
     ctx.fillStyle = '#fff7e4'; ctx.strokeStyle = '#29353b'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.roundRect(x + 14, feetY - height - 13 + wave, 24, 17, 6); ctx.fill(); ctx.stroke();
@@ -163,7 +202,14 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
     ctx.strokeStyle = p.factions[[...state.candidates, ...state.npcs].find(c => c.id === entity.persuasion.actor_id)?.faction_id]?.color || '#436d5c';
     ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, feetY - height - 9, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
   }
-  if (animation === 'convert') { ctx.font = 'bold 16px system-ui'; ctx.fillStyle = faction?.color || '#476e5d'; ctx.fillText('♥', x, feetY - height - 8); }
+  if (animation === 'convert') {
+    ctx.font = 'bold 16px system-ui'; ctx.fillStyle = faction?.color || '#476e5d'; ctx.fillText('♥', x, feetY - height - 8);
+    // Petit cercle au sol : le PNJ vient de changer de camp.
+    const t = Math.min(1, (state.tick - entity.converted_tick) / 12);
+    ctx.globalAlpha = 1 - t; ctx.strokeStyle = faction?.color || '#476e5d'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(x, groundY, width * (0.3 + t * 0.5), 3 + t * 4, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
   if (animation === 'ko') {
     ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#ffd66b'; ctx.strokeStyle = '#51412e'; ctx.lineWidth = 2;
     const headX = animation === 'ko' ? x - height * 0.85 : x;

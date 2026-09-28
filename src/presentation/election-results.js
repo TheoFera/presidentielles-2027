@@ -94,7 +94,8 @@ function actions(m, { host, multiplayer }) {
   const main = m.first
     ? host ? '<button class="election-primary" data-action="continue">Continuer <span aria-hidden="true">➜</span></button>' : '<span class="election-waiting">En attente de l’hôte…</span>'
     : multiplayer ? '' : '<button class="election-primary" data-action="replay">Rejouer</button>';
-  return `${main}<button data-action="return">Retour au menu</button>`;
+  const summary = m.first ? '' : '<button data-action="summary">Bilan</button>';
+  return `${summary}${main}<button data-action="return">Retour au menu</button>`;
 }
 
 function markup(m, options) {
@@ -140,11 +141,11 @@ export class ElectionResults {
   clear() { this.stop(); this.stage = null; this.element.replaceChildren(); }
   later(ms, callback) { this.timers.push(setTimeout(callback, ms)); }
   values() { return [...this.stage.querySelectorAll('[data-value]:not([data-value=""])')]; }
-  render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onReplay, onReturn } = {}) {
+  render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onReplay, onReturn, onSummary } = {}) {
     this.clear(); this.model = model; this.celebrated = false;
     this.element.innerHTML = markup(model, { preview, host, multiplayer });
     this.stage = this.element.querySelector('.election-stage');
-    for (const [action, callback] of Object.entries({ continue: onContinue, replay: onReplay, return: onReturn })) {
+    for (const [action, callback] of Object.entries({ continue: onContinue, replay: onReplay, return: onReturn, summary: onSummary })) {
       const button = this.element.querySelector(`[data-action="${action}"]`);
       if (button) { button.hidden = !callback; button.onclick = callback; }
     }

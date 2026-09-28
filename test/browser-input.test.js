@@ -121,7 +121,7 @@ test('Deux directions opposées et relâchement indépendant des doigts', t => {
   assert.equal(human.axis, 0);
 });
 
-test('Pause, changement d’onglet et perte de focus libèrent les commandes', t => {
+test('Aide, changement d’onglet et perte de focus libèrent les commandes', t => {
   const { get, win, doc, input, human, actions } = setup(t);
   for (const clear of [() => input.clear(), () => win.send('blur'), () => { doc.hidden = true; doc.send('visibilitychange'); }]) {
     get('move-left').send('pointerdown');
@@ -132,6 +132,19 @@ test('Pause, changement d’onglet et perte de focus libèrent les commandes', t
   win.send('keydown', { key: 'h' });
   win.send('keydown', { key: 'f' });
   assert.deepEqual(actions, ['h', 'f']);
+});
+
+test('L’aide ouverte bloque les commandes de jeu et Échap la ferme', t => {
+  const { win, doc, human, actions, input } = setup(t);
+  const help = new Element(); help.hidden = false;
+  const previousGet = doc.getElementById;
+  doc.getElementById = id => id === 'help' ? help : previousGet(id);
+  win.send('keydown', { key: 'd' });
+  win.send('keydown', { key: ' ' });
+  assert.equal(human.axis, 0);
+  assert.equal(input.attackSources.size, 0);
+  win.send('keydown', { key: 'Escape' });
+  assert.deepEqual(actions, ['escape']);
 });
 
 test('Le clavier et le déplacement tactile sur le monde restent disponibles', t => {

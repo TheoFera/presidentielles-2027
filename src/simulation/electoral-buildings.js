@@ -51,30 +51,68 @@ export function meetingAttendeeStep(sim, npc) {
     return false;
   }
   const settings = sim.config.balance.buildings.meeting;
-  const idNumber = Number(npc.id.slice(4));
-  const offset = ((idNumber % 9) - 4) * settings.gather_spacing;
-  const destination = wrap(building.x + offset, sim.state.world.length);
+  const idNumber = Number(npc.id.slice(4)) || 0;
+  const destination = wrap(building.x + meetingCrowdOffset(idNumber, settings), sim.state.world.length);
   const delta = ringDelta(npc.x, destination, sim.state.world.length);
-  const step = settings.gather_speed / sim.hz;
+  // Chacun marche à son rythme : la foule arrive par vagues au lieu d'un bloc synchronisé.
+  const step = settings.gather_speed * (0.75 + 0.5 * ((idNumber * 0.381966) % 1)) / sim.hz;
   npc.moving = Math.abs(delta) > step;
   if (npc.moving) npc.facing = Math.sign(delta);
+  else npc.facing = Math.sign(ringDelta(npc.x, building.x, sim.state.world.length)) || npc.facing;
   npc.x = wrap(npc.x + Math.sign(delta) * Math.min(Math.abs(delta), step), sim.state.world.length);
   return true;
+}
+
+/** Place stable dans la foule : les flancs de la scène se remplissent, le centre reste dégagé pour voir l'orateur. */
+export function meetingCrowdOffset(idNumber, settings) {
+  const side = idNumber % 2 ? 1 : -1;
+  const spread = (idNumber * 0.6180339887) % 1;
+  const inner = settings.podium_half_width * 0.45;
+  return side * (inner + spread * (settings.podium_half_width * 0.55 + settings.gather_spacing * 5));
+}
+
+/** Rayon de l'onde de fin de meeting, en unités du monde. Partagé par la simulation et l'affichage. */
+export function meetingWaveRadius(state, config, building, elapsedTicks) {
+  const zone = state.world.subzones.find(item => item.id === building.subzone_id);
+  const reach = zone ? Math.max(building.x - zone.start, zone.end - building.x) : 0;
+  const duration = config.balance.buildings.meeting.wave_visual_seconds * config.balance.simulation_architecture.fixed_tick_hz;
+  const progress = Math.max(0, Math.min(1, elapsedTicks / duration));
+  return reach * Math.sin(progress * Math.PI / 2);
+}
+
+// L'onde convertit chaque PNJ marqué au moment exact où le cercle l'atteint.
+function propagateMeetingWave(sim, building) {
+  const { state, config } = sim;
+  const faction = building.meeting_wave_faction_id;
+  const elapsed = state.tick - building.meeting_wave_tick;
+  const finished = elapsed >= sim.secondsToTicks(config.balance.buildings.meeting.wave_visual_seconds);
+  const radius = meetingWaveRadius(state, config, building, elapsed);
+  let changed = false;
+  for (const npc of state.npcs) {
+    if (npc.meeting_wave_id !== building.id) continue;
+    if (!finished && Math.abs(ringDelta(npc.x, building.x, state.world.length)) > radius) continue;
+    npc.meeting_wave_id = null;
+    if (npc.role === 'NEUTRE') changed = convertNeutral(sim, npc, faction, 'MEETING') || changed;
+    else if (npc.role === 'SYMPATHISANT' && npc.faction_id !== faction) changed = neutralizeSupporter(sim, npc, 'MEETING') || changed;
+  }
+  if (finished) building.meeting_wave_faction_id = null;
+  if (changed) refreshElectoralState(state);
 }
 
 function finishMeeting(sim, building, valid) {
   const { state, config } = sim;
   const faction = building.meeting_faction_id;
   const candidateId = building.meeting_candidate_id;
-  let converted = 0, neutralized = 0;
+  let reached = 0;
   if (valid) {
-    const attendees = state.npcs.filter(npc => zoneAt(state.world, npc.x).id === building.subzone_id);
-    const neutral = attendees.filter(npc => npc.role === 'NEUTRE');
-    const adversaries = attendees.filter(npc => npc.role === 'SYMPATHISANT' && npc.faction_id !== faction);
-    for (const npc of neutral) if (convertNeutral(sim, npc, faction, 'MEETING')) converted++;
-    for (const npc of adversaries) if (neutralizeSupporter(sim, npc, 'MEETING')) neutralized++;
+    // Les PNJ présents sont marqués maintenant ; l'onde les fait basculer un à un en s'étendant.
+    for (const npc of state.npcs) {
+      if (zoneAt(state.world, npc.x).id !== building.subzone_id) continue;
+      if (npc.role === 'NEUTRE' || npc.role === 'SYMPATHISANT' && npc.faction_id !== faction) { npc.meeting_wave_id = building.id; reached++; }
+    }
     building.meetings_held++;
     building.meeting_wave_tick = state.tick;
+    building.meeting_wave_faction_id = faction;
   }
   building.meeting_ready_by_faction[faction] = state.tick + sim.secondsToTicks(config.balance.buildings.meeting.cooldown_seconds);
   building.meeting_candidate_id = null;
@@ -85,7 +123,7 @@ function finishMeeting(sim, building, valid) {
   for (const npc of state.npcs) if (npc.meeting_target_id === building.id) npc.meeting_target_id = null;
   refreshElectoralState(state);
   sim.emit(valid ? 'MeetingValidated' : 'MeetingCancelled', {
-    target_id: building.id, faction_id: faction, candidate_id: candidateId, converted, neutralized,
+    target_id: building.id, faction_id: faction, candidate_id: candidateId, reached,
   });
 }
 
@@ -111,6 +149,7 @@ export function updateElectoralBuildings(sim) {
       if (building.meeting_hold_ticks >= sim.secondsToTicks(meeting.hold_seconds)) finishMeeting(sim, building, true);
       else if (building.meeting_pause_ticks > sim.secondsToTicks(meeting.pause_grace_seconds)) finishMeeting(sim, building, false);
     }
+    if (building.type === 'meeting' && building.meeting_wave_faction_id) propagateMeetingWave(sim, building);
     if (building.type !== 'tour_communication') continue;
     if (building.state !== 'ACTIVE' || !building.owner_id) { building.next_broadcast_tick = 0; continue; }
     if (!building.next_broadcast_tick) building.next_broadcast_tick = state.tick + sim.secondsToTicks(tower.broadcast_interval_seconds);

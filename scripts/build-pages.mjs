@@ -50,6 +50,7 @@ export async function buildPages(output = defaultTarget) {
   // Les 120 PNJ sont déclarés par une boucle dans le manifeste afin d'éviter
   // 120 lignes répétitives ; l'export doit donc inclure explicitement ce dossier.
   for (const asset of await generatedPngFiles('assets/generated/npc-v2')) images.add(asset);
+  for (const asset of await generatedPngFiles('assets/generated/npc-militants')) images.add(asset);
   files.push(...images, ...configNames.map(name => `Présidentielles 2027/${name}`));
   // Vérifier les entrées avant de remplacer le dernier export.
   for (const file of files) {

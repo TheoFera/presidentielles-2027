@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="src/presentation/map-wheel.css">
   <link rel="preload" as="image" href="assets/generated/menus/accueil.png">
     <link rel="stylesheet" href="src/presentation/election-results.css">
+    <link rel="stylesheet" href="src/presentation/match-summary.css">
+    <link rel="stylesheet" href="src/presentation/player-profile.css">
 </head>
   <body>
     <section id="landscape-gate" hidden aria-label="Orientation du téléphone">
@@ -46,26 +48,26 @@
       <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
       <div id="phase-fade" aria-hidden="true"></div>
       <section id="results" class="election-results" hidden aria-label="Résultats électoraux"></section>
-<section id="help" class="panel" hidden aria-label="Aide et pause">
-        <span class="eyebrow">PRÉSIDENTIELLES 2027</span><h1>Pause</h1>
+<section id="help" class="panel" hidden aria-label="Aide">
+        <span class="eyebrow">PRÉSIDENTIELLES 2027</span><h1>Aide</h1>
         <nav class="help-tabs" aria-label="Pages du guide">
           <button data-help-tab="controls" aria-selected="true">Commandes</button>
           <button data-help-tab="field" aria-selected="false">Terrain</button>
           <button data-help-tab="election" aria-selected="false">Élection</button>
         </nav>
         <div class="help-page" data-help-page="controls">
-          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Au sol : frapper au relâchement ; en l’air : dès l’appui ; maintenir <span data-charge-duration></span> pour charger</dd><dt>↑</dt><dd>Sauter, même pendant un coup (l’interrompt)</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>Échap / P / H</dt><dd>Pause</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Relâchez <strong>Frapper</strong> pour attaquer. Maintenez <span data-charge-duration></span> pour charger. En l’air, frappez dès l’appui. <strong>Sauter</strong> interrompt le coup en cours et permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
+          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Au sol : frapper au relâchement ; en l’air : dès l’appui ; maintenir <span data-charge-duration></span> pour charger</dd><dt>↑</dt><dd>Sauter, même pendant un coup (l’interrompt)</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>H</dt><dd>Afficher l’aide</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Relâchez <strong>Frapper</strong> pour attaquer. Maintenez <span data-charge-duration></span> pour charger. En l’air, frappez dès l’appui. <strong>Sauter</strong> interrompt le coup en cours et permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
           <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo : la troisième repousse et brise une charge. Pendant la charge, vous recevez les dégâts mais résistez aux interruptions. Un dash annule la charge. Touchez vos adversaires pour remplir l’ultime, prioritaire sauf pendant un étourdissement.</p><p>Devant votre QG, maintenez <strong>E</strong> ou <strong>Changer de style</strong> pendant 3 secondes.</p><p>Changer de style remet la charge de l’ultime à zéro.</p></article>
         </div>
         <div class="help-page" data-help-page="field" hidden>
-          <article><h2>Rassemblez des voix</h2><p>Sautez pour ramasser les billets dans votre biome. Restez près d’un passant neutre pour en faire un sympathisant : il vous donnera de l’argent quand il sera prêt.</p><p>Un sympathisant dépose aussi ses dons dans un financement de votre camp. Passez devant ce bâtiment pour vider sa cagnotte. Un militant ou un SO ne fait plus de dons.</p><p>Restez devant le repère d’un bâtiment pour interagir ou acheter, avec assez d’argent et de soutiens.</p><p id="balance-help"></p></article>
+          <article><h2>Rassemblez des voix</h2><p>Sautez pour ramasser les billets dans votre biome. Restez près d’un passant neutre pour en faire un sympathisant : il vous donnera de l’argent quand il sera prêt.</p><p>Un sympathisant dépose aussi ses dons dans un financement de votre camp. Passez devant ce bâtiment pour vider sa cagnotte. Un militant ou un SO ne fait plus de dons.</p><p><strong>Prendre un bâtiment</strong> demande deux choses : assez d’argent <em>et</em> assez de soutiens (sympathisants ou militants) dans son quartier. Les petits personnages au-dessus du bâtiment montrent combien il en faut. Convainquez des passants tout près, puis restez immobile devant le billet.</p><p>Si vos soutiens quittent le quartier, le bâtiment clignote « menacé » puis redevient neutre.</p><p id="balance-help"></p></article>
           <article><h2>Développez votre camp</h2><p>Le premier Local devient votre QG. L’Imprimerie transforme vos sympathisants en militants grâce aux tracts.</p><p>Éloignez-vous puis revenez pour un nouvel achat. L’Imprimerie permet plusieurs commandes sur place.</p><p id="poll-help"></p></article>
         </div>
         <div class="help-page" data-help-page="election" hidden>
           <article><h2>La course à l’Élysée</h2><p>Chaque PNJ convaincu apporte une voix sur 200. À J0, la soirée électorale annonce le premier tour : les deux meilleurs scores sont qualifiés, le troisième est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong> et convainquent les PNJ restants.</p><p>Le meilleur nombre de voix final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
-          <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, la pause est partagée. Gardez tous le jeu ouvert.</p></article>
+          <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, gardez tous le jeu ouvert.</p></article>
         </div>
-        <div class="help-actions"><button id="resume">Reprendre</button><button id="pause-home">Menu principal</button></div>
+        <div class="help-actions"><button id="resume">Fermer l’aide</button><button id="help-home">Menu principal</button></div>
       </section>
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>
@@ -84,7 +86,6 @@
         <div class="debug-actions">
           <label>Candidat <select id="candidate"></select></label>
           <button id="ai-toggle">Suspendre les IA</button>
-          <button id="pause-debug">Pause (F4)</button>
           <button id="speed-debug">Accélérer (F6)</button>
           <label>PNJ inspecté <select id="inspect-npc"><option value="">Le plus proche</option></select></label>
           <button id="go-npc">Aller près du PNJ inspecté</button>
@@ -130,7 +131,7 @@
           <p class="subtle">Outils de test : les constructions ignorent le coût et l’implantation ; le Meeting ignore aussi le délai. La limite globale de Tours reste respectée. En partie normale, tout se paie par présence.</p>
         </details>
         <pre id="debug-text"></pre>
-        <p class="subtle">F3 : fermer · F4 : pause · F6 : ×1 / ×4 / ×5 / ×10 · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · O / U / M : Tour / Institut / Meeting · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local. 4 / 5 / 6 : convaincre un PNJ pour M / LP / EP · 7 : démobiliser des sympathisants · 8 / 9 / 0 : construire Tour / Institut / Meeting · V : lancer le Meeting de test. Raccourcis réservés au débogage.</p>
+        <p class="subtle">F3 : fermer · F6 : ×1 / ×4 / ×5 / ×10 · 1 / 2 / 3 : candidat · I : IA · B / T / N / L : bâtiments · O / U / M : Tour / Institut / Meeting · C : Neutre · [ / ] : sous-zone · G : fonds · K : pouvoir · F7 / F8 / F9 : S / M / SO · X : démobiliser · Y : contrôle local. 4 / 5 / 6 : convaincre un PNJ pour M / LP / EP · 7 : démobiliser des sympathisants · 8 / 9 / 0 : construire Tour / Institut / Meeting · V : lancer le Meeting de test. Raccourcis réservés au débogage.</p>
       </aside>
       <section id="error" class="panel" hidden role="alert"></section>
     </main>

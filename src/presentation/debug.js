@@ -59,7 +59,6 @@ export class DebugPanel {
       const building = this.inspectedBuilding(callbacks.state());
       if (building) callbacks.queue(teleportTarget(callbacks.state().local_candidate_id, building.id));
     });
-    document.getElementById('pause-debug').addEventListener('click', callbacks.togglePause);
     document.getElementById('speed-debug').addEventListener('click', callbacks.toggleSpeed);
     document.getElementById('grant-money').addEventListener('click', () => callbacks.queue(grantMoney(callbacks.state().local_candidate_id)));
     this.candidate.addEventListener('change', () => callbacks.queue(selectCandidate(this.candidate.value)));
@@ -118,7 +117,6 @@ export class DebugPanel {
   action(key) {
     if (!this.visible) return;
     const state = this.callbacks.state();
-    if (key === 'f4') this.callbacks.togglePause();
     if (key === 'f6') this.callbacks.toggleSpeed();
     const influenceKeys = { '4': 'melenchon', "'": 'melenchon', '5': 'le_pen', '(': 'le_pen', '6': 'philippe', '-': 'philippe' };
     if (influenceKeys[key]) this.callbacks.queue(addInfluence(state.local_candidate_id, influenceKeys[key]));
@@ -187,7 +185,6 @@ export class DebugPanel {
     const timer = state.spawn_timers.find(t => t.subzone_id === zone.id);
     this.candidate.value = state.local_candidate_id;
     this.ai.textContent = state.ai_enabled ? 'Suspendre les IA' : 'Activer les IA';
-    document.getElementById('pause-debug').textContent = this.callbacks.paused() ? 'Reprendre (F4)' : 'Pause (F4)';
     const speeds = cfg.balance.debug.acceleration_multipliers;
     document.getElementById('speed-debug').textContent = `×${this.callbacks.speed()} → ×${speeds[(speeds.indexOf(this.callbacks.speed()) + 1) % speeds.length]} (F6)`;
     const f = n => n.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
@@ -197,7 +194,7 @@ export class DebugPanel {
     this.text.textContent = [
       `J-${state.days_remaining} · CONQUÊTE ÉLECTORALE`,
       `Tick ${state.tick} · ${hz} Hz fixes · rendu ${Math.round(fps)} i/s`,
-      `Temps simulé : ${f(state.tick / hz)} s · ${this.callbacks.paused() ? 'EN PAUSE' : `vitesse ×${this.callbacks.speed()}`}`,
+      `Temps simulé : ${f(state.tick / hz)} s · vitesse ×${this.callbacks.speed()}`,
       `Graine : ${state.seed} · RNG : ${state.rng_state}`,
       `Monde : ${state.world.subzones.length} sous-zones · ${f(state.world.length)} unités`,
       `Position : ${f(candidate.x)} · ${zone.id}`,

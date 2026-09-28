@@ -81,7 +81,7 @@ export function createInfrastructure(world, config, rngState) {
       meeting_ready_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
       meeting_banned_until_by_faction: { melenchon: 0, le_pen: 0, philippe: 0 },
       meeting_started_tick: -1, meeting_until_tick: 0, meeting_level: 1, meeting_faction_id: null, meetings_held: 0,
-      meeting_candidate_id: null, meeting_hold_ticks: 0, meeting_pause_ticks: 0, meeting_wave_tick: -1,
+      meeting_candidate_id: null, meeting_hold_ticks: 0, meeting_pause_ticks: 0, meeting_wave_tick: -1, meeting_wave_faction_id: null,
       next_broadcast_tick: 0,
       last_poll_candidate_id: null, last_poll_tick: null };
   });

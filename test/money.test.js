@@ -103,6 +103,34 @@ test('KO : 30 % au sol, cagnotte intacte et attente de 3 à 15 secondes', () => 
   }
 });
 
+test('KO : l’argent perdu tombe en plusieurs billets ramassables un par un', () => {
+  const sim = make(), victim = sim.state.candidates[0], attacker = sim.state.candidates[1];
+  victim.x = attacker.x; victim.money = 12.34567;
+  const before = new Set(sim.state.money_pickups.map(p => p.id));
+  hit(sim, attacker, victim, { kind: 'CANDIDATE', step: 3, damage: 100, knockback: 0, electoral_damage: 0 }, 'test');
+  const lost = sim.state.events.find(e => e.type === 'CandidateKO').dropped_cents;
+  const bills = sim.state.money_pickups.filter(p => !before.has(p.id));
+  assert.equal(bills.length, config.balance.money.max_drop_pickups);
+  assert.equal(bills.reduce((sum, p) => sum + p.amount_cents, 0), lost);
+  assert.ok(bills.every(p => Number.isInteger(p.amount_cents) && p.amount_cents > 0 && p.collect_after_tick > sim.state.tick));
+  const copy = make(); copy.importSnapshot(sim.exportSnapshot());
+  // Pendant le vol, rien n'est ramassé ; ensuite l'attaquant parcourt la zone billet par billet.
+  attacker.money = 0; sim.step();
+  assert.equal(attacker.money, 0);
+  sim.state.tick = Math.max(...bills.map(p => p.collect_after_tick));
+  let collected = 0;
+  for (const bill of [...bills].sort((a, b) => a.x - b.x)) {
+    attacker.x = bill.x; attacker.combat.height = 0;
+    const tick = sim.state.tick;
+    sim.step();
+    assert.ok(!sim.state.money_pickups.includes(bill));
+    collected += sim.state.events.filter(e => e.tick === tick).filter(e => e.type === 'MoneyPickedUp' && e.candidate_id === attacker.id)
+      .reduce((sum, e) => sum + e.amount_cents, 0);
+  }
+  assert.equal(collected, lost);
+  assert.equal(Math.round(attacker.money * 100000), lost);
+});
+
 test('les nouveaux états survivent à une sauvegarde', () => {
   const sim = make(); sim.step();
   const copy = make(); copy.importSnapshot(sim.exportSnapshot());
