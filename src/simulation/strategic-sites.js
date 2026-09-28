@@ -1,77 +1,22 @@
 import { CampaignStyleSystem } from './campaign-styles.js';
 import { scatterMoney } from './money.js';
 import { random, ringDelta, zoneAt } from './world.js';
-import { buildingSettings, factionVariant, isCapturable, presenceForLevel } from './building-rules.js';
+import { buildingSettings, siteVariant, acceptsDonations, isCapturable, presenceForLevel } from './building-rules.js';
 import { stableIdOrder } from './territory.js';
 
 const neutralTypes = new Set(['imprimerie', 'meeting', 'institut_sondage']);
 
-function shuffle(state, values) {
-  const result = [...values];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random(state) * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
-function typeSettings(config, type) {
-  return type === 'faction' ? config.balance.buildings.faction_slot_melenchon_lepen_service_ordre : config.balance.buildings[type];
-}
-
-/** Les emplacements sont explicites ; seule leur affectation est tirée par la RNG autoritaire. */
-export function createInfrastructure(world, config, rngState) {
-  const generation = config.layout.strategic_site_generation;
-  const slots = generation.slots.map(slot => {
+/** Les fonctions et les coordonnées viennent du tableau, sans tirage aléatoire. */
+export function createInfrastructure(world, config, _rngState) {
+  const slots = config.layout.strategic_site_generation.slots.map(slot => {
     const zone = world.subzones.find(z => z.id === slot.subzone_id);
-    return { id: `slot:${slot.site_id}`, site_id: slot.site_id, x: zone.start + zone.width * slot.x_ratio,
-      subzone_id: zone.id, biome_id: zone.biome_id };
+    return { ...slot, id: `slot:${slot.site_id}`, x: zone.start + zone.width * slot.x_ratio, biome_id: zone.biome_id };
   });
-  const assigned = new Map();
-  const assignRandom = (type, biome, predicate = () => true) => {
-    const choices = slots.filter(s => s.biome_id === biome.id && !assigned.has(s.id) && predicate(s));
-    if (!choices.length) throw new Error(`Aucun emplacement admissible pour ${type} dans ${biome.id}.`);
-    assigned.set(choices[Math.floor(random(rngState) * choices.length)].id, type);
-  };
-  for (const biome of config.layout.biomes) {
-    const centralSubzone = biome.subzones[1].id;
-    assignRandom('permanence', biome, slot => slot.subzone_id === centralSubzone);
-    assignRandom('faction', biome, slot => slot.subzone_id !== centralSubzone);
-  }
-  for (const biomeId of generation.fixed_biomes_by_type.institut_sondage) {
-    const biome = config.layout.biomes.find(candidate => candidate.id === biomeId);
-    assignRandom('institut_sondage', biome);
-  }
-  for (const type of ['imprimerie', 'meeting']) for (const biome of config.layout.biomes) assignRandom(type, biome);
-  const free = slots.filter(s => !assigned.has(s.id));
-  const assignedCounts = [...assigned.values()].reduce((counts, type) => ({ ...counts, [type]: (counts[type] || 0) + 1 }), {});
-  const remaining = Object.entries(generation.site_counts).flatMap(([type, count]) => Array.from({
-    length: count - (assignedCounts[type] || 0),
-  }, () => type));
-  let valid = null;
-  for (let attempt = 0; attempt < 2000 && !valid; attempt++) {
-    const types = shuffle(rngState, remaining); const perBiome = new Map(); const perSubzone = new Map(); let ok = true;
-    for (const [slotId, type] of assigned) {
-      const slot = slots.find(candidate => candidate.id === slotId);
-      const biomeKey = `${slot.biome_id}:${type}`; const subzoneKey = `${slot.subzone_id}:${type}`;
-      perBiome.set(biomeKey, (perBiome.get(biomeKey) || 0) + 1);
-      perSubzone.set(subzoneKey, (perSubzone.get(subzoneKey) || 0) + 1);
-    }
-    for (let i = 0; i < free.length; i++) {
-      const biomeKey = `${free[i].biome_id}:${types[i]}`; const subzoneKey = `${free[i].subzone_id}:${types[i]}`;
-      const biomeCount = (perBiome.get(biomeKey) || 0) + 1; const subzoneCount = (perSubzone.get(subzoneKey) || 0) + 1;
-      const settings = typeSettings(config, types[i]);
-      if (biomeCount > settings.max_per_biome || subzoneCount > settings.max_per_subzone) { ok = false; break; }
-      perBiome.set(biomeKey, biomeCount); perSubzone.set(subzoneKey, subzoneCount);
-    }
-    if (ok) valid = types;
-  }
-  if (!valid) throw new Error('Impossible de répartir les sites stratégiques avec les caps configurés.');
-  free.forEach((slot, index) => assigned.set(slot.id, valid[index]));
   const buildings = slots.map(slot => {
-    const type = assigned.get(slot.id); const service = neutralTypes.has(type);
+    const type = slot.type; const service = neutralTypes.has(type);
     return { id: slot.site_id, site_id: slot.site_id, type, slot_id: slot.id, x: slot.x, subzone_id: slot.subzone_id, biome_id: slot.biome_id,
-      ownership_model: service ? 'neutral_service' : 'capturable', owner_id: null, level: service ? 1 : 0,
+      facade: slot.facade || null, controls_zone: !!slot.controls_zone, fixed_variant: slot.fixed_variant || null, label: slot.label || null,
+      next_sponsor_tick: 0, ownership_model: service ? 'neutral_service' : 'capturable', owner_id: null, level: service ? 1 : 0,
       state: service ? 'ACTIVE' : 'NEUTRAL', active: service, neutral: true,
       capture_progress: 0, closure_progress: 0, required_presence: 0, current_political_presence: 0,
       hostile_pressure: 0, current_effective_presence: 0, next_level_available: false, level_lock_reason: null,
@@ -105,6 +50,7 @@ export function captureLimitReason(state, config, building, faction) {
 
 export function currentMaintainThreshold(state, config, building) {
   if (!building.owner_id || !isCapturable(building)) return 0;
+  if (building.controls_zone) return 0;
   const s = buildingSettings(config, building);
   let required = presenceForLevel(s, 'maintain_presence', building.level);
   const anchor = state.buildings.find(b => b.type === 'permanence' && b.owner_id === building.owner_id && b.state === 'ACTIVE'
@@ -122,7 +68,7 @@ export function plannedHeadquartersSuccessor(state, faction, fromX = null) {
 
 export function captureSite(sim, building, candidate) {
   building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.active = true; building.neutral = false;
-  building.capture_progress = 0; building.closure_progress = 0; building.variant = building.type === 'faction' ? factionVariant(candidate.faction_id) : null;
+  building.capture_progress = 0; building.closure_progress = 0; building.variant = building.type === 'faction' ? siteVariant(building, candidate.faction_id) : null;
   candidate.interaction_chain_site_id = building.id;
   if (building.type === 'permanence' && !sim.state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.headquarters)) {
     building.headquarters = true; candidate.headquarters_site_id = building.id; candidate.last_hq_x = building.x;
@@ -134,7 +80,7 @@ export function captureSite(sim, building, candidate) {
 
 export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
   if (!isCapturable(building) || building.owner_id === null) return false;
-  if (building.type === 'financement' && building.stored_money_cents) {
+  if ((acceptsDonations(building) || building.type === 'financement') && building.stored_money_cents) {
     scatterMoney(sim, building.x, building.stored_money_cents);
     sim.emit('FundingDropped', { target_id: building.id, amount_cents: building.stored_money_cents });
     building.stored_money_cents = 0;
@@ -171,20 +117,10 @@ export function updateStrategicSites(sim) {
     building.current_effective_presence = Math.max(0, building.current_political_presence - building.hostile_pressure);
     if (building.headquarters) { building.closure_progress = 0; continue; }
     const s = buildingSettings(config, building);
-    if (building.current_effective_presence < building.required_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
+    if (building.controls_zone ? building.hostile_pressure > building.current_political_presence : building.current_effective_presence < building.required_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
     if (building.closure_progress >= 1 - 1e-9) neutralizeSite(sim, building);
   }
 }
 
-export function localUnitDamageMultiplier(state, config, target) {
-  if (!['SYMPATHISANT', 'MILITANT'].includes(target.role)) return 1;
-  const biome = zoneAt(state.world, target.x).biome_id;
-  const anchors = state.buildings.filter(b => b.type === 'permanence' && b.owner_id === target.faction_id && b.state === 'ACTIVE' && b.biome_id === biome);
-  if (!anchors.length) return 1;
-  return Math.min(...anchors.map(b => {
-    const s = config.balance.buildings.permanence;
-    const base = target.role === 'SYMPATHISANT' ? s.sympathisant_damage_multiplier_by_level[b.level - 1] : s.militant_damage_multiplier_by_level[b.level - 1];
-    return b.headquarters ? base * s.hq_resistance_multiplier : base;
-  }));
-}
+export { controlledUnitDamageMultiplier as localUnitDamageMultiplier } from './zone-control.js';

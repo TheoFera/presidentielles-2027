@@ -31,17 +31,9 @@ export function scenerySeasonFilter(progress) {
 }
 
 export function worldAssetIds(manifest, state) {
-  const wanted = new Set(['background-arena', 'distant-clouds']);
-  const separated = biomeNames.every(biome => manifest[`landscape-${biome}`]);
-  for (const biome of biomeNames) {
-    wanted.add(`distant-${biome}`); wanted.add(`street-${biome}`);
-    // The old panoramas are only a fallback; retaining them as well would
-    // consume mobile memory without drawing a single additional pixel.
-    wanted.add(`${separated ? 'landscape' : 'background-strip'}-${biome}`);
-  }
-  for (const building of state.buildings) {
-    wanted.add(buildingAssetId(building, state.world));
-  }
+  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
+  for (const biome of biomeNames) wanted.add(`panorama-${biome}`);
+  // Les façades sont incorporées aux panoramas ; aucun ancien local flottant à précharger.
   for (const id of Object.keys(manifest)) {
     if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-)/.test(id)) wanted.add(id);
   }

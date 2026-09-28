@@ -84,6 +84,9 @@ test('le meeting exige le promontoire et son onde reste dans la sous-zone', () =
   local[0].role = 'SYMPATHISANT'; local[0].faction_id = 'le_pen';
   const outside = sim.state.npcs.find(npc => zoneAt(sim.state.world, npc.x).id !== podium.subzone_id);
   outside.role = 'SYMPATHISANT'; outside.faction_id = 'le_pen';
+  // Le témoin reste loin du meeting et des candidats pendant toute la propagation.
+  outside.x = sim.state.world.subzones.find(z => z.id === 'periurbain_a').center;
+  outside.roam_target_x = outside.x;
   candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
   assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
   advance(sim, sim.secondsToTicks(15));
@@ -223,7 +226,7 @@ test('les bâtiments n’offrent plus d’amélioration', () => {
   for (const building of sim.state.buildings.filter(item => item.ownership_model === 'capturable')) {
     const candidate = sim.state.candidates[0];
     Object.assign(building, { owner_id: candidate.faction_id, level: 1, state: 'ACTIVE', active: true, neutral: false });
-    if (building.type === 'faction') building.variant = 'service_ordre';
+    if (building.type === 'faction') building.variant = building.fixed_variant;
     assert.ok(buildingOffers(sim.state, config, candidate, building).every(offer => offer.kind !== 'UPGRADE'));
   }
 });

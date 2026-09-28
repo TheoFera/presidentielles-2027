@@ -7,10 +7,11 @@ import { cancelMeeting } from './electoral-buildings.js';
 
 export function availableMilitants(state, biome, faction) {
   return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === faction && zoneAt(state.world, n.x).biome_id === biome
-    && (!n.task || n.task.kind === 'EXPAND') && !n.combat?.engaged && !n.combat?.attack_id && !n.combat?.stun_ticks);
+    && !n.rally_event_id && n.rally_return_x == null && (!n.task || n.task.kind === 'EXPAND') && !n.combat?.engaged && !n.combat?.attack_id && !n.combat?.stun_ticks);
 }
 export const availableGuards = (state, biome, faction) => state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.faction_id === faction
-  && n.guard_biome_id === biome && zoneAt(state.world, n.x).biome_id === biome && !n.raid && !n.combat?.engaged);
+  && n.guard_biome_id === biome && zoneAt(state.world, n.x).biome_id === biome && !n.raid && !n.combat?.engaged
+  && !n.rally_event_id && n.rally_return_x == null);
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];

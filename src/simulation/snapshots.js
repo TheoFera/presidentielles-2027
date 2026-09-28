@@ -1,8 +1,10 @@
+import { validateVehicles } from './vehicles.js';
+import { validateRallies } from './rallies.js';
 import { validateCampaignSnapshot } from './campaign-validation.js';
 import { validAIDifficulty } from './ai-settings.js';
 import { FACTIONS, buildWorld, fingerprint } from './world.js';
 import { createInfrastructure } from './economy.js';
-import { buildingSettings, factionVariant } from './building-rules.js';
+import { buildingSettings, siteVariant, printsTracts } from './building-rules.js';
 import { validateCombatSnapshot } from './combat-snapshots.js';
 import { validateElectoralSnapshot } from './electoral-snapshots.js';
 import { GamePhase } from './phases.js';
@@ -16,7 +18,7 @@ export function validateSnapshot(next, simulation, nested = false) {
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 12 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec les nouvelles annonces électorales ; commencez une nouvelle partie');
+  if (!next || next.snapshot_version !== 13 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec la nouvelle carte et ses bâtiments fixes ; commencez une nouvelle partie');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_money_pickup_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
@@ -77,7 +79,8 @@ export function validateSnapshot(next, simulation, nested = false) {
   for (const building of next.buildings) {
     const expected = infrastructure.buildings.find(b => b.id === building.id);
     if (!expected) fail('bâtiment inconnu');
-    for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
+    if (JSON.stringify(building.facade) !== JSON.stringify(expected.facade)) fail('façade déplacée');
+    for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model', 'controls_zone', 'fixed_variant', 'label']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
     if (!Array.isArray(building.queue) || !integer(building.delivered_count) || !Number.isInteger(building.last_action_tick) || building.last_action_tick > next.tick) fail('état du bâtiment invalide');
     const settings = buildingSettings(config, building);
     if (!integer(building.level) || building.level > settings.max_level || !Number.isFinite(building.capture_progress) || !Number.isFinite(building.closure_progress)) fail('niveau ou progression invalide');
@@ -87,14 +90,14 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (building.level !== 0 || building.owner_id !== null || building.active || !building.neutral) fail('site neutre invalide');
     } else if (building.state !== 'ACTIVE' || !FACTIONS.includes(building.owner_id) || building.level < 1 || !building.active || building.neutral) fail('propriété invalide');
     if (!integer(building.raid_ready_tick) || !integer(building.closure_ready_tick)) fail('délai de bâtiment invalide');
-    if (building.type === 'financement') {
+    if (['permanence', 'financement'].includes(building.type)) {
       if (!integer(building.stored_money_cents) || !integer(building.last_collection_cents)
         || building.last_collection_tick !== null && (!integer(building.last_collection_tick) || building.last_collection_tick > next.tick)
         || building.owner_id === null && building.stored_money_cents !== 0) fail('cagnotte de financement invalide');
     }
-    if (building.type === 'faction' && building.variant !== (building.owner_id ? factionVariant(building.owner_id) : null)) fail('bâtiment factionnel invalide');
-    if (!['imprimerie'].includes(building.type) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
-    if ((building.type === 'imprimerie' || building.variant === 'service_ordre') && building.queue.length > settings.max_queue_length) fail('file de production pleine');
+    if (building.type === 'faction' && building.variant !== (building.owner_id ? siteVariant(building, building.owner_id) : null)) fail('bâtiment factionnel invalide');
+    if (!printsTracts(building) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
+    if ((printsTracts(building) || building.variant === 'service_ordre') && building.queue.length > (printsTracts(building) ? config.balance.buildings.imprimerie.max_queue_length : settings.max_queue_length)) fail('file de production pleine');
     let unfinishedFound = false;
     for (const order of building.queue) {
       if (!/^order:\d+$/.test(order.id) || Number(order.id.slice(6)) >= next.next_order_id || orderIds.has(order.id) || order.service_id !== building.id) fail('ordre de production invalide');
@@ -125,7 +128,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!validPosition(npc.x) || !validPosition(npc.roam_target_x) || ![-1, 1].includes(npc.facing) || !integer(npc.roam_wait_ticks) || typeof npc.moving !== 'boolean') fail('déplacement PNJ invalide');
     if (!['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE', 'DEMOBILISE'].includes(npc.role)) fail('rôle PNJ inconnu');
     if (['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) ? !FACTIONS.includes(npc.faction_id) : npc.faction_id !== null) fail('faction PNJ invalide');
-    if (npc.role === 'SERVICE_D_ORDRE' && (npc.faction_id === 'philippe' || !config.layout.biomes.some(b => b.id === npc.guard_biome_id) || !validPosition(npc.guard_anchor_x))) fail('Service d’ordre invalide');
+    if (npc.role === 'SERVICE_D_ORDRE' && (!config.layout.biomes.some(b => b.id === npc.guard_biome_id) || !validPosition(npc.guard_anchor_x))) fail('Service d’ordre invalide');
     if (!finite(npc.hidden_durability) || !Number.isInteger(npc.converted_tick) || npc.converted_tick > next.tick || !Number.isInteger(npc.promoted_tick) || npc.promoted_tick > next.tick) fail('état PNJ invalide');
     if (!integer(npc.donation_cents) || (npc.role === 'SYMPATHISANT'
       ? !integer(npc.next_donation_tick) || npc.donation_cents > Math.round(config.balance.money.donation.base_eur * config.balance.money.donation.biome_multipliers[npc.origin_biome_id] * 100)
@@ -146,7 +149,7 @@ export function validateSnapshot(next, simulation, nested = false) {
         || (task.target_id !== null && !next.npcs.some(n => n.id === task.target_id))) fail('tâche de Militant invalide');
     } else if (['DELIVER_DONATION', 'RETURN_DONATION'].includes(task.kind)) {
       if (npc.role !== 'SYMPATHISANT' || !['TRAVEL'].includes(task.phase)
-        || task.kind === 'DELIVER_DONATION' && (!npc.donation_cents || !next.buildings.some(b => b.id === task.service_id && b.type === 'financement'))
+        || task.kind === 'DELIVER_DONATION' && (!npc.donation_cents || !next.buildings.some(b => b.id === task.service_id && b.type === 'permanence'))
         || task.kind === 'RETURN_DONATION' && npc.donation_cents) fail('trajet de don invalide');
     } else if (task.kind === 'GUARD') {
       if (npc.role !== 'SERVICE_D_ORDRE' || !['PATROL', 'DEFEND', 'RAID', 'PRESSURE', 'RETURN'].includes(task.phase)) fail('garde invalide');
@@ -157,6 +160,8 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (record.subzone_id !== next.world.subzones[index].id || !record.support
       || [...FACTIONS, 'neutral', 'pending'].some(key => !integer(record.support[key]))) fail('électorat invalide');
   });
+  validateVehicles(next, fail, config);
+  validateRallies(next, fail);
   validateCombatSnapshot(next, simulation, fail);
   validateElectoralSnapshot(next, config, fail);
   validateMatchSnapshot(next, simulation, fail, validateSnapshot, nested);

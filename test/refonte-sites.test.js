@@ -25,25 +25,20 @@ function unit(sim, role, faction, x) {
   return npc;
 }
 
-test('36 sites préexistants : règles géographiques, tirage seedé, caps et services garantis', () => {
-  const a = new GameSimulation(config, 2027); const b = new GameSimulation(config, 2027); const c = new GameSimulation(config, 99);
+test('30 sites fixes : un contrôle par sous-zone et un meeting central par biome', () => {
+  const a = new GameSimulation(config, 2027), b = new GameSimulation(config, 99);
   assert.deepEqual(a.state.buildings, b.state.buildings);
-  assert.notDeepEqual(a.state.buildings.map(s => s.type), c.state.buildings.map(s => s.type));
-  assert.equal(a.state.buildings.length, 36); assert.equal(new Set(a.state.buildings.map(s => s.subzone_id)).size, 18);
+  assert.equal(a.state.buildings.length, 30);
   for (const [type, count] of Object.entries(config.layout.strategic_site_generation.site_counts)) assert.equal(a.state.buildings.filter(s => s.type === type).length, count);
+  for (const zone of a.state.world.subzones) assert.equal(a.state.buildings.filter(s => s.subzone_id === zone.id && s.controls_zone).length, 1);
   for (const biome of config.layout.biomes) {
-    const sites = a.state.buildings.filter(s => s.biome_id === biome.id); assert.equal(sites.length, 6);
-    const permanence = sites.filter(s => s.type === 'permanence'); assert.equal(permanence.length, 1); assert.equal(permanence[0].subzone_id, biome.subzones[1].id);
-    const faction = sites.filter(s => s.type === 'faction'); assert.equal(faction.length, 1); assert.notEqual(faction[0].subzone_id, biome.subzones[1].id);
-    assert.equal(sites.filter(s => s.type === 'meeting').length, 1);
-    assert.ok([1, 2].includes(sites.filter(s => s.type === 'imprimerie').length));
-    for (const type of new Set(sites.map(s => s.type))) assert.ok(sites.filter(s => s.type === type).length <= (type === 'faction'
-      ? config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.max_per_biome : config.balance.buildings[type].max_per_biome));
+    const meetings = a.state.buildings.filter(s => s.biome_id === biome.id && s.type === 'meeting');
+    assert.equal(meetings.length, 1); assert.equal(meetings[0].subzone_id, biome.subzones[1].id);
+    assert.equal(meetings[0].x, a.state.world.subzones.find(z => z.id === biome.subzones[1].id).center);
   }
-  assert.deepEqual(new Set(a.state.buildings.filter(s => s.type === 'institut_sondage').map(s => s.biome_id)),
-    new Set(['paris_19e', 'periurbain_usine', 'retraites', 'quartiers_riches']));
-  assert.ok(a.state.buildings.filter(s => ['imprimerie', 'meeting', 'institut_sondage'].includes(s.type)).every(s => s.owner_id === null && s.active && s.neutral));
-  assert.ok(a.state.buildings.filter(s => !['imprimerie', 'meeting', 'institut_sondage'].includes(s.type)).every(s => s.state === 'NEUTRAL' && !s.active));
+  assert.deepEqual(new Set(a.state.buildings.filter(s => s.type === 'institut_sondage').map(s => s.biome_id)), new Set(['banlieue', 'retraites', 'quartiers_riches']));
+  assert.ok(a.state.buildings.filter(s => ['meeting', 'institut_sondage'].includes(s.type)).every(s => s.owner_id === null && s.active && s.neutral));
+  assert.ok(a.state.buildings.filter(s => s.controls_zone).every(s => s.state === 'NEUTRAL' && !s.active));
 });
 
 test('Premier Local capturé = QG, second = Permanence, succession circulaire déterministe', () => {
@@ -89,9 +84,10 @@ test('Local SO : effectif libre et Raid disponible dès le niveau unique', () =>
   assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').enabled, true);
 });
 
-test('Financement : aucun lancement payant et cagnotte reçue au passage', () => {
+test('Permanence : aucun lancement payant et cagnotte reçue au passage', () => {
   const sim = new GameSimulation(config, 31415); sim.state.ai_enabled = false;
-  const actor = candidate(sim); const site = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, site, actor);
+  const actor = candidate(sim); const site = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, site, actor);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   const supporters = [unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + 1), unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + 1.2)];
   actor.x = site.x + 10; actor.money = 100;
   const offers = buildingOffers(sim.state, sim.config, actor, site);
@@ -116,13 +112,14 @@ test('Institut et promontoire neutres : sondage figé et meeting de quinze secon
   assert.ok(sim.state.electorate.find(e => e.subzone_id === hall.subzone_id).support.melenchon > before);
 });
 
-test('Imprimerie neutre : tracts à 100 € achetés à la chaîne sans quitter le bâtiment', () => {
+test('Permanence : une commande de tracts à 100 € par passage', () => {
   const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
-  const printer = sim.state.buildings.find(s => s.type === 'imprimerie'); actor.x = printer.x;
+  const printer = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, printer, actor); actor.x = printer.x;
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   unit(sim, 'SYMPATHISANT', actor.faction_id, printer.x);
   advance(sim, sim.secondsToTicks(4));
-  assert.equal(actor.spending.PRINT, 0.2); assert.equal(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length, 2);
-  assert.equal(actor.purchase_latch_target_id, null);
+  assert.equal(actor.spending.PRINT, 0.1); assert.equal(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length, 1);
+  assert.equal(actor.purchase_latch_target_id, printer.id);
 });
 
 test('Résistance cachée : récupération, KO, perte électorale et respawn au QG', () => {
@@ -141,9 +138,10 @@ test('Résistance cachée : récupération, KO, perte électorale et respawn au 
   advance(sim, target.respawn_tick - sim.state.tick); assert.equal(target.is_ko, false); assert.equal(target.resistance, 100); assert.equal(target.x, hq.x);
 });
 
-test('Snapshot v11 : topologie et trajet d’un don reprennent à l’identique', () => {
+test('Snapshot v13 : topologie et trajet d’un don reprennent à l’identique', () => {
   const sim = new GameSimulation(config, 73); advance(sim, 50);
-  const actor = candidate(sim); const funding = sim.state.buildings.find(s => s.type === 'financement'); captureSite(sim, funding, actor);
+  const actor = candidate(sim); const funding = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, funding, actor);
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   const donor = unit(sim, 'SYMPATHISANT', actor.faction_id, funding.x - 3);
   donor.donation_cents = 10000; advance(sim, 3);
   const restored = new GameSimulation(config, 73); restored.importSnapshot(sim.exportSnapshot());

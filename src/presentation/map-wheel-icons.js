@@ -20,3 +20,16 @@ export const mapWheelIcons = {
   riches_b: ['M-12-16H12V16H-12ZM-14-3H14V2H-14Z', 'M-8-12h4v5h-4ZM4-12h4v5H4ZM-8 6h6v6h-6ZM3 16V6h5v10M-10-3v5M-3-3v5M4-3v5M11-3v5'],
   riches_c: ['M-14-10l4-7H10l4 7V17H-14Z', 'M-14-10H14M-14 0H14M-14 9H14M-9-6h4v4h-4ZM5-6h4v4H5ZM-9 3h4v4h-4ZM5 3h4v4H5ZM-3 17v-5h6v5M-8-17v-4M8-17v-4'],
 };
+
+// Repères du tableau de la carte fixe.
+mapWheelIcons.paris_a = ['M-12-7H7V9H-12ZM7-4H12V5H7Z', 'M-14 12H11M-8-11v-5M-2-11v-5M-9 16H7'];
+mapWheelIcons.paris_b = ['M-15-7l4-8H11l4 8ZM-13-7V2H13V-7', 'M-10 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0M5 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0M-5 12l5-8 10 8H-5M0 4h7'];
+mapWheelIcons.paris_c = ['M-14-7Q0-20 14-7V-2Q0-13-14-2Z', 'M-13-2V6M13-2V6M-16 10q4-4 8 0t8 0t8 0t8 0M-16 16q4-4 8 0t8 0t8 0t8 0'];
+mapWheelIcons.periurbain_a = mapWheelIcons.periurbain_b;
+mapWheelIcons.periurbain_b = ['M0-12a12 12 0 1 0 0 24a12 12 0 1 0 0-24Z', 'M0-5a5 5 0 1 0 0 10a5 5 0 1 0 0-10M0-20v8M0 12v8M-20 0h8M12 0h8'];
+mapWheelIcons.periurbain_c = ['M-17 15L-3-17 16 15Z', 'M-9-3l6 4 4-5 5 7M4-10l12 25M-17 18H17'];
+mapWheelIcons.campagne_a = ['M-15 10V-2q15-20 30 0V10Z', 'M-15 0H15M-8-8V10M0-11V10M8-8V10M-17 14H17M-16 19H16'];
+mapWheelIcons.retraites_a = ['M-15-8L0-16 15-8V15H-15Z', 'M-10 15V-3H10V15M-10 1H10M-10 5H10M-7 15v-4H7v4'];
+mapWheelIcons.retraites_b = ['M-13 0L-5-9 3 0V10H-13Z', 'M9 7V-12M9-12L17-3H9M-17 14q5-4 10 0t10 0t10 0M-17 19q5-4 10 0t10 0t10 0'];
+mapWheelIcons.riches_b = ['M-14 18Q-3-1-2-19H2Q3-1 14 18H8Q0 4-8 18Z', 'M-9 8H9M-6 0H6M-3-9H3M-16 18H16'];
+mapWheelIcons.riches_c = ['M-15-16H15V17H7V-7H-7V17H-15Z', 'M-15-10H15M-11-16V17M11-16V17M-18 20H18'];

@@ -19,21 +19,35 @@
       "subzones": [
         {
           "id": "paris_a",
-          "concept": "Canal, cafés, vélos",
+          "concept": "Café et boutique de créateurs",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Café et boutique de créateurs",
+          "scenery": "Toits haussmanniens, jardins et chemins de parc sur les hauteurs.",
+          "candidate_spawns": [
+            "Raphaël Glucksmann"
+          ]
         },
         {
           "id": "paris_b",
-          "concept": "Place de quartier, commerces",
+          "concept": "Marché et vélos",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Marché et vélos",
+          "scenery": "Marché bio, boutiques, Montmartre et Sacré-Cœur au loin ; transition vers le canal.",
+          "candidate_spawns": []
         },
         {
           "id": "paris_c",
-          "concept": "Quartier mixte vers banlieue",
+          "concept": "Canal Saint-Martin",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Canal Saint-Martin",
+          "scenery": "Canal, écluses et quartier mixte vers la banlieue.",
+          "candidate_spawns": [
+            "Marine Tondelier",
+            "Fabien Roussel"
+          ]
         }
       ]
     },
@@ -43,21 +57,32 @@
       "subzones": [
         {
           "id": "banlieue_a",
-          "concept": "Cité dortoir vers quartier bobo",
+          "concept": "Tours de cité",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Tours de cité",
+          "scenery": "Très hautes tours au premier plan, logements collectifs et local associatif.",
+          "candidate_spawns": []
         },
         {
           "id": "banlieue_b",
-          "concept": "Marché populaire central",
+          "concept": "Marché populaire",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Marché populaire",
+          "scenery": "Place du marché, boulangerie et basilique de Saint-Denis.",
+          "candidate_spawns": [
+            "Jean-Luc Mélenchon"
+          ]
         },
         {
           "id": "banlieue_c",
-          "concept": "Pavillons modestes vers périurbain",
+          "concept": "Pavillons modestes",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 10,
+          "wheel_symbol": "Pavillons modestes",
+          "scenery": "Maisons dégradées, cités plus basses en fond et camp de voyageurs en transition.",
+          "candidate_spawns": []
         }
       ]
     },
@@ -67,21 +92,36 @@
       "subzones": [
         {
           "id": "periurbain_a",
-          "concept": "Pavillons modestes, zone artisanale",
+          "concept": "Usine",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Usine",
+          "scenery": "Petites usines, hangars, jardins ouvriers et lotissement de maisons modestes.",
+          "candidate_spawns": [
+            "Nathalie Arthaud"
+          ]
         },
         {
           "id": "periurbain_b",
-          "concept": "Usine, entrepôts, rond-point",
+          "concept": "Rond-point",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 13
+          "max_npcs_by_origin": 13,
+          "wheel_symbol": "Rond-point",
+          "scenery": "Zone artisanale, entrepôts, rond-point et maisons de briques rouges.",
+          "candidate_spawns": []
         },
         {
           "id": "periurbain_c",
-          "concept": "Sortie industrielle vers champs",
+          "concept": "Montagne",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 10
+          "max_npcs_by_origin": 10,
+          "wheel_symbol": "Montagne",
+          "scenery": "Sortie industrielle, pâturages et sommet enneigé culminant à la manière du mont Blanc.",
+          "candidate_spawns": [
+            "François Asselineau",
+            "Dominique de Villepin",
+            "Nicolas Dupont-Aignan"
+          ]
         }
       ]
     },
@@ -91,21 +131,32 @@
       "subzones": [
         {
           "id": "campagne_a",
-          "concept": "Entrée village",
+          "concept": "Maraîchage",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Maraîchage",
+          "scenery": "Une seule ferme maraîchère et ses serres, champs, haies et collines.",
+          "candidate_spawns": []
         },
         {
           "id": "campagne_b",
-          "concept": "Cœur village, mairie, place",
+          "concept": "Village",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Village",
+          "scenery": "Mairie, place de village et petit clocher.",
+          "candidate_spawns": [
+            "Marine Le Pen"
+          ]
         },
         {
           "id": "campagne_c",
-          "concept": "Champs vers pavillons retraités",
+          "concept": "Clocher et éoliennes",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Clocher et éoliennes",
+          "scenery": "Champs de blé, éoliennes et village au loin ; petit local intégré à une haie.",
+          "candidate_spawns": []
         }
       ]
     },
@@ -115,21 +166,34 @@
       "subzones": [
         {
           "id": "retraites_a",
-          "concept": "Pavillons, pelouses très tondues, haies",
+          "concept": "Garage automobile",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Garage automobile",
+          "scenery": "Pavillons soignés, haies, pelouses et garagiste ; mer, vergers et collines boisées.",
+          "candidate_spawns": [
+            "Bruno Retailleau"
+          ]
         },
         {
           "id": "retraites_b",
-          "concept": "Pharmacie, square, salle associative",
+          "concept": "Station balnéaire",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Station balnéaire",
+          "scenery": "Mer visible, pharmacie, boutiques de plage et place de station balnéaire.",
+          "candidate_spawns": []
         },
         {
           "id": "retraites_c",
-          "concept": "Retraités aisés vers quartiers riches",
+          "concept": "Maison bourgeoise",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 11
+          "max_npcs_by_origin": 11,
+          "wheel_symbol": "Maison bourgeoise",
+          "scenery": "Villas et jardins aisés à la manière de Neuilly-sur-Seine.",
+          "candidate_spawns": [
+            "Gabriel Attal"
+          ]
         }
       ]
     },
@@ -139,21 +203,32 @@
       "subzones": [
         {
           "id": "riches_a",
-          "concept": "Résidentiel bourgeois",
+          "concept": "Immeuble bourgeois",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 9,
+          "wheel_symbol": "Immeuble bourgeois",
+          "scenery": "Quartier du 16e, parc soigné, grands arbres et demeures élégantes.",
+          "candidate_spawns": []
         },
         {
           "id": "riches_b",
-          "concept": "Avenue élégante, boutiques",
+          "concept": "Tour Eiffel",
           "initial_neutral_count": 2,
-          "max_npcs_by_origin": 12
+          "max_npcs_by_origin": 12,
+          "wheel_symbol": "Tour Eiffel",
+          "scenery": "Avenue touristique, boutiques, façades haussmanniennes et tour Eiffel.",
+          "candidate_spawns": [
+            "Édouard Philippe"
+          ]
         },
         {
           "id": "riches_c",
-          "concept": "Haussmannien vers Paris 19e",
+          "concept": "La Défense",
           "initial_neutral_count": 1,
-          "max_npcs_by_origin": 9
+          "max_npcs_by_origin": 9,
+          "wheel_symbol": "La Défense",
+          "scenery": "Cabinet, quartier d’affaires, Grande Arche en fond et retour vers Paris.",
+          "candidate_spawns": []
         }
       ]
     }
@@ -197,209 +272,413 @@
   },
   "subzone_electoral_weight": "equal_for_v0",
   "social_points_per_subzone": 1,
-  "building_slots_per_subzone": 2,
+  "building_slots_per_subzone": 4,
   "prototype_version": "0.3",
   "strategic_site_generation": {
-    "mode": "seeded_explicit_slots",
-    "note": "La graine choisit les types parmi ces emplacements explicites. La Permanence est toujours dans la sous-zone centrale. Un Local SO/Cabinet est garanti par biome, hors sous-zone centrale. Une Imprimerie et une Salle de meeting sont garanties par biome.",
-    "max_sites_per_subzone": 2,
+    "mode": "fixed_explicit_slots",
+    "note": "Emplacements et fonctions fixes d’après le tableau. Un bâtiment contrôle chaque sous-zone. Meeting au centre du biome.",
+    "max_sites_per_subzone": 4,
     "site_counts": {
-      "permanence": 6,
+      "permanence": 9,
       "financement": 3,
-      "faction": 6,
+      "faction": 3,
       "tour_communication": 3,
-      "imprimerie": 8,
+      "imprimerie": 0,
       "meeting": 6,
-      "institut_sondage": 4
-    },
-    "fixed_biomes_by_type": {
-      "institut_sondage": [
-        "paris_19e",
-        "periurbain_usine",
-        "retraites",
-        "quartiers_riches"
-      ]
+      "institut_sondage": 3,
+      "garage_velo": 1,
+      "garage_scooter": 2
     },
     "slots": [
       {
         "site_id": "site:paris_a",
         "subzone_id": "paris_a",
-        "x_ratio": 0.24
+        "x_ratio": 0.6738,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.245,
+          0.245,
+          0.585,
+          0.05,
+          0.031
+        ]
       },
       {
         "site_id": "site:paris_b",
         "subzone_id": "paris_b",
-        "x_ratio": 0.52
+        "x_ratio": 0.23108,
+        "type": "garage_velo",
+        "controls_zone": true,
+        "facade": [
+          0.417,
+          0.416,
+          0.607,
+          0.074,
+          0.037
+        ]
+      },
+      {
+        "site_id": "site:paris_b:meeting",
+        "subzone_id": "paris_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:paris_c",
         "subzone_id": "paris_c",
-        "x_ratio": 0.78
+        "x_ratio": 0.23872,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.728,
+          0.728,
+          0.615,
+          0.051,
+          0.03
+        ]
       },
       {
         "site_id": "site:banlieue_a",
         "subzone_id": "banlieue_a",
-        "x_ratio": 0.26
+        "x_ratio": 0.37572,
+        "type": "tour_communication",
+        "controls_zone": true,
+        "label": "Média associatif",
+        "facade": [
+          0.153,
+          0.121,
+          0.664,
+          0.087,
+          0.034
+        ]
       },
       {
         "site_id": "site:banlieue_b",
         "subzone_id": "banlieue_b",
-        "x_ratio": 0.55
+        "x_ratio": 0.01076,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.349,
+          0.346,
+          0.692,
+          0.07,
+          0.03
+        ]
+      },
+      {
+        "site_id": "site:banlieue_b:meeting",
+        "subzone_id": "banlieue_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:banlieue_c",
         "subzone_id": "banlieue_c",
-        "x_ratio": 0.76
+        "x_ratio": 0.43636,
+        "type": "faction",
+        "controls_zone": true,
+        "fixed_variant": "service_ordre",
+        "facade": [
+          0.789,
+          0.824,
+          0.687,
+          0.085,
+          0.034
+        ]
       },
       {
         "site_id": "site:periurbain_a",
         "subzone_id": "periurbain_a",
-        "x_ratio": 0.22
+        "x_ratio": 0.57336,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.214,
+          0.21,
+          0.614,
+          0.074,
+          0.035
+        ]
       },
       {
         "site_id": "site:periurbain_b",
         "subzone_id": "periurbain_b",
-        "x_ratio": 0.5
+        "x_ratio": 0.014,
+        "type": "garage_scooter",
+        "controls_zone": true,
+        "facade": [
+          0.35,
+          0.332,
+          0.553,
+          0.071,
+          0.045
+        ]
+      },
+      {
+        "site_id": "site:periurbain_b:meeting",
+        "subzone_id": "periurbain_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:periurbain_c",
         "subzone_id": "periurbain_c",
-        "x_ratio": 0.8
+        "x_ratio": 0.4882,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.805,
+          0.805,
+          0.646,
+          0.073,
+          0.038
+        ]
       },
       {
         "site_id": "site:campagne_a",
         "subzone_id": "campagne_a",
-        "x_ratio": 0.25
+        "x_ratio": 0.76776,
+        "type": "garage_scooter",
+        "controls_zone": true,
+        "facade": [
+          0.274,
+          0.276,
+          0.661,
+          0.043,
+          0.027
+        ]
       },
       {
         "site_id": "site:campagne_b",
         "subzone_id": "campagne_b",
-        "x_ratio": 0.54
+        "x_ratio": 0.03992,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.358,
+          0.367,
+          0.682,
+          0.041,
+          0.025
+        ]
+      },
+      {
+        "site_id": "site:campagne_b:meeting",
+        "subzone_id": "campagne_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:campagne_c",
         "subzone_id": "campagne_c",
-        "x_ratio": 0.77
+        "x_ratio": 0.3586,
+        "type": "faction",
+        "controls_zone": true,
+        "fixed_variant": "service_ordre",
+        "facade": [
+          0.765,
+          0.765,
+          0.725,
+          0.025,
+          0.02
+        ]
       },
       {
         "site_id": "site:retraites_a",
         "subzone_id": "retraites_a",
-        "x_ratio": 0.23
+        "x_ratio": 0.65436,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.239,
+          0.237,
+          0.637,
+          0.057,
+          0.043
+        ]
       },
       {
         "site_id": "site:retraites_b",
         "subzone_id": "retraites_b",
-        "x_ratio": 0.51
+        "x_ratio": 0.19544,
+        "type": "tour_communication",
+        "controls_zone": true,
+        "label": "Presse conservatrice",
+        "facade": [
+          0.406,
+          0.406,
+          0.645,
+          0.052,
+          0.035
+        ]
+      },
+      {
+        "site_id": "site:retraites_b:meeting",
+        "subzone_id": "retraites_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:retraites_c",
         "subzone_id": "retraites_c",
-        "x_ratio": 0.79
+        "x_ratio": 0.66316,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.859,
+          0.859,
+          0.655,
+          0.05,
+          0.025
+        ]
       },
       {
         "site_id": "site:riches_a",
         "subzone_id": "riches_a",
-        "x_ratio": 0.27
+        "x_ratio": 0.5442,
+        "type": "tour_communication",
+        "controls_zone": true,
+        "label": "Rédaction nationale",
+        "facade": [
+          0.205,
+          0.207,
+          0.638,
+          0.067,
+          0.032
+        ]
       },
       {
         "site_id": "site:riches_b",
         "subzone_id": "riches_b",
-        "x_ratio": 0.49
+        "x_ratio": 0.0302,
+        "type": "permanence",
+        "controls_zone": true,
+        "facade": [
+          0.355,
+          0.35,
+          0.638,
+          0.076,
+          0.03
+        ]
+      },
+      {
+        "site_id": "site:riches_b:meeting",
+        "subzone_id": "riches_b",
+        "x_ratio": 0.5,
+        "type": "meeting",
+        "controls_zone": false
       },
       {
         "site_id": "site:riches_c",
         "subzone_id": "riches_c",
-        "x_ratio": 0.75
+        "x_ratio": 0.22576,
+        "type": "faction",
+        "controls_zone": true,
+        "fixed_variant": "cabinet_administratif",
+        "facade": [
+          0.724,
+          0.726,
+          0.645,
+          0.062,
+          0.029
+        ]
       },
       {
-        "site_id": "site:paris_a:service",
-        "subzone_id": "paris_a",
-        "x_ratio": 0.72
-      },
-      {
-        "site_id": "site:paris_b:service",
+        "site_id": "site:paris_b:financement",
         "subzone_id": "paris_b",
-        "x_ratio": 0.82
+        "x_ratio": 0.97304,
+        "type": "financement",
+        "controls_zone": false,
+        "label": "Investisseur du numérique",
+        "facade": [
+          0.646,
+          0.656,
+          0.571,
+          0.049,
+          0.027
+        ]
       },
       {
-        "site_id": "site:paris_c:service",
-        "subzone_id": "paris_c",
-        "x_ratio": 0.28
-      },
-      {
-        "site_id": "site:banlieue_a:service",
+        "site_id": "site:banlieue_a:institut_sondage",
         "subzone_id": "banlieue_a",
-        "x_ratio": 0.73
+        "x_ratio": 0.63816,
+        "type": "institut_sondage",
+        "controls_zone": false,
+        "label": "Institut de sondage",
+        "facade": [
+          0.234,
+          0.252,
+          0.674,
+          0.058,
+          0.035
+        ]
       },
       {
-        "site_id": "site:banlieue_b:service",
-        "subzone_id": "banlieue_b",
-        "x_ratio": 0.82
-      },
-      {
-        "site_id": "site:banlieue_c:service",
-        "subzone_id": "banlieue_c",
-        "x_ratio": 0.27
-      },
-      {
-        "site_id": "site:periurbain_a:service",
-        "subzone_id": "periurbain_a",
-        "x_ratio": 0.7
-      },
-      {
-        "site_id": "site:periurbain_b:service",
+        "site_id": "site:periurbain_b:financement",
         "subzone_id": "periurbain_b",
-        "x_ratio": 0.82
+        "x_ratio": 0.97952,
+        "type": "financement",
+        "controls_zone": false,
+        "label": "Financement russe",
+        "facade": [
+          0.648,
+          0.651,
+          0.606,
+          0.052,
+          0.049
+        ]
       },
       {
-        "site_id": "site:periurbain_c:service",
-        "subzone_id": "periurbain_c",
-        "x_ratio": 0.3
-      },
-      {
-        "site_id": "site:campagne_a:service",
-        "subzone_id": "campagne_a",
-        "x_ratio": 0.74
-      },
-      {
-        "site_id": "site:campagne_b:service",
-        "subzone_id": "campagne_b",
-        "x_ratio": 0.82
-      },
-      {
-        "site_id": "site:campagne_c:service",
-        "subzone_id": "campagne_c",
-        "x_ratio": 0.29
-      },
-      {
-        "site_id": "site:retraites_a:service",
-        "subzone_id": "retraites_a",
-        "x_ratio": 0.71
-      },
-      {
-        "site_id": "site:retraites_b:service",
+        "site_id": "site:retraites_b:institut_sondage",
         "subzone_id": "retraites_b",
-        "x_ratio": 0.82
+        "x_ratio": 0.97952,
+        "type": "institut_sondage",
+        "controls_zone": false,
+        "label": "Institut de sondage",
+        "facade": [
+          0.648,
+          0.667,
+          0.654,
+          0.044,
+          0.025
+        ]
       },
       {
-        "site_id": "site:retraites_c:service",
-        "subzone_id": "retraites_c",
-        "x_ratio": 0.26
+        "site_id": "site:retraites_b:financement",
+        "subzone_id": "retraites_b",
+        "x_ratio": 0.80456,
+        "type": "financement",
+        "controls_zone": false,
+        "label": "Groupe médiatique privé",
+        "facade": [
+          0.594,
+          0.6,
+          0.658,
+          0.045,
+          0.03
+        ]
       },
       {
-        "site_id": "site:riches_a:service",
-        "subzone_id": "riches_a",
-        "x_ratio": 0.76
-      },
-      {
-        "site_id": "site:riches_b:service",
-        "subzone_id": "riches_b",
-        "x_ratio": 0.82
-      },
-      {
-        "site_id": "site:riches_c:service",
+        "site_id": "site:riches_c:institut_sondage",
         "subzone_id": "riches_c",
-        "x_ratio": 0.25
+        "x_ratio": 0.56596,
+        "type": "institut_sondage",
+        "controls_zone": false,
+        "label": "Institut de sondage",
+        "facade": [
+          0.829,
+          0.83,
+          0.648,
+          0.052,
+          0.029
+        ]
       }
     ]
   },

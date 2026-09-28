@@ -1,3 +1,6 @@
+import { candidateTravelSpeed, updateVehicles, vehicleCommand } from './vehicles.js';
+import { hostilePersuasionMultiplier } from './zone-control.js';
+import { rallyNpcStep } from './rallies.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { validAIDifficulty } from './ai-settings.js';
 import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
@@ -52,7 +55,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 12, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 13, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, next_money_pickup_id: 1, transactions: [], money_pickups: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -70,7 +73,7 @@ export class GameSimulation {
         id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
         ai_objective: null,
         x: start.start + start.width * config.prototype.world.candidate_start_ratio,
-        axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
+        vehicle: null, vehicle_hold: null, axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
         combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
         resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
         ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
@@ -162,6 +165,7 @@ export class GameSimulation {
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
     if (command.type === 'ContinueToSecondRound') { finishArena(this); return; }
+    vehicleCommand(this.state.candidates.find(c => c.id === command.candidateId), command);
     if (CampaignStyleSystem.command(this, command)) return;
     if (campaignCommand(this, command)) return;
     if (applyMatchDebug(this, command)) return;
@@ -219,7 +223,7 @@ export class GameSimulation {
       case 'DebugBuildElectoral': {
         if (!candidate || !['tour_communication', 'institut_sondage', 'meeting'].includes(command.buildingType)) break;
         const building = this.state.buildings.find(b => b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.type === command.buildingType);
-        if (building.state === 'ACTIVE' || (building.owner_id && building.owner_id !== candidate.faction_id)) break;
+        if (!building || building.state === 'ACTIVE' || (building.owner_id && building.owner_id !== candidate.faction_id)) break;
         if (building.type === 'tour_communication' && this.state.buildings.filter(b => b.type === building.type && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id).length >= this.config.balance.buildings.tour_communication.global_limit) break;
         building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.last_action_tick = this.state.tick;
         this.emit('DebugBuildingConstructed', { target_id: building.id });
@@ -317,9 +321,10 @@ export class GameSimulation {
     const dt = 1 / this.hz;
     state.tick++;
     beginCombatTick(this);
+    updateVehicles(this);
     for (const candidate of state.candidates) {
       if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || movementBlocked(candidate)) continue;
-      candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * this.config.prototype.movement.candidate_speed_units_per_second * dt, state.world.length));
+      candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
       if (candidate.podium_site_id) {
@@ -332,8 +337,8 @@ export class GameSimulation {
     }
     updateSpawns(this);
     for (const npc of state.npcs) {
-      if (npc.role === 'MILITANT') updateMilitantCombat(this, npc);
-      if (npc.role === 'SERVICE_D_ORDRE') updateGuard(this, npc);
+      if (npc.role === 'MILITANT' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
+      if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
     }
     updateCombat(this);
     updateCandidateResistance(this);
@@ -372,14 +377,14 @@ export class GameSimulation {
     recordMatchHistory(this, state.phase !== previousPhase);
   }
 
-  persuasionTicks(actor) {
+  persuasionTicks(actor, target = actor) {
     const settings = this.config.balance.persuasion;
     const base = actor.role === 'MILITANT' ? settings.militant_base_seconds
       : settings.candidate_base_seconds * (actor.faction_id === 'melenchon' ? settings.melenchon_personal_time_multiplier : 1);
     const candidate = this.state.candidates.find(item => item.faction_id === actor.faction_id);
     const biome = zoneAt(this.state.world, actor.x).biome_id;
     const style = Math.max(0.1, styleInfluenceMultiplier(this.config, candidate, biome));
-    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) / style);
+    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) * hostilePersuasionMultiplier(this.state, this.config, actor, target) / style);
   }
 
   updatePersuasion() {
@@ -388,12 +393,12 @@ export class GameSimulation {
     const maxTargets = this.config.balance.persuasion.max_simultaneous_targets_per_actor;
     // Gameplay sees an actor's activity intention, never its input source or camera ownership.
     const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')]
-      .filter(actor => canCampaign(actor) && !actor.moving && !actor.axis && Math.abs(actor.combat?.knockback_velocity || 0) <= 0.02);
+      .filter(actor => !actor.rally_event_id && actor.rally_return_x == null && canCampaign(actor) && !actor.moving && !actor.axis && Math.abs(actor.combat?.knockback_velocity || 0) <= 0.02);
     const claims = [];
     for (const actor of eligible) {
       for (const npc of state.npcs) {
         const distance = Math.abs(ringDelta(actor.x, npc.x, state.world.length));
-        if (npc.role === 'NEUTRE' && distance <= radius) claims.push({ actor, npc, distance, retained: npc.persuasion?.actor_id === actor.id });
+        if (!npc.rally_event_id && npc.role === 'NEUTRE' && distance <= radius) claims.push({ actor, npc, distance, retained: npc.persuasion?.actor_id === actor.id });
       }
     }
     // Keep a conversation until it breaks. New claims use distance then stable IDs,
@@ -409,7 +414,7 @@ export class GameSimulation {
     for (const npc of state.npcs) {
       const actor = assigned.get(npc.id);
       if (!actor) { npc.persuasion = null; continue; }
-      if (npc.persuasion?.actor_id !== actor.id) npc.persuasion = { actor_id: actor.id, elapsed_ticks: 0, required_ticks: this.persuasionTicks(actor) };
+      if (npc.persuasion?.actor_id !== actor.id) npc.persuasion = { actor_id: actor.id, elapsed_ticks: 0, required_ticks: this.persuasionTicks(actor, npc) };
       npc.persuasion.elapsed_ticks++;
       npc.facing = ringDelta(npc.x, actor.x, state.world.length) < 0 ? -1 : 1;
       if (npc.persuasion.elapsed_ticks >= npc.persuasion.required_ticks) {
@@ -423,6 +428,7 @@ export class GameSimulation {
     const state = this.state;
     const settings = this.config.prototype.world;
     for (const npc of state.npcs) {
+      if (rallyNpcStep(this, npc)) continue;
       if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
       npc.moving = false;
       if (npc.role === 'SYMPATHISANT' && npc.handoff_until_tick > state.tick) continue;

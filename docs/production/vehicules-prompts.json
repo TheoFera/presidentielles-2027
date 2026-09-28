@@ -1,0 +1,38 @@
+[
+  {
+    "id": "melenchon",
+    "reference": "melenchon.png",
+    "character": "Jean-Luc Mélenchon, glasses, grey swept hair, recognisable exact face from reference",
+    "rows": [
+      "charcoal suit and red scarf, like reference",
+      "charcoal suit, red scarf, universalist campaign outfit",
+      "navy jacket with purple scarf, community campaign outfit",
+      "blue worker jacket with red scarf, working-class campaign outfit"
+    ],
+    "prompt": "Create a production-ready TRANSPARENT RGBA sprite atlas for a side-scrolling 2D political cartoon game. Match attached character identity and hand-inked French comic style EXACTLY: dark clean outlines, flat warm colour, small subtle textured shadows, caricature head proportions. Atlas 2 columns by 4 rows in EIGHT exactly equal rectangular grid cells. Every cell has same scale, transparent padding, no text, no grid lines. Column 1: full character seated riding a dark teal city BICYCLE facing strictly RIGHT in side profile, hands on handlebars, both feet on pedals, knees naturally bent. Column 2: same character seated riding a muted cream/red vintage SCOOTER facing strictly RIGHT, hands on handlebars, feet on scooter floorboard. Draw complete bike/scooter and full rider in every cell. Tires always rest on the same relative baseline near cell bottom. Wheels never cropped. No helmet. No ground, shadows or backdrop outside sprites. Keep neighbouring sprites entirely separate with broad transparent gutters. Character: Jean-Luc Mélenchon, glasses, grey swept hair, recognisable exact face from reference. Outfits from top row to bottom row: 1: charcoal suit and red scarf, like reference; 2: charcoal suit, red scarf, universalist campaign outfit; 3: navy jacket with purple scarf, community campaign outfit; 4: blue worker jacket with red scarf, working-class campaign outfit. Consistent candidate face across all rows."
+  },
+  {
+    "id": "le_pen",
+    "reference": "character-le_pen.png",
+    "character": "Marine Le Pen, shoulder-length blond hair, recognisable exact face from reference",
+    "rows": [
+      "navy trouser suit and white blouse, like reference",
+      "navy trouser suit with navy scarf, sovereignist campaign outfit",
+      "dark brown tailored jacket and trousers, conservative campaign outfit",
+      "pale blue formal blazer, white blouse and dark trousers, government campaign outfit"
+    ],
+    "prompt": "Create a production-ready TRANSPARENT RGBA sprite atlas for a side-scrolling 2D political cartoon game. Match attached character identity and hand-inked French comic style EXACTLY: dark clean outlines, flat warm colour, small subtle textured shadows, caricature head proportions. Atlas 2 columns by 4 rows in EIGHT exactly equal rectangular grid cells. Every cell has same scale, transparent padding, no text, no grid lines. Column 1: full character seated riding a dark teal city BICYCLE facing strictly RIGHT in side profile, hands on handlebars, both feet on pedals, knees naturally bent. Column 2: same character seated riding a muted cream/red vintage SCOOTER facing strictly RIGHT, hands on handlebars, feet on scooter floorboard. Draw complete bike/scooter and full rider in every cell. Tires always rest on the same relative baseline near cell bottom. Wheels never cropped. No helmet. No ground, shadows or backdrop outside sprites. Keep neighbouring sprites entirely separate with broad transparent gutters. Character: Marine Le Pen, shoulder-length blond hair, recognisable exact face from reference. Outfits from top row to bottom row: 1: navy trouser suit and white blouse, like reference; 2: navy trouser suit with navy scarf, sovereignist campaign outfit; 3: dark brown tailored jacket and trousers, conservative campaign outfit; 4: pale blue formal blazer, white blouse and dark trousers, government campaign outfit. Consistent candidate face across all rows."
+  },
+  {
+    "id": "philippe",
+    "reference": "character-philippe.png",
+    "character": "Edouard Philippe, balding, round glasses, salt-and-pepper beard, recognisable exact face from reference",
+    "rows": [
+      "charcoal suit and dark tie, like reference",
+      "grey business suit with green tie, manager campaign outfit",
+      "dark suit and French tricolour mayor sash, local mayor campaign outfit",
+      "royal blue jacket and yellow tie, European campaign outfit"
+    ],
+    "prompt": "Create a production-ready TRANSPARENT RGBA sprite atlas for a side-scrolling 2D political cartoon game. Match attached character identity and hand-inked French comic style EXACTLY: dark clean outlines, flat warm colour, small subtle textured shadows, caricature head proportions. Atlas 2 columns by 4 rows in EIGHT exactly equal rectangular grid cells. Every cell has same scale, transparent padding, no text, no grid lines. Column 1: full character seated riding a dark teal city BICYCLE facing strictly RIGHT in side profile, hands on handlebars, both feet on pedals, knees naturally bent. Column 2: same character seated riding a muted cream/red vintage SCOOTER facing strictly RIGHT, hands on handlebars, feet on scooter floorboard. Draw complete bike/scooter and full rider in every cell. Tires always rest on the same relative baseline near cell bottom. Wheels never cropped. No helmet. No ground, shadows or backdrop outside sprites. Keep neighbouring sprites entirely separate with broad transparent gutters. Character: Edouard Philippe, balding, round glasses, salt-and-pepper beard, recognisable exact face from reference. Outfits from top row to bottom row: 1: charcoal suit and dark tie, like reference; 2: grey business suit with green tie, manager campaign outfit; 3: dark suit and French tricolour mayor sash, local mayor campaign outfit; 4: royal blue jacket and yellow tie, European campaign outfit. Consistent candidate face across all rows."
+  }
+]

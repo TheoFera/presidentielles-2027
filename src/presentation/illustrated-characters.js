@@ -1,3 +1,5 @@
+import { drawMountedCandidate } from './vehicles.js';
+import { drawRallyAccessories } from './fixed-world.js';
 import { drawCandidateCombat } from './melenchon-combat.js';
 import { drawUltimateCharacter } from './ultimate-sprites.js';
 import { specialCharacterAssetId } from './campaign-style-art.js';
@@ -84,10 +86,11 @@ export function characterAnimation(entity, state) {
 
 /** Rang de profondeur dans la foule d'un meeting : 0 hors meeting, puis 1 (fond) à 3 (devant). */
 export function meetingCrowdRow(entity) {
-  return entity.meeting_target_id ? 1 + (Number(entity.id?.slice(4)) || 0) % 3 : 0;
+  return entity.rally_event_id ? 1 + (entity.rally_index % 3) : entity.meeting_target_id ? 1 + (Number(entity.id?.slice(4)) || 0) % 3 : 0;
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
+  if (drawMountedCandidate(renderer, entity, x, state)) return true;
   if (drawUltimateCharacter(renderer, entity, x, state)) return true;
   if (drawCandidateCombat(renderer, entity, x, state)) return true;
   const id = characterAssetId(entity, state);
@@ -175,6 +178,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
     for (let ray = 0; ray < 7; ray++) { const a = ray / 6 * Math.PI; ctx.beginPath(); ctx.moveTo(Math.cos(a) * width * .65, -height * .6 - Math.sin(a) * width); ctx.lineTo(Math.cos(a) * width * .85, -height * .6 - Math.sin(a) * width * 1.25); ctx.stroke(); }
   }
   ctx.restore();
+  drawRallyAccessories(renderer, entity, x, feetY, height, state);
   ctx.save(); ctx.textAlign = 'center';
   if (supporter && !entity.moving && seed % 2 === 0) {
     // Pancarte brandie au rythme des acclamations, texte toujours lisible (dessinée hors du miroir).

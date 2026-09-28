@@ -1,5 +1,7 @@
+import { fixedWorldAssets } from './fixed-world-assets.js';
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
+  ...fixedWorldAssets,
   "building-meeting_stage-bobo": { file: new URL("../../assets/generated/buildings/building-meeting_stage-bobo.png", import.meta.url).href },
   "building-meeting_stage-banlieue": { file: new URL("../../assets/generated/buildings/building-meeting_stage-banlieue.png", import.meta.url).href },
   "building-meeting_stage-periurbain": { file: new URL("../../assets/generated/buildings/building-meeting_stage-periurbain.png", import.meta.url).href },

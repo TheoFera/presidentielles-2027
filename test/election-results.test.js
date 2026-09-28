@@ -60,7 +60,7 @@ test('Sauvegardes : classement altéré et anciennes versions refusés', () => {
   saved.first_round_result.ranking.reverse();
   assert.throws(() => target.importSnapshot(JSON.stringify(saved)), /classement/);
   saved.snapshot_version = 11;
-  assert.throws(() => target.importSnapshot(JSON.stringify(saved)), /annonces électorales/);
+  assert.throws(() => target.importSnapshot(JSON.stringify(saved)), /nouvelle carte/);
 });
 test('Réseau : résultat partagé, victoire personnelle et reprise interdite aux invités', () => {
   const sim = firstRound();

@@ -60,7 +60,7 @@ test('Toutes les variantes du catalogue s’affichent au déclenchement et à la
 test('Les cartes conservent leurs éléments lorsque seul le compte à rebours change', t => {
   installDocument(t);
   const config = campaignConfig();
-  const { sim, event } = startVariant(config, config.campaignCatalog.find(v => v.family === 'CANDIDAT_FRAGILISE'));
+  const { sim, event } = startVariant(config, config.campaignCatalog.find(v => v.family === 'RASSEMBLEMENT'));
   const display = new CampaignDisplay(sim.config);
   display.update(sim.state);
   const nodes = [...display.cards.get(event.id).children];

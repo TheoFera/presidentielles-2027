@@ -1,4 +1,5 @@
 import { clearCampaignUltimate } from './campaign-styles.js';
+import { dismountVehicle } from './vehicles.js';
 import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
 import { completePopulation } from './spawns.js';
@@ -25,6 +26,7 @@ export function startArena(sim) {
   refreshElectoralState(s);
   s.telemetry.j0_scores = clone(s.actualGameState.national_support);
   for (const c of s.candidates) {
+    dismountVehicle(c);
     const charge = c.special_charge; clearCampaignUltimate(sim, c); c.special_charge = charge; c.bardella_form = false;
   }
   s.first_round_result = rankFirstRound(s.telemetry.j0_scores, s.seed);

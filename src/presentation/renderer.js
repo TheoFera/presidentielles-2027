@@ -1,3 +1,5 @@
+import { drawFixedWorld, preparePanorama } from './fixed-world.js';
+import { prepareVehicleAtlas, drawVehiclePrompts } from './vehicles.js';
 import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
 import { interpolatedPlayerX } from './player-position.js';
@@ -18,6 +20,8 @@ import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
+  if (id.startsWith('panorama-')) preparePanorama(image);
+  if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   prepareSceneryImage(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
   if (id.startsWith('vegetation-')) await prepareVegetationImage(image);
@@ -58,6 +62,9 @@ export class WorldRenderer {
     const height = Math.max(1, Math.round(rect.height * pixelRatio));
     if (this.canvas.width !== width) this.canvas.width = width;
     if (this.canvas.height !== height) this.canvas.height = height;
+    // Même échelle sur les deux axes, quelle que soit la forme de l'écran.
+    this.height = this.width * height / width;
+    this.metrics = compositionMetrics(this.config, this.width, this.height);
   }
 
   resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); }
@@ -68,6 +75,7 @@ export class WorldRenderer {
     if (campaignArena) { drawArena(this, campaignArena.arena, previous.campaign_events?.find(e => e.id === campaignArena.id)?.arena || campaignArena.arena, alpha); return; }
     const ctx = this.ctx;
     const m = this.metrics;
+    const screenUnits = this.width / m.pixelsPerUnit;
     const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
     const playerX = interpolatedPlayerX(state, previous, candidate, alpha);
     const lookAhead = candidate.axis * this.config.balance.camera.look_ahead_ratio * this.config.prototype.world.units_per_screen;
@@ -95,9 +103,10 @@ export class WorldRenderer {
     const palette = this.p.biome_palettes[zone.biome_id];
     ctx.fillStyle = palette.sky;
     ctx.fillRect(0, 0, this.width, this.height);
+    this.fixedWorldActive = drawFixedWorld(this, state);
+    if (!this.fixedWorldActive) {
     if (illustrated) { drawIllustratedSky(this, state); drawIllustratedDistance(this, state, zone); }
     else this.drawFarScenery(state, palette);
-    const screenUnits = this.width / m.pixelsPerUnit;
     if (!drawIllustratedMiddle(this, state)) for (const subzone of state.world.subzones) {
       const left = this.screenX(subzone.start);
       const span = subzone.width * m.pixelsPerUnit;
@@ -106,14 +115,14 @@ export class WorldRenderer {
     }
     if (illustrated) { drawIllustratedStreet(this,state); drawSeasonalScenery(this, state); }
     else drawCampaignScenery(this, state);
-    drawTerritoryFlags(this, state);
+    }
     drawInfrastructure(this, state);
     ctx.fillStyle = this.p.ground_edge;
     ctx.fillRect(0, m.groundY, this.width, 2);
     ctx.fillStyle = this.p.ground_tone;
     ctx.fillRect(0, m.groundY + 2, this.width, m.groundThickness - 2);
     // The final margin shares the sky colour: no road, water or decorative foreground.
-    ctx.fillStyle = palette.sky;
+    ctx.fillStyle = this.fixedWorldActive ? '#dce1dc' : palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     if (illustrated) drawIllustratedGround(this);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
@@ -136,6 +145,7 @@ export class WorldRenderer {
     drawMoneyPickups(this, state);
     drawSiteRequirements(this, state);
     drawBanknote(this, state);
+    drawVehiclePrompts(this, state);
     drawMoneyFeedback(this, state);
     drawCombatEffects(this, state, debug);
     drawCampaignMarkers(this, state);

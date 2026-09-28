@@ -1,6 +1,6 @@
 import { wrap, zoneAt } from './world.js';
 import { biomeSympathisants, distance, localSympathisants, stableIdOrder } from './territory.js';
-import { buildingSettings } from './building-rules.js';
+import { buildingSettings, printsTracts } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
 import { canCampaign } from './combat-state.js';
 import { candidateOnMeetingStage, meetingOffers, triggerMeeting } from './electoral-buildings.js';
@@ -17,9 +17,10 @@ export function buildingOffer(state, config, candidate, building) {
   if (building.type === 'meeting' && state.campaign_events?.some(e => e.status === 'ACTIVE' && e.target_site_id === building.id && ['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family))) return null;
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building)
     .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x))[0] || null;
-  const settings = buildingSettings(config, building, candidate.faction_id);
+  const printing = building.type === 'imprimerie' || building.type === 'permanence' && building.state === 'ACTIVE' && building.owner_id === candidate.faction_id;
+  const settings = printing ? config.balance.buildings.imprimerie : buildingSettings(config, building, candidate.faction_id);
   let kind; let cost; let available = true; let reason = null;
-  if (building.type === 'imprimerie') {
+  if (printing) {
     kind = 'PRINT'; cost = settings.tract_cost_by_level[building.level - 1];
     if (building.queue.length >= settings.max_queue_length) { available = false; reason = 'QUEUE_FULL'; }
     else if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
@@ -108,7 +109,7 @@ function transact(simulation, candidate, offer) {
     simulation.emit('BuildingUpgraded', { ...transaction, level: building.level });
   }
   building.last_action_tick = state.tick;
-  if (['EQUIP', 'POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
+  if (['PRINT', 'EQUIP', 'POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
     candidate.purchase_latch_target_id = building.id;
   }
   if (['CAPTURE', 'UPGRADE'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
@@ -131,7 +132,7 @@ export function updateEconomy(simulation) {
     const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
     const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : config.balance.interaction.radius_units;
     if (chained && distance(state, candidate.x, chained.x) > chainRadius) candidate.interaction_chain_site_id = null;
-    if (state.campaign_style_selection || candidate.style_interaction_held || candidate.style_hold || !candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
+    if (candidate.vehicle || state.campaign_style_selection || candidate.style_interaction_held || candidate.style_hold || !candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
     for (const building of state.buildings) if (building.id === offer?.target_id) {
       building.next_level_available = !!offer.enabled;
@@ -158,7 +159,7 @@ export function updateEconomy(simulation) {
 export function updateProduction(simulation) {
   const { state, config } = simulation;
   const settings = config.balance.buildings.imprimerie;
-  for (const service of state.buildings.filter(b => b.type === 'imprimerie').sort(stableIdOrder)) {
+  for (const service of state.buildings.filter(b => printsTracts(b) && b.state === 'ACTIVE').sort(stableIdOrder)) {
     for (const order of service.queue) {
       const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
       if (worker && (worker.role !== 'SYMPATHISANT' || worker.task?.order_id !== order.id || worker.faction_id !== order.faction_id)) order.assigned_npc_id = null;
@@ -214,7 +215,7 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {
         const supporters = biomeSympathisants(state, building.biome_id, candidate.faction_id, true);
-        const queued = state.buildings.filter(b => b.biome_id === building.biome_id && b.type === 'imprimerie')
+        const queued = state.buildings.filter(b => b.biome_id === building.biome_id && printsTracts(b))
           .flatMap(b => b.queue).filter(o => o.faction_id === candidate.faction_id).length;
         const militants = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === building.biome_id).length;
         if (supporters.length - queued <= settings.reserve_sympathisants_per_biome || militants + queued >= settings.militant_goal_per_biome) continue;

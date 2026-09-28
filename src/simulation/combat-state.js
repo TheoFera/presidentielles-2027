@@ -8,6 +8,7 @@ import { applyOpinionDelta } from './npc-votes.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
 import { random } from './world.js';
 import { releaseDonation, dropCandidateMoney } from './money.js';
+import { dismountVehicle } from './vehicles.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null });
@@ -57,6 +58,7 @@ export function hit(sim, source, target, spec, attackId) {
   if (!verticalHit(sim.config, source, target, spec)) return null;
   const { state, config } = sim;
   if (target.dash_active && state.tick <= target.dash_invulnerable_until_tick) { sim.emit('DashEvadedHit', { candidate_id: target.id, attack_id: attackId }); return null; }
+  if (target.role === 'CANDIDAT') dismountVehicle(target);
   const protectedHit = armored(state, target) && !(spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind));
   const retaliate = target.role === 'CANDIDAT' && target.ultimate_effect?.kind === 'EUROPE' && target.ultimate_effect.expires_tick > state.tick && !spec.ranged && !spec.retaliation;
   let revived = false;

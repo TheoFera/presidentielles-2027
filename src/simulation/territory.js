@@ -16,7 +16,7 @@ export function localSympathisants(state, subzoneId, factionId) {
 
 export function biomeSympathisants(state, biomeId, factionId, availableOnly = false) {
   return state.npcs.filter(n => n.role === 'SYMPATHISANT' && n.faction_id === factionId
-    && zoneAt(state.world, n.x).biome_id === biomeId && (!availableOnly || !n.task));
+    && zoneAt(state.world, n.x).biome_id === biomeId && (!availableOnly || !n.task && !n.rally_event_id && n.rally_return_x == null));
 }
 
 export function waitingAtPoint(state, pointId) {
@@ -37,7 +37,7 @@ export function incomeBreakdown(state, config, factionId) {
     byBiome[npc.origin_biome_id].held_eur += npc.donation_cents / 100;
   }
   const held_eur = Object.values(byBiome).reduce((sum, biome) => sum + biome.held_eur, 0);
-  const stored_eur = state.buildings.filter(b => b.type === 'financement' && b.owner_id === factionId)
+  const stored_eur = state.buildings.filter(b => ['permanence', 'financement'].includes(b.type) && b.owner_id === factionId)
     .reduce((sum, b) => sum + b.stored_money_cents / 100, 0);
   return { byBiome, held_eur, stored_eur };
 }

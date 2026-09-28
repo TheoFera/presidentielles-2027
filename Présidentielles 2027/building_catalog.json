@@ -11,9 +11,11 @@
       "ownership_model": "capturable",
       "preexisting_in_world": true,
       "first_capture_becomes_headquarters": true,
-      "placement_rule": "central_subzone_only",
+      "placement_rule": "fixed_table",
       "headquarters_is_immune_to_ordinary_closure": true,
-      "headquarters_is_immune_to_philippe": true
+      "headquarters_is_immune_to_philippe": true,
+      "collects_supporter_donations": true,
+      "prints_tracts": true
     },
     "imprimerie": {
       "ownership_model": "neutral_service",
@@ -27,26 +29,30 @@
       "ownership_model": "capturable",
       "available_to": [
         "melenchon",
-        "le_pen"
+        "le_pen",
+        "philippe"
       ],
       "preexisting_in_world": true,
-      "placement_rule": "one_per_biome_outside_central_subzone",
+      "placement_rule": "fixed_table",
       "can_be_targeted_by_philippe": true
     },
     "cabinet_administratif": {
       "ownership_model": "capturable",
       "available_to": [
+        "melenchon",
+        "le_pen",
         "philippe"
       ],
       "preexisting_in_world": true,
-      "placement_rule": "one_per_biome_outside_central_subzone",
+      "placement_rule": "fixed_table",
       "can_be_targeted_by_philippe": false
     },
     "financement": {
       "ownership_model": "capturable",
       "preexisting_in_world": true,
-      "collects_supporter_donations": true,
-      "can_be_targeted_by_philippe": true
+      "collects_supporter_donations": false,
+      "can_be_targeted_by_philippe": true,
+      "private_sponsor": true
     },
     "tour_communication": {
       "ownership_model": "capturable",
@@ -73,6 +79,18 @@
       "visual_style": "outdoor_podium",
       "can_be_targeted_by_philippe": true,
       "targeting_effect": "temporary_candidate_ban"
+    },
+    "garage_velo": {
+      "ownership_model": "capturable",
+      "placement_rule": "fixed_table",
+      "preexisting_in_world": true,
+      "controls_zone": true
+    },
+    "garage_scooter": {
+      "ownership_model": "capturable",
+      "placement_rule": "fixed_table",
+      "preexisting_in_world": true,
+      "controls_zone": true
     }
   }
 }

@@ -120,14 +120,14 @@ export function strategicAICommands(state, config, c) {
       result.push({ type: 'Jump', candidateId: c.id });
     return [...plan, ...result];
   }
-  const funding = state.buildings.filter(b => b.type === 'financement' && b.owner_id === c.faction_id && b.state === 'ACTIVE'
+  const funding = state.buildings.filter(b => ['permanence', 'financement'].includes(b.type) && b.owner_id === c.faction_id && b.state === 'ACTIVE'
     && b.stored_money_cents >= config.balance.money.donation.ai_funding_collection_threshold_eur * 100)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
   if (funding) return [...plan, ...go(funding.x, config.balance.money.donation.collection_radius_units * 0.6)];
-  const nextInvestment = c.headquarters_site_id ? config.balance.buildings.financement.capture_cost : firstHQCost;
-  if (c.money < nextInvestment && !state.buildings.some(b => b.type === 'financement' && b.owner_id === c.faction_id && b.state === 'ACTIVE')) {
+  const nextInvestment = c.headquarters_site_id ? config.balance.buildings.permanence.capture_cost : firstHQCost;
+  if (c.money < nextInvestment && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE')) {
     const donor = state.npcs.filter(n => n.role === 'SYMPATHISANT' && n.faction_id === c.faction_id && n.donation_cents > 0
-      && !state.buildings.some(b => b.type === 'financement' && b.owner_id === c.faction_id && b.state === 'ACTIVE'
+      && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE'
         && b.biome_id === zoneAt(state.world, n.x).biome_id)
       && distance(state, c.x, n.x) <= config.balance.money.donation.ai_handoff_search_radius_units)
       .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];

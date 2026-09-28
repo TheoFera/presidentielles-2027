@@ -1,0 +1,74 @@
+import { CAMPAIGN_STYLES } from '../simulation/campaign-styles.js';
+import { garageVehicle } from '../simulation/vehicles.js';
+import { ringDelta } from '../simulation/world.js';
+
+const atlasFrames = new WeakMap();
+export function prepareVehicleAtlas(id, image) {
+  if (atlasFrames.has(image)) return atlasFrames.get(image);
+  const rows = id === 'vehicles' || id === 'riders-bardella' ? 1 : 4;
+  const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }); ctx.drawImage(image, 0, 0);
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const frames = [];
+  for (let col = 0; col < 2; col++) {
+    const x0 = Math.floor(col * canvas.width / 2), x1 = Math.floor((col + 1) * canvas.width / 2);
+    // Les espaces transparents séparent les poses : ne pas couper une roue ou
+    // une coiffure lorsque le dessin déborde légèrement de sa cellule théorique.
+    const bands = []; let band = null;
+    for (let y = 0; y <= canvas.height; y++) {
+      let ink = 0;
+      if (y < canvas.height) for (let x = x0; x < x1; x++) if (data[(y * canvas.width + x) * 4 + 3] > 96) ink++;
+      if (ink) {
+        if (!band) band = { start: y, end: y + 1, ink: 0 };
+        band.end = y + 1; band.ink += ink;
+      } else if (band) { bands.push(band); band = null; }
+    }
+    const poses = bands.sort((a, b) => b.ink - a.ink).slice(0, rows).sort((a, b) => a.start - b.start);
+    for (let row = 0; row < rows; row++) {
+      const y0 = poses.length === rows ? poses[row].start : Math.floor(row * canvas.height / rows);
+      const y1 = poses.length === rows ? poses[row].end : Math.floor((row + 1) * canvas.height / rows);
+      let left = x1, right = x0, top = y1, bottom = y0;
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (data[(y * canvas.width + x) * 4 + 3] > 96) {
+        left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+      }
+      frames[row * 2 + col] = { x: left, y: top, width: Math.max(1, right - left + 1), height: Math.max(1, bottom - top + 1) };
+    }
+  }
+  atlasFrames.set(image, frames); return frames;
+}
+
+export function drawMountedCandidate(renderer, entity, x, state) {
+  if (entity.role !== 'CANDIDAT' || !entity.vehicle) return false;
+  const id = `riders-${entity.bardella_form ? 'bardella' : entity.faction_id}`;
+  const sprite = renderer.assets.get(id);
+  if (!sprite) { void renderer.assets.load(id); return false; }
+  const row = entity.bardella_form ? 0 : Math.max(0, 1 + CAMPAIGN_STYLES[entity.faction_id].findIndex(s => s.id === entity.current_campaign_style));
+  const frame = prepareVehicleAtlas(id, sprite)[row * 2 + (entity.vehicle.type === 'scooter' ? 1 : 0)];
+  const { ctx, metrics: m } = renderer;
+  const h = m.characterHeight * 1.12, w = h * frame.width / frame.height;
+  const bob = entity.moving ? Math.sin(state.tick * 0.6) * 0.6 : 0;
+  ctx.save(); ctx.imageSmoothingEnabled = true;
+  ctx.fillStyle = '#28363325'; ctx.beginPath(); ctx.ellipse(x, m.groundY + 6, w * 0.45, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.translate(x, m.groundY + 6 + bob); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
+  ctx.drawImage(sprite, frame.x, frame.y, frame.width, frame.height, -w / 2, -h, w, h);
+  ctx.restore(); return true;
+}
+
+export function drawVehiclePrompts(renderer, state) {
+  const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
+  if (!candidate || candidate.eliminated) return;
+  const { ctx, metrics: m } = renderer;
+  for (const site of state.buildings) {
+    const kind = garageVehicle(site.type);
+    if (!kind || site.owner_id !== candidate.faction_id || site.state !== 'ACTIVE') continue;
+    const x = renderer.screenX(site.x);
+    if (Math.abs(ringDelta(candidate.x, site.x, state.world.length)) > 3 || candidate.vehicle) continue;
+    const progress = candidate.vehicle_hold?.site_id === site.id ? candidate.vehicle_hold.elapsed_ticks / (renderer.config.balance.vehicles.mount_seconds * renderer.config.balance.simulation_architecture.fixed_tick_hz) : 0;
+    const label = `${kind === 'velo' ? 'Vélo' : 'Scooter'} · restez ${renderer.config.balance.vehicles.mount_seconds.toLocaleString('fr-FR')} s`;
+    ctx.save(); ctx.font = '700 11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffefd2'; ctx.strokeStyle = '#465c52'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(x - 95, m.groundY - m.characterHeight - 42, 190, 28, 6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#43594e'; ctx.fillText(label, x, m.groundY - m.characterHeight - 24);
+    ctx.fillStyle = '#70a27b'; ctx.fillRect(x - 91, m.groundY - m.characterHeight - 18, 182 * Math.min(1, progress), 3); ctx.restore();
+  }
+}

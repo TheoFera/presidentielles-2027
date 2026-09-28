@@ -35,7 +35,7 @@ export function triggerMeeting(sim, building, faction, candidateId = `candidate:
   building.meeting_hold_ticks = 0;
   building.meeting_pause_ticks = 0;
   building.meeting_until_tick = sim.state.tick + sim.secondsToTicks(sim.config.balance.buildings.meeting.hold_seconds + sim.config.balance.buildings.meeting.pause_grace_seconds);
-  for (const npc of sim.state.npcs) {
+  for (const npc of sim.state.npcs.filter(n => !n.rally_event_id && n.rally_return_x == null)) {
     if (['NEUTRE', 'SYMPATHISANT'].includes(npc.role) && zoneAt(sim.state.world, npc.x).biome_id === building.biome_id) {
       npc.meeting_target_id = building.id;
     }
@@ -88,7 +88,7 @@ function propagateMeetingWave(sim, building) {
   const finished = elapsed >= sim.secondsToTicks(config.balance.buildings.meeting.wave_visual_seconds);
   const radius = meetingWaveRadius(state, config, building, elapsed);
   let changed = false;
-  for (const npc of state.npcs) {
+  for (const npc of state.npcs.filter(n => !n.rally_event_id && n.rally_return_x == null)) {
     if (npc.meeting_wave_id !== building.id) continue;
     if (!finished && Math.abs(ringDelta(npc.x, building.x, state.world.length)) > radius) continue;
     npc.meeting_wave_id = null;

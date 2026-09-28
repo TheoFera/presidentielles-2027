@@ -6,11 +6,11 @@
     "second_round_sprint_seconds": 60
   },
   "camera": {
-    "framing_zoom": 1.25,
+    "framing_zoom": 1.15,
     "zoom_close": 1.18,
     "zoom_medium": 1,
     "zoom_far": 0.84,
-    "default_zoom": 1,
+    "default_zoom": 0.65,
     "follow_smoothing": 0.12,
     "look_ahead_ratio": 0.06
   },
@@ -59,7 +59,11 @@
     "pickup_halo_opacity": 0.22,
     "drop_spread_units": 3,
     "max_drop_pickups": 12,
-    "sprite_tiers_eur": [100, 500, 2000]
+    "sprite_tiers_eur": [
+      100,
+      500,
+      2000
+    ]
   },
   "persuasion": {
     "candidate_base_seconds": 3,
@@ -259,9 +263,9 @@
   "buildings": {
     "permanence": {
       "ownership_model": "capturable",
-      "global_max": 6,
-      "max_per_candidate": 6,
-      "max_per_biome": 1,
+      "global_max": 9,
+      "max_per_candidate": 9,
+      "max_per_biome": 2,
       "max_per_subzone": 1,
       "capture_cost": 5,
       "first_headquarters_capture_cost": 5,
@@ -403,7 +407,7 @@
     "financement": {
       "ownership_model": "capturable",
       "global_max": 3,
-      "max_per_candidate": 1,
+      "max_per_candidate": 3,
       "max_per_biome": 1,
       "max_per_subzone": 1,
       "capture_cost": 2,
@@ -423,12 +427,14 @@
       "upgrade_offset": 0.95,
       "upgrade_radius": 0.3,
       "completion_feedback_seconds": 2,
-      "upgrade_pause_seconds": 0.4
+      "upgrade_pause_seconds": 0.4,
+      "sponsor_interval_seconds": 30,
+      "sponsor_amount_eur": 500
     },
     "tour_communication": {
       "ownership_model": "capturable",
       "global_max": 3,
-      "max_per_candidate": 1,
+      "max_per_candidate": 3,
       "max_per_biome": 1,
       "max_per_subzone": 1,
       "capture_cost": 15,
@@ -446,12 +452,12 @@
       "upgrade_costs": [],
       "broadcast_interval_seconds": 15,
       "purchase_hold_seconds": 2,
-      "global_limit": 1,
+      "global_limit": 3,
       "upgrade_pause_seconds": 0.4
     },
     "institut_sondage": {
       "ownership_model": "neutral_service",
-      "global_max": 4,
+      "global_max": 3,
       "max_per_candidate": 0,
       "max_per_biome": 1,
       "max_per_subzone": 1,
@@ -508,6 +514,56 @@
       "upgrade_pause_seconds": 0.4,
       "interaction_radius": 0.45,
       "pay_per_use": true
+    },
+    "garage_velo": {
+      "ownership_model": "capturable",
+      "global_max": 1,
+      "max_per_candidate": 3,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 2,
+      "build_cost": 2,
+      "capture_seconds": 2,
+      "required_presence_N1": 1,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 0,
+      "maintain_presence_N2": 3,
+      "maintain_presence_N3": 4,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
+      "max_level": 1,
+      "upgrade_costs": [],
+      "purchase_hold_seconds": 2,
+      "upgrade_offset": 0.95,
+      "upgrade_radius": 0.3,
+      "completion_feedback_seconds": 2,
+      "upgrade_pause_seconds": 0.4
+    },
+    "garage_scooter": {
+      "ownership_model": "capturable",
+      "global_max": 2,
+      "max_per_candidate": 3,
+      "max_per_biome": 1,
+      "max_per_subzone": 1,
+      "capture_cost": 3,
+      "build_cost": 3,
+      "capture_seconds": 2,
+      "required_presence_N1": 1,
+      "required_presence_N2": 4,
+      "required_presence_N3": 6,
+      "maintain_presence_N1": 0,
+      "maintain_presence_N2": 3,
+      "maintain_presence_N3": 4,
+      "closure_delay_seconds": 8,
+      "closure_recovery_per_second": 2,
+      "max_level": 1,
+      "upgrade_costs": [],
+      "purchase_hold_seconds": 2,
+      "upgrade_offset": 0.95,
+      "upgrade_radius": 0.3,
+      "completion_feedback_seconds": 2,
+      "upgrade_pause_seconds": 0.4
     }
   },
   "first_round_arena": {
@@ -630,7 +686,7 @@
     "ai_neutral_zone_priority": 0.3
   },
   "campaign_events": {
-    "event_enabled": false,
+    "event_enabled": true,
     "initial_event_delay_days": 15,
     "notification_display_seconds": 15,
     "notification_arrival_seconds": 6,
@@ -802,8 +858,36 @@
           "tour_communication",
           "faction"
         ]
+      },
+      "RASSEMBLEMENT": {
+        "base_weight": 1,
+        "duration": 100,
+        "max_simultaneous": 1,
+        "leader_weight": 1,
+        "second_weight": 1,
+        "third_weight": 1,
+        "minimum_day": 0,
+        "maximum_day": 999,
+        "cooldown_days": 8,
+        "minimum_days_between_same_family": 5,
+        "can_overlap": false,
+        "intensity_weights": {
+          "MINOR": 1,
+          "MAJOR": 1,
+          "CRISIS": 1
+        },
+        "participation_ratio": 0.94,
+        "gather_seconds": 10,
+        "march_speed": 2.2,
+        "gather_speed": 5.5,
+        "conversion_seconds": 0.12,
+        "conversion_immunity_seconds": 2,
+        "crowd_spacing": 0.35
       }
-    }
+    },
+    "active_families": [
+      "RASSEMBLEMENT"
+    ]
   },
   "campaign_styles": {
     "hold_seconds": 3,
@@ -826,5 +910,15 @@
     "critical_health_ratio": 0.25,
     "critical_pulse_hz": 1.1,
     "critical_pulse_opacity": 0.1
+  },
+  "zone_control": {
+    "enemy_persuasion_time_multiplier": 1.6,
+    "supporter_health_multiplier": 1.5
+  },
+  "vehicles": {
+    "mount_seconds": 2.5,
+    "garage_radius_units": 0.7,
+    "velo_speed_multiplier": 1.65,
+    "scooter_speed_multiplier": 2.1
   }
 }

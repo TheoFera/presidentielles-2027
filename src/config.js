@@ -78,7 +78,7 @@ export function validateConfig(config) {
   if (populationGrowth.interval_randomness.min_factor > populationGrowth.interval_randomness.max_factor
     || populationGrowth.interval_randomness.max_factor > 1) throw new Error('Configuration : variation des apparitions invalide ou susceptible de dépasser le premier tour.');
   const generation = config.layout.strategic_site_generation;
-  if (!generation || generation.mode !== 'seeded_explicit_slots' || !Array.isArray(generation.slots)) throw new Error('Configuration : emplacements stratégiques absents.');
+  if (!generation || generation.mode !== 'fixed_explicit_slots' || !Array.isArray(generation.slots)) throw new Error('Configuration : emplacements stratégiques absents.');
   if (config.prototype.persuasion.break_policy !== 'reset' || config.prototype.persuasion.contest_policy !== 'nearest_then_stable_id') {
     throw new Error('Règle de persuasion inconnue dans prototype_config.json.');
   }
@@ -103,14 +103,25 @@ export function validateConfig(config) {
     slotIds.add(slot.site_id); slotsByZone.set(slot.subzone_id, (slotsByZone.get(slot.subzone_id) || 0) + 1);
   }
   if ([...ids].some(id => !slotsByZone.has(id)) || [...slotsByZone.values()].some(count => count > generation.max_sites_per_subzone)) throw new Error('Configuration : nombre de sites invalide dans une sous-zone.');
-  const siteTypes = ['permanence', 'financement', 'faction', 'tour_communication', 'imprimerie', 'meeting', 'institut_sondage'];
+  const siteTypes = ['permanence', 'financement', 'faction', 'tour_communication', 'imprimerie', 'meeting', 'institut_sondage', 'garage_velo', 'garage_scooter'];
   if (siteTypes.some(type => !Number.isInteger(generation.site_counts[type]) || generation.site_counts[type] < 0)
     || Object.values(generation.site_counts).reduce((a, b) => a + b, 0) !== generation.slots.length) throw new Error('Configuration : quotas de sites incohérents.');
-  if (generation.site_counts.permanence !== config.layout.biomes.length || generation.site_counts.faction !== config.layout.biomes.length) throw new Error('Configuration : il faut une Permanence et un Local SO/Cabinet par biome.');
-  const instituteBiomes = generation.fixed_biomes_by_type?.institut_sondage;
-  if (!Array.isArray(instituteBiomes) || instituteBiomes.length !== generation.site_counts.institut_sondage
-    || new Set(instituteBiomes).size !== instituteBiomes.length || instituteBiomes.some(id => !config.layout.biomes.some(biome => biome.id === id))) throw new Error('Configuration : biomes des Instituts de sondage invalides.');
-  const capturableConfigs = ['permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
+  for (const id of ids) {
+    if (generation.slots.filter(s => s.subzone_id === id && s.controls_zone).length !== 1) throw new Error('Un bâtiment de contrôle est requis par sous-zone.');
+  }
+  for (const biome of config.layout.biomes) {
+    const meetings = generation.slots.filter(s => s.type === 'meeting' && biome.subzones.some(z => z.id === s.subzone_id));
+    if (meetings.length !== 1 || meetings[0].subzone_id !== biome.subzones[1].id || meetings[0].x_ratio !== 0.5) throw new Error('Le meeting doit être au centre du biome.');
+  }
+  for (const type of siteTypes) if (generation.slots.filter(s => s.type === type).length !== generation.site_counts[type]) throw new Error('Fonctions fixes des bâtiments incohérentes.');
+  for (const slot of generation.slots) if (!siteTypes.includes(slot.type) || typeof slot.controls_zone !== 'boolean'
+    || slot.controls_zone && ['meeting', 'institut_sondage', 'imprimerie', 'financement'].includes(slot.type)
+    || slot.type === 'faction' && !['service_ordre', 'cabinet_administratif'].includes(slot.fixed_variant)) throw new Error('Fonction de bâtiment invalide.');
+  for (const slot of generation.slots) if (slot.type !== 'meeting' && (!Array.isArray(slot.facade) || slot.facade.length !== 5
+    || slot.facade.some(value => !Number.isFinite(value) || value <= 0 || value >= 1))) throw new Error('Repères de façade invalides.');
+  for (const [key, value] of Object.entries(config.balance.vehicles)) positive(value, key);
+  for (const [key, value] of Object.entries(config.balance.zone_control)) positive(value, key);
+  const capturableConfigs = ['garage_velo', 'garage_scooter', 'permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
   for (const type of [...capturableConfigs, 'imprimerie', 'meeting', 'institut_sondage']) {
     const building = config.balance.buildings[type];
     for (const cap of ['global_max', 'max_per_candidate', 'max_per_biome', 'max_per_subzone']) if (!Number.isInteger(building[cap]) || building[cap] < 0) throw new Error(`Configuration : cap invalide (${type}.${cap}).`);

@@ -106,6 +106,7 @@ test('Un objectif de conquête persiste, puis est remplacé après sa capture', 
   c.ai_objective = { subzone_id: e.subzone_id, purpose: 'CONQUER', expires_tick: 1000 };
   assert.equal(chooseAIObjective(sim.state, config, c), c.ai_objective);
   supporter(sim, c.faction_id, sim.state.world.subzones.find(z => z.id === e.subzone_id).center);
+  captureSite(sim, sim.state.buildings.find(b => b.subzone_id === e.subzone_id && b.controls_zone), c);
   refreshElectoralState(sim.state, config);
   assert.notEqual(chooseAIObjective(sim.state, config, c).subzone_id, e.subzone_id);
 });
@@ -156,7 +157,7 @@ test('Offensive complète : affaiblir les soutiens, neutraliser puis reprendre u
 test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
   const { sim, config } = make(); const c = isolate(sim, 'philippe');
   c.money = config.balance.buildings.faction_slot_philippe_cabinet_administratif.close_enemy_building_cost_by_level[0];
-  const cabinet = sim.state.buildings.find(b => b.type === 'faction'); captureSite(sim, cabinet, c); c.x = cabinet.x;
+  const cabinet = sim.state.buildings.find(b => b.fixed_variant === 'cabinet_administratif'); captureSite(sim, cabinet, c); c.x = cabinet.x;
   const rival = sim.state.candidates.find(c => c.faction_id === 'le_pen');
   const victim = sim.state.buildings.find(b => b.type === 'financement'); captureSite(sim, victim, rival);
   const target = aiEconomicTarget(sim.state, config, c, { subzone_id: cabinet.subzone_id, purpose: 'CONQUER' });

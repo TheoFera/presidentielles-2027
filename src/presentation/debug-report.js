@@ -6,7 +6,7 @@ import { buildingSettings, buildingLabel } from '../simulation/building-rules.js
 import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
-export const buildingNames = { permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
+export const buildingNames = { garage_velo: 'Garage à vélo', garage_scooter: 'Garage à scooter', permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
 export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine', SO_LIMIT: 'Cap de SO atteint pour ce Local', ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
@@ -64,7 +64,7 @@ export function managementReport(state, config, candidate, npc, building) {
       `Fermeture : ${f(building.closure_progress * 100)} % · capture : ${f(building.capture_progress * 100)} %`,
       `Coût actuel : ${price === null ? 'Aucune dépense disponible' : `${f(price)} k €`}`,
       `Disponibilité : ${offer?.reason ? reasonNames[offer.reason] : 'action possible'}`);
-    if (building.type === 'financement') lines.push(`Cagnotte : ${f(building.stored_money_cents / 100)} € · dernière collecte : ${f(building.last_collection_cents / 100)} €`);
+    if (['permanence', 'financement'].includes(building.type)) lines.push(`Cagnotte : ${f(building.stored_money_cents / 100)} € · dernière collecte : ${f(building.last_collection_cents / 100)} €`);
     if (building.type === 'meeting') lines.push(`Promontoire : ${building.meeting_candidate_id ? `${building.meeting_faction_id} · ${f(building.meeting_hold_ticks / hz)} / 15 s · pause ${f(building.meeting_pause_ticks / hz)} / 5 s` : 'aucun meeting en cours'} · meetings validés : ${building.meetings_held}`);
     if (building.type === 'institut_sondage') lines.push(`Dernier payeur : ${building.last_poll_candidate_id || 'aucun'} · âge : ${building.last_poll_tick === null ? 'aucun sondage' : `${f((state.tick - building.last_poll_tick) / hz)} s`}`);
     if (building.type === 'imprimerie' || building.variant === 'service_ordre') {

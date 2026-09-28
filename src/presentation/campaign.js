@@ -1,7 +1,7 @@
 import { seasonAt } from '../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../simulation/world.js';
 import { eventIconData } from './illustrated-icons.js';
-const labels={MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
+const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 
 export class CampaignDisplay {
  constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);}
@@ -16,9 +16,9 @@ export class CampaignDisplay {
  card.style.order = e.start_tick; card.dataset.family = e.family; card.style.setProperty('--event-icon', eventIconData[e.family] || 'none');
  const heading=e.title;
  const narrative=e.description;
- const effect=e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
+ const effect=e.family==='RASSEMBLEMENT' ? ({GATHERING:'Les habitants se rassemblent',MARCHING:'Le cortège défile · convainquez en passant',DISPERSING:'Les habitants rentrent chez eux'}[e.march?.phase]||labels[e.family]) : e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
  const winner=e.winner&&this.config.prototype.presentation.factions[e.winner]?.name;
- const detail=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
+ const detail=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['RASSEMBLEMENT','MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
  const meeting=state.buildings.find(b=>b.id===e.target_site_id);const timer=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au promontoire : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir le promontoire : ${(meeting.meeting_hold_ticks/hz).toFixed(1)} / 15 s${meeting.meeting_pause_ticks?` · remonter sous ${Math.max(0,5-meeting.meeting_pause_ticks/hz).toFixed(1)} s`:''}`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
  const contentKey=[heading,narrative,detail,timer].join('\n');
  if(card.dataset.contentKey!==contentKey){
@@ -57,7 +57,7 @@ export function drawCampaignMarkers(renderer,state){
 }
 export function installCampaignDebug(panel){
  const box=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent='Année électorale et événements';box.append(legend);
- const select=document.createElement('select');select.setAttribute('aria-label','Famille d’événement');for(const [id,label]of Object.entries(labels))select.add(new Option(label,id));box.append(select);
+ const select=document.createElement('select');select.setAttribute('aria-label','Famille d’événement');for(const [id,label]of Object.entries(labels))if(panel.config?.balance.campaign_events.active_families?.includes(id)??id==='RASSEMBLEMENT')select.add(new Option(label,id));box.append(select);
  const button=(label,fn)=>{const b=document.createElement('button');b.textContent=label;b.type='button';b.onclick=fn;box.append(b);};
  button('Déclencher sur la cible sélectionnée',()=>panel.callbacks.queue({type:'DebugStartCampaignEvent',family:select.value,candidateId:panel.candidate.value,biomeId:panel.callbacks.state().world.subzones.find(z=>z.id===panel.zone.value)?.biome_id,...(select.value==='FERMETURE_BATIMENT'?{siteId:panel.inspectBuilding.value}:{})}));
  button('Déclencher avec cible automatique',()=>panel.callbacks.queue({type:'DebugStartCampaignEvent',family:select.value}));

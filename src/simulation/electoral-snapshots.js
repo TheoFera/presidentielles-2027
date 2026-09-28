@@ -24,7 +24,7 @@ export function validateElectoralSnapshot(state, config, fail) {
     for (let i = 0; i < snapshot.zones.length; i++) {
       const zone = snapshot.zones[i];
       if (zone.subzone_id !== state.electorate[i].subzone_id || zone.electoral_weight !== state.electorate[i].electoral_weight
-        || !validCounts(zone.support) || zone.controller !== leadership(zone.support).controller) fail('comptage du sondage invalide');
+        || !validCounts(zone.support) || zone.controller !== null && !FACTIONS.includes(zone.controller)) fail('comptage du sondage invalide');
     }
     if (!same(snapshot.national_counts, totalCounts(snapshot.zones))
       || !same(snapshot.national_support, aggregateNational(snapshot.zones))

@@ -1,3 +1,4 @@
+import { zoneController } from './zone-control.js';
 import { FACTIONS, zoneAt } from './world.js';
 
 export const SUPPORT_KEYS = [...FACTIONS, 'neutral', 'pending'];
@@ -32,7 +33,8 @@ export function refreshElectoralState(state) {
   }
   const controlledCounts = { ...Object.fromEntries(FACTIONS.map(faction => [faction, 0])), contested: 0 };
   for (const zone of state.electorate) {
-    Object.assign(zone, leadership(zone.support));
+    zone.leader = leadership(zone.support).leader;
+    zone.controller = zoneController(state, zone.subzone_id);
     controlledCounts[zone.controller || 'contested']++;
   }
   const nationalCounts = emptySupport();

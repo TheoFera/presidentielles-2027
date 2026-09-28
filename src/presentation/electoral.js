@@ -34,6 +34,7 @@ export function isOnMeetingStage(entity, config, state) {
 }
 
 export function meetingSpriteFrame(renderer, state, building) {
+  if (renderer.fixedWorldActive) return null;
   const id = buildingAssetId(building, state.world);
   const sprite = renderer.assets.get(id);
   if (!sprite) return null;
@@ -212,17 +213,30 @@ function drawMeetingPodium(renderer, state, building) {
   const halfWidth = settings.podium_half_width * m.pixelsPerUnit;
   const spriteId = buildingAssetId(building, state.world);
   const frame = meetingSpriteFrame(renderer, state, building);
-  if (!frame) void renderer.assets.load(spriteId);
+  if (!frame && !renderer.fixedWorldActive) void renderer.assets.load(spriteId);
   ctx.save(); ctx.textAlign = 'center';
   let progressY = top - 25;
   if (frame) {
     drawMeetingStageSprite(ctx, frame);
     progressY = frame.deckY - m.characterHeight * 1.35;
   } else {
-    ctx.fillStyle = '#69776b'; ctx.fillRect(x - halfWidth, top, halfWidth * 2, m.groundY - top);
-    ctx.fillStyle = '#c2b58d'; ctx.fillRect(x - halfWidth - 3, top - 5, halfWidth * 2 + 6, 5);
-    ctx.strokeStyle = '#4b5b4d'; ctx.strokeRect(x - halfWidth, top, halfWidth * 2, m.groundY - top);
-    ctx.fillStyle = '#536a59'; ctx.fillRect(x - 4, top - 13, 8, 8);
+    // Des marches en pierre prolongent la place peinte jusqu'au plan des personnages.
+    ctx.strokeStyle = '#665e4d'; ctx.lineWidth = 1.2;
+    const step = (m.groundY - top) / 3;
+    for (let row = 2; row >= 0; row--) {
+      const radius = halfWidth + row * 5, y = top + row * step;
+      ctx.fillStyle = ['#c5b693', '#bbae92', '#ad9d80'][row];
+      ctx.beginPath(); ctx.ellipse(x, y + step, radius, 5, 0, 0, Math.PI);
+      ctx.lineTo(x - radius, y); ctx.ellipse(x, y, radius, 5, 0, Math.PI, Math.PI * 2); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#dfd1af'; ctx.beginPath(); ctx.ellipse(x, y, radius, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      for (let joint = -2; joint <= 2; joint++) {
+        const bx = x + (joint + (row % 2) * 0.5) * radius / 3;
+        ctx.beginPath(); ctx.moveTo(bx, y + 4); ctx.lineTo(bx, y + step + 4); ctx.stroke();
+      }
+    }
+    ctx.strokeStyle = '#34433e'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + halfWidth * 0.6, top); ctx.lineTo(x + halfWidth * 0.6, top - 28); ctx.lineTo(x + halfWidth * 0.6 - 10, top - 31); ctx.stroke();
+    ctx.fillStyle = '#34433e'; ctx.beginPath(); ctx.ellipse(x + halfWidth * 0.6 - 11, top - 31, 5, 2.5, 0.25, 0, Math.PI * 2); ctx.fill();
   }
   if (building.meeting_candidate_id) drawApplauseMeter(ctx, x, progressY + 6, building, settings, config.balance.simulation_architecture.fixed_tick_hz, color, state.tick);
   ctx.restore();

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { captureSite, neutralizeSite } from '../src/simulation/strategic-sites.js';
+import { captureSite as capture, neutralizeSite } from '../src/simulation/strategic-sites.js';
 import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { updateCollector } from '../src/simulation/tasks.js';
@@ -17,6 +17,7 @@ const load = async name => JSON.parse(await readFile(new URL(`${name}.json`, roo
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(
   ['game_balance', 'world_layout', 'building_catalog', 'prototype_config', 'campaign_events'].map(load));
 const config = validateConfig({ balance, layout, buildings, prototype, campaignCatalog });
+const captureSite = (sim, building, candidate) => { capture(sim, building, candidate); if (sim.state.campaign_style_selection) sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: candidate.id, styleId: 'melenchon_universaliste' }); };
 const make = () => { const sim = new GameSimulation(config, 17); sim.state.ai_enabled = false; return sim; };
 
 test('le compteur affiche seulement l’argent transporté dans un format compact', () => {
@@ -52,7 +53,7 @@ test('départ à zéro, totaux physiques exacts et billets accessibles au saut',
   assert.ok(candidate.money > 0);
 });
 
-test('seul un sympathisant donne ; il se tourne, lance le billet puis va au financement', () => {
+test('seul un sympathisant donne ; il se tourne, lance le billet puis va à la permanence', () => {
   const sim = make(), candidate = sim.state.candidates[0];
   const npc = sim.state.npcs.find(n => n.origin_biome_id === 'banlieue');
   convertNeutral(sim, npc, candidate.faction_id);
@@ -68,7 +69,7 @@ test('seul un sympathisant donne ; il se tourne, lance le billet puis va au fina
   for (let i = 0; i < sim.secondsToTicks(config.balance.money.donation.handoff_toss_seconds) + 1; i++) sim.step();
   assert.ok(!sim.state.money_pickups.includes(dropped)); assert.equal(candidate.money, 0.05);
   assert.ok(npc.next_donation_tick > sim.state.tick);
-  const building = sim.state.buildings.find(b => b.type === 'financement');
+  const building = sim.state.buildings.find(b => b.type === 'permanence');
   captureSite(sim, building, candidate);
   const zone = sim.state.world.subzones.find(z => z.biome_id === building.biome_id);
   const courier = sim.spawn(zone, building.x - 1);
@@ -88,7 +89,7 @@ test('seul un sympathisant donne ; il se tourne, lance le billet puis va au fina
 test('KO : 30 % au sol, cagnotte intacte et attente de 3 à 15 secondes', () => {
   for (const [progress, seconds] of [[0, 3], [1, 15]]) {
     const sim = make(), candidate = sim.state.candidates[0], attacker = sim.state.candidates[1];
-    const building = sim.state.buildings.find(b => b.type === 'financement');
+    const building = sim.state.buildings.find(b => b.type === 'permanence');
     captureSite(sim, building, candidate); building.stored_money_cents = 12300;
     candidate.x = attacker.x; candidate.money = 100; sim.state.campaign_progress_01 = progress;
     hit(sim, attacker, candidate, { kind: 'CANDIDATE', step: 3, damage: 100, knockback: 0, electoral_damage: 0 }, 'test');
@@ -141,7 +142,7 @@ test('les nouveaux états survivent à une sauvegarde', () => {
 
 test('un bâtiment neutralisé rend sa cagnotte au sol et un don en trajet reste au PNJ', () => {
   const sim = make(), owner = sim.state.candidates[0];
-  const building = sim.state.buildings.find(b => b.type === 'financement'); captureSite(sim, building, owner);
+  const building = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, building, owner);
   const zone = sim.state.world.subzones.find(z => z.biome_id === building.biome_id);
   const npc = sim.spawn(zone, building.x - 2); convertNeutral(sim, npc, owner.faction_id);
   npc.donation_cents = 10000; npc.next_donation_tick += sim.hz;
@@ -155,7 +156,7 @@ test('un bâtiment neutralisé rend sa cagnotte au sol et un don en trajet reste
 
 test('un don déjà préparé tombe au sol lors de la promotion ou de la neutralisation', () => {
   const sim = make(), owner = sim.state.candidates[0];
-  const printer = sim.state.buildings.find(b => b.type === 'imprimerie');
+  const printer = sim.state.buildings.find(b => b.type === 'permanence');
   const zone = sim.state.world.subzones.find(z => z.id === printer.subzone_id);
   const npc = sim.spawn(zone, printer.x); convertNeutral(sim, npc, owner.faction_id);
   npc.donation_cents = 10000;

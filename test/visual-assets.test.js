@@ -177,7 +177,8 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
     return image;
   } });
   const renderer = { assets }, ids = worldAssetIds(visualManifest, state);
-  for (const building of state.buildings) assert.ok(ids.includes(buildingAssetId(building, state.world)));
+  for (const id of ['panorama-bobo', 'panorama-banlieue', 'panorama-periurbain', 'panorama-campagne', 'panorama-retraites', 'panorama-riches', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.some(id => id.startsWith('building-')), 'Les bâtiments sont peints dans les panoramas');
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');
   preloadWorld(renderer, state, state.world.subzones[0]);

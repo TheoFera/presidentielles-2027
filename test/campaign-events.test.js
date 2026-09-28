@@ -1,43 +1,68 @@
-import {test} from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {campaignConfig} from '../scripts/validate-campaign.mjs';
-import {GameSimulation} from '../src/simulation/game-simulation.js';
-import {CampaignEventDirector,updateCampaignEvents,resolveCampaignEvent,transferSupport,seasonAt,campaignAICommands} from '../src/simulation/campaign-events.js';
-import {aggregateNational} from '../src/simulation/electoral-state.js';
-import {captureSite} from '../src/simulation/strategic-sites.js';
-import {completePopulation} from '../src/simulation/spawns.js';
-import {refreshElectoralState} from '../src/simulation/electoral-state.js';
-const make=()=>{const config=campaignConfig();config.balance.campaign_events.event_enabled=true;return new GameSimulation(config,42);};
-const start=(s,family,extra={})=>CampaignEventDirector.start(s,{family,...extra});
-const sums=s=>assert.equal(Object.values(s.state.actualGameState.national_counts).reduce((a,b)=>a+b),200);
-test('Les anciens événements sont désactivés, même par le débogage ou une sauvegarde',()=>{
- const config=campaignConfig();assert.equal(config.balance.campaign_events.event_enabled,false);
- const sim=new GameSimulation(config,42);
- sim.state.campaign_elapsed_days=30;sim.state.campaign_director.next_event_day=0;
- CampaignEventDirector.update(sim);
- assert.equal(sim.state.campaign_events.length,0);
- assert.equal(CampaignEventDirector.start(sim,{family:'PIEGE_MEDIATIQUE'}),null);
- sim.applyCommand({type:'DebugStartCampaignEvent',family:'PIEGE_MEDIATIQUE'});
- assert.equal(sim.state.campaign_events.length,0);
- const old=make();const event=start(old,'PIEGE_MEDIATIQUE',{candidateId:old.state.local_candidate_id});
- assert.ok(event.arena);
- sim.importSnapshot(old.exportSnapshot());
- assert.equal(sim.state.campaign_events[0].status,'EXPIRED');
- assert.equal(sim.state.candidates[0].campaign_arena_id,null);
- assert.equal(sim.state.candidates[0].disappeared,false);
+import { config as base } from '../scripts/game-config.mjs';
+import { GameSimulation } from '../src/simulation/game-simulation.js';
+import { CampaignEventDirector, resolveCampaignEvent, seasonAt } from '../src/simulation/campaign-events.js';
+import { completePopulation } from '../src/simulation/spawns.js';
+import { convertNeutral } from '../src/simulation/npc-votes.js';
+import { refreshElectoralState } from '../src/simulation/electoral-state.js';
+import { ringDelta, zoneAt } from '../src/simulation/world.js';
+
+const make=seed=>{const sim=new GameSimulation(structuredClone(base),seed||42);sim.state.ai_enabled=false;sim.state.candidates.forEach(c=>{c.campaign_active=false;c.interaction_active=false;});completePopulation(sim);return sim;};
+const start=sim=>CampaignEventDirector.start(sim,{family:'RASSEMBLEMENT',biomeId:'banlieue'});
+const advance=(sim,n)=>{for(let i=0;i<n;i++)sim.step();};
+test('Seul le rassemblement est disponible, avec une variante par biome',()=>{
+  assert.equal(base.campaignCatalog.length,6);assert.ok(base.campaignCatalog.every(e=>e.family==='RASSEMBLEMENT'));
+  const sim=make();assert.equal(CampaignEventDirector.start(sim,{family:'PIEGE_MEDIATIQUE'}),null);assert.ok(start(sim));assert.equal(start(sim),null);
+  assert.deepEqual([0,.25,.5,.75].map(p=>seasonAt(p).name),['Été','Automne','Hiver','Printemps']);
 });
-test('217 variantes, quotas et saison cyclique',()=>{const c=campaignConfig();assert.equal(c.campaignCatalog.length,217);assert.deepEqual(Object.fromEntries(Object.keys(c.balance.campaign_events.families).map(f=>[f,c.campaignCatalog.filter(e=>e.family===f).length])),{MEETING_DE_CRISE:18,CHOC_OPINION:45,CANDIDAT_FRAGILISE:30,PIEGE_MEDIATIQUE:54,DEBAT_THEMATIQUE:40,FERMETURE_BATIMENT:30});for(const f of ['melenchon','le_pen','philippe']){assert.equal(c.campaignCatalog.filter(e=>e.family==='CHOC_OPINION'&&e.candidate_target===f).length,15);assert.equal(c.campaignCatalog.filter(e=>e.family==='CANDIDAT_FRAGILISE'&&e.candidate_target===f).length,10);assert.equal(c.campaignCatalog.filter(e=>e.family==='PIEGE_MEDIATIQUE'&&e.candidate_target===f).length,18);}assert.deepEqual([0,.25,.5,.75].map(p=>seasonAt(p).name),['Été','Automne','Hiver','Printemps']);});
-test('15 jours calmes, accélération et plafond de trois actifs',()=>{const s=make();for(let day=0;day<15;day++){s.state.campaign_elapsed_days=day;CampaignEventDirector.update(s);}assert.equal(s.state.campaign_events.length,0);start(s,'MEETING_DE_CRISE');start(s,'CANDIDAT_FRAGILISE');const b=s.state.buildings.find(b=>b.type==='financement');captureSite(s,b,s.state.candidates[0]);start(s,'FERMETURE_BATIMENT',{siteId:b.id});assert.equal(start(s,'DEBAT_THEMATIQUE'),null);const curve=s.config.balance.campaign_events.frequency_curve;assert.ok(curve[0][1]>curve.at(-1)[2]);});
-test('Choc territorial : seuls les PNJ changent de voix et le total reste 200',()=>{const s=make();completePopulation(s);const before=structuredClone(s.state.npcs);const e=start(s,'CHOC_OPINION',{candidateId:'candidate:melenchon'});assert.equal(e.status,'RESOLVED');assert.equal(e.category,'INSTANT');const zone=s.state.electorate[0];assert.ok(transferSupport(s,zone,'melenchon',100)>0);refreshElectoralState(s.state);assert.ok(s.state.npcs.some((n,i)=>n.role!==before[i].role||n.faction_id!==before[i].faction_id));assert.ok(s.state.electorate.every(r=>Object.values(r.support).every(Number.isInteger)));sums(s);});
-test('Meeting de crise : paiement sur scène, prise de parole de 15 s et conversion physique',()=>{const s=make();completePopulation(s);const e=start(s,'MEETING_DE_CRISE'),c=s.state.candidates[0],site=s.state.buildings.find(b=>b.id===e.target_site_id);c.x=site.x;c.axis=0;c.money=1000;const money=c.money;updateCampaignEvents(s);assert.equal(c.crisis_meeting_id,null);assert.equal(c.money,money);c.podium_site_id=site.id;c.combat.height=s.config.balance.buildings.meeting.podium_height;updateCampaignEvents(s);assert.equal(c.crisis_meeting_id,e.id);assert.equal(c.money,money-e.parameters.meeting_cost);s.applyCommand({type:'Attack',candidateId:c.id});assert.equal(c.combat.buffer_until_tick,-1);const before=s.state.actualGameState.national_counts[c.faction_id];for(let i=0;i<s.secondsToTicks(15+s.config.balance.buildings.meeting.wave_visual_seconds)+2;i++)s.step();assert.equal(e.winner,c.faction_id);assert.ok(s.state.actualGameState.national_counts[c.faction_id]>before);sums(s);});
-test('Scandale : dix sympathisants neutralisés au KO, aucun malus à expiration',()=>{for(const ko of [false,true]){const s=make();completePopulation(s);s.state.npcs.slice(0,20).forEach(n=>{n.role='SYMPATHISANT';n.faction_id='philippe';});refreshElectoralState(s.state);const e=start(s,'CANDIDAT_FRAGILISE',{candidateId:'candidate:philippe'}),c=s.state.candidates.find(c=>c.id===e.target_candidate_ids[0]);const before=s.state.actualGameState.national_counts[c.faction_id];c.is_ko=ko;if(!ko)s.state.tick=e.end_tick;updateCampaignEvents(s);assert.equal(before-s.state.actualGameState.national_counts[c.faction_id],ko?10:0);sums(s);}});
-test('Piège humain : monde avance, candidat absent, commande vers arène',()=>{const s=make(),e=start(s,'PIEGE_MEDIATIQUE',{candidateId:s.state.local_candidate_id});const c=s.state.candidates[0],x=c.x;s.step([{type:'Move',candidateId:c.id,axis:1}]);assert.equal(c.x,x);assert.ok(c.disappeared);assert.equal(s.state.tick,1);assert.equal(e.arena.tick,1);assert.equal(e.arena.candidates.find(a=>a.id===c.id).axis,1);resolveCampaignEvent(s,e);assert.equal(c.campaign_arena_id,null);assert.equal(c.disappeared,false);});
-test('Piège IA : durée déterministe puis retour',()=>{const a=make(),b=make();const x=start(a,'PIEGE_MEDIATIQUE',{candidateId:'candidate:le_pen'}),y=start(b,'PIEGE_MEDIATIQUE',{candidateId:'candidate:le_pen'});assert.equal(x.ai_return_tick,y.ai_return_tick);a.state.tick=x.end_tick;updateCampaignEvents(a);assert.equal(a.state.candidates[1].campaign_arena_id,null);});
-test('Fermeture : QG exclu, site neutralisé et recapturable',()=>{const s=make(),c=s.state.candidates[0],hq=s.state.buildings.find(b=>b.type==='permanence');captureSite(s,hq,c);assert.equal(start(s,'FERMETURE_BATIMENT',{siteId:hq.id}),null);const b=s.state.buildings.find(b=>b.type==='financement');captureSite(s,b,c);const e=start(s,'FERMETURE_BATIMENT',{siteId:b.id});assert.ok(e);s.state.tick=e.end_tick;updateCampaignEvents(s);assert.equal(b.owner_id,null);assert.equal(b.level,0);captureSite(s,b,c);assert.equal(b.owner_id,c.faction_id);});
-test('Anti-répétition, snapshot et continuation déterministe',()=>{const a=make();start(a,'MEETING_DE_CRISE');const b=make();b.importSnapshot(a.exportSnapshot());for(let i=0;i<30;i++){a.step();b.step();}assert.deepEqual(a.state,b.state);for(const e of a.state.campaign_events)resolveCampaignEvent(a,e);const first=a.state.campaign_events[0].variant_id;assert.notEqual(start(a,'MEETING_DE_CRISE').variant_id,first);});
-test('Débat thématique : le premier paiement au Meeting gagne sans arène ni attente',()=>{const s=make(),e=start(s,'DEBAT_THEMATIQUE'),site=s.state.buildings.find(b=>b.id===e.target_site_id),first=s.state.candidates[1],other=s.state.candidates[0];first.x=site.x;other.x=site.x+20;first.money=e.parameters.meeting_cost;const before=aggregateNational(s.state.electorate)[first.faction_id];updateCampaignEvents(s);assert.equal(e.status,'RESOLVED');assert.equal(e.winner,first.faction_id);assert.equal(e.arena,null);assert.equal(first.campaign_arena_id,null);assert.equal(first.money,0);assert.equal(e.participants[0],first.id);assert.equal(s.state.transactions.at(-1).kind,'THEMATIC_DEBATE');assert.ok(aggregateNational(s.state.electorate)[first.faction_id]>before);sums(s);});
-test('IA se dirige vers un Meeting, et poursuit son occupant adverse',()=>{const s=make(),e=start(s,'MEETING_DE_CRISE'),c=s.state.candidates[0],site=s.state.buildings.find(b=>b.id===e.target_site_id);c.money=1000;c.x=site.x-2;s.state.tick=s.secondsToTicks(4);const out=campaignAICommands(s.state,s.config,c);assert.ok(out?.some(c=>c.type==='Move'&&c.axis===1));});
-test('Sauvegarde d’arène, reprise et J0 ferment les événements proprement',()=>{const a=make();start(a,'PIEGE_MEDIATIQUE',{candidateId:a.state.local_candidate_id});a.step();const b=make();b.importSnapshot(a.exportSnapshot());a.step();b.step();assert.deepEqual(a.state,b.state);a.applyCommand({type:'DebugForceJ0'});const c=make();c.importSnapshot(a.exportSnapshot());assert.equal(c.state.campaign_day_remaining,0);assert.ok(c.state.campaign_events.every(e=>e.status!=='ACTIVE'));});
-test('Sauvegarde corrompue rejetée sans modifier le jeu',()=>{const s=make(),before=s.exportSnapshot(),bad=JSON.parse(before);bad.candidates[0].current_campaign_style="style_inconnu";assert.throws(()=>s.importSnapshot(bad));assert.equal(s.exportSnapshot(),before);});
-test('Quitter le meeting autorise le déplacement puis annule après cinq secondes',()=>{const s=make(),e=start(s,'MEETING_DE_CRISE'),c=s.state.candidates[0],site=s.state.buildings.find(b=>b.id===e.target_site_id);c.x=site.x;c.money=1000;updateCampaignEvents(s);s.step([{type:'Move',candidateId:c.id,axis:1}]);assert.notEqual(c.x,site.x);for(let i=0;i<s.secondsToTicks(5)+2;i++)s.step();assert.equal(site.meeting_candidate_id,null);assert.equal(e.attempt,null);});
-test('Les journalistes restent des adversaires disponibles même si leur modèle est KO',()=>{const s=make();s.state.candidates[1].is_ko=true;const e=start(s,'PIEGE_MEDIATIQUE',{candidateId:s.state.local_candidate_id});assert.ok(e.arena.candidates.every(c=>!c.is_ko));});
+test('Presque tous les PNJ du biome rejoignent le cortège sans téléportation',()=>{
+  const sim=make(),e=start(sim),initial=sim.state.npcs.filter(n=>zoneAt(sim.state.world,n.x).biome_id==='banlieue');
+  assert.ok(e.march.participant_ids.length>=initial.length*.9);assert.ok(e.march.participant_ids.every(id=>initial.some(n=>n.id===id)));
+  const before=new Map(sim.state.npcs.map(n=>[n.id,n.x]));sim.step();
+  for(const n of sim.state.npcs)assert.ok(Math.abs(ringDelta(before.get(n.id),n.x,sim.state.world.length))<=e.parameters.gather_speed/sim.hz*1.1);
+  assert.equal(e.march.phase,'GATHERING');
+});
+
+test('Un rassemblement libère les conversations et les pressions avant une sauvegarde immédiate', () => {
+  const sim = make(), candidate = sim.state.candidates[0]; candidate.campaign_active = true;
+  for (const npc of sim.state.npcs.filter(n => n.origin_biome_id === 'banlieue')) npc.x = candidate.x;
+  sim.updatePersuasion(); assert.ok(candidate.persuasion_target_ids.length);
+  const event = start(sim); assert.ok(event.march.participant_ids.length);
+  assert.ok(candidate.persuasion_target_ids.every(id => !event.march.participant_ids.includes(id)));
+  const restored = make(); restored.importSnapshot(sim.exportSnapshot());
+  assert.deepEqual(restored.state, sim.state);
+  const invalid = JSON.parse(sim.exportSnapshot()); invalid.campaign_events[0].march.end_x += 1;
+  assert.throws(() => restored.importSnapshot(invalid), /itinéraire du cortège/);
+});
+test('Marche dans les deux sens entre centres extrêmes, puis retour près du spawn',()=>{
+  const directions=new Set();
+  for(const seed of [1,17,42,51]){
+    const sim=make(seed),e=start(sim),m=e.march;directions.add(m.direction);
+    const ends=sim.state.world.subzones.filter(z=>z.biome_id==='banlieue'&&z.local_index!==1).map(z=>z.center);
+    assert.deepEqual([m.start_x,m.end_x].sort((a,b)=>a-b),ends);
+    advance(sim,sim.secondsToTicks(80));assert.equal(e.status,'RESOLVED');
+    for(const id of m.participant_ids){const n=sim.state.npcs.find(n=>n.id===id);assert.equal(n.rally_event_id,null);assert.equal(n.rally_return_x,null);assert.equal(zoneAt(sim.state.world,n.x).id,n.origin_subzone_id);}
+  }
+  assert.equal(directions.size,2);
+});
+test('Conversion en marchant des neutres et sympathisants adverses, jamais des militants',()=>{
+  const sim=make(),e=start(sim),c=sim.state.candidates[0];c.campaign_active=true;c.axis=1;
+  const [neutral,rival,militant]=e.march.participant_ids.slice(0,3).map(id=>sim.state.npcs.find(n=>n.id===id));
+  convertNeutral(sim,rival,'le_pen');convertNeutral(sim,militant,'le_pen');militant.role='MILITANT';militant.next_donation_tick=null;
+  for(let i=0;i<sim.secondsToTicks(.3);i++){for(const n of [neutral,rival,militant])n.x=c.x+.2;sim.step();}
+  assert.equal(neutral.faction_id,c.faction_id);assert.equal(rival.faction_id,c.faction_id);assert.equal(militant.faction_id,'le_pen');
+});
+test('La fin du cortège arrête les conversions adverses',()=>{
+  const sim=make(),e=start(sim),c=sim.state.candidates[0],n=sim.state.npcs.find(n=>n.id===e.march.participant_ids[0]);
+  convertNeutral(sim,n,'le_pen');resolveCampaignEvent(sim,e);c.campaign_active=true;
+  for(let i=0;i<30;i++){c.x=n.x;sim.step();}assert.equal(n.faction_id,'le_pen');
+});
+test('Reprise déterministe pendant le rassemblement, la marche et la dispersion',()=>{
+  const a=make();start(a);
+  for(const ticks of [60,420,600]){advance(a,ticks);refreshElectoralState(a.state);const b=make();b.importSnapshot(a.exportSnapshot());advance(a,20);advance(b,20);assert.deepEqual(a.state,b.state);}
+});
+test('Désactivation et premier tour libèrent tous les participants',()=>{
+  const sim=make(),e=start(sim);sim.config.balance.campaign_events.event_enabled=false;sim.step();assert.equal(e.status,'EXPIRED');assert.ok(sim.state.npcs.every(n=>!n.rally_event_id));
+  const other=make();start(other);other.applyCommand({type:'DebugForceJ0'});assert.ok(other.state.npcs.every(n=>!n.rally_event_id));
+});

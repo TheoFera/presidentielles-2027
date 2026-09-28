@@ -1,14 +1,17 @@
+import { integratedBuildingGeometry, drawIntegratedBuilding } from './fixed-world.js';
 import { biomeArtId } from './illustrated-characters.js';
 import { zoneAt } from '../simulation/world.js';
 import { factionVariant } from '../simulation/building-rules.js';
 import { formatEuros } from './money.js';
 
-const families = { permanence: 'campaign_local', financement: 'financement', tour_communication: 'communication', faction: 'security_admin_slot', imprimerie: 'imprimerie', meeting: 'meeting_stage', institut_sondage: 'polling_institute' };
+const families = { garage_velo: 'campaign_local', garage_scooter: 'campaign_local', permanence: 'campaign_local', financement: 'financement', tour_communication: 'communication', faction: 'security_admin_slot', imprimerie: 'imprimerie', meeting: 'meeting_stage', institut_sondage: 'polling_institute' };
 export function buildingAssetId(building, world) {
   return `building-${families[building.type]}-${biomeArtId(zoneAt(world, building.x).biome_id)}`;
 }
 
 export function buildingGeometry(renderer, building, sprite) {
+  const integrated = integratedBuildingGeometry(renderer, building);
+  if (integrated) return integrated;
   let h = renderer.metrics.characterHeight * (building.type === 'tour_communication' ? 2.85 : 2.4);
   const ratio = sprite ? sprite.naturalWidth / sprite.naturalHeight : 0.8;
   const w = Math.min(renderer.width * 0.21, h * ratio);
@@ -44,6 +47,7 @@ function signSlot(sprite) {
 }
 
 export function drawIllustratedBuilding(renderer, state, building) {
+  if (drawIntegratedBuilding(renderer, state, building)) return true;
   const visibleX = renderer.screenX(building.x);
   if (visibleX < -renderer.width * 0.3 || visibleX > renderer.width * 1.3) return true;
   const id = buildingAssetId(building, state.world);

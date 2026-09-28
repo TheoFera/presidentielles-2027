@@ -96,7 +96,7 @@ export function releaseDonation(sim, npc) {
   if (npc.task?.kind === 'DELIVER_DONATION' || npc.task?.kind === 'RETURN_DONATION') npc.task = null;
 }
 
-const usableFunding = (state, npc) => state.buildings.filter(b => b.type === 'financement' && b.state === 'ACTIVE'
+const usableFunding = (state, npc) => state.buildings.filter(b => b.type === 'permanence' && b.state === 'ACTIVE'
   && b.owner_id === npc.faction_id && b.biome_id === zoneAt(state.world, npc.x).biome_id).sort((a, b) =>
     Math.abs(ringDelta(npc.x, a.x, state.world.length)) - Math.abs(ringDelta(npc.x, b.x, state.world.length)) || ordered(a, b));
 
@@ -107,7 +107,7 @@ export function prepareDonations(sim) {
       npc.donation_cents = donationCents(sim.config, npc);
       sim.emit('DonationReady', { npc_id: npc.id, amount_cents: npc.donation_cents });
     }
-    if (npc.donation_cents && !npc.task && !npc.meeting_target_id && !npc.combat.engaged) {
+    if (npc.donation_cents && !npc.task && !npc.meeting_target_id && !npc.rally_event_id && npc.rally_return_x == null && !npc.combat.engaged) {
       const building = usableFunding(sim.state, npc)[0];
       if (building) npc.task = { kind: 'DELIVER_DONATION', service_id: building.id, phase: 'TRAVEL',
         destination_x: building.x, destination_subzone_id: building.subzone_id };
@@ -141,6 +141,14 @@ export function updateDonationCourier(sim, npc) {
 
 export function settleMoney(sim) {
   const { state, config } = sim;
+  const sponsor = config.balance.buildings.financement;
+  for (const building of state.buildings.filter(b => b.type === 'financement' && b.state === 'ACTIVE')) {
+    if (!building.next_sponsor_tick) building.next_sponsor_tick = state.tick + sim.secondsToTicks(sponsor.sponsor_interval_seconds);
+    if (state.tick >= building.next_sponsor_tick) {
+      building.stored_money_cents += Math.round(sponsor.sponsor_amount_eur * 100);
+      building.next_sponsor_tick = state.tick + sim.secondsToTicks(sponsor.sponsor_interval_seconds);
+    }
+  }
   for (const npc of state.npcs) {
     if (npc.role !== 'SYMPATHISANT' || !npc.donation_cents || usableFunding(state, npc).length) continue;
     const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_arena_id
@@ -161,7 +169,7 @@ export function settleMoney(sim) {
   for (const candidate of state.candidates) {
     if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id) continue;
     for (const building of state.buildings) {
-      if (building.type !== 'financement' || building.state !== 'ACTIVE' || building.owner_id !== candidate.faction_id
+      if (!['permanence', 'financement'].includes(building.type) || building.state !== 'ACTIVE' || building.owner_id !== candidate.faction_id
         || !building.stored_money_cents || Math.abs(ringDelta(candidate.x, building.x, state.world.length)) > config.balance.money.donation.collection_radius_units) continue;
       candidate.money += thousands(building.stored_money_cents); candidate.total_earned += thousands(building.stored_money_cents);
       sim.emit('FundingCollected', { candidate_id: candidate.id, target_id: building.id, amount_cents: building.stored_money_cents });

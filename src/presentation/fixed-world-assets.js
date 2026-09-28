@@ -1,0 +1,13 @@
+export const fixedWorldAssets = {
+  'panorama-bobo': { file: new URL('../../assets/generated/world-v2/panorama-bobo.png', import.meta.url).href },
+  'panorama-banlieue': { file: new URL('../../assets/generated/world-v2/panorama-banlieue.png', import.meta.url).href },
+  'panorama-periurbain': { file: new URL('../../assets/generated/world-v2/panorama-periurbain.png', import.meta.url).href },
+  'panorama-campagne': { file: new URL('../../assets/generated/world-v2/panorama-campagne.png', import.meta.url).href },
+  'panorama-retraites': { file: new URL('../../assets/generated/world-v2/panorama-retraites.png', import.meta.url).href },
+  'panorama-riches': { file: new URL('../../assets/generated/world-v2/panorama-riches.png', import.meta.url).href },
+  'riders-melenchon': { file: new URL('../../assets/generated/world-v2/riders-melenchon.png', import.meta.url).href },
+  'riders-le_pen': { file: new URL('../../assets/generated/world-v2/riders-le_pen.png', import.meta.url).href },
+  'riders-philippe': { file: new URL('../../assets/generated/world-v2/riders-philippe.png', import.meta.url).href },
+  'riders-bardella': { file: new URL('../../assets/generated/world-v2/riders-bardella.png', import.meta.url).href },
+  'vehicles': { file: new URL('../../assets/generated/world-v2/riders-vehicles.png', import.meta.url).href },
+};

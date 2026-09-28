@@ -1,3 +1,4 @@
+import { startRally, updateRally, finishRally } from './rallies.js';
 import { aiSettings } from './ai-settings.js';
 import { isHumanCandidate } from './human-candidates.js';
 import { clearCampaignUltimate, activeCampaignStyle, styleTagWeight, styleInfluenceMultiplier } from './campaign-styles.js';
@@ -28,10 +29,11 @@ export function transferSupport(sim,record,faction,delta,multiplier=1){
 function reward(sim,e,faction){for(const r of sim.state.electorate)if(r.biome_id===e.target_biome_id)transferSupport(sim,r,faction,(r.subzone_id===e.target_subzone_id?e.parameters.local_conversion_percent:0)+(e.parameters.biome_conversion_percent||0),e.style_snapshot[faction]?.biome_multipliers[r.biome_id]??1);}
 export function resolveCampaignEvent(sim,e,status='RESOLVED',winner=null){
  if(e.status!=='ACTIVE')return;
+ if(e.family==='RASSEMBLEMENT')finishRally(sim,e);
  if(e.family==='MEETING_DE_CRISE'&&status==='EXPIRED'){const site=sim.state.buildings.find(b=>b.id===e.target_site_id);if(site?.meeting_candidate_id)cancelMeeting(sim,site);}
  e.status=status;e.resolved_tick=sim.state.tick;e.winner=winner;
  for(const c of sim.state.candidates){if(c.VULNERABLE_SCANDAL===e.id)c.VULNERABLE_SCANDAL=null;if(c.crisis_meeting_id===e.id)c.crisis_meeting_id=null;if(c.campaign_arena_id===e.id){const a=e.arena?.candidates.find(a=>a.id===c.id);clearCampaignUltimate(sim,c);c.bardella_form=false;c.bardellisation_used ||= !!a?.bardellisation_used;c.campaign_arena_id=null;c.disappeared=false;c.campaign_active=true;c.interaction_active=true;c.axis=0;}}
- if(winner&&e.family!=='MEETING_DE_CRISE')reward(sim,e,winner);
+ if(winner&&!['MEETING_DE_CRISE','RASSEMBLEMENT'].includes(e.family))reward(sim,e,winner);
  sim.state.campaign_director.active_event_ids=active(sim.state).map(e=>e.id);
  sim.emit(status==='EXPIRED'?'CampaignEventExpired':'CampaignEventResolved',{campaign_event_id:e.id,winner});
 }
@@ -39,6 +41,7 @@ export function directorWeights(sim){
  const s=sim.state,d=s.campaign_director,b=cfg(sim),history=d.event_history,recent=history.slice(-b.anti_repeat_window),scores=aggregateNational(s.electorate),rank=[...FACTIONS].sort((a,c)=>scores[c]-scores[a]);
  const targets=Object.fromEntries(rank.map((f,i)=>[f,[b.leader_target_multiplier,b.second_target_multiplier,b.third_target_multiplier][i]*(i===0?1+Math.min(0.5,(scores[f]-scores[rank[1]])/30):1)/(1+recent.filter(e=>e.candidate===f).length*0.5+d.target_counts[f]*0.03)]));
  const weights={};for(const [family,p]of Object.entries(b.families)){
+ if(b.active_families&&!b.active_families.includes(family)){weights[family]=0;continue;}
  const last=history.findLast(e=>e.family===family),count=active(s).filter(e=>e.family===family).length;
  weights[family]=s.campaign_elapsed_days<p.minimum_day||s.campaign_elapsed_days>p.maximum_day||count>=p.max_simultaneous||(!p.can_overlap&&active(s).length)||last&&s.campaign_elapsed_days-last.day<Math.max(p.cooldown_days,p.minimum_days_between_same_family)?0:p.base_weight*(history.at(-1)?.family===family?0.2:1);
  }d.family_weights=weights;d.target_weights=targets;d.ranking=rank;return {weights,targets,rank,recent};
@@ -49,6 +52,7 @@ export class CampaignEventDirector {
  const {weights,targets,rank,recent}=directorWeights(sim);
  const options=[];
  for(const v of sim.config.campaignCatalog||[]){
+ if(b.active_families&&!b.active_families.includes(v.family))continue;
  if(request.family&&request.family!==v.family)continue;
  if(!request.family&&(!weights[v.family]||s.campaign_elapsed_days<v.minimum_day||s.campaign_elapsed_days>v.maximum_day))continue;
  const settings=b.families[v.family];if(active(s).filter(e=>e.family===v.family).length>=settings.max_simultaneous)continue;
@@ -57,7 +61,7 @@ export class CampaignEventDirector {
  if(request.candidateId&&v.candidate_target&&request.candidateId!==`candidate:${v.candidate_target}`)continue;
  if(request.biomeId&&v.biome_target&&request.biomeId!==v.biome_target)continue;
  for(const c of s.candidates){if(c.is_ko||c.campaign_arena_id||c.eliminated||request.candidateId&&request.candidateId!==c.id||v.candidate_target&&v.candidate_target!==c.faction_id)continue;
- const sites=s.buildings.filter(site=>!request.siteId||site.id===request.siteId).filter(site=>v.family==='FERMETURE_BATIMENT'?site.owner_id===c.faction_id&&!site.headquarters&&site.state==='ACTIVE'&&settings.eligible_building_types.includes(site.type):['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(v.family)?site.type==='meeting'&&site.ownership_model==='neutral_service':true).filter(site=>(!v.biome_target||site.biome_id===v.biome_target)&&(!request.biomeId||site.biome_id===request.biomeId));
+ const sites=s.buildings.filter(site=>!request.siteId||site.id===request.siteId).filter(site=>v.family==='FERMETURE_BATIMENT'?site.owner_id===c.faction_id&&!site.headquarters&&site.state==='ACTIVE'&&settings.eligible_building_types.includes(site.type):['MEETING_DE_CRISE','DEBAT_THEMATIQUE','RASSEMBLEMENT'].includes(v.family)?site.type==='meeting'&&site.ownership_model==='neutral_service':true).filter(site=>(!v.biome_target||site.biome_id===v.biome_target)&&(!request.biomeId||site.biome_id===request.biomeId));
  if(['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(v.family)){for(let i=sites.length-1;i>=0;i--)if(active(s).some(e=>e.target_site_id===sites[i].id&&['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)))sites.splice(i,1);}
  if(!sites.length)continue;
  const index=rank.indexOf(c.faction_id),rw=['leader_weight','second_weight','third_weight'][index];
@@ -73,6 +77,7 @@ export class CampaignEventDirector {
  const duration=v.duration??p.duration;
  const e={id:`campaign:${d.next_id++}`,variant_id:v.event_id,family:v.family,title:v.title,description:v.description,start_tick:s.tick,end_tick:s.tick+sim.secondsToTicks(duration),target_candidate_ids:v.mechanical_parameters.affected_candidates==='ALL'?s.candidates.map(c=>c.id):[c.id],target_biome_id:site.biome_id,target_subzone_id:site.subzone_id,target_site_id:site.id,status:'ACTIVE',parameters:p,intensity:v.intensity||intensity,category:v.family==='CHOC_OPINION'?'INSTANT':'ACTIVE',attempt:null,participants:[],arena:null};
  e.style_snapshot=Object.fromEntries(s.candidates.map(candidate=>[candidate.faction_id,{style_id:candidate.current_campaign_style,biome_multipliers:Object.fromEntries(sim.config.layout.biomes.map(b=>[b.id,styleInfluenceMultiplier(sim.config,candidate,b.id)]))}]));
+ if(e.family==='RASSEMBLEMENT')startRally(sim,e);
  s.campaign_events.push(e);d.target_counts[c.faction_id]++;
  d.event_history.push({id:e.id,variant_id:v.event_id,family:e.family,day:s.campaign_elapsed_days,candidate:c.faction_id,biome:site.biome_id,site_type:site.type,tags:v.tags,intensity:e.intensity});
  if(e.family==='CANDIDAT_FRAGILISE')c.VULNERABLE_SCANDAL=e.id;
@@ -100,6 +105,7 @@ export function updateCampaignEvents(sim){
  const s=sim.state;if(s.phase!=='CAMPAIGN')return;
  if(!cfg(sim).event_enabled){for(const e of active(s))resolveCampaignEvent(sim,e,'EXPIRED');return;}
  for(const e of active(s)){
+ if(e.family==='RASSEMBLEMENT'){if(updateRally(sim,e))resolveCampaignEvent(sim,e);continue;}
  const p=e.parameters,site=s.buildings.find(b=>b.id===e.target_site_id),target=s.candidates.find(c=>c.id===e.target_candidate_ids[0]);
  if(e.family==='CANDIDAT_FRAGILISE'&&target.is_ko){const national=aggregateNational(s.electorate)[target.faction_id];const changed=applyOpinionDelta(sim,target.faction_id,-p.ko_poll_loss,{source:'SCANDALE'});sim.emit('ScandalKOTriggered',{candidate_id:target.id,loss:changed*100/sim.config.layout.total_electors});resolveCampaignEvent(sim,e);continue;}
  if(e.family==='FERMETURE_BATIMENT'&&s.tick>=e.end_tick){if(site.owner_id===target.faction_id&&!site.headquarters){const level=site.level;neutralizeSite(sim,site,'CAMPAIGN_EVENT');if(!p.become_neutral){site.owner_id=target.faction_id;site.state='ACTIVE';site.active=true;site.neutral=false;site.level=p.lose_levels?1:level;}}resolveCampaignEvent(sim,e);continue;}
@@ -156,6 +162,7 @@ export function campaignAICommands(state,config,c){
  const danger=events.find(e=>e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id));if(danger&&noise<0.8)return commands(state.buildings.find(b=>b.id===c.headquarters_site_id)?.x??c.start_x);
  const options=[];
  for(const e of events){let x,value=0;
+ if(e.family==='RASSEMBLEMENT'&&e.march){x=e.march.center_x;value=20;}
  if(['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)&&!e.arena){x=state.buildings.find(b=>b.id===e.target_site_id)?.x;value=e.family==='MEETING_DE_CRISE'?e.parameters.local_conversion_percent:10;if(!paymentStatus(c,config,e.parameters.meeting_cost).enabled)continue;}
  if(e.family==='CANDIDAT_FRAGILISE'&&!e.target_candidate_ids.includes(c.id)){x=state.candidates.find(c=>c.id===e.target_candidate_ids[0]).x;value=15;}
  if(x!==undefined)options.push({x,value:value/(1+Math.abs(ringDelta(c.x,x,state.world.length))/30),hunt:e.family==='CANDIDAT_FRAGILISE'||!!e.attempt&&e.attempt.candidate_id!==c.id});
