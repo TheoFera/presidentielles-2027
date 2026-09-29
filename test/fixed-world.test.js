@@ -11,7 +11,7 @@ import { buildingOffers } from '../src/simulation/economy.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { panoramaFrame } from '../src/presentation/fixed-world.js';
 import { hit } from '../src/simulation/combat-state.js';
-import { startArena } from '../src/simulation/match-lifecycle.js';
+import { startDebate } from '../src/simulation/match-lifecycle.js';
 
 const make = () => { const config = structuredClone(base); config.balance.campaign_events.event_enabled = false; const sim = new GameSimulation(config, 42); sim.state.ai_enabled = false; return sim; };
 const own = (sim, site, c = sim.state.candidates[0]) => { captureSite(sim, site, c); sim.state.campaign_style_selection = null; return c; };
@@ -109,6 +109,6 @@ test('Un coup reçu et la soirée électorale font disparaître le véhicule', (
   const rival = sim.state.candidates[1]; rival.x = c.x;
   hit(sim, rival, c, { damage: 5, knockback: 0, electoral_damage: 0 }, 'test:velo');
   assert.equal(c.vehicle, null);
-  c.vehicle = { type: 'velo', site_id: site.id }; startArena(sim);
+  c.vehicle = { type: 'velo', site_id: site.id }; startDebate(sim);
   assert.equal(c.vehicle, null);
 });

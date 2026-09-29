@@ -23,7 +23,7 @@ Les enseignes sont ancrées dans le panneau du sprite. Propriété, niveau, QG e
 - npm test : 41 réussites, aucun échec.
 - npm run build : réussi, sortie dist.
 - Inspection des 18 sous-zones, des frontières, des quatre saisons, des sites capturés/améliorés/en fermeture/fermés et des trois candidats avec effets.
-- Plateau de l’arène médiatique vérifié.
+- Plateau du débat médiatique vérifié.
 - Format 1280 × 720 et mobile 842 × 445 ; contrôle supplémentaire à 2340 × 1080.
 - Défilement automatique dans les deux directions dans l’atelier isolé. Aucun avertissement ou erreur de chargement lors de la lecture du journal.
 - Compteur observé autour de 125 images/s sur cet ordinateur à 1280 × 720. Cela ne constitue pas une mesure sur téléphone physique.

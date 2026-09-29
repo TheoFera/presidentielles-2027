@@ -14,13 +14,13 @@ export function initializeMobileCombat(sim, c) {
 export function actionAllowed(sim, c, allowCharge = false) {
   const attack = c && sim.state.attacks.find(a => a.id === c.combat.attack_id);
   const recovering = attack && attack.kind !== 'SPECIAL' && attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks;
-  return !!c && !c.eliminated && !c.is_ko && c.campaign_active && !c.campaign_arena_id && !c.crisis_meeting_id
+  return !!c && !c.eliminated && !c.is_ko && c.campaign_active && !c.campaign_debate_id && !c.crisis_meeting_id
     && !sim.state.campaign_style_selection && !c.style_hold && !c.style_interaction_held && !c.purchase_hold && !c.interaction_locked
     && !(allowCharge ? c.dash_active || c.combat.stun_ticks || c.combat.attack_id && !recovering : interrupted(c)) && Math.abs(c.combat.knockback_velocity) <= 0.02;
 }
 export function requestDash(sim, c, direction) {
   const d = sim.config.balance.dash;
-  if (![-1, 1].includes(direction) || !actionAllowed(sim, c, true) || airborne(c) || c.dash_charges <= 0 || sim.state.arena_bounds && !d.allowed_in_arena) return;
+  if (![-1, 1].includes(direction) || !actionAllowed(sim, c, true) || airborne(c) || c.dash_charges <= 0 || sim.state.debate_bounds && !d.allowed_in_debate) return;
   const meeting = sim.state.buildings.find(b => b.id === c.interaction_chain_site_id && b.type === 'meeting' && b.meeting_faction_id === c.faction_id && b.meeting_until_tick > sim.state.tick);
   if (meeting && Math.abs(combatDelta(sim.state, c.x, meeting.x)) <= sim.config.balance.buildings.meeting.interaction_radius) return;
   cancelCurrentAttack(sim, c);

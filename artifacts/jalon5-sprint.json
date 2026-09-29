@@ -3,7 +3,7 @@
   "config_fingerprint": "4a31188b",
   "match_tick": 18289,
   "phase_started_match_tick": 18289,
-  "arena": null,
+  "debate": null,
   "campaign_snapshot": null,
   "eliminated_faction": "le_pen",
   "finalists": [
@@ -22,9 +22,9 @@
       "neutral": 39.05766598095303
     },
     "eliminated_faction": "le_pen",
-    "arena_duration_seconds": 9.633333333333333,
-    "arena_hits": 76,
-    "arena_candidate_hits": 63,
+    "debate_duration_seconds": 9.633333333333333,
+    "debate_hits": 76,
+    "debate_candidate_hits": 63,
     "sprint_start_scores": {
       "melenchon": 20.690399614053387,
       "le_pen": 0,

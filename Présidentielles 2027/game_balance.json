@@ -581,8 +581,8 @@
       "upgrade_pause_seconds": 0.4
     }
   },
-  "first_round_arena": {
-    "arena_name": "Plateau médiatique",
+  "first_round_debate": {
+    "debate_name": "Plateau médiatique",
     "health_source": "national_vote_percent",
     "stop_after_first_elimination": true,
     "show_vote_health_bars": true,
@@ -601,7 +601,7 @@
     "ai_retarget_seconds": 2.2,
     "ai_variation_units": 7
   },
-  "arena_mode": {
+  "debate_mode": {
     "dash_distance": 3.6,
     "countdown_seconds": 3,
     "fight_banner_seconds": 1,
@@ -956,7 +956,7 @@
     "distance": 2.3,
     "invulnerability_seconds": 0.12,
     "double_tap_window_ms": 300,
-    "allowed_in_arena": true
+    "allowed_in_debate": true
   },
   "damage_feedback": {
     "max_injury_opacity": 0.82,

@@ -523,7 +523,7 @@ Ne développe toujours PAS :
 - Tour de communication ;
 - Institut de sondage ;
 - Meeting ;
-- arène médiatique J0 ;
+- débat médiatique J0 ;
 - sprint du second tour ;
 - multijoueur réseau.
 

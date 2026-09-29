@@ -6,7 +6,7 @@ import { interpolatedPlayerX } from './player-position.js';
 import { drawInfrastructure, drawBanknote, drawSiteRequirements } from './infrastructure.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from './electoral.js';
-import { drawArena } from './match.js';
+import { drawDebate } from './match.js';
 import { VisualAssets } from './visual-assets.js';
 import { visualManifest } from './visual-manifest.js';
 import { drawIllustratedCharacter, meetingCrowdRow } from './illustrated-characters.js';
@@ -17,11 +17,13 @@ import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
 import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
+import { prepareMinorFrames } from './minor-sprite-images.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
   if (/^(panorama|v3|minor)-/.test(id)) preparePanorama(image, id);
+  if (id.startsWith('minor-')) prepareMinorFrames(image, id.slice(6));
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   prepareSceneryImage(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
@@ -72,9 +74,9 @@ export class WorldRenderer {
   resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); }
 
   draw(state, previous, alpha, elapsed, debug = false) {
-    if (state.phase === 'FIRST_ROUND_ARENA') { drawArena(this, state.arena, previous.arena, alpha); return; }
-    const campaignArena = state.campaign_events?.find(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id));
-    if (campaignArena) { drawArena(this, campaignArena.arena, previous.campaign_events?.find(e => e.id === campaignArena.id)?.arena || campaignArena.arena, alpha); return; }
+    if (state.phase === 'FIRST_ROUND_DEBATE') { drawDebate(this, state.debate, previous.debate, alpha); return; }
+    const campaignDebate = state.campaign_events?.find(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(state.local_candidate_id));
+    if (campaignDebate) { drawDebate(this, campaignDebate.debate, previous.campaign_events?.find(e => e.id === campaignDebate.id)?.debate || campaignDebate.debate, alpha); return; }
     const ctx = this.ctx;
     const m = this.metrics;
     const screenUnits = this.width / m.pixelsPerUnit;

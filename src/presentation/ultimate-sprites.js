@@ -22,7 +22,7 @@ export function scarfPose(attack) {
 }
 
 export function ultimateCharacterPose(entity, state, config) {
-  if (entity.is_ko || entity.arena_hp <= 0 || entity.eliminated || entity.disappeared || entity.expired) return null;
+  if (entity.is_ko || entity.debate_hp <= 0 || entity.eliminated || entity.disappeared || entity.expired) return null;
   const hz = hzOf(config), c = entity.combat || {};
   const attack = state.attacks.find(a => a.owner_id === entity.id && a.id === c.attack_id);
   const phase = attack && attackPhase(attack);

@@ -108,8 +108,8 @@ ok 21 - Difficulté : cadence de combat distincte, dash offensif et repli après
   ---
   duration_ms: 42.8942
   ...
-# Subtest: La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
-ok 22 - La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
+# Subtest: La difficulté reste appliquée dans le débat et l’IA désactivée reste immobile
+ok 22 - La difficulté reste appliquée dans le débat et l’IA désactivée reste immobile
   ---
   duration_ms: 12.8668
   ...
@@ -208,8 +208,8 @@ ok 41 - Scandale : cinq points nationaux au KO, aucun malus à expiration
   ---
   duration_ms: 52.5871
   ...
-# Subtest: Piège humain : monde avance, candidat absent, commande vers arène
-ok 42 - Piège humain : monde avance, candidat absent, commande vers arène
+# Subtest: Piège humain : monde avance, candidat absent, commande vers débat
+ok 42 - Piège humain : monde avance, candidat absent, commande vers débat
   ---
   duration_ms: 41.5376
   ...
@@ -233,8 +233,8 @@ ok 46 - Anti-répétition, snapshot et continuation déterministe
   ---
   duration_ms: 187.7634
   ...
-# Subtest: Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
-ok 47 - Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
+# Subtest: Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
+ok 47 - Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
   ---
   duration_ms: 26.97
   ...
@@ -243,8 +243,8 @@ ok 48 - IA se dirige vers un Meeting, et poursuit son occupant adverse
   ---
   duration_ms: 37.1894
   ...
-# Subtest: Sauvegarde d’arène, reprise et J0 ferment les événements proprement
-ok 49 - Sauvegarde d’arène, reprise et J0 ferment les événements proprement
+# Subtest: Sauvegarde de débat, reprise et J0 ferment les événements proprement
+ok 49 - Sauvegarde de débat, reprise et J0 ferment les événements proprement
   ---
   duration_ms: 103.0174
   ...
@@ -453,8 +453,8 @@ ok 90 - Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points 
   ---
   duration_ms: 24.4126
   ...
-# Subtest: Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (arène)
-ok 91 - Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (arène)
+# Subtest: Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (débat)
+ok 91 - Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (débat)
   ---
   duration_ms: 20.6871
   ...
@@ -463,8 +463,8 @@ ok 92 - Dash : annule seulement s’il peut partir, sans frappe fantôme au rel�
   ---
   duration_ms: 24.861
   ...
-# Subtest: Troisième coup : sort de la portée de mêlée ; recul limité aux bords de l’arène
-ok 93 - Troisième coup : sort de la portée de mêlée ; recul limité aux bords de l’arène
+# Subtest: Troisième coup : sort de la portée de mêlée ; recul limité aux bords du débat
+ok 93 - Troisième coup : sort de la portée de mêlée ; recul limité aux bords du débat
   ---
   duration_ms: 68.523
   ...
@@ -483,8 +483,8 @@ ok 96 - Saut prioritaire et frappe aérienne immédiate (campagne)
   ---
   duration_ms: 122.4542
   ...
-# Subtest: Saut prioritaire et frappe aérienne immédiate (arène)
-ok 97 - Saut prioritaire et frappe aérienne immédiate (arène)
+# Subtest: Saut prioritaire et frappe aérienne immédiate (débat)
+ok 97 - Saut prioritaire et frappe aérienne immédiate (débat)
   ---
   duration_ms: 123.58
   ...
@@ -608,8 +608,8 @@ ok 121 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du d
   ---
   duration_ms: 19.7395
   ...
-# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
-ok 122 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
+ok 122 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
   ---
   duration_ms: 172.4895
   ...
@@ -633,8 +633,8 @@ ok 126 - Hologrammes : commande R prioritaire pendant un coup, refus pendant le 
   ---
   duration_ms: 18.3253
   ...
-# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
-ok 127 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en débat
+ok 127 - Hologrammes : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 30.3707
   ...
@@ -643,8 +643,8 @@ ok 128 - Déferlante encapuchonnée : commande R prioritaire pendant un coup, re
   ---
   duration_ms: 28.0257
   ...
-# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
-ok 129 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
+ok 129 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 26.2719
   ...
@@ -653,8 +653,8 @@ ok 130 - Gilet jaune : commande R prioritaire pendant un coup, refus pendant le 
   ---
   duration_ms: 17.9071
   ...
-# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
-ok 131 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en débat
+ok 131 - Gilet jaune : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 18.2965
   ...
@@ -663,8 +663,8 @@ ok 132 - Vague bleu marine : commande R prioritaire pendant un coup, refus penda
   ---
   duration_ms: 24.1151
   ...
-# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
-ok 133 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
+ok 133 - Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 15.3208
   ...
@@ -673,8 +673,8 @@ ok 134 - Invocation Zemmour : commande R prioritaire pendant un coup, refus pend
   ---
   duration_ms: 15.1295
   ...
-# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
-ok 135 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
+ok 135 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 13.658
   ...
@@ -683,8 +683,8 @@ ok 136 - Bardellisation : commande R prioritaire pendant un coup, refus pendant 
   ---
   duration_ms: 14.7189
   ...
-# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
-ok 137 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en débat
+ok 137 - Bardellisation : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 13.6664
   ...
@@ -693,8 +693,8 @@ ok 138 - Protection CRS : commande R prioritaire pendant un coup, refus pendant 
   ---
   duration_ms: 17.0668
   ...
-# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
-ok 139 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en débat
+ok 139 - Protection CRS : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 16.9806
   ...
@@ -703,8 +703,8 @@ ok 140 - Écharpe du maire : commande R prioritaire pendant un coup, refus penda
   ---
   duration_ms: 14.9159
   ...
-# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
-ok 141 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
+ok 141 - Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 13.8005
   ...
@@ -713,8 +713,8 @@ ok 142 - Super Européiste : commande R prioritaire pendant un coup, refus penda
   ---
   duration_ms: 15.2825
   ...
-# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
-ok 143 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en débat
+ok 143 - Super Européiste : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 16.2754
   ...
@@ -728,8 +728,8 @@ ok 145 - Cibles valides : unités adverses, invocation configurable ; alliés et
   ---
   duration_ms: 92.2823
   ...
-# Subtest: Dash : limites de l’arène conservées et recharge suspendue en debug
-ok 146 - Dash : limites de l’arène conservées et recharge suspendue en debug
+# Subtest: Dash : limites du débat conservées et recharge suspendue en debug
+ok 146 - Dash : limites du débat conservées et recharge suspendue en debug
   ---
   duration_ms: 14.5921
   ...
@@ -753,8 +753,8 @@ ok 150 - Bords rouges : dégâts cumulés, impact local, récupération et faibl
   ---
   duration_ms: 26.1588
   ...
-# Subtest: Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
-ok 151 - Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
+# Subtest: Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne
+ok 151 - Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne
   ---
   duration_ms: 11.8031
   ...

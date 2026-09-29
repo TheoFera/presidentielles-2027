@@ -110,19 +110,19 @@ test('Seul le sondage acheté colore les secteurs, par identifiant', t => {
   assert.equal(first.attributes.fill, mapNeutralColor);
 });
 
-test('Compteur et visibilité en campagne, studio, arène et second tour', t => {
+test('Compteur et visibilité en campagne, studio, débat et second tour', t => {
   const node = documentFor(t), state = stateFor(), candidate = state.candidates[0];
   const display = new ElectoralDisplay(config);
   display.update(state, candidate);
   assert.equal(node('day').textContent, `J-${state.days_remaining}`);
   assert.ok(node('game').classes.has('has-map-wheel'));
-  state.campaign_events.push({ status: 'ACTIVE', arena: {}, participants: [candidate.id] });
+  state.campaign_events.push({ status: 'ACTIVE', debate: {}, participants: [candidate.id] });
   display.update(state, candidate);
   assert.equal(node('electoral-circle').hidden, true);
   assert.equal(node('electoral-display').hidden, false);
   assert.ok(node('electoral-display').classes.has('map-clock-only'));
   state.campaign_events = [];
-  for (const phase of ['FIRST_ROUND_ARENA', 'RESULTS']) {
+  for (const phase of ['FIRST_ROUND_DEBATE', 'RESULTS']) {
     state.phase = phase; display.update(state, candidate);
     assert.equal(node('electoral-display').hidden, true);
     assert.equal(node('poll-scores').hidden, true);

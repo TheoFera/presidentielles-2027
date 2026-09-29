@@ -57,7 +57,7 @@ export class CombatPoseTracker {
 }
 
 export function melenchonPose(entity, state, config, guard = false) {
-  if (!usesCandidateCombat(entity, state) || entity.is_ko || entity.arena_hp <= 0
+  if (!usesCandidateCombat(entity, state) || entity.is_ko || entity.debate_hp <= 0
     || entity.combat?.stun_ticks > 0 || entity.dash_active || knockdownPose(entity, state, config)) return null;
   const c = entity.combat, hz = config.balance.simulation_architecture.fixed_tick_hz;
   const attack = state.attacks.find(a => a.id === c.attack_id);

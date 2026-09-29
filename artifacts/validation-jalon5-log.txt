@@ -3,15 +3,15 @@
 > node scripts/validate-milestone5.mjs
 
 Partie complète, graine 2027 : campagne normale de 600 secondes…
-  → FIRST_ROUND_ARENA · 600 s
+  → FIRST_ROUND_DEBATE · 600 s
   → SECOND_ROUND_SPRINT · 609.6333333333333 s
   → RESULTS · 669.6333333333333 s
 Partie complète, graine 73 : campagne normale de 600 secondes…
-  → FIRST_ROUND_ARENA · 600 s
+  → FIRST_ROUND_DEBATE · 600 s
   → SECOND_ROUND_SPRINT · 610.9 s
   → RESULTS · 670.9 s
 Partie complète, graine 31415 : campagne normale de 600 secondes…
-  → FIRST_ROUND_ARENA · 600 s
+  → FIRST_ROUND_DEBATE · 600 s
   → SECOND_ROUND_SPRINT · 612.5 s
   → RESULTS · 672.5 s
 {
@@ -21,7 +21,7 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
       "duration_seconds": 669.6333333333333,
       "phases": [
         "CAMPAIGN",
-        "FIRST_ROUND_ARENA",
+        "FIRST_ROUND_DEBATE",
         "SECOND_ROUND_SPRINT",
         "RESULTS"
       ],
@@ -35,9 +35,9 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
         "neutral": 39.05766598095303
       },
       "eliminated_faction": "le_pen",
-      "arena_duration_seconds": 9.633333333333333,
-      "arena_hits": 76,
-      "arena_candidate_hits": 63,
+      "debate_duration_seconds": 9.633333333333333,
+      "debate_hits": 76,
+      "debate_candidate_hits": 63,
       "sprint_start_scores": {
         "melenchon": 20.690399614053387,
         "le_pen": 0,
@@ -86,7 +86,7 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
       "duration_seconds": 670.9,
       "phases": [
         "CAMPAIGN",
-        "FIRST_ROUND_ARENA",
+        "FIRST_ROUND_DEBATE",
         "SECOND_ROUND_SPRINT",
         "RESULTS"
       ],
@@ -100,9 +100,9 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
         "neutral": 38.91047558895942
       },
       "eliminated_faction": "melenchon",
-      "arena_duration_seconds": 10.9,
-      "arena_hits": 75,
-      "arena_candidate_hits": 62,
+      "debate_duration_seconds": 10.9,
+      "debate_hits": 75,
+      "debate_candidate_hits": 62,
       "sprint_start_scores": {
         "melenchon": 0,
         "le_pen": 20.856882258586865,
@@ -150,7 +150,7 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
       "duration_seconds": 672.5,
       "phases": [
         "CAMPAIGN",
-        "FIRST_ROUND_ARENA",
+        "FIRST_ROUND_DEBATE",
         "SECOND_ROUND_SPRINT",
         "RESULTS"
       ],
@@ -164,9 +164,9 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
         "neutral": 38.38902943570497
       },
       "eliminated_faction": "le_pen",
-      "arena_duration_seconds": 12.5,
-      "arena_hits": 108,
-      "arena_candidate_hits": 76,
+      "debate_duration_seconds": 12.5,
+      "debate_hits": 108,
+      "debate_candidate_hits": 76,
       "sprint_start_scores": {
         "melenchon": 20.350835276314452,
         "le_pen": 0,
@@ -213,7 +213,7 @@ Partie complète, graine 31415 : campagne normale de 600 secondes…
       "reconverted_npc_count": 18
     }
   ],
-  "arena_eliminations": {
+  "debate_eliminations": {
     "melenchon": 1,
     "le_pen": 17,
     "philippe": 12

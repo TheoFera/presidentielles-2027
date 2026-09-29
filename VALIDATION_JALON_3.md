@@ -60,4 +60,4 @@ Caméra, suivi, cadrage, sol, dimensions des silhouettes, vitesse normale du can
 
 Le tactile est implémenté mais pas testé sur téléphone physique. Le plaisir du combat, le rythme de progression et la difficulté précise face à plusieurs SO restent à évaluer par le joueur. Les hypothèses et tous les réglages sont détaillés dans README.md.
 
-Développement arrêté au troisième jalon. Aucun réseau, sondage, Meeting, arène J0, second tour, graphisme final ou son final n’a été ajouté.
+Développement arrêté au troisième jalon. Aucun réseau, sondage, Meeting, débat J0, second tour, graphisme final ou son final n’a été ajouté.

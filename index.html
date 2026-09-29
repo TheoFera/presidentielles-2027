@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="src/presentation/election-results.css">
     <link rel="stylesheet" href="src/presentation/match-summary.css">
     <link rel="stylesheet" href="src/presentation/player-profile.css">
-    <link rel="stylesheet" href="src/presentation/arena-mode.css">
+    <link rel="stylesheet" href="src/presentation/debate-mode.css">
 </head>
   <body>
     <section id="landscape-gate" hidden aria-label="Orientation du téléphone">
@@ -44,7 +44,7 @@
       <div id="poll-scores" hidden aria-label="Scores du dernier sondage"></div>
       <div id="notice" role="status"></div>
       <div id="network-status" hidden role="status"></div>
-      <div id="arena-hud" hidden aria-label="Jauges électorales du premier tour"></div>
+      <div id="debate-hud" hidden aria-label="Jauges électorales du premier tour"></div>
       <div id="phase-banner" hidden role="status"></div>
       <div id="spectator" hidden><span id="spectator-label"></span><label>Suivre <select id="spectator-follow"></select></label></div>
       <div id="phase-fade" aria-hidden="true"></div>
@@ -57,7 +57,7 @@
           <button data-help-tab="election" aria-selected="false">Élection</button>
         </nav>
         <div class="help-page" data-help-page="controls">
-          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper dès l’appui ; maintenir <span data-charge-duration></span> pour charger ; en l’air : coup plongeant</dd><dt>↑</dt><dd>Sauter, même pendant un coup (l’interrompt)</dd><dt>↓ / S</dt><dd>Arène : descendre d’un pupitre</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>H</dt><dd>Afficher l’aide</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Appuyez sur <strong>Frapper</strong> pour attaquer. Maintenez <span data-charge-duration></span> pour charger. En l’air, <strong>Frapper</strong> déclenche un coup plongeant. <strong>Sauter</strong> interrompt le coup en cours et permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
+          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper dès l’appui ; maintenir <span data-charge-duration></span> pour charger ; en l’air : coup plongeant</dd><dt>↑</dt><dd>Sauter, même pendant un coup (l’interrompt)</dd><dt>↓ / S</dt><dd>Débat : descendre d’un pupitre</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>H</dt><dd>Afficher l’aide</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Appuyez sur <strong>Frapper</strong> pour attaquer. Maintenez <span data-charge-duration></span> pour charger. En l’air, <strong>Frapper</strong> déclenche un coup plongeant. <strong>Sauter</strong> interrompt le coup en cours et permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
           <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo : si vous réappuyez vite après une touche, l’adversaire ne peut pas s’échapper. La troisième frappe le renverse ; il se relève intouchable un court instant. La troisième brise aussi une charge. Pendant la charge, vous recevez les dégâts mais résistez aux interruptions. Un dash annule la charge. Touchez vos adversaires, ou encaissez leurs coups, pour remplir l’ultime, prioritaire sauf pendant un étourdissement.</p><p>Le style choisi à la création du QG est définitif pour toute la partie.</p></article>
         </div>
         <div class="help-page" data-help-page="field" hidden>
@@ -75,8 +75,8 @@
         <details id="match-tools">
           <summary>Partie complète : J0, annonce et sprint</summary>
           <div class="debug-actions">
-            <button id="force-j0">Forcer J0</button><button id="start-arena">Afficher le premier tour</button>
-            <button id="finish-arena">Continuer au second tour</button><button id="start-sprint">Démarrer le sprint</button>
+            <button id="force-j0">Forcer J0</button><button id="start-debate">Afficher le premier tour</button>
+            <button id="finish-debate">Continuer au second tour</button><button id="start-sprint">Démarrer le sprint</button>
             <button id="sprint-10">Chrono à 10 s</button><button id="force-tie">Forcer une égalité à l’échéance</button>
             <button id="neutral-all">50 % de Neutres partout</button><button id="real-scores">Afficher le score réel</button>
             <button id="speed-five">Vitesse ×5</button><button id="save-telemetry">Exporter le résumé DEBUG</button>

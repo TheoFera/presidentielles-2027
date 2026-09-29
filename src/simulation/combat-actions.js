@@ -13,7 +13,7 @@ export function armored(state, actor) {
 }
 export function updateActions(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
-  if (actor.is_ko || actor.eliminated || actor.campaign_arena_id) { Object.assign(c, actionState()); return; }
+  if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState()); return; }
   if (c.press_tick != null && !c.press_airborne && !airborne(actor) && !c.attack_id && !c.stun_ticks && Math.abs(c.knockback_velocity) <= 0.02 && !actor.dash_active
     && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_activation_seconds)) {
     c.charge_active = true; actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
@@ -41,7 +41,7 @@ function podiumLanding(sim, actor, previousHeight, height) {
   return true;
 }
 /** Coup plongeant : Frapper en l’air. Descente en diagonale vers l’avant, sans contrôle,
- * jusqu’au sol, à un pupitre (arène) ou à un promontoire (campagne). */
+ * jusqu’au sol, à un pupitre (débat) ou à un promontoire (campagne). */
 export function startDive(sim, actor) {
   actor.combat.dive_tick = sim.state.tick;
 }
@@ -50,7 +50,7 @@ function updateDive(sim, actor) {
   const previousHeight = c.height;
   c.height = Math.max(0, c.height - b.dive_vertical_speed / hz);
   const x = actor.x + actor.facing * b.dive_horizontal_speed / hz;
-  actor.x = state.arena_bounds ? Math.max(state.arena_bounds.min, Math.min(state.arena_bounds.max, x)) : (x % state.world.length + state.world.length) % state.world.length;
+  actor.x = state.debate_bounds ? Math.max(state.debate_bounds.min, Math.min(state.debate_bounds.max, x)) : (x % state.world.length + state.world.length) % state.world.length;
   let landed = false;
   if (state.platforms?.length) {
     const landing = state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
@@ -64,7 +64,7 @@ function updateDive(sim, actor) {
   const attack = state.attacks.find(a => a.id === c.attack_id && a.kind === 'DIVE');
   if (attack) attack.active_ticks = Math.max(0, attack.elapsed_ticks - attack.windup_ticks);
 }
-/** Mode Arène : pupitres traversables par le bas, où l’on reste debout.
+/** Mode Débat : pupitres traversables par le bas, où l’on reste debout.
  * Le saut suit une parabole qui part de la hauteur courante et continue sous
  * son point de départ jusqu’à retrouver un pupitre ou le sol. */
 export const platformJump = state => state.platform_jump;

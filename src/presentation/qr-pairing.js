@@ -25,13 +25,13 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
       }
     }
     const full = session.room.players.length === 3;
-    // Arène : on peut commencer dès que le deuxième joueur est connecté.
+    // Débat : on peut commencer dès que le deuxième joueur est connecté.
     const continueButton = menu.element.querySelector('#qr-continue');
-    continueButton.hidden = !(session.room.mode === 'arena' && session.room.players.length === 2);
+    continueButton.hidden = !(session.room.mode === 'debate' && session.room.players.length === 2);
     continueButton.onclick = onContinue;
     menu.element.querySelector('#scan-answers').disabled = full;
     const notice = session.notice ? `${session.notice} ` : '';
-    status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${notice}${session.room.players.length}/3 joueurs connectés · ${session.room.mode === 'arena' && session.room.players.length === 2 ? 'Invitez un 3e joueur, ou jouez à deux.' : 'Scannez les réponses dans l’ordre de votre choix.'}`;
+    status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${notice}${session.room.players.length}/3 joueurs connectés · ${session.room.mode === 'debate' && session.room.players.length === 2 ? 'Invitez un 3e joueur, ou jouez à deux.' : 'Scannez les réponses dans l’ordre de votre choix.'}`;
   };
   menu.element.querySelector('#scan-answers').onclick = () => {
     stopScanner = scanQr({ title: 'Scannez la réponse d’un ami', accept: async value => {

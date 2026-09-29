@@ -163,8 +163,8 @@ try {
   await host.waitForFunction(x => window.testState.candidates.find(c => c.faction_id === 'philippe').x > x + 1, x3);
   report.flows.push('Trois navigateurs tactiles : troisième candidat contrôlé à distance, aucune API utilisée');
   await host.evaluate(() => window.testSimulation.applyCommand({ type: 'DebugAdvanceCampaign', remaining: 0 }));
-  for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'FIRST_ROUND_ARENA' && window.receivedState.arena.tick > 20);
-  await host.evaluate(() => window.testSimulation.applyCommand({ type: 'DebugFinishArena', factionId: 'philippe' }));
+  for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'FIRST_ROUND_DEBATE' && window.receivedState.debate.tick > 20);
+  await host.evaluate(() => window.testSimulation.applyCommand({ type: 'DebugFinishDebate', factionId: 'philippe' }));
   for (const p of [guest, third]) await p.waitForFunction(() => window.receivedState?.phase === 'SECOND_ROUND_SPRINT');
   await host.evaluate(async () => {
     const { finishSprint } = await import('/src/simulation/match-lifecycle.js');

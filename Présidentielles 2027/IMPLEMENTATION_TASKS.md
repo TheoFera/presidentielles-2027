@@ -81,7 +81,7 @@ EP : Cabinet administratif, fermeture bâtiment possédé adverse.
 ## Phase 12 — IA
 L'IA doit utiliser les mêmes GameCommands qu'un joueur humain.
 
-## Phase 13 — J0 / arène
+## Phase 13 — J0 / débat
 - scores → jauges ;
 - premier éliminé ;
 - retour monde.
@@ -101,7 +101,7 @@ L'IA doit utiliser les mêmes GameCommands qu'un joueur humain.
 ## Livraison du cinquième jalon — V0 gameplay complète
 
 - [x] Quatre phases autoritaires, J0 naturel et gel du monde sérialisé.
-- [x] Arène à trois, jauges issues des scores, combos/pouvoirs, premier KO et IA déterministe.
+- [x] Débat à trois, jauges issues des scores, combos/pouvoirs, premier KO et IA déterministe.
 - [x] Reprise du monde et neutralisation complète du troisième camp.
 - [x] Sprint 60 s, influence ×10, Tour atténuée, sondages accélérés et Meeting payant.
 - [x] Résultat réel, prolongations, spectateur, Rejouer et retour à l’accueil.

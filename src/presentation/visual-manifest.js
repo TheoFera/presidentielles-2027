@@ -121,7 +121,7 @@ export const visualManifest = {
   "vegetation-2": { file: new URL("../../assets/generated/vegetation/vegetation-2.png", import.meta.url).href },
   "vegetation-3": { file: new URL("../../assets/generated/vegetation/vegetation-3.png", import.meta.url).href },
   "vegetation-4": { file: new URL("../../assets/generated/vegetation/vegetation-4.png", import.meta.url).href },
-  "background-arena": { file: new URL("../../assets/generated/biomes/background-arena.png", import.meta.url).href },
+  "background-debate": { file: new URL("../../assets/generated/biomes/background-debate.png", import.meta.url).href },
   "building-campaign_local-periurbain": { file: new URL("../../assets/generated/buildings/building-campaign_local-periurbain.png", import.meta.url).href },
   "building-communication-banlieue": { file: new URL("../../assets/generated/buildings/building-communication-banlieue.png", import.meta.url).href },
   "building-communication-campagne": { file: new URL("../../assets/generated/buildings/building-communication-campagne.png", import.meta.url).href },

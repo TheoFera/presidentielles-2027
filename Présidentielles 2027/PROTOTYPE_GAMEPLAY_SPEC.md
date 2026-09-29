@@ -200,7 +200,7 @@ Jours : information transitoire au changement de jour ; intégrable au cercle ap
 Dépenses : billet + prix + progression de présence.
 Aucun gros HUD supérieur.
 
-# 20. J0 — arène médiatique
+# 20. J0 — débat médiatique
 
 À J0 : transition vers plateau médiatique à trois.
 Les scores nationaux deviennent exceptionnellement des jauges de combat visibles.

@@ -3,7 +3,7 @@ import { campaignCommittedAICommands } from './ai-events.js';
 import { move, setCampaignActive, interactionPresence, attack } from './commands.js';
 import { strategicAICommands } from './ai-strategy.js';
 import { GamePhase } from './phases.js';
-import { arenaAICommands } from './arena-simulation.js';
+import { debateAICommands } from './debate-simulation.js';
 import { sprintAICommands } from './sprint-ai.js';
 import { minorAICommands } from './minor-candidates.js';
 
@@ -43,10 +43,10 @@ export class AIController extends Controller {
     if (state.campaign_style_selection?.candidate_id === candidateId) return state.ai_enabled
       ? [{ type: 'SelectCampaignStyle', candidateId, styleId: DEFAULT_UNLOCKS[state.candidates.find(c => c.id === candidateId).faction_id][0] }] : [];
     if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
-    if (state.phase === GamePhase.FIRST_ROUND_ARENA) return arenaAICommands(state.arena, this.config, candidateId, state.ai_enabled);
+    if (state.phase === GamePhase.FIRST_ROUND_DEBATE) return debateAICommands(state.debate, this.config, candidateId, state.ai_enabled);
     const candidate = state.candidates.find(c => c.id === candidateId);
     if (!candidate || candidate.eliminated) return [];
-    if (candidate.combat.press_tick != null && !candidate.campaign_arena_id) {
+    if (candidate.combat.press_tick != null && !candidate.campaign_debate_id) {
       if (!state.ai_enabled) return [{ type: 'CancelAttack', candidateId }];
       const readyTicks = Math.ceil(this.config.balance.candidate_combat.charge_ready_seconds * this.config.balance.simulation_architecture.fixed_tick_hz);
       return state.tick - candidate.combat.press_tick >= readyTicks
@@ -54,7 +54,7 @@ export class AIController extends Controller {
     }
     if (candidate.minor) return minorAICommands(state, this.config, candidate);
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
-    // Arène médiatique ou meeting de crise en cours : l’engagement prime.
+    // Débat médiatique ou meeting de crise en cours : l’engagement prime.
     // Les autres événements sont pesés dans la stratégie, après les rivaux proches.
     const committed = campaignCommittedAICommands(state, this.config, candidate);
     if (committed) return committed;

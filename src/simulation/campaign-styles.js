@@ -34,7 +34,7 @@ export function normalizeCampaignProfile(profile = {}) {
   return { ...profile, unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) =>
     [f, [...new Set([...DEFAULT_UNLOCKS[f], ...(Array.isArray(profile.unlocked_campaign_styles?.[f]) ? profile.unlocked_campaign_styles[f] : [])])].filter(id => styles.some(s => s.id === id))])) };
 }
-/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Arène. */
+/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Débat. */
 export const BETATEST_NICKNAME = 'betatest';
 export const isBetatestProfile = profile => String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
 export function isCampaignStyleUnlocked(profile, faction, styleId) {
@@ -137,7 +137,7 @@ export class CampaignStyleSystem {
       if (sim.state.campaign_style_selection) break;
       if (c.minor) continue; // Les mineurs n'ont pas de style de campagne.
       if (!c.current_campaign_style && c.headquarters_site_id && !c.eliminated) { this.headquartersEstablished(sim, c); continue; }
-      if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.charge_active || c.combat.jump_tick != null || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
+      if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_debate_id || c.crisis_meeting_id || c.purchase_hold || c.combat.charge_active || c.combat.jump_tick != null || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
       c.style_hold ??= { start_tick: sim.state.tick, hits: c.hits_received, x: c.x };
       if (c.hits_received !== c.style_hold.hits || c.x !== c.style_hold.x) { c.style_hold = null; c.style_interaction_held = false; continue; }
       if (sim.state.tick - c.style_hold.start_tick >= sim.secondsToTicks(styleSettings(sim.config).hold_seconds)) this.open(sim, c);

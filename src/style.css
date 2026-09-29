@@ -16,13 +16,13 @@ body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: cent
 .poll-stale #poll-scores, .poll-stale #electoral-circle { opacity: 0.45; }
 .poll-stale #poll-scores::after { content: '·'; color: #8c7060; }
 [hidden] { display: none !important; }
-#arena-hud { position: absolute; top: 5%; left: 4%; right: 4%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3%; color: #edf1e7; pointer-events: none; }
-.arena-card { display: grid; grid-template-columns: 1fr auto; gap: 0.7cqw; padding: 1cqw; background: #111a27bb; border-top: 3px solid var(--camp-color); font-size: clamp(9px, 1.35cqw, 17px); }
-.arena-card output { font-weight: 700; font-variant-numeric: tabular-nums; }
-.arena-bar { grid-column: 1 / -1; height: 1cqw; background: #83909d55; }
-.arena-bar i { display: block; height: 100%; background: var(--camp-color); }
+#debate-hud { position: absolute; top: 5%; left: 4%; right: 4%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3%; color: #edf1e7; pointer-events: none; }
+.debate-card { display: grid; grid-template-columns: 1fr auto; gap: 0.7cqw; padding: 1cqw; background: #111a27bb; border-top: 3px solid var(--camp-color); font-size: clamp(9px, 1.35cqw, 17px); }
+.debate-card output { font-weight: 700; font-variant-numeric: tabular-nums; }
+.debate-bar { grid-column: 1 / -1; height: 1cqw; background: #83909d55; }
+.debate-bar i { display: block; height: 100%; background: var(--camp-color); }
 #phase-banner { position: absolute; top: 22%; width: 100%; text-align: center; font-size: clamp(12px, 1.7cqw, 23px); font-weight: 650; color: #344138; pointer-events: none; }
-#arena-hud:not([hidden]) ~ #phase-banner { color: #e8eddf; }
+#debate-hud:not([hidden]) ~ #phase-banner { color: #e8eddf; }
 #phase-fade { position: absolute; inset: 0; background: #202732; opacity: 0; pointer-events: none; z-index: 4; }
 .sprint-clock #day { font-size: clamp(20px, 3.2cqw, 40px); color: #8d403b; font-weight: 750; }
 #spectator { position: absolute; top: 3%; left: 2%; display: grid; gap: 5px; font-size: clamp(10px, 1.15cqw, 15px); }
@@ -82,14 +82,14 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   #help, #results { width: min(570px, calc(100vw - 24px)); }
   #debug { width: min(420px, calc(100vw - 24px)); font-size: 14px; }
   #resume { position: sticky; bottom: 0; }
-  #arena-hud { top: 62px; }
+  #debate-hud { top: 62px; }
   #phase-banner { top: 38%; }
 }
 @media (any-pointer: coarse) and (orientation: portrait) {
   #touch-controls { position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); }
   #touch-controls button { min-width: 72px; min-height: 64px; }
   #orientation-hint { display: block; position: fixed; top: max(64px, calc(env(safe-area-inset-top) + 54px)); left: 20px; right: 20px; color: #f4f5ef; text-align: center; font-size: 16px; }
-  #arena-hud { top: 5%; }
+  #debate-hud { top: 5%; }
   .result-actions { flex-wrap: wrap; }
 }
 @media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }

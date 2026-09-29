@@ -9,14 +9,14 @@ import { combatPosition } from './combat-geometry.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 
 /** Independent authoritative combat state: the campaign's tick never advances here. */
-export class ArenaSimulation {
+export class DebateSimulation {
   constructor(config, state) { this.config = config; this.hz = config.balance.simulation_architecture.fixed_tick_hz; this.state = state; }
   static create(config, worldState) {
-    const b = config.balance.first_round_arena;
+    const b = config.balance.first_round_debate;
     const state = {
       tick: 0, rng_state: worldState.rng_state, world: clone(worldState.world),
       ai_difficulty: worldState.ai_difficulty ?? config.balance.ai?.difficulty ?? 'normal',
-      arena_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
+      debate_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
       candidates: clone(worldState.candidates.filter(c => !c.minor)), npcs: [], buildings: [], electorate: [],
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [], events: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_event_id: 1, next_raid_id: 1,
@@ -29,9 +29,9 @@ export class ArenaSimulation {
       c.x = places[i] * b.width_units; c.axis = 0; c.facing = c.x > b.width_units / 2 ? -1 : 1; c.moving = false;
       c.ultimate_effect = null; c.style_hold = null; c.style_interaction_held = false; c.bardella_form = false; c.is_ko = false; c.disappeared = false;
       c.combat = combatState(); c.campaign_active = true; c.interaction_active = false; c.purchase_hold = null; c.persuasion_target_ids = [];
-      c.arena_initial_hp = worldState.actualGameState.national_support[c.faction_id]; c.arena_hp = c.arena_initial_hp;
+      c.debate_initial_hp = worldState.actualGameState.national_support[c.faction_id]; c.debate_hp = c.debate_initial_hp;
     });
-    state.eliminated_faction = state.candidates.find(c => c.arena_hp <= 0)?.faction_id || null;
+    state.eliminated_faction = state.candidates.find(c => c.debate_hp <= 0)?.faction_id || null;
     return state;
   }
   secondsToTicks(s) { return Math.ceil(s * this.hz - 1e-9); }
@@ -62,17 +62,17 @@ export class ArenaSimulation {
 }
 
 /** Pure seeded variation, identical after snapshot load and unrelated to local ownership. */
-export function arenaAICommands(state, config, candidateId, enabled) {
+export function debateAICommands(state, config, candidateId, enabled) {
   const c = state.candidates.find(c => c.id === candidateId);
   if (!c || state.eliminated_faction) return [];
   const commands = axis => [{ type: 'SetCampaignActive', candidateId, active: enabled }, { type: 'Move', candidateId, axis }];
   if (!enabled) return commands(0);
   const settings = aiSettings(state, config);
-  const period = Math.floor(state.tick / (config.balance.first_round_arena.ai_retarget_seconds * settings.event_reaction_multiplier * config.balance.simulation_architecture.fixed_tick_hz));
+  const period = Math.floor(state.tick / (config.balance.first_round_debate.ai_retarget_seconds * settings.event_reaction_multiplier * config.balance.simulation_architecture.fixed_tick_hz));
   const index = state.candidates.indexOf(c);
   const noise = i => { let n = (state.rng_state ^ Math.imul(period + 1, 374761393) ^ Math.imul(index + 1, 668265263) ^ Math.imul(i + 1, 1274126177)) >>> 0; n = Math.imul(n ^ (n >>> 13), 1274126177) >>> 0; return (n ^ (n >>> 16)) >>> 0; };
-  const options = state.candidates.filter(t => t.id !== c.id && t.faction_id !== c.faction_id).map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + t.arena_hp * 0.06
-    - (t.combat.target_id === c.id ? 0.8 : 0) + noise(state.candidates.indexOf(t)) / 0xffffffff * config.balance.first_round_arena.ai_variation_units * settings.event_reaction_multiplier }));
+  const options = state.candidates.filter(t => t.id !== c.id && t.faction_id !== c.faction_id).map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + t.debate_hp * 0.06
+    - (t.combat.target_id === c.id ? 0.8 : 0) + noise(state.candidates.indexOf(t)) / 0xffffffff * config.balance.first_round_debate.ai_variation_units * settings.event_reaction_multiplier }));
   if (!options.length) return commands(0);
   options.sort((a, b) => a.rank - b.rank || a.t.id.localeCompare(b.t.id));
   return aiCombatCommands(state, config, c, options[0].t);

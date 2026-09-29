@@ -10,7 +10,7 @@ import { PeerSession, encodeInvitation, decodeInvitation } from '../src/network/
 import { stateDelta, applyStateDelta, presentationState, encodePresentationState, encodeStateDelta } from '../src/network/state-stream.js';
 import { outgoingCommands } from '../src/network/shared-commands.js';
 import { LocalHumanController } from '../src/simulation/controllers.js';
-import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
+import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
 
 test('Les vues partagent uniquement une géométrie immuable et restent isolées de la simulation', () => {
@@ -80,13 +80,13 @@ test('Le flux différentiel restitue la campagne, le duel et le résultat sans t
     assert.deepEqual(received, presentationState(sim.state));
     return JSON.stringify(delta.packet).length;
   };
-  transfer(); startArena(sim); transfer();
+  transfer(); startDebate(sim); transfer();
   const saved = JSON.stringify(sim.state.campaign_snapshot);
   assert.equal(sim.getState({ presentation: true }).campaign_snapshot, null);
   assert.equal(JSON.stringify(sim.state.campaign_snapshot), saved);
   sim.step([]);
   assert.ok(transfer() < JSON.stringify(sim.state).length / 5, 'Le duel ne retransmet pas le monde figé');
-  finishArena(sim, 'philippe'); transfer();
+  finishDebate(sim, 'philippe'); transfer();
   sim.state.npcs.slice(0,60).forEach(n => { n.role = 'SYMPATHISANT'; n.faction_id = 'melenchon'; });
   sim.state.npcs.slice(60,90).forEach(n => { n.role = 'SYMPATHISANT'; n.faction_id = 'le_pen'; });
   finishSprint(sim); transfer();
@@ -394,7 +394,7 @@ test('Serveur local : un invité qui quitte le salon libère sa place, l’hôte
   assert.equal((await request('heartbeat', { code: again.code, token: again.token })).status, 400);
 });
 
-test('Salon d’arène : ouvert dès deux joueurs, même candidat avec un autre style, réglages vérifiés', async t => {
+test('Salon de débat : ouvert dès deux joueurs, même candidat avec un autre style, réglages vérifiés', async t => {
   const handler = createMultiplayerHandler();
   const server = http.createServer(handler);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -404,15 +404,15 @@ test('Salon d’arène : ouvert dès deux joueurs, même candidat avec un autre 
     const response = await fetch(base + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     return { status: response.status, ...await response.json() };
   };
-  const host = await request('create', { mode: 'arena' });
-  assert.equal(host.room.mode, 'arena');
+  const host = await request('create', { mode: 'debate' });
+  assert.equal(host.room.mode, 'debate');
   const auth = { code: host.code, token: host.token };
   assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400, 'seul, on attend un adversaire');
   const guest = await request('join', { code: host.code });
   const guestAuth = { code: guest.code, token: guest.token };
   assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 200);
   assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400);
-  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400, 'le style est obligatoire en arène');
+  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400, 'le style est obligatoire en débat');
   assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon', style: 'melenchon_universaliste' })).status, 200);
   const fighters = [{ faction: 'melenchon', style: 'melenchon_populiste', player: host.id }, { faction: 'melenchon', style: 'melenchon_universaliste', player: guest.id }];
   assert.equal((await request('start', { ...guestAuth, setup: { format: '1v1', map: 'studio', fighters } })).status, 400);

@@ -1,7 +1,7 @@
 import { ringDelta, zoneAt } from './world.js';
 import { aiNoise, aiSettings } from './ai-settings.js';
 import { paymentStatus } from './campaign-budget.js';
-import { arenaAICommands } from './arena-simulation.js';
+import { debateAICommands } from './debate-simulation.js';
 import { factionPressure } from './ai-balance.js';
 import { assessDuel } from './ai-mind.js';
 import { canBeHit } from './combat-state.js';
@@ -18,12 +18,12 @@ const climb = (state, config, c, site, out) => {
   return out;
 };
 
-/** Engagements en cours qui priment sur tout : arène médiatique et meeting de crise sur scène. */
+/** Engagements en cours qui priment sur tout : débat médiatique et meeting de crise sur scène. */
 export function campaignCommittedAICommands(state, config, c) {
   if (!state.ai_enabled || c.is_ko) return null;
-  if (c.campaign_arena_id) {
-    const event = state.campaign_events.find(e => e.id === c.campaign_arena_id);
-    return c.id === state.local_candidate_id && event?.arena ? arenaAICommands(event.arena, config, c.id, state.ai_enabled) : [];
+  if (c.campaign_debate_id) {
+    const event = state.campaign_events.find(e => e.id === c.campaign_debate_id);
+    return c.id === state.local_candidate_id && event?.debate ? debateAICommands(event.debate, config, c.id, state.ai_enabled) : [];
   }
   if (c.crisis_meeting_id) {
     const event = state.campaign_events.find(e => e.id === c.crisis_meeting_id);
@@ -72,7 +72,7 @@ export function campaignEventAICommands(state, config, c, adaptation) {
   for (const e of events) {
     let x, value = 0, site = null;
     if (e.family === 'RASSEMBLEMENT' && e.march) { x = e.march.center_x; value = 20; }
-    if (['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family) && !e.arena) {
+    if (['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family) && !e.debate) {
       site = state.buildings.find(b => b.id === e.target_site_id);
       const payment = paymentStatus(c, config, e.parameters.meeting_cost);
       if (!site || !payment.enabled) continue;

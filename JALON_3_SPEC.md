@@ -79,7 +79,7 @@ Fiscal Combat / beat'em up 2D pour la proximité,
 avec un knockback lisible inspiré des jeux de combat type Smash Bros.
 
 Mais la caméra normale reste celle déjà validée :
-NE transforme PAS le monde en arène de combat.
+NE transforme PAS le monde en débat de combat.
 
 Le candidat reste contrôlé avec le même déplacement horizontal.
 
@@ -906,7 +906,7 @@ Ne développe PAS encore :
 - cercle électoral visible ;
 - Meeting ;
 - IA stratégique finale ;
-- arène médiatique J0 ;
+- débat médiatique J0 ;
 - élimination du troisième candidat ;
 - sprint du second tour ;
 - multijoueur réseau ;

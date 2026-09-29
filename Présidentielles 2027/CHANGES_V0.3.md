@@ -1,7 +1,7 @@
 # CHANGES_V0.3
 
 - Ajout d'une spécification de composition visuelle détaillée.
-- Références explicites : Kingdom (caméra), Fiscal Combat (échelle/side-view), Mario (sol), Smash (combat/arène).
+- Références explicites : Kingdom (caméra), Fiscal Combat (échelle/side-view), Mario (sol), Smash (combat/débat).
 - Suppression du bandeau HUD supérieur.
 - Argent seul permanent en haut à gauche, en k €.
 - Jours non persistants avant Institut.

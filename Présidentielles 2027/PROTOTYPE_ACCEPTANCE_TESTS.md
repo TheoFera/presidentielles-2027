@@ -94,7 +94,7 @@
 - [ ] Après Institut, cercle et scores visibles/consultables.
 
 ## L. J0 / second tour
-- [ ] Arène média à trois à J0.
+- [ ] Débat média à trois à J0.
 - [ ] Score national = jauge visible.
 - [ ] Premier à 0 éliminé puis combat stoppé.
 - [ ] Ses unités démobilisées, bâtiments possédés neutralisés.

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { ArenaSimulation } from '../src/simulation/arena-simulation.js';
+import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { CAMPAIGN_STYLES, CampaignStyleSystem } from '../src/simulation/campaign-styles.js';
 import { beginCombatTick, requestAttack, activateUltimate, updateCombat, ultimateBlockedReason } from '../src/simulation/combat.js';
 import { hit, combatState } from '../src/simulation/combat-state.js';
@@ -36,8 +36,8 @@ for (const faction of Object.keys(CAMPAIGN_STYLES)) {
     ticks(sim, 1); assert.ok(hit(sim, enemy, c, { damage: 10, knockback: 4 }, 'test:5')); assert.equal(Math.abs(c.combat.knockback_velocity), 4);
   });
 }
-test('Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite', () => {
-  for (const reason of ['ko','stun','attack','meeting','hold','style','arena']) {
+test('Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdit', () => {
+  for (const reason of ['ko','stun','attack','meeting','hold','style','debate']) {
     const { sim, c } = setup();
     if (reason === 'ko') c.is_ko = true;
     if (reason === 'stun') c.combat.stun_ticks = 5;
@@ -45,7 +45,7 @@ test('Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arè
     if (reason === 'meeting') c.crisis_meeting_id = 'test';
     if (reason === 'hold') c.purchase_hold = {};
     if (reason === 'style') sim.state.campaign_style_selection = {};
-    if (reason === 'arena') { sim.state.arena_bounds = {}; sim.config.balance.dash.allowed_in_arena = false; }
+    if (reason === 'debate') { sim.state.debate_bounds = {}; sim.config.balance.dash.allowed_in_debate = false; }
     requestDash(sim, c, 1); assert.equal(c.dash_charges, 3, reason);
   }
 });
@@ -99,11 +99,11 @@ for (const [faction, styles] of Object.entries(CAMPAIGN_STYLES)) for (let i=0;i<
     if (styles[i].ultimate.kind === 'BARDELLA') assert.equal(c.bardella_guardian_armed, true);
     else assert.ok(sim.state.powers.some(p => p.kind === styles[i].ultimate.kind));
   });
-  test(`${styles[i].ultimate.name} : aucune activation sur attaque, commande manuelle en arène`, () => {
+  test(`${styles[i].ultimate.name} : aucune activation sur attaque, commande manuelle en débat`, () => {
     const { sim, c } = setup(faction,i); c.special_charge=10;
     requestAttack(sim,c); ticks(sim,30,true); assert.equal(c.special_charge,10); assert.equal(sim.state.powers.length,0); assert.equal(c.bardella_guardian_armed,false);
-    const arena = new ArenaSimulation(sim.config,ArenaSimulation.create(sim.config,sim.state)); const actor = arena.state.candidates.find(a=>a.id===c.id);
-    arena.applyCommand({type:'ActivateUltimate',candidateId:c.id}); assert.equal(actor.special_charge,0);
+    const debate = new DebateSimulation(sim.config,DebateSimulation.create(sim.config,sim.state)); const actor = debate.state.candidates.find(a=>a.id===c.id);
+    debate.applyCommand({type:'ActivateUltimate',candidateId:c.id}); assert.equal(actor.special_charge,0);
     assert.equal(actor.bardella_guardian_armed,styles[i].ultimate.kind==='BARDELLA');
   });
 }
@@ -124,13 +124,13 @@ test('Cibles valides : unités adverses, invocation configurable ; alliés et d�
     requestAttack(sim,c);ticks(sim,15,true);assert.equal(c.special_charge,expected,role);
   }
 });
-test('Dash : limites de l’arène conservées et recharge suspendue en debug', () => {
-  const {sim,c}=setup(); const arena=new ArenaSimulation(sim.config,ArenaSimulation.create(sim.config,sim.state));
-  const actor=arena.state.candidates.find(a=>a.id===c.id);actor.x=arena.state.arena_bounds.max-.2;
-  arena.applyCommand({type:'Dash',candidateId:c.id,direction:1});for(let i=0;i<9;i++)arena.step();
-  assert.equal(actor.x,arena.state.arena_bounds.max);
-  arena.applyCommand({type:'DebugDisableDashRecharge',candidateId:c.id,disabled:true});for(let i=0;i<140;i++)arena.step();assert.equal(actor.dash_charges,2);
-  arena.applyCommand({type:'DebugDisableDashRecharge',candidateId:c.id,disabled:false});for(let i=0;i<120;i++)arena.step();assert.equal(actor.dash_charges,3);
+test('Dash : limites du débat conservées et recharge suspendue en debug', () => {
+  const {sim,c}=setup(); const debate=new DebateSimulation(sim.config,DebateSimulation.create(sim.config,sim.state));
+  const actor=debate.state.candidates.find(a=>a.id===c.id);actor.x=debate.state.debate_bounds.max-.2;
+  debate.applyCommand({type:'Dash',candidateId:c.id,direction:1});for(let i=0;i<9;i++)debate.step();
+  assert.equal(actor.x,debate.state.debate_bounds.max);
+  debate.applyCommand({type:'DebugDisableDashRecharge',candidateId:c.id,disabled:true});for(let i=0;i<140;i++)debate.step();assert.equal(actor.dash_charges,2);
+  debate.applyCommand({type:'DebugDisableDashRecharge',candidateId:c.id,disabled:false});for(let i=0;i<120;i++)debate.step();assert.equal(actor.dash_charges,3);
 });
 test('Zone de feu : aucune application pendant les frames, brûlure possible ensuite', async () => {
   const {updateStyleEffects}=await import('../src/simulation/style-ultimates.js');
@@ -171,9 +171,9 @@ test('Bords rouges : dégâts cumulés, impact local, récupération et faible r
   assert.ok(damageFeedbackState(sim.state,c,sim.config).opacity>=reducedA.opacity);
 });
 
-test('Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne', async () => {
+test('Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne', async () => {
   const {damageFeedbackState}=await import('../src/presentation/damage-feedback.js');const {sim,c}=setup();
-  const arena=ArenaSimulation.create(sim.config,sim.state);const fighter=arena.candidates.find(a=>a.id===c.id);
-  fighter.resistance=0;assert.equal(damageFeedbackState(arena,fighter,sim.config).opacity,0);
-  fighter.arena_hp=fighter.arena_initial_hp*.5;assert.ok(damageFeedbackState(arena,fighter,sim.config).opacity>0);
+  const debate=DebateSimulation.create(sim.config,sim.state);const fighter=debate.candidates.find(a=>a.id===c.id);
+  fighter.resistance=0;assert.equal(damageFeedbackState(debate,fighter,sim.config).opacity,0);
+  fighter.debate_hp=fighter.debate_initial_hp*.5;assert.ok(damageFeedbackState(debate,fighter,sim.config).opacity>0);
 });

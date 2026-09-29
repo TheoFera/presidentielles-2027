@@ -12,13 +12,13 @@ import { retireMinorsForSecondRound } from './minor-candidates.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export const initialMatchState = () => ({
-  match_tick: 0, phase_started_match_tick: 0, arena: null, campaign_snapshot: null,
+  match_tick: 0, phase_started_match_tick: 0, debate: null, campaign_snapshot: null,
   eliminated_faction: null, finalists: [], sprint_remaining_ticks: null, sprint_elapsed_ticks: 0, extensions: 0, result: null, first_round_result: null,
-  telemetry: { j0_scores: null, eliminated_faction: null, arena_duration_seconds: 0, arena_hits: 0, arena_candidate_hits: 0,
+  telemetry: { j0_scores: null, eliminated_faction: null, debate_duration_seconds: 0, debate_hits: 0, debate_candidate_hits: 0,
     sprint_start_scores: null, final_scores: null, changed_subzone_ids: [], reconverted_npc_ids: [], sprint_meetings: 0, winner: null },
 });
 
-export function startArena(sim) {
+export function startDebate(sim) {
   for (const e of sim.state.campaign_events || []) if (e.status === 'ACTIVE') resolveCampaignEvent(sim, e, 'EXPIRED');
   const s = sim.state;
   if (s.phase !== GamePhase.CAMPAIGN) return false;
@@ -43,7 +43,7 @@ export function rankFirstRound(scores, seed) {
   return { scores: clone(scores), ranking, tie_break: Math.abs(scores[ranking[1]] - scores[ranking[2]]) <= 1e-10 };
 }
 
-export function finishArena(sim) {
+export function finishDebate(sim) {
   const s = sim.state;
   if (s.phase !== GamePhase.FIRST_ROUND_RESULTS) return false;
   const eliminated = s.first_round_result.ranking[2];
@@ -114,10 +114,10 @@ export function finishSprint(sim) {
 
 export function applyMatchDebug(sim, command) {
   const s = sim.state;
-  if (['DebugForceJ0', 'DebugStartArena'].includes(command.type)) { startArena(sim); return true; }
-  if (['DebugFinishArena', 'DebugStartSprint'].includes(command.type)) {
-    if (s.phase === GamePhase.CAMPAIGN) startArena(sim);
-    finishArena(sim); return true;
+  if (['DebugForceJ0', 'DebugStartDebate'].includes(command.type)) { startDebate(sim); return true; }
+  if (['DebugFinishDebate', 'DebugStartSprint'].includes(command.type)) {
+    if (s.phase === GamePhase.CAMPAIGN) startDebate(sim);
+    finishDebate(sim); return true;
   }
   if (command.type === 'DebugSprint10') { s.sprint_remaining_ticks = sim.secondsToTicks(10); return true; }
   if (command.type === 'DebugForceTie') {

@@ -26,7 +26,7 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 .campaign-card[data-family]::before { content: ''; background: #fff7e5 var(--event-icon) center / 25px 25px no-repeat; }
 #poll-scores { color: #283b40; padding: 4px 8px; background: #fff6dfef; border: 1px solid #364444; border-radius: 7px; }
 #touch-controls button { border: 2px solid #344445; border-radius: 13px; box-shadow: 0 3px 0 #283a3c77; }
-.arena-card { border-radius: 10px; border: 2px solid #fff0d4; border-top: 4px solid var(--camp-color); }
+.debate-card { border-radius: 10px; border: 2px solid #fff0d4; border-top: 4px solid var(--camp-color); }
 #notice { color: #fff5df; font-weight: 800; text-shadow: 0 2px #2c3c40, 1px 0 #2c3c40, -1px 0 #2c3c40; }
 @media(max-height:500px) { #campaign-events { top: 75px; width: min(255px, 30vw); } .campaign-card { padding: 7px 8px 7px 34px; font-size: 10px; } .campaign-card strong { font-size: 11px; } .campaign-card::before { left: 6px; top: 8px; width: 21px; height: 21px; font-size: 14px; } }
 @media(prefers-reduced-motion:reduce) { .campaign-card { transition: none; } }

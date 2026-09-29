@@ -11,9 +11,9 @@ Le jeu normal doit se lire comme une grande scène latérale continue :
   monde qui continue à fonctionner autour du joueur, interface très légère ;
 - **Fiscal Combat** : échelle lisible des silhouettes humaines et affrontements au sol vus de côté ;
 - **Super Mario Bros. 2D** : sol placé presque tout en bas et très peu d'espace visible sous les pieds ;
-- **Super Smash Bros.** : lisibilité des coups, anticipation, knockback et impacts ; surtout pour l'arène de J0.
+- **Super Smash Bros.** : lisibilité des coups, anticipation, knockback et impacts ; surtout pour le débat de J0.
 
-Ne pas transformer le monde normal en arène Smash : la caméra reste attachée au joueur contrôlé.
+Ne pas transformer le monde normal en débat Smash : la caméra reste attachée au joueur contrôlé.
 
 # 2. Format de référence
 
@@ -50,7 +50,7 @@ Les valeurs doivent être exprimées en ratios viewport pour s'adapter aux tél�
 - aucun zoom dynamique pour faire entrer tous les combattants dans le cadre en exploration ;
 - les événements lointains peuvent donc être hors écran : le joueur doit physiquement se déplacer.
 
-Exception : l'arène médiatique de J0 peut avoir une caméra plus proche d'un platform fighter,
+Exception : le débat médiatique de J0 peut avoir une caméra plus proche d'un platform fighter,
 avec léger zoom adaptatif pour garder les trois candidats visibles.
 
 # 4. HUD normal
@@ -148,5 +148,5 @@ Ne pas reprendre son gros HUD ni sa grande route sous la zone jouable.
 À utiliser uniquement pour : position très basse du sol et peu de contenu sous la plateforme.
 
 ## Smash Bros.
-À utiliser pour : lisibilité des impacts, knockback et arène J0.
+À utiliser pour : lisibilité des impacts, knockback et débat J0.
 Ne pas utiliser sa caméra dynamique dans le monde normal.

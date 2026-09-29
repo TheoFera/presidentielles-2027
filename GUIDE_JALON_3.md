@@ -166,5 +166,5 @@ npm.cmd run test:conflits
 
 Les tests couvrent les règles et la continuation déterministe des sauvegardes. Le premier parcours vérifie encore la boucle du deuxième jalon sans argent ni PNJ ajoutés. Le second prépare les scènes de test et vérifie les chaînes SO/raid et fermeture/reconstruction. Voir **VALIDATION_JALON_3.md** pour les résultats.
 
-**Arrêt au troisième jalon, en attente de ton essai.** Tour complète, sondages, cercle électoral, Meeting, arène J0, second tour, réseau, graphismes et sons finaux restent hors périmètre.
+**Arrêt au troisième jalon, en attente de ton essai.** Tour complète, sondages, cercle électoral, Meeting, débat J0, second tour, réseau, graphismes et sons finaux restent hors périmètre.
 

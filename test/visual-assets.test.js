@@ -11,6 +11,20 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { access, readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
+import { isolateMinorFigure } from '../src/presentation/minor-sprite-images.js';
+
+test('La découpe des mineurs conserve la silhouette et retire un fragment de la pose voisine', () => {
+  const width = 8, height = 6, data = new Uint8ClampedArray(width * height * 4);
+  const fill = (x, y, alpha = 255) => { data[(y * width + x) * 4 + 3] = alpha; };
+  for (let y = 2; y < 6; y++) for (let x = 2; x < 5; x++) fill(x, y);
+  fill(1, 3, 24); // Bord anticrénelé relié au personnage.
+  fill(6, 0); fill(7, 0); // Chaussure d'une pose voisine au-dessus de la tête.
+  isolateMinorFigure(data, width, height);
+  assert.equal(data[(3 * width + 1) * 4 + 3], 24);
+  assert.equal(data[(5 * width + 4) * 4 + 3], 255);
+  assert.equal(data[6 * 4 + 3], 0);
+  assert.equal(data[7 * 4 + 3], 0);
+});
 
 function coloredTractRegions(png) {
   const width = png.readUInt32BE(16), height = png.readUInt32BE(20), stride = width * 4;

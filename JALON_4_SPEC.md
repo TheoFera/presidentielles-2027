@@ -898,7 +898,7 @@ Cela permettra d'équilibrer rapidement.
 
 Ne développe PAS encore :
 
-- arène médiatique de J0 ;
+- débat médiatique de J0 ;
 - premier tour de combat ;
 - élimination du troisième ;
 - neutralisation de ses unités ;

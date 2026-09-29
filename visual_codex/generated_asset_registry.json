@@ -1585,13 +1585,13 @@
       "date": "2026-09-07"
     },
     {
-      "asset_id": "background-arena",
+      "asset_id": "background-debate",
       "source_file": "C:\\Users\\ferat\\.codex\\generated_images\\01a0d893-41b2-7273-9c41-e325169657c0\\exec-082fabac-aee8-4bed-80e7-ea3e54c7f5d5.png",
       "prompt": "Décor panoramique 3:1 de jeu de combat 2D : véritable plateau contemporain de journal télévisé et d'interview politique française, cadré de près. Grand mur d'écrans LED bleu pétrole, panneaux lumineux, caméras de studio sur socle aux extrémités, projecteurs et régie vitrée. Style BD française à l'encre, aquarelle et gouache texturées. Zone centrale et premier plan dégagés pour les personnages, sol technique horizontal. Aucun personnage, logo, texte, pupitre central ni interface. Éviter absolument théâtre, rideaux rouges, scène en bois, auditorium et plan lointain.",
       "transparent": false,
       "max_height": 512,
-      "master": "assets/generated/masters/background-arena.png",
-      "file": "assets/generated/biomes/background-arena.png",
+      "master": "assets/generated/masters/background-debate.png",
+      "file": "assets/generated/biomes/background-debate.png",
       "dimensions": [
         1536,
         512

@@ -3,7 +3,7 @@
   "config_fingerprint": "4a31188b",
   "match_tick": 18000,
   "phase_started_match_tick": 18000,
-  "arena": {
+  "debate": {
     "tick": 0,
     "rng_state": 2604861796,
     "world": {
@@ -699,7 +699,7 @@
         }
       ]
     },
-    "arena_bounds": {
+    "debate_bounds": {
       "min": 1.2,
       "max": 26.8
     },
@@ -745,8 +745,8 @@
           "PRINT": 24
         },
         "money": 27.55999999999736,
-        "arena_initial_hp": 20.690399614053387,
-        "arena_hp": 20.690399614053387
+        "debate_initial_hp": 20.690399614053387,
+        "debate_hp": 20.690399614053387
       },
       {
         "id": "candidate:le_pen",
@@ -789,8 +789,8 @@
           "PRINT": 24
         },
         "money": 23.309999999997896,
-        "arena_initial_hp": 21.000190070508552,
-        "arena_hp": 21.000190070508552
+        "debate_initial_hp": 21.000190070508552,
+        "debate_hp": 21.000190070508552
       },
       {
         "id": "candidate:philippe",
@@ -834,8 +834,8 @@
           "MEETING": 30
         },
         "money": 56.65993333331086,
-        "arena_initial_hp": 19.25174433448503,
-        "arena_hp": 19.25174433448503
+        "debate_initial_hp": 19.25174433448503,
+        "debate_hp": 19.25174433448503
       }
     ],
     "npcs": [],
@@ -863,7 +863,7 @@
     "config_fingerprint": "4a31188b",
     "match_tick": 18000,
     "phase_started_match_tick": 0,
-    "arena": null,
+    "debate": null,
     "campaign_snapshot": null,
     "eliminated_faction": null,
     "finalists": [],
@@ -879,9 +879,9 @@
         "neutral": 39.05766598095303
       },
       "eliminated_faction": null,
-      "arena_duration_seconds": 0,
-      "arena_hits": 0,
-      "arena_candidate_hits": 0,
+      "debate_duration_seconds": 0,
+      "debate_hits": 0,
+      "debate_candidate_hits": 0,
       "sprint_start_scores": null,
       "final_scores": null,
       "changed_subzone_ids": [],
@@ -14650,9 +14650,9 @@
       "neutral": 39.05766598095303
     },
     "eliminated_faction": null,
-    "arena_duration_seconds": 0,
-    "arena_hits": 0,
-    "arena_candidate_hits": 0,
+    "debate_duration_seconds": 0,
+    "debate_hits": 0,
+    "debate_candidate_hits": 0,
     "sprint_start_scores": null,
     "final_scores": null,
     "changed_subzone_ids": [],
@@ -15125,7 +15125,7 @@
       "strong": false
     }
   ],
-  "phase": "FIRST_ROUND_ARENA",
+  "phase": "FIRST_ROUND_DEBATE",
   "days_remaining": 0,
   "local_candidate_id": "candidate:melenchon",
   "ai_enabled": true,
@@ -27752,7 +27752,7 @@
       },
       "id": "event:630",
       "tick": 18000,
-      "type": "ArenaStarted"
+      "type": "DebateStarted"
     }
   ],
   "polls": {

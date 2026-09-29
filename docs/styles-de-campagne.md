@@ -26,7 +26,7 @@ Les sources haute définition sont conservées dans `assets/generated/masters/`.
 
 Les PNJ standards ne consultent jamais le style actif pour choisir leur apparence. Le nettoyage d’un ultime retire uniquement les effets et invocations temporaires du candidat concerné, sans modifier les PNJ standards, les bâtiments ou les scores déjà acquis.
 
-La Bardellisation s’arme pour un KO et restaure la résistance à la même position. Son utilisation est mémorisée jusqu’au véritable KO : changer de style ne réinitialise pas ce verrou. Le respawn restaure Marine. Les effets temporaires sont également nettoyés aux transitions entre monde et arènes.
+La Bardellisation s’arme pour un KO et restaure la résistance à la même position. Son utilisation est mémorisée jusqu’au véritable KO : changer de style ne réinitialise pas ce verrou. Le respawn restaure Marine. Les effets temporaires sont également nettoyés aux transitions entre monde et débats.
 
 ## Validation effectuée
 

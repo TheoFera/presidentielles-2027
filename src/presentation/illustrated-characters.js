@@ -71,7 +71,7 @@ export function characterAnimation(entity, state) {
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
   // Renversé : l’étourdissement dure exactement le temps de la chute et du relevé.
   const downed = entity.combat?.knockdown_tick != null && entity.combat.stun_ticks > 0 && state.tick < entity.combat.invulnerable_until_tick;
-  if (entity.is_ko || entity.arena_hp <= 0 || downed) return 'ko';
+  if (entity.is_ko || entity.debate_hp <= 0 || downed) return 'ko';
   if (entity.combat?.stun_ticks > 0) return Math.abs(entity.combat.knockback_velocity || 0) > 0.01 ? 'knockback' : 'hurt';
   if (attack?.kind === 'SPECIAL') return attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'special_start' : 'special_recovery';
   if (attack) return attack.strong ? 'attack_heavy' : attack.step === 2 ? 'attack_light_2' : 'attack_light_1';

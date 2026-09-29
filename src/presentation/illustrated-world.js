@@ -34,7 +34,7 @@ export function scenerySeasonFilter(progress) {
 
 export function worldAssetIds(manifest, state) {
   const decor = currentMapDecor();
-  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds']);
+  const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds']);
   for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`);
   if (decor === 'biomes') {
     // Ancien décor en couches : lointain, plan intermédiaire, rue, et les bâtiments dessinés à part.

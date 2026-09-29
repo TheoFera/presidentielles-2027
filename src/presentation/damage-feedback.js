@@ -4,8 +4,8 @@ const clamp = value => Math.max(0, Math.min(1, value));
 export function damageFeedbackState(state, candidate, config, alpha = 1, reducedMotion = false) {
   if (!candidate || candidate.eliminated) return { opacity: 0, clearRadius: 55, impact: 0 };
   const settings = config.balance.damage_feedback;
-  const maximum = state.arena_bounds ? candidate.arena_initial_hp : config.balance.candidate_combat.resistance_max;
-  const health = state.arena_bounds ? candidate.arena_hp : candidate.resistance;
+  const maximum = state.debate_bounds ? candidate.debate_initial_hp : config.balance.candidate_combat.resistance_max;
+  const health = state.debate_bounds ? candidate.debate_hp : candidate.resistance;
   const ratio = maximum > 0 ? clamp(health / maximum) : 1;
   const injury = 1 - ratio;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;

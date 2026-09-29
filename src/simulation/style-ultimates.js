@@ -29,7 +29,7 @@ export function tryBardellisation(sim, candidate) {
   clearCampaignUltimate(sim, candidate);
   candidate.bardellisation_used = true; candidate.bardella_form = true;
   candidate.resistance = sim.config.balance.candidate_combat.resistance_max;
-  if (sim.state.arena_bounds) candidate.arena_hp = candidate.arena_initial_hp;
+  if (sim.state.debate_bounds) candidate.debate_hp = candidate.debate_initial_hp;
   candidate.combat = combatState(); candidate.is_ko = false;
   candidate.bardella_transition_tick = sim.state.tick;
   sim.emit('BardellaGuardianTriggered', { candidate_id: candidate.id });
