@@ -9,7 +9,7 @@ import { hit, combatState } from '../src/simulation/combat-state.js';
 import { requestDash, successfulNormalHit } from '../src/simulation/mobile-combat.js';
 
 function setup(faction = 'melenchon', index = 0) {
-  const sim = new GameSimulation(campaignConfig(), 42);
+  const sim = new GameSimulation((() => { const config = campaignConfig(); config.balance.minor_candidates.enabled = false; return config; })(), 42);
   sim.state.npcs = []; sim.state.ai_enabled = false;
   // Les essais de combat commencent avec des candidats encore en lice.
   for (const fighter of sim.state.candidates) sim.state.actualGameState.national_support[fighter.faction_id] = 1;

@@ -27,7 +27,7 @@ test('Neuf cartes, trois par candidat : choix obligatoire et deux cadenas', t =>
   const ids = new Set();
   for (const faction of ['melenchon', 'le_pen', 'philippe']) {
     const sim = new GameSimulation(config, 42, `candidate:${faction}`), c = sim.state.candidates.find(c => c.faction_id === faction);
-    const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c); c.x = hq.x;
+    const hq = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id); captureSite(sim, hq, c); c.x = hq.x;
     const display = new CampaignStylesDisplay(config, normalizeCampaignProfile(), command => sim.applyCommand(command), () => {});
     display.update(sim.state);
     assert.equal(display.dialog.open, true);

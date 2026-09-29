@@ -1,4 +1,8 @@
 export const FACTIONS = ['melenchon', 'le_pen', 'philippe'];
+/** Candidats mineurs : un QG fixe, quelques sympathisants, pas d'économie ; éliminés définitivement s'ils sont battus. */
+export const MINOR_FACTIONS = ['glucksmann', 'roussel', 'arthaud', 'dupont_aignan', 'retailleau', 'attal'];
+export const ALL_FACTIONS = [...FACTIONS, ...MINOR_FACTIONS];
+export const isMinorFaction = faction => MINOR_FACTIONS.includes(faction);
 
 export function wrap(x, length) { return ((x % length) + length) % length; }
 
@@ -38,4 +42,10 @@ export function fingerprint(config) {
   let hash = 2166136261;
   for (const char of JSON.stringify(config)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
   return (hash >>> 0).toString(16);
+}
+
+/** Nombre de sous-zones qui séparent deux sous-zones sur l'anneau (0 = même sous-zone, 1 = limitrophe). */
+export function subzoneGap(world, a, b) {
+  const gap = Math.abs(a.index - b.index);
+  return Math.min(gap, world.subzones.length - gap);
 }

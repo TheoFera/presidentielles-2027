@@ -21,7 +21,8 @@ export function niceMax(value) {
 
 export function summaryModel(state) {
   const history = Array.isArray(state.match_history) ? state.match_history : [];
-  const factions = state.candidates.map(c => c.faction_id);
+  // Le bilan retrace la course des trois candidats principaux.
+  const factions = state.candidates.filter(c => !c.minor).map(c => c.faction_id);
   const ranking = state.result ? [state.result.winner, state.result.second, state.eliminated_faction].filter(Boolean) : factions;
   const order = [...ranking, ...factions.filter(f => !ranking.includes(f))];
   const campaign = history.filter(p => !p.sprint), sprint = history.filter(p => p.sprint);

@@ -1,6 +1,8 @@
 import { ringDelta } from '../simulation/world.js';
 import { buildingAssetId } from './illustrated-buildings.js';
 import { seasonAt } from '../simulation/campaign-events.js';
+import { v3AssetIds } from './fixed-world.js';
+import { currentMapDecor } from './map-decor.js';
 
 const masked = new WeakMap();
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
@@ -31,19 +33,33 @@ export function scenerySeasonFilter(progress) {
 }
 
 export function worldAssetIds(manifest, state) {
-  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
-  for (const biome of biomeNames) wanted.add(`panorama-${biome}`);
-  // Les façades sont incorporées aux panoramas ; aucun ancien local flottant à précharger.
+  const decor = currentMapDecor();
+  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds']);
+  for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`);
+  if (decor === 'biomes') {
+    // Ancien décor en couches : lointain, plan intermédiaire, rue, et les bâtiments dessinés à part.
+    const separated = biomeNames.every(biome => manifest[`landscape-${biome}`]);
+    for (const biome of biomeNames) {
+      wanted.add(`distant-${biome}`); wanted.add(`street-${biome}`);
+      wanted.add(`${separated ? 'landscape' : 'background-strip'}-${biome}`);
+    }
+    for (const building of state.buildings) wanted.add(buildingAssetId(building, state.world));
+  } else if (decor === 'panoramas') {
+    // Les façades sont incorporées aux panoramas ; aucun ancien local flottant à précharger.
+    for (const biome of biomeNames) wanted.add(`panorama-${biome}`);
+    for (const id of v3AssetIds()) wanted.add(id);
+  }
   for (const id of Object.keys(manifest)) {
-    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-)/.test(id)) wanted.add(id);
+    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-|minor-)/.test(id)) wanted.add(id);
   }
   return [...wanted];
 }
 
 export function preloadWorld(renderer, state, zone) {
-  if (renderer.artZone === zone.index && renderer.artWorld === state.world) return;
+  if (renderer.artZone === zone.index && renderer.artWorld === state.world && renderer.artDecor === currentMapDecor()) return;
   renderer.artZone = zone.index;
   renderer.artWorld = state.world;
+  renderer.artDecor = currentMapDecor();
   // Pin the complete playable map, including remote buildings and animation
   // variants, before play. Crossing a boundary no longer evicts visible art.
   void renderer.assets.keep(worldAssetIds(renderer.assets.manifest, state));
@@ -69,7 +85,7 @@ export function drawIllustratedSky(renderer, state) {
 
 const distantStrips = new WeakMap();
 const landscapeEdges = new WeakMap();
-function distantJoin(image) {
+export function distantJoin(image) {
   if (distantStrips.has(image)) return distantStrips.get(image);
   const strip = document.createElement('canvas'); strip.width = image.naturalWidth; strip.height = image.naturalHeight;
   const c = strip.getContext('2d'); c.drawImage(image, 0, 0);
@@ -91,7 +107,7 @@ export function prepareSceneryImage(id, image) {
   else if (id.startsWith('street-')) streetBaseline(image);
 }
 
-function landscapeJoin(image) {
+export function landscapeJoin(image) {
   if(landscapeEdges.has(image))return landscapeEdges.get(image);
   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
   const c=canvas.getContext('2d');c.drawImage(image,0,0);

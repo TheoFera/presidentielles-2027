@@ -1,4 +1,4 @@
-import { drawFixedWorld, preparePanorama } from './fixed-world.js';
+import { drawFixedWorld, drawFixedWorldFront, preparePanorama } from './fixed-world.js';
 import { prepareVehicleAtlas, drawVehiclePrompts } from './vehicles.js';
 import { drawCampaignScenery, drawCampaignMarkers } from './campaign.js';
 import { ringDelta, wrap, zoneAt } from '../simulation/world.js';
@@ -16,11 +16,12 @@ import { prepareSceneryImage } from './illustrated-world.js';
 import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
 import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
+import { CrowdSpacing } from './crowd-spacing.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
-  if (id.startsWith('panorama-')) preparePanorama(image);
+  if (/^(panorama|v3|minor)-/.test(id)) preparePanorama(image, id);
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   prepareSceneryImage(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
@@ -50,6 +51,7 @@ export class WorldRenderer {
     this.metrics = compositionMetrics(config, this.width, this.height);
     this.cameraX = null;
     this.followedId = null;
+    this.crowd = new CrowdSpacing();
     this.resize();
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -117,30 +119,37 @@ export class WorldRenderer {
     else drawCampaignScenery(this, state);
     }
     drawInfrastructure(this, state);
+    // La carte fixe dessine elle-même trottoir et chaussée.
+    if (!this.fixedWorldActive) {
     ctx.fillStyle = this.p.ground_edge;
     ctx.fillRect(0, m.groundY, this.width, 2);
     ctx.fillStyle = this.p.ground_tone;
     ctx.fillRect(0, m.groundY + 2, this.width, m.groundThickness - 2);
     // The final margin shares the sky colour: no road, water or decorative foreground.
-    ctx.fillStyle = this.fixedWorldActive ? '#dce1dc' : palette.sky;
+    ctx.fillStyle = palette.sky;
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
+    }
     if (illustrated) drawIllustratedGround(this);
     const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
     // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
-    const npcs = [...state.npcs].sort((a, b) => meetingCrowdRow(a) - meetingCrowdRow(b));
+    const rows = new Map(state.npcs.map(npc => [npc, meetingCrowdRow(npc, state)]));
+    const npcs = [...state.npcs].sort((a, b) => rows.get(a) - rows.get(b));
     const entities = [...npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
+    // Deux PNJ immobiles ne restent pas l'un sur l'autre : écart d'environ une demi-silhouette.
+    this.crowd.update(state, m.characterHeight * this.p.npc_height_multiplier * 0.3 / m.pixelsPerUnit);
     const drawEntities = group => {
       for (const entity of group) {
         if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
         const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
-        const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha, state.world.length);
+        const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha + this.crowd.offset(entity.id), state.world.length);
         this.drawPerson(entity, this.screenX(x), state);
       }
     };
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
     drawEntities(entities.filter(entity => !onMeeting(entity)));
+    drawFixedWorldFront(this, state);
     drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);
     drawSiteRequirements(this, state);

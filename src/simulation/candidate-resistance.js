@@ -1,6 +1,7 @@
 import { clearCampaignUltimate } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { distance } from './territory.js';
+import { defeatMinor } from './minor-candidates.js';
 
 export function updateCandidateResistance(sim) {
   const { state, config, hz } = sim; const settings = config.balance.candidate_combat;
@@ -8,6 +9,8 @@ export function updateCandidateResistance(sim) {
     if (candidate.eliminated || candidate.campaign_arena_id) continue;
     if (candidate.is_ko) {
       candidate.axis = 0; candidate.moving = false; candidate.campaign_active = false; candidate.interaction_active = false;
+      // Un candidat mineur battu ne revient pas.
+      if (candidate.minor) { if (state.tick >= candidate.disappear_tick) defeatMinor(sim, candidate); continue; }
       if (state.tick >= candidate.respawn_tick) {
         const hq = state.buildings.find(b => b.id === candidate.headquarters_site_id && b.headquarters && b.owner_id === candidate.faction_id);
         candidate.x = hq?.x ?? candidate.last_hq_x ?? candidate.start_x;

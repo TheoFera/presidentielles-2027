@@ -1,10 +1,11 @@
 import { DEFAULT_UNLOCKS } from './campaign-styles.js';
-import { campaignAICommands } from './campaign-events.js';
+import { campaignCommittedAICommands } from './ai-events.js';
 import { move, setCampaignActive, interactionPresence, attack } from './commands.js';
 import { strategicAICommands } from './ai-strategy.js';
 import { GamePhase } from './phases.js';
 import { arenaAICommands } from './arena-simulation.js';
 import { sprintAICommands } from './sprint-ai.js';
+import { minorAICommands } from './minor-candidates.js';
 
 export class Controller {
   commands(_state, _candidateId) { throw new Error('Le contrôleur doit produire des commandes.'); }
@@ -51,11 +52,12 @@ export class AIController extends Controller {
       return state.tick - candidate.combat.press_tick >= readyTicks
         ? [{ type: 'ReleaseAttack', candidateId }] : [{ type: 'Move', candidateId, axis: 0 }];
     }
+    if (candidate.minor) return minorAICommands(state, this.config, candidate);
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
-    if (state.ai_enabled && !candidate.is_ko) {
-      const eventCommands = campaignAICommands(state, this.config, candidate);
-      if (eventCommands) return eventCommands;
-    }
+    // Arène médiatique ou meeting de crise en cours : l’engagement prime.
+    // Les autres événements sont pesés dans la stratégie, après les rivaux proches.
+    const committed = campaignCommittedAICommands(state, this.config, candidate);
+    if (committed) return committed;
     return strategicAICommands(state, this.config, candidate);
   }
 }

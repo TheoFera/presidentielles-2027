@@ -64,11 +64,14 @@ export function drawVehiclePrompts(renderer, state) {
     const x = renderer.screenX(site.x);
     if (Math.abs(ringDelta(candidate.x, site.x, state.world.length)) > 3 || candidate.vehicle) continue;
     const progress = candidate.vehicle_hold?.site_id === site.id ? candidate.vehicle_hold.elapsed_ticks / (renderer.config.balance.vehicles.mount_seconds * renderer.config.balance.simulation_architecture.fixed_tick_hz) : 0;
-    const label = `${kind === 'velo' ? 'Vélo' : 'Scooter'} · restez ${renderer.config.balance.vehicles.mount_seconds.toLocaleString('fr-FR')} s`;
-    ctx.save(); ctx.font = '700 11px system-ui'; ctx.textAlign = 'center';
+    // L'étiquette sert elle-même de jauge : elle se remplit pendant la montée.
+    const label = `${kind === 'velo' ? 'Vélo' : 'Scooter'} · restez immobile`;
+    const w = 150, h = 24, left = x - w / 2, top = m.groundY - m.characterHeight - 40;
+    ctx.save(); ctx.font = '700 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffefd2'; ctx.strokeStyle = '#465c52'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.roundRect(x - 95, m.groundY - m.characterHeight - 42, 190, 28, 6); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#43594e'; ctx.fillText(label, x, m.groundY - m.characterHeight - 24);
-    ctx.fillStyle = '#70a27b'; ctx.fillRect(x - 91, m.groundY - m.characterHeight - 18, 182 * Math.min(1, progress), 3); ctx.restore();
+    ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.fill();
+    if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.beginPath(); ctx.roundRect(left, top, w * Math.min(1, progress), h, 12); ctx.fill(); }
+    ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.stroke();
+    ctx.fillStyle = '#43594e'; ctx.fillText(label, x, top + h / 2 + 0.5); ctx.restore();
   }
 }

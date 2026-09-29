@@ -1,12 +1,13 @@
 import { zoneController } from './zone-control.js';
-import { FACTIONS, zoneAt } from './world.js';
+import { ALL_FACTIONS, FACTIONS, zoneAt } from './world.js';
 
-export const SUPPORT_KEYS = [...FACTIONS, 'neutral', 'pending'];
+// Les candidats mineurs ont leurs propres voix (scores affichés).
+export const SUPPORT_KEYS = [...ALL_FACTIONS, 'neutral', 'pending'];
 export const emptySupport = () => Object.fromEntries(SUPPORT_KEYS.map(key => [key, 0]));
 const votingRole = role => ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(role);
 
 export function leadership(support) {
-  const order = [...FACTIONS].sort((a, b) => support[b] - support[a] || FACTIONS.indexOf(a) - FACTIONS.indexOf(b));
+  const order = [...ALL_FACTIONS].sort((a, b) => support[b] - support[a] || ALL_FACTIONS.indexOf(a) - ALL_FACTIONS.indexOf(b));
   const leader = support[order[0]] > support[order[1]] ? order[0] : null;
   return { leader, controller: leader };
 }
@@ -24,14 +25,14 @@ export function refreshElectoralState(state) {
   for (const zone of state.electorate) zone.support = emptySupport();
   for (const npc of state.npcs) {
     const zone = byZone.get(zoneAt(state.world, npc.x).id);
-    const key = votingRole(npc.role) && FACTIONS.includes(npc.faction_id) ? npc.faction_id : 'neutral';
+    const key = votingRole(npc.role) && ALL_FACTIONS.includes(npc.faction_id) ? npc.faction_id : 'neutral';
     zone.support[key]++;
   }
   for (const worldZone of state.world.subzones) {
     const born = state.npcs.filter(npc => npc.origin_subzone_id === worldZone.id).length;
     byZone.get(worldZone.id).support.pending = worldZone.max_npcs_by_origin - born;
   }
-  const controlledCounts = { ...Object.fromEntries(FACTIONS.map(faction => [faction, 0])), contested: 0 };
+  const controlledCounts = { ...Object.fromEntries(ALL_FACTIONS.map(faction => [faction, 0])), contested: 0 };
   for (const zone of state.electorate) {
     zone.leader = leadership(zone.support).leader;
     zone.controller = zoneController(state, zone.subzone_id);

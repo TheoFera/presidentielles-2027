@@ -122,7 +122,13 @@
         "name": "Philippe",
         "symbol": "P",
         "color": "#ba9450"
-      }
+      },
+      "glucksmann": { "name": "Glucksmann", "symbol": "G", "color": "#d9719f" },
+      "roussel": { "name": "Roussel", "symbol": "R", "color": "#8e2436" },
+      "arthaud": { "name": "Arthaud", "symbol": "A", "color": "#d8312b" },
+      "dupont_aignan": { "name": "Dupont-Aignan", "symbol": "D", "color": "#6a4c93" },
+      "retailleau": { "name": "Retailleau", "symbol": "B", "color": "#2d8fcf" },
+      "attal": { "name": "Attal", "symbol": "T", "color": "#ee9322" }
     },
     "infrastructure": {
       "width_ratio": 0.2,

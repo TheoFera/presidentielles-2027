@@ -3,7 +3,7 @@ import { aiSettings } from './ai-settings.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { random } from './world.js';
 import { movementBlocked, combatState, interrupted } from './combat-state.js';
-import { beginCombatTick, activateUltimate, requestAttack, updateCombat, wallBlockedPosition } from './combat.js';
+import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, wallBlockedPosition } from './combat.js';
 import { combatPosition } from './combat-geometry.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -17,7 +17,7 @@ export class ArenaSimulation {
       tick: 0, rng_state: worldState.rng_state, world: clone(worldState.world),
       ai_difficulty: worldState.ai_difficulty ?? config.balance.ai?.difficulty ?? 'normal',
       arena_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
-      candidates: clone(worldState.candidates), npcs: [], buildings: [], electorate: [],
+      candidates: clone(worldState.candidates.filter(c => !c.minor)), npcs: [], buildings: [], electorate: [],
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [], events: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_event_id: 1, next_raid_id: 1,
       eliminated_faction: null, hit_count: 0, candidate_hit_count: 0,
@@ -56,6 +56,7 @@ export class ArenaSimulation {
       c.x = wallBlockedPosition(this, c, combatPosition(this.state, c.x + c.axis * this.config.prototype.movement.candidate_speed_units_per_second / this.hz));
       c.moving = c.axis !== 0; if (c.axis) c.facing = c.axis;
     }
+    separateCandidates(this);
     updateCombat(this);
   }
 }

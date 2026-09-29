@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { chooseCandidate, candidatesReady } from '../src/network/lobby.js';
+import { chooseCandidate, roomMode, startRoom } from '../src/network/lobby.js';
 
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -7,7 +7,7 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, phase: room.phase, paused: room.paused, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, arena: room.arena, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
   const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
   const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
   const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
@@ -62,14 +62,14 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
         if (action === 'create') {
           if (rooms.size >= 32) throw new Error('Le serveur est plein. Réessayez plus tard.');
           let code; do { code = randomBytes(3).toString('hex').toUpperCase(); } while (rooms.has(code));
-          room = { code, players: [], phase: 'lobby', paused: false, touched: Date.now() }; rooms.set(code, room);
+          room = { code, mode: roomMode(data.mode), players: [], phase: 'lobby', paused: false, arena: null, touched: Date.now() }; rooms.set(code, room);
         } else {
           room = rooms.get(String(data.code).trim().toUpperCase());
           if (!room) throw new Error('Ce code ne correspond à aucun salon.');
           if (room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
           if (room.players.length >= 3) throw new Error('Ce salon est complet.');
         }
-        const player = { id: randomBytes(8).toString('hex'), slot: [1, 2, 3].find(s => !room.players.some(p => p.slot === s)), token: randomBytes(24).toString('hex'), host: action === 'create', faction: null, ready: false, seen: Date.now() };
+        const player = { id: randomBytes(8).toString('hex'), slot: [1, 2, 3].find(s => !room.players.some(p => p.slot === s)), token: randomBytes(24).toString('hex'), host: action === 'create', faction: null, style: null, ready: false, seen: Date.now() };
         room.players.push(player); room.touched = Date.now(); changed(room);
         reply(200, { code: room.code, token: player.token, id: player.id, room: view(room) }); return true;
       }
@@ -79,11 +79,10 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       player.seen = Date.now(); room.touched = Date.now();
       if (action === 'heartbeat') { /* Presence survives a paused or hidden tab. */ }
       else if (action === 'leave') remove(room, player, 'Un joueur a quitté la partie.'); else if (action === 'choose') {
-        chooseCandidate(room, player.id, data.faction); changed(room);
+        chooseCandidate(room, player.id, data.faction, data.style); changed(room);
       } else if (action === 'start') {
-        if (!player.host || room.phase !== 'lobby' || room.players.length !== 3) throw new Error('Il faut être l’hôte et réunir trois joueurs.');
-        if (!candidatesReady(room)) throw new Error('Chaque joueur doit choisir son candidat.');
-        room.phase = 'loading'; room.players.forEach(p => { p.ready = false; }); changed(room);
+        if (!player.host) throw new Error('Seul l’hôte peut lancer la partie.');
+        startRoom(room, data.setup); changed(room);
       } else if (action === 'ready') {
         if (room.phase !== 'loading') throw new Error('La préparation n’a pas commencé.');
         player.ready = true;

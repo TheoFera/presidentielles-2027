@@ -60,7 +60,7 @@ export function drawIllustratedBuilding(renderer, state, building) {
   if (x + w < 0 || x - w > width) return true;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
   const variant = building.type === 'faction' ? building.variant || factionVariant(candidate.faction_id) : building.type;
-  const label = building.headquarters ? 'QG' : ({ permanence: 'PERMANENCE', financement: 'FINANCEMENT', tour_communication: 'COMMUNICATION', service_ordre: 'LOCAL SO', cabinet_administratif: 'CABINET', imprimerie: 'IMPRIMERIE', meeting: 'PROMONTOIRE', institut_sondage: 'SONDAGES' }[variant] || 'LOCAL');
+  const label = building.headquarters ? 'QG' : ({ permanence: 'PERMANENCE', financement: 'FINANCEMENT', tour_communication: 'COMMUNICATION', service_ordre: 'LOCAL SO', cabinet_administratif: 'CABINET', imprimerie: 'IMPRIMERIE', meeting: 'PROMONTOIRE', institut_sondage: 'SONDAGES', garage_velo: 'GARAGE À VÉLO', garage_scooter: 'GARAGE À SCOOTER' }[variant] || 'LOCAL');
   const runningMeeting = building.type === 'meeting' && building.meeting_until_tick > state.tick;
   const faction = p.factions[service ? (runningMeeting ? building.meeting_faction_id : null) : building.owner_id];
   const ownershipAlpha = 1 - Math.min(1, building.closure_progress || 0);

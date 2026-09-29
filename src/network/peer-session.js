@@ -1,8 +1,7 @@
 import { sanitizeCommands } from './shared-commands.js';
 import { encodePresentationState, encodeStateDelta, applyStateDelta } from './state-stream.js';
-import { chooseCandidate, candidatesReady } from './lobby.js';
+import { chooseCandidate, factions, roomMode, startRoom } from './lobby.js';
 
-const factions = ['melenchon', 'le_pen', 'philippe'];
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
   const bytes = new TextEncoder().encode(JSON.stringify({ version: 3, ...value }));
@@ -44,14 +43,14 @@ export class PeerSession {
     this.isHost = action === 'create';
     if (this.host) {
       this.code = id().slice(0, 6).toUpperCase();
-      this.room = { code: this.code, phase: 'lobby', paused: false, players: [{ id: this.id, slot: 1, faction: null, host: true, ready: false }] };
+      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, arena: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
     } else {
       const offer = decodeInvitation(data.code, 'offer');
       this.checkFingerprint(offer);
       if (!/^[A-F0-9]{6}$/.test(offer.code)) throw new Error('Le code du salon est invalide. Demandez une nouvelle invitation.');
       if (![2, 3].includes(offer.slot) || !Array.isArray(offer.players) || offer.players.length < 1 || offer.players.length > 2 || offer.players.some(p => p.faction !== null && !factions.includes(p.faction) || typeof p.id !== 'string')) throw new Error('Invitation invalide.');
       this.id = offer.id; this.code = offer.code;
-      this.room = { code: this.code, phase: 'pairing', players: [...offer.players, { id: this.id, slot: offer.slot, faction: null, host: false, ready: false }] };
+      this.room = { code: this.code, phase: 'pairing', players: [...offer.players, { id: this.id, slot: offer.slot, faction: null, style: null, host: false, ready: false }] };
       const peer = this.makePeer('host');
       peer.connection.ondatachannel = event => this.bindChannel(peer, event.channel);
       await peer.connection.setRemoteDescription(offer.description);
@@ -89,7 +88,7 @@ export class PeerSession {
       if (this.closed || peer.cancelled) return;
       peer.connected = true; peer.seen = Date.now(); clearTimeout(peer.timeout);
       if (this.host) {
-        this.room.players.push({ id: peer.id, slot: peer.slot, faction: null, host: false, ready: false });
+        this.room.players.push({ id: peer.id, slot: peer.slot, faction: null, style: null, host: false, ready: false });
         this.publishRoom();
       }
     };
@@ -176,7 +175,7 @@ export class PeerSession {
       const player = this.room.players.find(p => p.id === peer.id);
       if (!player) return;
       if (packet.type === 'choose') {
-        try { chooseCandidate(this.room, player.id, packet.data.faction); this.publishRoom(); }
+        try { chooseCandidate(this.room, player.id, packet.data.faction, packet.data.style); this.publishRoom(); }
         catch (error) { this.send(peer, 'selectionError', { message: error.message }); }
         return;
       }
@@ -252,11 +251,10 @@ export class PeerSession {
         const error = new Error('La connexion à l’hôte n’est pas prête.'); error.transient = true; throw error;
       }
     } else if (action === 'choose') {
-      chooseCandidate(this.room, this.id, data.faction); this.publishRoom();
+      chooseCandidate(this.room, this.id, data.faction, data.style); this.publishRoom();
     } else if (action === 'start') {
-      if (this.room.players.length !== 3 || this.room.phase !== 'lobby') throw new Error('Il faut trois joueurs connectés.');
-      if (!candidatesReady(this.room)) throw new Error('Chaque joueur doit choisir son candidat.');
-      this.cancelInvite(); this.room.phase = 'loading'; this.room.players.forEach(p => { p.ready = false; }); this.publishRoom();
+      startRoom(this.room, data.setup);
+      this.cancelInvite(); this.publishRoom();
     } else if (action === 'ready' && this.room.phase === 'loading') this.setReady(this.room.players[0]);
     else if (action === 'pause' && this.room.phase === 'playing') { this.room.paused = data.paused === true; this.publishRoom(); }
     else if (action === 'snapshot' && this.room.phase === 'playing') this.broadcast('snapshot', data.state);

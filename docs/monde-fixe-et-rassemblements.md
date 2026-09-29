@@ -8,20 +8,20 @@ Certaines cellules du tableau fourni étaient décalées. La croix indique la pl
 
 | Biome | Sous-zone A | Sous-zone B | Sous-zone C | Bâtiments secondaires |
 | --- | --- | --- | --- | --- |
-| Paris | Permanence | Garage à vélo | Permanence | Mécène dans B |
-| Banlieue | Rédaction associative | Permanence | Local SO | Institut de sondage dans A |
-| Périurbain | Permanence | Garage à scooter | Permanence | Financement russe dans B |
+| Paris | Permanence | Garage à vélo | Permanence | Institut de sondage dans C (canal Saint-Martin) |
+| Banlieue | Rédaction associative | Permanence | Local SO | Aucun |
+| Périurbain | Permanence | Garage à scooter | Permanence | Aucun |
 | Campagne | Garage à scooter agricole | Permanence | Local SO | Aucun |
-| Retraités | Permanence | Rédaction conservatrice | Permanence | Mécène et institut dans B |
+| Retraités | Permanence | Rédaction conservatrice | Permanence | Institut de sondage dans B |
 | Quartiers riches | Rédaction nationale | Permanence | Cabinet | Institut de sondage dans C |
 
 Chaque biome possède aussi une place de meeting dans sa sous-zone B, exactement au centre. Les implantations ne changent plus avec la graine de la partie. Les noms des autres candidats du tableau sont conservés dans les métadonnées de la carte ; cette évolution ne crée pas de nouveaux candidats jouables.
 
 ## Permanences et déplacements
 
-La permanence reçoit les dons des sympathisants de son camp. Le candidat récupère la cagnotte en passant. Elle distribue également les tracts, puisque le tableau ne prévoit plus d’imprimerie séparée. Une commande est effectuée par passage pour éviter les achats répétés lorsque l’on s’arrête au QG. Les trois financements privés secondaires restent des mécènes distincts : ils versent 500 € toutes les 30 secondes à leur bâtiment, sans détourner les dons des PNJ.
+La permanence reçoit les dons des sympathisants de son camp. Le candidat récupère la cagnotte en passant. Elle distribue également les tracts, puisque le tableau ne prévoit plus d’imprimerie séparée. Une commande est effectuée par passage pour éviter les achats répétés lorsque l’on s’arrête au QG.
 
-Une fois un garage acheté, rester immobile devant lui pendant 2,5 secondes fournit le véhicule. Le vélo multiplie la vitesse par 1,65 ; le scooter par 2,1. Un déplacement avant la fin de l’attente remet le compteur à zéro. Sauter, frapper, effectuer un dash, activer l’ultime, changer de style ou recevoir un coup fait disparaître le véhicule. Une nouvelle attente au garage permet d’en obtenir un autre.
+Une fois un garage acheté, rester immobile devant lui pendant 2,5 secondes fournit le véhicule. Le vélo multiplie la vitesse par 1,65 ; le scooter par 2,1. Un déplacement avant la fin de l’attente remet le compteur à zéro. Sauter, frapper, effectuer un dash, activer l’ultime ou recevoir un coup fait disparaître le véhicule. Une nouvelle attente au garage permet d’en obtenir un autre.
 
 ## Marches
 
@@ -29,13 +29,34 @@ Le rassemblement est la seule famille d’événements disponible. Les six varia
 
 Pendant le rassemblement et la marche, passer près d’un neutre ou d’un sympathisant adverse le convainc en environ 0,12 seconde. Une protection de deux secondes évite les changements de camp à chaque instant lorsque deux candidats se croisent. Les militants ne changent pas de camp par ce mécanisme. Après la marche, les participants reviennent près de leur point d’apparition initial, puis reprennent leurs activités.
 
-## Décor et fichiers
+## Candidats mineurs
 
-Les six panoramas et les vélos, scooters et candidats montés sont dans `assets/generated/world-v2/`. Ils ont été produits avec l’outil ImageGen intégré, à partir du style des personnages existants. Les prompts initiaux sont conservés dans `docs/production/monde-fixe-prompts.json` et `docs/production/vehicules-prompts.json`. Le registre des visuels conserve les fichiers sources finaux. Les retouches ont notamment déplacé les boutiques utiles, distingué les rédactions des pharmacies et élargi les espaces transparents entre les poses.
+Six candidats mineurs sont présents dès le début :
 
-Les bâtiments sont peints dans le décor. Le jeu ajoute leurs enseignes et leurs fanions. Les coordonnées des portes et enseignes sont dans `Présidentielles 2027/world_layout.json`. Les proportions et la ligne du sol de chaque panorama sont dans `src/presentation/fixed-world-data.js`.
+| Candidat | Sous-zone et QG |
+| --- | --- |
+| Raphaël Glucksmann | Paris A |
+| Fabien Roussel | Paris C |
+| Nathalie Arthaud | Périurbain A |
+| Nicolas Dupont-Aignan | Périurbain C |
+| Bruno Retailleau | Retraités A |
+| Gabriel Attal | Retraités C |
 
-Chaque image est dessinée avec une seule échelle pour ses deux dimensions. La hauteur de la fenêtre de jeu s’adapte au format réel de l’écran. Un recouvrement aux limites de biome conserve une image opaque sous le fondu ; la jonction Quartiers riches → Paris utilise exactement le même mécanisme. Il n’y a aucune coupure d’image entre les trois sous-zones d’un biome.
+Leur QG est la permanence de leur sous-zone.
+
+- **QG et zone** : le QG leur donne le contrôle de la zone. Il est imprenable tant qu’ils sont en campagne : aucun achat, raid ou fermeture n’est possible.
+- **Déplacements** : ils restent dans leur sous-zone. Ils peuvent déborder de 3 unités chez les voisins.
+- **Actions** : ils convainquent les neutres, jusqu’à 10 sympathisants à la fois. Ils combattent les candidats et les unités qui entrent chez eux, avec le même système de combat. Ils n’ont ni argent, ni dons, ni style de campagne, ni véhicule. Ils ne sont pas visés par les événements de campagne.
+- **Défaite** : battus (K.-O.), ils ne reviennent pas. Leur QG redevient neutre et s’achète normalement. Leurs sympathisants restent les leurs jusqu’à être battus un par un. Frapper un mineur ne lui retire pas de voix.
+- **Élection** : leurs voix comptent. Au premier tour, leurs scores sont affichés, et les pourcentages portent sur toutes les voix exprimées. Seuls les deux meilleurs candidats principaux se qualifient. Au second tour, les mineurs encore en course se retirent, et leurs électeurs redeviennent neutres (report libre).
+- **IA des principaux** : elle ne cherche pas à conquérir le fief d’un mineur, mais s’y défend si elle y passe.
+- **Réglages** : `minor_candidates` dans `game_balance.json`. Le réglage `enabled: false` sert aux tests de duels à trois.
+- **Code** : règles dans `src/simulation/minor-candidates.js`, dessin provisoire dans `src/presentation/minor-characters.js`, planches ChatGPT à venir dans `docs/production/candidats-mineurs/PROMPTS.md`.
+
+
+## Décor
+
+Le nouveau décor en couches est décrit dans `docs/production/decor-v3/LISEZMOI.md` : plans lointain, intermédiaire et rue, avant-plan, sol dessiné par le jeu, saisons. On y trouve aussi les maquettes, les prompts ChatGPT et le calage automatique. En attendant les images, les panoramas v2 restent affichés, coupés net à la limite de chaque biome, sans fondu. Les coordonnées de leurs enseignes sont dans `src/presentation/fixed-world-data.js`. La simulation ne contient plus aucune coordonnée de façade.
 
 ## Vérifications
 
@@ -46,3 +67,7 @@ Pour lancer ce contrôle visuel, démarrer le jeu avec `npm start`, puis fournir
 Les sauvegardes de l’ancienne carte sont incompatibles : commencer une nouvelle partie. La validation sur un navigateur mobile simulé ne remplace pas un essai sur téléphone physique.
 
 Vérification du 28 septembre 2026 : 294 tests réussis, export construit, six campagnes automatiques terminées (trois avec rassemblements et trois témoins), 322 ressources visuelles chargées sans erreur dans Chrome. Les formats 844 × 390, 1920 × 720 et 390 × 844 conservent la même échelle sur les deux axes. Les rendus aux positions 0 et longueur totale de la carte sont identiques.
+
+Mise à jour du 30 septembre 2026 : les financiers occultes (PNJ qui versaient 20 000 € en secret) ont été retirés du jeu, jugés trop sensibles. Échelle d'origine rétablie (zoom 1, cadrage 1,25 : une sous-zone vaut 1,25 écran). Avec `?decor=maquette`, le jeu affiche une fresque continue de toute la carte, dessinée par le code à l'échelle des personnages (voir `docs/production/decor-v3/LISEZMOI.md`).
+
+Mise à jour du 29 septembre 2026 : les bâtiments de financement ont été retirés. Le fondu entre panoramas a été supprimé. Le moteur de décor en couches v3 est en place, avec maquettes, prompts et calage automatique. Le zoom de la caméra est inchangé : 0,65, cadrage 1,15.

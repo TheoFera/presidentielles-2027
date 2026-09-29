@@ -124,9 +124,5 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .campaign-style-ultimate { display: block; width: 100%; border-top: 1px solid #66718b; padding: 12px 0 6px; font-weight: bold; font-size: clamp(11px, 1.5vw, 20px); }
 .campaign-style-card small { color: #afc1d9; font-size: clamp(9px, .95vw, 12px); }
 .campaign-style-cancel { margin: 15px auto 0; padding: 10px 24px; border: 1px solid #8294ae; border-radius: 7px; background: #26364e; color: #fff; cursor: pointer; font: inherit; }
-#change-campaign-style { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); z-index: 5; border: 1px solid #a3b4c3; border-radius: 8px; padding: 8px 14px; background: #152437ed; color: #fff8e9; cursor: pointer; touch-action: none; user-select: none; }
-#change-campaign-style span, #change-campaign-style small { display: block; }
-#change-campaign-style small { margin: 3px 0; font-size: 10px; color: #c0ccdb; }
-#change-campaign-style progress { display: block; width: 100%; height: 5px; accent-color: #ffdf84; }
 @media (max-height: 550px) { #campaign-styles { padding: 10px 16px; } #campaign-styles > p { margin: 4px 0 8px; } .campaign-style-grid { min-height: 69vh; } .campaign-style-card { padding: 8px; } .campaign-style-card canvas { height: 29vh; margin-top: 15px; } .campaign-style-card p { margin: 4px 0; min-height: 0; } .campaign-style-ultimate { padding: 5px 0; } .campaign-style-card h2 { margin: 4px 0; } }
 @media (max-width: 550px) { .campaign-style-card { padding: 8px 5px 14px; } .campaign-style-card canvas { height: 33vh; } .campaign-style-grid { gap: 7px; min-height: 72vh; } .campaign-style-status { left: 2px; right: 2px; } }

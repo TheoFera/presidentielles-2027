@@ -17,20 +17,26 @@
 #start-menu input, #start-menu select { border-radius: 8px; }
 
 /* No cropped illustration, including on tall desktop windows or wide phones. */
-#start-menu:is([data-screen='home'], [data-screen='candidates']) { display: grid; place-items: center; padding: 0; background: #040c1d; }
-#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-shell { flex: none; display: block; width: min(100cqw, 177.7778cqh); height: auto; aspect-ratio: 16 / 9; max-height: 100%; container-type: size; margin: 0; background: var(--menu-home-art) center / 100% 100% no-repeat; }
+#start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) { display: grid; place-items: center; padding: 0; background: #040c1d; }
+#start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-shell { flex: none; display: block; width: min(100cqw, 177.7778cqh); height: auto; aspect-ratio: 16 / 9; max-height: 100%; container-type: size; margin: 0; background: var(--menu-home-art) center / 100% 100% no-repeat; }
 #start-menu[data-screen='candidates'] .menu-shell { background-image: url('../../assets/generated/menus/candidats-philippe-centre.png'); }
-#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-header { position: absolute; z-index: 3; inset: max(2%, env(safe-area-inset-top)) max(1.8%, env(safe-area-inset-right)) auto max(1.8%, env(safe-area-inset-left)); pointer-events: none; }
-#start-menu:is([data-screen='home'], [data-screen='candidates']) .menu-header button { pointer-events: auto; }
+#start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-header { position: absolute; z-index: 3; inset: max(2%, env(safe-area-inset-top)) max(1.8%, env(safe-area-inset-right)) auto max(1.8%, env(safe-area-inset-left)); pointer-events: none; }
+#start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-header button { pointer-events: auto; }
 #start-menu .menu-home { display: block; position: absolute; inset: 0; }
-#start-menu .menu-home .mode-grid { position: absolute; left: 20.5%; right: 19%; bottom: 5%; height: 15%; display: grid; grid-template-columns: .94fr 1.06fr; gap: 4cqw; }
+#start-menu .menu-home .mode-grid { position: absolute; left: 14%; right: 14%; bottom: 5%; height: 15%; display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; }
+#start-menu .mode-card strong small { display: block; margin-top: .4cqw; font: 800 clamp(10px, 1.3cqw, 22px)/1.1 system-ui, sans-serif; text-transform: none; letter-spacing: 0; }
+#start-menu .players-mode { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); margin: 0; padding: .5cqw 2.4cqw; border-radius: 99px; border: max(2px, .25cqw) solid #0a1020; background: #0a1020d9; color: #8deeff; font: 1000 clamp(14px, 2.4cqw, 40px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+#start-menu .players-mode[data-mode='arena'] { color: #ffd23a; }
 #start-menu .arcade-button { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 1000; text-transform: uppercase; color: white; letter-spacing: .015em; border-radius: 3cqw; border: max(3px, .35cqw) solid #0a1020; outline: 2px solid #8df0ff; outline-offset: -8px; text-shadow: 2px 3px 0 #050e27, -1px -1px 0 #050e27, 1px -1px 0 #050e27, -1px 1px 0 #050e27; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #002e78, 0 5px 0 #000b, 0 0 15px #27ddff99; }
 #start-menu .mode-card { min-width: 0; height: 100%; min-height: 44px; padding: 1cqw 2cqw; display: flex; justify-content: space-between; align-items: center; gap: .7cqw; background: linear-gradient(#10daff, #087cf1 27%, #0142af 55%, #0051d8 72%, #05c5ff); }
 #start-menu .mode-card strong { font-size: clamp(22px, 4.5cqw, 76px); letter-spacing: -.025em; }
 #start-menu #multiplayer { background: linear-gradient(#ff75aa, #ff075d 27%, #d00050 55%, #ed0067 72%, #ff1ba1); outline-color: #ff9bd7; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #70042e, 0 5px 0 #000b, 0 0 15px #ff1f7f99; }
-#start-menu #multiplayer strong { font-size: clamp(17px, 3.5cqw, 58px); }
+#start-menu #multiplayer strong { font-size: clamp(15px, 3cqw, 50px); }
+#start-menu .mode-card strong { font-size: clamp(17px, 3.6cqw, 60px); }
 #start-menu .mode-card > span { color: #8deeff; font-size: 3cqw; text-shadow: 0 2px 0 #004386; }
 #start-menu #multiplayer > span { color: #ffbbe0; text-shadow: 0 2px 0 #7f0138; }
+#start-menu #arena { background: linear-gradient(#ffe066, #ffb400 27%, #e07a00 55%, #f08a00 72%, #ffd23a); outline-color: #fff0a0; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #7a3a00, 0 5px 0 #000b, 0 0 15px #ffb40099; }
+#start-menu #arena > span { color: #fff4c0; text-shadow: 0 2px 0 #7a3a00; }
 
 #start-menu[data-screen='candidates'] .candidate-grid { position: absolute; inset: 25% 12% 15%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3%; padding: 0; }
 #start-menu[data-screen='candidates'] .candidate-card { display: block; position: relative; min-height: 0; padding: 0; border: 3px solid transparent; border-radius: 12%; background: transparent; box-shadow: none; transition: background .15s, box-shadow .15s; }

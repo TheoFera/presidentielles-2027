@@ -73,7 +73,8 @@ export class MatchDisplay {
   }
   viewedCandidate(state) {
     const local = state.candidates.find(c => c.id === state.local_candidate_id);
-    return local.eliminated ? state.candidates.find(c => c.id === this.followId && !c.eliminated) || state.candidates.find(c => !c.eliminated) : local;
+    const followable = state.candidates.filter(c => !c.eliminated && !c.minor);
+    return local.eliminated ? followable.find(c => c.id === this.followId) || followable[0] : local;
   }
   reset() { this.summary.close(); this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
   update(state) {
@@ -102,7 +103,7 @@ export class MatchDisplay {
       }
       if (sprint && eliminated) {
         const select = document.getElementById('spectator-follow'); select.replaceChildren();
-        for (const c of state.candidates.filter(c => !c.eliminated)) select.add(new Option(names[c.faction_id].name, c.id));
+        for (const c of state.candidates.filter(c => !c.eliminated && !c.minor)) select.add(new Option(names[c.faction_id].name, c.id));
         this.followId = select.value;
         document.getElementById('spectator-label').textContent = `Élimination de ${names[state.eliminated_faction].name} · Spectateur`;
       }

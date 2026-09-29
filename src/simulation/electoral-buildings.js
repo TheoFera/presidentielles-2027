@@ -52,7 +52,7 @@ export function meetingAttendeeStep(sim, npc) {
   }
   const settings = sim.config.balance.buildings.meeting;
   const idNumber = Number(npc.id.slice(4)) || 0;
-  const destination = wrap(building.x + meetingCrowdOffset(idNumber, settings), sim.state.world.length);
+  const destination = wrap(building.x + meetingCrowdOffset(meetingCrowdPlace(sim.state, npc), settings), sim.state.world.length);
   const delta = ringDelta(npc.x, destination, sim.state.world.length);
   // Chacun marche à son rythme : la foule arrive par vagues au lieu d'un bloc synchronisé.
   const step = settings.gather_speed * (0.75 + 0.5 * ((idNumber * 0.381966) % 1)) / sim.hz;
@@ -63,12 +63,21 @@ export function meetingAttendeeStep(sim, npc) {
   return true;
 }
 
-/** Place stable dans la foule : les flancs de la scène se remplissent, le centre reste dégagé pour voir l'orateur. */
-export function meetingCrowdOffset(idNumber, settings) {
-  const side = idNumber % 2 ? 1 : -1;
-  const spread = (idNumber * 0.6180339887) % 1;
+/**
+ * Place de ce PNJ parmi le public du meeting (ordre stable des identifiants).
+ * Les places paires vont à gauche, les impaires à droite : les deux flancs se remplissent à égalité.
+ */
+export function meetingCrowdPlace(state, npc) {
+  let place = 0;
+  for (const other of state.npcs) if (other.meeting_target_id === npc.meeting_target_id && other.id < npc.id) place++;
+  return place;
+}
+
+/** Position dans la foule : chacun à côté du précédent, le centre reste dégagé pour voir l'orateur. */
+export function meetingCrowdOffset(place, settings) {
+  const side = place % 2 ? 1 : -1;
   const inner = settings.podium_half_width * 0.45;
-  return side * (inner + spread * (settings.podium_half_width * 0.55 + settings.gather_spacing * 5));
+  return side * (inner + Math.floor(place / 2) * settings.gather_spacing);
 }
 
 /** Rayon de l'onde de fin de meeting, en unités du monde. Partagé par la simulation et l'affichage. */

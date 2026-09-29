@@ -2,7 +2,7 @@
 
 La logique des choix successifs a été remplacée par `CampaignStyleSystem`. Chaque candidat démarre avec `current_campaign_style = null`, puis choisit un seul des trois styles lors de l’établissement du premier QG. Le choix du joueur ouvre un dialogue plein écran obligatoire et suspend la simulation. Les candidats IA choisissent leur style par défaut.
 
-Le retour au QG donne accès à « CHANGER DE STYLE » : maintenir E ou le bouton tactile pendant trois secondes. Le maintien est annulé par déplacement, sortie de zone, attaque, coup reçu, étourdissement, KO, relâchement ou interaction incompatible. Le dialogue de changement peut être annulé. Aucun paiement ni délai supplémentaire n’est ajouté.
+Le style choisi à la création du QG est définitif : aucun bouton ni touche ne permet d’en changer en cours de partie (la touche E n’existe pas sur téléphone).
 
 ## Catalogue et réglages
 

@@ -12,7 +12,7 @@ export class BrowserInput {
       }
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();
-      if ([' ', 'arrowup'].includes(key)) event.preventDefault();
+      if ([' ', 'arrowup', 'arrowdown'].includes(key)) event.preventDefault();
       if ([' ', 'j'].includes(key)) { if (!event.repeat) this.pressAttack(key); return; }
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) event.preventDefault();
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) { this.keys.add(key); this.update(); }
@@ -25,6 +25,7 @@ export class BrowserInput {
     window.addEventListener('blur', () => this.clear());
     document.getElementById('ultimate-touch')?.addEventListener('pointerdown', event => { event.preventDefault(); onAction('ultimate'); });
     document.getElementById('jump-touch')?.addEventListener('pointerdown', event => { event.preventDefault(); onAction('arrowup'); });
+    document.getElementById('drop-touch')?.addEventListener('pointerdown', event => { event.preventDefault(); onAction('drop'); });
     const attackButton = document.getElementById('attack-touch');
     attackButton.addEventListener('pointerdown', event => { if (event.button !== 0) return; event.preventDefault(); attackButton.setPointerCapture(event.pointerId); this.pressAttack(`pointer:${event.pointerId}`); });
     attackButton.addEventListener('pointerup', event => this.releaseAttack(`pointer:${event.pointerId}`));

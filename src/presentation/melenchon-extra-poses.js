@@ -48,6 +48,9 @@ export function melenchonExtraPose(actor,state,config,guard,landingAge=null,walk
     const frame=Number.isFinite(age)?Math.min(3,Math.max(0,Math.floor(age/duration*4))):3;
     return pose('actions',[10,11,12,13][frame],frame===3?'ko_ground':'ko_fall');
   }
+  // Chute au sol puis relevé : les images de K.O., rejouées à l’envers pour se relever.
+  const down=knockdownPose(actor,state,config);
+  if(down) return pose('actions',down.frame,down.name);
   if(c.stun_ticks>0 || Math.abs(c.knockback_velocity)>0.5) {
     const age=incoming?tick-incoming.tick:Infinity;
     if(incoming && !incoming.strong && Math.abs(c.knockback_velocity)<=0.02) return pose('fighter',age<4?6:7,'hit_light');
@@ -74,4 +77,16 @@ export function melenchonExtraPose(actor,state,config,guard,landingAge=null,walk
   }
   // Keep the user's original idle sprite; no replacement of the base identity.
   return null;
+}
+
+/** Phase de chute d’un candidat renversé, ou null s’il est debout. */
+export function knockdownPose(actor,state,config) {
+  const c=actor.combat, k=config.balance.candidate_combat, hz=config.balance.simulation_architecture.fixed_tick_hz;
+  if(c?.knockdown_tick==null) return null;
+  const ticks=seconds=>Math.ceil(seconds*hz-1e-9);
+  const age=state.tick-c.knockdown_tick, fall=ticks(k.knockdown_fall_seconds), ground=ticks(k.knockdown_ground_seconds), rise=ticks(k.knockdown_rise_seconds);
+  if(age<0 || age>=fall+ground+rise) return null;
+  if(age<fall) return {frame:[10,11,12][Math.min(2,Math.floor(age/fall*3))],name:'ko_fall'};
+  if(age<fall+ground) return {frame:13,name:'ko_ground'};
+  return {frame:[12,11,10][Math.min(2,Math.floor((age-fall-ground)/rise*3))],name:'ko_fall'};
 }

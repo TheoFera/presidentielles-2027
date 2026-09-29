@@ -34,8 +34,12 @@ export function normalizeCampaignProfile(profile = {}) {
   return { ...profile, unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) =>
     [f, [...new Set([...DEFAULT_UNLOCKS[f], ...(Array.isArray(profile.unlocked_campaign_styles?.[f]) ? profile.unlocked_campaign_styles[f] : [])])].filter(id => styles.some(s => s.id === id))])) };
 }
+/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Arène. */
+export const BETATEST_NICKNAME = 'betatest';
+export const isBetatestProfile = profile => String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
 export function isCampaignStyleUnlocked(profile, faction, styleId) {
-  return !!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId) && normalizeCampaignProfile(profile).unlocked_campaign_styles[faction].includes(styleId);
+  if (!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId)) return false;
+  return isBetatestProfile(profile) || normalizeCampaignProfile(profile).unlocked_campaign_styles[faction].includes(styleId);
 }
 export function unlockCampaignStyle(profile, faction, styleId) {
   if (!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId)) throw new Error('Style de campagne inconnu.');
@@ -123,20 +127,15 @@ export class CampaignStyleSystem {
       return true;
     }
     if (sim.state.campaign_style_selection) return true;
-    if (command.type === 'HoldCampaignStyle') {
-      if (c && isHumanCandidate(sim.state, c.id)) {
-        c.style_interaction_held = command.active === true;
-        if (c.style_interaction_held) c.purchase_hold = null;
-        if (!c.style_interaction_held) c.style_hold = null;
-      }
-      return true;
-    }
+    // Le style est définitif une fois choisi : l'ancienne commande de changement est ignorée.
+    if (command.type === 'HoldCampaignStyle') return true;
     if (c && (['Attack', 'PressAttack', 'Jump'].includes(command.type) || command.type === 'Move' && command.axis)) { c.style_hold = null; c.style_interaction_held = false; }
     return false;
   }
   static update(sim) {
     for (const c of sim.state.candidates) {
       if (sim.state.campaign_style_selection) break;
+      if (c.minor) continue; // Les mineurs n'ont pas de style de campagne.
       if (!c.current_campaign_style && c.headquarters_site_id && !c.eliminated) { this.headquartersEstablished(sim, c); continue; }
       if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.charge_active || c.combat.jump_tick != null || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
       c.style_hold ??= { start_tick: sim.state.tick, hits: c.hits_received, x: c.x };

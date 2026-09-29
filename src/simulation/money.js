@@ -1,4 +1,4 @@
-import { random, ringDelta, wrap, zoneAt } from './world.js';
+import { isMinorFaction, random, ringDelta, wrap, zoneAt } from './world.js';
 import { moveNpcTowards } from './tasks.js';
 
 const cents = moneyInThousands => Math.round(moneyInThousands * 100000);
@@ -35,7 +35,8 @@ export function scatterMoney(sim, x, amountCents, count = sim.config.balance.mon
 
 export function initializeMoney(sim) {
   const settings = sim.config.balance.money;
-  for (const candidate of sim.state.candidates) {
+  // Les candidats mineurs n'ont pas d'argent de départ.
+  for (const candidate of sim.state.candidates.filter(c => !c.minor)) {
     const rich = candidate.faction_id === 'philippe';
     const count = rich ? settings.starting_pickups.philippe_count : settings.starting_pickups.default_count;
     const totalUnits = (rich ? settings.starting_pickups.philippe_total_eur : settings.starting_pickups.default_total_eur) / 50;
@@ -102,7 +103,8 @@ const usableFunding = (state, npc) => state.buildings.filter(b => b.type === 'pe
 
 export function prepareDonations(sim) {
   for (const npc of sim.state.npcs) {
-    if (npc.role !== 'SYMPATHISANT') continue;
+    // Les sympathisants d'un candidat mineur votent mais ne donnent pas.
+    if (npc.role !== 'SYMPATHISANT' || isMinorFaction(npc.faction_id)) continue;
     if (!npc.donation_cents && sim.state.tick >= npc.next_donation_tick) {
       npc.donation_cents = donationCents(sim.config, npc);
       sim.emit('DonationReady', { npc_id: npc.id, amount_cents: npc.donation_cents });
@@ -141,14 +143,6 @@ export function updateDonationCourier(sim, npc) {
 
 export function settleMoney(sim) {
   const { state, config } = sim;
-  const sponsor = config.balance.buildings.financement;
-  for (const building of state.buildings.filter(b => b.type === 'financement' && b.state === 'ACTIVE')) {
-    if (!building.next_sponsor_tick) building.next_sponsor_tick = state.tick + sim.secondsToTicks(sponsor.sponsor_interval_seconds);
-    if (state.tick >= building.next_sponsor_tick) {
-      building.stored_money_cents += Math.round(sponsor.sponsor_amount_eur * 100);
-      building.next_sponsor_tick = state.tick + sim.secondsToTicks(sponsor.sponsor_interval_seconds);
-    }
-  }
   for (const npc of state.npcs) {
     if (npc.role !== 'SYMPATHISANT' || !npc.donation_cents || usableFunding(state, npc).length) continue;
     const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_arena_id
@@ -167,7 +161,7 @@ export function settleMoney(sim) {
     scheduleNextDonation(sim, npc);
   }
   for (const candidate of state.candidates) {
-    if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id) continue;
+    if (candidate.minor || candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id) continue;
     for (const building of state.buildings) {
       if (!['permanence', 'financement'].includes(building.type) || building.state !== 'ACTIVE' || building.owner_id !== candidate.faction_id
         || !building.stored_money_cents || Math.abs(ringDelta(candidate.x, building.x, state.world.length)) > config.balance.money.donation.collection_radius_units) continue;
@@ -180,7 +174,7 @@ export function settleMoney(sim) {
   for (let i = state.money_pickups.length - 1; i >= 0; i--) {
     const pickup = state.money_pickups[i];
     if (pickup.collect_after_tick > state.tick) continue;
-    const candidate = state.candidates.find(c => !c.eliminated && !c.is_ko && !c.campaign_arena_id
+    const candidate = state.candidates.find(c => !c.minor && !c.eliminated && !c.is_ko && !c.campaign_arena_id
       && Math.abs(ringDelta(c.x, pickup.x, state.world.length)) <= config.balance.money.pickup_radius_units
       && Math.abs(c.combat.height - pickup.height_ratio * config.balance.candidate_combat.jump_height_ratio)
         <= config.balance.money.pickup_height_tolerance_ratio * config.balance.candidate_combat.jump_height_ratio);

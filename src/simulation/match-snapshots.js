@@ -18,7 +18,7 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
     || !Array.isArray(t.reconverted_npc_ids) || new Set(t.reconverted_npc_ids).size !== t.reconverted_npc_ids.length || t.reconverted_npc_ids.some(id => !s.npcs.some(n => n.id === id && n.former_eliminated_faction))) fail('télémétrie invalide');
   // Historique du bilan : absent des anciennes sauvegardes, il repart alors de zéro.
   if (s.match_history !== undefined && (!Array.isArray(s.match_history) || s.match_history.some(p => !p || !integer(p.tick) || p.tick > s.tick || !p.support || !p.voters))) fail('historique de partie invalide');
-  for (const c of s.candidates) if (typeof c.eliminated !== 'boolean' || c.eliminated !== (c.faction_id === s.eliminated_faction)
+  for (const c of s.candidates) if (typeof c.eliminated !== 'boolean' || !c.minor && c.eliminated !== (c.faction_id === s.eliminated_faction)
     || c.eliminated && (c.campaign_active || c.interaction_active || c.axis || c.purchase_hold || c.combat.attack_id)) fail('candidat éliminé incohérent');
   for (const n of s.npcs) if (n.former_eliminated_faction !== undefined && (!s.eliminated_faction || n.former_eliminated_faction !== s.eliminated_faction)) fail('ancienne affiliation incohérente');
   if (s.phase === GamePhase.FIRST_ROUND_ARENA) fail('ancienne phase de combat électoral');

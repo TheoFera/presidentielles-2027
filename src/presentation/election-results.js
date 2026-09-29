@@ -1,4 +1,6 @@
 import { CANDIDATES } from './arcade-content.js';
+import { MINOR_FACTIONS } from '../simulation/world.js';
+import { MINOR_LOOKS } from './minor-characters.js';
 
 /* Soirée électorale façon « 20 h » : compte à rebours, portraits en studio, scores qui défilent. */
 const FEMININE = new Set(['le_pen']);
@@ -28,7 +30,11 @@ export function electionModel(state) {
   const ranking = first ? result.ranking : [result.winner, result.second];
   const local = state.local_candidate_id.split(':')[1];
   const earlier = !first && state.first_round_result;
-  return { first, ranking, scores: expressedScores(result.scores, ranking), neutral: result.scores.neutral,
+  // Premier tour : les pourcentages portent sur toutes les voix exprimées, petits candidats compris.
+  const minors = first ? MINOR_FACTIONS.filter(f => Number.isFinite(result.scores[f])) : [];
+  const scores = expressedScores(result.scores, [...ranking, ...minors]);
+  return { first, ranking, scores, neutral: result.scores.neutral,
+    minors: minors.map(f => ({ f, name: MINOR_LOOKS[f].fullName, value: scores?.[f] ?? null })).sort((a, b) => (b.value ?? 0) - (a.value ?? 0) || a.f.localeCompare(b.f)),
     eliminated: first ? ranking[2] : state.eliminated_faction ?? null,
     firstRound: earlier ? { ranking: earlier.ranking, scores: expressedScores(earlier.scores, earlier.ranking) } : null,
     success: first ? ranking.slice(0, 2).includes(local) : result.winner === local,
@@ -46,6 +52,7 @@ function tickerItems(m) {
   const [a, b, c] = m.ranking, pct = f => m.scores ? `${format(m.scores[f])} %` : '—';
   const items = m.scores ? [] : ['Aucune voix exprimée'];
   if (m.first) items.push(`Second tour : ${person(a).name} face à ${person(b).name}`, `${person(c).name} éliminé${fem(c)} avec ${pct(c)} des voix`);
+  if (m.first && m.minors?.length && m.scores) items.push(`Petits candidats : ${m.minors.map(x => `${x.name} ${format(x.value)} %`).join(' · ')}`);
   else {
     items.push(`${person(a).name} élu${fem(a)} président${fem(a)} avec ${pct(a)} des voix`);
     if (m.firstRound?.scores) items.push(`Rappel du premier tour : ${m.firstRound.ranking.map(f => `${person(f).short} ${format(m.firstRound.scores[f])} %`).join(' · ')}`);
@@ -90,6 +97,12 @@ function band(m) {
     <span data-faction="${b}">${person(b).short}</span></div>`;
 }
 
+/** Petits candidats du premier tour : leurs scores, sans possibilité de qualification. */
+function minorsBand(m) {
+  if (!m.first || !m.minors?.length || !m.scores) return '';
+  return `<div class="election-minors" aria-label="Petits candidats"><b>Petits candidats</b>${m.minors.map(x => `<span data-faction="${x.f}">${x.name} <em>${format(x.value)} %</em></span>`).join('')}</div>`;
+}
+
 function actions(m, { host, multiplayer }) {
   const main = m.first
     ? host ? '<button class="election-primary" data-action="continue">Continuer <span aria-hidden="true">➜</span></button>' : '<span class="election-waiting">En attente de l’hôte…</span>'
@@ -123,6 +136,7 @@ function markup(m, options) {
         ${tile(m, m.ranking[1], 1)}
       </div>
       ${band(m)}
+      ${minorsBand(m)}
       <footer class="election-footer">
         <div class="election-ticker"><b>Info</b><div class="election-ticker-window"><p class="election-ticker-track" style="--items:${items.length}">${ticker}<span aria-hidden="true" class="election-ticker-copy">${ticker}</span></p></div></div>
         <div class="election-actions">${actions(m, options)}</div>

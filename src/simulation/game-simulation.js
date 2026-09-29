@@ -1,8 +1,11 @@
+import { claimMinorHeadquarters, minorCanRecruit } from './minor-candidates.js';
 import { candidateTravelSpeed, updateVehicles, vehicleCommand } from './vehicles.js';
 import { hostilePersuasionMultiplier } from './zone-control.js';
 import { rallyNpcStep } from './rallies.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { validAIDifficulty } from './ai-settings.js';
+import { aiPersuasionMultiplier } from './ai-balance.js';
+import { MIND_STANCES } from './ai-mind.js';
 import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector, resolveCampaignEvent } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
@@ -15,7 +18,7 @@ import { triggerMeeting, updateElectoralBuildings, meetingAttendeeStep } from '.
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
-import { beginCombatTick, activateUltimate, requestAttack, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
+import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { ArenaSimulation } from './arena-simulation.js';
@@ -55,7 +58,7 @@ export class GameSimulation {
     const rng = { rng_state: initialSeed };
     const infrastructure = createInfrastructure(world, config, rng);
     this.state = {
-      snapshot_version: 13, config_fingerprint: fingerprint(config), ...initialMatchState(),
+      snapshot_version: 14, config_fingerprint: fingerprint(config), ...initialMatchState(),
       seed: initialSeed, rng_state: rng.rng_state, tick: 0, next_npc_id: 1, next_event_id: 1,
       next_order_id: 1, next_transaction_id: 1, next_money_pickup_id: 1, transactions: [], money_pickups: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_raid_id: 1,
@@ -67,21 +70,29 @@ export class GameSimulation {
       spawn_timers: [], electorate: createElectorate(world, config), events: [],
       polls: createPolls(), actualGameState: null,
     };
+    const candidateRecord = (faction, x) => ({
+      id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
+      ai_objective: null, ai_mind: null,
+      x,
+      vehicle: null, vehicle_hold: null, axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
+      combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
+      resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
+      ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
+      interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0, interaction_chain_site_id: null,
+      total_spent: 0, total_earned: 0, income_per_second: 0, spending: { BUILD: 0, UPGRADE: 0, PRINT: 0 },
+      money: 0,
+      start_x: x, last_hq_x: null,
+    });
     for (const faction of FACTIONS) {
       const start = world.subzones.find(zone => zone.id === config.layout.starting_positions[faction]);
-      this.state.candidates.push({
-        id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
-        ai_objective: null,
-        x: start.start + start.width * config.prototype.world.candidate_start_ratio,
-        vehicle: null, vehicle_hold: null, axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
-        combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
-        resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
-        ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
-        interaction_active: true, purchase_hold: null, purchase_latch_target_id: null, interaction_pause_until_tick: 0, interaction_chain_site_id: null,
-        total_spent: 0, total_earned: 0, income_per_second: 0, spending: { BUILD: 0, UPGRADE: 0, PRINT: 0 },
-        money: 0,
-        start_x: start.start + start.width * config.prototype.world.candidate_start_ratio, last_hq_x: null,
-      });
+      this.state.candidates.push(candidateRecord(faction, start.start + start.width * config.prototype.world.candidate_start_ratio));
+    }
+    // Les candidats mineurs démarrent devant leur QG, qui leur appartient d'emblée.
+    for (const entry of config.balance.minor_candidates.enabled === false ? [] : config.layout.minor_candidates) {
+      const site = this.state.buildings.find(b => b.id === entry.site_id);
+      const minor = { ...candidateRecord(entry.faction_id, site.x), minor: true, minor_subzone_id: entry.subzone_id };
+      this.state.candidates.push(minor);
+      claimMinorHeadquarters(this, minor, entry.site_id);
     }
     for (const zone of world.subzones) {
       const points = world.socialPoints.filter(p => p.subzone_id === zone.id);
@@ -155,7 +166,7 @@ export class GameSimulation {
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
       combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null, meeting_wave_id: null,
-      donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1,
+      donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1, home_site_id: null, expedition: null,
     };
     this.state.npcs.push(npc);
     if (announce) this.emit('NeutralSpawned', { npc_id: npc.id, subzone_id: zone.id });
@@ -188,6 +199,14 @@ export class GameSimulation {
         && this.state.world.subzones.some(z => z.id === objective.subzone_id) && Number.isInteger(objective.expires_tick)
         && objective.expires_tick > this.state.tick) candidate.ai_objective = {
           subzone_id: objective.subzone_id, purpose: objective.purpose, expires_tick: objective.expires_tick };
+      return;
+    }
+    if (command.type === 'SetAIMind') {
+      const mind = command.mind;
+      if (candidate && this.state.ai_enabled && (mind === null || mind && MIND_STANCES.includes(mind.stance)
+        && (mind.opponent_id === null || this.state.candidates.some(c => c.id === mind.opponent_id))
+        && [mind.since_tick, mind.review_tick, mind.hits].every(Number.isInteger) && mind.since_tick <= this.state.tick))
+        candidate.ai_mind = mind && { stance: mind.stance, opponent_id: mind.opponent_id, since_tick: mind.since_tick, review_tick: mind.review_tick, hits: mind.hits };
       return;
     }
     if (mobileCommand(this, candidate, command, activateUltimate)) return;
@@ -335,6 +354,7 @@ export class GameSimulation {
         }
       }
     }
+    separateCandidates(this);
     updateSpawns(this);
     for (const npc of state.npcs) {
       if (npc.role === 'MILITANT' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
@@ -384,7 +404,8 @@ export class GameSimulation {
     const candidate = this.state.candidates.find(item => item.faction_id === actor.faction_id);
     const biome = zoneAt(this.state.world, actor.x).biome_id;
     const style = Math.max(0.1, styleInfluenceMultiplier(this.config, candidate, biome));
-    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) * hostilePersuasionMultiplier(this.state, this.config, actor, target) / style);
+    return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) * hostilePersuasionMultiplier(this.state, this.config, actor, target)
+      * aiPersuasionMultiplier(this.state, this.config, actor) / style);
   }
 
   updatePersuasion() {
@@ -392,7 +413,8 @@ export class GameSimulation {
     const radius = this.config.prototype.persuasion.radius_units;
     const maxTargets = this.config.balance.persuasion.max_simultaneous_targets_per_actor;
     // Gameplay sees an actor's activity intention, never its input source or camera ownership.
-    const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active), ...state.npcs.filter(n => n.role === 'MILITANT')]
+    // Un candidat mineur cesse de recruter une fois son plafond de sympathisants atteint.
+    const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active && minorCanRecruit(state, this.config, c)), ...state.npcs.filter(n => n.role === 'MILITANT')]
       .filter(actor => !actor.rally_event_id && actor.rally_return_x == null && canCampaign(actor) && !actor.moving && !actor.axis && Math.abs(actor.combat?.knockback_velocity || 0) <= 0.02);
     const claims = [];
     for (const actor of eligible) {

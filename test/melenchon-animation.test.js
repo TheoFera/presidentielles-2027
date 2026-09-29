@@ -289,3 +289,26 @@ test('Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol c
     assert.ok(calls.some(a=>a[0]==='translate'&&a[2]===406));
   }
 });
+
+test('Chute au sol : images de K.O. puis relevé à l’envers, pour chaque candidat et chaque style', () => {
+  const config = campaignConfig(); config.balance.minor_candidates.enabled = false;
+  const sim = new GameSimulation(config, 42);
+  const k = config.balance.candidate_combat, hz = config.balance.simulation_architecture.fixed_tick_hz;
+  const ticks = seconds => Math.ceil(seconds * hz - 1e-9);
+  const fall = ticks(k.knockdown_fall_seconds), ground = ticks(k.knockdown_ground_seconds), rise = ticks(k.knockdown_rise_seconds);
+  for (const c of sim.state.candidates) for (const style of [null, ...Object.keys(skinAnimationAtlases).filter(id => skinAnimationAtlases[id].faction === c.faction_id)]) {
+    c.current_campaign_style = style;
+    c.combat = { ...combatState(), knockdown_tick: 100, stun_ticks: fall + ground + rise, invulnerable_until_tick: 200 };
+    const at = tick => candidateExtraPose(c, { ...sim.state, tick }, config, true);
+    const frames = [];
+    for (let tick = 100; tick < 100 + fall + ground + rise; tick++) {
+      const pose = at(tick);
+      assert.equal(pose.sheet, 'actions', `${c.id} ${style}`);
+      frames.push(pose.frame);
+    }
+    assert.deepEqual([frames[0], frames[fall], frames.at(-1)], [10, 13, 10]);
+    assert.ok(frames.every(frame => frame >= 10 && frame <= 13));
+    c.combat.stun_ticks = 0;
+    assert.notEqual(at(100 + fall + ground + rise)?.name, 'ko_fall');
+  }
+});

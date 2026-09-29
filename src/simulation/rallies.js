@@ -44,11 +44,12 @@ export function startRally(sim, event) {
   }
 }
 
+// Chaque marcheur a sa propre place dans le cortège : côte à côte, jamais empilés.
+// Les voisins alternent de rang (avant, milieu, arrière) pour donner de la profondeur au groupe.
 function crowdTarget(event, npc) {
   const count = event.march.participant_ids.length;
-  const column = Math.floor(npc.rally_index / 3);
-  return event.march.center_x + (column - (Math.ceil(count / 3) - 1) / 2) * event.parameters.crowd_spacing
-    + Math.sin(npc.rally_index * 2.4) * 0.08;
+  return event.march.center_x + (npc.rally_index - (count - 1) / 2) * event.parameters.crowd_spacing
+    + Math.sin(npc.rally_index * 2.4) * 0.04;
 }
 
 export function finishRally(sim, event) {
@@ -75,7 +76,7 @@ export function updateRally(sim, event) {
     if (Math.abs(delta) <= settings.march_speed / sim.hz) return true;
   }
   // Ici, marcher reste compatible avec la persuasion. Un PNJ ne change qu'une fois de camp par tick.
-  const actors = state.candidates.filter(c => !c.eliminated && c.campaign_active && canCampaign(c));
+  const actors = state.candidates.filter(c => !c.minor && !c.eliminated && c.campaign_active && canCampaign(c));
   for (const npc of state.npcs.filter(n => n.rally_event_id === event.id)) {
     if (!['NEUTRE', 'SYMPATHISANT'].includes(npc.role) || interrupted(npc) || state.tick < npc.rally_immune_until_tick) continue;
     const actor = actors.filter(c => c.faction_id !== npc.faction_id

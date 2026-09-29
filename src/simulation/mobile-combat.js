@@ -49,6 +49,14 @@ export function successfulNormalHit(sim, c, target, attack) {
   c.special_decay_origin = c.special_charge;
   sim.emit('SuccessfulCombatHit', { candidate_id: c.id, target_id: target.id, combo_step: attack.step });
 }
+/** Encaisser remplit aussi la jauge d’ultime : un candidat malmené peut renverser le combat. */
+export function hitTakenCharge(sim, c, strong) {
+  const b = sim.config.balance.special_charge;
+  if (c.is_ko || c.eliminated || !activeCampaignStyle(sim.config, c) || c.bardella_form || c.bardella_guardian_armed) return;
+  c.last_successful_hit_tick = sim.state.tick; c.special_decay_started = false;
+  changeCharge(sim, c, c.special_charge + (strong ? b.points_per_strong_hit_taken : b.points_per_hit_taken));
+  c.special_decay_origin = c.special_charge;
+}
 export function updateMobileCombat(sim) {
   const d = sim.config.balance.dash, b = sim.config.balance.special_charge, tick = sim.state.tick;
   for (const c of sim.state.candidates) {

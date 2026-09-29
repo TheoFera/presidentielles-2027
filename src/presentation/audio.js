@@ -69,6 +69,8 @@ export function soundCues(events = [], since, localId, faction) {
     else if (event.type === 'HitResolved' && event.source_id === localId) cues.push('hit');
     else if (event.type === 'HitResolved' && event.target_id === localId) cues.push('hurt');
     else if (event.type === 'CandidateKO' && mine) cues.push('ko');
+    else if (event.type === 'ArenaKnockout') cues.push('ko', 'cheer');
+    else if (event.type === 'ArenaFightStarted') cues.push('tick-final');
     else if (event.type === 'UltimateActivated' && mine) cues.push('ultimate');
     else if (event.type === 'UltimateReady' && mine) cues.push('ready');
     else if (event.type === 'StartCampaignEvent') cues.push('alert');
@@ -222,7 +224,11 @@ export class SoundDirector {
     const local = state.candidates.find(c => c.id === state.local_candidate_id), faction = local?.faction_id;
     if (state.phase !== this.phase) {
       const previous = this.phase; this.phase = state.phase;
-      if (state.phase === 'CAMPAIGN') audio.music('campaign');
+      if (state.mode === 'ARENA') {
+        // Mode Arène : musique nerveuse pendant le combat, jingle à la fin.
+        if (state.phase === 'OVER') { audio.music(null); if (previous !== null) audio.jingle(state.winner_id === state.local_candidate_id ? 'victory' : 'defeat', 0.4); }
+        else audio.music('sprint');
+      } else if (state.phase === 'CAMPAIGN') audio.music('campaign');
       else if (state.phase === 'SECOND_ROUND_SPRINT') audio.music(local?.eliminated ? 'campaign' : 'sprint');
       else if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) {
         audio.music(null);
@@ -238,6 +244,11 @@ export class SoundDirector {
     const { cues, last } = soundCues(state.events, this.lastEvent, state.local_candidate_id, faction);
     this.lastEvent = last;
     if (!paused) for (const cue of cues) audio.play(cue);
+    if (state.mode === 'ARENA' && state.phase === 'COUNTDOWN' && !paused) {
+      const second = Math.ceil(state.countdown_ticks / this.hz);
+      if (second !== this.second && second > 0) audio.play('tick');
+      this.second = second;
+    }
     if (state.phase === 'SECOND_ROUND_SPRINT' && !paused) {
       const second = Math.ceil((state.sprint_remaining_ticks || 0) / this.hz);
       if (second !== this.second && second > 0 && second <= 10) audio.play(second <= 3 ? 'tick-final' : 'tick');
