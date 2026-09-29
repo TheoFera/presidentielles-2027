@@ -9,7 +9,6 @@ import { adaptationSettings, aiAdaptation, factionPressure } from './ai-balance.
 import { approaching, observeAxis, reflectOnRival, thinkingPause, validMind, visibleRival, worthChasing } from './ai-mind.js';
 import { campaignEventAICommands } from './ai-events.js';
 import { isHumanCandidate } from './human-candidates.js';
-import { aiFinancierTarget } from './funding-encounters.js';
 
 const distance = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
 const hostile = (c, n) => canBeHit(n) && n.faction_id !== c.faction_id;
@@ -211,9 +210,6 @@ export function strategicAICommands(state, config, c) {
     const offer = site && buildingOffers(state, config, c, site).find(o => o.key === c.purchase_hold.key && o.enabled);
     if (offer) return finish([...plan, ...go(offer.x, offer.radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
   }
-  // Rattrapage : distancée par un humain dominant et fauchée, l’IA va signer avec un financier discret.
-  const financier = aiFinancierTarget(state, config, c, adaptation);
-  if (financier) return finish([...plan, ...go(financier.x, config.balance.funding_encounters.sign_radius_units * 0.5, true)]);
   const pickup = moneyPickup(state, config, c, avoid, stance);
   if (pickup) {
     const result = go(pickup.x, config.balance.money.pickup_radius_units * 0.45);

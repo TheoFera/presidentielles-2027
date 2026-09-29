@@ -1,4 +1,3 @@
-import { zoneAt } from '../simulation/world.js';
 import { localPoliticalPresence } from '../simulation/strategic-sites.js';
 import { nearestOffer } from '../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../simulation/building-rules.js';
@@ -121,65 +120,32 @@ export function drawBanknote(renderer, state) {
     }
   }
   ctx.save();
-  ctx.fillStyle = offer.enabled ? '#fff1ca' : '#e8ddc6';
-  ctx.strokeStyle = offer.enabled ? '#4d6648' : '#7e6252';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.roundRect(x - w / 2, y, w, h, 5); ctx.fill(); ctx.stroke();
-  ctx.font = 'bold 14px Georgia'; ctx.textAlign = 'center'; ctx.fillStyle = '#97713c';
-  ctx.fillText('€', x - w / 2 + 11, y + 20);
-  ctx.fillStyle = offer.enabled ? '#354b35' : '#745e50';
-  ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
-  const price = offer.cost < 1
-    ? `${formatNumber(offer.cost * 1000, 0)} €`
-    : `${formatNumber(offer.cost, config.balance.display.currency_precision_decimals)} ${config.balance.display.currency_label}`;
-  ctx.fillText(price, x + 8, y + 19);
-    if (building.ownership_model === 'capturable') {
-      const max = buildingSettings(config, building, candidate.faction_id).max_level;
-      for (let level = 1; level <= max; level++) {
-        const segmentWidth = (w - 12) / max; const sx = x - w / 2 + 6 + (level - 1) * segmentWidth;
-        ctx.fillStyle = level <= building.level ? '#637c51' : level === building.level + 1 && offer.enabled ? '#b9c5ac' : '#aeb3ae';
-        ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
-      }
-    } else if (building.type === 'meeting') {
-      const max = config.balance.buildings.meeting.meeting_max_level;
-      const completed = candidate.interaction_chain_site_id === building.id && building.meeting_faction_id === candidate.faction_id ? building.meeting_level : 0;
-      for (let level = 1; level <= max; level++) {
-        const segmentWidth = (w - 12) / max; const sx = x - w / 2 + 6 + (level - 1) * segmentWidth;
-        ctx.fillStyle = level <= completed ? '#637c51' : level === completed + 1 && offer.enabled ? '#b9c5ac' : '#aeb3ae';
-        ctx.fillRect(sx, y + h - 8, segmentWidth - 2, 4);
-      }
-    }
-  // Au-dessus du billet : ce que l'achat va faire, en toutes lettres.
-  // Pendant l'achat, ce titre devient lui-même la barre de chargement.
   const progress = offer.enabled && candidate.purchase_hold?.key === offer.key ? candidate.purchase_hold.elapsed_ticks / offer.required_ticks : 0;
-  if (offer.victim_id) {
-    ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27);
-    if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.fillRect(x - 86, y - 31, 172 * Math.min(1, progress), 27); }
-    ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label, x, y - 7);
-    const victim = state.buildings.find(b => b.id === offer.victim_id);
-    ctx.font = '9px system-ui'; ctx.fillText(`${buildingLabel(victim)} · ${victim.subzone_id}`, x, y - 20);
-  } else pill(ctx, x, y - 25, offerTitle(offer, building, candidate), { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui', progress });
-  // Une fois l'achat lancé, le titre qui se remplit suffit : on n'ajoute rien dessous.
-  if (progress > 0) { ctx.restore(); return; }
-  // Sous le billet : les conditions, cochées une à une, puis la marche à suivre.
   const left = (renderer.visibleWorld?.left ?? 0) + 112, right = (renderer.visibleWorld?.right ?? renderer.width) - 112;
   const infoX = Math.max(left, Math.min(right, x));
-  let rowY = y + h + 6;
+  let rowY = y - 25;
+  // Titre seulement quand l'enseigne ne suffit pas (amélioration, tracts, sabotage…).
+  if (offer.victim_id) {
+    const victim = state.buildings.find(b => b.id === offer.victim_id);
+    pill(ctx, infoX, rowY, `${offer.label} · ${buildingLabel(victim)}`, { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui' });
+    rowY += 24;
+  } else if (offer.kind !== 'CAPTURE' || building.type === 'permanence' && !candidate.headquarters_site_id) {
+    pill(ctx, infoX, rowY, offerTitle(offer, building, candidate), { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui' });
+    rowY += 24;
+  }
+  // Le prix, coché comme les soutiens ; la bulle se remplit pendant l'achat.
+  const funded = offer.affordable !== false && offer.reason !== 'INSUFFICIENT_FUNDS';
+  pill(ctx, infoX, rowY, `${funded ? '✓' : '✗'} ${formatCost(config, offer.cost)}`,
+    { ink: funded ? '#2f4a30' : '#8a3a32', border: funded ? '#4d6648' : '#b98474', font: '800 11px system-ui', progress });
+  rowY += 24;
   const need = presenceNeed(state, config, candidate, building, offer);
   if (need) {
     const ok = need.current >= need.required;
     drawPresenceRow(ctx, infoX, rowY, need, p.factions[candidate.faction_id]?.color, ok, `${ok ? '✓' : '✗'} ${need.current}/${need.required} soutiens dans ce quartier`);
     rowY += 24;
   }
-  const missing = offer.cost - candidate.money;
-  const hint = offer.reason === 'INSUFFICIENT_FUNDS' || !offer.affordable && missing > 0 ? `✗ Il vous manque ${formatCost(config, missing)}`
-    : offer.reason && offer.reason !== 'INSUFFICIENT_PRESENCE' ? `✗ ${reasonTexts[offer.reason] || 'Indisponible pour le moment'}` : null;
-  if (hint) { pill(ctx, infoX, rowY, hint, { ink: '#8a3a32', border: '#b98474' }); rowY += 24; }
-  if (need && need.current < need.required) {
-    pill(ctx, infoX, rowY, 'Convainquez des passants dans ce quartier', { ink: '#5b4a2f', border: '#c5b48c', font: '600 10px system-ui' });
-  } else if (offer.enabled) {
-    pill(ctx, infoX, rowY, 'Restez immobile ici pour acheter', { ink: '#2f4a30', border: '#4d6648' });
-  }
+  const other = offer.reason && !['INSUFFICIENT_FUNDS', 'INSUFFICIENT_PRESENCE'].includes(offer.reason) ? reasonTexts[offer.reason] || 'Indisponible pour le moment' : null;
+  if (other) pill(ctx, infoX, rowY, `✗ ${other}`, { ink: '#8a3a32', border: '#b98474' });
   ctx.restore();
 }
 
@@ -191,7 +157,7 @@ const reasonTexts = {
   COOLDOWN: 'Pas encore prêt : patientez un peu', ADMINISTRATIVE_BAN: 'Meeting interdit pour vous (temporaire)',
   NOT_ON_STAGE: 'Sautez sur la scène pour lancer le meeting', NO_BUILDING: 'Aucune cible à portée',
 };
-const kindTitles = { PRINT: 'COMMANDER DES TRACTS', POLL: 'PUBLIER UN SONDAGE', EQUIP: 'ÉQUIPER VOS MILITANTS', REBUILD: 'RECONSTRUIRE' };
+const kindTitles = { PRINT: 'IMPRIMER DES TRACTS', POLL: 'PUBLIER UN SONDAGE', EQUIP: 'ÉQUIPER VOS MILITANTS', REBUILD: 'RECONSTRUIRE' };
 
 function offerTitle(offer, building, candidate) {
   if (offer.kind === 'CAPTURE') return building.type === 'permanence' && !candidate.headquarters_site_id
@@ -281,17 +247,6 @@ export function drawSiteRequirements(renderer, state) {
       drawPresenceRow(ctx, x, y, need, color, false, `⚠ ${current}/${required} : bâtiment menacé`);
       ctx.globalAlpha = 1;
     } else drawPresenceRow(ctx, x, y, need, color, current >= required, `${current}/${required} soutiens`);
-  }
-  const building = focus && state.buildings.find(b => b.id === focus.target_id);
-  if (building && presenceNeed(state, config, candidate, building, focus)) {
-    ctx.strokeStyle = color || '#4d6648'; ctx.lineWidth = 2;
-    for (const npc of state.npcs) {
-      if (npc.faction_id !== candidate.faction_id || !['SYMPATHISANT', 'MILITANT'].includes(npc.role)
-        || zoneAt(state.world, npc.x).id !== building.subzone_id) continue;
-      const nx = renderer.screenX(npc.x);
-      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(state.tick * 0.2);
-      ctx.beginPath(); ctx.ellipse(nx, m.groundY + m.characterHeight * 0.06, m.characterHeight * 0.2, 5, 0, 0, Math.PI * 2); ctx.stroke();
-    }
   }
   ctx.restore();
 }

@@ -3,30 +3,27 @@ import { buildingLabel } from '../simulation/building-rules.js';
 import { seasonAt } from '../simulation/campaign-events.js';
 import { formatEuros } from './money.js';
 import { fixedWorldArt, PANORAMA_SCALE, V2_FACADES } from './fixed-world-data.js';
-import { BIOME_ART, CANVAS, FARS, LAYERS, LAYER_BASELINE, MIDDLES, STREETS, STREET_BASELINE, blockoutSiteTargets, signRect } from './world-v3/spec.js';
-import { drawLayerBlockout, drawStreetBlockout } from './world-v3/blockout.js';
+import { BIOME_ART, CANVAS, LAYERS, STREETS } from './world-v3/spec.js';
 import { CALIBRATION } from './world-v3/calibration.js';
 import { drawStreetGround, zoneScreenLeft } from './world-v3/ground.js';
 import { drawFrontProps } from './world-v3/front.js';
 import { distantJoin, drawIllustratedSky, landscapeJoin, scenerySeasonFilter } from './illustrated-world.js';
 import { drawSeasonalTree } from './illustrated-vegetation.js';
+import { drawFresque, fresqueSignFrame } from './world-v3/fresque/render.js';
+import { currentMapDecor } from './map-decor.js';
 
 /**
- * Décor de la carte fixe.
- * - Décor v3 en couches (lointain, intermédiaire, rue, avant-plan), sans aucun fondu : un biome l'utilise
- *   dès que ses trois rues sont calibrées, ou partout avec `?decor=maquette` (maquettes dessinées par le code).
- * - Sinon, panoramas v2 provisoires, coupés net à la limite du biome.
+ * Décor de la carte fixe, selon le décor choisi (map-decor.js) :
+ * - « biomes » (par défaut) : rien ici, le moteur dessine l'ancien décor en couches peintes (illustrated-world.js) ;
+ * - « fresque » : la fresque continue dessinée par le code (world-v3/fresque/) ;
+ * - « panoramas » : décor v3 en couches pour les biomes dont les trois rues sont calibrées, sinon panoramas v2
+ *   coupés net à la limite du biome, sans fondu.
  */
-export const DECOR_PREVIEW = typeof location !== 'undefined' && new URLSearchParams(location.search).get('decor') === 'maquette';
+const fresqueActive = () => currentMapDecor() === 'fresque';
 export const fixedPanoramaId = biome => `panorama-${fixedWorldArt[biome].art}`;
 
-/** Avec `?decor=maquette`, les portes jouables suivent celles des maquettes (aperçu local uniquement). */
-export function applyDecorPreview(config) {
-  if (!DECOR_PREVIEW) return config;
-  const targets = blockoutSiteTargets();
-  for (const slot of config.layout.strategic_site_generation.slots) if (targets[slot.site_id]) slot.x_ratio = targets[slot.site_id].x_ratio;
-  return config;
-}
+/** La fresque se compose autour des vraies positions des bâtiments du tableau : la configuration reste inchangée. */
+export function applyDecorPreview(config) { return config; }
 const imageWidth = image => image.naturalWidth || image.width;
 const imageHeight = image => image.naturalHeight || image.height;
 
@@ -46,7 +43,7 @@ export function cleanGeneratedImage(image) {
 
 /** Préparation au chargement (appelée par le moteur de rendu). */
 export function preparePanorama(image, id = '') {
-  if (/^(v3|financier|minor)-/.test(id)) cleanGeneratedImage(image);
+  if (/^(v3|minor)-/.test(id)) cleanGeneratedImage(image);
 }
 
 const snowCaps = new WeakMap();
@@ -72,26 +69,11 @@ function winterAmount(progress) {
 
 /* ---------- Sources des couches ---------- */
 
-const blockouts = new Map();
-function blockoutCanvas(layer, id) {
-  const key = `${layer}:${id}`;
-  if (!blockouts.has(key)) {
-    const canvas = document.createElement('canvas'); canvas.width = CANVAS.width; canvas.height = CANVAS.height;
-    const ctx = canvas.getContext('2d');
-    if (layer === 'street') drawStreetBlockout(ctx, STREETS[id]); else drawLayerBlockout(ctx, (layer === 'far' ? FARS : MIDDLES)[id], layer);
-    blockouts.set(key, canvas);
-  }
-  return blockouts.get(key);
-}
-const specSigns = subzone => Object.fromEntries(STREETS[subzone].elements.filter(e => e.t === 'site').map(e => [e.site, signRect(e)]));
-
 export function streetSource(renderer, subzoneId) {
-  if (DECOR_PREVIEW) return { image: blockoutCanvas('street', subzoneId), baseline: STREET_BASELINE, signs: specSigns(subzoneId), topBand: STREETS[subzoneId].extendsAbove ? 120 : 0 };
   const entry = CALIBRATION.street[subzoneId], image = entry && renderer.assets.get(`v3-street-${subzoneId}`);
   return image ? { image: cleanGeneratedImage(image), baseline: entry.baseline, signs: entry.signs, topBand: entry.top_band || 0 } : null;
 }
 function layerSource(renderer, layer, biomeId) {
-  if (DECOR_PREVIEW) return { image: blockoutCanvas(layer, biomeId), baseline: LAYER_BASELINE };
   const entry = CALIBRATION[layer][biomeId], image = entry && renderer.assets.get(`v3-${layer}-${biomeId}`);
   if (image) return { image: cleanGeneratedImage(image), baseline: entry.baseline };
   // Repli : anciens fonds de parallaxe (même style, contenu jusqu'en bas de l'image).
@@ -109,7 +91,6 @@ export function layeredBiomes(renderer, world) {
 
 /** Identifiants d'images à garder chargées pour le décor v3. */
 export function v3AssetIds() {
-  if (DECOR_PREVIEW) return [];
   const ids = [];
   for (const [layer, entries] of Object.entries(CALIBRATION)) for (const id of Object.keys(entries)) ids.push(`v3-${layer}-${id}`);
   const calibratedBiomes = new Set(Object.keys(CALIBRATION.street).map(id => STREETS[id]?.biome));
@@ -264,8 +245,17 @@ function drawV2Panoramas(renderer, state, biomes) {
 }
 
 export function drawFixedWorld(renderer, state) {
-  const world = state.world, biomes = worldBiomes(world);
-  const layered = DECOR_PREVIEW ? new Set(biomes.map(b => b.id)) : layeredBiomes(renderer, world);
+  const world = state.world, biomes = worldBiomes(world), decor = currentMapDecor();
+  if (decor === 'biomes') return false; // l'ancien décor en couches est dessiné par le moteur
+  if (decor === 'fresque') {
+    renderer.fixedWorldLayered = new Set(biomes.map(b => b.id)); renderer.fixedWorldState = state;
+    const progress = state.campaign_progress_01, strength = { horizon: 1, far: 1, mid: 0.9, back: 0.75, street: 0.45 };
+    renderer.ctx.save(); renderer.ctx.imageSmoothingEnabled = true;
+    drawIllustratedSky(renderer, state);
+    drawFresque(renderer, state, { seasonFilter: plane => seasonFilter(progress, strength[plane]), drawSeasonalTree, snow: winterAmount(progress), snowCap });
+    renderer.ctx.restore(); return true;
+  }
+  const layered = layeredBiomes(renderer, world);
   const flat = biomes.filter(b => !layered.has(b.id));
   if (flat.some(b => !renderer.assets.get(fixedPanoramaId(b.id)))) return false;
   const { ctx } = renderer;
@@ -294,6 +284,7 @@ export function drawFixedWorldFront(renderer, state) {
 export function buildingSignFrame(renderer, building) {
   const state = renderer.fixedWorldState;
   if (!renderer.fixedWorldActive || !state) return null;
+  if (fresqueActive()) return fresqueSignFrame(renderer, building);
   const zone = state.world.subzones.find(z => z.id === building.subzone_id);
   if (renderer.fixedWorldLayered?.has(zone.biome_id)) {
     const source = streetSource(renderer, zone.id), rect = source?.signs[building.site_id];
@@ -323,8 +314,11 @@ export function drawIntegratedBuilding(renderer, state, building) {
   const faction = renderer.p.factions[building.owner_id];
   ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const label = building.headquarters ? 'QG · PERMANENCE' : buildingLabel(building).toUpperCase();
-  ctx.fillStyle = '#f3e4c5'; ctx.fillRect(x - w / 2, y - h / 2, w, h);
-  ctx.strokeStyle = '#3a3a33'; ctx.lineWidth = 1.5; ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+  // Enseigne déjà peinte sur la devanture (fresque) : seul le texte est ajouté.
+  if (!sign.painted) {
+    ctx.fillStyle = '#f3e4c5'; ctx.fillRect(x - w / 2, y - h / 2, w, h);
+    ctx.strokeStyle = '#3a3a33'; ctx.lineWidth = 1.5; ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+  }
   ctx.fillStyle = '#303c40'; ctx.font = `800 ${Math.max(8, Math.min(13, h * 0.5))}px system-ui`;
   ctx.fillText(label, x, y, w - 8);
   if (faction) {

@@ -43,3 +43,9 @@ export function fingerprint(config) {
   for (const char of JSON.stringify(config)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
   return (hash >>> 0).toString(16);
 }
+
+/** Nombre de sous-zones qui séparent deux sous-zones sur l'anneau (0 = même sous-zone, 1 = limitrophe). */
+export function subzoneGap(world, a, b) {
+  const gap = Math.abs(a.index - b.index);
+  return Math.min(gap, world.subzones.length - gap);
+}

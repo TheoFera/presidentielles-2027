@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
-import { ArenaMatch, arenaModeAICommands, arenaSetupError, arenaStyleAvailable } from '../src/simulation/arena-mode.js';
+import { ArenaMatch, arenaModeAICommands, arenaSetupError, arenaStyleAvailable, arenaFighterIds, multiplayerArenaSetup } from '../src/simulation/arena-mode.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { ArenaSimulation } from '../src/simulation/arena-simulation.js';
 
@@ -129,4 +129,20 @@ test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier d
 test('Même graine, mêmes commandes : combat identique', () => {
   const play = () => { const m = started(duel()); for (let i = 0; i < 600; i++) m.step(m.state.candidates.flatMap(c => arenaModeAICommands(m.state, config, c.id))); return JSON.stringify(m.getState()); };
   assert.equal(play(), play());
+});
+
+test('Arène multijoueur : un combattant par joueur, une IA libre pour compléter le 1 contre 1 contre 1', () => {
+  const room = { players: [{ id: 'b', slot: 2, faction: 'melenchon', style: 'melenchon_populiste' }, { id: 'a', slot: 1, faction: 'melenchon', style: 'melenchon_universaliste' }] };
+  const duo = multiplayerArenaSetup(config, room, { format: '1v1', map: 'studio' });
+  assert.deepEqual(duo.fighters.map(f => f.player), ['a', 'b']);
+  assert.equal(duo.format, '1v1');
+  assert.equal(arenaSetupError(config, duo), null);
+  const withAI = multiplayerArenaSetup(config, room, { format: '1v1v1', map: 'plateau' });
+  assert.equal(withAI.format, '1v1v1');
+  assert.equal(withAI.fighters[2].player, null);
+  assert.notEqual(withAI.fighters[2].faction, 'melenchon', 'l’IA prend un candidat absent');
+  assert.equal(arenaSetupError(config, withAI), null);
+  assert.deepEqual(arenaFighterIds(withAI.fighters), ['candidate:melenchon', 'candidate:melenchon:2', `candidate:${withAI.fighters[2].faction}`]);
+  const match = new ArenaMatch(config, { ...withAI, seed: 3 });
+  assert.deepEqual(match.state.candidates.map(c => c.id), arenaFighterIds(withAI.fighters));
 });

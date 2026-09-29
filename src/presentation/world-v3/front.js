@@ -4,7 +4,7 @@ import { LAYERS } from './spec.js';
 
 /**
  * Avant-plan : quelques objets bas ou fins (lampadaires, bornes, buissons) qui défilent plus vite que la rue,
- * devant les personnages, pour renforcer la profondeur. Ils évitent les portes, les places de meeting et les financiers.
+ * devant les personnages, pour renforcer la profondeur. Ils évitent les portes, et les places de meeting.
  */
 const INK = '#262b29';
 const PROPS = {
@@ -24,7 +24,6 @@ export function frontPropPlacements(state) {
   if (cache.has(state.world)) return cache.get(state.world);
   const blocked = [
     ...state.buildings.map(b => [b.x, b.type === 'meeting' ? 4 : 1.8]),
-    ...(state.funding_encounters || []).map(e => [e.x, 1.6]),
   ];
   const free = x => blocked.every(([bx, r]) => Math.abs(ringDelta(x, bx, state.world.length)) > r);
   const placements = [];

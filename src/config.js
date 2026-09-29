@@ -1,6 +1,5 @@
 import { validateCampaignConfig } from './simulation/campaign-validation.js';
 import { validAIDifficulty } from './simulation/ai-settings.js';
-import { validateFundingConfig } from './simulation/funding-encounters.js';
 import { validateMinorConfig } from './simulation/minor-candidates.js';
 export function validateConfig(config) {
   if (config.balance.ai?.difficulty !== undefined && !validAIDifficulty(config.balance.ai.difficulty)) throw new Error('Configuration : difficulté de l’IA invalide.');
@@ -130,7 +129,6 @@ export function validateConfig(config) {
   for (const slot of generation.slots) if (!siteTypes.includes(slot.type) || typeof slot.controls_zone !== 'boolean'
     || slot.controls_zone && ['meeting', 'institut_sondage', 'imprimerie', 'financement'].includes(slot.type)
     || slot.type === 'faction' && !['service_ordre', 'cabinet_administratif'].includes(slot.fixed_variant)) throw new Error('Fonction de bâtiment invalide.');
-  validateFundingConfig(config);
   validateMinorConfig(config);
   for (const [key, value] of Object.entries(config.balance.vehicles)) positive(value, key);
   for (const [key, value] of Object.entries(config.balance.zone_control)) positive(value, key);
@@ -171,6 +169,8 @@ export function validateConfig(config) {
   }
   positive(config.balance.physical_units.militant.reconsider_seconds, 'réévaluation du Militant');
   if (!Number.isInteger(config.balance.physical_units.militant.nearby_zone_radius) || config.balance.physical_units.militant.nearby_zone_radius < 1) throw new Error('Configuration : rayon de prospection invalide.');
+  if (!Number.isInteger(config.balance.physical_units.militant.expedition_min_group_size) || config.balance.physical_units.militant.expedition_min_group_size < 2) throw new Error('Configuration : taille minimale de groupe de militants invalide.');
+  if (!Number.isInteger(config.balance.physical_units.sympathisant.tract_pickup_zone_radius) || config.balance.physical_units.sympathisant.tract_pickup_zone_radius < 0) throw new Error('Configuration : distance de collecte des tracts invalide.');
   positive(config.layout.electoral_weights?.default, 'poids électoral par défaut');
   for (const [id, weight] of Object.entries(config.layout.electoral_weights.by_subzone)) {
     if (!ids.has(id)) throw new Error(`Configuration : poids d’une sous-zone inconnue (${id}).`);

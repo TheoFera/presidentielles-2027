@@ -80,7 +80,6 @@ export const STREETS = {
       bas(1466, 70, 120, 'jardiniere', 'wooden planters, continue past the right edge'),
       arbre(1110, 240, 1),
     ],
-    financier: 1106,
   },
   paris_c: {
     biome: 'paris_19e', title: 'Canal Saint-Martin — quartier mixte vers la banlieue',
@@ -99,7 +98,7 @@ export const STREETS = {
   },
   banlieue_a: {
     biome: 'banlieue', title: 'Banlieue — tours de cité géantes et média associatif',
-    scene: 'French suburban housing estate (cité): TWO gigantic concrete tower blocks in the foreground, so tall they leave the top of the image; balconies, satellite dishes, laundry. An associative newsroom (Bondy Blog style) at the foot of the left tower, a late-night grocery at the foot of the right one. Absolutely no Haussmann.',
+    scene: 'French suburban housing estate (cité): TWO gigantic concrete tower blocks in the foreground, so tall they leave the top of the image; balconies, satellite dishes, laundry. An associative newsroom (Bondy Blog style) at the foot of the left tower; the right tower only has its plain entrance hall. Absolutely no Haussmann.',
     elements: [
       bas(0, 80, 100, 'talus', 'grassy mound with concrete bollards'),
       tour(80, 540, 16, 'LEFT concrete tower block, cream and grey panels, 16+ floors, leaves the top edge of the image'),
@@ -107,7 +106,7 @@ export const STREETS = {
       objet(640, 250, 210, 'city', 'small fenced multisport pitch (city stadium) with a basketball hoop, benches'),
       arbre(760, 230, 1),
       tour(900, 500, 14, 'RIGHT concrete tower block, different colour (pale ochre), leaves the top edge of the image'),
-      vitrine(1010, 270, 'superette', 'late-night grocery at the foot of the right tower: fruit crates outside, painted pictogram sign', 260),
+      objet(1080, 150, 240, 'hall', 'plain entrance hall of the right tower: glass door, rows of letterboxes, no shop and no sign'),
       bas(1400, 136, 110, 'muret', 'low concrete wall with bike racks'),
     ],
     extendsAbove: true,
@@ -169,7 +168,6 @@ export const STREETS = {
       bat(1320, 150, 480, 'brique', 'tuiles', 2, 'red-brick house'),
       bas(1470, 66, 110, 'haie', 'hedge'),
     ],
-    financier: 1167,
   },
   periurbain_c: {
     biome: 'periurbain_usine', title: 'Périurbain — sortie vers les champs, Mont-Blanc au fond',
@@ -254,7 +252,6 @@ export const STREETS = {
       site('site:retraites_b:institut_sondage', 1198, 'POLLING INSTITUTE office: sober door, charts in the window', [140, 250], [210, 56]),
       bas(1410, 126, 110, 'jardiniere', 'agave planters'),
     ],
-    financier: 983,
   },
   retraites_c: {
     biome: 'retraites', title: 'Retraités — banlieue bourgeoise type Neuilly',

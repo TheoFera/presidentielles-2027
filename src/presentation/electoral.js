@@ -34,7 +34,7 @@ export function isOnMeetingStage(entity, config, state) {
 }
 
 export function meetingSpriteFrame(renderer, state, building) {
-  if (renderer.fixedWorldActive) return null;
+  // Estrade provisoire en bois (image du jeu) partout, y compris sur la carte fixe : jamais de scène en pierre.
   const id = buildingAssetId(building, state.world);
   const sprite = renderer.assets.get(id);
   if (!sprite) return null;
@@ -213,7 +213,7 @@ function drawMeetingPodium(renderer, state, building) {
   const halfWidth = settings.podium_half_width * m.pixelsPerUnit;
   const spriteId = buildingAssetId(building, state.world);
   const frame = meetingSpriteFrame(renderer, state, building);
-  if (!frame && !renderer.fixedWorldActive) void renderer.assets.load(spriteId);
+  if (!frame) void renderer.assets.load(spriteId);
   ctx.save(); ctx.textAlign = 'center';
   let progressY = top - 25;
   if (frame) {

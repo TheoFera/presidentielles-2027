@@ -1,4 +1,3 @@
-import { createFundingEncounters, updateFundingEncounters } from './funding-encounters.js';
 import { claimMinorHeadquarters, minorCanRecruit } from './minor-candidates.js';
 import { candidateTravelSpeed, updateVehicles, vehicleCommand } from './vehicles.js';
 import { hostilePersuasionMultiplier } from './zone-control.js';
@@ -68,7 +67,6 @@ export class GameSimulation {
       local_candidate_id: FACTIONS.some(f => `candidate:${f}` === localCandidateId) ? localCandidateId : 'candidate:melenchon', ai_enabled: true,
       ai_difficulty: difficulty,
       world, candidates: [], npcs: [], buildings: infrastructure.buildings, building_slots: infrastructure.slots,
-      funding_encounters: createFundingEncounters(world, config),
       spawn_timers: [], electorate: createElectorate(world, config), events: [],
       polls: createPolls(), actualGameState: null,
     };
@@ -168,7 +166,7 @@ export class GameSimulation {
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
       combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null, meeting_wave_id: null,
-      donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1,
+      donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1, home_site_id: null, expedition: null,
     };
     this.state.npcs.push(npc);
     if (announce) this.emit('NeutralSpawned', { npc_id: npc.id, subzone_id: zone.id });
@@ -375,7 +373,6 @@ export class GameSimulation {
     updateElectoralBuildings(this);
     updateStrategicSites(this);
     settleMoney(this);
-    updateFundingEncounters(this);
     refreshElectoralState(state);
     const days = state.phase === GamePhase.SECOND_ROUND_SPRINT ? 0 : Math.max(0,
       this.config.balance.time.starting_days_before_first_round - (state.campaign_time_offset || 0) - Math.floor(state.tick / this.secondsToTicks(this.config.balance.time.real_seconds_per_game_day)));

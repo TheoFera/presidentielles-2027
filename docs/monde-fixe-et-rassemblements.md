@@ -21,24 +21,13 @@ Chaque biome possède aussi une place de meeting dans sa sous-zone B, exactement
 
 La permanence reçoit les dons des sympathisants de son camp. Le candidat récupère la cagnotte en passant. Elle distribue également les tracts, puisque le tableau ne prévoit plus d’imprimerie séparée. Une commande est effectuée par passage pour éviter les achats répétés lorsque l’on s’arrête au QG.
 
-Une fois un garage acheté, rester immobile devant lui pendant 2,5 secondes fournit le véhicule. Le vélo multiplie la vitesse par 1,65 ; le scooter par 2,1. Un déplacement avant la fin de l’attente remet le compteur à zéro. Sauter, frapper, effectuer un dash, activer l’ultime, changer de style ou recevoir un coup fait disparaître le véhicule. Une nouvelle attente au garage permet d’en obtenir un autre.
+Une fois un garage acheté, rester immobile devant lui pendant 2,5 secondes fournit le véhicule. Le vélo multiplie la vitesse par 1,65 ; le scooter par 2,1. Un déplacement avant la fin de l’attente remet le compteur à zéro. Sauter, frapper, effectuer un dash, activer l’ultime ou recevoir un coup fait disparaître le véhicule. Une nouvelle attente au garage permet d’en obtenir un autre.
 
 ## Marches
 
 Le rassemblement est la seule famille d’événements disponible. Les six variantes reprennent les motifs du tableau. Environ 94 % des PNJ présents dans le biome rejoignent le centre d’une sous-zone extérieure, puis traversent ensemble jusqu’au centre de l’autre. Le sens varie. Les déplacements sont continus, sans téléportation, avec plusieurs rangs et de petits décalages entre les marcheurs.
 
 Pendant le rassemblement et la marche, passer près d’un neutre ou d’un sympathisant adverse le convainc en environ 0,12 seconde. Une protection de deux secondes évite les changements de camp à chaque instant lorsque deux candidats se croisent. Les militants ne changent pas de camp par ce mécanisme. Après la marche, les participants reviennent près de leur point d’apparition initial, puis reprennent leurs activités.
-
-## Financiers occultes
-
-La colonne « Évènements » du tableau désigne trois personnages, et non des bâtiments : l’entrepreneur du numérique (Paris B), l’intermédiaire russe (Périurbain B) et le magnat des médias (Retraités B). Un financier apparaît seulement si le candidat :
-
-- fait partie des candidats autorisés : Mélenchon ou Philippe pour le numérique, Mélenchon ou Le Pen pour l’intermédiaire russe, Le Pen ou Philippe pour les médias ;
-- a moins de 1 000 € ;
-- se trouve dans la sous-zone ;
-- n’a aucun autre candidat à moins d’un écran.
-
-Il n’est visible que pour ce candidat. Rester immobile 3 secondes devant lui signe le contrat : **20 000 €**. Chaque financier ne signe qu’**une seule fois par partie**, avec un seul candidat. Ensuite, il ne réapparaît plus pour personne. Il disparaît aussi dès qu’un témoin approche. Règles : `src/simulation/funding-encounters.js` ; affichage : `src/presentation/financiers.js` ; réglages : `funding_encounters` dans `game_balance.json`.
 
 ## Candidats mineurs
 
@@ -64,7 +53,6 @@ Leur QG est la permanence de leur sous-zone.
 - **Réglages** : `minor_candidates` dans `game_balance.json`. Le réglage `enabled: false` sert aux tests de duels à trois.
 - **Code** : règles dans `src/simulation/minor-candidates.js`, dessin provisoire dans `src/presentation/minor-characters.js`, planches ChatGPT à venir dans `docs/production/candidats-mineurs/PROMPTS.md`.
 
-L’IA ne va voir un financier occulte que si un humain la distance nettement (réglage `ai_boost_threshold`).
 
 ## Décor
 
@@ -80,4 +68,6 @@ Les sauvegardes de l’ancienne carte sont incompatibles : commencer une nouvell
 
 Vérification du 28 septembre 2026 : 294 tests réussis, export construit, six campagnes automatiques terminées (trois avec rassemblements et trois témoins), 322 ressources visuelles chargées sans erreur dans Chrome. Les formats 844 × 390, 1920 × 720 et 390 × 844 conservent la même échelle sur les deux axes. Les rendus aux positions 0 et longueur totale de la carte sont identiques.
 
-Mise à jour du 29 septembre 2026 : les bâtiments de financement ont été retirés au profit des financiers occultes. Le fondu entre panoramas a été supprimé. Le moteur de décor en couches v3 est en place, avec maquettes, prompts et calage automatique. Le zoom de la caméra est inchangé : 0,65, cadrage 1,15.
+Mise à jour du 30 septembre 2026 : les financiers occultes (PNJ qui versaient 20 000 € en secret) ont été retirés du jeu, jugés trop sensibles. Échelle d'origine rétablie (zoom 1, cadrage 1,25 : une sous-zone vaut 1,25 écran). Avec `?decor=maquette`, le jeu affiche une fresque continue de toute la carte, dessinée par le code à l'échelle des personnages (voir `docs/production/decor-v3/LISEZMOI.md`).
+
+Mise à jour du 29 septembre 2026 : les bâtiments de financement ont été retirés. Le fondu entre panoramas a été supprimé. Le moteur de décor en couches v3 est en place, avec maquettes, prompts et calage automatique. Le zoom de la caméra est inchangé : 0,65, cadrage 1,15.

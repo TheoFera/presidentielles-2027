@@ -1,6 +1,7 @@
 import { CANDIDATES, portrait } from './arcade-content.js';
 import { expressedScores } from './election-results.js';
-import { CAMPAIGN_STYLES } from '../simulation/campaign-styles.js';
+import { CAMPAIGN_STYLES, isBetatestProfile } from '../simulation/campaign-styles.js';
+import { MAP_DECORS, decorForProfile } from './map-decor.js';
 
 /* Profil du joueur, gardé sur cet appareil : pseudo et statistiques de carrière.
    Il accueillera plus tard les tenues et skins à débloquer. */
@@ -52,6 +53,13 @@ export function favoriteCandidate(stats) {
   return played.reduce((best, f) => stats.by_candidate[f].games > stats.by_candidate[best].games ? f : best);
 }
 
+/** Choix du décor de la carte, réservé au profil betatest (pris en compte à la partie suivante). */
+function decorPicker(profile) {
+  const chosen = decorForProfile(profile);
+  return `<fieldset class="profile-decor"><legend>Décor de la carte · betatest</legend>${MAP_DECORS.map(d =>
+    `<label><input type="radio" name="map-decor" value="${d.id}" ${d.id === chosen ? 'checked' : ''}><span><strong>${escape(d.label)}</strong><small>${escape(d.note)}</small></span></label>`).join('')}</fieldset>`;
+}
+
 export const profileButton = profile => `<button id="menu-profile" aria-label="Mon profil : ${escape(cleanNickname(profile.nickname))}" title="Mon profil">
   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg><span>${escape(cleanNickname(profile.nickname))}</span></button>`;
 
@@ -80,6 +88,7 @@ export function profileContent(profile) {
     </section>
     <section class="profile-stats" aria-label="Statistiques">${tiles.map(([label, value]) => `<p><strong>${value}</strong><span>${label}</span></p>`).join('')}</section>
     <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>
+    ${isBetatestProfile(profile) ? decorPicker(profile) : ''}
     <p class="profile-note menu-note">Profil enregistré sur cet appareil. De nouveaux skins et tenues seront bientôt à débloquer ici.</p>
   </div>`;
 }

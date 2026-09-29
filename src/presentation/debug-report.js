@@ -43,7 +43,7 @@ export function managementReport(state, config, candidate, npc, building) {
     const task = npc.task;
     const phases = { TRAVEL: 'En déplacement', WAIT_PRINT: 'Attend la préparation', PICKUP: 'Récupère son équipement', WAIT: 'Attend dans le secteur', RECRUIT: 'Recrute par proximité', PATROL: 'Patrouille', DEFEND: 'Défend', RAID: 'Raid', RETURN: 'Retour au biome' };
     lines.push('', '— TÂCHE DU PNJ INSPECTÉ —', `Camp : ${npc.faction_id ? names[npc.faction_id].name : 'Aucun'}`,
-      `Tâche : ${npc.role === 'DEMOBILISE' ? 'Retour au point d’origine' : task?.kind === 'COLLECT_EQUIPMENT' ? 'Chercher un équipement SO' : task?.kind === 'GUARD' ? 'Garde territoriale' : task?.kind === 'COLLECT_TRACT' ? 'Chercher un tract' : task?.kind === 'EXPAND' ? 'Étendre le réseau' : 'Vie locale'}`,
+      `Tâche : ${npc.role === 'DEMOBILISE' ? 'Retour au point d’origine' : task?.kind === 'COLLECT_EQUIPMENT' ? 'Chercher un équipement SO' : task?.kind === 'GUARD' ? 'Garde territoriale' : task?.kind === 'COLLECT_TRACT' ? 'Chercher un tract' : task?.kind === 'EXPAND' ? (npc.expedition ? 'Expédition en groupe' : 'Tenir le territoire de la permanence') : 'Vie locale'}`,
       `État : ${phases[task?.phase] || (npc.persuasion ? 'Écoute un recruteur' : npc.moving ? 'Marche' : 'Attend')}`,
       `Cible : ${task?.target_id || npc.persuasion?.actor_id || 'Aucune'}`,
       `Destination : ${task ? `${task.destination_subzone_id} · x=${f(task.destination_x)}` : npc.role === 'DEMOBILISE' ? npc.origin_social_point_id : `x=${f(npc.roam_target_x)}`}`);

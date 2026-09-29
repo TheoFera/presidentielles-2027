@@ -61,10 +61,10 @@ function setupContent(config, profile, setup) {
 }
 
 /** Écran de préparation du mode Arène, dans le menu d’accueil. */
-export function showArenaSetup(menu, { config, profile, setup, start }) {
+export function showArenaSetup(menu, { config, profile, setup, start, back }) {
   const current = setup;
   const render = focus => {
-    menu.page('arena', 'Arène', setupContent(config, profile, current));
+    menu.page('arena', 'Arène', setupContent(config, profile, current), back);
     const root = menu.element;
     root.querySelectorAll('[data-format]').forEach(b => b.onclick = () => {
       current.format = b.dataset.format;

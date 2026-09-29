@@ -1,4 +1,4 @@
-import { isMinorFaction, wrap, zoneAt } from './world.js';
+import { isMinorFaction, subzoneGap, wrap, zoneAt } from './world.js';
 import { biomeSympathisants, distance, localSympathisants, stableIdOrder } from './territory.js';
 import { buildingSettings, printsTracts } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
@@ -111,10 +111,11 @@ function transact(simulation, candidate, offer) {
     simulation.emit('BuildingUpgraded', { ...transaction, level: building.level });
   }
   building.last_action_tick = state.tick;
-  if (['PRINT', 'EQUIP', 'POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
+  if (['EQUIP', 'POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
     candidate.purchase_latch_target_id = building.id;
   }
-  if (['CAPTURE', 'UPGRADE'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
+  // Les tracts s'enchaînent tant qu'on reste devant : courte pause, sans devoir repartir.
+  if (['CAPTURE', 'UPGRADE', 'PRINT'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
   if (fresh.kind === 'MEETING') {
     candidate.interaction_chain_site_id = building.id;
     candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(config.balance.buildings.meeting.upgrade_pause_seconds);
@@ -167,7 +168,11 @@ export function updateProduction(simulation) {
       if (worker && (worker.role !== 'SYMPATHISANT' || worker.task?.order_id !== order.id || worker.faction_id !== order.faction_id)) order.assigned_npc_id = null;
       if (!worker) order.assigned_npc_id = null;
       if (order.assigned_npc_id) continue;
-      const eligible = biomeSympathisants(state, service.biome_id, order.faction_id, true)
+      // Un sympathisant ne traverse pas la carte pour un tract : il vient de la sous-zone du point d’impression ou d’une voisine.
+      const serviceZone = zoneAt(state.world, service.x);
+      const eligible = state.npcs.filter(n => n.role === 'SYMPATHISANT' && n.faction_id === order.faction_id
+        && !n.task && !n.rally_event_id && n.rally_return_x == null
+        && subzoneGap(state.world, zoneAt(state.world, n.x), serviceZone) <= config.balance.physical_units.sympathisant.tract_pickup_zone_radius)
         .sort((a, b) => distance(state, a.x, service.x) - distance(state, b.x, service.x) || stableIdOrder(a, b));
       if (eligible.length) {
         const npc = eligible[0];

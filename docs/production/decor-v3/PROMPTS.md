@@ -111,7 +111,7 @@ SCALE: a standing adult character of the game is 200 px tall; doors are about 26
 EDGES: whatever touches the left edge (x = 0) or right edge (x = 1536) is low (under 140 px) and simply continues to the edge; the game hides the joint with a tree.
 Do not paint big deciduous trees (the game draws seasonal trees); potted evergreen shrubs are fine. No people. Keep every door clear.
 ONLY the cream rectangles of the blockout are blank signs; do not add any other blank sign anywhere. The two towers deliberately leave the canvas through the top edge: in the top 120 px, draw only the repeating tower floors (the game repeats this band upward).
-SCENE: French suburban housing estate (cité): TWO gigantic concrete tower blocks in the foreground, so tall they leave the top of the image; balconies, satellite dishes, laundry. An associative newsroom (Bondy Blog style) at the foot of the left tower, a late-night grocery at the foot of the right one. Absolutely no Haussmann.
+SCENE: French suburban housing estate (cité): TWO gigantic concrete tower blocks in the foreground, so tall they leave the top of the image; balconies, satellite dishes, laundry. An associative newsroom (Bondy Blog style) at the foot of the left tower; the right tower only has its plain entrance hall. Absolutely no Haussmann.
 ELEMENTS, from left to right:
 - x 0–80: grassy mound with concrete bollards (low, 100 px high).
 - x 80–620: LEFT concrete tower block, cream and grey panels, 16+ floors, leaves the top edge of the image.
@@ -119,7 +119,7 @@ ELEMENTS, from left to right:
 - x 640–890: small fenced multisport pitch (city stadium) with a basketball hoop, benches (210 px high).
 - x ≈ 760: leave room for a tree of about 230 px drawn by the game (do not paint it).
 - x 900–1400: RIGHT concrete tower block, different colour (pale ochre), leaves the top edge of the image.
-- x 1010–1280: late-night grocery at the foot of the right tower: fruit crates outside, painted pictogram sign (height 260 px). Its shop sign is a painted pictogram only, never a blank cream sign.
+- x 1080–1230: plain entrance hall of the right tower: glass door, rows of letterboxes, no shop and no sign (240 px high).
 - x 1400–1536: low concrete wall with bike racks (low, 110 px high).
 ```
 

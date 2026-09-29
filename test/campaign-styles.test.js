@@ -50,6 +50,12 @@ test('Neuf styles, trois par candidat, trois déblocages persistants par défaut
   assert.equal(isCampaignStyleUnlocked(profile, 'melenchon', 'melenchon_populiste'), false);
 });
 
+test('Profil « betatest » : tous les styles débloqués en campagne', () => {
+  const profile = { nickname: ' BetaTest ' };
+  for (const [f, styles] of Object.entries(CAMPAIGN_STYLES)) for (const s of styles) assert.equal(isCampaignStyleUnlocked(profile, f, s.id), true);
+  assert.equal(isCampaignStyleUnlocked(profile, 'melenchon', 'style_inconnu'), false);
+});
+
 test('Premier QG : choix obligatoire, monde figé, styles verrouillés refusés', () => {
   const sim = make({}), c = sim.state.candidates[0];
   assert.equal(c.current_campaign_style, null); establish(sim);
@@ -74,27 +80,11 @@ test('Changer remplace le bonus, vide la charge et conserve scores, bâtiments e
   assert.deepEqual(sim.state.npcs.map(n => characterAssetId(n, sim.state)), art);
 });
 
-test('Maintien au QG : trois secondes, annulation et interruptions', () => {
-  for (const reason of ['move', 'attack', 'hit', 'stun', 'ko', 'leave', 'interaction', 'release']) {
-    const sim = make(), c = sim.state.candidates[0]; establish(sim); choose(sim, c, 'melenchon_universaliste');
-    sim.applyCommand({ type: 'HoldCampaignStyle', candidateId: c.id, active: true }); CampaignStyleSystem.update(sim);
-    assert.ok(c.style_hold);
-    if (reason === 'move') sim.applyCommand({ type: 'Move', candidateId: c.id, axis: 1 });
-    if (reason === 'attack') sim.applyCommand({ type: 'Attack', candidateId: c.id });
-    if (reason === 'hit') c.hits_received++;
-    if (reason === 'stun') c.combat.stun_ticks = 5;
-    if (reason === 'ko') c.is_ko = true;
-    if (reason === 'leave') c.x += 20;
-    if (reason === 'interaction') c.crisis_meeting_id = 'meeting';
-    if (reason === 'release') sim.applyCommand({ type: 'HoldCampaignStyle', candidateId: c.id, active: false });
-    sim.state.tick += sim.secondsToTicks(3); CampaignStyleSystem.update(sim);
-    assert.equal(c.style_hold, null, reason); assert.equal(sim.state.campaign_style_selection, null, reason);
-  }
+test('Style définitif : rester au QG ne rouvre jamais le choix', () => {
   const sim = make(), c = sim.state.candidates[0]; establish(sim); choose(sim, c, 'melenchon_universaliste');
-  sim.applyCommand({ type: 'HoldCampaignStyle', candidateId: c.id, active: true }); CampaignStyleSystem.update(sim);
-  sim.state.tick += sim.secondsToTicks(3) - 1; CampaignStyleSystem.update(sim); assert.equal(sim.state.campaign_style_selection, null);
-  sim.state.tick++; CampaignStyleSystem.update(sim); assert.equal(sim.state.campaign_style_selection.mandatory, false);
-  sim.applyCommand({ type: 'CancelCampaignStyle', candidateId: c.id }); assert.equal(sim.state.campaign_style_selection, null);
+  sim.applyCommand({ type: 'HoldCampaignStyle', candidateId: c.id, active: true });
+  for (let i = 0; i < sim.secondsToTicks(20); i++) { sim.state.tick++; CampaignStyleSystem.update(sim); }
+  assert.equal(sim.state.campaign_style_selection, null); assert.equal(c.current_campaign_style, 'melenchon_universaliste');
 });
 
 test('Un événement garde ses multiplicateurs après changement de style', () => {

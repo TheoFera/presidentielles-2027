@@ -4,6 +4,7 @@ import { VisualAssets, neighboringSubzones } from '../src/presentation/visual-as
 import { characterAssetId, characterAnimation, drawIllustratedCharacter, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../src/presentation/illustrated-characters.js';
 import { recolorTractPixels } from '../src/presentation/militant-sprites.js';
 import { sceneryProjection, sceneryParallax, sceneryImageHeight, worldAssetIds, preloadWorld } from '../src/presentation/illustrated-world.js';
+import { currentMapDecor, setMapDecor } from '../src/presentation/map-decor.js';
 import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
@@ -176,9 +177,20 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
     const image = { set src(value) { queueMicrotask(() => image.onload()); } };
     return image;
   } });
+  // Décor par défaut « biomes » : couches peintes et bâtiments dessinés à part.
+  assert.equal(currentMapDecor(), 'biomes');
   const renderer = { assets }, ids = worldAssetIds(visualManifest, state);
-  for (const id of ['panorama-bobo', 'panorama-banlieue', 'panorama-periurbain', 'panorama-campagne', 'panorama-retraites', 'panorama-riches', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
-  assert.ok(!ids.some(id => id.startsWith('building-')), 'Les bâtiments sont peints dans les panoramas');
+  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) for (const layer of ['distant', 'landscape', 'street']) assert.ok(ids.includes(`${layer}-${biome}`), `${layer}-${biome}`);
+  for (const building of state.buildings) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
+  for (const id of ['riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.some(id => id.startsWith('panorama-')), 'Les panoramas world-v2 ne sont chargés que si ce décor est choisi');
+  // Décor « panoramas » (betatest) : façades peintes dans les panoramas, aucun bâtiment flottant.
+  setMapDecor('panoramas');
+  const panoramaIds = worldAssetIds(visualManifest, state);
+  setMapDecor('biomes');
+  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) assert.ok(panoramaIds.includes(`panorama-${biome}`), biome);
+  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !id.startsWith('building-meeting_stage-')), 'Les bâtiments sont peints dans les panoramas ; seules les estrades provisoires de meeting sont des images');
+  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) assert.ok(ids.includes(`building-meeting_stage-${biome}`), 'estrade ' + biome);
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');
   preloadWorld(renderer, state, state.world.subzones[0]);

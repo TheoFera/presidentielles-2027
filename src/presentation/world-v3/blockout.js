@@ -69,7 +69,7 @@ function drawSite(ctx, element) {
   box(ctx, sx, sy, sw, sh, SIGN_CREAM, 5);
 }
 
-const shopColors = { cafe: '#6e8a74', concept: '#a9c3a4', bio: '#7f9f58', boulangerie: '#b5502e', tabac: '#b73a36', plage: '#3f8fb0', pharmacie: '#2f8a57', luxe: '#2d2d34', superette: '#c98a2e' };
+const shopColors = { cafe: '#6e8a74', concept: '#a9c3a4', bio: '#7f9f58', boulangerie: '#b5502e', tabac: '#b73a36', plage: '#3f8fb0', pharmacie: '#2f8a57', luxe: '#2d2d34' };
 function drawShop(ctx, { x, w, h, kind }) {
   box(ctx, x, STREET_BASELINE - h, w, h, shopColors[kind] || '#6f7f86');
   box(ctx, x + 14, STREET_BASELINE - h + 60, w - 28, h - 90, WINDOW, 3);
@@ -96,7 +96,7 @@ function drawLow(ctx, { x, w, h, kind }) {
   }
 }
 
-const objectColors = { passerelle: '#3e7a5a', escalier: '#cdbb95', marche: '#d8c7a3', city: '#7a8f95', caravane: '#f1ede4', cheminee: '#a8553e', rondpoint: '#7ea55a', sculpture: '#8a5a3a', silo: '#b9c0c2', foin: '#d8b45a', vache: '#f0e6d8', serre: '#cfe6ea', monument: '#d6ccb4', clocher: '#d2bd92', tracteur: '#b93a2c', kiosque: '#3f6b4e' };
+const objectColors = { passerelle: '#3e7a5a', escalier: '#cdbb95', marche: '#d8c7a3', city: '#7a8f95', caravane: '#f1ede4', cheminee: '#a8553e', rondpoint: '#7ea55a', sculpture: '#8a5a3a', silo: '#b9c0c2', foin: '#d8b45a', vache: '#f0e6d8', serre: '#cfe6ea', monument: '#d6ccb4', clocher: '#d2bd92', tracteur: '#b93a2c', kiosque: '#3f6b4e', hall: '#8fa9b3' };
 function drawObject(ctx, { x, w, h, kind }) {
   const top = STREET_BASELINE - h, color = objectColors[kind] || '#9aa39c';
   switch (kind) {
@@ -261,7 +261,6 @@ export function drawStreetBlockout(ctx, spec, { legend = false } = {}) {
         legendText(ctx, label, Math.max(4, Math.min(CANVAS.width - 260, x)), Math.max(48, y), element.t === 'site' ? '#8a1c1c' : '#12324a');
       }
     });
-    if (spec.financier) { legendText(ctx, 'financier (PNJ du jeu)', spec.financier - 110, STREET_BASELINE - 250, '#6a3d9a'); drawScaleFigure(ctx, spec.financier, STREET_BASELINE); }
   }
   ctx.restore();
 }

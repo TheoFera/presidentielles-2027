@@ -1,4 +1,4 @@
-import { campaignStyles, isCampaignStyleUnlocked, nearCampaignHQ, styleSettings } from '../simulation/campaign-styles.js';
+import { campaignStyles, isCampaignStyleUnlocked } from '../simulation/campaign-styles.js';
 import { paintStylePortrait } from './campaign-style-art.js';
 
 export class CampaignStylesDisplay {
@@ -9,23 +9,8 @@ export class CampaignStylesDisplay {
     this.dialog.addEventListener('cancel', e => { e.preventDefault(); this.cancel(); });
     this.dialog.addEventListener('keydown', e => e.stopPropagation());
     this.dialog.addEventListener('close', () => { if (this.state?.campaign_style_selection && this.state.campaign_style_selection.candidate_id === this.state.local_candidate_id) this.dialog.showModal(); });
-    this.hold = document.createElement('button'); this.hold.id = 'change-campaign-style'; this.hold.type = 'button'; this.hold.hidden = true;
-    this.label = document.createElement('span'); this.label.textContent = 'CHANGER DE STYLE';
-    const help = document.createElement('small'); help.textContent = `Maintenir E ou ici · ${styleSettings(config).hold_seconds.toLocaleString('fr-FR')} s`;
-    // Le bouton se remplit lui-même pendant l'appui : pas de barre séparée.
-    this.hold.append(this.label, help);
-    this.hold.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); this.hold.setPointerCapture(e.pointerId); this.setHeld(true); });
-    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.hold.addEventListener(type, () => this.setHeld(false));
-    this.hold.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', e => { if (e.key.toLowerCase() === 'e' && !e.repeat && !this.dialog.open && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) { e.preventDefault(); this.setHeld(true); } });
-    window.addEventListener('keyup', e => { if (e.key.toLowerCase() === 'e') this.setHeld(false); });
-    window.addEventListener('blur', () => this.setHeld(false));
-    document.addEventListener('visibilitychange', () => { if (document.hidden) this.setHeld(false); });
-    document.body.append(this.dialog); (document.getElementById('game') || document.body).append(this.hold);
-  }
-  setHeld(active) {
-    if (!this.state || active && this.hold.hidden) return;
-    this.dispatch({ type: 'HoldCampaignStyle', candidateId: this.state.local_candidate_id, active });
+    // Le style choisi au QG est définitif : plus de bouton ni de touche pour en changer.
+    document.body.append(this.dialog);
   }
   cancel() {
     if (!this.state?.campaign_style_selection?.mandatory) this.dispatch({ type: 'CancelCampaignStyle', candidateId: this.state.local_candidate_id });
@@ -33,15 +18,12 @@ export class CampaignStylesDisplay {
   update(state) {
     this.state = state;
     const c = state.candidates.find(c => c.id === state.local_candidate_id), selection = state.campaign_style_selection?.candidate_id === state.local_candidate_id ? state.campaign_style_selection : null;
-    this.hold.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || !!state.campaign_style_selection || !c.current_campaign_style || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || !nearCampaignHQ(state, this.config, c);
-    const held = c.style_hold ? Math.min(1, (state.tick - c.style_hold.start_tick) / (styleSettings(this.config).hold_seconds * this.config.balance.simulation_architecture.fixed_tick_hz)) : 0;
-    this.hold.style.setProperty('--hold', `${Math.round(held * 100)}%`);
     if (!selection) { if (this.dialog.open) { this.dialog.close(); this.resetInput(); document.getElementById('world')?.focus(); } this.key = null; return; }
-    const key = JSON.stringify([selection, c.current_campaign_style, this.profile.unlocked_campaign_styles]);
+    const key = JSON.stringify([selection, c.current_campaign_style, this.profile.unlocked_campaign_styles, this.profile.nickname]);
     if (key === this.key) return;
     this.key = key; this.resetInput();
     const title = document.createElement('h1'); title.id = 'campaign-styles-title'; title.textContent = 'CHOISISSEZ VOTRE STYLE';
-    const subtitle = document.createElement('p'); subtitle.textContent = selection.mandatory ? 'QG établi. Choisissez votre première façon de faire campagne.' : 'Un seul style actif. Changer remet la charge de l’ultime à zéro.';
+    const subtitle = document.createElement('p'); subtitle.textContent = selection.mandatory ? 'QG établi. Choisissez votre façon de faire campagne : ce choix est définitif.' : 'Un seul style actif. Changer remet la charge de l’ultime à zéro.';
     const grid = document.createElement('div'); grid.className = 'campaign-style-grid';
     for (const style of campaignStyles(this.config, c.faction_id)) {
       const unlocked = isCampaignStyleUnlocked(this.profile, c.faction_id, style.id), current = style.id === c.current_campaign_style;

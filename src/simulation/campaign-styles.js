@@ -34,8 +34,12 @@ export function normalizeCampaignProfile(profile = {}) {
   return { ...profile, unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) =>
     [f, [...new Set([...DEFAULT_UNLOCKS[f], ...(Array.isArray(profile.unlocked_campaign_styles?.[f]) ? profile.unlocked_campaign_styles[f] : [])])].filter(id => styles.some(s => s.id === id))])) };
 }
+/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Arène. */
+export const BETATEST_NICKNAME = 'betatest';
+export const isBetatestProfile = profile => String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
 export function isCampaignStyleUnlocked(profile, faction, styleId) {
-  return !!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId) && normalizeCampaignProfile(profile).unlocked_campaign_styles[faction].includes(styleId);
+  if (!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId)) return false;
+  return isBetatestProfile(profile) || normalizeCampaignProfile(profile).unlocked_campaign_styles[faction].includes(styleId);
 }
 export function unlockCampaignStyle(profile, faction, styleId) {
   if (!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId)) throw new Error('Style de campagne inconnu.');
@@ -123,14 +127,8 @@ export class CampaignStyleSystem {
       return true;
     }
     if (sim.state.campaign_style_selection) return true;
-    if (command.type === 'HoldCampaignStyle') {
-      if (c && isHumanCandidate(sim.state, c.id)) {
-        c.style_interaction_held = command.active === true;
-        if (c.style_interaction_held) c.purchase_hold = null;
-        if (!c.style_interaction_held) c.style_hold = null;
-      }
-      return true;
-    }
+    // Le style est définitif une fois choisi : l'ancienne commande de changement est ignorée.
+    if (command.type === 'HoldCampaignStyle') return true;
     if (c && (['Attack', 'PressAttack', 'Jump'].includes(command.type) || command.type === 'Move' && command.axis)) { c.style_hold = null; c.style_interaction_held = false; }
     return false;
   }

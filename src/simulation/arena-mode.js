@@ -11,14 +11,11 @@ const clone = value => JSON.parse(JSON.stringify(value));
 
 /** Formats proposés dans le menu : nombre de combattants dans l’arène. */
 export const ARENA_FORMATS = Object.freeze({ '1v1': 2, '1v1v1': 3 });
-/** Pseudo du profil de test : tous les styles sont jouables en Arène. */
-export const BETATEST_NICKNAME = 'betatest';
+export { BETATEST_NICKNAME, isBetatestProfile } from './campaign-styles.js';
 
-export const isBetatestProfile = profile => String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
 /** Styles jouables en Arène par ce profil : ceux débloqués, ou tous pour « betatest ». */
 export function arenaStyleAvailable(config, profile, faction, styleId) {
-  if (!campaignStyles(config, faction).some(s => s.id === styleId)) return false;
-  return isBetatestProfile(profile) || isCampaignStyleUnlocked(profile, faction, styleId);
+  return campaignStyles(config, faction).some(s => s.id === styleId) && isCampaignStyleUnlocked(profile, faction, styleId);
 }
 
 /** Renvoie un message d’erreur lisible, ou null si le combat peut commencer. */
@@ -38,6 +35,31 @@ export function arenaSetupError(config, setup, profile = null) {
     seen.add(key);
   }
   return null;
+}
+
+/** Identifiants des combattants, dans l’ordre : le deuxième Mélenchon devient « candidate:melenchon:2 ». */
+export function arenaFighterIds(fighters) {
+  const counts = {};
+  return fighters.map(f => {
+    counts[f.faction] = (counts[f.faction] || 0) + 1;
+    return counts[f.faction] === 1 ? `candidate:${f.faction}` : `candidate:${f.faction}:${counts[f.faction]}`;
+  });
+}
+
+/**
+ * Arène multijoueur : un combattant par joueur (ordre des places), plus une IA
+ * quand deux joueurs choisissent le 1 contre 1 contre 1. L’IA prend de préférence
+ * un candidat absent, avec un style libre.
+ */
+export function multiplayerArenaSetup(config, room, { format = '1v1', map = config.balance.arena_mode.default_map } = {}) {
+  const fighters = [...room.players].sort((a, b) => a.slot - b.slot).map(p => ({ faction: p.faction, style: p.style, player: p.id }));
+  const count = Math.max(fighters.length, ARENA_FORMATS[format] ?? 2);
+  while (fighters.length < count) {
+    const free = faction => campaignStyles(config, faction).find(s => !fighters.some(f => f.faction === faction && f.style === s.id));
+    const faction = [...FACTIONS].sort((a, b) => fighters.filter(f => f.faction === a).length - fighters.filter(f => f.faction === b).length).find(free);
+    fighters.push({ faction, style: free(faction).id, player: null });
+  }
+  return { format: count === 3 ? '1v1v1' : '1v1', map, fighters };
 }
 
 /** Réglages du combat d’arène : ceux de la campagne, avec un dash plus long.
@@ -60,6 +82,8 @@ function createFighter(config, fighter, id, x, width) {
     is_ko: false, disappeared: false, ko_started_tick: -1, purchase_hold: null, money: 0,
     style_hold: null, style_interaction_held: false, ultimate_effect: null, bardella_form: false, bardellisation_used: false,
     arena_hp: hp, arena_initial_hp: hp, damage_dealt: 0,
+    // Arène multijoueur : combattant piloté par un autre joueur humain.
+    remote_player: !!fighter.player,
   };
   initializeMobileCombat({ config }, c);
   return c;
@@ -78,12 +102,8 @@ export class ArenaMatch {
     const b = config.balance.first_round_arena, mode = config.balance.arena_mode, map = mode.maps[setup.map];
     const seed = Number(setup.seed) >>> 0 || 1;
     const places = setup.fighters.length === 2 ? [0.25, 0.75] : [0.18, 0.5, 0.82];
-    const counts = {};
-    const candidates = setup.fighters.map((fighter, i) => {
-      counts[fighter.faction] = (counts[fighter.faction] || 0) + 1;
-      const id = counts[fighter.faction] === 1 ? `candidate:${fighter.faction}` : `candidate:${fighter.faction}:${counts[fighter.faction]}`;
-      return createFighter(config, fighter, id, places[i] * b.width_units, b.width_units);
-    });
+    const ids = arenaFighterIds(setup.fighters);
+    const candidates = setup.fighters.map((fighter, i) => createFighter(config, fighter, ids[i], places[i] * b.width_units, b.width_units));
     this.state = {
       mode: 'ARENA', phase: 'COUNTDOWN', format: setup.format, map_id: setup.map, map_name: map.name,
       tick: 0, seed, rng_state: seed, world: { length: b.width_units }, ai_enabled: true,

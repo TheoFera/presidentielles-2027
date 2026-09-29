@@ -17,9 +17,6 @@ export const fixedWorldAssets = {
   'riders-philippe': { file: new URL('../../assets/generated/world-v2/riders-philippe.png', import.meta.url).href },
   'riders-bardella': { file: new URL('../../assets/generated/world-v2/riders-bardella.png', import.meta.url).href },
   'vehicles': { file: new URL('../../assets/generated/world-v2/riders-vehicles.png', import.meta.url).href },
-  'financier-tech': { file: new URL('../../assets/generated/world-v3/financier-tech.png', import.meta.url).href },
-  'financier-russe': { file: new URL('../../assets/generated/world-v3/financier-russe.png', import.meta.url).href },
-  'financier-medias': { file: new URL('../../assets/generated/world-v3/financier-medias.png', import.meta.url).href },
   ...v3,
   ...Object.fromEntries(Object.entries(MINOR_SPRITES).map(([faction, file]) => [`minor-${faction}`, { file: new URL(`../../${file}`, import.meta.url).href }])),
 };

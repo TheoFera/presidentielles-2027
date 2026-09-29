@@ -231,7 +231,7 @@ export function drawArenaMode(renderer, state, previous, alpha, elapsed = 0) {
   ctx.font = '800 12px system-ui, sans-serif';
   const placed = [];
   for (const [fighter, feetX, feetY] of tags.sort((a, b) => a[1] - b[1])) {
-    const text = `${fighter.id === state.local_candidate_id ? 'VOUS' : 'IA'} · ${fighterLabel(renderer.config, fighter).name}`;
+    const text = `${fighter.id === state.local_candidate_id ? 'VOUS' : fighter.remote_player ? 'JOUEUR' : 'IA'} · ${fighterLabel(renderer.config, fighter).name}`;
     const width = ctx.measureText(text).width + 14;
     const x = Math.max(width / 2 + 4, Math.min(renderer.width - width / 2 - 4, feetX));
     let y = feetY - m.characterHeight * 1.08;
@@ -343,7 +343,9 @@ export class ArenaModeDisplay {
       item.querySelector('small').textContent = `${Math.round(fighter.damage_dealt)} dégâts infligés`;
       list.append(item);
     }
+    // En multijoueur, la revanche et le changement de combattants passent par un nouveau salon.
+    if (this.multiplayer) panel.querySelectorAll('[data-arena-action="rematch"], [data-arena-action="setup"]').forEach(button => button.remove());
     this.result.replaceChildren(panel); this.result.hidden = false;
-    panel.querySelector('.arena-primary').focus({ preventScroll: true });
+    panel.querySelector('button').focus({ preventScroll: true });
   }
 }

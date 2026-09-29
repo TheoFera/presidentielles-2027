@@ -6,11 +6,11 @@
     "second_round_sprint_seconds": 60
   },
   "camera": {
-    "framing_zoom": 1.15,
+    "framing_zoom": 1.25,
     "zoom_close": 1.18,
     "zoom_medium": 1,
     "zoom_far": 0.84,
-    "default_zoom": 0.65,
+    "default_zoom": 1,
     "follow_smoothing": 0.12,
     "look_ahead_ratio": 0.06
   },
@@ -74,13 +74,15 @@
   "physical_units": {
     "sympathisant": {
       "hidden_durability": 30,
-      "task_move_speed": 2.4
+      "task_move_speed": 2.4,
+      "tract_pickup_zone_radius": 1
     },
     "militant": {
       "hidden_durability": 30,
       "move_speed": 2.4,
       "verbal_attack_electoral_damage": 0.025,
       "nearby_zone_radius": 1,
+      "expedition_min_group_size": 3,
       "reconsider_seconds": 3,
       "stop_distance_radius_ratio": 0.75,
       "assignment_militant_weight": 1.5,
@@ -980,16 +982,5 @@
     "border_units": 3,
     "detection_range_units": 7,
     "roam_pause_seconds": 2.5
-  },
-  "funding_encounters": {
-    "threshold_eur": 1000,
-    "amount_eur": 20000,
-    "sign_seconds": 3,
-    "sign_radius_units": 0.8,
-    "appearance_radius_units": 7,
-    "witness_radius_units": 24,
-    "retry_seconds": 12,
-    "ai_boost_threshold": 0.75,
-    "ai_search_radius_units": 120
   }
 }

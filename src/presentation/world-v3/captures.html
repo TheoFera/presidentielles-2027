@@ -24,23 +24,28 @@
   const state = sim.state, player = state.candidates[0];
   player.interaction_active = false; player.campaign_active = false;
   state.candidates.slice(1).filter(c => !c.minor).forEach(c => { c.disappeared = true; });
+  const params = new URLSearchParams(location.search);
+  const format = { telephone: [1560, 720], tablette: [960, 720] }[params.get('format')] || [1280, 720];
+  Object.assign(document.getElementById('game').style, { width: `${format[0]}px`, height: `${format[1]}px` });
   const renderer = new WorldRenderer(document.getElementById('game'), config);
   await renderer.assets.keep(worldAssetIds(renderer.assets.manifest, state));
   const shots = {};
   const draw = (x, name, progress = 0.1) => {
     player.x = x; state.campaign_progress_01 = progress; renderer.resetCamera(); renderer.cameraX = x;
     renderer.draw(state, state, 1, 1 / 60, false);
-    const small = document.createElement('canvas'); small.width = 960; small.height = 540;
-    small.getContext('2d').drawImage(renderer.canvas, 0, 0, 960, 540);
+    const small = document.createElement('canvas'); small.width = Math.round(540 * format[0] / format[1]); small.height = 540;
+    small.getContext('2d').drawImage(renderer.canvas, 0, 0, small.width, 540);
     shots[name] = small.toDataURL('image/png');
   };
+  if (params.has('fresque')) { // parcours complet de la fresque, un cliché toutes les 12 unités
+    for (let x = 0; x < state.world.length; x += 12) draw(x + 0.01, `fresque-${String(x).padStart(3, '0')}.png`, Number(params.get('saison') || 0.1));
+  } else {
   state.world.subzones.forEach((zone, i) => draw(zone.center, `${String(i).padStart(2, '0')}-centre-${zone.id}.png`));
   state.world.subzones.forEach((zone, i) => draw(zone.start, `${String(i).padStart(2, '0')}-raccord-${zone.id}.png`));
   const paris = state.world.subzones[1];
   for (const [progress, season] of [[0.3, 'automne'], [0.55, 'hiver'], [0.8, 'printemps']]) draw(paris.center, `saison-${season}.png`, progress);
-  const niel = state.funding_encounters.find(e => e.kind === 'tech');
-  niel.candidate_id = player.id; niel.hold_ticks = 40; draw(niel.x - 0.6, 'financier.png'); niel.candidate_id = null; niel.hold_ticks = 0;
-  if (new URLSearchParams(location.search).has('export'))
+  }
+  if (params.has('export'))
     for (const [name, data] of Object.entries(shots)) await fetch(`/__export?name=${encodeURIComponent(name)}`, { method: 'POST', body: data });
   else for (const data of Object.values(shots)) { const img = new Image(); img.src = data; document.getElementById('list').append(img); }
   document.title = 'Captures prêtes';

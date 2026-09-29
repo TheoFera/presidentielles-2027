@@ -501,41 +501,6 @@
     "default": 1,
     "by_subzone": {}
   },
-  "funding_npcs": [
-    {
-      "id": "financier:tech",
-      "kind": "tech",
-      "label": "Entrepreneur du numérique",
-      "subzone_id": "paris_b",
-      "x_ratio": 0.72,
-      "factions": [
-        "melenchon",
-        "philippe"
-      ]
-    },
-    {
-      "id": "financier:russe",
-      "kind": "russe",
-      "label": "Intermédiaire russe",
-      "subzone_id": "periurbain_b",
-      "x_ratio": 0.76,
-      "factions": [
-        "melenchon",
-        "le_pen"
-      ]
-    },
-    {
-      "id": "financier:medias",
-      "kind": "medias",
-      "label": "Magnat des médias",
-      "subzone_id": "retraites_b",
-      "x_ratio": 0.64,
-      "factions": [
-        "le_pen",
-        "philippe"
-      ]
-    }
-  ],
   "minor_candidates": [
     {
       "faction_id": "glucksmann",

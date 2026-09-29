@@ -36,7 +36,7 @@
 /* ——— Combat : l’interface de la campagne est masquée ——— */
 body.arena-mode #funds, body.arena-mode #electoral-display, body.arena-mode #poll-scores, body.arena-mode #arena-hud,
 body.arena-mode #phase-banner, body.arena-mode #spectator, body.arena-mode #results, body.arena-mode #campaign-events,
-body.arena-mode #change-campaign-style, body.arena-mode #notice, body.arena-mode #network-status { display: none !important; }
+body.arena-mode #notice, body.arena-mode #network-status { display: none !important; }
 
 #arena-mode-hud { position: absolute; top: 1.4cqw; left: 2cqw; right: 2cqw; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12cqw; pointer-events: none; }
 #arena-mode-hud[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3cqw; }

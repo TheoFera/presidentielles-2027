@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { config as base } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { aiFinancierTarget, updateFundingEncounters, visibleFinancier } from '../src/simulation/funding-encounters.js';
 import { CANVAS, FARS, MEETINGS, MIDDLES, STREETS, STREET_BASELINE, allDecorImages, blockoutSiteTargets, signRect } from '../src/presentation/world-v3/spec.js';
 import { decorPrompt } from '../src/presentation/world-v3/prompts.js';
 import { layerFrame, streetFrame, worldBiomes } from '../src/presentation/fixed-world.js';
@@ -10,46 +9,6 @@ import { cleanPixels, findCreamSigns, measureBaseline } from '../scripts/world-v
 
 const make = () => { const config = structuredClone(base); config.balance.campaign_events.event_enabled = false; const sim = new GameSimulation(config, 42); sim.state.ai_enabled = false; return sim; };
 const alone = (sim, candidate, x) => { sim.state.candidates.forEach(c => { c.x = (c === candidate ? x : x + 200) % sim.state.world.length; }); candidate.money = 0; };
-
-test('Financiers : seuls les candidats autorisés, fauchés et seuls les voient', () => {
-  const sim = make(), niel = sim.state.funding_encounters.find(e => e.kind === 'tech');
-  const lePen = sim.state.candidates.find(c => c.faction_id === 'le_pen'), melenchon = sim.state.candidates.find(c => c.faction_id === 'melenchon');
-  alone(sim, lePen, niel.x + 1); updateFundingEncounters(sim);
-  assert.equal(niel.candidate_id, null, 'Le Pen ne peut pas signer avec l’entrepreneur du numérique');
-  alone(sim, melenchon, niel.x + 1); melenchon.money = 2; updateFundingEncounters(sim);
-  assert.equal(niel.candidate_id, null, 'au-dessus de 1 000 €, il ne vient pas');
-  melenchon.money = 0.5; updateFundingEncounters(sim);
-  assert.equal(niel.candidate_id, melenchon.id); assert.equal(visibleFinancier(sim.state, melenchon.id), niel);
-  assert.equal(visibleFinancier(sim.state, lePen.id), null);
-  lePen.x = niel.x + 5; updateFundingEncounters(sim);
-  assert.equal(niel.candidate_id, null, 'un témoin le fait disparaître');
-});
-
-test('Financiers : 20 000 € après 3 s immobile, un seul contrat pour toute la partie', () => {
-  const sim = make(), medias = sim.state.funding_encounters.find(e => e.kind === 'medias');
-  const philippe = sim.state.candidates.find(c => c.faction_id === 'philippe'), lePen = sim.state.candidates.find(c => c.faction_id === 'le_pen');
-  alone(sim, philippe, medias.x); philippe.axis = 0; philippe.moving = false;
-  for (let i = 0; i < sim.secondsToTicks(sim.config.balance.funding_encounters.sign_seconds) + 2; i++) updateFundingEncounters(sim);
-  assert.equal(philippe.money, sim.config.balance.funding_encounters.amount_eur / 1000);
-  assert.equal(sim.config.balance.funding_encounters.amount_eur, 20000);
-  assert.equal(medias.signed_candidate_id, philippe.id);
-  alone(sim, lePen, medias.x); sim.state.tick += sim.secondsToTicks(60);
-  for (let i = 0; i < 400; i++) updateFundingEncounters(sim);
-  assert.equal(medias.candidate_id, null, 'une fois signé, il n’apparaît plus pour personne'); assert.equal(lePen.money, 0);
-  const restored = make(); restored.importSnapshot(sim.exportSnapshot());
-  assert.equal(restored.state.funding_encounters.find(e => e.kind === 'medias').signed_candidate_id, philippe.id);
-});
-
-test('IA : un financier seulement pour rattraper un humain nettement dominant', () => {
-  const sim = make(), russe = sim.state.funding_encounters.find(e => e.kind === 'russe');
-  const lePen = sim.state.candidates.find(c => c.faction_id === 'le_pen'), philippe = sim.state.candidates.find(c => c.faction_id === 'philippe');
-  alone(sim, lePen, russe.x - 20);
-  assert.equal(aiFinancierTarget(sim.state, sim.config, lePen, { boost: 0.3 }), null, 'l’IA qui n’est pas distancée ne va pas le chercher');
-  assert.equal(aiFinancierTarget(sim.state, sim.config, lePen, { boost: 1 }), russe);
-  philippe.money = 0; assert.notEqual(aiFinancierTarget(sim.state, sim.config, philippe, { boost: 1 })?.kind, 'russe', 'Philippe ne signe pas avec l’intermédiaire russe');
-  lePen.money = 5; assert.equal(aiFinancierTarget(sim.state, sim.config, lePen, { boost: 1 }), null, 'pas quand elle a de l’argent');
-  lePen.money = 0; russe.signed_candidate_id = philippe.id; assert.equal(aiFinancierTarget(sim.state, sim.config, lePen, { boost: 1 }), null, 'contrat déjà signé');
-});
 
 test('Maquette : chaque bâtiment du tableau a sa porte et son enseigne, les meetings sont au centre', () => {
   const targets = blockoutSiteTargets();
@@ -71,7 +30,6 @@ test('Maquette : chaque bâtiment du tableau a sa porte et son enseigne, les mee
     for (const element of spec.elements.filter(e => e.w && e.t !== 'place' && e.t !== 'tour'))
       if (element.x < 60 || element.x + element.w > CANVAS.width - 60) assert.ok(element.h <= 140, `bord trop haut dans ${id} (${element.desc})`);
   }
-  for (const npc of base.layout.funding_npcs) assert.equal(STREETS[npc.subzone_id].financier, Math.round(npc.x_ratio * CANVAS.width), npc.id);
 });
 
 test('Maquette : le tableau est respecté (Haussmann seulement à Paris, deux tours, rond-point devant, mer, montagne)', () => {

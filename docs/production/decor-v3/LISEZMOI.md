@@ -1,5 +1,7 @@
 # Décor v3 — carte de France en couches
 
+> **Choix du décor** : le jeu utilise par défaut l'ancien décor en couches peintes (`assets/generated/biomes`). Le profil dont le pseudo est « betatest » peut choisir, dans « Mon profil », entre ce décor, les panoramas world-v2 et la fresque dessinée par le code (`src/presentation/map-decor.js`). Même gameplay et même zoom (une sous-zone = 1,25 écran) pour les trois. Pages d'outils : `?decor=biomes|panoramas|fresque`.
+
 Ce dossier contient tout ce qu’il faut pour produire le nouveau décor avec ChatGPT (ou Codex) puis le brancher dans le jeu sans retoucher le code.
 
 ## Ce qui change pour le joueur
@@ -32,8 +34,8 @@ Saisons : le jeu teinte chaque plan selon la saison, pose de la neige sur les ar
 - `maquettes/*-legende.png` : même plan avec la ligne de sol, la règle en unités, une silhouette à l’échelle et le nom de chaque élément.
 - `PROMPTS.md` : un prompt complet par image, avec les coordonnées de chaque élément.
 - Source unique : `src/presentation/world-v3/spec.js`. Après toute modification : `node scripts/world-v3-export.mjs` régénère les maquettes et les prompts.
-- Aperçu en direct : `npm start`, puis `http://localhost:2027/?decor=maquette` (les portes jouables suivent alors celles des maquettes). La page `src/presentation/world-v3/apercu.html` montre toutes les maquettes.
-- Captures automatiques du jeu (centres et raccords des 18 sous-zones, saisons, financier) : `node scripts/world-v3-export.mjs captures` (maquettes) ou `captures-final` (images réelles), dans `artifacts/world-v3/`.
+- Aperçu en direct : `npm start`, puis `http://localhost:2027/?decor=maquette` affiche la **fresque continue**, entièrement dessinée par le code dans un seul style (`src/presentation/world-v3/fresque/`), à l'échelle des personnages et autour des vraies positions des bâtiments. Planches d'éléments : `SET=paris node scripts/world-v3-export.mjs planche`. Travelling automatique : `src/presentation/world-v3/balade.html?decor=maquette`. Parcours complet en images : `node scripts/world-v3-export.mjs fresque` (variables `FORMAT=telephone|tablette`, `SAISON=0.55`). Les éléments à peindre sont listés dans `FRESQUE-A-PEINDRE.md`. La page `src/presentation/world-v3/apercu.html` montre toujours les anciennes maquettes.
+- Captures automatiques du jeu (centres et raccords des 18 sous-zones, saisons) : `node scripts/world-v3-export.mjs captures` (maquettes) ou `captures-final` (images réelles), dans `artifacts/world-v3/`.
 
 ## Procédure pour Codex ou ChatGPT
 
@@ -50,7 +52,6 @@ Saisons : le jeu teinte chaque plan selon la saison, pose de la neige sur les ar
 
 ## Avis sur les images déjà générées
 
-- **Financiers** (`financier-tech.png`, `financier-russe.png`, `financier-medias.png`) : conservés. Le style correspond à celui des personnages. Les trois poses (discret, contrat, liasse) sont utilisées en jeu. Le léger halo sombre est retiré automatiquement.
 - **Rues v3 de Codex** (Paris A, B, C, Banlieue B, C), rangées dans `assets/generated/world-v3/brouillons-codex/` :
   - le style est bon et la composition proche du tableau ;
   - mais l’échelle est trop petite pour le zoom du jeu : les portes seraient moins hautes que les personnages, et la ligne de sol est trop haute ;

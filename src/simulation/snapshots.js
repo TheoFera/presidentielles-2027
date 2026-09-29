@@ -1,4 +1,3 @@
-import { validateFundingEncounters } from './funding-encounters.js';
 import { validateVehicles } from './vehicles.js';
 import { validateRallies } from './rallies.js';
 import { validateCampaignSnapshot } from './campaign-validation.js';
@@ -165,7 +164,6 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (record.subzone_id !== next.world.subzones[index].id || !record.support
       || [...ALL_FACTIONS, 'neutral', 'pending'].some(key => !integer(record.support[key]))) fail('électorat invalide');
   });
-  validateFundingEncounters(next, config, fail);
   validateVehicles(next, fail, config);
   validateRallies(next, fail);
   validateCombatSnapshot(next, simulation, fail);

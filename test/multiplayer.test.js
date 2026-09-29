@@ -393,3 +393,34 @@ test('Serveur local : un invité qui quitte le salon libère sa place, l’hôte
   assert.equal((await request('leave', auth)).status, 200);
   assert.equal((await request('heartbeat', { code: again.code, token: again.token })).status, 400);
 });
+
+test('Salon d’arène : ouvert dès deux joueurs, même candidat avec un autre style, réglages vérifiés', async t => {
+  const handler = createMultiplayerHandler();
+  const server = http.createServer(handler);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => { handler.close(); server.closeAllConnections(); server.close(); });
+  const base = `http://127.0.0.1:${server.address().port}/api/multiplayer/`;
+  const request = async (action, data = {}) => {
+    const response = await fetch(base + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    return { status: response.status, ...await response.json() };
+  };
+  const host = await request('create', { mode: 'arena' });
+  assert.equal(host.room.mode, 'arena');
+  const auth = { code: host.code, token: host.token };
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400, 'seul, on attend un adversaire');
+  const guest = await request('join', { code: host.code });
+  const guestAuth = { code: guest.code, token: guest.token };
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 200);
+  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400);
+  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400, 'le style est obligatoire en arène');
+  assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon', style: 'melenchon_universaliste' })).status, 200);
+  const fighters = [{ faction: 'melenchon', style: 'melenchon_populiste', player: host.id }, { faction: 'melenchon', style: 'melenchon_universaliste', player: guest.id }];
+  assert.equal((await request('start', { ...guestAuth, setup: { format: '1v1', map: 'studio', fighters } })).status, 400);
+  assert.equal((await request('start', { ...auth, setup: { format: '1v1', map: 'studio', fighters: [fighters[0], { ...fighters[1], style: 'melenchon_communautariste' }] } })).status, 400, 'le combattant doit être celui choisi');
+  const ai = { faction: 'le_pen', style: 'le_pen_souverainiste', player: null };
+  assert.equal((await request('start', { ...auth, setup: { format: '1v1v1', map: 'plateau', fighters: [...fighters, ai] } })).status, 200);
+  assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);
+  assert.equal((await request('ready', auth)).status, 200);
+  assert.equal((await request('ready', guestAuth)).status, 200);
+  assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'DropDown' }] })).status, 200);
+});
