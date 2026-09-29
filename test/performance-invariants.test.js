@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
-import { FACTIONS } from '../src/simulation/world.js';
+import { ALL_FACTIONS, FACTIONS } from '../src/simulation/world.js';
 import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
@@ -21,7 +21,7 @@ test('Les voix restent celles des PNJ après mutations au même tick', () => {
       npc.faction_id = npc.role === 'NEUTRE' ? null : FACTIONS[(index + variant) % 3];
     });
     refreshElectoralState(state);
-    const expected = { melenchon: 0, le_pen: 0, philippe: 0, neutral: 0, pending: 0 };
+    const expected = { ...Object.fromEntries(ALL_FACTIONS.map(f => [f, 0])), neutral: 0, pending: 0 };
     for (const npc of state.npcs) expected[npc.role === 'NEUTRE' ? 'neutral' : npc.faction_id]++;
     assert.deepEqual(state.actualGameState.national_counts, expected);
     assert.equal(Object.values(expected).reduce((sum, count) => sum + count, 0), 200);

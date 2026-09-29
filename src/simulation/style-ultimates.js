@@ -39,7 +39,7 @@ export function tryBardellisation(sim, candidate) {
 
 function temporary(sim, owner, power, role, x, durability, extra = {}) {
   const unit = { id: `temporary:${sim.state.next_temporary_id++}`, power_id: power.id, owner_id: owner.id,
-    role, faction_id: owner.faction_id, temporary: true, expired: false, x: combatPosition(sim.state, x),
+    role, faction_id: owner.faction_id, ...(owner.team_id ? { team_id: owner.team_id } : {}), temporary: true, expired: false, x: combatPosition(sim.state, x),
     follow_offset: 0, facing: owner.facing, moving: false, expires_tick: power.expires_tick,
     hidden_durability: durability, combat: combatState(), persuasion_target_ids: [], ...extra };
   sim.state.temporary_units.push(unit); return unit;

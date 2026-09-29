@@ -12,8 +12,8 @@ export class CampaignStylesDisplay {
     this.hold = document.createElement('button'); this.hold.id = 'change-campaign-style'; this.hold.type = 'button'; this.hold.hidden = true;
     this.label = document.createElement('span'); this.label.textContent = 'CHANGER DE STYLE';
     const help = document.createElement('small'); help.textContent = `Maintenir E ou ici · ${styleSettings(config).hold_seconds.toLocaleString('fr-FR')} s`;
-    this.progress = document.createElement('progress'); this.progress.max = 1; this.progress.value = 0; this.progress.setAttribute('aria-label', 'Changement de style');
-    this.hold.append(this.label, help, this.progress);
+    // Le bouton se remplit lui-même pendant l'appui : pas de barre séparée.
+    this.hold.append(this.label, help);
     this.hold.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); this.hold.setPointerCapture(e.pointerId); this.setHeld(true); });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.hold.addEventListener(type, () => this.setHeld(false));
     this.hold.addEventListener('contextmenu', e => e.preventDefault());
@@ -34,7 +34,8 @@ export class CampaignStylesDisplay {
     this.state = state;
     const c = state.candidates.find(c => c.id === state.local_candidate_id), selection = state.campaign_style_selection?.candidate_id === state.local_candidate_id ? state.campaign_style_selection : null;
     this.hold.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || !!state.campaign_style_selection || !c.current_campaign_style || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || !nearCampaignHQ(state, this.config, c);
-    this.progress.value = c.style_hold ? Math.min(1, (state.tick - c.style_hold.start_tick) / (styleSettings(this.config).hold_seconds * this.config.balance.simulation_architecture.fixed_tick_hz)) : 0;
+    const held = c.style_hold ? Math.min(1, (state.tick - c.style_hold.start_tick) / (styleSettings(this.config).hold_seconds * this.config.balance.simulation_architecture.fixed_tick_hz)) : 0;
+    this.hold.style.setProperty('--hold', `${Math.round(held * 100)}%`);
     if (!selection) { if (this.dialog.open) { this.dialog.close(); this.resetInput(); document.getElementById('world')?.focus(); } this.key = null; return; }
     const key = JSON.stringify([selection, c.current_campaign_style, this.profile.unlocked_campaign_styles]);
     if (key === this.key) return;

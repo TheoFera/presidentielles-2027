@@ -1,4 +1,4 @@
-import { wrap, zoneAt } from './world.js';
+import { isMinorFaction, wrap, zoneAt } from './world.js';
 import { biomeSympathisants, distance, localSympathisants, stableIdOrder } from './territory.js';
 import { buildingSettings, printsTracts } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
@@ -53,6 +53,8 @@ export function buildingOffer(state, config, candidate, building) {
 export function buildingOffers(state, config, candidate, building) {
   if (building.type === 'meeting' && state.campaign_events?.some(e => e.status === 'ACTIVE' && e.target_site_id === building.id && ['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family))) return [];
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return [];
+  // Un candidat mineur n'achète rien, et son QG est imprenable tant qu'il est en campagne.
+  if (candidate.minor || isMinorFaction(building.owner_id)) return [];
   if (building.type === 'faction') return factionOffers(state, config, candidate, building);
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building);
   const offer = buildingOffer(state, config, candidate, building);
@@ -195,16 +197,19 @@ export function aiDevelopmentZone(state, config, candidate) {
 }
 
 /** Même devis, présence et budget que le joueur ; aucun achat à distance. */
-export function aiEconomicTarget(state, config, candidate, objective = null) {
+export function aiEconomicTarget(state, config, candidate, objective = null, adaptation = null) {
   const settings = config.balance.ai_economy;
   if (!settings.enabled) return null;
+  // Adaptation : face à un humain dominant, l’IA accepte de plus longs détours et lance plus volontiers ses meetings.
+  const boost = Math.max(0, adaptation?.boost ?? 0);
+  const spared = adaptation?.spared ?? new Set();
   const zone = zoneAt(state.world, candidate.x);
   const options = [];
   for (const building of state.buildings) {
     if (building.id === candidate.purchase_latch_target_id) continue;
     const local = building.subzone_id === (objective?.subzone_id ?? zone.id);
     // Les investissements hors objectif restent de courts détours sur le trajet.
-    const detour = building.owner_id === candidate.faction_id ? 10 : 4;
+    const detour = (building.owner_id === candidate.faction_id ? 10 : 4) * (1 + boost);
     if (!local && (objective?.purpose === 'SETUP' || distance(state, candidate.x, building.x) > detour)) continue;
     for (const offer of buildingOffers(state, config, candidate, building)) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
@@ -223,6 +228,8 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
         if (supporters.some(n => state.buildings.some(b => b.subzone_id === zoneAt(state.world, n.x).id && b.owner_id === candidate.faction_id
           && b.state === 'ACTIVE' && localSympathisants(state, b.subzone_id, candidate.faction_id).length - queued <= (buildingSettings(config, b).required_presence_N1 ?? 0)))) continue;
       }
+      // Laisser respirer un humain distancé : pas de fermeture administrative contre lui.
+      if (offer.kind === 'CLOSE' && spared.has(state.buildings.find(b => b.id === offer.victim_id)?.owner_id)) continue;
       if (offer.kind === 'RAID') {
         const direction = offer.direction;
         const enemy = state.buildings.some(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== candidate.faction_id
@@ -233,7 +240,7 @@ export function aiEconomicTarget(state, config, candidate, objective = null) {
         : building.type === 'tour_communication' ? 3 : building.type === 'financement' ? 4 : 5)
         : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
         : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 5 : offer.kind === 'EQUIP' ? 6
-        : offer.kind === 'MEETING' ? 7 : 8;
+        : offer.kind === 'MEETING' ? 7 - 4 * boost : 8;
       options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer,
         rank: priority + distance(state, candidate.x, offer.x) * 0.35 });
     }

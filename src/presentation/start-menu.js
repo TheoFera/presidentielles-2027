@@ -1,13 +1,14 @@
 import { CANDIDATES, homeContent, candidatesContent, tutorialContent } from './arcade-content.js';
 import { enterLandscape, syncOrientation } from './landscape.js';
 import { profileButton, profileContent, cleanNickname } from './player-profile.js';
+import { showArenaSetup, defaultArenaSetup } from './arena-menu.js';
 const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
 export { CANDIDATES } from './arcade-content.js';
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer, combat, audio = null, account = null }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, selected: null, generation: 0 });
+  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, arena = null }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, arenaMode: arena, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -57,6 +58,35 @@ export class StartMenu {
     const mobileLandscape = () => { if (window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
     this.element.querySelector('#solo').onclick = () => { mobileLandscape(); this.candidates(); };
     this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this); };
+    this.element.querySelector('#arena').onclick = () => { mobileLandscape(); this.arena(); };
+  }
+  /** Mode Arène : réglages du combat. Le dernier réglage est gardé pour la revanche. */
+  arena(setup = this.arenaSetup) {
+    const { config } = this.arenaMode;
+    this.arenaSetup = setup || defaultArenaSetup(config, this.account?.get() || {}, this.selected || 'melenchon');
+    showArenaSetup(this, { config, profile: this.account?.get() || {}, setup: this.arenaSetup, start: chosen => void this.arenaLoading(chosen) });
+  }
+  async arenaLoading(setup) {
+    this.page('arena-loading', 'Direction le plateau !', '<div class="arena-loading"><p id="loading-status" role="status">Préparation du combat…</p><progress class="menu-loading" max="1" value="0" aria-label="Chargement du combat"></progress><span id="loading-percent" aria-hidden="true">0 %</span></div><footer class="menu-footer"><span></span><button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></footer>', () => this.arena());
+    const generation = this.generation;
+    const button = this.element.querySelector('#start-campaign');
+    try {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (generation !== this.generation) return;
+      await this.arenaMode.prepare(setup, ratio => {
+        if (generation !== this.generation) return;
+        this.element.querySelector('progress').value = ratio;
+        this.element.querySelector('#loading-percent').textContent = `${Math.round(ratio * 100)} %`;
+      });
+      if (generation !== this.generation) return;
+      // Pas d'écran intermédiaire : le compte à rebours démarre aussitôt.
+      this.close(); this.arenaMode.play();
+    } catch (error) {
+      if (generation !== this.generation) return;
+      this.element.querySelector('#loading-status').textContent = error.message || 'Chargement interrompu.';
+      button.disabled = false; button.textContent = 'Réessayer';
+      button.onclick = () => void this.arenaLoading(setup);
+    }
   }
   profile() {
     this.page('profile', 'Mon profil', profileContent(this.account.get()));

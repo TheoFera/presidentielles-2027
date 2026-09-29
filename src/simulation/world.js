@@ -1,4 +1,8 @@
 export const FACTIONS = ['melenchon', 'le_pen', 'philippe'];
+/** Candidats mineurs : un QG fixe, quelques sympathisants, pas d'économie ; éliminés définitivement s'ils sont battus. */
+export const MINOR_FACTIONS = ['glucksmann', 'roussel', 'arthaud', 'dupont_aignan', 'retailleau', 'attal'];
+export const ALL_FACTIONS = [...FACTIONS, ...MINOR_FACTIONS];
+export const isMinorFaction = faction => MINOR_FACTIONS.includes(faction);
 
 export function wrap(x, length) { return ((x % length) + length) % length; }
 

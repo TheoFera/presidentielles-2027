@@ -1,4 +1,4 @@
-import { FACTIONS } from './world.js';
+import { ALL_FACTIONS } from './world.js';
 
 export function validateCombatSnapshot(state, sim, fail) {
   const integer = n => Number.isInteger(n) && n >= 0;
@@ -42,14 +42,14 @@ export function validateCombatSnapshot(state, sim, fail) {
   }
   for (const attack of state.attacks) {
     if (!counterId(attack.id, 'attack', 'next_attack_id') || !actors.some(a => a.id === attack.owner_id && a.faction_id === attack.faction_id && a.combat.attack_id === attack.id)
-      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
+      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF', 'DIVE'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
       || ['elapsed_ticks', 'windup_ticks', 'active_ticks', 'recovery_ticks'].some(k => !integer(attack[k]))
       || attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks + attack.recovery_ticks
       || ['range', 'damage', 'knockback', 'electoral_damage'].some(k => !finite(attack[k]))
       || !Array.isArray(attack.hit_ids) || new Set(attack.hit_ids).size !== attack.hit_ids.length) fail('attaque invalide');
   }
   for (const projectile of state.projectiles) {
-    if (!counterId(projectile.id, 'projectile', 'next_projectile_id') || !['VERBAL', 'WAVE', 'BUBBLE', 'MOLOTOV'].includes(projectile.kind) || !FACTIONS.includes(projectile.faction_id)
+    if (!counterId(projectile.id, 'projectile', 'next_projectile_id') || !['VERBAL', 'WAVE', 'BUBBLE', 'MOLOTOV'].includes(projectile.kind) || !ALL_FACTIONS.includes(projectile.faction_id)
       || !actors.some(a => a.id === projectile.owner_id) || !position(projectile.x) || ![-1, 1].includes(projectile.direction)
       || ['speed', 'remaining_range', 'damage', 'knockback', 'electoral_damage'].some(k => !finite(projectile[k])) || projectile.remaining_range <= 0
       || !Array.isArray(projectile.hit_ids) || new Set(projectile.hit_ids).size !== projectile.hit_ids.length) fail('projectile invalide');

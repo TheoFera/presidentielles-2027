@@ -13,6 +13,7 @@ const base = new URL('../Présidentielles 2027/', import.meta.url);
 const [balance, layout, buildings, prototype] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json']
   .map(async file => JSON.parse(await readFile(new URL(file, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype });
+config.balance.minor_candidates.enabled = false;
 const advance = (sim, ticks) => { for (let i = 0; i < ticks; i++) sim.step(); };
 const candidate = (sim, faction = 'melenchon') => sim.state.candidates.find(c => c.faction_id === faction);
 
@@ -25,10 +26,10 @@ function unit(sim, role, faction, x) {
   return npc;
 }
 
-test('30 sites fixes : un contrôle par sous-zone et un meeting central par biome', () => {
+test('27 sites fixes : un contrôle par sous-zone et un meeting central par biome', () => {
   const a = new GameSimulation(config, 2027), b = new GameSimulation(config, 99);
   assert.deepEqual(a.state.buildings, b.state.buildings);
-  assert.equal(a.state.buildings.length, 30);
+  assert.equal(a.state.buildings.length, 27);
   for (const [type, count] of Object.entries(config.layout.strategic_site_generation.site_counts)) assert.equal(a.state.buildings.filter(s => s.type === type).length, count);
   for (const zone of a.state.world.subzones) assert.equal(a.state.buildings.filter(s => s.subzone_id === zone.id && s.controls_zone).length, 1);
   for (const biome of config.layout.biomes) {
@@ -36,7 +37,7 @@ test('30 sites fixes : un contrôle par sous-zone et un meeting central par biom
     assert.equal(meetings.length, 1); assert.equal(meetings[0].subzone_id, biome.subzones[1].id);
     assert.equal(meetings[0].x, a.state.world.subzones.find(z => z.id === biome.subzones[1].id).center);
   }
-  assert.deepEqual(new Set(a.state.buildings.filter(s => s.type === 'institut_sondage').map(s => s.biome_id)), new Set(['banlieue', 'retraites', 'quartiers_riches']));
+  assert.deepEqual(new Set(a.state.buildings.filter(s => s.type === 'institut_sondage').map(s => s.biome_id)), new Set(['paris_19e', 'retraites', 'quartiers_riches']));
   assert.ok(a.state.buildings.filter(s => ['meeting', 'institut_sondage'].includes(s.type)).every(s => s.owner_id === null && s.active && s.neutral));
   assert.ok(a.state.buildings.filter(s => s.controls_zone).every(s => s.state === 'NEUTRAL' && !s.active));
 });
@@ -67,7 +68,7 @@ test('Capture unique : niveau 1 et aucune amélioration proposée', () => {
 });
 
 test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présence effective', () => {
-  const sim = new GameSimulation(config); const actor = candidate(sim); const site = sim.state.buildings.find(s => s.type === 'financement');
+  const sim = new GameSimulation(config); const actor = candidate(sim); const site = sim.state.buildings.find(s => s.type === 'tour_communication');
   captureSite(sim, site, actor); const allies = [unit(sim, 'SYMPATHISANT', actor.faction_id, site.x), unit(sim, 'MILITANT', actor.faction_id, site.x)];
   const guards = [unit(sim, 'SERVICE_D_ORDRE', 'le_pen', site.x), unit(sim, 'SERVICE_D_ORDRE', 'le_pen', site.x)];
   for (let i = 0; i < sim.secondsToTicks(8); i++) { for (const guard of guards) guard.pressure_target_id = site.id; updateStrategicSites(sim); sim.state.tick++; }

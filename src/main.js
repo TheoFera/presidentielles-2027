@@ -4,6 +4,7 @@ import { ultimateBlockedReason } from './simulation/combat.js';
 import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
 import { CampaignDisplay } from './presentation/campaign.js';
 import { loadConfig } from './config.js';
+import { applyDecorPreview } from './presentation/fixed-world.js';
 import { formatCarriedMoney } from './presentation/money.js';
 import { MoneyCounter } from './presentation/money-counter.js';
 import { GameAudio, SoundDirector } from './presentation/audio.js';
@@ -23,6 +24,8 @@ import { installLandscape } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
+import { ArenaMatch, arenaModeAICommands } from './simulation/arena-mode.js';
+import { ArenaModeDisplay, arenaAssetIds, drawArenaMode } from './presentation/arena-mode.js';
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -38,7 +41,7 @@ function showError(error, duringGame = false) {
 }
 
 async function start() {
-  const config = await loadConfig();
+  const config = applyDecorPreview(await loadConfig());
   const chargeDuration = `${config.balance.candidate_combat.charge_ready_seconds.toLocaleString('fr-FR')} s`;
   document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
   const profile = loadCampaignProfile();
@@ -114,6 +117,13 @@ async function start() {
   let debugElapsed = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
   let currentDay = state.days_remaining;
+  // Mode Arène : combat autonome, sans monde de campagne.
+  let arenaMatch = null, arenaState = null, arenaPrevious = null, arenaPending = [], arenaSetup = null;
+  const arenaDisplay = new ArenaModeDisplay(config, {
+    rematch: () => { if (arenaSetup) void menu.arenaLoading(arenaSetup); },
+    setup: () => { returnHome(); menu.arena(); },
+    home: () => returnHome(),
+  });
 
   const notify = (text, seconds = config.prototype.presentation.zone_flash_seconds) => { notice.textContent = text; noticeRemaining = seconds; };
   const queue = command => { pending.push(command); canvas.focus(); };
@@ -166,7 +176,8 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
     if (!help.hidden) { if (['h', 'escape'].includes(key)) toggleHelp(); return; }
-    if (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return;
+    if (!arenaMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
+    if (arenaMatch && ['arrowdown', 's', 'drop'].includes(key)) { if (!paused) arenaPending.push({ type: 'DropDown', candidateId: arenaState.local_candidate_id }); return; }
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
     else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
@@ -174,20 +185,21 @@ async function start() {
     else if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
     else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) {
       if (!paused) {
-        const view = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
-        const reason = ultimateBlockedReason({ state: view, config }, view.candidates.find(c => c.id === state.local_candidate_id));
+        const view = arenaMatch ? arenaState : state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
+        const localId = arenaMatch ? arenaState.local_candidate_id : state.local_candidate_id;
+        const reason = ultimateBlockedReason({ state: view, config }, view.candidates.find(c => c.id === localId));
         if (reason) notify(reason, 4); else human.ultimate();
       }
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (key === 'h') toggleHelp();
-    else if (key === 'f3') { if (!session) debug.toggle(); }
+    else if (key === 'f3') { if (!session && !arenaMatch) debug.toggle(); }
     else if (key === 'f') {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
         else await document.documentElement.requestFullscreen();
       } catch { notify('Le plein écran est indisponible dans ce navigateur.'); }
-    } else if (!session) debug.action(key);
+    } else if (!session && !arenaMatch) debug.action(key);
   }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, config.balance.dash.double_tap_window_ms);
   const stylesDisplay = new CampaignStylesDisplay(config, profile, command => {
     if (menu?.active) return;
@@ -221,7 +233,33 @@ async function start() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
     void keepScreenAwake();
   }
+  function stopArena() {
+    arenaMatch = null; arenaState = null; arenaPrevious = null; arenaPending = [];
+    arenaDisplay.hide(); document.body.classList.remove('arena-mode'); renderer.resetCamera(); sounds.reset();
+  }
+  /** Prépare un combat d’arène : simulation, puis images des combattants choisis. */
+  async function prepareArena(setup, onProgress = () => {}) {
+    stopSession(); stopArena();
+    paused = true; help.hidden = true; input.clear(); human.reset(); debug.toggle(false); clock.reset();
+    arenaSetup = setup;
+    arenaMatch = new ArenaMatch(config, { ...setup, seed: Math.floor(Math.random() * 2 ** 31) || 1 }, profile);
+    arenaState = arenaMatch.getState(); arenaPrevious = arenaState; arenaDisplay.reset();
+    const wanted = arenaAssetIds(renderer.assets.manifest, setup);
+    onProgress(0);
+    let done = 0;
+    await Promise.all(wanted.map(id => renderer.assets.load(id).then(() => onProgress(++done / wanted.length * 0.9))));
+    // Un premier dessin révèle les dernières images utiles (poses, décor).
+    drawArenaMode(renderer, arenaState, arenaState, 1, 0);
+    await Promise.all([...renderer.assets.cache].filter(([, entry]) => !entry.ready).map(([id]) => renderer.assets.load(id)));
+    drawArenaMode(renderer, arenaState, arenaState, 1, 0);
+    onProgress(1);
+  }
+  function playArena() {
+    document.body.classList.add('arena-mode');
+    play();
+  }
   function returnHome() {
+    stopArena();
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
     void keepScreenAwake();
     matchDisplay.reset();
@@ -229,6 +267,7 @@ async function start() {
     menu.home();
   }
   async function prepare(candidateId, onProgress = () => {}) {
+    stopArena();
     paused = true; help.hidden = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
@@ -316,7 +355,8 @@ async function start() {
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
-  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom) });
+  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: current => showMultiplayerSetup(current, connectRoom),
+    arena: { config, prepare: prepareArena, play: playArena } });
   menu.leave = stopSession;
   window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
@@ -349,12 +389,55 @@ async function start() {
     session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
   }
 
+  /** Boutons tactiles de combat : jauge d’ultime et charge du coup. */
+  function updateCombatButtons(combatView, fighter) {
+    const ultimateButton = document.getElementById('ultimate-touch');
+    const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
+    ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
+    const heldTicks = fighter.combat.press_tick == null ? 0 : combatView.tick - fighter.combat.press_tick;
+    const chargeRatio = fighter.combat.charge_active ? Math.min(1, heldTicks / (config.balance.candidate_combat.charge_ready_seconds * config.balance.simulation_architecture.fixed_tick_hz)) : 0;
+    const attackButton = document.getElementById('attack-touch');
+    attackButton.classList.toggle('charging', chargeRatio > 0);
+    attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
+    setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
+    ultimateButton.classList.toggle('ready', ratio >= 1);
+    ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
+    ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
+    document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
+  }
+
+  /** Une image du mode Arène : simulation à pas fixe, puis affichage. */
+  function arenaFrame(elapsed, now) {
+    const halted = paused || !help.hidden || document.hidden;
+    if (!halted) {
+      clock.advance(elapsed, () => {
+        arenaPrevious = arenaState;
+        const localId = arenaState.local_candidate_id;
+        const commands = arenaState.candidates.flatMap(c => c.id === localId ? human.commands(arenaState, c.id) : arenaModeAICommands(arenaState, config, c.id));
+        arenaMatch.step([...commands, ...arenaPending.splice(0)]);
+        arenaState = arenaMatch.getState();
+      });
+    }
+    const fighter = arenaState.candidates.find(c => c.id === arenaState.local_candidate_id);
+    const alpha = halted ? 1 : clock.alpha;
+    arenaDisplay.update(arenaState, halted ? 0 : elapsed);
+    damageFeedback.update(arenaState, fighter, alpha, halted || arenaState.phase === 'OVER');
+    updateCombatButtons(arenaState, fighter);
+    const controls = document.getElementById('touch-controls');
+    controls.hidden = halted || arenaState.phase === 'OVER' || fighter.is_ko;
+    controls.classList.toggle('with-drop', !!arenaState.platforms.length);
+    sounds.update(arenaState, { paused: halted });
+    setText(notice, ''); notice.hidden = true;
+    drawArenaMode(renderer, arenaState, halted ? arenaState : arenaPrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
+  }
+
   function frame(now) {
     try {
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
+      if (arenaMatch) { arenaFrame(elapsed, now); requestAnimationFrame(frame); return; }
       if (!paused && !document.hidden && (!session || session.host)) {
         clock.advance(elapsed * simulationSpeed, () => {
           previous = state;
@@ -382,19 +465,7 @@ async function start() {
       const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
       damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
-      const ultimateButton = document.getElementById('ultimate-touch');
-      const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
-      ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
-      const heldTicks = fighter.combat.press_tick == null ? 0 : combatView.tick - fighter.combat.press_tick;
-      const chargeRatio = fighter.combat.charge_active ? Math.min(1, heldTicks / (config.balance.candidate_combat.charge_ready_seconds * config.balance.simulation_architecture.fixed_tick_hz)) : 0;
-      const attackButton = document.getElementById('attack-touch');
-      attackButton.classList.toggle('charging', chargeRatio > 0);
-      attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
-      setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
-      ultimateButton.classList.toggle('ready', ratio >= 1);
-      ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
-      ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
-      document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
+      updateCombatButtons(combatView, fighter);
       const zone = zoneAt(state.world, candidate.x);
       if (zone.id !== currentZone) { currentZone = zone.id; notify(`${zone.biome_name}\n${zone.concept}`); }
       if (state.days_remaining !== currentDay) {

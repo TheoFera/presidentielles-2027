@@ -150,12 +150,17 @@ export function drawBanknote(renderer, state) {
       }
     }
   // Au-dessus du billet : ce que l'achat va faire, en toutes lettres.
+  // Pendant l'achat, ce titre devient lui-même la barre de chargement.
+  const progress = offer.enabled && candidate.purchase_hold?.key === offer.key ? candidate.purchase_hold.elapsed_ticks / offer.required_ticks : 0;
   if (offer.victim_id) {
     ctx.fillStyle = '#f2f0e5ee'; ctx.fillRect(x - 86, y - 31, 172, 27);
+    if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.fillRect(x - 86, y - 31, 172 * Math.min(1, progress), 27); }
     ctx.fillStyle = '#39483f'; ctx.font = '600 9px system-ui'; ctx.fillText(offer.label, x, y - 7);
     const victim = state.buildings.find(b => b.id === offer.victim_id);
     ctx.font = '9px system-ui'; ctx.fillText(`${buildingLabel(victim)} · ${victim.subzone_id}`, x, y - 20);
-  } else pill(ctx, x, y - 25, offerTitle(offer, building, candidate), { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui' });
+  } else pill(ctx, x, y - 25, offerTitle(offer, building, candidate), { ink: '#39483f', border: '#4d6648', font: '800 9px system-ui', progress });
+  // Une fois l'achat lancé, le titre qui se remplit suffit : on n'ajoute rien dessous.
+  if (progress > 0) { ctx.restore(); return; }
   // Sous le billet : les conditions, cochées une à une, puis la marche à suivre.
   const left = (renderer.visibleWorld?.left ?? 0) + 112, right = (renderer.visibleWorld?.right ?? renderer.width) - 112;
   const infoX = Math.max(left, Math.min(right, x));
@@ -173,8 +178,7 @@ export function drawBanknote(renderer, state) {
   if (need && need.current < need.required) {
     pill(ctx, infoX, rowY, 'Convainquez des passants dans ce quartier', { ink: '#5b4a2f', border: '#c5b48c', font: '600 10px system-ui' });
   } else if (offer.enabled) {
-    const progress = candidate.purchase_hold?.key === offer.key ? candidate.purchase_hold.elapsed_ticks / offer.required_ticks : 0;
-    pill(ctx, infoX, rowY, progress > 0 ? 'Achat en cours…' : 'Restez immobile ici pour acheter', { ink: '#2f4a30', border: '#4d6648', progress });
+    pill(ctx, infoX, rowY, 'Restez immobile ici pour acheter', { ink: '#2f4a30', border: '#4d6648' });
   }
   ctx.restore();
 }
@@ -250,7 +254,7 @@ function drawPresenceRow(ctx, x, y, need, color, ok, text) {
 
 /**
  * Repères permanents sur les bâtiments libres ou menacés : combien de soutiens il faut dans le quartier.
- * Près d'une offre, le quartier concerné est délimité et vos soutiens qui comptent sont entourés.
+ * Près d'une offre, vos soutiens qui comptent dans le quartier sont entourés.
  */
 export function drawSiteRequirements(renderer, state) {
   const { ctx, config, p, metrics: m, width } = renderer;
@@ -280,17 +284,6 @@ export function drawSiteRequirements(renderer, state) {
   }
   const building = focus && state.buildings.find(b => b.id === focus.target_id);
   if (building && presenceNeed(state, config, candidate, building, focus)) {
-    const zone = state.world.subzones.find(z => z.id === building.subzone_id);
-    ctx.strokeStyle = '#6b5530'; ctx.fillStyle = '#6b5530'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
-    ctx.font = '800 9px system-ui'; ctx.textBaseline = 'alphabetic';
-    for (const [edge, side] of [[zone.start, 1], [zone.end, -1]]) {
-      const ex = renderer.screenX(edge);
-      if (ex < -10 || ex > width + 10) continue;
-      ctx.beginPath(); ctx.moveTo(ex, m.groundY - m.characterHeight * 0.7); ctx.lineTo(ex, m.groundY + 4); ctx.stroke();
-      ctx.textAlign = side > 0 ? 'left' : 'right';
-      ctx.fillText(side > 0 ? 'QUARTIER →' : '← QUARTIER', ex + side * 5, m.groundY - m.characterHeight * 0.6);
-    }
-    ctx.setLineDash([]);
     ctx.strokeStyle = color || '#4d6648'; ctx.lineWidth = 2;
     for (const npc of state.npcs) {
       if (npc.faction_id !== candidate.faction_id || !['SYMPATHISANT', 'MILITANT'].includes(npc.role)

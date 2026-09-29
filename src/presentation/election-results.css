@@ -103,6 +103,10 @@
 .election-third .election-gauge { width: calc(var(--u) * 9); background: #ffffff1f; }
 .election-third-score { font-family: Impact, 'Arial Black', sans-serif; font-size: 1.35em; font-variant-numeric: tabular-nums; }
 .election-third-score small { font-size: .7em; margin-left: .1em; }
+.election-minors { justify-self: center; display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--u) * .5) calc(var(--u) * .9); max-width: calc(var(--u) * 80); font-size: max(10px, calc(var(--u) * 1.15)); color: #d9e8ff; }
+.election-minors b { color: #9fdcff; text-transform: uppercase; letter-spacing: .06em; }
+.election-minors span { padding: .1em .55em; background: #0b1a3fcc; border: 1px solid #7fb6ff44; border-radius: 99px; white-space: nowrap; }
+.election-minors em { font-style: normal; font-weight: 800; color: #fff; }
 .election-majority { justify-self: stretch; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: calc(var(--u) * 1.2); max-width: none; margin: 0 calc(var(--u) * 6); font-size: max(11px, calc(var(--u) * 1.6)); text-transform: uppercase; }
 .election-majority > span { padding: .1em .6em; background: var(--party); border-radius: 3px; box-shadow: 0 calc(var(--u) * .25) 0 var(--party-dark); }
 .election-majority-bar { position: relative; height: calc(var(--u) * 1.8); background: #061232; border: calc(var(--u) * .18) solid #ffffff55; border-radius: 99px; box-shadow: 0 calc(var(--u) * .3) 0 #020816, inset 0 calc(var(--u) * .3) calc(var(--u) * .6) #0008; }

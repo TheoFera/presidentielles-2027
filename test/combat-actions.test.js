@@ -6,7 +6,7 @@ import { ArenaSimulation } from '../src/simulation/arena-simulation.js';
 import { CampaignStyleSystem, CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
 import { attackInput, beginCombatTick, updateCombat, activateUltimate, ultimateBlockedReason } from '../src/simulation/combat.js';
 import { armored, verticalHit } from '../src/simulation/combat-actions.js';
-import { hit, movementBlocked } from '../src/simulation/combat-state.js';
+import { hit, knockdownTicks, movementBlocked } from '../src/simulation/combat-state.js';
 import { requestDash } from '../src/simulation/mobile-combat.js';
 import { LocalHumanController } from '../src/simulation/controllers.js';
 import { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -14,7 +14,7 @@ import { aiCombatCommands } from '../src/simulation/ai-combat.js';
 import { updateCandidateResistance } from '../src/simulation/candidate-resistance.js';
 
 function setup(arena = false) {
-  let sim = new GameSimulation(campaignConfig(), 42);
+  let sim = new GameSimulation((() => { const config = campaignConfig(); config.balance.minor_candidates.enabled = false; return config; })(), 42);
   sim.state.npcs = []; sim.state.ai_enabled = false;
   sim.state.candidates.forEach((c, i) => { c.x = 100 + 100 * i; c.axis = 0; c.money = 0; });
   CampaignStyleSystem.select(sim, sim.state.candidates[0], CAMPAIGN_STYLES[sim.state.candidates[0].faction_id][0].id, true);
@@ -32,16 +32,30 @@ function ticks(sim, count, combat = false) {
 }
 const input = (sim, c, type) => sim.applyCommand({ type, candidateId: c.id });
 
-for (const arena of [false,true]) test(`Poings : cinq ticks de réaction sans aucun recul (${arena?'arène':'campagne'})`,()=>{
+for (const arena of [false,true]) test(`Poings : étourdissement configuré, sans aucun recul (${arena?'arène':'campagne'})`,()=>{
   for(const step of [1,2]){
-    const {sim,c,enemy}=setup(arena),x=enemy.x;
+    const {sim,c,enemy}=setup(arena),x=enemy.x,stun=sim.secondsToTicks(sim.config.balance.candidate_combat.light_stun_seconds);
     c.combat.combo_step=step-1;c.combat.combo_expires_tick=100;
     input(sim,c,'Attack');
     for(let i=0;i<10&&!enemy.combat.stun_ticks;i++)ticks(sim,1,true);
-    assert.equal(enemy.combat.stun_ticks,5);assert.equal(enemy.combat.knockback_velocity,0);
-    ticks(sim,4,true);assert.equal(enemy.combat.stun_ticks,1);assert.equal(enemy.x,x);
+    assert.equal(enemy.combat.stun_ticks,stun);assert.equal(enemy.combat.knockback_velocity,0);
+    ticks(sim,stun-1,true);assert.equal(enemy.combat.stun_ticks,1);assert.equal(enemy.x,x);
     ticks(sim,1,true);assert.equal(enemy.combat.stun_ticks,0);assert.equal(enemy.x,x);
   }
+});
+
+for (const arena of [false,true]) test(`Combo garanti : réappuyer juste après une touche enchaîne, même si l’adversaire martèle (${arena?'arène':'campagne'})`,()=>{
+  const {sim,c,enemy}=setup(arena);enemy.facing=-1;
+  const steps=[];let touched=false;
+  input(sim,c,'Attack');
+  for(let i=0;i<60&&steps.length<3;i++){
+    // L’adversaire tente de répliquer à chaque image dès qu’il a été touché.
+    if(touched){sim.applyCommand({type:'Attack',candidateId:enemy.id,direction:-1});input(sim,c,'Attack');}
+    const before=sim.state.hit_results.length;ticks(sim,1,true);
+    for(const h of sim.state.hit_results.slice(before)){assert.equal(h.source_id,c.id);steps.push(h.strong?3:steps.length+1);touched=true;}
+  }
+  assert.deepEqual(steps,[1,2,3]);
+  assert.equal(enemy.combat.knockdown_tick,sim.state.tick);
 });
 
 for(const arena of [false,true])for(const kind of [1,2,3,'charged'])test(`Un coup touche plusieurs adversaires une seule fois : ${kind} (${arena?'arène':'campagne'})`,()=>{
@@ -69,20 +83,31 @@ test('KO : corps visible une demi-seconde supplémentaire, réapparition inchang
   }
 });
 
-test('Charge : seuils configurés à la tick près, aucun coup avant relâchement', () => {
+test('Charge : coup léger dès l’appui, charge si le bouton reste enfoncé, seuils à la tick près', () => {
   const baseline = setup().sim;
   const activation = baseline.secondsToTicks(baseline.config.balance.candidate_combat.charge_activation_seconds);
   const ready = baseline.secondsToTicks(baseline.config.balance.candidate_combat.charge_ready_seconds);
+  // L’appui frappe tout de suite, sans attendre le relâchement.
+  const quick = setup(); input(quick.sim, quick.c, 'PressAttack'); updateCombat(quick.sim);
+  assert.equal(quick.sim.state.attacks[0]?.kind, 'CANDIDATE');
+  input(quick.sim, quick.c, 'ReleaseAttack'); updateCombat(quick.sim); assert.equal(quick.sim.state.attacks.length, 1);
+  // Seuils de charge (coup léger mis de côté pour isoler la charge).
   for (const duration of [0, activation - 1, activation, ready - 1, ready, ready + 60]) {
     const { sim, c } = setup();
-    input(sim, c, 'PressAttack'); ticks(sim, duration);
+    input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, duration);
     assert.equal(c.combat.charge_active, duration >= activation);
     assert.equal(movementBlocked(c), duration >= activation);
-    assert.equal(sim.state.attacks.length, 0);
     input(sim, c, 'ReleaseAttack'); updateCombat(sim);
-    assert.equal(sim.state.attacks[0]?.kind, duration >= ready ? 'CHARGED' : 'CANDIDATE');
+    assert.equal(sim.state.attacks[0]?.kind, duration >= ready ? 'CHARGED' : undefined);
     assert.equal(c.combat.press_tick, null);
   }
+  // La charge ne commence qu’une fois le coup léger terminé, bouton toujours enfoncé.
+  const { sim, c } = setup(); input(sim, c, 'PressAttack'); ticks(sim, 1, true);
+  const light = sim.state.attacks[0];
+  ticks(sim, light.windup_ticks + light.active_ticks + light.recovery_ticks - 2, true);
+  assert.equal(c.combat.charge_active, false, 'pas de charge pendant le coup léger');
+  ticks(sim, 3, true);
+  assert.equal(c.combat.charge_active, true);
 });
 
 test('Protection : dégâts reçus, aucun recul/stun, seul le troisième coup brise la charge', () => {
@@ -112,13 +137,23 @@ test('La frappe chargée reste protégée jusqu’à sa récupération ; un KO r
   assert.equal(c.is_ko, true); assert.equal(c.combat.charge_active, false);
 });
 
-for (const arena of [false, true]) test(`Coup chargé : dégâts, zéro recul, neuf ticks de stun et deux points d’ultime (${arena ? 'arène' : 'campagne'})`, () => {
+for (const arena of [false, true]) test(`Coup chargé : dégâts, zéro recul, renversement et deux points d’ultime (${arena ? 'arène' : 'campagne'})`, () => {
   const { sim, c, enemy } = setup(arena);
   const before = arena ? enemy.arena_hp : enemy.resistance;
-  input(sim, c, 'PressAttack'); ticks(sim, sim.secondsToTicks(sim.config.balance.candidate_combat.charge_ready_seconds)); input(sim, c, 'ReleaseAttack'); ticks(sim, 4, true);
+  input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(sim.config.balance.candidate_combat.charge_ready_seconds)); input(sim, c, 'ReleaseAttack'); ticks(sim, 4, true);
   assert.ok(Math.abs(before - (arena ? enemy.arena_hp : enemy.resistance) - (arena ? 1.65 : 21)) < 1e-9);
-  assert.equal(enemy.combat.knockback_velocity, 0); assert.equal(enemy.combat.stun_ticks, 9);
+  assert.equal(enemy.combat.knockback_velocity, 0);
+  // Renversé : au sol le temps de la chute et du relevé, puis encore intouchable un instant.
+  const down = knockdownTicks(sim), hitTick = enemy.combat.knockdown_tick;
+  assert.equal(enemy.combat.stun_ticks, down - (sim.state.tick - hitTick));
+  assert.equal(enemy.combat.invulnerable_until_tick, hitTick + down + sim.secondsToTicks(sim.config.balance.candidate_combat.wakeup_invulnerability_seconds));
+  assert.equal(hit(sim, c, enemy, { kind: 'CANDIDATE', step: 1, damage: 8, knockback: 0 }, 'au sol'), null);
   assert.equal(c.special_charge, 2); assert.equal(c.combat.combo_step, 0);
+  // Encaisser remplit aussi l’ultime de la victime quand elle a un style.
+  CampaignStyleSystem.select(sim, enemy, CAMPAIGN_STYLES[enemy.faction_id][0].id, true);
+  sim.state.tick = enemy.combat.invulnerable_until_tick;
+  hit(sim, c, enemy, { kind: 'CANDIDATE', step: 1, damage: 8, knockback: 0 }, 'encaissé');
+  assert.equal(enemy.special_charge, sim.config.balance.special_charge.points_per_hit_taken);
 });
 
 test('Dash : annule seulement s’il peut partir, sans frappe fantôme au relâchement', () => {
@@ -150,21 +185,29 @@ test('Saut : hauteur et durée configurées, attaques possibles, pas de dash ni 
   assert.equal(verticalHit(sim.config, enemy, c, { kind: 'CANDIDATE' }), false);
   assert.equal(verticalHit(sim.config, enemy, c, { kind: 'WAVE' }), expected <= 1.65);
   assert.equal(hit(sim, enemy, c, { kind: 'VERBAL', damage: 8, knockback: 0 }, 'miss'), null);
+  // En l’air, Frapper déclenche le coup plongeant : descente engagée, sans contrôle.
   input(sim, c, 'PressAttack'); input(sim, c, 'ReleaseAttack'); updateCombat(sim);
-  assert.equal(sim.state.attacks[0].kind, 'CANDIDATE'); assert.equal(movementBlocked(c), false);
-  ticks(sim, duration - half); assert.equal(c.combat.height, 0); assert.equal(c.combat.jump_tick, null);
+  assert.equal(sim.state.attacks[0].kind, 'DIVE'); assert.equal(movementBlocked(c), true);
+  const x = c.x; ticks(sim, 2); assert.ok(c.x > x); assert.ok(c.combat.height < expected);
+  ticks(sim, duration - half); assert.equal(c.combat.height, 0); assert.equal(c.combat.jump_tick, null); assert.equal(c.combat.dive_tick, null);
+  // Réception : temps de récupération, et pas de saut pour l’annuler.
+  input(sim, c, 'Jump'); assert.equal(c.combat.jump_tick, null);
   assert.equal(verticalHit(sim.config, enemy, c, { kind: 'VERBAL' }), true);
 });
 
 test('Maintien commencé en vol : ne devient pas une charge à l’atterrissage', () => {
   const { sim, c } = setup(); input(sim, c, 'Jump'); input(sim, c, 'PressAttack'); updateCombat(sim);
-  assert.equal(sim.state.attacks[0].windup_ticks, 0);
+  // Au ras du sol, le plongeon attend la hauteur minimale (l’appui reste en mémoire).
+  assert.equal(sim.state.attacks.length, 0);
+  for (let i = 0; i < 10 && !sim.state.attacks.length; i++) ticks(sim, 1, true);
+  assert.equal(sim.state.attacks[0].kind, 'DIVE'); assert.equal(sim.state.attacks[0].windup_ticks, 0);
+  assert.ok(c.combat.height >= sim.config.balance.candidate_combat.dive_min_height);
   ticks(sim, 60, true);
   assert.equal(c.combat.charge_active, false); input(sim, c, 'ReleaseAttack'); updateCombat(sim);
   assert.equal(sim.state.attacks.length, 0);
 });
 
-for (const arena of [false, true]) test(`Saut prioritaire et frappe aérienne immédiate (${arena ? 'arène' : 'campagne'})`, () => {
+for (const arena of [false, true]) test(`Saut prioritaire et coup plongeant dès la hauteur minimale (${arena ? 'arène' : 'campagne'})`, () => {
   for (const phase of ['windup','active','recovery','charge','dash']) {
     const { sim, c, enemy } = setup(arena); enemy.x = c.x + 10;
     if (phase === 'dash') requestDash(sim,c,1);
@@ -182,8 +225,9 @@ for (const arena of [false, true]) test(`Saut prioritaire et frappe aérienne im
     assert.equal(c.combat.attack_id,null); assert.equal(sim.state.attacks.length,0);
     assert.equal(c.dash_active,false); assert.equal(c.combat.hitstop_ticks,0);
     input(sim,c,'ReleaseAttack'); assert.equal(c.combat.buffer_until_tick,-1);
-    input(sim,c,'PressAttack'); updateCombat(sim);
-    assert.equal(sim.state.attacks.length,1); assert.equal(sim.state.attacks[0].windup_ticks,0);
+    input(sim,c,'PressAttack');
+    for (let i = 0; i < 10 && !sim.state.attacks.length; i++) ticks(sim,1,true);
+    assert.equal(sim.state.attacks.length,1); assert.equal(sim.state.attacks[0].kind,'DIVE'); assert.equal(sim.state.attacks[0].windup_ticks,0);
     input(sim,c,'ReleaseAttack'); assert.equal(c.combat.buffer_until_tick,-1);
   }
 });
@@ -255,10 +299,10 @@ test('Réglages modifiables : plusieurs hauteurs et durées sans dépendance aux
     const { sim, c } = setup();
     Object.assign(sim.config.balance.candidate_combat, { jump_height_ratio: height, charge_ready_seconds: seconds });
     input(sim, c, 'Jump'); ticks(sim, 12); assert.equal(c.combat.height, height);
-    ticks(sim, 12); input(sim, c, 'PressAttack'); ticks(sim, sim.secondsToTicks(seconds) - 1);
-    input(sim, c, 'ReleaseAttack'); updateCombat(sim); assert.equal(sim.state.attacks[0].kind, 'CANDIDATE');
+    ticks(sim, 12); input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds) - 1);
+    input(sim, c, 'ReleaseAttack'); updateCombat(sim); assert.equal(sim.state.attacks.length, 0);
     ticks(sim, 30, true);
-    input(sim, c, 'PressAttack'); ticks(sim, sim.secondsToTicks(seconds)); input(sim, c, 'ReleaseAttack');
+    input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds)); input(sim, c, 'ReleaseAttack');
     assert.equal(sim.state.attacks[0].kind, 'CHARGED');
   }
 });
@@ -290,4 +334,32 @@ test('Commandes réseau : maintien chronométré par l’hôte et relâchement c
   const copy = new GameSimulation(sim.config, 42); copy.importSnapshot(sim.exportSnapshot());
   send('ReleaseAttack'); copy.applyCommand({ type: 'ReleaseAttack', candidateId: c.id });
   ticks(sim, 10, true); ticks(copy, 10, true); assert.deepEqual(sim.state, copy.state);
+});
+
+for (const arena of [false, true]) test(`Corps : deux candidats adverses se repoussent au sol, le saut passe par-dessus, le dash traverse (${arena ? 'arène' : 'campagne'})`, () => {
+  const width = setup().sim.config.balance.candidate_combat.body_width;
+  const walk = (sim, moves, count) => { for (let i = 0; i < count; i++) { for (const [actor, axis] of moves) sim.applyCommand({ type: 'Move', candidateId: actor.id, axis }); sim.step(); } };
+  // Marcher l’un vers l’autre : ils se touchent sans se superposer, et avancer pousse l’autre.
+  { const { sim, c, enemy } = setup(arena); enemy.x = c.x + 2; enemy.facing = -1;
+    walk(sim, [[c, 1], [enemy, -1]], 30);
+    assert.ok(enemy.x - c.x >= width - 1e-9, `${enemy.x - c.x}`);
+    const start = enemy.x; walk(sim, [[c, 1], [enemy, 0]], 10);
+    assert.ok(enemy.x > start); assert.ok(enemy.x - c.x >= width - 1e-9); }
+  // Sauter en avançant : on atterrit de l’autre côté.
+  { const { sim, c, enemy } = setup(arena); enemy.x = c.x + 0.95;
+    sim.applyCommand({ type: 'Jump', candidateId: c.id }); walk(sim, [[c, 1]], 26);
+    assert.ok(c.x > enemy.x, 'passage par-dessus'); }
+  // Le dash est une esquive : il traverse.
+  { const { sim, c, enemy } = setup(arena); enemy.x = c.x + 0.95;
+    sim.applyCommand({ type: 'Dash', candidateId: c.id, direction: 1 }); walk(sim, [], 10);
+    assert.ok(c.x > enemy.x, 'dash traversant'); }
+});
+
+test('Corps : contre le bord de l’arène, seul le candidat qui pousse est arrêté', () => {
+  const { sim, c, enemy } = setup(true);
+  const width = sim.config.balance.candidate_combat.body_width;
+  enemy.x = sim.state.arena_bounds.max; c.x = enemy.x - 2;
+  for (let i = 0; i < 30; i++) { sim.applyCommand({ type: 'Move', candidateId: c.id, axis: 1 }); sim.step(); }
+  assert.equal(enemy.x, sim.state.arena_bounds.max);
+  assert.ok(Math.abs(enemy.x - c.x - width) < 1e-9);
 });

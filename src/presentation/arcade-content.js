@@ -8,7 +8,7 @@ export const CANDIDATES = [
 export const portrait = candidate => visualManifest[`character-${candidate.id}`].file;
 
 export function homeContent() {
-  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielles 2027</h1><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Multijoueur</strong><span aria-hidden="true">♟</span></button></div></div>`;
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielles 2027</h1><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="arena"><span aria-hidden="true">⚔</span><strong>Arène</strong><span aria-hidden="true">⚔</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Multijoueur</strong><span aria-hidden="true">♟</span></button></div></div>`;
 }
 export function candidatesContent(selected = null) {
   return `<div class="candidate-grid">${CANDIDATES.map(c => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge" aria-hidden="true">♛ J1</span><strong class="visually-hidden">${c.short}</strong></button>`).join('')}</div><footer class="menu-footer"><button id="prepare-game" class="menu-primary arcade-button" ${selected ? '' : 'disabled'}>Valider <span aria-hidden="true">➜</span></button></footer>`;

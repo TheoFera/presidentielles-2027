@@ -1,8 +1,10 @@
+import { validateFundingEncounters } from './funding-encounters.js';
 import { validateVehicles } from './vehicles.js';
 import { validateRallies } from './rallies.js';
 import { validateCampaignSnapshot } from './campaign-validation.js';
 import { validAIDifficulty } from './ai-settings.js';
-import { FACTIONS, buildWorld, fingerprint } from './world.js';
+import { MIND_STANCES } from './ai-mind.js';
+import { ALL_FACTIONS, FACTIONS, buildWorld, fingerprint, isMinorFaction } from './world.js';
 import { createInfrastructure } from './economy.js';
 import { buildingSettings, siteVariant, printsTracts } from './building-rules.js';
 import { validateCombatSnapshot } from './combat-snapshots.js';
@@ -18,12 +20,12 @@ export function validateSnapshot(next, simulation, nested = false) {
   const fail = detail => { throw new Error(`État JSON incompatible : ${detail}.`); };
   const integer = (n, min = 0) => Number.isInteger(n) && n >= min;
   const finite = n => Number.isFinite(n) && n >= 0;
-  if (!next || next.snapshot_version !== 13 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec la nouvelle carte et ses bâtiments fixes ; commencez une nouvelle partie');
+  if (!next || next.snapshot_version !== 14 || next.config_fingerprint !== fingerprint(config)) fail('ancienne sauvegarde incompatible avec la nouvelle carte et ses bâtiments fixes ; commencez une nouvelle partie');
   if (JSON.stringify(next.world) !== JSON.stringify(buildWorld(config))) fail('monde différent');
   if (!integer(next.tick) || !integer(next.seed, 1) || !integer(next.rng_state, 1) || next.rng_state > 0xffffffff) fail('horloge ou graine invalide');
   for (const field of ['next_npc_id', 'next_event_id', 'next_order_id', 'next_transaction_id', 'next_money_pickup_id', 'next_attack_id', 'next_projectile_id', 'next_power_id', 'next_temporary_id', 'next_hit_id', 'next_raid_id']) if (!integer(next[field], 1)) fail('compteur invalide');
   for (const field of ['candidates', 'npcs', 'events', 'buildings', 'building_slots', 'transactions', 'money_pickups', 'electorate', 'spawn_timers', 'attacks', 'projectiles', 'powers', 'temporary_units', 'hit_results']) if (!Array.isArray(next[field])) fail(`collection absente : ${field}`);
-  if (next.candidates.length !== FACTIONS.length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
+  if (next.candidates.length !== (config.balance.minor_candidates.enabled === false ? FACTIONS : ALL_FACTIONS).length || !Object.values(GamePhase).includes(next.phase) || typeof next.ai_enabled !== 'boolean') fail('phase ou contrôleurs invalides');
   // Les anciennes sauvegardes sans ces champs reprennent au niveau normal.
   if (next.ai_difficulty !== undefined && !validAIDifficulty(next.ai_difficulty)) fail('difficulté de l’IA invalide');
   if (!integer(next.days_remaining, config.prototype.time.minimum_days_remaining_for_milestone) || next.days_remaining > config.balance.time.starting_days_before_first_round) fail('jour invalide');
@@ -35,19 +37,23 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (typeof entity.id !== 'string' || ids.has(entity.id)) fail('ID absent ou dupliqué');
     ids.add(entity.id);
   }
-  const candidateIds = new Set(FACTIONS.map(f => `candidate:${f}`));
+  const candidateIds = new Set(ALL_FACTIONS.map(f => `candidate:${f}`));
   const actorIds = new Set([...candidateIds, ...next.npcs.filter(n => n.role === 'MILITANT').map(n => n.id)]);
   const validPosition = x => Number.isFinite(x) && x >= 0 && x < next.world.length;
   for (const pickup of next.money_pickups) if (!/^money:\d+$/.test(pickup.id) || Number(pickup.id.slice(6)) >= next.next_money_pickup_id
     || !validPosition(pickup.x) || !finite(pickup.height_ratio) || pickup.height_ratio > config.balance.money.starting_pickups.height_max_ratio
     || !integer(pickup.amount_cents, 1) || pickup.toss_origin_x !== undefined
       && (!validPosition(pickup.toss_origin_x) || !integer(pickup.toss_started_tick) || !integer(pickup.collect_after_tick, pickup.toss_started_tick + 1))) fail('billet au sol invalide');
-  if (!candidateIds.has(next.local_candidate_id)) fail('contrôle local inconnu');
+  if (!FACTIONS.some(f => `candidate:${f}` === next.local_candidate_id)) fail('contrôle local inconnu');
   for (const candidate of next.candidates) {
     const objective = candidate.ai_objective;
     if (objective != null && (!next.world.subzones.some(z => z.id === objective.subzone_id)
       || !['SETUP', 'CONQUER', 'DEFEND', 'RECOVER'].includes(objective.purpose) || !integer(objective.expires_tick))) fail('objectif de l’IA invalide');
+    const mind = candidate.ai_mind;
+    if (mind != null && (!MIND_STANCES.includes(mind.stance) || mind.opponent_id !== null && !candidateIds.has(mind.opponent_id)
+      || !integer(mind.since_tick) || !integer(mind.review_tick) || !integer(mind.hits))) fail('réflexion de l’IA invalide');
     if (!candidateIds.has(candidate.id) || candidate.id !== `candidate:${candidate.faction_id}` || candidate.role !== 'CANDIDAT') fail('candidat inconnu');
+    if (!!candidate.minor !== isMinorFaction(candidate.faction_id) || candidate.minor && candidate.minor_subzone_id !== config.layout.minor_candidates.find(m => m.faction_id === candidate.faction_id).subzone_id) fail('candidat mineur invalide');
     if (!validPosition(candidate.x) || ![-1, 0, 1].includes(candidate.axis) || ![-1, 1].includes(candidate.facing) || typeof candidate.moving !== 'boolean'
       || typeof candidate.campaign_active !== 'boolean' || typeof candidate.interaction_active !== 'boolean') fail('candidat invalide');
     if (candidate.podium_site_id !== null && !next.buildings.some(b => b.id === candidate.podium_site_id && b.type === 'meeting')) fail('promontoire inconnu');
@@ -79,7 +85,6 @@ export function validateSnapshot(next, simulation, nested = false) {
   for (const building of next.buildings) {
     const expected = infrastructure.buildings.find(b => b.id === building.id);
     if (!expected) fail('bâtiment inconnu');
-    if (JSON.stringify(building.facade) !== JSON.stringify(expected.facade)) fail('façade déplacée');
     for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model', 'controls_zone', 'fixed_variant', 'label']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
     if (!Array.isArray(building.queue) || !integer(building.delivered_count) || !Number.isInteger(building.last_action_tick) || building.last_action_tick > next.tick) fail('état du bâtiment invalide');
     const settings = buildingSettings(config, building);
@@ -88,7 +93,7 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (building.owner_id !== null || building.level !== 1 || building.state !== 'ACTIVE' || !building.active || !building.neutral) fail('service neutre invalide');
     } else if (building.state === 'NEUTRAL') {
       if (building.level !== 0 || building.owner_id !== null || building.active || !building.neutral) fail('site neutre invalide');
-    } else if (building.state !== 'ACTIVE' || !FACTIONS.includes(building.owner_id) || building.level < 1 || !building.active || building.neutral) fail('propriété invalide');
+    } else if (building.state !== 'ACTIVE' || !ALL_FACTIONS.includes(building.owner_id) || building.level < 1 || !building.active || building.neutral) fail('propriété invalide');
     if (!integer(building.raid_ready_tick) || !integer(building.closure_ready_tick)) fail('délai de bâtiment invalide');
     if (['permanence', 'financement'].includes(building.type)) {
       if (!integer(building.stored_money_cents) || !integer(building.last_collection_cents)
@@ -127,7 +132,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!origin || origin.biome_id !== npc.origin_biome_id || origin.subzone_id !== npc.origin_subzone_id) fail('origine PNJ invalide');
     if (!validPosition(npc.x) || !validPosition(npc.roam_target_x) || ![-1, 1].includes(npc.facing) || !integer(npc.roam_wait_ticks) || typeof npc.moving !== 'boolean') fail('déplacement PNJ invalide');
     if (!['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE', 'DEMOBILISE'].includes(npc.role)) fail('rôle PNJ inconnu');
-    if (['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) ? !FACTIONS.includes(npc.faction_id) : npc.faction_id !== null) fail('faction PNJ invalide');
+    if (['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) ? !ALL_FACTIONS.includes(npc.faction_id) : npc.faction_id !== null) fail('faction PNJ invalide');
     if (npc.role === 'SERVICE_D_ORDRE' && (!config.layout.biomes.some(b => b.id === npc.guard_biome_id) || !validPosition(npc.guard_anchor_x))) fail('Service d’ordre invalide');
     if (!finite(npc.hidden_durability) || !Number.isInteger(npc.converted_tick) || npc.converted_tick > next.tick || !Number.isInteger(npc.promoted_tick) || npc.promoted_tick > next.tick) fail('état PNJ invalide');
     if (!integer(npc.donation_cents) || (npc.role === 'SYMPATHISANT'
@@ -158,8 +163,9 @@ export function validateSnapshot(next, simulation, nested = false) {
   if (next.electorate.length !== next.world.subzones.length) fail('électorat incomplet');
   next.electorate.forEach((record, index) => {
     if (record.subzone_id !== next.world.subzones[index].id || !record.support
-      || [...FACTIONS, 'neutral', 'pending'].some(key => !integer(record.support[key]))) fail('électorat invalide');
+      || [...ALL_FACTIONS, 'neutral', 'pending'].some(key => !integer(record.support[key]))) fail('électorat invalide');
   });
+  validateFundingEncounters(next, config, fail);
   validateVehicles(next, fail, config);
   validateRallies(next, fail);
   validateCombatSnapshot(next, simulation, fail);

@@ -1,11 +1,11 @@
-import { airborne, charging, cancelCharge, updateActions, verticalHit } from './combat-actions.js';
+import { airborne, charging, cancelCharge, diving, startDive, updateActions, verticalHit } from './combat-actions.js';
 import { updateMobileCombat, successfulNormalHit, changeCharge } from './mobile-combat.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEffects } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
-import { combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
+import { canBeHit, combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
 
 export function requestAttack(sim, actor, direction = null) {
   if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active || actor.is_ko) return;
@@ -27,7 +27,8 @@ export function attackInput(sim, actor, type) {
     if (c.press_airborne) { cancelCharge(actor); return; }
     const ready = !c.press_airborne && charging(actor) && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_ready_seconds);
     cancelCharge(actor);
-    if (!ready) { requestAttack(sim, actor); return; }
+    // Le coup léger est parti à l’appui : relâcher avant la fin de la charge ne fait rien de plus.
+    if (!ready) return;
     if (interrupted(actor) || actor.is_ko) return;
     c.combo_step = 0; c.combo_expires_tick = 0; c.buffer_until_tick = -1;
     makeAttack(sim, actor, 'CHARGED', { strong: true, step: 0, range: b.finisher_range,
@@ -37,8 +38,12 @@ export function attackInput(sim, actor, type) {
   }
   if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id && type !== 'Jump'
     || c.stun_ticks) return;
-  if (type === 'Jump' && !airborne(actor) && Math.abs(c.knockback_velocity) <= 0.02) {
+  // Le saut interrompt un coup, sauf la réception d’un plongeon (sinon, plongeons à l’infini).
+  const diveRecovery = sim.state.attacks.some(a => a.id === c.attack_id && a.kind === 'DIVE');
+  if (type === 'Jump' && !airborne(actor) && !diveRecovery && Math.abs(c.knockback_velocity) <= 0.02) {
     cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.height = 0;
+    // Sur un pupitre du mode Arène, le saut part de la hauteur du pupitre.
+    if (sim.state.platforms?.length) { c.jump_base = actor.platform_id ? sim.state.platforms.find(p => p.id === actor.platform_id).height : 0; c.height = c.jump_base; c.drop_through_id = null; actor.platform_id = null; }
     actor.podium_site_id = null;
     actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
     actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
@@ -46,7 +51,8 @@ export function attackInput(sim, actor, type) {
   }
   if (type === 'PressAttack' && !actor.dash_active && c.press_tick == null) {
     if (airborne(actor)) { c.press_tick = sim.state.tick; c.press_airborne = true; requestAttack(sim, actor); return; }
-    c.press_tick = sim.state.tick; c.press_airborne = false;
+    // Frappe dès l’appui ; garder le bouton enfoncé enchaîne ensuite sur la charge.
+    c.press_tick = sim.state.tick; c.press_airborne = false; requestAttack(sim, actor);
   }
 }
 
@@ -81,6 +87,29 @@ export function wallBlockedPosition(sim, actor, desired) {
   return desired;
 }
 
+/** Les candidats adverses ne se superposent pas au sol : en se collant, ils se repoussent
+ * à parts égales (ou entièrement l’autre si l’un est contre un bord de l’arène).
+ * Sauter par-dessus reste possible, le dash traverse, les PNJ ne sont pas concernés. */
+export function separateCandidates(sim) {
+  const { state } = sim, width = sim.config.balance.candidate_combat.body_width;
+  const solid = c => !c.vehicle && !c.dash_active && c.combat.jump_tick == null && !(c.combat.knockdown_tick != null && c.combat.stun_ticks > 0);
+  const bodies = state.candidates.filter(c => canBeHit(c) && solid(c)).sort(stableIdOrder);
+  for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
+    const a = bodies[i], b = bodies[j];
+    if (!enemies(a, b) || Math.abs((a.combat.height || 0) - (b.combat.height || 0)) > 0.5) continue;
+    const d = combatDelta(state, a.x, b.x), overlap = width - Math.abs(d);
+    if (overlap <= 1e-9) continue;
+    const side = Math.sign(d) || 1;
+    const before = { a: a.x, b: b.x };
+    a.x = combatPosition(state, a.x - side * overlap / 2); b.x = combatPosition(state, b.x + side * overlap / 2);
+    const rest = overlap - Math.abs(combatDelta(state, before.a, a.x)) - Math.abs(combatDelta(state, before.b, b.x));
+    if (rest > 1e-9) {
+      if (Math.abs(combatDelta(state, before.a, a.x)) < overlap / 2) b.x = combatPosition(state, b.x + side * rest);
+      else a.x = combatPosition(state, a.x - side * rest);
+    }
+  }
+}
+
 function makeAttack(sim, actor, kind, spec) {
   const b = sim.config.balance.candidate_combat;
   const attack = { id: `attack:${sim.state.next_attack_id++}`, owner_id: actor.id, faction_id: actor.faction_id,
@@ -99,18 +128,39 @@ export function startNpcAttack(sim, actor, kind, settings) {
   actor.combat.cooldown_ticks = sim.secondsToTicks(settings.cooldown_seconds);
 }
 
+/** Un coup léger qui a touché peut être interrompu dès la fin de l’arrêt sur image
+ * pour enchaîner le suivant : le combo est garanti s’il est tapé à temps. */
+function comboCancel(sim, actor) {
+  const c = actor.combat, attack = sim.state.attacks.find(a => a.id === c.attack_id);
+  return !!attack && attack.kind === 'CANDIDATE' && attack.step < 3 && attack.hit_ids.length > 0
+    && attack.elapsed_ticks >= sim.secondsToTicks(sim.config.balance.candidate_combat.combo_cancel_seconds)
+    && !c.hitstop_ticks && !c.stun_ticks && !charging(actor) && !actor.dash_active && !airborne(actor);
+}
+
 function startCandidateAttack(sim, actor) {
   const c = actor.combat; const b = sim.config.balance;
-  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) || !actor.campaign_active || actor.is_ko) return;
+  const cancel = comboCancel(sim, actor);
+  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) && !cancel || !actor.campaign_active || actor.is_ko) return;
+  // Pas de plongeon au ras du sol : l’appui reste en mémoire jusqu’à la hauteur minimale.
+  if (diving(actor) || airborne(actor) && c.height < b.candidate_combat.dive_min_height) return;
   c.buffer_until_tick = -1;
+  if (cancel) sim.state.attacks = sim.state.attacks.filter(a => a.id !== c.attack_id);
   if (c.requested_direction) actor.facing = c.requested_direction;
   c.requested_direction = null; actor.purchase_hold = null;
+  if (airborne(actor)) {
+    // En l’air, Frapper déclenche le coup plongeant.
+    const k = b.candidate_combat;
+    startDive(sim, actor); c.combo_step = 0;
+    makeAttack(sim, actor, 'DIVE', { step: 0, strong: false, windup_ticks: 0, active_ticks: sim.secondsToTicks(10),
+      recovery_ticks: sim.secondsToTicks(k.dive_landing_recovery_seconds), range: k.dive_range, damage: k.dive_damage,
+      knockback: k.dive_knockback, stun_seconds: k.hit_stun_seconds, electoral_damage: k.electoral_damage_on_light_hit_percent_points });
+    return;
+  }
   c.combo_step = sim.state.tick > c.combo_expires_tick ? 1 : c.combo_step % 3 + 1;
   c.combo_expires_tick = sim.state.tick + sim.secondsToTicks(b.candidate_combat.combo_reset_seconds);
   const strong = c.combo_step === 3;
   const scarf = actor.ultimate_effect?.kind === 'SCARF' && actor.ultimate_effect.expires_tick > sim.state.tick;
   makeAttack(sim, actor, scarf ? 'SCARF' : 'CANDIDATE', { step: c.combo_step, strong,
-    ...(airborne(actor) ? { windup_ticks: 0 } : {}),
     stun_seconds: !scarf && !strong ? b.candidate_combat.light_stun_seconds : b.candidate_combat.hit_stun_seconds,
     range: scarf ? b.specials.scarf.range : strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
     damage: scarf ? b.specials.scarf.damage : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
@@ -172,7 +222,7 @@ function triggerSpecial(sim, actor) {
     const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i - (s.count - 1) / 2) * s.spawn_spacing)
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
-      owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, temporary: true, expired: false,
+      owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, ...(actor.team_id ? { team_id: actor.team_id } : {}), temporary: true, expired: false,
       x: combatPosition(state, actor.x + offset), follow_offset: offset, facing: Math.sign(offset) || actor.facing,
       moving: false, spawn_tick: state.tick, ready_tick: state.tick + sim.secondsToTicks(hologram ? s.appearance_seconds : 0), expires_tick: power.expires_tick, hidden_durability: hologram ? s.hidden_durability : s.guard_hidden_durability,
       combat: combatState(), persuasion_target_ids: [] });
@@ -204,12 +254,12 @@ function updateAttacks(sim) {
           kind: 'VERBAL', x: actor.x, direction: attack.direction, speed: s.projectile_speed, remaining_range: s.projectile_range,
           hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
         attack.launched = true;
-      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (['CANDIDATE','CHARGED','SCARF'].includes(attack.kind) || attack.hit_ids.length === 0)) {
+      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (['CANDIDATE','CHARGED','SCARF','DIVE'].includes(attack.kind) || attack.hit_ids.length === 0)) {
         const targets = meleeTargets(sim, actor, attack);
-        for (const target of (['CANDIDATE','CHARGED','SCARF'].includes(attack.kind) ? targets : targets.slice(0, 1))) {
+        for (const target of (['CANDIDATE','CHARGED','SCARF','DIVE'].includes(attack.kind) ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
-          if (['CANDIDATE', 'CHARGED'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
+          if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
         }
         }
       }

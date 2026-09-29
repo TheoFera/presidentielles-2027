@@ -15,7 +15,7 @@ export function createInfrastructure(world, config, _rngState) {
   const buildings = slots.map(slot => {
     const type = slot.type; const service = neutralTypes.has(type);
     return { id: slot.site_id, site_id: slot.site_id, type, slot_id: slot.id, x: slot.x, subzone_id: slot.subzone_id, biome_id: slot.biome_id,
-      facade: slot.facade || null, controls_zone: !!slot.controls_zone, fixed_variant: slot.fixed_variant || null, label: slot.label || null,
+      controls_zone: !!slot.controls_zone, fixed_variant: slot.fixed_variant || null, label: slot.label || null,
       next_sponsor_tick: 0, ownership_model: service ? 'neutral_service' : 'capturable', owner_id: null, level: service ? 1 : 0,
       state: service ? 'ACTIVE' : 'NEUTRAL', active: service, neutral: true,
       capture_progress: 0, closure_progress: 0, required_presence: 0, current_political_presence: 0,

@@ -16,9 +16,9 @@ import { startArena } from '../src/simulation/match-lifecycle.js';
 const make = () => { const config = structuredClone(base); config.balance.campaign_events.event_enabled = false; const sim = new GameSimulation(config, 42); sim.state.ai_enabled = false; return sim; };
 const own = (sim, site, c = sim.state.candidates[0]) => { captureSite(sim, site, c); sim.state.campaign_style_selection = null; return c; };
 
-test('Le tableau définit 18 contrôles, 6 meetings centraux et 6 locaux secondaires, sans hasard', () => {
+test('Le tableau définit 18 contrôles, 6 meetings centraux et 3 instituts, sans hasard', () => {
   const sim = make(), other = new GameSimulation(sim.config, 91);
-  assert.deepEqual(sim.state.buildings, other.state.buildings); assert.equal(sim.state.buildings.length, 30);
+  assert.deepEqual(sim.state.buildings, other.state.buildings); assert.equal(sim.state.buildings.length, 27);
   for (const zone of sim.state.world.subzones) {
     const sites = sim.state.buildings.filter(b => b.subzone_id === zone.id);
     assert.equal(sites.filter(b => b.controls_zone).length, 1); assert.ok(sites.every(b => b.x > zone.start && b.x < zone.end));
@@ -28,15 +28,15 @@ test('Le tableau définit 18 contrôles, 6 meetings centraux et 6 locaux seconda
   assert.equal(sim.state.buildings.filter(b => b.type.startsWith('garage_')).length, 3);
   assert.equal(sim.state.buildings.filter(b => b.type === 'imprimerie').length, 0);
 });
-test('Le local détermine le contrôle malgré une majorité adverse ; un mécène ne contrôle pas', () => {
+test('Le local détermine le contrôle malgré une majorité adverse ; un institut ne contrôle pas', () => {
   const sim = make(); completePopulation(sim);
   const site = sim.state.buildings.find(b => b.type === 'garage_velo'), c = own(sim, site);
   sim.state.npcs.filter(n => n.origin_subzone_id === site.subzone_id).forEach(n => convertNeutral(sim, n, 'le_pen'));
   refreshElectoralState(sim.state); const zone = sim.state.electorate.find(z => z.subzone_id === site.subzone_id);
   assert.equal(zone.leader, 'le_pen'); assert.equal(zone.controller, c.faction_id);
   neutralizeSite(sim, site); refreshElectoralState(sim.state); assert.equal(zone.controller, null);
-  own(sim, sim.state.buildings.find(b => b.type === 'financement' && b.subzone_id === site.subzone_id));
-  refreshElectoralState(sim.state); assert.equal(zone.controller, null);
+  const institute = sim.state.buildings.find(b => b.type === 'institut_sondage'); own(sim, institute);
+  refreshElectoralState(sim.state); assert.notEqual(sim.state.electorate.find(z => z.subzone_id === institute.subzone_id).controller, c.faction_id);
 });
 test('Résistance et difficulté de persuasion restent limitées à la sous-zone contrôlée', () => {
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo'), c = own(sim, site);
@@ -61,13 +61,11 @@ test('Les dons vont à la permanence et sa cagnotte tombe au sol si elle est per
   const before=sim.state.money_pickups.reduce((n,p)=>n+p.amount_cents,0);neutralizeSite(sim,site);
   assert.equal(sim.state.money_pickups.reduce((n,p)=>n+p.amount_cents,0)-before,sum);
 });
-test('Tracts à la permanence et versements distincts des mécènes', () => {
+test('Tracts à la permanence ; aucun bâtiment de financement sur la carte', () => {
   const sim=make(), site=sim.state.buildings.find(b=>b.type==='permanence'), c=own(sim,site);
   c.money=10;const npc=sim.state.npcs.find(n=>n.origin_subzone_id===site.subzone_id);convertNeutral(sim,npc,c.faction_id);
   assert.equal(buildingOffers(sim.state,sim.config,c,site)[0].kind,'PRINT');
-  const sponsor=sim.state.buildings.find(b=>b.type==='financement');own(sim,sponsor);c.x=sponsor.x+10;
-  settleMoney(sim);sim.state.tick=sponsor.next_sponsor_tick;settleMoney(sim);
-  assert.equal(sponsor.stored_money_cents,sim.config.balance.buildings.financement.sponsor_amount_eur*100);
+  assert.equal(sim.state.buildings.filter(b=>b.type==='financement').length,0);
 });
 test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et abandon sur action', () => {
   for (const type of ['garage_velo','garage_scooter']) {
@@ -95,7 +93,7 @@ test('Proportions conservées et projection périodique au raccord de la carte',
 test('Une attente de garage et un véhicule reprennent à l’identique après sauvegarde', () => {
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_scooter'), c = own(sim, site);
   c.x = site.x;
-  for (let i = 0; i < 30; i++) sim.step();
+  for (let i = 0; i < sim.secondsToTicks(sim.config.balance.vehicles.mount_seconds) / 2; i++) sim.step();
   assert.ok(c.vehicle_hold);
   const restored = make(); restored.importSnapshot(sim.exportSnapshot());
   for (let i = 0; i < 50; i++) { sim.step(); restored.step(); }

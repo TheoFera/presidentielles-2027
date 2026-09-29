@@ -1,0 +1,108 @@
+/* Mode Arène : réglages dans le menu, puis interface du combat. */
+
+/* ——— Écran de préparation ——— */
+#start-menu[data-screen='arena'] .menu-shell { max-width: 1150px; }
+#start-menu[data-screen='arena'] h1 { font-size: clamp(22px, 4.5cqh, 42px); }
+.arena-setup { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: clamp(6px, 1.6cqh, 14px); }
+.arena-options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.arena-options fieldset { display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; }
+.arena-options legend { float: left; margin-right: 4px; color: #ffe879; font: 900 clamp(12px, 1.8cqh, 16px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+#start-menu .arena-option { min-height: 40px; padding: 6px 14px; font-size: clamp(12px, 1.9cqh, 16px); }
+#start-menu .arena-option[aria-pressed='true'], #start-menu .arena-candidate[aria-pressed='true'] { border-color: #ffe275; background: linear-gradient(#ffe98a, #ffbe2e); color: #14162e; text-shadow: none; }
+.arena-map-help { flex-basis: 100%; color: #c5d9ef; font-size: clamp(11px, 1.7cqh, 15px); }
+.arena-slots { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 1.6cqw, 18px); }
+.arena-slots[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.arena-slot { min-height: 0; display: grid; grid-template-columns: minmax(60px, 32%) 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 6px 10px; padding: clamp(8px, 1.6cqh, 14px); border-radius: 16px; border: 2px solid #85c5f8; border-top: 5px solid var(--slot-color); background: linear-gradient(145deg, #1c3556ee, #081326f5); box-shadow: inset 0 1px 0 #ffffff70, 0 5px 15px #0005; }
+.arena-slot header { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+.arena-slot header strong { font: 900 clamp(16px, 3cqh, 26px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+.arena-slot-badge { padding: 3px 8px; border-radius: 8px; background: #0b1330; border: 1px solid #63edff; color: #63edff; font: 800 11px/1.2 ui-monospace, monospace; text-transform: uppercase; }
+.arena-slot[data-slot='0'] .arena-slot-badge { background: #ffe275; color: #14162e; border-color: #fff0ac; }
+.arena-slot img { grid-row: 2; width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: bottom; filter: drop-shadow(0 0 10px #79bbff55); }
+.arena-slot-choices { min-height: 0; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+#start-menu .arena-label { color: #8fb8e8; font: 800 clamp(9px, 1.4cqh, 12px)/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }
+.arena-candidates, .arena-styles { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+#start-menu .arena-candidate, #start-menu .arena-style { min-height: 36px; padding: 4px 10px; font-size: clamp(11px, 1.7cqh, 14px); border-radius: 9px; }
+#start-menu .arena-style { border-left: 6px solid var(--style-color); }
+#start-menu .arena-style[aria-pressed='true'] { background: linear-gradient(#ffffff, #d7e6ff); color: #10163a; text-shadow: none; border-color: var(--style-color); box-shadow: 0 0 0 2px var(--style-color), 0 3px 0 #020714; }
+#start-menu .arena-style:disabled { opacity: .45; }
+.arena-ultimate { color: #c5d9ef; font-size: clamp(11px, 1.6cqh, 14px); }
+.arena-ultimate strong { color: #ffe879; }
+.arena-ultimate small { color: #9fb3d6; }
+#start-menu #arena-fight { font-size: clamp(18px, 3.4cqh, 32px); padding: 8px 26px; }
+#arena-setup-note { color: #d9e6ff; }
+.arena-loading { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.arena-loading progress { width: 100%; }
+
+/* ——— Combat : l’interface de la campagne est masquée ——— */
+body.arena-mode #funds, body.arena-mode #electoral-display, body.arena-mode #poll-scores, body.arena-mode #arena-hud,
+body.arena-mode #phase-banner, body.arena-mode #spectator, body.arena-mode #results, body.arena-mode #campaign-events,
+body.arena-mode #change-campaign-style, body.arena-mode #notice, body.arena-mode #network-status { display: none !important; }
+
+#arena-mode-hud { position: absolute; top: 1.4cqw; left: 2cqw; right: 2cqw; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12cqw; pointer-events: none; }
+#arena-mode-hud[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3cqw; }
+#arena-mode-hud[hidden] { display: none; }
+.arena-fighter { display: grid; grid-template-columns: 4.2cqw 1fr auto; grid-template-rows: auto auto auto; column-gap: .8cqw; row-gap: .35cqw; align-items: center; padding: .6cqw .8cqw; border-radius: 1cqw; background: #070b22d9; border: 2px solid #ffffff30; border-bottom: .35cqw solid var(--fighter-color); color: #fff; box-shadow: 0 .4cqw 1cqw #0006; }
+.arena-fighter.local { border-color: #ffe27599; }
+.arena-fighter img { grid-row: 1 / 4; width: 4.2cqw; height: 4.2cqw; object-fit: cover; object-position: 50% 8%; border-radius: 50%; background: var(--camp-color); border: 2px solid var(--fighter-color); }
+.arena-fighter-name { min-width: 0; display: flex; flex-direction: column; line-height: 1.05; }
+.arena-fighter-name strong { font: 900 clamp(11px, 1.6cqw, 22px)/1.05 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arena-fighter-name small { color: #c9d6f2; font-size: clamp(9px, 1.05cqw, 14px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arena-fighter output { font: 900 clamp(14px, 2.2cqw, 30px)/1 Impact, 'Arial Black', sans-serif; font-variant-numeric: tabular-nums; color: #ffe879; }
+.arena-fighter-hp { grid-column: 2 / 4; position: relative; height: 1.1cqw; min-height: 7px; border-radius: 99px; background: #2a1020; overflow: hidden; border: 1px solid #ffffff40; }
+.arena-fighter-hp i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; }
+.arena-fighter-hp .lag { background: #ff5b5b; }
+.arena-fighter-hp .life { background: linear-gradient(#b8ff7a, #34c83a); transition: width .08s linear; }
+.arena-fighter.danger .arena-fighter-hp .life { background: linear-gradient(#ffd27a, #ff8a1f); }
+.arena-fighter-ultimate { grid-column: 2 / 4; height: .45cqw; min-height: 3px; border-radius: 99px; background: #ffffff20; overflow: hidden; }
+.arena-fighter-ultimate i { display: block; height: 100%; background: linear-gradient(90deg, #63edff, #ffe275); }
+.arena-fighter.ko { opacity: .45; filter: grayscale(1); }
+
+#arena-mode-banner { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none; white-space: nowrap;
+  font: 900 clamp(40px, 11cqw, 150px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .02em; color: #ffe36e;
+  text-shadow: 0 .5cqw 0 #c43b5c, 0 1cqw 0 #3b1450, 0 0 3cqw #ffb13b99; -webkit-text-stroke: .25cqw #10163a; }
+#arena-mode-banner[data-kind='fight'] { color: #ffffff; font-size: clamp(34px, 8.5cqw, 120px); }
+#arena-mode-banner[data-kind='ko'] { color: #ff4d6d; }
+#arena-mode-banner[hidden] { display: none; }
+
+#arena-mode-result { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: radial-gradient(ellipse at center, #10163acc, #04061cf2); }
+#arena-mode-result[hidden] { display: none; }
+.arena-result-panel { width: min(88cqw, 760px); display: flex; flex-direction: column; gap: 1.2cqw; padding: 2cqw 2.6cqw; border-radius: 2cqw; border: 2px solid #85c5f8; background: linear-gradient(145deg, #1c3556f5, #081326fa); box-shadow: inset 0 1px 0 #ffffff70, 0 1cqw 3cqw #000a; color: #fff; text-align: center; }
+.arena-result-eyebrow { margin: 0; color: #63edff; font: 800 clamp(10px, 1.3cqw, 15px)/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }
+.arena-result-panel h2 { margin: 0; font: 900 clamp(34px, 7cqw, 90px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; color: #ffe36e; text-shadow: 0 .4cqw 0 #c43b5c, 0 .8cqw 0 #3b1450; }
+.arena-result-panel h2[data-won='false'] { color: #c9d6f2; text-shadow: 0 .4cqw 0 #3a4a70; }
+.arena-result-text { margin: 0; font-size: clamp(13px, 1.8cqw, 22px); color: #e6eeff; }
+.arena-ranking { list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; counter-reset: rank; }
+.arena-ranking li { counter-increment: rank; display: grid; grid-template-columns: 2.4cqw 3.4cqw 1fr auto; align-items: center; gap: 1cqw; padding: .5cqw 1cqw; border-radius: 1cqw; background: #070b22b3; border-left: .4cqw solid var(--fighter-color); text-align: left; font-size: clamp(12px, 1.6cqw, 19px); }
+.arena-ranking li::before { content: counter(rank); font: 900 clamp(16px, 2.2cqw, 28px)/1 Impact, sans-serif; color: #ffe36e; text-align: center; }
+.arena-ranking img { width: 3.4cqw; height: 3.4cqw; min-width: 26px; min-height: 26px; object-fit: cover; object-position: 50% 8%; border-radius: 50%; border: 2px solid var(--fighter-color); }
+.arena-ranking small { color: #b4c4e7; font-size: .85em; }
+.arena-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; }
+.arena-result-actions button { min-height: 44px; padding: .8cqw 2cqw; border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); color: #fff; font: 900 clamp(13px, 1.8cqw, 22px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714; cursor: pointer; }
+.arena-result-actions button:hover { filter: brightness(1.16); }
+.arena-result-actions button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.arena-result-actions .arena-primary { border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); text-shadow: 1px 2px 1px #092309; }
+
+/* Bouton tactile pour descendre d’un pupitre (studio télé seulement). */
+#touch-controls #drop-touch { display: none; grid-column: 1; grid-row: 1; }
+#touch-controls.with-drop #drop-touch { display: block; }
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) { #touch-controls.with-drop #drop-touch { display: none; } }
+
+/* Téléphone à l’horizontale : sans portrait, boutons plus compacts, tout tient sans défiler. */
+@media (max-height: 520px) {
+  #start-menu[data-screen='arena'] h1 { font-size: 20px; }
+  .arena-setup { gap: 6px; }
+  .arena-options { gap: 4px 14px; }
+  .arena-options legend { font-size: 11px; }
+  #start-menu .arena-option { min-height: 34px; padding: 4px 10px; font-size: 12px; }
+  .arena-map-help, #start-menu .arena-label, .arena-ultimate small { display: none; }
+  .arena-slot { grid-template-columns: minmax(0, 1fr); padding: 5px 8px; gap: 4px; border-radius: 12px; overflow-y: auto; }
+  .arena-slot-choices, .arena-candidates, .arena-styles { min-width: 0; }
+  .arena-slot img { display: none; }
+  .arena-slot header strong { font-size: 15px; }
+  .arena-slot-choices { gap: 4px; overflow: visible; }
+  .arena-candidates, .arena-styles { gap: 4px; }
+  #start-menu .arena-candidate, #start-menu .arena-style { flex: 1 1 auto; min-height: 30px; padding: 2px 6px; font-size: 11px; white-space: nowrap; }
+  #start-menu .arena-style { border-left-width: 4px; }
+  #start-menu #arena-fight { font-size: 18px; padding: 6px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .arena-fighter-hp .life { transition: none; } }

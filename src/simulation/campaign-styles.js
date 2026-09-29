@@ -137,6 +137,7 @@ export class CampaignStyleSystem {
   static update(sim) {
     for (const c of sim.state.candidates) {
       if (sim.state.campaign_style_selection) break;
+      if (c.minor) continue; // Les mineurs n'ont pas de style de campagne.
       if (!c.current_campaign_style && c.headquarters_site_id && !c.eliminated) { this.headquartersEstablished(sim, c); continue; }
       if (!c.style_interaction_held || !c.current_campaign_style || !nearCampaignHQ(sim.state, sim.config, c) || c.axis || c.moving || c.is_ko || c.eliminated || c.campaign_arena_id || c.crisis_meeting_id || c.purchase_hold || c.combat.charge_active || c.combat.jump_tick != null || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || Math.abs(c.combat.knockback_velocity) > 0.02 || c.combat.buffer_until_tick >= sim.state.tick) { c.style_hold = null; c.style_interaction_held = false; continue; }
       c.style_hold ??= { start_tick: sim.state.tick, hits: c.hits_received, x: c.x };

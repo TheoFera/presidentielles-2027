@@ -8,6 +8,7 @@ import { combatState, demobilizeUnit, combatActors } from './combat-state.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
+import { retireMinorsForSecondRound } from './minor-candidates.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 export const initialMatchState = () => ({
@@ -50,6 +51,8 @@ export function finishArena(sim) {
   s.telemetry.eliminated_faction = eliminated;
   s.phase = GamePhase.SECOND_ROUND_SPRINT; s.phase_started_match_tick = s.match_tick;
   s.eliminated_faction = eliminated; s.finalists = FACTIONS.filter(f => f !== eliminated);
+  // Report libre : les candidats mineurs se retirent et leurs électeurs redeviennent neutres.
+  retireMinorsForSecondRound(sim);
   s.sprint_remaining_ticks = sim.secondsToTicks(sim.config.balance.time.second_round_sprint_seconds);
   for (const c of s.candidates) if (c.faction_id === eliminated) {
     c.eliminated = true; c.axis = 0; c.moving = false; c.campaign_active = false; c.interaction_active = false;

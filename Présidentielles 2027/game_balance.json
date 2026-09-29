@@ -135,7 +135,7 @@
     "electoral_damage_distribution": "controlled_subzones_proportional",
     "lost_votes_destination": "neutral",
     "hit_stun_seconds": 0.2,
-    "light_stun_seconds": 0.16,
+    "light_stun_seconds": 0.36,
     "light_range": 1.1,
     "finisher_range": 1.5,
     "light_windup_seconds": 0.08,
@@ -154,7 +154,20 @@
     "charged_damage": 21,
     "charged_stun_seconds": 0.3,
     "jump_height_ratio": 1,
-    "jump_duration_seconds": 0.8
+    "jump_duration_seconds": 0.8,
+    "combo_cancel_seconds": 0.2,
+    "body_width": 0.9,
+    "knockdown_fall_seconds": 0.3,
+    "knockdown_ground_seconds": 0.35,
+    "knockdown_rise_seconds": 0.25,
+    "wakeup_invulnerability_seconds": 0.3,
+    "dive_min_height": 0.45,
+    "dive_vertical_speed": 3.6,
+    "dive_horizontal_speed": 4,
+    "dive_range": 0.9,
+    "dive_damage": 10,
+    "dive_knockback": 6,
+    "dive_landing_recovery_seconds": 0.25
   },
   "special_charge": {
     "required_points": 10,
@@ -163,6 +176,8 @@
     "auto_trigger_on_next_attack": false,
     "show_ready_as_star_eyes": false,
     "points_per_second_hit": 1,
+    "points_per_hit_taken": 0.5,
+    "points_per_strong_hit_taken": 1,
     "decay_delay_seconds": 10,
     "decay_duration_seconds": 5,
     "enemy_summons_charge": true,
@@ -427,9 +442,7 @@
       "upgrade_offset": 0.95,
       "upgrade_radius": 0.3,
       "completion_feedback_seconds": 2,
-      "upgrade_pause_seconds": 0.4,
-      "sponsor_interval_seconds": 30,
-      "sponsor_amount_eur": 500
+      "upgrade_pause_seconds": 0.4
     },
     "tour_communication": {
       "ownership_model": "capturable",
@@ -506,7 +519,7 @@
       "pause_grace_seconds": 5,
       "cooldown_seconds": 50,
       "gather_speed": 4.8,
-      "gather_spacing": 0.22,
+      "gather_spacing": 0.6,
       "podium_height": 0.3,
       "podium_half_width": 1.35,
       "wave_visual_seconds": 1.5,
@@ -586,6 +599,32 @@
     "ai_retarget_seconds": 2.2,
     "ai_variation_units": 7
   },
+  "arena_mode": {
+    "dash_distance": 3.6,
+    "countdown_seconds": 3,
+    "fight_banner_seconds": 1,
+    "victory_delay_seconds": 1.6,
+    "ai_retarget_seconds": 1.6,
+    "default_map": "studio",
+    "maps": {
+      "plateau": {
+        "name": "Plateau médiatique",
+        "description": "Un plateau plat : rien pour se cacher.",
+        "platforms": []
+      },
+      "studio": {
+        "name": "Studio télé",
+        "description": "Des pupitres où grimper. La hauteur compte : au sol, on ne touche pas un candidat perché.",
+        "jump_height": 1.6,
+        "jump_duration_seconds": 0.95,
+        "platforms": [
+          { "id": "pupitre-gauche", "name": "Pupitre gauche", "x": 8, "half_width": 1.4, "height": 1 },
+          { "id": "pupitre-droit", "name": "Pupitre droit", "x": 20, "half_width": 1.4, "height": 1 },
+          { "id": "bureau-central", "name": "Bureau du présentateur", "x": 14, "half_width": 1.9, "height": 1.9 }
+        ]
+      }
+    }
+  },
   "ui": {
     "show_money_top_left": true,
     "show_days_top_center": true,
@@ -627,6 +666,20 @@
     "seeded_gameplay_rng": true,
     "networking_implemented_in_v0": false,
     "future_authority_model": "server_authoritative"
+  },
+  "ai_adaptation": {
+    "enabled": true,
+    "dominance_gap": 14,
+    "mercy_gap": 12,
+    "mercy_threshold": 0.3,
+    "territory_weight": 30,
+    "building_weight": 1.5,
+    "money_weight": 0.05,
+    "max_persuasion_speed_bonus": 0.25,
+    "max_persuasion_slowdown": 0.15,
+    "focus_zone_bonus": 18,
+    "spared_zone_penalty": 24,
+    "money_risk_reference_k": 20
   },
   "ai_economy": {
     "enabled": true,
@@ -877,12 +930,12 @@
           "CRISIS": 1
         },
         "participation_ratio": 0.94,
-        "gather_seconds": 10,
-        "march_speed": 2.2,
+        "gather_seconds": 12,
+        "march_speed": 1.8,
         "gather_speed": 5.5,
         "conversion_seconds": 0.12,
         "conversion_immunity_seconds": 2,
-        "crowd_spacing": 0.35
+        "crowd_spacing": 0.6
       }
     },
     "active_families": [
@@ -916,9 +969,27 @@
     "supporter_health_multiplier": 1.5
   },
   "vehicles": {
-    "mount_seconds": 2.5,
+    "mount_seconds": 1,
     "garage_radius_units": 0.7,
-    "velo_speed_multiplier": 1.65,
-    "scooter_speed_multiplier": 2.1
+    "velo_speed_multiplier": 2.2,
+    "scooter_speed_multiplier": 2.9
+  },
+  "minor_candidates": {
+    "enabled": true,
+    "max_sympathisants": 10,
+    "border_units": 3,
+    "detection_range_units": 7,
+    "roam_pause_seconds": 2.5
+  },
+  "funding_encounters": {
+    "threshold_eur": 1000,
+    "amount_eur": 20000,
+    "sign_seconds": 3,
+    "sign_radius_units": 0.8,
+    "appearance_radius_units": 7,
+    "witness_radius_units": 24,
+    "retry_seconds": 12,
+    "ai_boost_threshold": 0.75,
+    "ai_search_radius_units": 120
   }
 }

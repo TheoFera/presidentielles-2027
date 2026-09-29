@@ -3,8 +3,10 @@ import { drawRallyAccessories } from './fixed-world.js';
 import { drawCandidateCombat } from './melenchon-combat.js';
 import { drawUltimateCharacter } from './ultimate-sprites.js';
 import { specialCharacterAssetId } from './campaign-style-art.js';
+import { meetingCrowdPlace } from '../simulation/electoral-buildings.js';
 import { militantSpriteForFaction } from './militant-sprites.js';
 import { zoneAt } from '../simulation/world.js';
+import { drawMinorCandidate } from './minor-characters.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
 const hash = value => [...String(value)].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 0);
@@ -67,7 +69,9 @@ export function characterAssetId(entity, state) {
 // Animation follows simulation events; no animation can delay or mutate a command.
 export function characterAnimation(entity, state) {
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
-  if (entity.is_ko || entity.arena_hp <= 0) return 'ko';
+  // Renversé : l’étourdissement dure exactement le temps de la chute et du relevé.
+  const downed = entity.combat?.knockdown_tick != null && entity.combat.stun_ticks > 0 && state.tick < entity.combat.invulnerable_until_tick;
+  if (entity.is_ko || entity.arena_hp <= 0 || downed) return 'ko';
   if (entity.combat?.stun_ticks > 0) return Math.abs(entity.combat.knockback_velocity || 0) > 0.01 ? 'knockback' : 'hurt';
   if (attack?.kind === 'SPECIAL') return attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'special_start' : 'special_recovery';
   if (attack) return attack.strong ? 'attack_heavy' : attack.step === 2 ? 'attack_light_2' : 'attack_light_1';
@@ -85,11 +89,15 @@ export function characterAnimation(entity, state) {
 }
 
 /** Rang de profondeur dans la foule d'un meeting : 0 hors meeting, puis 1 (fond) à 3 (devant). */
-export function meetingCrowdRow(entity) {
-  return entity.rally_event_id ? 1 + (entity.rally_index % 3) : entity.meeting_target_id ? 1 + (Number(entity.id?.slice(4)) || 0) % 3 : 0;
+export function meetingCrowdRow(entity, state) {
+  if (entity.rally_event_id) return 1 + (entity.rally_index % 3);
+  if (!entity.meeting_target_id) return 0;
+  // Deux voisins d'un même flanc ne sont jamais sur le même rang : ils se tiennent côte à côte.
+  return 1 + Math.floor((state ? meetingCrowdPlace(state, entity) : Number(entity.id?.slice(4)) || 0) / 2) % 3;
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
+  if (drawMinorCandidate(renderer, entity, x, state)) return true;
   if (drawMountedCandidate(renderer, entity, x, state)) return true;
   if (drawUltimateCharacter(renderer, entity, x, state)) return true;
   if (drawCandidateCombat(renderer, entity, x, state)) return true;
@@ -105,7 +113,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const time = state.tick / renderer.config.balance.simulation_architecture.fixed_tick_hz;
   const animation = characterAnimation(entity, state);
   // Foule : chaque rang est un peu plus bas et plus grand, comme s'il était plus proche de la caméra.
-  const row = meetingCrowdRow(entity);
+  const row = meetingCrowdRow(entity, state);
   const seed = Number(entity.id?.slice(4)) || 0;
   const rally = animation === 'meeting' ? state.buildings?.find(b => b.id === entity.meeting_target_id) : null;
   const supporter = !!rally && entity.role === 'SYMPATHISANT' && entity.faction_id === rally.meeting_faction_id;

@@ -1,6 +1,7 @@
 import { ringDelta } from '../simulation/world.js';
 import { buildingAssetId } from './illustrated-buildings.js';
 import { seasonAt } from '../simulation/campaign-events.js';
+import { v3AssetIds } from './fixed-world.js';
 
 const masked = new WeakMap();
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
@@ -31,11 +32,11 @@ export function scenerySeasonFilter(progress) {
 }
 
 export function worldAssetIds(manifest, state) {
-  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
+  const wanted = new Set(['background-arena', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds', ...v3AssetIds()]);
   for (const biome of biomeNames) wanted.add(`panorama-${biome}`);
   // Les façades sont incorporées aux panoramas ; aucun ancien local flottant à précharger.
   for (const id of Object.keys(manifest)) {
-    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-)/.test(id)) wanted.add(id);
+    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-|financier-|minor-)/.test(id)) wanted.add(id);
   }
   return [...wanted];
 }
@@ -69,7 +70,7 @@ export function drawIllustratedSky(renderer, state) {
 
 const distantStrips = new WeakMap();
 const landscapeEdges = new WeakMap();
-function distantJoin(image) {
+export function distantJoin(image) {
   if (distantStrips.has(image)) return distantStrips.get(image);
   const strip = document.createElement('canvas'); strip.width = image.naturalWidth; strip.height = image.naturalHeight;
   const c = strip.getContext('2d'); c.drawImage(image, 0, 0);
@@ -91,7 +92,7 @@ export function prepareSceneryImage(id, image) {
   else if (id.startsWith('street-')) streetBaseline(image);
 }
 
-function landscapeJoin(image) {
+export function landscapeJoin(image) {
   if(landscapeEdges.has(image))return landscapeEdges.get(image);
   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
   const c=canvas.getContext('2d');c.drawImage(image,0,0);

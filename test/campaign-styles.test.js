@@ -14,7 +14,7 @@ import { saveCampaignProfile, loadCampaignProfile } from '../src/presentation/ca
 const allUnlocked = () => ({ unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) => [f, styles.map(s => s.id)])) });
 const make = (profile = allUnlocked()) => new GameSimulation(campaignConfig(), 42, 'candidate:melenchon', profile);
 function establish(sim, candidate = sim.state.candidates[0]) {
-  const hq = sim.state.buildings.find(b => b.type === 'permanence');
+  const hq = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id);
   candidate.x = hq.x; captureSite(sim, hq, candidate); return hq;
 }
 function choose(sim, candidate, id) {

@@ -10,7 +10,7 @@ import {aiCombatCommands} from '../src/simulation/ai-combat.js';
 import {captureSite} from '../src/simulation/strategic-sites.js';
 import {aiEconomicTarget} from '../src/simulation/economy.js';
 import {drawCandidateCombat,usesCandidateCombat,candidateCombatPose} from '../src/presentation/melenchon-combat.js';
-function setup(){const sim=new GameSimulation(campaignConfig(),42);sim.state.npcs=[];sim.state.ai_enabled=false;sim.state.candidates.forEach((c,i)=>{c.x=100+i*100;c.axis=0;});return {sim,c:sim.state.candidates[0]};}
+function setup(){const sim=new GameSimulation((() => { const config = campaignConfig(); config.balance.minor_candidates.enabled = false; return config; })(),42);sim.state.npcs=[];sim.state.ai_enabled=false;sim.state.candidates.forEach((c,i)=>{c.x=100+i*100;c.axis=0;});return {sim,c:sim.state.candidates[0]};}
 
 test('Persuasion : rester immobile ; marcher annule immédiatement les deux côtés',()=>{
  const {sim,c}=setup(),n=sim.spawn(sim.state.world.subzones[0],c.x+.2);
@@ -84,7 +84,7 @@ test('IA : cadence normale intermédiaire et décisions répétables sans consom
 
 test('IA : un bâtiment déjà construit ne propose plus de détour pour une amélioration',()=>{
  const {sim,c}=setup();c.money=1000;
- const site=sim.state.buildings.find(b=>b.type==='permanence');captureSite(sim,site,c);c.x=site.x+5;
+ const site=sim.state.buildings.find(b=>b.type==='permanence' && !b.owner_id);captureSite(sim,site,c);c.x=site.x+5;
  for(let i=0;i<8;i++){const n=sim.spawn(sim.state.world.subzones.find(z=>z.id===site.subzone_id),site.x);if(n){n.role='SYMPATHISANT';n.faction_id=c.faction_id;n.hidden_durability=30;}}
  const objective={purpose:'CONQUER',subzone_id:'different-zone'};
  const target=aiEconomicTarget(sim.state,sim.config,c,objective);

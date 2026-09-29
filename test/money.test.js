@@ -28,7 +28,8 @@ test('le compteur affiche seulement l’argent transporté dans un format compac
 
 test('départ à zéro, totaux physiques exacts et billets accessibles au saut', () => {
   const sim = make();
-  assert.deepEqual(sim.state.candidates.map(c => c.money), [0, 0, 0]);
+  assert.deepEqual(sim.state.candidates.map(c => c.money), sim.state.candidates.map(() => 0));
+  assert.equal(sim.state.money_pickups.length, 2 * config.balance.money.starting_pickups.default_count + config.balance.money.starting_pickups.philippe_count, 'aucun billet de départ pour les mineurs');
   for (const [faction, expected] of [['melenchon', 12000], ['le_pen', 12000], ['philippe', 30000]]) {
     const start = sim.state.candidates.find(c => c.faction_id === faction);
     const money = sim.state.money_pickups.filter(p => zoneAt(sim.state.world, p.x).biome_id === zoneAt(sim.state.world, start.start_x).biome_id);
@@ -69,7 +70,7 @@ test('seul un sympathisant donne ; il se tourne, lance le billet puis va à la p
   for (let i = 0; i < sim.secondsToTicks(config.balance.money.donation.handoff_toss_seconds) + 1; i++) sim.step();
   assert.ok(!sim.state.money_pickups.includes(dropped)); assert.equal(candidate.money, 0.05);
   assert.ok(npc.next_donation_tick > sim.state.tick);
-  const building = sim.state.buildings.find(b => b.type === 'permanence');
+  const building = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id);
   captureSite(sim, building, candidate);
   const zone = sim.state.world.subzones.find(z => z.biome_id === building.biome_id);
   const courier = sim.spawn(zone, building.x - 1);
@@ -89,7 +90,7 @@ test('seul un sympathisant donne ; il se tourne, lance le billet puis va à la p
 test('KO : 30 % au sol, cagnotte intacte et attente de 3 à 15 secondes', () => {
   for (const [progress, seconds] of [[0, 3], [1, 15]]) {
     const sim = make(), candidate = sim.state.candidates[0], attacker = sim.state.candidates[1];
-    const building = sim.state.buildings.find(b => b.type === 'permanence');
+    const building = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id);
     captureSite(sim, building, candidate); building.stored_money_cents = 12300;
     candidate.x = attacker.x; candidate.money = 100; sim.state.campaign_progress_01 = progress;
     hit(sim, attacker, candidate, { kind: 'CANDIDATE', step: 3, damage: 100, knockback: 0, electoral_damage: 0 }, 'test');
@@ -142,7 +143,7 @@ test('les nouveaux états survivent à une sauvegarde', () => {
 
 test('un bâtiment neutralisé rend sa cagnotte au sol et un don en trajet reste au PNJ', () => {
   const sim = make(), owner = sim.state.candidates[0];
-  const building = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, building, owner);
+  const building = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id); captureSite(sim, building, owner);
   const zone = sim.state.world.subzones.find(z => z.biome_id === building.biome_id);
   const npc = sim.spawn(zone, building.x - 2); convertNeutral(sim, npc, owner.faction_id);
   npc.donation_cents = 10000; npc.next_donation_tick += sim.hz;
@@ -156,7 +157,7 @@ test('un bâtiment neutralisé rend sa cagnotte au sol et un don en trajet reste
 
 test('un don déjà préparé tombe au sol lors de la promotion ou de la neutralisation', () => {
   const sim = make(), owner = sim.state.candidates[0];
-  const printer = sim.state.buildings.find(b => b.type === 'permanence');
+  const printer = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id);
   const zone = sim.state.world.subzones.find(z => z.id === printer.subzone_id);
   const npc = sim.spawn(zone, printer.x); convertNeutral(sim, npc, owner.faction_id);
   npc.donation_cents = 10000;
@@ -185,15 +186,15 @@ test('l’IA va chercher un don prêt et revient vider une cagnotte', () => {
   const zone = zoneAt(sim.state.world, candidate.x);
   const donor = sim.spawn(zone, candidate.x + 3); convertNeutral(sim, donor, candidate.faction_id); donor.donation_cents = 10000;
   assert.equal(strategicAICommands(sim.state, sim.config, candidate).find(c => c.type === 'Move').axis, 1);
-  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, candidate);
-  const funding = sim.state.buildings.find(b => b.type === 'financement'); captureSite(sim, funding, candidate);
+  const hq = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id); captureSite(sim, hq, candidate);
+  const funding = sim.state.buildings.filter(b => b.type === 'permanence' && !b.owner_id)[0]; captureSite(sim, funding, candidate);
   funding.stored_money_cents = 50000; candidate.x = funding.x - 3;
   assert.equal(strategicAICommands(sim.state, sim.config, candidate).find(c => c.type === 'Move').axis, 1);
 });
 
 test('l’IA ramasse aussi un don tombé après la capture du QG', () => {
   const sim = make(), candidate = sim.state.candidates[1]; sim.state.ai_enabled = true;
-  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, candidate);
+  const hq = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id); captureSite(sim, hq, candidate);
   sim.state.money_pickups = [];
   addMoneyPickup(sim, candidate.x + 2, 0, 10000);
   assert.equal(strategicAICommands(sim.state, sim.config, candidate).find(c => c.type === 'Move').axis, 1);

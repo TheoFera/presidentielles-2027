@@ -1,7 +1,7 @@
 import { additionalCombatAtlases } from './candidate-combat-atlases.js';
 import { extraAtlasesFor, candidateExtraPose } from './candidate-extra-poses.js';
 import { skinAnimationFor } from './skin-animation-atlases.js';
-import { MelenchonMotionTracker } from './melenchon-extra-poses.js';
+import { MelenchonMotionTracker, knockdownPose } from './melenchon-extra-poses.js';
 import { combatDelta } from '../simulation/combat-geometry.js';
 import { enemies } from '../simulation/combat-state.js';
 
@@ -58,13 +58,13 @@ export class CombatPoseTracker {
 
 export function melenchonPose(entity, state, config, guard = false) {
   if (!usesCandidateCombat(entity, state) || entity.is_ko || entity.arena_hp <= 0
-    || entity.combat?.stun_ticks > 0 || entity.dash_active) return null;
+    || entity.combat?.stun_ticks > 0 || entity.dash_active || knockdownPose(entity, state, config)) return null;
   const c = entity.combat, hz = config.balance.simulation_architecture.fixed_tick_hz;
   const attack = state.attacks.find(a => a.id === c.attack_id);
   const inAir = c.jump_tick != null;
   const result = (frame, name, phase = null) => ({ frame, name, phase, direction: attack?.direction || entity.facing });
   if (attack) {
-    if (!['CANDIDATE', 'CHARGED', 'HOLOGRAM'].includes(attack.kind)) return null;
+    if (!['CANDIDATE', 'CHARGED', 'HOLOGRAM', 'DIVE'].includes(attack.kind)) return null;
     const phase = attack.elapsed_ticks < attack.windup_ticks ? 'windup'
       : attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'active' : 'recovery';
     const earlyRecovery = attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks + Math.ceil(attack.recovery_ticks * .35);

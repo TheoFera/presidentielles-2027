@@ -1,5 +1,7 @@
 import { validateCampaignConfig } from './simulation/campaign-validation.js';
 import { validAIDifficulty } from './simulation/ai-settings.js';
+import { validateFundingConfig } from './simulation/funding-encounters.js';
+import { validateMinorConfig } from './simulation/minor-candidates.js';
 export function validateConfig(config) {
   if (config.balance.ai?.difficulty !== undefined && !validAIDifficulty(config.balance.ai.difficulty)) throw new Error('Configuration : difficulté de l’IA invalide.');
   validateCampaignConfig(config);
@@ -62,6 +64,17 @@ export function validateConfig(config) {
   for (const key of ['width_units', 'edge_margin', 'transition_seconds', 'ai_retarget_seconds', 'ai_variation_units']) positive(arena[key], `arène ${key}`);
   if (arena.width_units >= config.layout.biomes.length * 3 * config.prototype.world.units_per_screen || arena.edge_margin * 2 >= arena.width_units) throw new Error('Configuration : limites du plateau invalides.');
   for (const key of ['light_1', 'light_2', 'heavy', 'hologram', 'wave', 'crs']) positive(arena.damage[key], `dégât d’arène ${key}`);
+  const mode = config.balance.arena_mode;
+  for (const key of ['dash_distance', 'countdown_seconds', 'fight_banner_seconds', 'victory_delay_seconds', 'ai_retarget_seconds']) positive(mode[key], `mode Arène ${key}`);
+  if (!mode.maps[mode.default_map]) throw new Error('Configuration : carte d’arène par défaut inconnue.');
+  for (const [id, map] of Object.entries(mode.maps)) {
+    if (!map.name || !Array.isArray(map.platforms)) throw new Error(`Configuration : carte d’arène ${id} invalide.`);
+    if (map.platforms.length) { positive(map.jump_height, `saut de la carte ${id}`); positive(map.jump_duration_seconds, `durée du saut de la carte ${id}`); }
+    for (const p of map.platforms) {
+      for (const key of ['x', 'half_width', 'height']) positive(p[key], `pupitre ${p.id} ${key}`);
+      if (p.x - p.half_width < arena.edge_margin || p.x + p.half_width > arena.width_units - arena.edge_margin) throw new Error(`Configuration : le pupitre ${p.id} dépasse du plateau.`);
+    }
+  }
   const sprint = config.balance.second_round;
   for (const key of ['poll_refresh_seconds', 'meeting_cooldown_seconds', 'extension_seconds', 'ai_opponent_detection_range', 'ai_meeting_distance', 'ai_recruit_distance', 'ai_former_third_priority', 'ai_neutral_zone_priority']) positive(sprint[key], `second tour ${key}`);
   if (!['REPEAT_OVERTIME', 'J0_THEN_SEED'].includes(sprint.tie_rule)) throw new Error('Configuration : règle d’égalité inconnue.');
@@ -117,8 +130,8 @@ export function validateConfig(config) {
   for (const slot of generation.slots) if (!siteTypes.includes(slot.type) || typeof slot.controls_zone !== 'boolean'
     || slot.controls_zone && ['meeting', 'institut_sondage', 'imprimerie', 'financement'].includes(slot.type)
     || slot.type === 'faction' && !['service_ordre', 'cabinet_administratif'].includes(slot.fixed_variant)) throw new Error('Fonction de bâtiment invalide.');
-  for (const slot of generation.slots) if (slot.type !== 'meeting' && (!Array.isArray(slot.facade) || slot.facade.length !== 5
-    || slot.facade.some(value => !Number.isFinite(value) || value <= 0 || value >= 1))) throw new Error('Repères de façade invalides.');
+  validateFundingConfig(config);
+  validateMinorConfig(config);
   for (const [key, value] of Object.entries(config.balance.vehicles)) positive(value, key);
   for (const [key, value] of Object.entries(config.balance.zone_control)) positive(value, key);
   const capturableConfigs = ['garage_velo', 'garage_scooter', 'permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
@@ -141,10 +154,10 @@ export function validateConfig(config) {
   positive(config.balance.physical_units.militant.move_speed, 'vitesse du Militant');
   positive(config.balance.physical_units.militant.max_player_speed_multiplier, 'limite de vitesse du Militant');
   for (const [section, fields] of [
-    [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second']],
+    [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second', 'combo_cancel_seconds', 'body_width', 'knockdown_fall_seconds', 'knockdown_ground_seconds', 'knockdown_rise_seconds', 'wakeup_invulnerability_seconds', 'dive_min_height', 'dive_vertical_speed', 'dive_horizontal_speed', 'dive_range', 'dive_damage', 'dive_knockback', 'dive_landing_recovery_seconds']],
     [config.balance.physical_units.militant, ['verbal_range', 'verbal_cooldown_seconds', 'verbal_damage', 'projectile_speed', 'projectile_range']],
     [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_duration_seconds', 'raid_cooldown_seconds']],
-    [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit']],
+    [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit', 'points_per_hit_taken', 'points_per_strong_hit_taken']],
   ]) for (const field of fields) positive(section[field], field);
   if (!Number.isFinite(config.balance.candidate_combat.light_knockback) || config.balance.candidate_combat.light_knockback < 0) throw new Error('Le recul léger doit être positif ou nul.');
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
