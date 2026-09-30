@@ -6,6 +6,7 @@ import {GameSimulation} from '../src/simulation/game-simulation.js';
 import {activateUltimate,beginCombatTick,updateCombat,cancelCurrentAttack} from '../src/simulation/combat.js';
 import {tryBardellisation,surgeMotionPlan} from '../src/simulation/style-ultimates.js';
 import {ultimateAtlases} from '../src/presentation/ultimate-sprite-data.js';
+import {ultimateGuardAtlases} from '../src/presentation/ultimate-guard-sprites.js';
 import {ultimateCharacterPose,scarfPose,drawUltimateCharacter,drawUltimateProjectile,drawUltimateEffect,molotovArcHeight,SURGE_HEIGHT_RATIO} from '../src/presentation/ultimate-sprites.js';
 import {drawStyleEffects} from '../src/presentation/style-effects.js';
 import {visualManifest} from '../src/presentation/visual-manifest.js';
@@ -20,6 +21,16 @@ function recordingRenderer(){
   return {ctx,calls,config,metrics:{groundY:300,characterHeight:100,pixelsPerUnit:40},p:{npc_height_multiplier:.8},screenX:x=>x*40,assets:{get:id=>({id}),load:async()=>null}};
 }
 const make=()=>new GameSimulation(config,42);
+test('Europe et Bardella : huit poses de marche transparentes, cadrées et à la même échelle',()=>{
+  for(const key of ['europe','bardella']){
+    const atlas=ultimateGuardAtlases[key+'_guard'],original=ultimateAtlases[key];
+    const png=readFileSync(new URL(visualManifest[atlas.sprite].file));
+    assert.equal(png[25],6);assert.equal(atlas.frames.length,8);assert.equal(atlas.isolated,true);
+    const width=png.readUInt32BE(16),height=png.readUInt32BE(20);
+    for(const [x,y,w,h]of atlas.frames)assert.ok(x>=0&&y>=0&&w>0&&h>0&&x+w<=width&&y+h<=height);
+    assert.ok(Math.abs(atlas.frames[0][3]/atlas.referenceHeight-original.frames[0][3]/original.referenceHeight)<.001);
+  }
+});
 test('Déferlement : sept trajectoires distinctes, changements et choix reproductibles',()=>{
   const state={seed:42,tick:0},paths=[];
   for(let i=1;i<=7;i++){
