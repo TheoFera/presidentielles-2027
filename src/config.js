@@ -144,7 +144,6 @@ export function validateConfig(config) {
   const printer = config.balance.buildings.imprimerie;
   for (const field of ['purchase_hold_seconds', 'pickup_seconds']) positive(printer[field], `imprimerie.${field}`);
   positive(printer.tract_cost_by_level[0], 'prix du tract'); positive(printer.equipment_seconds_by_level[0], 'durée d’impression');
-  if (!Number.isInteger(printer.max_queue_length) || printer.max_queue_length < 1) throw new Error('Configuration : capacité de file invalide.');
   const funding = config.balance.buildings.financement;
   for (const field of ['upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);
   positive(config.balance.buildings.permanence.first_headquarters_capture_cost, 'coût du premier QG');
@@ -161,7 +160,7 @@ export function validateConfig(config) {
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
-  if (!Number.isInteger(so.max_queue_length) || so.max_queue_length < 1 || so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
+  if (so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
   for (const value of [...so.baton_cost_by_level, ...so.equipment_seconds_by_level, so.pickup_seconds]) positive(value, 'équipement SO');
   for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') {
     if(key==='knockback'){if(!Number.isFinite(value)||value<0)throw new Error('Configuration : recul du pouvoir invalide.');}
@@ -170,6 +169,7 @@ export function validateConfig(config) {
   positive(config.balance.physical_units.militant.reconsider_seconds, 'réévaluation du Militant');
   if (!Number.isInteger(config.balance.physical_units.militant.nearby_zone_radius) || config.balance.physical_units.militant.nearby_zone_radius < 1) throw new Error('Configuration : rayon de prospection invalide.');
   if (!Number.isInteger(config.balance.physical_units.militant.expedition_min_group_size) || config.balance.physical_units.militant.expedition_min_group_size < 2) throw new Error('Configuration : taille minimale de groupe de militants invalide.');
+  positive(config.balance.physical_units.militant.expedition_spacing_units, 'espacement des militants en groupe');
   if (!Number.isInteger(config.balance.physical_units.sympathisant.tract_pickup_zone_radius) || config.balance.physical_units.sympathisant.tract_pickup_zone_radius < 0) throw new Error('Configuration : distance de collecte des tracts invalide.');
   positive(config.layout.electoral_weights?.default, 'poids électoral par défaut');
   for (const [id, weight] of Object.entries(config.layout.electoral_weights.by_subzone)) {

@@ -120,12 +120,17 @@ function updateExpedition(simulation, npc, members) {
   const target = state.npcs.filter(freeNeutral(npc, reservedTargets(state, npc)))
     .filter(n => { const ahead = ringDelta(center, n.x, length) * direction; return ahead >= -radius && ahead <= reach; })
     .sort((a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b))[0];
-  // Sans cible, chacun vise un point juste devant le centre du groupe : les membres avancent ensemble.
-  npc.task = expandTask(simulation, target, target?.x ?? center + direction * radius);
+  // Sans cible, chacun garde sa place dans la file, juste devant le centre du groupe :
+  // les membres marchent ensemble, côte à côte, sans jamais se superposer.
+  const slot = (members.indexOf(npc) - (members.length - 1) / 2) * settings.expedition_spacing_units;
+  npc.task = expandTask(simulation, target, target?.x ?? center + direction * radius + slot);
   if (target && distance(state, npc.x, target.x) <= radius * settings.stop_distance_radius_ratio) {
     npc.moving = false; npc.task.phase = 'RECRUIT'; return;
   }
-  moveNpcTowards(simulation, npc, npc.task.destination_x, settings.move_speed);
+  // Celui qui a dépassé sa place ralentit un peu ; les autres le rattrapent et la file se forme d'elle-même.
+  const ahead = target ? 0 : ringDelta(center + slot, npc.x, length) * direction;
+  const pace = Math.max(0.3, Math.min(1, 1 - ahead / settings.expedition_spacing_units));
+  moveNpcTowards(simulation, npc, npc.task.destination_x, settings.move_speed * pace);
 }
 
 export function updateMilitant(simulation, npc) {

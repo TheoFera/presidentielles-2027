@@ -118,3 +118,14 @@ test('Affichage : deux PNJ immobiles superposés sont écartés, ceux qui marche
   assert.equal(targets.has('npc:3'), false);
   assert.equal(state.npcs[0].x, 10, 'la simulation n’est pas modifiée');
 });
+
+test('En expédition, les militants marchent côte à côte sans se superposer', () => {
+  const { sim, home } = setup();
+  const militants = [0, 1, 2].map(() => unit(sim, 'MILITANT', home.x));
+  unit(sim, 'NEUTRE', 330);
+  advance(sim, 200);
+  assert.ok(militants.every(m => m.expedition && m.moving), 'le groupe marche');
+  const xs = militants.map(m => m.x).sort((a, b) => a - b);
+  const spacing = config.balance.physical_units.militant.expedition_spacing_units;
+  for (let i = 1; i < xs.length; i++) assert.ok(xs[i] - xs[i - 1] > spacing * 0.8, 'chacun garde sa place dans la file');
+});

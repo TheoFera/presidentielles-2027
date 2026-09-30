@@ -1,6 +1,6 @@
 import { drawCombatEffects } from './combat-effects.js';
 import { campaignStyles } from '../simulation/campaign-styles.js';
-import { visualManifest } from './visual-manifest.js';
+import { portraitContent, hydrateSelectionPortraits } from './debate-selection.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -244,15 +244,14 @@ export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
   renderer.metrics = original; renderer.screenX = originalScreenX;
 }
 
-const portraitOf = faction => visualManifest[`character-${faction}`]?.file;
-
 /** Images à charger avant le combat : planches des combattants choisis et ultimes. */
 export function debateAssetIds(manifest, setup) {
   return Object.keys(manifest).filter(id => id.startsWith('ultimate-') || id.startsWith('character-ultimate-') || id.startsWith('crs-')
     || setup.map === 'plateau' && id === 'background-debate'
     || setup.fighters.some(f => {
       const faction = f.faction.replace(/_/g, '-');
-      return id === `character-${f.faction}` || id.startsWith(`character-${faction}-`) || id.includes(f.style.replace(/_/g, '-'));
+      return id === `minor-${f.faction}` || id.startsWith(`character-minor-${f.faction}-`)
+        || id === `character-${f.faction}` || id.startsWith(`character-${faction}-`) || id.includes(f.style.replace(/_/g, '-'));
     }));
 }
 
@@ -282,7 +281,8 @@ export class DebateModeDisplay {
       const card = document.createElement('div'); card.className = 'debate-fighter';
       card.style.setProperty('--fighter-color', label.color); card.style.setProperty('--camp-color', label.faction);
       const local = fighter.id === state.local_candidate_id;
-      card.innerHTML = `<img alt="" src="${portraitOf(fighter.faction_id)}"><div class="debate-fighter-name"><strong></strong><small></small></div><output></output><div class="debate-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="debate-fighter-ultimate" title="Ultime"><i></i></div>`;
+      card.innerHTML = `${portraitContent(fighter.faction_id)}<div class="debate-fighter-name"><strong></strong><small></small></div><output></output><div class="debate-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="debate-fighter-ultimate" title="Ultime" ${fighter.minor ? 'hidden' : ''}><i></i></div>`;
+      hydrateSelectionPortraits(card);
       card.querySelector('strong').textContent = `${label.name}${local ? ' · Vous' : ''}`;
       card.querySelector('small').textContent = label.style;
       card.classList.toggle('local', local);
@@ -332,14 +332,14 @@ export class DebateModeDisplay {
     panel.querySelector('.debate-result-eyebrow').textContent = `${state.map_name} · ${state.format === '1v1' ? '1 contre 1' : '1 contre 1 contre 1'}`;
     panel.querySelector('h2').textContent = won ? 'Victoire !' : 'Défaite…';
     panel.querySelector('h2').dataset.won = String(won);
-    panel.querySelector('.debate-result-text').textContent = label ? `${label.name} (${label.style}) remporte le débat${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
+    panel.querySelector('.debate-result-text').textContent = label ? `${label.name}${label.style ? ` (${label.style})` : ''} remporte le Débat télé${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
     const list = panel.querySelector('ol');
     for (const fighter of order) {
       const item = document.createElement('li'); const l = fighterLabel(this.config, fighter);
       item.style.setProperty('--fighter-color', l.color);
-      item.innerHTML = '<img alt=""><span></span><small></small>';
-      item.querySelector('img').src = portraitOf(fighter.faction_id);
-      item.querySelector('span').textContent = `${l.name} · ${l.style}${fighter.id === state.local_candidate_id ? ' (vous)' : ''}`;
+      item.innerHTML = `${portraitContent(fighter.faction_id)}<span class="ranking-name"></span><small></small>`;
+      hydrateSelectionPortraits(item);
+      item.querySelector('.ranking-name').textContent = `${l.name}${l.style ? ` · ${l.style}` : ''}${fighter.id === state.local_candidate_id ? ' (vous)' : ''}`;
       item.querySelector('small').textContent = `${Math.round(fighter.damage_dealt)} dégâts infligés`;
       list.append(item);
     }

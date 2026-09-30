@@ -22,8 +22,7 @@ export function buildingOffer(state, config, candidate, building) {
   let kind; let cost; let available = true; let reason = null;
   if (printing) {
     kind = 'PRINT'; cost = settings.tract_cost_by_level[building.level - 1];
-    if (building.queue.length >= settings.max_queue_length) { available = false; reason = 'QUEUE_FULL'; }
-    else if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
+    if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
       available = false; reason = 'NO_SYMPATHISANT';
     }
   } else if (building.type === 'institut_sondage') {

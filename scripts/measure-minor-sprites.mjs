@@ -4,7 +4,7 @@ import { readPng } from './lib/png.mjs';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { MINOR_SPRITES } from '../src/presentation/minor-sprites.js';
 
-export function measureMinorSprites(image) {
+export function measureMinorSprites(image, { count = 12, columns = 4, koFrames = [10] } = {}) {
   const { width, height, data } = image;
   const seen = new Uint8Array(width * height), queue = new Int32Array(width * height);
   const figures = [];
@@ -24,10 +24,11 @@ export function measureMinorSprites(image) {
     }
     if (tail > 1000) figures.push({ left, top, right, bottom, pixels: tail });
   }
-  if (figures.length !== 12) throw new Error(`Douze silhouettes attendues, ${figures.length} mesurées.`);
+  if (figures.length !== count) throw new Error(`${count} silhouettes attendues, ${figures.length} mesurées.`);
   // Les poses ont une hauteur variable : regroupement par rang, puis par colonne.
   figures.sort((a, b) => a.top - b.top);
-  const ordered = [0, 4, 8].flatMap(start => figures.slice(start, start + 4).sort((a, b) => a.left - b.left));
+  const ordered = Array.from({ length: count / columns }, (_, row) => row * columns)
+    .flatMap(start => figures.slice(start, start + columns).sort((a, b) => a.left - b.left));
   return {
     referenceHeight: ordered[0].bottom - ordered[0].top + 1,
     frames: ordered.map(({ left, top, right, bottom }, index) => {
@@ -36,7 +37,7 @@ export function measureMinorSprites(image) {
       for (let y = Math.max(top, bottom - 10); y <= bottom; y++) for (let x = left; x <= right; x++) {
         if (data[(y * width + x) * 4 + 3] >= 90) { footLeft = Math.min(footLeft, x); footRight = Math.max(footRight, x); }
       }
-      const pivot = index === 10 ? (left + right) / 2 : (footLeft + footRight) / 2;
+      const pivot = koFrames.includes(index) ? (left + right) / 2 : (footLeft + footRight) / 2;
       return [left, top, right - left + 1, bottom - top + 1, pivot, bottom + 1];
     }),
   };
@@ -45,7 +46,7 @@ export function measureMinorSprites(image) {
 if (process.argv[1]?.endsWith('measure-minor-sprites.mjs')) {
   const atlases = Object.fromEntries(MINOR_FACTIONS.map(id => {
     const atlas = measureMinorSprites(readPng(MINOR_SPRITES[id]));
-    console.log(`${id} : douze poses, hauteur de référence ${atlas.referenceHeight} px.`);
+    console.log(`${id} : ${atlas.frames.length} poses, hauteur de référence ${atlas.referenceHeight} px.`);
     return [id, atlas];
   }));
   writeFileSync('src/presentation/minor-sprite-atlases.js', `// Rectangles et points d'appui mesurés dans les PNG, sans retouche des images.\nexport const MINOR_ATLASES = ${JSON.stringify(atlases, null, 2)};\n`);

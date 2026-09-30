@@ -43,7 +43,7 @@
     "hint_seconds": 10,
     "day_flash_seconds": 2,
     "zone_flash_seconds": 2.2,
-    "conversion_flash_seconds": 0.8,
+    "conversion_flash_seconds": 1,
     "npc_height_multiplier": 0.92,
     "animation_walk_hz": 2.2,
     "background_parallax_ratio": 0.22,

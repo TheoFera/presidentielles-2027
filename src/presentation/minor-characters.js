@@ -2,7 +2,10 @@ import { characterAnimation } from './illustrated-characters.js';
 import { MINOR_SHEET, minorSheetCell } from './minor-sprites.js';
 import { cleanGeneratedImage } from './fixed-world.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
-import { prepareMinorFrames } from './minor-sprite-images.js';
+import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
+import { minorExtraAtlases } from './minor-animation-sprites.js';
+import { drawCandidateCombat } from './melenchon-combat.js';
+import { drawStandingSprite, standingSpriteMotion } from './standing-sprite-motion.js';
 
 /**
  * Dessin de secours des candidats secondaires si leur planche est indisponible.
@@ -118,23 +121,36 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   const progress = attack ? Math.min(1, attack.elapsed_ticks / Math.max(1, attack.windup_ticks + attack.active_ticks)) : 0;
   const height = m.characterHeight, groundY = m.groundY + height * 0.06;
   const feetY = groundY - (entity.combat?.height || 0) * height;
+  if (drawCandidateCombat(renderer, entity, x, state)) {
+    if (animation !== 'ko') drawMinorName(renderer, entity, x, feetY, height);
+    return true;
+  }
   ctx.save();
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, height * 0.22, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feetY); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (entity.combat?.charge_active) { ctx.shadowColor = renderer.p.factions[entity.faction_id].color; ctx.shadowBlur = 14; }
   const assetId = `minor-${entity.faction_id}`;
-  const sheet = renderer.assets.get(assetId);
+  const airborne = (entity.combat?.height || 0) > 0.02;
+  const listening = animation === 'persuade_listen' ? minorExtraAtlases[entity.faction_id]?.actions : null;
+  const listenSheet = listening ? renderer.assets.get(listening.sprite) : null;
+  if (listening && !listenSheet) void renderer.assets.load(listening.sprite);
+  const sheet = listenSheet || renderer.assets.get(assetId);
   if (!sheet) void renderer.assets.load(assetId);
   if (sheet) {
     // Les rectangles mesurés évitent de couper les cheveux, les coups et les chaussures.
-    const image = cleanGeneratedImage(sheet), cell = minorSheetCell(animation, time, (entity.combat?.height || 0) > 0.02);
-    const atlas = MINOR_ATLASES[entity.faction_id];
+    const image = cleanGeneratedImage(sheet);
+    const motion = standingSpriteMotion(animation, time);
+    const cell = listenSheet ? 6 + Math.floor(time / .35) % 2 : motion.walking ? 0 : minorSheetCell(animation, time, airborne);
+    const atlas = listenSheet ? listening : MINOR_ATLASES[entity.faction_id];
     ctx.imageSmoothingEnabled = true;
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
       const k = height / atlas.referenceHeight;
-      const frame = prepareMinorFrames(sheet, entity.faction_id)[cell];
-      ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
+      const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
+      if (motion.walking) {
+        ctx.rotate(motion.stride * .025); ctx.scale(1 / motion.breathing, motion.breathing);
+        drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height, sw * k, motion);
+      } else ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
     } else {
       const cw = image.width / MINOR_SHEET.columns, ch = image.height / MINOR_SHEET.rows;
       const k = height / MINOR_SHEET.figure * MINOR_SHEET.width / image.width;
@@ -145,15 +161,5 @@ export function drawMinorCandidate(renderer, entity, x, state) {
     drawMinorFigure(ctx, entity.faction_id, height, animation, time, progress, (entity.combat?.height || 0) > 0.02);
   }
   ctx.restore();
-  // Nom au-dessus de la tête, aux couleurs du candidat.
-  if (animation !== 'ko') {
-    const look = MINOR_LOOKS[entity.faction_id], color = renderer.p.factions[entity.faction_id].color;
-    ctx.save(); ctx.font = '800 10px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const w = ctx.measureText(look.name).width + 12, y = feetY - height * 1.14;
-    ctx.fillStyle = '#fff6e6'; ctx.strokeStyle = color; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(x - w / 2, y - 8, w, 16, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#2a2622'; ctx.fillText(look.name, x, y + 0.5);
-    ctx.restore();
-  }
   return true;
 }

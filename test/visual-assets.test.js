@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { VisualAssets, neighboringSubzones } from '../src/presentation/visual-assets.js';
 import { characterAssetId, characterAnimation, drawIllustratedCharacter, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../src/presentation/illustrated-characters.js';
 import { recolorTractPixels } from '../src/presentation/militant-sprites.js';
+import { opaqueSpriteFrame } from '../src/presentation/npc-sprite-geometry.js';
 import { sceneryProjection, sceneryParallax, sceneryImageHeight, worldAssetIds, preloadWorld } from '../src/presentation/illustrated-world.js';
 import { currentMapDecor, setMapDecor } from '../src/presentation/map-decor.js';
 import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
@@ -11,6 +12,26 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { access, readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
+
+test('Les marges transparentes du militant ne réduisent ni sa taille ni son ancrage au sol', () => {
+  const portrait = (width, height, box) => {
+    const pixels = new Uint8ClampedArray(width * height * 4);
+    for (let y = box.y; y < box.y + box.height; y++) for (let x = box.x; x < box.x + box.width; x++) {
+      pixels[(y * width + x) * 4 + 3] = 255;
+    }
+    pixels[3] = 5; // Une poussière presque transparente ne change pas la silhouette.
+    return opaqueSpriteFrame(pixels, width, height);
+  };
+  const normal = portrait(100, 256, { x: 5, y: 2, width: 90, height: 252 });
+  const militant = portrait(100, 256, { x: 15, y: 20, width: 70, height: 220 });
+  for (const frame of [normal, militant]) {
+    const scale = 120 / frame.height;
+    assert.ok(Math.abs(frame.height * scale - 120) < 1e-9, 'Même hauteur visible');
+    assert.ok(Math.abs(-120 + frame.height * scale) < 1e-9, 'Les pieds touchent le sol');
+  }
+  assert.deepEqual(militant, { x: 15, y: 20, width: 70, height: 220 });
+  assert.deepEqual(opaqueSpriteFrame(new Uint8Array(16), 2, 2), { x: 0, y: 0, width: 2, height: 2 });
+});
 import { isolateMinorFigure } from '../src/presentation/minor-sprite-images.js';
 
 test('La découpe des mineurs conserve la silhouette et retire un fragment de la pose voisine', () => {

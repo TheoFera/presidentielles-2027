@@ -219,7 +219,7 @@ function triggerSpecial(sim, actor) {
     const hologram = kind === 'HOLOGRAMS';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
     power.expires_tick += sim.secondsToTicks(s.duration_seconds + (hologram ? s.appearance_seconds : 0));
-    const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i - (s.count - 1) / 2) * s.spawn_spacing)
+    const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i % 2 ? 1 : -1) * (s.spawn_distance + Math.floor(i / 2) * s.spawn_spacing))
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, ...(actor.team_id ? { team_id: actor.team_id } : {}), temporary: true, expired: false,
@@ -279,7 +279,9 @@ function updateProjectiles(sim) {
     if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;}
     if(p.kind==='MOLOTOV'&&!p.launched){
       const target=combatActors(state).find(actor=>actor.id===p.target_id&&enemies(owner,actor));
-      const targetX=target?.x??p.target_x??combatPosition(state,owner.x+owner.facing*6);
+      const visible=config.prototype.world.units_per_screen/2;
+      const seen=target&&Math.abs(combatDelta(state,owner.x,target.x))<=visible;
+      const targetX=seen?target.x:combatPosition(state,owner.x+owner.facing*6);
       const delta=combatDelta(state,owner.x,targetX);
       p.x=owner.x;p.target_x=targetX;p.direction=Math.sign(delta)||owner.facing;
       p.remaining_range=Math.max(.1,Math.abs(delta));p.initial_range=p.remaining_range;p.launched=true;

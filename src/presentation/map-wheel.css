@@ -31,10 +31,8 @@
 }
 #poll-scores.poll-stale { opacity: .6; }
 #poll-scores.poll-stale::after { content: '·'; color: #8c7060; }
-#game.has-map-wheel #campaign-events { right: var(--map-left-space); top: calc(var(--map-margin) + 54px); width: min(290px, 26%); max-height: 34%; }
 #game.has-map-wheel #notice { right: 22%; }
 #electoral-display.map-clock-only { right: auto; left: 50%; transform: translateX(-50%); width: 8%; height: 14%; }
 @media (max-height: 540px), (max-width: 900px) {
-  #game.has-map-wheel #campaign-events { top: calc(var(--map-margin) + 48px); width: 28%; max-height: 32%; }
   #poll-scores { left: 29%; max-width: 35%; gap: 2px 6px; }
 }

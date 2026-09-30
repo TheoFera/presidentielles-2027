@@ -1,4 +1,6 @@
+import { ALL_FACTIONS } from '../simulation/world.js';
 export const factions = ['melenchon', 'le_pen', 'philippe'];
+const availableFactions = room => room.mode === 'debate' ? ALL_FACTIONS : factions;
 /** Mode du salon, choisi par l’hôte à la création : campagne (3 joueurs) ou débat (2 ou 3). */
 export const roomMode = mode => mode === 'debate' ? 'debate' : 'campaign';
 export const minimumPlayers = room => room.mode === 'debate' ? 2 : 3;
@@ -8,7 +10,7 @@ const validStyle = style => typeof style === 'string' && /^[\w:-]{1,80}$/.test(s
 export function chooseCandidate(room, playerId, faction, style = null) {
   const debate = room.mode === 'debate';
   if (room.phase !== 'lobby' || room.players.length < minimumPlayers(room)) throw new Error(debate ? 'Attendez qu’un autre joueur rejoigne le salon.' : 'Connectez les trois joueurs avant de choisir les candidats.');
-  if (!factions.includes(faction)) throw new Error('Choisissez un candidat disponible.');
+  if (!availableFactions(room).includes(faction)) throw new Error('Choisissez un candidat disponible.');
   if (debate && !validStyle(style)) throw new Error('Choisissez un style.');
   const player = room.players.find(p => p.id === playerId);
   if (!player) throw new Error('Joueur introuvable.');
@@ -18,7 +20,7 @@ export function chooseCandidate(room, playerId, faction, style = null) {
   if (debate) player.style = style;
 }
 export const candidatesReady = room => room.players.length >= minimumPlayers(room) && room.players.length <= 3
-  && room.players.every(p => factions.includes(p.faction) && (room.mode !== 'debate' || validStyle(p.style)));
+  && room.players.every(p => availableFactions(room).includes(p.faction) && (room.mode !== 'debate' || validStyle(p.style)));
 
 /** Réglages de débat envoyés par l’hôte : chaque joueur garde son combattant, l’IA complète éventuellement. */
 function debateStart(room, setup) {
@@ -27,7 +29,7 @@ function debateStart(room, setup) {
   const fighters = setup.fighters.map(f => ({ faction: f?.faction, style: f?.style, player: f?.player ?? null }));
   const humans = fighters.filter(f => f.player !== null);
   const same = room.players.every(p => humans.filter(f => f.player === p.id && f.faction === p.faction && f.style === p.style).length === 1);
-  if (humans.length !== room.players.length || !same || fighters.some(f => !factions.includes(f.faction) || !validStyle(f.style))) throw new Error('Réglages du combat invalides.');
+  if (humans.length !== room.players.length || !same || fighters.some(f => !availableFactions(room).includes(f.faction) || !validStyle(f.style))) throw new Error('Réglages du combat invalides.');
   return { format: setup.format, map: setup.map, fighters };
 }
 

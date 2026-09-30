@@ -4,6 +4,8 @@ import { skinAnimationFor } from './skin-animation-atlases.js';
 import { MelenchonMotionTracker, knockdownPose } from './melenchon-extra-poses.js';
 import { combatDelta } from '../simulation/combat-geometry.js';
 import { enemies } from '../simulation/combat-state.js';
+import { minorCombatAtlases } from './minor-animation-sprites.js';
+import { prepareAtlasFrames } from './minor-sprite-images.js';
 
 export const MELENCHON_SPRITE = 'character-melenchon-combat-v4';
 // Source bounds and body pivots for independently drawn poses.
@@ -25,7 +27,7 @@ export const MELENCHON_WIDTH_STRETCH = 1.06;
 export const MELENCHON_JUMP_SCALE = 1.06;
 export const MELENCHON_CHARGED_SCALE = 1.06;
 
-export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases };
+export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases, ...minorCombatAtlases };
 export const combatAtlasFor = entity => skinAnimationFor(entity)?.combat || combatAtlases[entity.faction_id];
 export function usesCandidateCombat(entity, state) {
   const atlas = combatAtlases[entity.faction_id];
@@ -134,7 +136,8 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
     clip.forEach(([cx,cy],index)=>ctx[index?'lineTo':'moveTo']((cx-px)*horizontalScale,(cy-py)*verticalScale));
     ctx.closePath();ctx.clip();
   }
-  ctx.drawImage(atlas,sx,sy,sw,sh,(sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
+  if (definition.isolated) ctx.drawImage(prepareAtlasFrames(atlas, definition)[pose.frame], (sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
+  else ctx.drawImage(atlas,sx,sy,sw,sh,(sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
   if (pose.name === 'charge_ready') {
     ctx.strokeStyle = '#a9e9f0'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.arc(0, -m.characterHeight*.4, m.characterHeight*.28, -.7, .7); ctx.stroke();

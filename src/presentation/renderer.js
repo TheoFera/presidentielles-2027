@@ -17,13 +17,19 @@ import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
 import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
-import { prepareMinorFrames } from './minor-sprite-images.js';
+import { drawPersuasionFeedback } from './persuasion-feedback.js';
+import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
+import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
   if (/^(panorama|v3|minor)-/.test(id)) preparePanorama(image, id);
   if (id.startsWith('minor-')) prepareMinorFrames(image, id.slice(6));
+  if (id.startsWith('character-minor-')) {
+    const [faction, sheet] = id.slice('character-minor-'.length).split('-');
+    prepareAtlasFrames(image, MINOR_ANIMATION_DATA[faction]?.[sheet]);
+  }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   prepareSceneryImage(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
@@ -140,18 +146,23 @@ export class WorldRenderer {
     const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
     // Deux PNJ immobiles ne restent pas l'un sur l'autre : écart d'environ une demi-silhouette.
     this.crowd.update(state, m.characterHeight * this.p.npc_height_multiplier * 0.3 / m.pixelsPerUnit);
+    this.personMarks = new Map();
     const drawEntities = group => {
       for (const entity of group) {
         if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
         const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
         const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha + this.crowd.offset(entity.id), state.world.length);
-        this.drawPerson(entity, this.screenX(x), state);
+        // Un PNJ qui s'écarte d'un voisin fait un vrai pas : animation de marche dans le sens du décalage.
+        const step = this.crowd.stepping(entity.id);
+        this.personMarks.set(entity.id, { x: this.screenX(x), facing: entity.facing < 0 ? -1 : 1 });
+        this.drawPerson(step ? { ...entity, moving: true, facing: step } : entity, this.screenX(x), state);
       }
     };
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
     drawEntities(entities.filter(entity => !onMeeting(entity)));
     drawFixedWorldFront(this, state);
+    drawPersuasionFeedback(this, state);
     drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);
     drawSiteRequirements(this, state);
@@ -326,23 +337,8 @@ export class WorldRenderer {
       if (!windup && attack.strong) rect(direction > 0 ? reach + 4 : -reach - 4, y - 2, 2, 9, '#fff2c5');
     }
     ctx.restore();
-    if (persuading) {
-      ctx.fillStyle = tone;
-      ctx.fillRect(x + 17, ground - height - 7, 3, 3);
-      ctx.fillRect(x + 23, ground - height - 10, 3, 3);
-    }
-    if (entity.persuasion) {
-      const progress = entity.persuasion.elapsed_ticks / entity.persuasion.required_ticks;
-      const actor = [...state.candidates, ...state.npcs].find(c => c.id === entity.persuasion.actor_id);
-      ctx.strokeStyle = this.p.factions[actor?.faction_id]?.color || this.p.neutral_tone;
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, ground - height - 10, 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress); ctx.stroke();
-    }
-    const sinceConversion = (state.tick - entity.converted_tick) / this.config.balance.simulation_architecture.fixed_tick_hz;
-    if (entity.role === 'SYMPATHISANT' && entity.converted_tick >= 0 && sinceConversion < this.p.conversion_flash_seconds) {
-      ctx.fillStyle = tone; ctx.textAlign = 'center'; ctx.font = 'bold 15px system-ui';
-      ctx.fillText('♥', x, ground - height - 9 - sinceConversion * 15);
-    }
+    // Persuasion et conversion : voir persuasion-feedback.js.
+    this.personMarks?.set(entity.id, { x, feetY: ground, height, facing: entity.facing < 0 ? -1 : 1 });
   }
 
   drawDebug(state, candidate) {

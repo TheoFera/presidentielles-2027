@@ -71,8 +71,9 @@ export function startStyleUltimate(sim, actor, power) {
     power.expires_tick += sim.secondsToTicks(s.duration_seconds);
     temporary(sim, actor, power, 'ZEMMOUR', actor.x - actor.facing * 1.5, s.durability, { next_shot_tick: sim.state.tick, shot_count: 0 });
   } else if (power.kind === 'FIRE') {
-    const target = nearestEnemy(sim.state,actor,sim.state.world.length,t=>t.role==='CANDIDAT')
-      || nearestEnemy(sim.state,actor,sim.state.world.length);
+    const visible = sim.config.prototype.world.units_per_screen / 2;
+    const target = nearestEnemy(sim.state,actor,visible,t=>t.role==='CANDIDAT')
+      || nearestEnemy(sim.state,actor,visible);
     const targetX = target?.x ?? combatPosition(sim.state, actor.x + actor.facing * 6);
     const delta = combatDelta(sim.state, actor.x, targetX), travel = Math.max(0.1, Math.abs(delta));
     const launchTick=sim.state.tick+sim.secondsToTicks(settings.fire.launch_delay_seconds);

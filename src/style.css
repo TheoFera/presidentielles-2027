@@ -93,19 +93,27 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   .result-actions { flex-wrap: wrap; }
 }
 @media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }
-/* Cartes d’annonce : arrivée au centre, puis pile chronologique. */
-#campaign-events { position: fixed; top: 110px; right: 16px; width: min(310px, 40vw); display: flex; flex-direction: column; gap: 7px; z-index: 18; pointer-events: none; }
-.campaign-card { padding: 10px 13px; border: 1px solid #d9b966; border-radius: 9px; color: #fff5d6; background: #172331ef; box-shadow: 0 4px 20px #0005; transition: transform .55s ease, width .55s ease; font: 12px/1.35 system-ui; transform-origin: top right; }
-.campaign-card strong, .campaign-card span, .campaign-card small { display: block; }
-.campaign-card strong { font-size: 14px; margin-bottom: 4px; }
-.campaign-card-narrative { color: #f1e4bc; margin-bottom: 4px; }
-.campaign-card small { color: #d3dfeb; margin-top: 4px; }
-.campaign-card.arriving { transform: translateX(calc(-50vw + 50% + 16px)) scale(1.22); }
+/* Bandeau « en direct » : l’évènement tombe en haut de l’écran comme une info télévisée. */
+#campaign-events { position: absolute; top: calc(2.5% + 34px); left: 50%; transform: translateX(-50%); width: min(620px, calc(100% - 2 * var(--map-left-space, 16px))); display: flex; flex-direction: column; gap: 6px; z-index: 18; pointer-events: none; }
+.campaign-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; overflow: hidden; border: 2px solid #1d2a2d; border-radius: 4px; background: #1d2a2d; box-shadow: 0 4px 0 #1d2a2d55; font: 600 clamp(11px, 1.25vw, 16px)/1.25 system-ui; animation: news-in .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+.news-tag { display: flex; align-items: center; padding: .35em .7em; background: #c8322b; color: #fff; font-size: .8em; font-weight: 800; letter-spacing: .06em; }
+.campaign-card.arriving .news-tag { animation: news-blink .5s steps(2) infinite; }
+.campaign-card.ended .news-tag { background: #5b6668; }
+.news-title { padding: .35em .7em; background: #fff8e8; color: #1d2a2d; font-size: 1.15em; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.news-time { display: flex; align-items: center; padding: .35em .7em; color: #ffe08a; font-variant-numeric: tabular-nums; }
+.news-time:empty { padding: 0; }
+.news-order { grid-column: 1 / -1; padding: .3em .8em; color: #fff8e8; }
+/* Le contexte défile une seule fois, puis la ligne disparaît. */
+.news-ticker { grid-column: 1 / -1; justify-self: start; width: max-content; padding: 0 0 .3em 100%; color: #cfdadd; font-size: .9em; font-weight: 400; white-space: nowrap; animation: news-scroll var(--ticker-seconds, 8s) linear 1s both; }
+.news-ticker:empty, .campaign-card.ticker-done .news-ticker { display: none; }
+.news-bar { grid-column: 1 / -1; justify-self: start; width: var(--news-left, 100%); height: 4px; background: #ffc94a; transition: width .25s linear; }
+@keyframes news-in { from { transform: translateY(-140%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes news-blink { 50% { background: #7e1612; } }
+@keyframes news-scroll { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .campaign-card, .campaign-card.arriving .news-tag { animation: none; } .news-ticker { animation: none; padding-left: .8em; white-space: normal; width: auto; } }
 #debug fieldset pre { white-space: pre-wrap; overflow-wrap: anywhere; }
-@media(max-width: 650px) { #campaign-events { top: 135px; width: 210px; right: 8px; } .campaign-card { font-size: 10px; padding: 7px; } .campaign-card strong { font-size: 12px; } .campaign-card.arriving { transform: translateX(calc(-50vw + 50% + 8px)); } }
 
 .campaign-studio #funds, .campaign-studio #money, .campaign-studio #day { color: #eaf2f7; }
-#campaign-events:has(.arriving) { gap: 24px; }
 :root { --campaign-panel: #101c30; }
 #campaign-styles { box-sizing: border-box; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: clamp(12px, 3vh, 32px) clamp(10px, 3vw, 48px); border: 0; background: radial-gradient(ellipse at 50% 0%, #293c5d, #0b1423 70%); color: #fff8e9; text-align: center; overflow: auto; }
 #campaign-styles::backdrop { background: #080d18f5; }

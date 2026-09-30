@@ -1,6 +1,10 @@
 // Écarte à l'écran les PNJ immobiles qui se tiennent au même endroit.
 // Ceux qui marchent se croisent librement ; la simulation garde les vraies positions.
 
+const STEP_SPEED = 0.9;     // unités par seconde : un pas de côté tranquille
+const WALKER_SPEED = 0.35;  // pendant une marche, le décalage ne change que très peu l'allure
+const STEPPING = 0.12;      // au-dessus de cette vitesse, le PNJ immobile est dessiné en train de marcher
+
 /** Décalage visé pour chaque PNJ immobile : un groupe serré est réparti autour de son centre. */
 export function crowdTargets(state, gap) {
   const targets = new Map();
@@ -24,23 +28,29 @@ export function crowdTargets(state, gap) {
 }
 
 export class CrowdSpacing {
-  constructor() { this.offsets = new Map(); this.lastTime = null; }
+  constructor() { this.offsets = new Map(); this.steps = new Map(); this.lastTime = null; }
 
-  /** Glisse doucement chaque PNJ vers sa place : aucun saut quand il s'arrête ou repart. */
+  /** Chaque PNJ rejoint sa place à petits pas : jamais de glissement rapide ni de saut. */
   update(state, gap, now = performance.now()) {
     const dt = this.lastTime === null ? 0 : Math.min(0.1, (now - this.lastTime) / 1000);
     this.lastTime = now;
     const targets = crowdTargets(state, gap);
-    const ease = 1 - Math.exp(-dt * 6);
-    const next = new Map();
+    const offsets = new Map();
+    this.steps = new Map();
     for (const npc of state.npcs) {
       const current = this.offsets.get(npc.id) || 0;
       const goal = targets.get(npc.id) || 0;
-      const value = current + (goal - current) * ease;
-      if (goal || Math.abs(value) > 0.001) next.set(npc.id, value);
+      const limit = (npc.moving ? WALKER_SPEED : STEP_SPEED) * dt;
+      const change = Math.max(-limit, Math.min(limit, goal - current));
+      const value = current + change;
+      if (goal || Math.abs(value) > 0.001) offsets.set(npc.id, value);
+      if (!npc.moving && dt > 0 && Math.abs(change) / dt > STEPPING) this.steps.set(npc.id, Math.sign(change));
     }
-    this.offsets = next;
+    this.offsets = offsets;
   }
 
   offset(id) { return this.offsets.get(id) || 0; }
+
+  /** Sens du pas de côté en cours (-1 ou 1), sinon 0. */
+  stepping(id) { return this.steps.get(id) || 0; }
 }

@@ -5,7 +5,7 @@ import { airborne, startPlatformFall } from './combat-actions.js';
 import { campaignStyles, isCampaignStyleUnlocked } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { initializeMobileCombat } from './mobile-combat.js';
-import { FACTIONS } from './world.js';
+import { ALL_FACTIONS, isMinorFaction } from './world.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -13,9 +13,17 @@ const clone = value => JSON.parse(JSON.stringify(value));
 export const DEBATE_FORMATS = Object.freeze({ '1v1': 2, '1v1v1': 3 });
 export { BETATEST_NICKNAME, isBetatestProfile } from './campaign-styles.js';
 
+/** Les candidats mineurs ont une tenue de base, sans ultime ni déblocage. */
+export function debateStyles(config, faction) {
+  if (isMinorFaction(faction)) return [{ id: `${faction}_standard`, name: 'Tenue de base', ultimate: null,
+    summary: 'Tous les coups, sauts et dashs. Sans ultime pour l’instant.',
+    skin: { accent: config.prototype.presentation.factions[faction].color } }];
+  return campaignStyles(config, faction);
+}
+
 /** Styles jouables en Débat par ce profil : ceux débloqués, ou tous pour « betatest ». */
 export function debateStyleAvailable(config, profile, faction, styleId) {
-  return campaignStyles(config, faction).some(s => s.id === styleId) && isCampaignStyleUnlocked(profile, faction, styleId);
+  return debateStyles(config, faction).some(s => s.id === styleId) && (isMinorFaction(faction) || isCampaignStyleUnlocked(profile, faction, styleId));
 }
 
 /** Renvoie un message d’erreur lisible, ou null si le combat peut commencer. */
@@ -26,8 +34,8 @@ export function debateSetupError(config, setup, profile = null) {
   if (!Array.isArray(setup.fighters) || setup.fighters.length !== count) return `Il faut ${count} combattants.`;
   const seen = new Set();
   for (const [index, fighter] of setup.fighters.entries()) {
-    if (!FACTIONS.includes(fighter?.faction)) return 'Candidat inconnu.';
-    if (!campaignStyles(config, fighter.faction).some(s => s.id === fighter.style)) return 'Choisissez un style pour chaque combattant.';
+    if (!ALL_FACTIONS.includes(fighter?.faction)) return 'Candidat inconnu.';
+    if (!debateStyles(config, fighter.faction).some(s => s.id === fighter.style)) return 'Choisissez un style pour chaque combattant.';
     // Seul le style du joueur dépend de son profil ; l’IA peut tout utiliser.
     if (index === 0 && profile && !debateStyleAvailable(config, profile, fighter.faction, fighter.style)) return 'Ce style n’est pas encore débloqué.';
     const key = `${fighter.faction}:${fighter.style}`;
@@ -55,8 +63,8 @@ export function multiplayerDebateSetup(config, room, { format = '1v1', map = con
   const fighters = [...room.players].sort((a, b) => a.slot - b.slot).map(p => ({ faction: p.faction, style: p.style, player: p.id }));
   const count = Math.max(fighters.length, DEBATE_FORMATS[format] ?? 2);
   while (fighters.length < count) {
-    const free = faction => campaignStyles(config, faction).find(s => !fighters.some(f => f.faction === faction && f.style === s.id));
-    const faction = [...FACTIONS].sort((a, b) => fighters.filter(f => f.faction === a).length - fighters.filter(f => f.faction === b).length).find(free);
+    const free = faction => debateStyles(config, faction).find(s => !fighters.some(f => f.faction === faction && f.style === s.id));
+    const faction = [...ALL_FACTIONS].sort((a, b) => fighters.filter(f => f.faction === a).length - fighters.filter(f => f.faction === b).length).find(free);
     fighters.push({ faction, style: free(faction).id, player: null });
   }
   return { format: count === 3 ? '1v1v1' : '1v1', map, fighters };
@@ -75,7 +83,7 @@ function createFighter(config, fighter, id, x, width) {
   // Même réserve de vie qu’en campagne.
   const hp = config.balance.candidate_combat.resistance_max;
   const c = {
-    id, team_id: id, role: 'CANDIDAT', faction_id: fighter.faction, current_campaign_style: fighter.style, eliminated: false,
+    id, team_id: id, role: 'CANDIDAT', faction_id: fighter.faction, minor: isMinorFaction(fighter.faction), current_campaign_style: isMinorFaction(fighter.faction) ? null : fighter.style, eliminated: false,
     x, axis: 0, facing: x > width / 2 ? -1 : 1, moving: false, campaign_active: true, interaction_active: false,
     persuasion_target_ids: [], special_charge: 0, podium_site_id: null, platform_id: null, vehicle: null,
     combat: combatState(), electoral_damage_received: 0, hits_received: 0, resistance: config.balance.candidate_combat.resistance_max,

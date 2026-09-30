@@ -27,8 +27,11 @@ export function isolateMinorFigure(data, width, height) {
 
 /** Prépare les douze découpes une seule fois ; les PNG sources restent intacts. */
 export function prepareMinorFrames(image, faction) {
+  return prepareAtlasFrames(image, MINOR_ATLASES[faction]);
+}
+
+export function prepareAtlasFrames(image, atlas) {
   if (cache.has(image)) return cache.get(image);
-  const atlas = MINOR_ATLASES[faction];
   if (!atlas) return null;
   const source = cleanGeneratedImage(image);
   const frames = atlas.frames.map(([sx, sy, sw, sh]) => {

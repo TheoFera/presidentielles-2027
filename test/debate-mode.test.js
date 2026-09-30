@@ -4,6 +4,11 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { DebateMatch, debateModeAICommands, debateSetupError, debateStyleAvailable, debateFighterIds, multiplayerDebateSetup } from '../src/simulation/debate-mode.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { DebateSimulation } from '../src/simulation/debate-simulation.js';
+import { MINOR_FACTIONS } from '../src/simulation/world.js';
+import { debateStyles } from '../src/simulation/debate-mode.js';
+import { chooseCandidate, candidatesReady, startRoom } from '../src/network/lobby.js';
+import { debateAssetIds } from '../src/presentation/debate-mode.js';
+import { visualManifest } from '../src/presentation/visual-manifest.js';
 
 const config = campaignConfig();
 const fighter = (faction, style) => ({ faction, style });
@@ -18,6 +23,46 @@ function started(setup) {
   return match;
 }
 const run = (match, commands = () => [], ticks = 1) => { for (let i = 0; i < ticks; i++) match.step(commands(match.state)); };
+
+test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ultime', () => {
+  for (const faction of MINOR_FACTIONS) {
+    const style = debateStyles(config, faction)[0];
+    assert.equal(style.ultimate, null);
+    assert.equal(debateStyleAvailable(config, fresh, faction, style.id), true);
+    const setup = duel('plateau', fighter(faction, style.id));
+    assert.equal(debateSetupError(config, setup, fresh), null);
+    const match = started(setup), [player, enemy] = match.state.candidates;
+    assert.equal(player.minor, true);
+    const x = player.x;
+    run(match, () => [{ type: 'Move', candidateId: player.id, axis: 1 }], 4);
+    assert.ok(player.x > x);
+    player.axis = 0; enemy.x = player.x + .5;
+    run(match, () => [{ type: 'Attack', candidateId: player.id, direction: 1 }], 15);
+    assert.ok(enemy.debate_hp < 100, faction);
+    player.special_charge = 100;
+    run(match, () => [{ type: 'ActivateUltimate', candidateId: player.id }]);
+    assert.equal(player.ultimate_effect, null);
+    assert.equal(match.state.powers.length, 0);
+    const assets = debateAssetIds(visualManifest, setup);
+    assert.ok(assets.includes(`minor-${faction}`));
+    assert.ok(assets.includes(`character-minor-${faction}-combat`));
+  }
+});
+
+test('Salon : candidats mineurs acceptés en Débat télé et exclus de la campagne', () => {
+  const room = { mode: 'debate', phase: 'lobby', players: [{ id: 'a', slot: 1 }, { id: 'b', slot: 2 }] };
+  chooseCandidate(room, 'a', 'arthaud', 'arthaud_standard');
+  chooseCandidate(room, 'b', 'attal', 'attal_standard');
+  assert.equal(candidatesReady(room), true);
+  assert.throws(() => chooseCandidate(room, 'b', 'arthaud', 'arthaud_standard'), /autre joueur/);
+  const setup = multiplayerDebateSetup(config, room, { format: '1v1v1', map: 'studio' });
+  assert.equal(debateSetupError(config, setup), null);
+  startRoom(room, setup);
+  assert.equal(room.phase, 'loading');
+  assert.deepEqual(new DebateMatch(config, room.debate).state.candidates.map(c => c.minor), [true, true, false]);
+  const campaign = { mode: 'campaign', phase: 'lobby', players: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] };
+  assert.throws(() => chooseCandidate(campaign, 'a', 'attal'), /disponible/);
+});
 
 test('Réglages : même candidat seulement avec un autre style, styles verrouillés sauf profil betatest', () => {
   assert.equal(debateSetupError(config, duel()), null);

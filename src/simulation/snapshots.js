@@ -101,7 +101,6 @@ export function validateSnapshot(next, simulation, nested = false) {
     }
     if (building.type === 'faction' && building.variant !== (building.owner_id ? siteVariant(building, building.owner_id) : null)) fail('bâtiment factionnel invalide');
     if (!printsTracts(building) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
-    if ((printsTracts(building) || building.variant === 'service_ordre') && building.queue.length > (printsTracts(building) ? config.balance.buildings.imprimerie.max_queue_length : settings.max_queue_length)) fail('file de production pleine');
     let unfinishedFound = false;
     for (const order of building.queue) {
       if (!/^order:\d+$/.test(order.id) || Number(order.id.slice(6)) >= next.next_order_id || orderIds.has(order.id) || order.service_id !== building.id) fail('ordre de production invalide');
