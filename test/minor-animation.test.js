@@ -9,6 +9,17 @@ import { MINOR_ANIMATION_DATA } from '../src/presentation/minor-animation-data.j
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
 import { standingSpriteMotion, drawStandingSprite } from '../src/presentation/standing-sprite-motion.js';
+import { additionalCombatAtlases } from '../src/presentation/candidate-combat-atlases.js';
+import { additionalExtraAtlases } from '../src/presentation/candidate-extra-atlases.js';
+
+test('Les six mineurs ont la même échelle que Philippe pour chaque famille de poses', () => {
+  for (const sheets of Object.values(MINOR_ANIMATION_DATA)) for (const [sheet, atlas] of Object.entries(sheets)) {
+    const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
+    const height = reference.referenceHeight || 340;
+    assert.ok(Math.abs(atlas.frames[0][3] / atlas.referenceHeight - reference.frames[0][3] / height) < 1e-8);
+    assert.ok(Math.abs(atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight - reference.frames[0][2] / height) < 1e-8);
+  }
+});
 
 test('Les six secondaires utilisent les mêmes phases de coups, de charge et de saut que Philippe', () => {
   const config = campaignConfig(), state = new GameSimulation(config, 42).state;

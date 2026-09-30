@@ -3,7 +3,7 @@ import { buildingLabel } from '../simulation/building-rules.js';
 import { seasonAt } from '../simulation/campaign-events.js';
 import { formatEuros } from './money.js';
 import { fixedWorldArt, PANORAMA_SCALE, V2_FACADES } from './fixed-world-data.js';
-import { BIOME_ART, CANVAS, LAYERS, STREETS } from './world-v3/spec.js';
+import { BIOME_ART, CANVAS, FARS, LAYERS, MIDDLES, STREETS } from './world-v3/spec.js';
 import { CALIBRATION } from './world-v3/calibration.js';
 import { drawStreetGround, zoneScreenLeft } from './world-v3/ground.js';
 import { drawFrontProps } from './world-v3/front.js';

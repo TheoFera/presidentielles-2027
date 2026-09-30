@@ -51,10 +51,9 @@ export function showDebateLobby(menu, session, leave, invite = null) {
       fighters.push({ ...multiplayerDebateSetup(config, session.room, hostOptions(config, session)).fighters[2], badge: 'IA' });
     }
     root.innerHTML = `<div class="select-topline"><span>Sélection des candidats · Entre amis</span><span class="select-live">● En direct</span></div>
-      <div class="select-stage" data-count="${fighters.length}">${fighters.map((p, i) => fighterCardContent(config, p, i, { active: p.id === session.id })).join('')}<span class="select-versus" aria-hidden="true">VS</span></div>
+      <div class="select-stage" data-count="${fighters.length}">${fighters.map((p, i) => fighterCardContent(config, p, i, { active: p.id === session.id, styles: p.id === session.id ? stylesContent(config, profile, me, { disabled: session.choosing, taken: style => players.some(q => q.id !== session.id && q.faction === me.faction && q.style === style) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span></div>
       <div class="select-console"><div class="select-roster-heading"><strong>J${me.slot} · Vous</strong><span>Choisissez votre candidat</span></div>
-      ${rosterContent(config, fighters, active, { disabled: session.choosing, unavailable: faction => !freeStyle(faction, me?.faction === faction ? me.style : null) })}
-      ${stylesContent(config, profile, me, { disabled: session.choosing, taken: style => players.some(p => p.id !== session.id && p.faction === me.faction && p.style === style) })}</div>
+      ${rosterContent(config, fighters, active, { disabled: session.choosing, unavailable: faction => !freeStyle(faction, me?.faction === faction ? me.style : null) })}</div>
       ${optionsContent(config, session, invite)}<footer class="menu-footer select-footer"><p class="menu-note" id="room-message" role="status"></p>${session.host ? `<button id="debate-fight" class="menu-primary arcade-button" ${candidatesReady(session.room) ? '' : 'disabled'}>Combattre <span aria-hidden="true">➜</span></button>` : ''}</footer>`;
     root.querySelector('#room-message').textContent = statusText(session);
     hydrateSelectionPortraits(root); bindRosterKeyboard(root);

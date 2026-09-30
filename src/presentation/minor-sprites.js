@@ -8,7 +8,7 @@
  */
 export const MINOR_SPRITES = {
   glucksmann: 'assets/generated/minor-candidates/glucksmann.png',
-  roussel: 'assets/generated/minor-candidates/roussel-v2.png',
+  roussel: 'assets/generated/minor-candidates/roussel-v4.png',
   arthaud: 'assets/generated/minor-candidates/arthaud-v2.png',
   dupont_aignan: 'assets/generated/minor-candidates/dupont_aignan-v2.png',
   retailleau: 'assets/generated/minor-candidates/retailleau-v2.png',

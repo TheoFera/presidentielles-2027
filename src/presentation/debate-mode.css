@@ -43,9 +43,11 @@
 #start-menu .select-tile:disabled { opacity: .45; }
 .select-markers { position: absolute; top: 3px; left: 3px; display: flex; flex-wrap: wrap; gap: 2px; }
 .select-marker { background: var(--player-color); color: #08101d; padding: 2px 4px; font: 900 10px/1.2 system-ui, sans-serif; }
-.select-styles { display: flex; gap: 6px; justify-content: center; margin-top: 8px; min-height: 32px; }
-#start-menu .debate-style { min-height: 32px; padding: 4px 12px; border-radius: 2px; border: 1px solid #526580; border-left: 3px solid var(--style-color); box-shadow: none; font-size: 12px; }
-#start-menu .debate-style[aria-pressed='true'] { background: var(--style-color); color: #080d1b; text-shadow: none; border-color: var(--style-color); }
+.select-styles { display: flex; gap: 4px; margin-top: 8px; pointer-events: auto; }
+#start-menu .debate-style { flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-height: 28px; padding: 3px 10px; border-radius: 2px; border: 1px solid #ffffff30; border-left: 3px solid var(--style-color); background: #0b1426cc; color: #dce4f1; box-shadow: none; font: 700 12px/1.2 system-ui, sans-serif; text-shadow: none; }
+#start-menu .debate-style:hover:not(:disabled) { border-color: var(--style-color); }
+#start-menu .debate-style[aria-pressed='true'] { background: var(--style-color); color: #080d1b; border-color: var(--style-color); }
+#start-menu .debate-style:disabled { opacity: .5; }
 .debate-options { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: center; justify-content: center; }
 .debate-options fieldset { border: 0; padding: 0; margin: 0; display: flex; align-items: center; gap: 6px; }
 .debate-options legend { float: left; color: #8c9db7; margin-right: 8px; font: 800 11px/1 system-ui, sans-serif; text-transform: uppercase; }
@@ -131,7 +133,7 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
   .select-name strong { font-size: 24px; }
   .select-name small { display: none; }
   .select-name > span { font-size: 10px; }
-  .select-styles { min-height: 25px; margin-top: 4px; }
+  .select-styles { margin-top: 4px; gap: 3px; }
   #start-menu .debate-style, #start-menu .debate-option { min-height: 26px; padding: 3px 8px; font-size: 10px; }
   .debate-options { gap: 4px 16px; }
   #start-menu .select-footer { padding-top: 4px; }

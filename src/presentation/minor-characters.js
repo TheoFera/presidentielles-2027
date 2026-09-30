@@ -121,10 +121,7 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   const progress = attack ? Math.min(1, attack.elapsed_ticks / Math.max(1, attack.windup_ticks + attack.active_ticks)) : 0;
   const height = m.characterHeight, groundY = m.groundY + height * 0.06;
   const feetY = groundY - (entity.combat?.height || 0) * height;
-  if (drawCandidateCombat(renderer, entity, x, state)) {
-    if (animation !== 'ko') drawMinorName(renderer, entity, x, feetY, height);
-    return true;
-  }
+  if (drawCandidateCombat(renderer, entity, x, state)) return true;
   ctx.save();
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, height * 0.22, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feetY); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
@@ -146,6 +143,9 @@ export function drawMinorCandidate(renderer, entity, x, state) {
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
       const k = height / atlas.referenceHeight;
+      // Même largeur de silhouette debout que Philippe (161 px pour 384 px).
+      const widthScale = listenSheet ? (atlas.widthScale || 1) : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
+      ctx.scale(widthScale, 1);
       const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
       if (motion.walking) {
         ctx.rotate(motion.stride * .025); ctx.scale(1 / motion.breathing, motion.breathing);

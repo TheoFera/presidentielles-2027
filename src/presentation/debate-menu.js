@@ -25,10 +25,9 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
     const current = fighters[active];
     menu.page('debate', 'Débat télé', `<div class="debate-setup select-screen">
       <div class="select-topline"><span>Sélection des candidats</span><span class="select-live">● En direct</span></div>
-      <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true })).join('')}<span class="select-versus" aria-hidden="true">VS</span></div>
+      <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true, styles: i === active ? stylesContent(config, profile, current, { ai: active > 0, taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span></div>
       <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>Choisissez votre candidat</span></div>
-      ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}
-      ${stylesContent(config, profile, current, { ai: active > 0, taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) })}</div>
+      ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>
       <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset></div>
       <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(error || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
