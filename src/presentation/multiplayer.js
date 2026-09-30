@@ -118,6 +118,7 @@ export async function showMultiplayerSetup(menu, connect, mode = 'campaign') {
   async function submit(action) {
     const buttons = menu.element.querySelectorAll('#room-form button'); buttons.forEach(b => { b.disabled = true; });
     menu.element.querySelector('#room-error').textContent = '';
+    if (action === 'create' && method.value === 'direct') menu.element.querySelector('#server-status').textContent = 'Autorisez la caméra : elle sert à scanner les réponses et aide le téléphone à trouver son Wi-Fi local.';
     try { await connect(action, { transport: method.value, mode, code: menu.element.querySelector('#room-code').value.trim() }); }
     catch (error) { if (generation === menu.generation) menu.element.querySelector('#room-error').textContent = error.message; }
     finally { buttons.forEach(b => { b.disabled = false; }); }

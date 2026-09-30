@@ -6,7 +6,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignStyleSystem, CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
 import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
-import { PeerSession, encodeInvitation, decodeInvitation } from '../src/network/peer-session.js';
+import { PeerSession, encodeInvitation, decodeInvitation, describeAddresses, addressSummary, sameNetwork } from '../src/network/peer-session.js';
 import { stateDelta, applyStateDelta, presentationState, encodePresentationState, encodeStateDelta } from '../src/network/state-stream.js';
 import { outgoingCommands } from '../src/network/shared-commands.js';
 import { LocalHumanController } from '../src/simulation/controllers.js';
@@ -423,4 +423,57 @@ test('Salon de débat : ouvert dès deux joueurs, même candidat avec un autre s
   assert.equal((await request('ready', auth)).status, 200);
   assert.equal((await request('ready', guestAuth)).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'DropDown' }] })).status, 200);
+});
+
+test('Diagnostic réseau : adresses visibles, masquées et réseau commun', () => {
+  const hotspot = describeAddresses('v=0\r\na=candidate:1 1 udp 2122260223 192.168.43.1 50000 typ host generation 0\r\na=candidate:2 1 udp 2122194687 100.72.3.4 50001 typ host\r\na=candidate:3 1 udp 1686052607 82.10.2.3 50000 typ srflx raddr 100.72.3.4 rport 50001\r\n');
+  assert.deepEqual(hotspot, { local: ['192.168.43.1'], hidden: 0, ipv6: 0, mobile: 1, internet: 1 });
+  assert.equal(addressSummary(hotspot), 'Wi-Fi local 192.168.43.1 · 1 réseau mobile · 1 vue depuis internet');
+  const masked = describeAddresses('a=candidate:1 1 udp 2122260223 4f3c2a1b-aaaa.local 50000 typ host\na=candidate:1 1 udp 2122260223 4f3c2a1b-aaaa.local 50000 typ host');
+  assert.equal(addressSummary(masked), '1 masquée par le navigateur');
+  assert.equal(addressSummary(describeAddresses('')), 'aucune');
+  assert.equal(sameNetwork(hotspot, describeAddresses('a=candidate:1 1 udp 1 192.168.43.27 5 typ host')), true);
+  assert.equal(sameNetwork(hotspot, describeAddresses('a=candidate:1 1 udp 1 10.0.0.2 5 typ host')), false);
+  assert.equal(sameNetwork(hotspot, masked), null);
+});
+
+test('Salon direct : l’invité laisse à l’hôte le temps de scanner sa réponse avant d’abandonner', t => {
+  const ended = [];
+  const guest = new PeerSession({ ended: message => ended.push(message) }, 'test');
+  guest.room = { phase: 'pairing', players: [] };
+  const connection = { connectionState: 'new', close() {} };
+  const originalPeer = globalThis.RTCPeerConnection;
+  globalThis.RTCPeerConnection = function () { return connection; };
+  t.after(() => { globalThis.RTCPeerConnection = originalPeer; guest.close(); });
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const peer = guest.makePeer('host');
+  peer.remoteAddresses = describeAddresses('a=candidate:1 1 udp 1 100.72.3.4 5 typ host');
+  guest.addresses = describeAddresses('a=candidate:1 1 udp 1 192.168.43.27 5 typ host');
+  connection.connectionState = 'failed'; connection.onconnectionstatechange();
+  assert.deepEqual(ended, [], 'un échec avant le scan de la réponse n’est pas définitif');
+  t.mock.timers.tick(44000);
+  assert.deepEqual(ended, []);
+  t.mock.timers.tick(2000);
+  assert.equal(ended.length, 1);
+  assert.match(ended[0], /partage de connexion/);
+  assert.match(ended[0], /ce téléphone : Wi-Fi local 192\.168\.43\.27 ; l’hôte : 1 réseau mobile/);
+});
+
+test('Salon direct : une connexion rétablie pendant le délai de grâce continue normalement', t => {
+  const ended = [];
+  const guest = new PeerSession({ ended: message => ended.push(message) }, 'test');
+  guest.room = { phase: 'pairing', players: [] };
+  const connection = { connectionState: 'new', close() {} };
+  const originalPeer = globalThis.RTCPeerConnection;
+  globalThis.RTCPeerConnection = function () { return connection; };
+  t.after(() => { globalThis.RTCPeerConnection = originalPeer; guest.close(); });
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const peer = guest.makePeer('host');
+  const channel = { readyState: 'open', bufferedAmount: 0, send() {} };
+  guest.bindChannel(peer, channel);
+  connection.connectionState = 'failed'; connection.onconnectionstatechange();
+  connection.connectionState = 'connected'; channel.onopen();
+  t.mock.timers.tick(60000);
+  assert.deepEqual(ended, []);
+  assert.equal(peer.connected, true);
 });

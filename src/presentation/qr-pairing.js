@@ -1,9 +1,10 @@
 import { animateQr, scanQr } from './qr-camera.js';
 import { copySignal } from './copy-signal.js';
+import { addressSummary } from '../network/peer-session.js';
 
 export function showQrInvitations(menu, session, back, textMode, onContinue = null) {
   const slots = [2, 3];
-  menu.page('qr-invite', 'Invitez vos amis', `<p class="menu-intro">Hôte : joueur 1. Un QR par ami. Vous choisirez vos candidats une fois connectés.</p><div class="qr-invitations">${slots.map(slot => `<article class="qr-card" data-qr-slot="${slot}"><h2>Joueur ${slot}</h2><div class="qr-display"><p>Préparation…</p></div><p class="qr-player-status" role="status">Place libre</p><div class="qr-card-actions"><button type="button" class="qr-enlarge" disabled>Agrandir</button><button type="button" class="qr-copy" disabled>Copier l’invitation</button></div></article>`).join('')}</div><p id="qr-host-status" class="menu-status" role="status">Chacun choisit un QR différent.</p><footer class="qr-actions"><button id="scan-answers" class="menu-primary">Scanner une réponse</button><button id="text-invite">Mode texte</button><button id="qr-continue" hidden>Jouer à deux ➜</button></footer>`, back);
+  menu.page('qr-invite', 'Invitez vos amis', `<p class="menu-intro">Hôte : joueur 1. Un QR par ami. Vous choisirez vos candidats une fois connectés.</p><div class="qr-invitations">${slots.map(slot => `<article class="qr-card" data-qr-slot="${slot}"><h2>Joueur ${slot}</h2><div class="qr-display"><p>Préparation…</p></div><p class="qr-player-status" role="status">Place libre</p><div class="qr-card-actions"><button type="button" class="qr-enlarge" disabled>Agrandir</button><button type="button" class="qr-copy" disabled>Copier l’invitation</button></div></article>`).join('')}</div><p id="qr-host-status" class="menu-status" role="status">Chacun choisit un QR différent.</p><p id="qr-diagnostic" class="menu-note"></p><footer class="qr-actions"><button id="scan-answers" class="menu-primary">Scanner une réponse</button><button id="text-invite">Mode texte</button><button id="qr-continue" hidden>Jouer à deux ➜</button></footer>`, back);
   const generation = menu.generation, stops = new Map();
   let stopScanner, closeZoom;
   menu.cleanup = () => { stops.forEach(stop => stop()); stopScanner?.(); closeZoom?.(); menu.roomUpdate = null; };
@@ -31,15 +32,19 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
     continueButton.onclick = onContinue;
     menu.element.querySelector('#scan-answers').disabled = full;
     const notice = session.notice ? `${session.notice} ` : '';
+    showAddresses();
     status.textContent = full ? '3/3 joueurs connectés ! Choisissez vos candidats.' : `${notice}${session.room.players.length}/3 joueurs connectés · ${session.room.mode === 'debate' && session.room.players.length === 2 ? 'Invitez un 3e joueur, ou jouez à deux.' : 'Scannez les réponses dans l’ordre de votre choix.'}`;
   };
   menu.element.querySelector('#scan-answers').onclick = () => {
     stopScanner = scanQr({ title: 'Scannez la réponse d’un ami', accept: async value => {
-      await session.accept(value);
-      if (menu.generation === generation) status.textContent = 'Réponse lue. Connexion au joueur…';
+      const same = await session.accept(value);
+      if (menu.generation === generation) status.textContent = same === false ? 'Réponse lue, mais ce téléphone et le sien ne semblent pas sur le même Wi-Fi. Connexion au joueur…' : 'Réponse lue. Connexion au joueur…';
     } });
   };
   menu.element.querySelector('#text-invite').onclick = textMode;
+  function showAddresses() {
+    if (session.addresses) menu.element.querySelector('#qr-diagnostic').textContent = `Adresses de ce téléphone : ${addressSummary(session.addresses)}`;
+  }
   function prepare(slot, ready = 'Place libre') {
     const card = menu.element.querySelector(`[data-qr-slot="${slot}"]`);
     stops.get(slot)?.(); stops.delete(slot);
@@ -51,7 +56,7 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
     card.dataset.peer = session.inviteId(slot) ?? '';
     void request.then(code => {
       if (menu.generation !== generation || session.room.players.some(p => p.slot === slot) || card.dataset.peer !== (session.inviteId(slot) ?? '')) return;
-      card.dataset.state = 'invite';
+      card.dataset.state = 'invite'; showAddresses();
       stops.set(slot, animateQr(card.querySelector('.qr-display'), code));
       const copy = card.querySelector('.qr-copy'); copy.disabled = false;
       copy.onclick = () => copySignal(code, status);
@@ -73,8 +78,10 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
 }
 
 export function showQrAnswer(menu, session, leave, textMode) {
-  menu.page('qr-answer', 'Montrez votre réponse', '<p class="menu-intro">L’hôte scanne votre QR ou colle votre réponse en mode texte.</p><article class="qr-answer-card"><div class="qr-display"></div></article><p id="qr-copy-status" class="menu-status" role="status">Gardez cet écran ouvert. Le salon s’ouvrira automatiquement.</p><footer class="qr-actions"><button id="copy-answer" class="menu-primary">Copier la réponse</button><button id="text-answer">Mode texte</button></footer>', leave);
+  menu.page('qr-answer', 'Montrez votre réponse', '<p class="menu-intro">L’hôte scanne votre QR ou colle votre réponse en mode texte.</p><article class="qr-answer-card"><div class="qr-display"></div></article><p id="qr-copy-status" class="menu-status" role="status">Gardez cet écran ouvert. Le salon s’ouvrira automatiquement.</p><p id="qr-diagnostic" class="menu-note"></p><footer class="qr-actions"><button id="copy-answer" class="menu-primary">Copier la réponse</button><button id="text-answer">Mode texte</button></footer>', leave);
   menu.cleanup = animateQr(menu.element.querySelector('.qr-display'), session.answer);
+  const host = session.peers.get('host');
+  menu.element.querySelector('#qr-diagnostic').textContent = `Adresses de ce téléphone : ${addressSummary(session.addresses)} · de l’hôte : ${addressSummary(host?.remoteAddresses)}`;
   menu.element.querySelector('#text-answer').onclick = textMode;
   menu.element.querySelector('#copy-answer').onclick = () => copySignal(session.answer, menu.element.querySelector('#qr-copy-status'));
 }

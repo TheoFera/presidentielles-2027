@@ -29,6 +29,51 @@ async function gather(connection) {
   });
 }
 
+// Browsers only reveal a phone's other networks (the Wi-Fi it shares as a hotspot,
+// for instance) to pages allowed to use the camera. The host needs the camera anyway
+// to scan answers: asking before the invitations lets them list every local address.
+async function openCamera() {
+  try { return await globalThis.navigator?.mediaDevices?.getUserMedia?.({ audio: false, video: true }) ?? null; }
+  catch { return null; }
+}
+
+// Diagnostic: which addresses a description offers to the other phone.
+const privateIpv4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
+export function describeAddresses(sdp = '') {
+  const found = { local: [], hidden: 0, ipv6: 0, mobile: 0, internet: 0 }, seen = new Set();
+  for (const line of String(sdp).split(/\r?\n/)) {
+    const match = /^a=candidate:\S+ \d+ \S+ \d+ (\S+) \d+ typ (\w+)/.exec(line);
+    if (!match || seen.has(match[1])) continue;
+    const [, address, type] = match; seen.add(address);
+    if (type !== 'host') found.internet++;
+    else if (address.endsWith('.local')) found.hidden++;
+    else if (address.includes(':')) found.ipv6++;
+    else if (privateIpv4.test(address)) found.local.push(address);
+    else found.mobile++;
+  }
+  return found;
+}
+export function addressSummary(found) {
+  if (!found) return 'inconnues';
+  const parts = [];
+  if (found.local.length) parts.push(`Wi-Fi local ${found.local.join(', ')}`);
+  if (found.hidden) parts.push(`${found.hidden} masquée${found.hidden > 1 ? 's' : ''} par le navigateur`);
+  if (found.ipv6) parts.push(`${found.ipv6} IPv6`);
+  if (found.mobile) parts.push(`${found.mobile} réseau mobile`);
+  if (found.internet) parts.push(`${found.internet} vue${found.internet > 1 ? 's' : ''} depuis internet`);
+  return parts.join(' · ') || 'aucune';
+}
+// true: a visible address in the same local network; false: none; null: impossible to tell.
+export function sameNetwork(a, b) {
+  if (!a?.local.length || !b?.local.length) return null;
+  const prefix = address => address.split('.').slice(0, 3).join('.');
+  return a.local.some(x => b.local.some(y => prefix(x) === prefix(y)));
+}
+const ADVICE = 'Connexion impossible entre les téléphones. Mettez-les sur le même Wi-Fi : une box, ou un 3e appareil qui partage sa connexion. Le téléphone qui fait lui-même le partage de connexion est souvent injoignable pour le jeu. Évitez aussi les réseaux invités qui isolent les appareils.';
+// Before the first link, a guest's checks may give up while the host is still
+// scanning its answer; the host's own checks can then still revive the connection.
+const PAIRING_GRACE_MS = 45000;
+
 // A star topology: the host simulates, guests send intentions. No signaling service,
 // TURN, camera or microphone is used. STUN supplements local candidates when mDNS
 // is unavailable; it never receives game state. Players exchange descriptions manually.
@@ -42,6 +87,8 @@ export class PeerSession {
     if (typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas la connexion directe. Essayez un navigateur à jour.');
     this.isHost = action === 'create';
     if (this.host) {
+      this.camera = await openCamera();
+      this.cameraTimer = setTimeout(() => this.releaseCamera(), 15000);
       this.code = id().slice(0, 6).toUpperCase();
       this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
     } else {
@@ -52,11 +99,13 @@ export class PeerSession {
       this.id = offer.id; this.code = offer.code;
       this.room = { code: this.code, phase: 'pairing', players: [...offer.players, { id: this.id, slot: offer.slot, faction: null, style: null, host: false, ready: false }] };
       const peer = this.makePeer('host');
+      peer.remoteAddresses = describeAddresses(offer.description.sdp);
       peer.connection.ondatachannel = event => this.bindChannel(peer, event.channel);
       await peer.connection.setRemoteDescription(offer.description);
       await peer.connection.addIceCandidate(null);
       await peer.connection.setLocalDescription(await peer.connection.createAnswer());
       await gather(peer.connection);
+      this.addresses = describeAddresses(peer.connection.localDescription.sdp);
       this.answer = encodeInvitation({ type: 'answer', id: this.id, fingerprint: this.fingerprint, description: peer.connection.localDescription.toJSON() });
     }
     this.heartbeat = setInterval(() => {
@@ -75,9 +124,20 @@ export class PeerSession {
     // 'disconnected' is often transient on mobile Wi-Fi (power saving, roaming):
     // only a definitive 'failed' ends the link, and the heartbeat covers the rest.
     peer.connection.onconnectionstatechange = () => {
-      if (!this.closed && !peer.cancelled && peer.connection.connectionState === 'failed') this.peerLost(peer, 'Connexion impossible. Utilisez le même Wi-Fi, autorisez le réseau local et évitez un réseau invité qui isole les appareils.');
+      if (this.closed || peer.cancelled || peer.connection.connectionState !== 'failed') return;
+      if (peer.connected) { this.peerLost(peer, 'La connexion entre les téléphones a été perdue. Restez sur le même Wi-Fi, puis recréez la partie.'); return; }
+      if (this.host) { this.peerLost(peer, this.failureMessage(peer)); return; }
+      peer.timeout ??= setTimeout(() => { if (!peer.connected) this.peerLost(peer, this.failureMessage(peer)); }, PAIRING_GRACE_MS);
     };
     return peer;
+  }
+  failureMessage(peer) {
+    const same = sameNetwork(this.addresses, peer.remoteAddresses);
+    return `${ADVICE} Diagnostic · ce téléphone : ${addressSummary(this.addresses)} ; ${this.host ? 'l’invité' : 'l’hôte'} : ${addressSummary(peer.remoteAddresses)}.${same === false ? ' Les deux téléphones ne sont pas sur le même réseau local.' : ''}`;
+  }
+  releaseCamera() {
+    clearTimeout(this.cameraTimer);
+    this.camera?.getTracks().forEach(track => track.stop()); this.camera = null;
   }
   bindChannel(peer, channel) {
     peer.channel = channel;
@@ -202,23 +262,29 @@ export class PeerSession {
     try { return await peer.invitation; } catch (error) { this.cancelInvite(peer.id); throw error; }
   }
   async prepareInvitation(peer) {
-    this.bindChannel(peer, peer.connection.createDataChannel('campagne'));
-    await peer.connection.setLocalDescription(await peer.connection.createOffer());
-    await gather(peer.connection);
+    this.gathering = (this.gathering ?? 0) + 1;
+    try {
+      this.bindChannel(peer, peer.connection.createDataChannel('campagne'));
+      await peer.connection.setLocalDescription(await peer.connection.createOffer());
+      await gather(peer.connection);
+    } finally { if (--this.gathering === 0) this.releaseCamera(); }
     if (!peer.connection.localDescription.sdp.includes('a=candidate:')) throw new Error('Aucun accès au Wi-Fi détecté. Autorisez le réseau local dans le navigateur.');
+    this.addresses = describeAddresses(peer.connection.localDescription.sdp);
     return encodeInvitation({ type: 'offer', id: peer.id, slot: peer.slot, code: this.code, fingerprint: this.fingerprint, players: this.room.players, description: peer.connection.localDescription.toJSON() });
   }
   async accept(text) {
     const answer = decodeInvitation(text, 'answer'); this.checkFingerprint(answer);
     const peer = this.peers.get(answer.id);
     if (!this.host || this.room.phase !== 'lobby' || !peer || peer.cancelled) throw new Error('Cette réponse appartient à une autre invitation.');
-    if (peer.connected || peer.accepting) return;
+    if (peer.connected || peer.accepting) return null;
     peer.accepting = true;
+    peer.remoteAddresses = describeAddresses(answer.description.sdp);
     try {
       await peer.connection.setRemoteDescription(answer.description);
       await peer.connection.addIceCandidate(null);
     } catch (error) { peer.accepting = false; throw error; }
-    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.peerLost(peer, 'Un joueur n’a pas pu se connecter. Vérifiez le même Wi-Fi, puis faites-lui scanner le nouveau QR.'); }, 25000);
+    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.peerLost(peer, `Un joueur n’a pas pu se connecter. ${this.failureMessage(peer)} Faites-lui ensuite scanner le nouveau QR.`); }, 25000);
+    return sameNetwork(this.addresses, peer.remoteAddresses);
   }
   cancelInvite(peerId = null) {
     for (const peer of this.peers.values()) if (!peer.connected && (!peerId || peer.id === peerId)) {
@@ -272,7 +338,7 @@ export class PeerSession {
   close() {
     if (this.closed || this.closing) return;
     this.closing = true;
-    clearInterval(this.heartbeat);
+    clearInterval(this.heartbeat); this.releaseCamera();
     for (const peer of this.peers.values()) {
       try { this.send(peer, this.host ? 'ended' : 'leave', { message: 'L’hôte a fermé la partie.' }); } catch { /* The link may already be gone. */ }
     }
