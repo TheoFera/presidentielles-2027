@@ -3,6 +3,58 @@ import { garageVehicle } from '../simulation/vehicles.js';
 import { ringDelta } from '../simulation/world.js';
 
 const atlasFrames = new WeakMap();
+const wheelMotion = new WeakMap();
+
+// Centres horizontaux et rayons dans les images d'origine (rapportés à leur largeur).
+// La hauteur se mesure depuis le bas de chaque pose, quelle que soit sa tenue.
+const wheelLayouts = {
+  melenchon: { velo: [[.161, .058], [.383, .058]], scooter: [[.638, .040], [.874, .041]] },
+  le_pen: { velo: [[.184, .061], [.385, .061]], scooter: [[.634, .040], [.849, .042]] },
+  philippe: { velo: [[.167, .059], [.369, .059]], scooter: [[.634, .041], [.868, .043]] },
+  bardella: { velo: [[.111, .084], [.398, .084]], scooter: [[.605, .054], [.915, .055]] },
+};
+
+export function vehicleWheelTravel(renderer, entity, x, state) {
+  let motions = wheelMotion.get(renderer);
+  if (!motions) { motions = new Map(); wheelMotion.set(renderer, motions); }
+  const worldX = renderer.cameraX + (x - renderer.metrics.anchorX) / renderer.metrics.pixelsPerUnit;
+  const previous = motions.get(entity.id);
+  const vehicle = `${entity.vehicle.type}:${entity.vehicle.site_id}`;
+  const continuous = previous && previous.vehicle === vehicle && state.tick >= previous.tick && state.tick - previous.tick <= 30;
+  const distance = continuous ? previous.distance + ringDelta(previous.x, worldX, state.world.length) : 0;
+  motions.set(entity.id, { x: worldX, tick: state.tick, vehicle, distance });
+  return distance;
+}
+
+function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
+  const layout = wheelLayouts[entity.bardella_form ? 'bardella' : entity.faction_id]?.[entity.vehicle.type];
+  if (!layout) return;
+  const { ctx, metrics: m } = renderer;
+  const scale = h / frame.height;
+  for (const [centre, size] of layout) {
+    const radius = size * sprite.naturalWidth * scale;
+    const cx = (centre * sprite.naturalWidth - frame.x) * scale - w / 2;
+    const cy = -radius;
+    const angle = distance * m.pixelsPerUnit / radius * (entity.facing < 0 ? -1 : 1);
+    ctx.save(); ctx.translate(cx, cy);
+    // Seule la partie dégagée tourne : cadre, fourche, carter et garde-boue
+    // restent devant la roue, comme dans l'illustration d'origine.
+    ctx.beginPath(); ctx.rect(-radius, radius * .15, radius * 2, radius); ctx.clip();
+    ctx.beginPath(); ctx.arc(0, 0, radius * .78, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = entity.vehicle.type === 'velo' ? '#303633' : '#8f9494';
+    ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+    ctx.rotate(angle);
+    ctx.strokeStyle = entity.vehicle.type === 'velo' ? '#bac0b5' : '#dfe3df';
+    ctx.lineWidth = Math.max(.65, radius * .045);
+    const spokes = entity.vehicle.type === 'velo' ? 12 : 5;
+    for (let i = 0; i < spokes; i++) {
+      const a = i * Math.PI * 2 / spokes;
+      ctx.beginPath(); ctx.moveTo(Math.cos(a) * radius * .2, Math.sin(a) * radius * .2);
+      ctx.lineTo(Math.cos(a) * radius * .77, Math.sin(a) * radius * .77); ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
 export function prepareVehicleAtlas(id, image) {
   if (atlasFrames.has(image)) return atlasFrames.get(image);
   const rows = id === 'vehicles' || id === 'riders-bardella' ? 1 : 4;
@@ -51,6 +103,7 @@ export function drawMountedCandidate(renderer, entity, x, state) {
   ctx.fillStyle = '#28363325'; ctx.beginPath(); ctx.ellipse(x, m.groundY + 6, w * 0.45, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, m.groundY + 6 + bob); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   ctx.drawImage(sprite, frame.x, frame.y, frame.width, frame.height, -w / 2, -h, w, h);
+  drawTurningWheels(renderer, entity, sprite, frame, h, w, vehicleWheelTravel(renderer, entity, x, state));
   ctx.restore(); return true;
 }
 
