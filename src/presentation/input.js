@@ -13,6 +13,7 @@ export class BrowserInput {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();
       if ([' ', 'arrowup', 'arrowdown'].includes(key)) event.preventDefault();
+      if (key === 'z' && !event.repeat) { onAction('arrowup'); return; }
       if ([' ', 'j'].includes(key)) { if (!event.repeat) this.pressAttack(key); return; }
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) event.preventDefault();
       if (['arrowleft', 'arrowright', 'q', 'a', 'd'].includes(key)) { this.keys.add(key); this.update(); }

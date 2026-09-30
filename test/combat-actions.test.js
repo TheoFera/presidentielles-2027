@@ -98,7 +98,11 @@ test('Charge : coup léger dès l’appui, charge si le bouton reste enfoncé, s
     assert.equal(c.combat.charge_active, duration >= activation);
     assert.equal(movementBlocked(c), duration >= activation);
     input(sim, c, 'ReleaseAttack'); updateCombat(sim);
-    assert.equal(sim.state.attacks[0]?.kind, duration >= ready ? 'CHARGED' : undefined);
+    assert.equal(sim.state.attacks[0]?.kind, duration >= activation ? 'CHARGED' : undefined);
+    // Relâché tôt : dégâts proportionnels, sans chute ; charge complète : bonus.
+    if (duration >= activation) assert.equal(sim.state.attacks[0].partial, duration < ready);
+    if (duration >= activation && duration < ready) assert.ok(sim.state.attacks[0].damage < sim.config.balance.candidate_combat.charged_damage * 0.8);
+    if (duration >= ready) assert.equal(sim.state.attacks[0].damage, sim.config.balance.candidate_combat.charged_damage);
     assert.equal(c.combat.press_tick, null);
   }
   // La charge ne commence qu’une fois le coup léger terminé, bouton toujours enfoncé.
@@ -300,10 +304,10 @@ test('Réglages modifiables : plusieurs hauteurs et durées sans dépendance aux
     Object.assign(sim.config.balance.candidate_combat, { jump_height_ratio: height, charge_ready_seconds: seconds });
     input(sim, c, 'Jump'); ticks(sim, 12); assert.equal(c.combat.height, height);
     ticks(sim, 12); input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds) - 1);
-    input(sim, c, 'ReleaseAttack'); updateCombat(sim); assert.equal(sim.state.attacks.length, 0);
-    ticks(sim, 30, true);
+    input(sim, c, 'ReleaseAttack'); updateCombat(sim); assert.equal(sim.state.attacks[0].partial, true);
+    ticks(sim, 60, true);
     input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds)); input(sim, c, 'ReleaseAttack');
-    assert.equal(sim.state.attacks[0].kind, 'CHARGED');
+    assert.equal(sim.state.attacks[0].kind, 'CHARGED'); assert.equal(sim.state.attacks[0].partial, false);
   }
 });
 
@@ -362,4 +366,13 @@ test('Corps : contre le bord du débat, seul le candidat qui pousse est arrêté
   for (let i = 0; i < 30; i++) { sim.applyCommand({ type: 'Move', candidateId: c.id, axis: 1 }); sim.step(); }
   assert.equal(enemy.x, sim.state.debate_bounds.max);
   assert.ok(Math.abs(enemy.x - c.x - width) < 1e-9);
+});
+
+test('Charge : un coup léger reçu ne l’interrompt pas, le coup 3 si', () => {
+  for (const [step, kept] of [[1, true], [2, true], [3, false]]) {
+    const { sim, c, enemy } = setup();
+    input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(sim.config.balance.candidate_combat.charge_activation_seconds));
+    hit(sim, enemy, c, { kind: 'CANDIDATE', step, strong: step === 3, damage: 1, knockback: step === 3 ? 1 : 0.2, range: 1 }, 'x');
+    assert.equal(c.combat.press_tick != null, kept);
+  }
 });

@@ -25,14 +25,18 @@ export function attackInput(sim, actor, type) {
   if (type === 'ReleaseAttack') {
     if (c.press_tick == null) return;
     if (c.press_airborne) { cancelCharge(actor); return; }
-    const ready = !c.press_airborne && charging(actor) && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_ready_seconds);
+    const held = sim.state.tick - c.press_tick, readyTicks = sim.secondsToTicks(b.charge_ready_seconds);
+    const wasCharging = charging(actor), full = held >= readyTicks;
     cancelCharge(actor);
-    // Le coup léger est parti à l’appui : relâcher avant la fin de la charge ne fait rien de plus.
-    if (!ready) return;
+    // Le coup léger est parti à l’appui : relâcher avant le début de la charge ne fait rien de plus.
+    if (!wasCharging) return;
     if (interrupted(actor) || actor.is_ko) return;
+    // Relâché tôt : dégâts proportionnels au chargement ; charge complète = léger bonus et chute.
+    const ratio = Math.min(1, held / readyTicks);
+    const damage = full ? b.charged_damage : b.charged_damage * b.charged_partial_max_ratio * ratio;
     c.combo_step = 0; c.combo_expires_tick = 0; c.buffer_until_tick = -1;
-    makeAttack(sim, actor, 'CHARGED', { strong: true, step: 0, range: b.finisher_range,
-      damage: b.charged_damage, knockback: 0, stun_seconds: b.charged_stun_seconds,
+    makeAttack(sim, actor, 'CHARGED', { strong: true, step: 0, range: b.finisher_range, partial: !full,
+      damage, knockback: 0, stun_seconds: full ? b.charged_stun_seconds : b.hit_stun_seconds,
       electoral_damage: b.electoral_damage_on_finisher_percent_points });
     return;
   }

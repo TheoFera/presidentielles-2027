@@ -155,6 +155,7 @@
     "charge_activation_seconds": 0.2,
     "charge_ready_seconds": 1,
     "charged_damage": 21,
+    "charged_partial_max_ratio": 0.8,
     "charged_stun_seconds": 0.3,
     "jump_height_ratio": 1,
     "jump_duration_seconds": 0.8,

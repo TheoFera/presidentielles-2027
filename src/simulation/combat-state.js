@@ -118,13 +118,17 @@ export function hit(sim, source, target, spec, attackId) {
   if (!protectedHit) target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
   // Chute au sol : coup final du combo ou coup chargé sur un candidat encore debout.
   if (!protectedHit && target.role === 'CANDIDAT' && !target.is_ko && !revived && !(state.debate_bounds && target.debate_hp <= 0)
-    && (spec.kind === 'CHARGED' || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind))) knockDown(sim, target);
+    && (spec.kind === 'CHARGED' && !spec.partial || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind))) knockDown(sim, target);
   // Encaisser un coup d’un candidat (ou de ses invocations) remplit aussi l’ultime.
   if (target.role === 'CANDIDAT' && result.damage > 0 && !target.is_ko && (source.role === 'CANDIDAT' || source.temporary)) hitTakenCharge(sim, target, !!spec.strong);
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
   source.combat.last_hit = result; target.combat.last_hit = result;
   source.combat.target_id = target.id;
-  if (!protectedHit && spec.kind !== 'BURN') { target.combat.attack_id = null; target.combat.buffer_until_tick = -1; cancelCharge(target); }
+  if (!protectedHit && spec.kind !== 'BURN') {
+    target.combat.attack_id = null; target.combat.buffer_until_tick = -1;
+    // Les coups légers (1 et 2 du combo) n’interrompent pas la charge ; le coup 3 et les coups forts, si.
+    if (spec.strong || spec.step === 3) cancelCharge(target);
+  }
   if (protectedHit) result.knockback = 0;
   if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
   if (revived) { target.combat = combatState(); target.axis = 0; }
