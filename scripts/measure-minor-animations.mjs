@@ -16,7 +16,10 @@ const data = Object.fromEntries(Object.entries(MINOR_ANIMATION_FILES).map(([fact
     if (faction === 'roussel') {
       // Échelle fixe : l'écartement des pieds ne doit pas réduire tout le corps.
       atlas.widthScale = 1.1236 / 1.06;
-      atlas.frameScales = atlas.frames.map(() => .92);
+      const restingWidth = atlas.frames[0][2] / atlas.referenceHeight * 1.1236;
+      const targetWidth = reference.frames[0][2] / referenceHeight * 1.06;
+      const fixedScale = Math.min(.92, targetWidth / restingWidth * .92);
+      atlas.frameScales = atlas.frames.map(() => fixedScale);
     }
     console.log(`${faction} · ${sheet} : ${atlas.frames.length} poses mesurées.`);
     return [sheet, atlas];
