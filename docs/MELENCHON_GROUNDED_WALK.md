@@ -24,5 +24,5 @@ Use case: stylized-concept. Transparent RGBA sprite atlas, FOUR columns TWO rows
 
 ## Vérifications
 
-Tests des quatre types de frappe sur deux adversaires simultanés en campagne et en arène, sans dégâts répétés ; sauvegarde du KO prolongé ; priorités de la réaction légère ; fin de pose de recul ; huit phases de marche et tailles spécifiques. Galerie des trois candidats et aperçu des mouvements dans Chrome.
+Tests des quatre types de frappe sur deux adversaires simultanés en campagne et en débat, sans dégâts répétés ; sauvegarde du KO prolongé ; priorités de la réaction légère ; fin de pose de recul ; huit phases de marche et tailles spécifiques. Galerie des trois candidats et aperçu des mouvements dans Chrome.
 

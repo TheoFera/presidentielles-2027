@@ -4,38 +4,38 @@ import { GamePhase } from '../simulation/phases.js';
 import { drawCombatEffects } from './combat-effects.js';
 import { formatNumber } from './number-format.js';
 
-const ARENA_CHARACTER_SCALE = 1.45;
+const DEBATE_CHARACTER_SCALE = 1.45;
 
-export function arenaScreenX(x, width, arenaWidthUnits) {
-  return x * width / arenaWidthUnits;
+export function debateScreenX(x, width, debateWidthUnits) {
+  return x * width / debateWidthUnits;
 }
 
-export function drawArena(renderer, state, previous, alpha) {
+export function drawDebate(renderer, state, previous, alpha) {
   const { ctx, canvas, width, height } = renderer;
   const original = renderer.metrics;
-  const arenaWidth = renderer.config.balance.first_round_arena.width_units;
+  const debateWidth = renderer.config.balance.first_round_debate.width_units;
   renderer.metrics = {
     ...original,
     groundY: height * 0.79,
-    characterHeight: original.characterHeight * ARENA_CHARACTER_SCALE,
-    pixelsPerUnit: width / arenaWidth,
+    characterHeight: original.characterHeight * DEBATE_CHARACTER_SCALE,
+    pixelsPerUnit: width / debateWidth,
   };
   const m = renderer.metrics;
-  renderer.screenX = x => arenaScreenX(x, width, arenaWidth);
+  renderer.screenX = x => debateScreenX(x, width, debateWidth);
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
   ctx.strokeStyle = '#778496'; ctx.lineWidth = 2; ctx.strokeRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
-  const backdrop = renderer.assets.get('background-arena');
+  const backdrop = renderer.assets.get('background-debate');
   if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
-  else void renderer.assets.load('background-arena');
+  else void renderer.assets.load('background-debate');
   ctx.textAlign = 'center'; ctx.fillStyle = '#fff2d6'; ctx.font = '700 17px system-ui';
   ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.32, width * 0.28);
   ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText(state.campaign_event_family ? 'Le monde continue. Remportez la confrontation pour revenir en campagne.' : 'Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);
   ctx.fillStyle = '#c9ab7f'; ctx.fillRect(0, m.groundY, width, 5);
   ctx.fillStyle = '#4c3b30'; ctx.fillRect(0, m.groundY + 5, width, height - m.groundY);
   ctx.strokeStyle = '#2c2d2b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, m.groundY); ctx.lineTo(width, m.groundY); ctx.stroke();
-  for (const edge of [state.arena_bounds.min, state.arena_bounds.max]) {
+  for (const edge of [state.debate_bounds.min, state.debate_bounds.max]) {
     ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20);
   }
   for (const entity of [...state.temporary_units, ...state.candidates]) {
@@ -45,7 +45,7 @@ export function drawArena(renderer, state, previous, alpha) {
     if (entity.role === 'CANDIDAT') {
       ctx.fillStyle = '#eef0df'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
       ctx.fillText(entity.presentation_name || renderer.p.factions[entity.faction_id].name, x, m.groundY - m.characterHeight - 20);
-      if (state.campaign_event_family) { ctx.fillStyle = '#182434'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70, 5); ctx.fillStyle = '#9bdbca'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70 * entity.arena_hp / entity.arena_initial_hp, 5); }
+      if (state.campaign_event_family) { ctx.fillStyle = '#182434'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70, 5); ctx.fillStyle = '#9bdbca'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70 * entity.debate_hp / entity.debate_initial_hp, 5); }
     }
   }
   drawCombatEffects(renderer, state, false);
@@ -57,7 +57,7 @@ export function drawArena(renderer, state, previous, alpha) {
 export class MatchDisplay {
   constructor(config, callbacks) {
     this.config = config; this.callbacks = callbacks;
-    this.hud = document.getElementById('arena-hud'); this.results = document.getElementById('results');
+    this.hud = document.getElementById('debate-hud'); this.results = document.getElementById('results');
     this.banner = document.getElementById('phase-banner'); this.spectator = document.getElementById('spectator');
     this.cards = new Map(); this.phase = null; this.extensions = 0; this.followId = null;
     const select = document.getElementById('spectator-follow');
@@ -79,25 +79,25 @@ export class MatchDisplay {
   reset() { this.summary.close(); this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
   update(state) {
     const names = this.config.prototype.presentation.factions;
-    const arena = state.phase === GamePhase.FIRST_ROUND_ARENA; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
+    const debate = state.phase === GamePhase.FIRST_ROUND_DEBATE; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
     const finished = state.phase === GamePhase.RESULTS;
-    this.hud.hidden = !arena; this.results.hidden = !finished && state.phase !== GamePhase.FIRST_ROUND_RESULTS;
+    this.hud.hidden = !debate; this.results.hidden = !finished && state.phase !== GamePhase.FIRST_ROUND_RESULTS;
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
     this.spectator.hidden = !sprint || !eliminated;
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
-      this.banner.textContent = arena ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
+      this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
       if (this.phase !== state.phase) {
         const fade = document.getElementById('phase-fade');
         fade.getAnimations().forEach(a => a.cancel());
-        if (this.phase !== null) fade.animate([{ opacity: 1 }, { opacity: 0 }], { duration: this.config.balance.first_round_arena.transition_seconds * 1000 });
+        if (this.phase !== null) fade.animate([{ opacity: 1 }, { opacity: 0 }], { duration: this.config.balance.first_round_debate.transition_seconds * 1000 });
       }
       this.phase = state.phase; this.extensions = state.extensions;
-      if (arena) {
+      if (debate) {
         this.hud.replaceChildren(); this.cards.clear();
-        for (const c of state.arena.candidates) {
-          const card = document.createElement('div'); card.className = 'arena-card'; card.style.setProperty('--camp-color', names[c.faction_id].color);
+        for (const c of state.debate.candidates) {
+          const card = document.createElement('div'); card.className = 'debate-card'; card.style.setProperty('--camp-color', names[c.faction_id].color);
           const name = document.createElement('span'); const value = document.createElement('output'); const bar = document.createElement('div'); const fill = document.createElement('i');
-          bar.className = 'arena-bar'; bar.append(fill); card.append(name, value, bar); this.hud.append(card);
+          bar.className = 'debate-bar'; bar.append(fill); card.append(name, value, bar); this.hud.append(card);
           this.cards.set(c.id, { name, value, fill });
         }
       }
@@ -109,13 +109,13 @@ export class MatchDisplay {
       }
     }
     this.banner.hidden = !this.banner.textContent || state.match_tick - state.phase_started_match_tick > this.config.balance.simulation_architecture.fixed_tick_hz * 4;
-    if (arena) for (const c of state.arena.candidates) {
+    if (debate) for (const c of state.debate.candidates) {
       const card = this.cards.get(c.id);
       const name = `${names[c.faction_id].symbol} · ${names[c.faction_id].name}${c.id === state.local_candidate_id ? ' · Vous' : ''}`;
-      const value = c.arena_hp > 0 && c.arena_hp < 0.1 ? '< 0,1 %' : `${formatNumber(c.arena_hp, 1, 1)} %`;
+      const value = c.debate_hp > 0 && c.debate_hp < 0.1 ? '< 0,1 %' : `${formatNumber(c.debate_hp, 1, 1)} %`;
       if (card.name.textContent !== name) card.name.textContent = name;
       if (card.value.textContent !== value) card.value.textContent = value;
-      card.fill.style.width = `${c.arena_initial_hp ? c.arena_hp / c.arena_initial_hp * 100 : 0}%`;
+      card.fill.style.width = `${c.debate_initial_hp ? c.debate_hp / c.debate_initial_hp * 100 : 0}%`;
       card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }
     this.latest = state;

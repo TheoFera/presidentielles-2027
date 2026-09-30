@@ -3,7 +3,7 @@
   "config_fingerprint": "ee90eb56",
   "match_tick": 27375,
   "phase_started_match_tick": 27375,
-  "arena": null,
+  "debate": null,
   "campaign_snapshot": null,
   "eliminated_faction": null,
   "finalists": [],
@@ -35,9 +35,9 @@
       "pending": 0
     },
     "eliminated_faction": null,
-    "arena_duration_seconds": 0,
-    "arena_hits": 0,
-    "arena_candidate_hits": 0,
+    "debate_duration_seconds": 0,
+    "debate_hits": 0,
+    "debate_candidate_hits": 0,
     "sprint_start_scores": null,
     "final_scores": null,
     "changed_subzone_ids": [],
@@ -1764,7 +1764,7 @@
       "special_decay_origin": 0,
       "active_ultimate_id": null,
       "bardella_guardian_armed": false,
-      "campaign_arena_id": null,
+      "campaign_debate_id": null,
       "crisis_meeting_id": null,
       "VULNERABLE_SCANDAL": null,
       "current_campaign_style": "melenchon_universaliste",
@@ -1880,7 +1880,7 @@
       "special_decay_origin": 0,
       "active_ultimate_id": null,
       "bardella_guardian_armed": false,
-      "campaign_arena_id": null,
+      "campaign_debate_id": null,
       "crisis_meeting_id": null,
       "VULNERABLE_SCANDAL": null,
       "current_campaign_style": "le_pen_zemmouriste",
@@ -2017,7 +2017,7 @@
       "special_decay_origin": 0,
       "active_ultimate_id": null,
       "bardella_guardian_armed": false,
-      "campaign_arena_id": null,
+      "campaign_debate_id": null,
       "crisis_meeting_id": null,
       "VULNERABLE_SCANDAL": null,
       "current_campaign_style": "philippe_europeiste",
@@ -15682,7 +15682,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",
@@ -15784,7 +15784,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",
@@ -15885,7 +15885,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",
@@ -15989,7 +15989,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",
@@ -16095,7 +16095,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",
@@ -16202,7 +16202,7 @@
       "category": "ACTIVE",
       "attempt": null,
       "participants": [],
-      "arena": null,
+      "debate": null,
       "style_snapshot": {
         "melenchon": {
           "style_id": "melenchon_universaliste",

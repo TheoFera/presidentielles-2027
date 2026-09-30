@@ -1,6 +1,6 @@
 import { drawCombatEffects } from './combat-effects.js';
 import { campaignStyles } from '../simulation/campaign-styles.js';
-import { visualManifest } from './visual-manifest.js';
+import { portraitContent, hydrateSelectionPortraits } from './debate-selection.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -24,12 +24,12 @@ function supportHeight(state, x, height) {
 function drawPlateau(renderer, state) {
   const { ctx, width, height, metrics: m } = renderer;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
-  const backdrop = renderer.assets.get('background-arena');
+  const backdrop = renderer.assets.get('background-debate');
   if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
-  else void renderer.assets.load('background-arena');
+  else void renderer.assets.load('background-debate');
   ctx.fillStyle = '#c9ab7f'; ctx.fillRect(0, m.groundY, width, 5);
   ctx.fillStyle = '#4c3b30'; ctx.fillRect(0, m.groundY + 5, width, height - m.groundY);
-  for (const edge of [state.arena_bounds.min, state.arena_bounds.max]) { ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20); }
+  for (const edge of [state.debate_bounds.min, state.debate_bounds.max]) { ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20); }
 }
 
 function drawStudio(renderer, state, time) {
@@ -117,7 +117,7 @@ function drawPlatforms(renderer, state, time) {
 
 /** Public au premier plan : s’agite selon les coups, hue ou applaudit les KO. */
 function updateCrowd(renderer, state, elapsed) {
-  const crowd = renderer.arenaCrowd ??= { excitement: 0.2, lastHit: null, lastEvent: null, shouts: [], match: null };
+  const crowd = renderer.debateCrowd ??= { excitement: 0.2, lastHit: null, lastEvent: null, shouts: [], match: null };
   if (crowd.match !== state.seed + state.map_id + state.candidates.map(c => c.id).join()) {
     Object.assign(crowd, { excitement: 0.2, shouts: [], match: state.seed + state.map_id + state.candidates.map(c => c.id).join(), lastHit: state.hit_results.at(-1)?.id ?? null, lastEvent: state.events.at(-1)?.id ?? null });
   }
@@ -129,8 +129,8 @@ function updateCrowd(renderer, state, elapsed) {
   if (newHits.length) crowd.lastHit = state.hit_results.at(-1).id;
   const newEvents = crowd.lastEvent == null ? state.events : state.events.slice(state.events.findIndex(e => e.id === crowd.lastEvent) + 1);
   for (const event of newEvents) {
-    if (event.type === 'ArenaKnockout') { crowd.excitement = 1; crowd.shouts.push({ text: 'OUUUH !', x: 0.3, age: 0 }, { text: 'BRAVO !', x: 0.7, age: 0.1 }); }
-    if (event.type === 'ArenaFightStarted') { crowd.excitement = 0.8; crowd.shouts.push({ text: 'ALLEZ !', x: 0.5, age: 0 }); }
+    if (event.type === 'DebateKnockout') { crowd.excitement = 1; crowd.shouts.push({ text: 'OUUUH !', x: 0.3, age: 0 }, { text: 'BRAVO !', x: 0.7, age: 0.1 }); }
+    if (event.type === 'DebateFightStarted') { crowd.excitement = 0.8; crowd.shouts.push({ text: 'ALLEZ !', x: 0.5, age: 0 }); }
     if (event.type === 'UltimateActivated') { crowd.excitement = Math.min(1, crowd.excitement + 0.4); crowd.shouts.push({ text: 'WAOUH !', x: 0.2 + Math.random() * 0.6, age: 0 }); }
   }
   if (newEvents.length) crowd.lastEvent = state.events.at(-1).id;
@@ -200,14 +200,14 @@ function drawNameTag(renderer, state, fighter, x, y, width, text) {
   ctx.globalAlpha = 1;
 }
 
-/** Dessin complet d’un combat du mode Arène. */
-export function drawArenaMode(renderer, state, previous, alpha, elapsed = 0) {
+/** Dessin complet d’un combat du mode Débat. */
+export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
   const { ctx, canvas, width, height } = renderer;
   const original = renderer.metrics, originalScreenX = renderer.screenX;
   const look = MAP_LOOK[state.map_id] || MAP_LOOK.plateau;
-  const arenaWidth = renderer.config.balance.first_round_arena.width_units;
-  renderer.metrics = { ...original, groundY: height * look.ground, characterHeight: original.characterHeight * look.scale, pixelsPerUnit: width / arenaWidth };
-  renderer.screenX = x => x * width / arenaWidth;
+  const debateWidth = renderer.config.balance.first_round_debate.width_units;
+  renderer.metrics = { ...original, groundY: height * look.ground, characterHeight: original.characterHeight * look.scale, pixelsPerUnit: width / debateWidth };
+  renderer.screenX = x => x * width / debateWidth;
   const m = renderer.metrics, hz = renderer.config.balance.simulation_architecture.fixed_tick_hz;
   const time = (state.tick + alpha) / hz;
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
@@ -244,30 +244,29 @@ export function drawArenaMode(renderer, state, previous, alpha, elapsed = 0) {
   renderer.metrics = original; renderer.screenX = originalScreenX;
 }
 
-const portraitOf = faction => visualManifest[`character-${faction}`]?.file;
-
 /** Images à charger avant le combat : planches des combattants choisis et ultimes. */
-export function arenaAssetIds(manifest, setup) {
+export function debateAssetIds(manifest, setup) {
   return Object.keys(manifest).filter(id => id.startsWith('ultimate-') || id.startsWith('character-ultimate-') || id.startsWith('crs-')
-    || setup.map === 'plateau' && id === 'background-arena'
+    || setup.map === 'plateau' && id === 'background-debate'
     || setup.fighters.some(f => {
       const faction = f.faction.replace(/_/g, '-');
-      return id === `character-${f.faction}` || id.startsWith(`character-${faction}-`) || id.includes(f.style.replace(/_/g, '-'));
+      return id === `minor-${f.faction}` || id.startsWith(`character-minor-${f.faction}-`)
+        || id === `character-${f.faction}` || id.startsWith(`character-${faction}-`) || id.includes(f.style.replace(/_/g, '-'));
     }));
 }
 
 /** Interface HTML du combat : jauges, compte à rebours, KO, écran de fin. */
-export class ArenaModeDisplay {
+export class DebateModeDisplay {
   constructor(config, actions) {
     this.config = config; this.actions = actions;
     const game = document.getElementById('game') || document.body;
-    this.hud = document.createElement('div'); this.hud.id = 'arena-mode-hud'; this.hud.hidden = true;
+    this.hud = document.createElement('div'); this.hud.id = 'debate-mode-hud'; this.hud.hidden = true;
     this.hud.setAttribute('aria-label', 'Jauges de vie du combat');
-    this.banner = document.createElement('div'); this.banner.id = 'arena-mode-banner'; this.banner.hidden = true; this.banner.setAttribute('role', 'status');
-    this.result = document.createElement('section'); this.result.id = 'arena-mode-result'; this.result.hidden = true; this.result.setAttribute('aria-label', 'Résultat du combat');
+    this.banner = document.createElement('div'); this.banner.id = 'debate-mode-banner'; this.banner.hidden = true; this.banner.setAttribute('role', 'status');
+    this.result = document.createElement('section'); this.result.id = 'debate-mode-result'; this.result.hidden = true; this.result.setAttribute('aria-label', 'Résultat du combat');
     game.append(this.hud, this.banner, this.result);
     this.result.addEventListener('click', event => {
-      const action = event.target.closest('[data-arena-action]')?.dataset.arenaAction;
+      const action = event.target.closest('[data-debate-action]')?.dataset.debateAction;
       if (action) this.actions[action]?.();
     });
     this.reset();
@@ -279,30 +278,31 @@ export class ArenaModeDisplay {
     this.hud.dataset.count = String(state.candidates.length);
     for (const fighter of state.candidates) {
       const label = fighterLabel(this.config, fighter);
-      const card = document.createElement('div'); card.className = 'arena-fighter';
+      const card = document.createElement('div'); card.className = 'debate-fighter';
       card.style.setProperty('--fighter-color', label.color); card.style.setProperty('--camp-color', label.faction);
       const local = fighter.id === state.local_candidate_id;
-      card.innerHTML = `<img alt="" src="${portraitOf(fighter.faction_id)}"><div class="arena-fighter-name"><strong></strong><small></small></div><output></output><div class="arena-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="arena-fighter-ultimate" title="Ultime"><i></i></div>`;
+      card.innerHTML = `${portraitContent(fighter.faction_id)}<div class="debate-fighter-name"><strong></strong><small></small></div><output></output><div class="debate-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="debate-fighter-ultimate" title="Ultime" ${fighter.minor ? 'hidden' : ''}><i></i></div>`;
+      hydrateSelectionPortraits(card);
       card.querySelector('strong').textContent = `${label.name}${local ? ' · Vous' : ''}`;
       card.querySelector('small').textContent = label.style;
       card.classList.toggle('local', local);
       this.hud.append(card);
-      this.cards.set(fighter.id, { card, value: card.querySelector('output'), life: card.querySelector('.life'), lag: card.querySelector('.lag'), ultimate: card.querySelector('.arena-fighter-ultimate i'), lagRatio: 1 });
+      this.cards.set(fighter.id, { card, value: card.querySelector('output'), life: card.querySelector('.life'), lag: card.querySelector('.lag'), ultimate: card.querySelector('.debate-fighter-ultimate i'), lagRatio: 1 });
     }
   }
   update(state, elapsed = 0) {
-    const hz = this.config.balance.simulation_architecture.fixed_tick_hz, mode = this.config.balance.arena_mode;
+    const hz = this.config.balance.simulation_architecture.fixed_tick_hz, mode = this.config.balance.debate_mode;
     const signature = `${state.seed}:${state.map_id}:${state.candidates.map(c => c.id).join()}`;
     if (signature !== this.signature) { this.reset(); this.signature = signature; this.build(state); }
     this.hud.hidden = false;
     for (const fighter of state.candidates) {
       const card = this.cards.get(fighter.id);
-      const ratio = Math.max(0, fighter.arena_hp / fighter.arena_initial_hp);
+      const ratio = Math.max(0, fighter.debate_hp / fighter.debate_initial_hp);
       card.life.style.width = `${ratio * 100}%`;
       // Barre retardée : on voit la vie perdue fondre, comme dans les jeux de combat.
       card.lagRatio = Math.max(ratio, card.lagRatio - elapsed * 0.45);
       card.lag.style.width = `${card.lagRatio * 100}%`;
-      const value = String(Math.ceil(fighter.arena_hp));
+      const value = String(Math.ceil(fighter.debate_hp));
       if (card.value.textContent !== value) card.value.textContent = value;
       card.value.setAttribute('aria-label', `${fighterLabel(this.config, fighter).name} : ${value} points de vie`);
       card.ultimate.style.width = `${Math.min(1, fighter.special_charge / this.config.balance.special_charge.required_points) * 100}%`;
@@ -327,24 +327,24 @@ export class ArenaModeDisplay {
     const won = state.winner_id === state.local_candidate_id;
     const order = [winner, ...[...state.ko_order].reverse().map(id => state.candidates.find(c => c.id === id))].filter(Boolean);
     const label = winner ? fighterLabel(this.config, winner) : null;
-    const panel = document.createElement('div'); panel.className = 'arena-result-panel';
-    panel.innerHTML = `<p class="arena-result-eyebrow"></p><h2></h2><p class="arena-result-text"></p><ol class="arena-ranking"></ol><div class="arena-result-actions"><button class="arena-primary" data-arena-action="rematch">Revanche</button><button data-arena-action="setup">Changer de combattants</button><button data-arena-action="home">Menu</button></div>`;
-    panel.querySelector('.arena-result-eyebrow').textContent = `${state.map_name} · ${state.format === '1v1' ? '1 contre 1' : '1 contre 1 contre 1'}`;
+    const panel = document.createElement('div'); panel.className = 'debate-result-panel';
+    panel.innerHTML = `<p class="debate-result-eyebrow"></p><h2></h2><p class="debate-result-text"></p><ol class="debate-ranking"></ol><div class="debate-result-actions"><button class="debate-primary" data-debate-action="rematch">Revanche</button><button data-debate-action="setup">Changer de combattants</button><button data-debate-action="home">Menu</button></div>`;
+    panel.querySelector('.debate-result-eyebrow').textContent = `${state.map_name} · ${state.format === '1v1' ? '1 contre 1' : '1 contre 1 contre 1'}`;
     panel.querySelector('h2').textContent = won ? 'Victoire !' : 'Défaite…';
     panel.querySelector('h2').dataset.won = String(won);
-    panel.querySelector('.arena-result-text').textContent = label ? `${label.name} (${label.style}) remporte le débat${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
+    panel.querySelector('.debate-result-text').textContent = label ? `${label.name}${label.style ? ` (${label.style})` : ''} remporte le Débat télé${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
     const list = panel.querySelector('ol');
     for (const fighter of order) {
       const item = document.createElement('li'); const l = fighterLabel(this.config, fighter);
       item.style.setProperty('--fighter-color', l.color);
-      item.innerHTML = '<img alt=""><span></span><small></small>';
-      item.querySelector('img').src = portraitOf(fighter.faction_id);
-      item.querySelector('span').textContent = `${l.name} · ${l.style}${fighter.id === state.local_candidate_id ? ' (vous)' : ''}`;
+      item.innerHTML = `${portraitContent(fighter.faction_id)}<span class="ranking-name"></span><small></small>`;
+      hydrateSelectionPortraits(item);
+      item.querySelector('.ranking-name').textContent = `${l.name}${l.style ? ` · ${l.style}` : ''}${fighter.id === state.local_candidate_id ? ' (vous)' : ''}`;
       item.querySelector('small').textContent = `${Math.round(fighter.damage_dealt)} dégâts infligés`;
       list.append(item);
     }
     // En multijoueur, la revanche et le changement de combattants passent par un nouveau salon.
-    if (this.multiplayer) panel.querySelectorAll('[data-arena-action="rematch"], [data-arena-action="setup"]').forEach(button => button.remove());
+    if (this.multiplayer) panel.querySelectorAll('[data-debate-action="rematch"], [data-debate-action="setup"]').forEach(button => button.remove());
     this.result.replaceChildren(panel); this.result.hidden = false;
     panel.querySelector('button').focus({ preventScroll: true });
   }

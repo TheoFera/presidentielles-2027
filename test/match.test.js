@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { config } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { GamePhase as P, commandAllowed } from '../src/simulation/phases.js';
-import { ArenaSimulation, arenaAICommands } from '../src/simulation/arena-simulation.js';
+import { DebateSimulation, debateAICommands } from '../src/simulation/debate-simulation.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
-import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
+import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { refreshElectoralState, updatePolls } from '../src/simulation/electoral-state.js';
 import { refreshInfluenceSources } from '../src/simulation/territory.js';
 import { combatState, hit } from '../src/simulation/combat-state.js';
@@ -32,7 +32,7 @@ function npc(sim, role, faction, x, origin = 'banlieue_b') {
   if (role === 'SERVICE_D_ORDRE') { n.guard_biome_id = zoneAt(sim.state.world, x).biome_id; n.guard_anchor_x = x; }
   return n;
 }
-function sprint(sim, eliminated = 'philippe') { startArena(sim); finishArena(sim, eliminated); return sim; }
+function sprint(sim, eliminated = 'philippe') { startDebate(sim); finishDebate(sim, eliminated); return sim; }
 function actual(sim, scores) { for (const e of sim.state.electorate) e.support = { ...scores }; refresh(sim); }
 function reload(sim) { const next = new GameSimulation(sim.config); next.importSnapshot(sim.exportSnapshot()); return next; }
 
@@ -41,69 +41,69 @@ test('J0 au tick prévu : gel du monde complet, jauges nationales réelles, repr
   const sim = new GameSimulation(cfg);
   own(sim, 'financement', 'melenchon'); own(sim, 'institut_sondage', 'melenchon');
   advance(sim, 29); assert.equal(sim.state.phase, P.CAMPAIGN);
-  advance(sim, 1); assert.equal(sim.state.phase, P.FIRST_ROUND_ARENA); assert.equal(sim.state.result, null);
+  advance(sim, 1); assert.equal(sim.state.phase, P.FIRST_ROUND_DEBATE); assert.equal(sim.state.result, null);
   const world = structuredClone(sim.state.campaign_snapshot); const frozen = JSON.stringify(world);
-  for (const c of sim.state.arena.candidates) close(c.arena_hp, world.actualGameState.national_support[c.faction_id]);
+  for (const c of sim.state.debate.candidates) close(c.debate_hp, world.actualGameState.national_support[c.faction_id]);
   advance(sim, 180);
   assert.equal(JSON.stringify(sim.state.campaign_snapshot), frozen);
   for (const key of ['tick', 'rng_state', 'candidates', 'npcs', 'buildings', 'electorate', 'spawn_timers', 'polls', 'powers', 'attacks']) assert.deepEqual(sim.state[key], world[key]);
-  finishArena(sim, 'philippe');
+  finishDebate(sim, 'philippe');
   for (const f of ['melenchon', 'le_pen']) assert.deepEqual(sim.state.candidates.find(c => c.faction_id === f), world.candidates.find(c => c.faction_id === f));
   assert.equal(sim.state.tick, world.tick); assert.equal(sim.state.sprint_remaining_ticks, sim.secondsToTicks(60));
   reload(sim);
 });
 
-test('Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans l’arène', () => {
-  const sim = quiet(); startArena(sim); const snapshot = JSON.stringify(sim.state.campaign_snapshot);
+test('Commandes validées selon la phase, aucun achat/Meeting/téléportation de monde dans le débat', () => {
+  const sim = quiet(); startDebate(sim); const snapshot = JSON.stringify(sim.state.campaign_snapshot);
   for (const type of ['Build', 'Meeting', 'InteractionPresence', 'DebugTeleport', 'DebugBuildElectoral', 'DebugMeeting', 'DebugNeutral50All']) {
     assert.equal(commandAllowed(sim.state, { type }, true), false);
     sim.applyCommand({ type, candidateId: sim.state.local_candidate_id, subzoneId: 'paris_a', buildingType: 'meeting' });
   }
   assert.equal(JSON.stringify(sim.state.campaign_snapshot), snapshot);
   sim.applyCommand({ type: 'Move', candidateId: sim.state.local_candidate_id, axis: 1 });
-  assert.equal(sim.state.arena.candidates[0].axis, 1); assert.equal(sim.state.candidates[0].axis, 0);
+  assert.equal(sim.state.debate.candidates[0].axis, 1); assert.equal(sim.state.candidates[0].axis, 0);
   assert.equal(commandAllowed(sim.state, { type: 'DebugFillSpecial' }, false), false);
 });
 
-test('Dégâts d’arène des six attaques : jauge directe, support du monde inchangé, premier KO seul', () => {
+test('Dégâts de débat des six attaques : jauge directe, support du monde inchangé, premier KO seul', () => {
   const entries = [['light_1', 'CANDIDATE', 1, false], ['light_2', 'CANDIDATE', 2, false], ['heavy', 'CANDIDATE', 3, true], ['hologram', 'HOLOGRAM', 0, false], ['wave', 'WAVE', 0, true], ['crs', 'CRS', 0, false]];
   for (const [key, kind, step, strong] of entries) {
-    const sim = quiet(); startArena(sim); const arena = new ArenaSimulation(sim.config, sim.state.arena);
-    const [source, target, third] = arena.state.candidates;
-    const hp = target.arena_hp; const world = JSON.stringify(sim.state.electorate);
-    const result = hit(arena, source, target, { kind, step, strong, damage: 500, electoral_damage: 50, knockback: 2, direction: 1 }, 'test');
-    close(target.arena_hp, hp - config.balance.first_round_arena.damage[key]); assert.equal(result.electoral_damage, 0);
+    const sim = quiet(); startDebate(sim); const debate = new DebateSimulation(sim.config, sim.state.debate);
+    const [source, target, third] = debate.state.candidates;
+    const hp = target.debate_hp; const world = JSON.stringify(sim.state.electorate);
+    const result = hit(debate, source, target, { kind, step, strong, damage: 500, electoral_damage: 50, knockback: 2, direction: 1 }, 'test');
+    close(target.debate_hp, hp - config.balance.first_round_debate.damage[key]); assert.equal(result.electoral_damage, 0);
     assert.equal(JSON.stringify(sim.state.electorate), world);
-    target.arena_hp = 0.01;
-    hit(arena, source, target, { kind, step, strong, damage: 500, knockback: 1 }, 'test');
-    const untouched = third.arena_hp;
-    assert.equal(hit(arena, source, third, { kind, damage: 500, knockback: 1 }, 'test'), null);
-    assert.equal(third.arena_hp, untouched); assert.equal(arena.state.eliminated_faction, target.faction_id);
+    target.debate_hp = 0.01;
+    hit(debate, source, target, { kind, step, strong, damage: 500, knockback: 1 }, 'test');
+    const untouched = third.debate_hp;
+    assert.equal(hit(debate, source, third, { kind, damage: 500, knockback: 1 }, 'test'), null);
+    assert.equal(third.debate_hp, untouched); assert.equal(debate.state.eliminated_faction, target.faction_id);
     sim.step(); assert.equal(sim.state.eliminated_faction, target.faction_id); assert.equal(sim.state.phase, P.SECOND_ROUND_SPRINT);
   }
 });
 
-test('Les vrais Attack déclenchent chaque spécial et infligent des dégâts d’arène autoritaires', () => {
+test('Les vrais Attack déclenchent chaque spécial et infligent des dégâts de débat autoritaires', () => {
   for (const f of FACTIONS) {
-    const sim = quiet(); startArena(sim);
-    const arena = sim.state.arena; const actor = arena.candidates.find(c => c.faction_id === f); const target = arena.candidates.find(c => c.id !== actor.id);
-    actor.x = 12; target.x = 13.3; arena.candidates.find(c => c !== actor && c !== target).x = 24;
-    actor.facing = 1; const hp = target.arena_hp;
+    const sim = quiet(); startDebate(sim);
+    const debate = sim.state.debate; const actor = debate.candidates.find(c => c.faction_id === f); const target = debate.candidates.find(c => c.id !== actor.id);
+    actor.x = 12; target.x = 13.3; debate.candidates.find(c => c !== actor && c !== target).x = 24;
+    actor.facing = 1; const hp = target.debate_hp;
     sim.applyCommand({ type: 'DebugFillSpecial', candidateId: actor.id }); sim.applyCommand({ type: 'Attack', candidateId: actor.id, direction: 1 });
-    advance(sim, 1); assert.ok(arena.events.some(e => e.type === 'SpecialTriggered'));
+    advance(sim, 1); assert.ok(debate.events.some(e => e.type === 'SpecialTriggered'));
     advance(sim, 54);
-    assert.equal(actor.special_charge, 0); assert.ok(target.arena_hp < hp, f);
-    assert.ok(arena.hit_results.some(h => h.score_damage > 0));
+    assert.equal(actor.special_charge, 0); assert.ok(target.debate_hp < hp, f);
+    assert.ok(debate.hit_results.some(h => h.score_damage > 0));
   }
 });
 
 test('Bords de plateau solides : marche, recul et projectile ne bouclent pas, pas de ring-out', () => {
-  const sim = quiet(); startArena(sim); const a = sim.state.arena;
-  const c = a.candidates[0]; c.x = a.arena_bounds.min; c.axis = -1; c.combat.knockback_velocity = -40;
-  advance(sim, 120); assert.equal(c.x, a.arena_bounds.min); assert.equal(sim.state.phase, P.FIRST_ROUND_ARENA);
-  const lp = a.candidates[1]; lp.x = a.arena_bounds.max; lp.facing = 1; lp.special_charge = 10;
+  const sim = quiet(); startDebate(sim); const a = sim.state.debate;
+  const c = a.candidates[0]; c.x = a.debate_bounds.min; c.axis = -1; c.combat.knockback_velocity = -40;
+  advance(sim, 120); assert.equal(c.x, a.debate_bounds.min); assert.equal(sim.state.phase, P.FIRST_ROUND_DEBATE);
+  const lp = a.candidates[1]; lp.x = a.debate_bounds.max; lp.facing = 1; lp.special_charge = 10;
   sim.applyCommand({ type: 'Attack', candidateId: lp.id, direction: 1 }); advance(sim, 3);
-  assert.equal(a.projectiles.length, 0); assert.equal(c.arena_hp, c.arena_initial_hp);
+  assert.equal(a.projectiles.length, 0); assert.equal(c.debate_hp, c.debate_initial_hp);
 });
 
 test('Neutralisation : S/M/SO rentrent à leur origine, bâtiments libérés, Neutres préservés et voix sans transfert', () => {
@@ -196,12 +196,12 @@ test('Sondages du sprint à 2,5 s ; Institut fermé garde sa dernière mesure ; 
   reload(sim);
 });
 
-test('Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV d’arène', () => {
+test('Combat du monde actif au sprint : recul, soutien vers les Neutres, aucun PV de débat', () => {
   const sim = quiet(); actual(sim, { melenchon: 48, le_pen: 43, philippe: 0, neutral: 9 }); sprint(sim);
   const [m, lp] = sim.state.candidates;
   const before = sim.state.actualGameState.national_support.melenchon;
   const result = hit(sim, lp, m, { damage: 8, electoral_damage: 0.03, knockback: 2.2 }, 'test');
-  assert.ok(result.electoral_damage > 0); assert.equal(result.damage, 0); assert.equal(m.arena_hp, undefined); assert.ok(m.combat.knockback_velocity !== 0);
+  assert.ok(result.electoral_damage > 0); assert.equal(result.damage, 0); assert.equal(m.debate_hp, undefined); assert.ok(m.combat.knockback_velocity !== 0);
   assert.ok(sim.state.actualGameState.national_support.melenchon < before);
 });
 
@@ -224,23 +224,23 @@ test('Égalité : règle configurable J0 puis graine, et commande debug de prolo
   const other = sprint(quiet()); other.step([{ type: 'DebugForceTie' }]); assert.equal(other.state.extensions, 1);
 });
 
-test('Snapshot d’arène et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris', () => {
-  const sim = quiet(73); sim.state.ai_enabled = true; startArena(sim); const ai = new AIController(config);
+test('Snapshot de débat et de sprint : rechargement déterministe, coups, pouvoirs et RNG compris', () => {
+  const sim = quiet(73); sim.state.ai_enabled = true; startDebate(sim); const ai = new AIController(config);
   advance(sim, 80, ai); const copy = reload(sim); assert.deepEqual(copy.getState(), sim.getState());
   advance(sim, 600, ai); advance(copy, 600, ai); assert.deepEqual(copy.getState(), sim.getState());
-  if (sim.state.phase === P.FIRST_ROUND_ARENA) finishArena(sim, 'philippe');
+  if (sim.state.phase === P.FIRST_ROUND_DEBATE) finishDebate(sim, 'philippe');
   advance(sim, 70, ai); const sprintCopy = reload(sim);
   advance(sim, 150, ai); advance(sprintCopy, 150, ai); assert.deepEqual(sprintCopy.getState(), sim.getState());
 });
 
 test('Snapshots corrompus : jauges, monde gelé, élimination, horloge et résultat refusés atomiquement', () => {
-  const sim = quiet(); startArena(sim); const clean = sim.exportSnapshot();
-  for (const mutate of [s => s.arena.candidates[0].arena_hp = -1, s => s.campaign_snapshot.candidates[0].money++, s => s.arena.candidates[0].x = -1,
-    s => s.phase = P.RESULTS, s => s.campaign_snapshot.campaign_snapshot = {}, s => s.arena.candidates[1].id = s.arena.candidates[0].id,
-    s => s.next_npc_id++, s => s.arena.candidates[0].special_charge = null, s => s.arena.candidates[0].arena_hp = 0]) {
+  const sim = quiet(); startDebate(sim); const clean = sim.exportSnapshot();
+  for (const mutate of [s => s.debate.candidates[0].debate_hp = -1, s => s.campaign_snapshot.candidates[0].money++, s => s.debate.candidates[0].x = -1,
+    s => s.phase = P.RESULTS, s => s.campaign_snapshot.campaign_snapshot = {}, s => s.debate.candidates[1].id = s.debate.candidates[0].id,
+    s => s.next_npc_id++, s => s.debate.candidates[0].special_charge = null, s => s.debate.candidates[0].debate_hp = 0]) {
     const bad = JSON.parse(clean); mutate(bad); assert.throws(() => sim.importSnapshot(bad)); assert.equal(sim.exportSnapshot(), clean);
   }
-  finishArena(sim, 'philippe'); const saved = sim.exportSnapshot(); const bad = JSON.parse(saved); bad.candidates[2].campaign_active = true;
+  finishDebate(sim, 'philippe'); const saved = sim.exportSnapshot(); const bad = JSON.parse(saved); bad.candidates[2].campaign_active = true;
   assert.throws(() => sim.importSnapshot(bad)); assert.equal(sim.exportSnapshot(), saved);
 });
 
@@ -248,14 +248,14 @@ test('Les pouvoirs et attaques déjà actifs dans le monde reprennent avec leurs
   const sim = quiet(); const m = sim.state.candidates[0]; m.campaign_active = true; m.special_charge = 10;
   sim.step([{ type: 'Attack', candidateId: m.id }]);
   assert.equal(sim.state.temporary_units.length, 5); assert.ok(sim.state.attacks.length);
-  startArena(sim); const world = structuredClone(sim.state.campaign_snapshot);
-  advance(sim, 180); const copy = reload(sim); finishArena(copy, 'philippe');
+  startDebate(sim); const world = structuredClone(sim.state.campaign_snapshot);
+  advance(sim, 180); const copy = reload(sim); finishDebate(copy, 'philippe');
   for (const key of ['attacks', 'powers', 'temporary_units', 'tick', 'rng_state']) assert.deepEqual(copy.state[key], world[key]);
   copy.step(); assert.equal(copy.state.tick, world.tick + 1); assert.equal(copy.state.temporary_units.length, 5);
 });
 
 test('Un candidat à 0 % à J0 est éliminé sans blocage et le debug ne peut ressusciter son camp', () => {
-  const sim = quiet(); actual(sim, { melenchon: 45, le_pen: 0, philippe: 40, neutral: 15 }); startArena(sim); sim.step();
+  const sim = quiet(); actual(sim, { melenchon: 45, le_pen: 0, philippe: 40, neutral: 15 }); startDebate(sim); sim.step();
   assert.equal(sim.state.eliminated_faction, 'le_pen');
   const defeated = structuredClone(sim.state.candidates[1]);
   for (const type of ['SetCampaignActive', 'InteractionPresence', 'Move', 'Attack', 'DebugGrantMoney', 'DebugFillSpecial']) sim.applyCommand({ type, candidateId: 'candidate:le_pen', active: true, axis: 1 });
@@ -283,7 +283,7 @@ test('Rejouer : un nouveau GameSimulation efface élimination, IA, pouvoirs, uni
   assert.equal(fresh.state.npcs.length, 25); assert.equal(fresh.state.telemetry.sprint_meetings, 0); assert.equal(fresh.state.local_candidate_id, 'candidate:le_pen');
 });
 
-test('Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le sprint', () => {
+test('Partie déterministe à 20, 60 et 144 FPS jusque dans le débat et le sprint', () => {
   const run = fps => {
     const cfg = structuredClone(config); cfg.balance.time.starting_days_before_first_round = 1; cfg.balance.time.real_seconds_per_game_day = 1;
     const sim = new GameSimulation(cfg, 73); const clock = new FixedClock(sim.hz); const ai = new AIController(cfg);
@@ -293,19 +293,19 @@ test('Partie déterministe à 20, 60 et 144 FPS jusque dans l’arène et le spr
   const reference = run(20); assert.deepEqual(run(60), reference); assert.deepEqual(run(144), reference);
 });
 
-test('IA d’arène indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0', () => {
+test('IA de débat indépendante du joueur humain : cibles variées, combos et survie possible du troisième à J0', () => {
   const eliminated = new Set(); let weakestSurvives = 0;
   for (let seed = 1; seed <= 12; seed++) {
-    const sim = quiet(seed); actual(sim, { melenchon: 34, le_pen: 30, philippe: 26, neutral: 10 }); startArena(sim); sim.state.ai_enabled = true;
+    const sim = quiet(seed); actual(sim, { melenchon: 34, le_pen: 30, philippe: 26, neutral: 10 }); startDebate(sim); sim.state.ai_enabled = true;
     const ai = new AIController(config);
-    for (let i = 0; i < 90 * sim.hz && sim.state.phase === P.FIRST_ROUND_ARENA; i++) {
+    for (let i = 0; i < 90 * sim.hz && sim.state.phase === P.FIRST_ROUND_DEBATE; i++) {
       const s = sim.state;
       const before = ai.commands(s, 'candidate:le_pen'); s.local_candidate_id = 'candidate:philippe'; assert.deepEqual(ai.commands(s, 'candidate:le_pen'), before);
       sim.step(s.candidates.flatMap(c => ai.commands(s, c.id)));
     }
-    assert.equal(sim.state.phase, P.SECOND_ROUND_SPRINT, `arène passive ${seed}`);
+    assert.equal(sim.state.phase, P.SECOND_ROUND_SPRINT, `débat passif ${seed}`);
     eliminated.add(sim.state.eliminated_faction); if (sim.state.eliminated_faction !== 'philippe') weakestSurvives++;
-    assert.ok(sim.state.telemetry.arena_candidate_hits > 5);
+    assert.ok(sim.state.telemetry.debate_candidate_hits > 5);
   }
   assert.ok(eliminated.size > 1); assert.ok(weakestSurvives > 0 && weakestSurvives < 12, weakestSurvives);
 });

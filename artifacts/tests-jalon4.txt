@@ -418,8 +418,8 @@ ok 83 - Un appui relâché entre deux ticks produit un pas, puis un arrêt ; per
   ---
   duration_ms: 0.3064
   ...
-# Subtest: Jours transitoires : le jalon reste à J-1 sans déclencher une arène
-ok 84 - Jours transitoires : le jalon reste à J-1 sans déclencher une arène
+# Subtest: Jours transitoires : le jalon reste à J-1 sans déclencher un débat
+ok 84 - Jours transitoires : le jalon reste à J-1 sans déclencher un débat
   ---
   duration_ms: 550.9256
   ...

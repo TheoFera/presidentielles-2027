@@ -21,8 +21,8 @@ import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted 
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
-import { ArenaSimulation } from './arena-simulation.js';
-import { initialMatchState, startArena, finishArena, finishSprint, applyMatchDebug } from './match-lifecycle.js';
+import { DebateSimulation } from './debate-simulation.js';
+import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
 import { recordMatchHistory } from './match-history.js';
 import { updateStrategicSites } from './strategic-sites.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
@@ -175,21 +175,21 @@ export class GameSimulation {
 
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
-    if (command.type === 'ContinueToSecondRound') { finishArena(this); return; }
+    if (command.type === 'ContinueToSecondRound') { finishDebate(this); return; }
     vehicleCommand(this.state.candidates.find(c => c.id === command.candidateId), command);
     if (CampaignStyleSystem.command(this, command)) return;
     if (campaignCommand(this, command)) return;
     if (applyMatchDebug(this, command)) return;
-    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSetAIEnabled') {
+    if (this.state.phase === GamePhase.FIRST_ROUND_DEBATE && command.type === 'DebugSetAIEnabled') {
       if (typeof command.enabled === 'boolean') this.state.ai_enabled = command.enabled;
       return;
     }
-    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && command.type === 'DebugSelectCandidate') {
+    if (this.state.phase === GamePhase.FIRST_ROUND_DEBATE && command.type === 'DebugSelectCandidate') {
       if (this.state.candidates.some(c => c.id === command.candidateId)) this.state.local_candidate_id = command.candidateId;
       return;
     }
-    if (this.state.phase === GamePhase.FIRST_ROUND_ARENA && !['DebugSelectCandidate', 'DebugSetAIEnabled'].includes(command.type)) {
-      new ArenaSimulation(this.config, this.state.arena).applyCommand(command); return;
+    if (this.state.phase === GamePhase.FIRST_ROUND_DEBATE && !['DebugSelectCandidate', 'DebugSetAIEnabled'].includes(command.type)) {
+      new DebateSimulation(this.config, this.state.debate).applyCommand(command); return;
     }
     const candidate = this.state.candidates.find(c => c.id === command.candidateId);
     if (candidate?.eliminated || command.factionId === this.state.eliminated_faction) return;
@@ -332,9 +332,9 @@ export class GameSimulation {
     if (state.phase === GamePhase.FIRST_ROUND_RESULTS) return;
     if (state.campaign_style_selection) return;
     state.match_tick++;
-    if (state.phase === GamePhase.FIRST_ROUND_ARENA) {
-      const arena = new ArenaSimulation(this.config, state.arena); arena.step();
-      if (state.arena.eliminated_faction) finishArena(this, state.arena.eliminated_faction);
+    if (state.phase === GamePhase.FIRST_ROUND_DEBATE) {
+      const debate = new DebateSimulation(this.config, state.debate); debate.step();
+      if (state.debate.eliminated_faction) finishDebate(this, state.debate.eliminated_faction);
       return;
     }
     const dt = 1 / this.hz;
@@ -342,7 +342,7 @@ export class GameSimulation {
     beginCombatTick(this);
     updateVehicles(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || movementBlocked(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id || movementBlocked(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis) candidate.facing = candidate.axis;
@@ -385,7 +385,7 @@ export class GameSimulation {
     if (state.phase === GamePhase.CAMPAIGN && days === 0 && !state.campaign_style_selection) {
       completePopulation(this);
       refreshElectoralState(state);
-      startArena(this);
+      startDebate(this);
     }
     else if (state.phase === GamePhase.SECOND_ROUND_SPRINT) {
       state.sprint_elapsed_ticks++; state.sprint_remaining_ticks = Math.max(0, state.sprint_remaining_ticks - 1);

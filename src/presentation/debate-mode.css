@@ -1,0 +1,155 @@
+/* Mode Débat : réglages dans le menu, puis interface du combat. */
+
+/* Sélection : silhouettes, grille commune et repères des joueurs. */
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { background: radial-gradient(ellipse at 15% 25%, #183a6555, transparent 55%), radial-gradient(ellipse at 90% 35%, #82294444, transparent 50%), #080d1b; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-shell { max-width: 1280px; gap: 8px; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-header { position: absolute; inset: 0 0 auto; min-height: 36px; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) #menu-back { font: 800 16px/1 system-ui, sans-serif; text-shadow: none; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) h1 { text-align: center; font-size: clamp(24px, 5cqh, 42px); min-height: 44px; padding: 0 170px; color: #f7f1df; font-style: italic; letter-spacing: .06em; }
+.debate-setup { flex: 1; min-height: 0; }
+.select-screen { display: grid; grid-template-rows: auto minmax(110px, 1fr) auto auto auto; gap: clamp(5px, 1.2cqh, 12px); }
+.select-topline { display: flex; justify-content: space-between; padding: 0 4px; text-transform: uppercase; font: 700 clamp(10px, 1.5cqh, 13px)/1.2 system-ui, sans-serif; letter-spacing: .16em; color: #a4b4ca; }
+.select-live { color: #ff7788; letter-spacing: .08em; }
+.select-stage { min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4%; position: relative; }
+.select-stage[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2%; }
+.select-fighter { position: relative; min-height: 0; overflow: hidden; border: 1px solid #fff2; border-bottom: 3px solid var(--player-color); background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--candidate-color) 42%, transparent), transparent 75%), linear-gradient(135deg, #1f2b4255, #070d1b); }
+.select-fighter::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, transparent 0 50px, #ffffff03 51px 53px); pointer-events: none; }
+.select-fighter.active { border-color: var(--player-color); box-shadow: 0 0 25px color-mix(in srgb, var(--player-color) 18%, transparent), inset 0 0 40px #ffffff05; }
+#start-menu .select-slot { position: absolute; top: 10px; left: 12px; z-index: 2; min-height: 32px; border: 1px solid var(--player-color); border-radius: 2px; padding: 4px 14px; background: #0b1426ee; color: var(--player-color); font: 900 13px/1.2 system-ui, sans-serif; text-transform: uppercase; box-shadow: none; }
+#start-menu .select-slot[aria-pressed='true'] { background: var(--player-color); color: #080e1d; }
+.select-portrait { display: block; position: relative; overflow: hidden; }
+.select-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center top; }
+.select-fighter > .select-portrait { position: absolute; inset: 5% 5% 0; }
+.select-fighter > .select-portrait img { height: 150%; filter: drop-shadow(0 0 20px #0008); }
+.select-fighter:nth-child(2) > .select-portrait { transform: scaleX(-1); }
+.select-name { position: absolute; inset: auto 0 0; padding: 28px 18px 12px; background: linear-gradient(transparent, #060c1bec 40%); pointer-events: none; }
+.select-name strong { display: block; color: #f6f0df; font: italic 900 clamp(23px, 4.6cqh, 48px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; text-shadow: 2px 3px #000; }
+.select-name small, .select-name > span { font: 700 clamp(10px, 1.6cqh, 14px)/1.4 system-ui, sans-serif; color: #afc0d7; }
+.select-name > span { color: var(--player-color); }
+.select-empty { display: grid; place-items: center; height: 100%; color: #ffffff18; font: 900 110px/1 Impact, sans-serif; }
+.select-versus { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-9deg); z-index: 2; font: italic 900 clamp(38px, 9cqh, 90px)/1 Impact, sans-serif; color: #f7d574; text-shadow: 4px 5px #972c41, 8px 9px #080d1b; pointer-events: none; }
+.select-stage[data-count='3'] .select-versus { top: 35%; left: 33.7%; font-size: clamp(28px, 6cqh, 60px); }
+.select-console { padding: 8px 10px; border: 1px solid #51627d66; background: #111b2bcc; }
+.select-roster-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 7px; color: #859bb9; font: 600 11px/1.2 system-ui, sans-serif; letter-spacing: .06em; }
+.select-roster-heading strong { color: #f7d574; text-transform: uppercase; }
+.select-roster { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; }
+#start-menu .select-tile { min-width: 0; position: relative; height: clamp(70px, 16cqh, 142px); padding: 0; overflow: hidden; border-radius: 2px; border: 1px solid #51627d; background: linear-gradient(150deg, color-mix(in srgb, var(--candidate-color) 32%, #142036), #080d1b); box-shadow: none; }
+#start-menu .select-tile > .select-portrait { position: absolute; inset: 3px 2px 21px; }
+#start-menu .select-tile img { height: 220%; object-fit: cover; }
+#start-menu .select-tile strong { position: absolute; inset: auto 0 0; background: #070d1bea; padding: 5px 1px; color: #dce4f1; font: 800 clamp(9px, 1.2cqw, 13px)/1 system-ui, sans-serif; text-transform: uppercase; white-space: nowrap; letter-spacing: -.03em; }
+#start-menu .select-tile[data-faction='dupont_aignan'] strong { font-size: clamp(8px, 1cqw, 12px); }
+#start-menu .select-tile[aria-pressed='true'] { border: 2px solid #f7d574; box-shadow: 0 0 0 1px #f7d574, 0 0 18px #f7d57440; }
+#start-menu .select-tile:hover:not(:disabled) { border-color: #fff; }
+#start-menu .select-tile:disabled { opacity: .45; }
+.select-markers { position: absolute; top: 3px; left: 3px; display: flex; flex-wrap: wrap; gap: 2px; }
+.select-marker { background: var(--player-color); color: #08101d; padding: 2px 4px; font: 900 10px/1.2 system-ui, sans-serif; }
+.select-styles { display: flex; gap: 6px; justify-content: center; margin-top: 8px; min-height: 32px; }
+#start-menu .debate-style { min-height: 32px; padding: 4px 12px; border-radius: 2px; border: 1px solid #526580; border-left: 3px solid var(--style-color); box-shadow: none; font-size: 12px; }
+#start-menu .debate-style[aria-pressed='true'] { background: var(--style-color); color: #080d1b; text-shadow: none; border-color: var(--style-color); }
+.debate-options { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: center; justify-content: center; }
+.debate-options fieldset { border: 0; padding: 0; margin: 0; display: flex; align-items: center; gap: 6px; }
+.debate-options legend { float: left; color: #8c9db7; margin-right: 8px; font: 800 11px/1 system-ui, sans-serif; text-transform: uppercase; }
+#start-menu .debate-option { min-height: 32px; padding: 5px 12px; border-radius: 2px; border: 1px solid #51627d; box-shadow: none; font: 700 12px/1.2 system-ui, sans-serif; }
+#start-menu .debate-option[aria-pressed='true'] { border-color: #f7d574; color: #f7d574; background: #f7d57412; }
+.debate-map-help { font-size: 12px; color: #b9c9dd; }
+#start-menu .select-footer { margin: 0; border-top: 1px solid #52658066; padding-top: 8px; align-items: center; }
+#start-menu .select-footer .menu-note { margin: 0; font-size: 12px; color: #b6c8df; }
+#start-menu #debate-fight { min-height: 40px; padding: 8px 32px; font: italic 900 clamp(18px, 3cqh, 28px)/1 Impact, sans-serif; border-radius: 2px; border: 1px solid #fff0b1; color: #101725; background: linear-gradient(110deg, #ffecac, #e9b53c); text-shadow: none; box-shadow: 3px 3px #8d5926; }
+.debate-loading { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.debate-loading progress { width: 100%; }
+
+/* ——— Combat : l’interface de la campagne est masquée ——— */
+body.debate-mode #funds, body.debate-mode #electoral-display, body.debate-mode #poll-scores, body.debate-mode #debate-hud,
+body.debate-mode #phase-banner, body.debate-mode #spectator, body.debate-mode #results, body.debate-mode #campaign-events,
+body.debate-mode #notice, body.debate-mode #network-status { display: none !important; }
+
+#debate-mode-hud { position: absolute; top: 1.4cqw; left: 2cqw; right: 2cqw; z-index: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12cqw; pointer-events: none; }
+#debate-mode-hud[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3cqw; }
+#debate-mode-hud[hidden] { display: none; }
+.debate-fighter { display: grid; grid-template-columns: 4.2cqw 1fr auto; grid-template-rows: auto auto auto; column-gap: .8cqw; row-gap: .35cqw; align-items: center; padding: .6cqw .8cqw; border-radius: 1cqw; background: #070b22d9; border: 2px solid #ffffff30; border-bottom: .35cqw solid var(--fighter-color); color: #fff; box-shadow: 0 .4cqw 1cqw #0006; }
+.debate-fighter.local { border-color: #ffe27599; }
+.debate-fighter img { grid-row: 1 / 4; width: 4.2cqw; height: 4.2cqw; object-fit: cover; object-position: 50% 8%; border-radius: 50%; background: var(--camp-color); border: 2px solid var(--fighter-color); }
+.debate-fighter-name { min-width: 0; display: flex; flex-direction: column; line-height: 1.05; }
+.debate-fighter-name strong { font: 900 clamp(11px, 1.6cqw, 22px)/1.05 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.debate-fighter-name small { color: #c9d6f2; font-size: clamp(9px, 1.05cqw, 14px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.debate-fighter output { font: 900 clamp(14px, 2.2cqw, 30px)/1 Impact, 'Arial Black', sans-serif; font-variant-numeric: tabular-nums; color: #ffe879; }
+.debate-fighter-hp { grid-column: 2 / 4; position: relative; height: 1.1cqw; min-height: 7px; border-radius: 99px; background: #2a1020; overflow: hidden; border: 1px solid #ffffff40; }
+.debate-fighter-hp i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; }
+.debate-fighter-hp .lag { background: #ff5b5b; }
+.debate-fighter-hp .life { background: linear-gradient(#b8ff7a, #34c83a); transition: width .08s linear; }
+.debate-fighter.danger .debate-fighter-hp .life { background: linear-gradient(#ffd27a, #ff8a1f); }
+.debate-fighter-ultimate { grid-column: 2 / 4; height: .45cqw; min-height: 3px; border-radius: 99px; background: #ffffff20; overflow: hidden; }
+.debate-fighter-ultimate i { display: block; height: 100%; background: linear-gradient(90deg, #63edff, #ffe275); }
+.debate-fighter.ko { opacity: .45; filter: grayscale(1); }
+
+#debate-mode-banner { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none; white-space: nowrap;
+  font: 900 clamp(40px, 11cqw, 150px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .02em; color: #ffe36e;
+  text-shadow: 0 .5cqw 0 #c43b5c, 0 1cqw 0 #3b1450, 0 0 3cqw #ffb13b99; -webkit-text-stroke: .25cqw #10163a; }
+#debate-mode-banner[data-kind='fight'] { color: #ffffff; font-size: clamp(34px, 8.5cqw, 120px); }
+#debate-mode-banner[data-kind='ko'] { color: #ff4d6d; }
+#debate-mode-banner[hidden] { display: none; }
+
+#debate-mode-result { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: radial-gradient(ellipse at center, #10163acc, #04061cf2); }
+#debate-mode-result[hidden] { display: none; }
+.debate-result-panel { width: min(88cqw, 760px); display: flex; flex-direction: column; gap: 1.2cqw; padding: 2cqw 2.6cqw; border-radius: 2cqw; border: 2px solid #85c5f8; background: linear-gradient(145deg, #1c3556f5, #081326fa); box-shadow: inset 0 1px 0 #ffffff70, 0 1cqw 3cqw #000a; color: #fff; text-align: center; }
+.debate-result-eyebrow { margin: 0; color: #63edff; font: 800 clamp(10px, 1.3cqw, 15px)/1.2 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }
+.debate-result-panel h2 { margin: 0; font: 900 clamp(34px, 7cqw, 90px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; color: #ffe36e; text-shadow: 0 .4cqw 0 #c43b5c, 0 .8cqw 0 #3b1450; }
+.debate-result-panel h2[data-won='false'] { color: #c9d6f2; text-shadow: 0 .4cqw 0 #3a4a70; }
+.debate-result-text { margin: 0; font-size: clamp(13px, 1.8cqw, 22px); color: #e6eeff; }
+.debate-ranking { list-style: none; margin: 0; padding: 0; display: grid; gap: .6cqw; counter-reset: rank; }
+.debate-ranking li { counter-increment: rank; display: grid; grid-template-columns: 2.4cqw 3.4cqw 1fr auto; align-items: center; gap: 1cqw; padding: .5cqw 1cqw; border-radius: 1cqw; background: #070b22b3; border-left: .4cqw solid var(--fighter-color); text-align: left; font-size: clamp(12px, 1.6cqw, 19px); }
+.debate-ranking li::before { content: counter(rank); font: 900 clamp(16px, 2.2cqw, 28px)/1 Impact, sans-serif; color: #ffe36e; text-align: center; }
+.debate-ranking img { width: 3.4cqw; height: 3.4cqw; min-width: 26px; min-height: 26px; object-fit: cover; object-position: 50% 8%; border-radius: 50%; border: 2px solid var(--fighter-color); }
+.debate-ranking small { color: #b4c4e7; font-size: .85em; }
+.debate-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; }
+.debate-result-actions button { min-height: 44px; padding: .8cqw 2cqw; border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); color: #fff; font: 900 clamp(13px, 1.8cqw, 22px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714; cursor: pointer; }
+.debate-result-actions button:hover { filter: brightness(1.16); }
+.debate-result-actions button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.debate-result-actions .debate-primary { border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); text-shadow: 1px 2px 1px #092309; }
+
+/* Bouton tactile pour descendre d’un pupitre (studio télé seulement). */
+#touch-controls #drop-touch { display: none; grid-column: 1; grid-row: 1; }
+#touch-controls.with-drop #drop-touch { display: block; }
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) { #touch-controls.with-drop #drop-touch { display: none; } }
+
+/* Sur téléphone en paysage, les silhouettes restent visibles. */
+@media (max-height: 520px) {
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { padding-top: 7px; padding-bottom: 8px; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) h1 { font-size: 24px; min-height: 40px; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-shell { gap: 4px; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-header { min-height: 30px; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-header button { min-height: 30px; padding: 3px 8px; font-size: 16px; }
+  .select-screen { grid-template-rows: auto minmax(80px, 1fr) auto auto auto; gap: 4px; }
+  .select-topline { font-size: 9px; }
+  .select-console { padding: 5px 6px; }
+  .select-roster-heading { margin-bottom: 4px; font-size: 10px; }
+  .select-roster { gap: 4px; }
+  #start-menu .select-tile { height: 72px; }
+  #start-menu .select-tile img { object-fit: contain; height: 225%; }
+  #start-menu .select-slot { min-height: 25px; top: 5px; left: 6px; padding: 3px 8px; font-size: 10px; }
+  .select-name { padding: 16px 10px 6px; }
+  .select-name strong { font-size: 24px; }
+  .select-name small { display: none; }
+  .select-name > span { font-size: 10px; }
+  .select-styles { min-height: 25px; margin-top: 4px; }
+  #start-menu .debate-style, #start-menu .debate-option { min-height: 26px; padding: 3px 8px; font-size: 10px; }
+  .debate-options { gap: 4px 16px; }
+  #start-menu .select-footer { padding-top: 4px; }
+  #start-menu #debate-fight { min-height: 32px; font-size: 18px; padding: 5px 22px; }
+}
+@media (max-width: 600px) and (min-height: 521px) {
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { overflow-y: auto; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-shell { height: auto; min-height: 100%; }
+  #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) h1 { padding: 48px 0 0; }
+  .select-screen { grid-template-rows: auto 180px auto auto auto; }
+  .select-roster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #start-menu .select-tile { height: 86px; }
+  .select-name strong { font-size: 22px; }
+  .select-name small { display: none; }
+  .select-stage[data-count='3'] .select-name strong { font-size: 16px; }
+}
+.debate-fighter > .select-portrait { grid-row: 1 / 4; width: 4.2cqw; height: 4.2cqw; border-radius: 50%; background: var(--camp-color); border: 2px solid var(--fighter-color); }
+.debate-fighter .select-portrait img, .debate-ranking .select-portrait img { border: 0; border-radius: 0; width: 100%; height: 230%; object-fit: cover; object-position: center top; }
+.debate-ranking .select-portrait { width: 3.4cqw; height: 3.4cqw; min-width: 26px; min-height: 26px; border-radius: 50%; border: 2px solid var(--fighter-color); }
+.debate-fighter-ultimate[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .debate-fighter-hp .life { transition: none; } }

@@ -8,12 +8,12 @@ export const CANDIDATES = [
 export const portrait = candidate => visualManifest[`character-${candidate.id}`].file;
 
 export function homeContent() {
-  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielles 2027</h1><div class="mode-grid"><button class="mode-card arcade-button" id="campaign"><span aria-hidden="true">★</span><strong>Campagne</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="arena"><span aria-hidden="true">⚔</span><strong>Arène</strong><span aria-hidden="true">⚔</span></button></div></div>`;
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielles 2027</h1><div class="mode-grid"><button class="mode-card arcade-button" id="campaign"><span aria-hidden="true">★</span><strong>Campagne</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="debate"><span aria-hidden="true">⚔</span><strong>Débat télé</strong><span aria-hidden="true">⚔</span></button></div></div>`;
 }
-/** Deuxième écran : le même choix « Avec qui ? » pour la campagne et l’arène. */
+/** Deuxième écran : le même choix « Avec qui ? » pour la campagne et le débat. */
 export function playersContent(mode) {
-  const friends = mode === 'arena' ? '2 ou 3 appareils' : '3 appareils';
-  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">${mode === 'arena' ? 'Arène' : 'Campagne'} : avec qui jouer ?</h1><p class="players-mode" data-mode="${mode}" aria-hidden="true">${mode === 'arena' ? '⚔ Arène' : '★ Campagne'}</p><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo<small>Contre l’IA</small></strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Entre amis<small>${friends} · même Wi-Fi</small></strong><span aria-hidden="true">♟</span></button></div></div>`;
+  const friends = mode === 'debate' ? '2 ou 3 appareils' : '3 appareils';
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">${mode === 'debate' ? 'Débat télé' : 'Campagne'} : avec qui jouer ?</h1><p class="players-mode" data-mode="${mode}" aria-hidden="true">${mode === 'debate' ? '⚔ Débat télé' : '★ Campagne'}</p><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo<small>Contre l’IA</small></strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Entre amis<small>${friends} · même Wi-Fi</small></strong><span aria-hidden="true">♟</span></button></div></div>`;
 }
 export function candidatesContent(selected = null) {
   return `<div class="candidate-grid">${CANDIDATES.map(c => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge" aria-hidden="true">♛ J1</span><strong class="visually-hidden">${c.short}</strong></button>`).join('')}</div><footer class="menu-footer"><button id="prepare-game" class="menu-primary arcade-button" ${selected ? '' : 'disabled'}>Valider <span aria-hidden="true">➜</span></button></footer>`;

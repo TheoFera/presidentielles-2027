@@ -12,13 +12,13 @@ export function validateConfig(config) {
   positive(combat.light_stun_seconds, 'étourdissement des coups légers');
   positive(combat.ko_ground_seconds, 'maintien au sol après KO');
   if (combat.charge_activation_seconds >= combat.charge_ready_seconds) throw new Error('Configuration : la préparation doit commencer avant que la charge soit prête.');
-  positive(config.balance.first_round_arena.damage.charged, 'dégâts chargés en arène');
+  positive(config.balance.first_round_debate.damage.charged, 'dégâts chargés en débat');
   const dash = config.balance.dash, charge = config.balance.special_charge;
   for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms']) positive(dash?.[key], `dash : ${key}`);
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   if (!Number.isInteger(dash.max_charges) || Math.ceil(dash.invulnerability_seconds * hz) >= Math.ceil(dash.duration_seconds * hz)) throw new Error('Configuration : le dash doit avoir des charges entières et une invulnérabilité plus courte que sa durée.');
   for (const key of ['required_points', 'points_per_light_hit', 'points_per_second_hit', 'points_per_finisher_hit', 'decay_delay_seconds', 'decay_duration_seconds']) positive(charge?.[key], `ultime : ${key}`);
-  if (typeof dash.allowed_in_arena !== 'boolean' || typeof charge.enemy_summons_charge !== 'boolean' || typeof charge.ultimate_key !== 'string' || !charge.ultimate_key) throw new Error('Configuration : commandes de combat invalides.');
+  if (typeof dash.allowed_in_debate !== 'boolean' || typeof charge.enemy_summons_charge !== 'boolean' || typeof charge.ultimate_key !== 'string' || !charge.ultimate_key) throw new Error('Configuration : commandes de combat invalides.');
   positive(config.prototype.world.units_per_screen, 'units_per_screen');
   positive(config.layout.screens_per_subzone, 'screens_per_subzone');
   positive(config.prototype.movement.candidate_speed_units_per_second, 'vitesse de marche');
@@ -59,19 +59,19 @@ export function validateConfig(config) {
   if (ko.ko_respawn_max_seconds < ko.ko_respawn_min_seconds || !Number.isFinite(ko.ko_money_drop_ratio) || ko.ko_money_drop_ratio < 0 || ko.ko_money_drop_ratio > 1) throw new Error('Configuration : perte d’argent au KO invalide.');
   if (!Number.isInteger(config.balance.time.starting_days_before_first_round) || config.balance.time.starting_days_before_first_round < 1) throw new Error('Configuration : nombre de jours initial invalide.');
   positive(config.balance.time.second_round_sprint_seconds, 'durée du second tour');
-  const arena = config.balance.first_round_arena;
-  for (const key of ['width_units', 'edge_margin', 'transition_seconds', 'ai_retarget_seconds', 'ai_variation_units']) positive(arena[key], `arène ${key}`);
-  if (arena.width_units >= config.layout.biomes.length * 3 * config.prototype.world.units_per_screen || arena.edge_margin * 2 >= arena.width_units) throw new Error('Configuration : limites du plateau invalides.');
-  for (const key of ['light_1', 'light_2', 'heavy', 'hologram', 'wave', 'crs']) positive(arena.damage[key], `dégât d’arène ${key}`);
-  const mode = config.balance.arena_mode;
-  for (const key of ['dash_distance', 'countdown_seconds', 'fight_banner_seconds', 'victory_delay_seconds', 'ai_retarget_seconds']) positive(mode[key], `mode Arène ${key}`);
-  if (!mode.maps[mode.default_map]) throw new Error('Configuration : carte d’arène par défaut inconnue.');
+  const debate = config.balance.first_round_debate;
+  for (const key of ['width_units', 'edge_margin', 'transition_seconds', 'ai_retarget_seconds', 'ai_variation_units']) positive(debate[key], `débat ${key}`);
+  if (debate.width_units >= config.layout.biomes.length * 3 * config.prototype.world.units_per_screen || debate.edge_margin * 2 >= debate.width_units) throw new Error('Configuration : limites du plateau invalides.');
+  for (const key of ['light_1', 'light_2', 'heavy', 'hologram', 'wave', 'crs']) positive(debate.damage[key], `dégât de débat ${key}`);
+  const mode = config.balance.debate_mode;
+  for (const key of ['dash_distance', 'countdown_seconds', 'fight_banner_seconds', 'victory_delay_seconds', 'ai_retarget_seconds']) positive(mode[key], `mode Débat ${key}`);
+  if (!mode.maps[mode.default_map]) throw new Error('Configuration : carte de débat par défaut inconnue.');
   for (const [id, map] of Object.entries(mode.maps)) {
-    if (!map.name || !Array.isArray(map.platforms)) throw new Error(`Configuration : carte d’arène ${id} invalide.`);
+    if (!map.name || !Array.isArray(map.platforms)) throw new Error(`Configuration : carte de débat ${id} invalide.`);
     if (map.platforms.length) { positive(map.jump_height, `saut de la carte ${id}`); positive(map.jump_duration_seconds, `durée du saut de la carte ${id}`); }
     for (const p of map.platforms) {
       for (const key of ['x', 'half_width', 'height']) positive(p[key], `pupitre ${p.id} ${key}`);
-      if (p.x - p.half_width < arena.edge_margin || p.x + p.half_width > arena.width_units - arena.edge_margin) throw new Error(`Configuration : le pupitre ${p.id} dépasse du plateau.`);
+      if (p.x - p.half_width < debate.edge_margin || p.x + p.half_width > debate.width_units - debate.edge_margin) throw new Error(`Configuration : le pupitre ${p.id} dépasse du plateau.`);
     }
   }
   const sprint = config.balance.second_round;
@@ -144,7 +144,6 @@ export function validateConfig(config) {
   const printer = config.balance.buildings.imprimerie;
   for (const field of ['purchase_hold_seconds', 'pickup_seconds']) positive(printer[field], `imprimerie.${field}`);
   positive(printer.tract_cost_by_level[0], 'prix du tract'); positive(printer.equipment_seconds_by_level[0], 'durée d’impression');
-  if (!Number.isInteger(printer.max_queue_length) || printer.max_queue_length < 1) throw new Error('Configuration : capacité de file invalide.');
   const funding = config.balance.buildings.financement;
   for (const field of ['upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);
   positive(config.balance.buildings.permanence.first_headquarters_capture_cost, 'coût du premier QG');
@@ -161,7 +160,7 @@ export function validateConfig(config) {
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
-  if (!Number.isInteger(so.max_queue_length) || so.max_queue_length < 1 || so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
+  if (so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
   for (const value of [...so.baton_cost_by_level, ...so.equipment_seconds_by_level, so.pickup_seconds]) positive(value, 'équipement SO');
   for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') {
     if(key==='knockback'){if(!Number.isFinite(value)||value<0)throw new Error('Configuration : recul du pouvoir invalide.');}
@@ -170,6 +169,7 @@ export function validateConfig(config) {
   positive(config.balance.physical_units.militant.reconsider_seconds, 'réévaluation du Militant');
   if (!Number.isInteger(config.balance.physical_units.militant.nearby_zone_radius) || config.balance.physical_units.militant.nearby_zone_radius < 1) throw new Error('Configuration : rayon de prospection invalide.');
   if (!Number.isInteger(config.balance.physical_units.militant.expedition_min_group_size) || config.balance.physical_units.militant.expedition_min_group_size < 2) throw new Error('Configuration : taille minimale de groupe de militants invalide.');
+  positive(config.balance.physical_units.militant.expedition_spacing_units, 'espacement des militants en groupe');
   if (!Number.isInteger(config.balance.physical_units.sympathisant.tract_pickup_zone_radius) || config.balance.physical_units.sympathisant.tract_pickup_zone_radius < 0) throw new Error('Configuration : distance de collecte des tracts invalide.');
   positive(config.layout.electoral_weights?.default, 'poids électoral par défaut');
   for (const [id, weight] of Object.entries(config.layout.electoral_weights.by_subzone)) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { startArena, finishSprint, rankFirstRound } from '../src/simulation/match-lifecycle.js';
+import { startDebate, finishSprint, rankFirstRound } from '../src/simulation/match-lifecycle.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
 import { expressedScores, electionModel } from '../src/presentation/election-results.js';
 import { homeContent } from '../src/presentation/arcade-content.js';
@@ -17,12 +17,12 @@ function firstRound() {
   const sim = new GameSimulation(config, 12);
   sim.state.ai_enabled = false;
   for (let i = 0; i < 15; i++) convertNeutral(sim, sim.state.npcs[i], i < 8 ? 'melenchon' : i < 13 ? 'le_pen' : 'philippe');
-  startArena(sim); return sim;
+  startDebate(sim); return sim;
 }
-test('Premier tour : classement réel, monde figé et aucune arène', () => {
+test('Premier tour : classement réel, monde figé et aucun débat', () => {
   const sim = firstRound();
   assert.equal(sim.state.phase, 'FIRST_ROUND_RESULTS');
-  assert.equal(sim.state.arena, null);
+  assert.equal(sim.state.debate, null);
   assert.deepEqual(sim.state.first_round_result.ranking, ['melenchon', 'le_pen', 'philippe']);
   const frozen = sim.exportSnapshot();
   for (let i = 0; i < 60; i++) sim.step([{ type: 'Move', candidateId: sim.state.local_candidate_id, axis: 1 }, { type: 'PressAttack', candidateId: sim.state.local_candidate_id }]);

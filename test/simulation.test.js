@@ -325,7 +325,7 @@ test('Jours : J-1 est suivi de J0 et du plateau médiatique', () => {
   assert.equal(sim.getState().days_remaining, 1);
   tick(sim, 601);
   assert.equal(sim.getState().days_remaining, 0);
-  assert.equal(sim.getState().phase, 'FIRST_ROUND_ARENA');
+  assert.equal(sim.getState().phase, 'FIRST_ROUND_DEBATE');
 });
 
 test('Composition proportionnelle : sol à 93 %, épaisseur 2,5 %, personnage 15 %', () => {

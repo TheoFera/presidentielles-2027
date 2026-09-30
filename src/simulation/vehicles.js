@@ -23,7 +23,7 @@ export function updateVehicles(sim) {
   const { state, config } = sim;
   const settings = config.balance.vehicles;
   for (const candidate of state.candidates) {
-    if (candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id || !canCampaign(candidate)
+    if (candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id || !canCampaign(candidate)
       || candidate.combat.jump_tick != null || candidate.combat.height > 0 || candidate.style_interaction_held
       || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) {
       dismountVehicle(candidate); continue;

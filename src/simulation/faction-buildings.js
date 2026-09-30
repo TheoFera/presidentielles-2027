@@ -49,9 +49,7 @@ export function factionOffers(state, config, candidate, building) {
   if (building.variant === 'service_ordre') {
     const maximum = s.max_active_SO_by_level[building.level - 1];
     const linked = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.source_site_id === building.id).length + building.queue.length;
-    const reason = maximum !== null && linked >= maximum ? 'SO_LIMIT'
-      : building.queue.length >= s.max_queue_length ? 'QUEUE_FULL'
-      : !availableMilitants(state, building.biome_id, candidate.faction_id).length ? 'NO_MILITANT' : null;
+    const reason = maximum !== null && linked >= maximum ? 'SO_LIMIT' : null;
     offers.push(quote(state, config, candidate, building, 'EQUIP', s.baton_cost_by_level[building.level - 1], building.x, p.center_radius, reason, { label: 'ÉQUIPEMENT' }));
     for (const direction of [-1, 1]) {
       const blocked = building.level < s.raid_unlock_level ? 'LEVEL_REQUIRED' : state.tick < building.raid_ready_tick ? 'COOLDOWN' : !availableGuards(state, building.biome_id, candidate.faction_id).length ? 'NO_GUARD' : null;

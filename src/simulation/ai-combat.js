@@ -16,7 +16,7 @@ export function aiAttackRange(config,c) {
 }
 
 /**
- * Combat commun à la campagne, au sprint et aux arènes.
+ * Combat commun à la campagne, au sprint et aux débats.
  * tempo > 1 : frappe plus souvent (humain dominant) ; tempo < 1 : retenue (humain épargné).
  */
 export function aiCombatCommands(state, config, c, target, tempo = 1) {

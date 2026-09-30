@@ -63,8 +63,8 @@ ok 12 - Scandale : cinq points nationaux au KO, aucun malus à expiration
   ---
   duration_ms: 25.0201
   ...
-# Subtest: Piège humain : monde avance, candidat absent, commande vers arène
-ok 13 - Piège humain : monde avance, candidat absent, commande vers arène
+# Subtest: Piège humain : monde avance, candidat absent, commande vers débat
+ok 13 - Piège humain : monde avance, candidat absent, commande vers débat
   ---
   duration_ms: 24.1157
   ...
@@ -88,8 +88,8 @@ ok 17 - Anti-répétition, snapshot et continuation déterministe
   ---
   duration_ms: 126.6292
   ...
-# Subtest: Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
-ok 18 - Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
+# Subtest: Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
+ok 18 - Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
   ---
   duration_ms: 13.0341
   ...
@@ -98,8 +98,8 @@ ok 19 - IA se dirige vers un Meeting, et poursuit son occupant adverse
   ---
   duration_ms: 17.7699
   ...
-# Subtest: Sauvegarde d’arène, reprise et J0 ferment les événements proprement
-ok 20 - Sauvegarde d’arène, reprise et J0 ferment les événements proprement
+# Subtest: Sauvegarde de débat, reprise et J0 ferment les événements proprement
+ok 20 - Sauvegarde de débat, reprise et J0 ferment les événements proprement
   ---
   duration_ms: 62.8798
   ...
@@ -318,8 +318,8 @@ ok 63 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du da
   ---
   duration_ms: 12.5425
   ...
-# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
-ok 64 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
+ok 64 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
   ---
   duration_ms: 73.6129
   ...
@@ -338,48 +338,48 @@ ok 67 - Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; c
   ---
   duration_ms: 34.8115
   ...
-# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
-ok 68 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en débat
+ok 68 - Hologrammes : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 11.2493
   ...
-# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
-ok 69 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
+ok 69 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 10.0751
   ...
-# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
-ok 70 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en débat
+ok 70 - Gilet jaune : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 12.909
   ...
-# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
-ok 71 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
+ok 71 - Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 8.5479
   ...
-# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
-ok 72 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
+ok 72 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 9.4938
   ...
-# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
-ok 73 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en débat
+ok 73 - Bardellisation : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 8.4647
   ...
-# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
-ok 74 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en débat
+ok 74 - Protection CRS : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 9.5386
   ...
-# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
-ok 75 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
+ok 75 - Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 8.7566
   ...
-# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
-ok 76 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en débat
+ok 76 - Super Européiste : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 7.5018
   ...
@@ -393,8 +393,8 @@ ok 78 - Cibles valides : unités adverses, invocation configurable ; alliés et 
   ---
   duration_ms: 52.5895
   ...
-# Subtest: Dash : limites de l’arène conservées et recharge suspendue en debug
-ok 79 - Dash : limites de l’arène conservées et recharge suspendue en debug
+# Subtest: Dash : limites du débat conservées et recharge suspendue en debug
+ok 79 - Dash : limites du débat conservées et recharge suspendue en debug
   ---
   duration_ms: 9.7797
   ...

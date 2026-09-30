@@ -2,6 +2,7 @@ import { CAMPAIGN_STYLES } from '../simulation/campaign-styles.js';
 
 // Shared navigation for the three visual inspection pages.
 export function previewSkin(faction) {
+  if (!CAMPAIGN_STYLES[faction]) return null;
   const requested=new URLSearchParams(location.search).get('skin');
   const style=CAMPAIGN_STYLES[faction].find(s=>s.id===requested);
   const nav=document.createElement('p');

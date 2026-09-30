@@ -2,7 +2,7 @@
 
 Pour travailler avec Codex et préparer les fichiers de la future application mobile : [guide d'optimisation du projet](docs/optimisation-projet.md). `npm run build` produit le dossier `dist/` à embarquer et affiche son poids.
 
-Une partie complète : **campagne → arène à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
+Une partie complète : **campagne → débat à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
 
 L’IA mène des offensives contre les implantations adverses et utilise les trois styles de chaque candidat. Les niveaux **facile, normal et difficile** sont configurables dans le code : voir [le fonctionnement et les réglages de l’IA](docs/intelligence-artificielle.md).
 
@@ -96,12 +96,12 @@ Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel final
 
 ## Tester la fin rapidement
 
-**F3 → « Partie complète : J0, arène et sprint »** donne accès à :
+**F3 → « Partie complète : J0, débat et sprint »** donne accès à :
 
 | Commande | Effet |
 |---|---|
-| Forcer J0 / Démarrer l’arène | Figer le monde courant et lancer le premier tour |
-| Candidat à éliminer + Terminer l’arène | Choisir le troisième et revenir au monde |
+| Forcer J0 / Démarrer le débat | Figer le monde courant et lancer le premier tour |
+| Candidat à éliminer + Terminer le débat | Choisir le troisième et revenir au monde |
 | Démarrer le sprint | Passer directement au sprint en neutralisant le camp sélectionné |
 | Chrono à 10 s | Rapprocher le résultat |
 | Forcer une égalité à l’échéance | Déclencher immédiatement la prolongation |
@@ -110,11 +110,11 @@ Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel final
 | Vitesse ×5 | Accélérer toute la simulation ; F6 permet de revenir à ×1 |
 | Exporter le résumé DEBUG | Télécharger la télémétrie JSON |
 
-**F4** met en pause quand le debug est ouvert. **K** charge le pouvoir, y compris dans l’arène. Les anciens outils restent présents. Les commandes incompatibles avec la phase sont refusées. Après le résultat, seule une nouvelle partie relance la simulation.
+**F4** met en pause quand le debug est ouvert. **K** charge le pouvoir, y compris dans le débat. Les anciens outils restent présents. Les commandes incompatibles avec la phase sont refusées. Après le résultat, seule une nouvelle partie relance la simulation.
 
 Ces fichiers sont importables dans **F3 → Déplacements, fonds de test et sauvegardes → Importer un état JSON** ; `npm run test:partie` les régénère :
 
-- `artifacts/jalon5-arene-visuelle.json` : jauges 34/30/26, pouvoirs prêts, camp Le Pen établi près de la caméra du monde.
+- `artifacts/jalon5-debat-visuelle.json` : jauges 34/30/26, pouvoirs prêts, camp Le Pen établi près de la caméra du monde.
 - `artifacts/jalon5-effondrement.json` : ce camp vient d’être neutralisé ; douze anciens alliés repartent vers leurs origines.
 - `artifacts/jalon5-j0.json`, `jalon5-sprint.json`, `jalon5-resultat.json` : étapes d’une campagne normale de trois IA, graine 2027.
 
@@ -135,7 +135,7 @@ Le bloc `money.supporter_income_per_second_by_origin_biome` règle le revenu ajo
 
 Un partisan est un **Sympathisant, un Militant ou un Service d’ordre** de ton camp. Son revenu commence dès son recrutement, reste identique après une promotion ou un déplacement, et cesse à sa démobilisation. S’il est ensuite recruté par un autre camp, sa contribution revient à ce camp avec le même biome d’origine. Les Neutres, candidats, unités temporaires et pourcentages de soutien électoral ne produisent pas ce revenu.
 
-Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Les contributions des partisans ont été divisées par **20**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **0,22 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans l’arène et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
+Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Les contributions des partisans ont été divisées par **20**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **0,22 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans le débat et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
 
 Le gain total apparaît sous l’argent en jeu. **F3** affiche le détail par biome et les contributions avant bonus. Pour changer un montant, modifie le nombre dans `Présidentielles 2027/game_balance.json` (avec un point pour les décimales, par exemple `0.8`), enregistre puis **recharge la page**. `0` désactive la contribution d’un biome. Les changements s’appliquent aussi aux IA et demandent une nouvelle partie ; les sauvegardes liées aux anciens réglages sont incompatibles.
 
@@ -164,15 +164,15 @@ F3 distingue la population présente de la population d’origine et indique qua
 |---|---|
 | `time.starting_days_before_first_round` / `real_seconds_per_game_day` | 30 / 20 s |
 | `time.second_round_sprint_seconds` / `second_round_influence_multiplier` | 60 s / ×10 |
-| `first_round_arena.damage.light_1` / `light_2` / `heavy` | 0,45 / 0,55 / 1,1 point |
-| `first_round_arena.damage.hologram` / `wave` / `crs` | 0,12 / 6 / 0,22 point par impact |
-| `first_round_arena.ai_retarget_seconds` / `ai_variation_units` | 2,2 s / 7 |
+| `first_round_debate.damage.light_1` / `light_2` / `heavy` | 0,45 / 0,55 / 1,1 point |
+| `first_round_debate.damage.hologram` / `wave` / `crs` | 0,12 / 6 / 0,22 point par impact |
+| `first_round_debate.ai_retarget_seconds` / `ai_variation_units` | 2,2 s / 7 |
 | `second_round.poll_refresh_seconds` | 2,5 s |
 | `second_round.tower_influence_multiplier` | 0,35 avant le ×10 global |
 | `second_round.meeting_cooldown_seconds` | 22 s, au moins la durée du Meeting |
 | `second_round.extension_seconds` / `tie_rule` | 15 s / `REPEAT_OVERTIME` |
 
-La règle alternative `J0_THEN_SEED` départage une égalité par le score à J0, puis par la graine si nécessaire. Les dégâts d’arène des candidats sont séparés de ceux du monde ; les hologrammes et CRS conservent leur durabilité normale. La persuasion physique garde sa durée : le ×10 accélère les transferts électoraux abstraits, pas la marche ou la conversation.
+La règle alternative `J0_THEN_SEED` départage une égalité par le score à J0, puis par la graine si nécessaire. Les dégâts de débat des candidats sont séparés de ceux du monde ; les hologrammes et CRS conservent leur durabilité normale. La persuasion physique garde sa durée : le ×10 accélère les transferts électoraux abstraits, pas la marche ou la conversation.
 
 ## Vérification et architecture
 
@@ -181,8 +181,8 @@ npm test
 npm run test:partie
 ```
 
-`GamePhase` valide les commandes. `ArenaSimulation` possède sa propre horloge et son propre combat ; `GameSimulation` conserve le monde complet jusqu’au retour. Impacts, jauges, élimination et résultats sont autoritaires, indépendants du rendu. Aucun réseau n’est implémenté.
+`GamePhase` valide les commandes. `DebateSimulation` possède sa propre horloge et son propre combat ; `GameSimulation` conserve le monde complet jusqu’au retour. Impacts, jauges, élimination et résultats sont autoritaires, indépendants du rendu. Aucun réseau n’est implémenté.
 
-Le résumé DEBUG enregistre les scores à J0, l’éliminé, la durée et les coups de l’arène, les scores du sprint, les zones ayant changé de contrôle, les anciens PNJ reconvertis, les Meetings et le vainqueur.
+Le résumé DEBUG enregistre les scores à J0, l’éliminé, la durée et les coups du débat, les scores du sprint, les zones ayant changé de contrôle, les anciens PNJ reconvertis, les Meetings et le vainqueur.
 
 Voir [VALIDATION_JALON_5.md](VALIDATION_JALON_5.md), [JALON_5_SPEC.md](JALON_5_SPEC.md) et [le guide du quatrième jalon](GUIDE_JALON_4.md). Ce dernier conserve les détails des systèmes validés ; ses mentions de J0 hors périmètre et des anciennes sauvegardes sont historiques. Le banc `test:conquete` isole sa campagne de 900 s avec J-100 pour éviter le nouveau premier tour.

@@ -145,7 +145,7 @@ export function settleMoney(sim) {
   const { state, config } = sim;
   for (const npc of state.npcs) {
     if (npc.role !== 'SYMPATHISANT' || !npc.donation_cents || usableFunding(state, npc).length) continue;
-    const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_arena_id
+    const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_debate_id
       && Math.abs(ringDelta(c.x, npc.x, state.world.length)) <= config.balance.money.donation.handoff_radius_units);
     if (!candidate) continue;
     const direction = Math.sign(ringDelta(npc.x, candidate.x, state.world.length)) || candidate.facing;
@@ -161,7 +161,7 @@ export function settleMoney(sim) {
     scheduleNextDonation(sim, npc);
   }
   for (const candidate of state.candidates) {
-    if (candidate.minor || candidate.eliminated || candidate.is_ko || candidate.campaign_arena_id) continue;
+    if (candidate.minor || candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id) continue;
     for (const building of state.buildings) {
       if (!['permanence', 'financement'].includes(building.type) || building.state !== 'ACTIVE' || building.owner_id !== candidate.faction_id
         || !building.stored_money_cents || Math.abs(ringDelta(candidate.x, building.x, state.world.length)) > config.balance.money.donation.collection_radius_units) continue;
@@ -174,7 +174,7 @@ export function settleMoney(sim) {
   for (let i = state.money_pickups.length - 1; i >= 0; i--) {
     const pickup = state.money_pickups[i];
     if (pickup.collect_after_tick > state.tick) continue;
-    const candidate = state.candidates.find(c => !c.minor && !c.eliminated && !c.is_ko && !c.campaign_arena_id
+    const candidate = state.candidates.find(c => !c.minor && !c.eliminated && !c.is_ko && !c.campaign_debate_id
       && Math.abs(ringDelta(c.x, pickup.x, state.world.length)) <= config.balance.money.pickup_radius_units
       && Math.abs(c.combat.height - pickup.height_ratio * config.balance.candidate_combat.jump_height_ratio)
         <= config.balance.money.pickup_height_tolerance_ratio * config.balance.candidate_combat.jump_height_ratio);

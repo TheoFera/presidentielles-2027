@@ -9,7 +9,7 @@ import { aiCombatCommands } from '../src/simulation/ai-combat.js';
 import { aiEconomicTarget } from '../src/simulation/economy.js';
 import { CAMPAIGN_STYLES, CampaignStyleSystem, chooseAICampaignStyle } from '../src/simulation/campaign-styles.js';
 import { captureSite, neutralizeSite } from '../src/simulation/strategic-sites.js';
-import { ArenaSimulation, arenaAICommands } from '../src/simulation/arena-simulation.js';
+import { DebateSimulation, debateAICommands } from '../src/simulation/debate-simulation.js';
 import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { zoneAt } from '../src/simulation/world.js';
 import { aiAdaptation, aiPersuasionMultiplier } from '../src/simulation/ai-balance.js';
@@ -232,10 +232,10 @@ test('Combat : poursuivre brièvement un candidat repoussé pour finir l’écha
   assert.equal(a.find(a=>a.type==='Move').axis,1);assert.equal(a.find(a=>a.type==='InteractionPresence').active,false);
 });
 
-test('La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile', () => {
+test('La difficulté reste appliquée dans le débat et l’IA désactivée reste immobile', () => {
   const { sim, config, ai } = make('difficile');
-  const arena = ArenaSimulation.create(config, sim.state); assert.equal(arena.ai_difficulty, 'difficile');
-  assert.ok(arenaAICommands(arena, config, arena.candidates[0].id, false).every(c => c.type !== 'Attack' && c.type !== 'Dash'));
+  const debate = DebateSimulation.create(config, sim.state); assert.equal(debate.ai_difficulty, 'difficile');
+  assert.ok(debateAICommands(debate, config, debate.candidates[0].id, false).every(c => c.type !== 'Attack' && c.type !== 'Dash'));
   sim.state.ai_enabled = false;
   for (const c of sim.state.candidates) {
     const commands = ai.commands(sim.state, c.id);

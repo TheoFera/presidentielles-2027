@@ -3,7 +3,7 @@ import { scanQr } from './qr-camera.js';
 import { showQrInvitations, showQrAnswer } from './qr-pairing.js';
 import { decodeInvitation } from '../network/peer-session.js';
 import { candidatesReady, minimumPlayers } from '../network/lobby.js';
-import { showArenaLobby, updateArenaLobby } from './arena-lobby.js';
+import { showDebateLobby, updateDebateLobby } from './debate-lobby.js';
 
 // Phones lose the link for a few seconds all the time (screen lock, app switch,
 // Wi-Fi power saving). The browser reconnects the event stream by itself: only a
@@ -60,8 +60,8 @@ export class MultiplayerSession {
 }
 
 export async function showMultiplayerSetup(menu, connect, mode = 'campaign') {
-  const arena = mode === 'arena';
-  menu.page('multiplayer', arena ? 'Arène entre amis' : 'Campagne entre amis', `<p class="menu-intro">${arena ? '2 ou 3 appareils' : '3 appareils'} sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
+  const debate = mode === 'debate';
+  menu.page('multiplayer', debate ? 'Débat télé entre amis' : 'Campagne entre amis', `<p class="menu-intro">${debate ? '2 ou 3 appareils' : '3 appareils'} sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
   menu.back = () => menu.players(mode);
   const generation = menu.generation;
   const joinCard = menu.element.querySelector('#room-code').closest('.tutorial-card');
@@ -137,9 +137,9 @@ function signalOutput(label) {
   return `<label for="outgoing-code">${label}</label><div class="copy-row"><input id="outgoing-code" readonly spellcheck="false"><button id="copy-signal" type="button">Copier</button></div>`;
 }
 export function showPeerInvite(menu, session) {
-  // Arène à deux : « Retour » et « Jouer à deux » ramènent au salon au lieu de le quitter.
-  const lobby = () => showArenaLobby(menu, session, () => menu.home(), () => showPeerInvite(menu, session));
-  const back = () => { if (session.room.mode === 'arena' && session.room.players.length >= 2) lobby(); else menu.home(); };
+  // Débat à deux : « Retour » et « Jouer à deux » ramènent au salon au lieu de le quitter.
+  const lobby = () => showDebateLobby(menu, session, () => menu.home(), () => showPeerInvite(menu, session));
+  const back = () => { if (session.room.mode === 'debate' && session.room.players.length >= 2) lobby(); else menu.home(); };
   showQrInvitations(menu, session, back, () => showTextInvite(menu, session), lobby);
 }
 async function showTextInvite(menu, session) {
@@ -187,7 +187,7 @@ export function showLobby(menu, session, leave = () => menu.home()) {
     updateLobby(menu, session, leave);
     return;
   }
-  if (session.room.mode === 'arena') { showArenaLobby(menu, session, leave, () => showPeerInvite(menu, session)); return; }
+  if (session.room.mode === 'debate') { showDebateLobby(menu, session, leave, () => showPeerInvite(menu, session)); return; }
   menu.page('candidates', 'Choisissez votre candidat', candidatesContent(), leave);
   menu.element.dataset.multiplayer = 'true';
   menu.cleanup = () => { delete menu.element.dataset.multiplayer; };
@@ -211,15 +211,15 @@ export function showLobby(menu, session, leave = () => menu.home()) {
 }
 export function updateLobby(menu, session, leave = () => menu.home()) {
   const count = session.room.players.length, min = minimumPlayers(session.room);
-  // L’hôte reste sur ses QR tant que le salon n’est pas complet (en arène, il peut commencer à deux).
+  // L’hôte reste sur ses QR tant que le salon n’est pas complet (en débat, il peut commencer à deux).
   if (count < 3 && menu.screen === 'qr-invite') { menu.roomUpdate?.(); return; }
   if (count < min) {
     if (menu.screen !== 'waiting') { showLobby(menu, session, leave); return; }
     menu.element.querySelector('#room-message').textContent = min === 3 ? `${count}/3 joueurs connectés · La sélection s’ouvrira quand les trois joueurs seront connectés.` : `${count}/3 joueurs connectés · La sélection s’ouvrira dès que deux joueurs seront connectés.`;
     return;
   }
-  if (session.room.mode === 'arena') {
-    if (menu.screen !== 'arena-lobby') showLobby(menu, session, leave); else updateArenaLobby(menu);
+  if (session.room.mode === 'debate') {
+    if (menu.screen !== 'debate-lobby') showLobby(menu, session, leave); else updateDebateLobby(menu);
     return;
   }
   if (menu.screen !== 'candidates' || menu.element.dataset.multiplayer !== 'true') { showLobby(menu, session, leave); return; }

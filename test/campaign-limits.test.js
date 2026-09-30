@@ -6,7 +6,7 @@ import { buildingOffers, updateEconomy } from '../src/simulation/economy.js';
 import { remainingCampaignBudget } from '../src/simulation/campaign-budget.js';
 import { populationByOrigin } from '../src/simulation/territory.js';
 import { demobilizeUnit } from '../src/simulation/combat-state.js';
-import { startArena, finishArena } from '../src/simulation/match-lifecycle.js';
+import { startDebate, finishDebate } from '../src/simulation/match-lifecycle.js';
 
 function quiet(limit = 16800) {
   const cfg = structuredClone(config);
@@ -74,7 +74,7 @@ test('Budget : les paiements répétés s’arrêtent au plafond malgré les rev
   assert.equal(c.total_spent, 24); assert.equal(sim.state.transactions.length, 2);
   const restored = new GameSimulation(sim.config); restored.importSnapshot(sim.exportSnapshot());
   assert.equal(remainingCampaignBudget(restored.state.candidates[0], sim.config), 0);
-  startArena(sim); finishArena(sim, 'le_pen');
+  startDebate(sim); finishDebate(sim, 'le_pen');
   assert.equal(remainingCampaignBudget(sim.state.candidates[0], sim.config), 0);
   for (let i = 0; i < 60; i++) sim.step();
   assert.equal(sim.state.candidates[0].total_spent, 24);

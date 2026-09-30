@@ -83,6 +83,7 @@
       "verbal_attack_electoral_damage": 0.025,
       "nearby_zone_radius": 1,
       "expedition_min_group_size": 3,
+      "expedition_spacing_units": 0.7,
       "reconsider_seconds": 3,
       "stop_distance_radius_ratio": 0.75,
       "assignment_militant_weight": 1.5,
@@ -190,13 +191,14 @@
       "count": 4,
       "duration_seconds": 7,
       "move_speed": 5.5,
-      "hidden_damage_per_hit": 7,
+      "hidden_damage_per_hit": 3.5,
       "knockback": 2.5,
       "detection_range": 10,
       "attack_range": 1.6,
       "attack_cooldown_seconds": 0.55,
-      "electoral_damage": 0.025,
-      "spawn_spacing": 0.6,
+      "electoral_damage": 0.012,
+      "spawn_distance": 3,
+      "spawn_spacing": 2.5,
       "hidden_durability": 15,
       "appearance_seconds": 0.5
     },
@@ -344,7 +346,6 @@
       "can_be_targeted_by_philippe": false,
       "pay_per_use": true,
       "purchase_hold_seconds": 2,
-      "max_queue_length": 4,
       "pickup_seconds": 1
     },
     "faction_slot_melenchon_lepen_service_ordre": {
@@ -373,7 +374,6 @@
         4
       ],
       "purchase_hold_seconds": 2,
-      "max_queue_length": 8,
       "pickup_seconds": 1,
       "max_active_SO_by_level": [
         null
@@ -581,8 +581,8 @@
       "upgrade_pause_seconds": 0.4
     }
   },
-  "first_round_arena": {
-    "arena_name": "Plateau médiatique",
+  "first_round_debate": {
+    "debate_name": "Plateau médiatique",
     "health_source": "national_vote_percent",
     "stop_after_first_elimination": true,
     "show_vote_health_bars": true,
@@ -601,7 +601,7 @@
     "ai_retarget_seconds": 2.2,
     "ai_variation_units": 7
   },
-  "arena_mode": {
+  "debate_mode": {
     "dash_distance": 3.6,
     "countdown_seconds": 3,
     "fight_banner_seconds": 1,
@@ -956,7 +956,7 @@
     "distance": 2.3,
     "invulnerability_seconds": 0.12,
     "double_tap_window_ms": 300,
-    "allowed_in_arena": true
+    "allowed_in_debate": true
   },
   "damage_feedback": {
     "max_injury_opacity": 0.82,

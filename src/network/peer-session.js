@@ -43,7 +43,7 @@ export class PeerSession {
     this.isHost = action === 'create';
     if (this.host) {
       this.code = id().slice(0, 6).toUpperCase();
-      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, arena: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
+      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
     } else {
       const offer = decodeInvitation(data.code, 'offer');
       this.checkFingerprint(offer);

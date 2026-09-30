@@ -7,7 +7,7 @@ Toutes les captures sont dans qa_screenshots. L’atelier est accessible à /vis
 - site-owned.png, site-level3.png, site-closing.png, site-closed.png : états des bâtiments.
 - saison-0.png, saison-0.25.png, saison-0.5.png, saison-0.75.png : saisons dans la campagne.
 - combat-melenchon.png, combat-le_pen.png, combat-philippe.png : personnages, SO, CRS, journalistes et effets.
-- arene.png : plateau médiatique.
+- debat.png : plateau médiatique.
 - mobile-plans-separes.png : panneaux compacts et déplacement à 842 × 445.
 - telephone-large.png : contrôle du format large.
 

@@ -16,7 +16,7 @@ Les valeurs sont dans `Présidentielles 2027/game_balance.json`, section `candid
 |---|---:|
 | Début de l’immobilisation et de la protection | 0,2 s de maintien |
 | Charge prête, comptée depuis l’appui | 1 s |
-| Dégâts chargés, campagne / arène | 21 / 1,65 |
+| Dégâts chargés, campagne / débat | 21 / 1,65 |
 | Étourdissement léger / chargé | 0,20 s / 0,30 s |
 | Saut : hauteur / durée | 1 hauteur / 0,8 s |
 | Recul initial du troisième coup | 18 unités/s |

@@ -87,7 +87,7 @@ export class ElectoralDisplay {
     const faction = candidate.faction_id;
     const sprint = state.phase === 'SECOND_ROUND_SPRINT';
     const visible = ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase);
-    const studio = state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(candidate.id));
+    const studio = state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(candidate.id));
     this.element.hidden = !visible;
     this.element.classList.toggle('map-clock-only', studio);
     document.getElementById('game').classList.toggle('has-map-wheel', visible && !studio);

@@ -309,16 +309,14 @@ test('L’Imprimerie choisit le disponible le plus proche du biome, puis son ID 
   assert.ok(sim.state.npcs.filter(n => n.task).every(n => n.task.kind === 'COLLECT_TRACT'));
 });
 
-test('La file est bornée ; un tract non affecté attend une main-d’œuvre future', () => {
+test('La file de l’imprimerie n’a pas de plafond ; un tract non affecté attend une main-d’œuvre future', () => {
   const { sim } = scenario(1);
   const state = sim.getState(); state.npcs[0].x = 76; state.npcs[0].roam_target_x = 76;
   sim.importSnapshot(state);
   sim.step([teleportTarget(candidateId, printerId)]); advance(sim, 269);
   const printer = sim.state.buildings.find(b => b.id === printerId);
-  assert.equal(printer.queue.length, 4);
-  assert.equal(sim.state.candidates[0].total_spent, 48);
-  assert.equal(printer.queue.filter(o => o.assigned_npc_id === null).length, 3);
-  assert.equal(nearestOffer(sim.state, sim.config, sim.state.candidates[0]).reason, 'QUEUE_FULL');
+  assert.ok(printer.queue.length > 4);
+  assert.notEqual(nearestOffer(sim.state, sim.config, sim.state.candidates[0])?.reason, 'QUEUE_FULL');
   assert.ok(printer.queue[0].state === 'READY');
 });
 
@@ -448,7 +446,6 @@ test('Les nouveaux réglages invalides sont refusés explicitement', () => {
     cfg => { cfg.layout.biomes[0].subzones[0].max_npcs_by_origin = 5.5; },
     cfg => { cfg.layout.biomes[0].subzones[0].initial_neutral_count = 17; },
     cfg => { cfg.balance.money.campaign_spending_limit = -1; },
-    cfg => { cfg.balance.buildings.imprimerie.max_queue_length = 0; },
     cfg => { cfg.balance.buildings.financement.income_per_second_by_level = []; },
     cfg => { delete cfg.balance.money.supporter_income_per_second_by_origin_biome; },
     cfg => { delete cfg.balance.money.supporter_income_per_second_by_origin_biome.banlieue; },

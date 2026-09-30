@@ -1,19 +1,23 @@
 import { characterAnimation } from './illustrated-characters.js';
 import { MINOR_SHEET, minorSheetCell } from './minor-sprites.js';
 import { cleanGeneratedImage } from './fixed-world.js';
+import { MINOR_ATLASES } from './minor-sprite-atlases.js';
+import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
+import { minorExtraAtlases } from './minor-animation-sprites.js';
+import { drawCandidateCombat } from './melenchon-combat.js';
+import { drawStandingSprite, standingSpriteMotion } from './standing-sprite-motion.js';
 
 /**
- * Candidats mineurs dessinés par le code (provisoire, en attendant leurs planches ChatGPT) :
- * un pantin articulé à l'encre, grosse tête caricaturale, avec les mêmes états d'animation que les candidats.
+ * Dessin de secours des candidats secondaires si leur planche est indisponible.
  */
 const INK = '#23201e';
 const SKIN = '#f1c7a3';
 export const MINOR_LOOKS = {
   glucksmann: { name: 'Glucksmann', fullName: 'Raphaël Glucksmann', suit: '#27344d', shirt: '#f4f1ea', accent: '#d9719f', hair: '#3a2b24', hairStyle: 'mop', build: 0.92, tall: 1.04, tie: false, pocket: true },
-  roussel: { name: 'Roussel', fullName: 'Fabien Roussel', suit: '#5d5f63', shirt: '#f1ede4', accent: '#b8232f', hair: '#8c8a86', hairStyle: 'bald', build: 1.18, tall: 0.96, tie: true, cheeks: true },
-  arthaud: { name: 'Arthaud', fullName: 'Nathalie Arthaud', suit: '#b3342c', shirt: '#2f2b2a', accent: '#d8312b', hair: '#5a3a26', hairStyle: 'bob', build: 0.9, tall: 0.93, tie: false, woman: true, trousers: '#3b4a63' },
-  dupont_aignan: { name: 'Dupont-Aignan', fullName: 'Nicolas Dupont-Aignan', suit: '#2c2c33', shirt: '#eef0f2', accent: '#6a4c93', hair: '#b9b6b0', hairStyle: 'side', build: 1, tall: 1.06, tie: true, glasses: true },
-  retailleau: { name: 'Retailleau', fullName: 'Bruno Retailleau', suit: '#1f2a3a', shirt: '#f0f2f4', accent: '#2d8fcf', hair: '#c9c6c0', hairStyle: 'receding', build: 0.95, tall: 1, tie: true, glasses: true },
+  roussel: { name: 'Roussel', fullName: 'Fabien Roussel', suit: '#5d5f63', shirt: '#f1ede4', accent: '#b8232f', hair: '#8c8a86', hairStyle: 'mop', build: 1.18, tall: 0.96, tie: false, cheeks: true },
+  arthaud: { name: 'Arthaud', fullName: 'Nathalie Arthaud', suit: '#b3342c', shirt: '#2f2b2a', accent: '#d8312b', hair: '#302b27', hairStyle: 'short', build: 0.9, tall: 0.93, tie: false, woman: true, glasses: true, trousers: '#3b4a63' },
+  dupont_aignan: { name: 'Dupont-Aignan', fullName: 'Nicolas Dupont-Aignan', suit: '#2c2c33', shirt: '#eef0f2', accent: '#6a4c93', hair: '#79736b', hairStyle: 'side', build: 1, tall: 1.06, tie: true, glasses: false },
+  retailleau: { name: 'Retailleau', fullName: 'Bruno Retailleau', suit: '#1f2a3a', shirt: '#f0f2f4', accent: '#2d8fcf', hair: '#696763', hairStyle: 'receding', build: 0.95, tall: 1, tie: true, glasses: true },
   attal: { name: 'Attal', fullName: 'Gabriel Attal', suit: '#1d2f5a', shirt: '#f5f5f2', accent: '#ee9322', hair: '#2a211d', hairStyle: 'short', build: 0.9, tall: 0.98, tie: false, young: true },
 };
 
@@ -117,31 +121,45 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   const progress = attack ? Math.min(1, attack.elapsed_ticks / Math.max(1, attack.windup_ticks + attack.active_ticks)) : 0;
   const height = m.characterHeight, groundY = m.groundY + height * 0.06;
   const feetY = groundY - (entity.combat?.height || 0) * height;
+  if (drawCandidateCombat(renderer, entity, x, state)) {
+    if (animation !== 'ko') drawMinorName(renderer, entity, x, feetY, height);
+    return true;
+  }
   ctx.save();
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, height * 0.22, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feetY); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (entity.combat?.charge_active) { ctx.shadowColor = renderer.p.factions[entity.faction_id].color; ctx.shadowBlur = 14; }
-  const sheet = renderer.assets.get(`minor-${entity.faction_id}`);
+  const assetId = `minor-${entity.faction_id}`;
+  const airborne = (entity.combat?.height || 0) > 0.02;
+  const listening = animation === 'persuade_listen' ? minorExtraAtlases[entity.faction_id]?.actions : null;
+  const listenSheet = listening ? renderer.assets.get(listening.sprite) : null;
+  if (listening && !listenSheet) void renderer.assets.load(listening.sprite);
+  const sheet = listenSheet || renderer.assets.get(assetId);
+  if (!sheet) void renderer.assets.load(assetId);
   if (sheet) {
-    // Planche ChatGPT déposée : une case par état d'animation, même échelle que les autres candidats.
-    const image = cleanGeneratedImage(sheet), cell = minorSheetCell(animation, time, (entity.combat?.height || 0) > 0.02);
-    const cw = image.width / MINOR_SHEET.columns, ch = image.height / MINOR_SHEET.rows, k = height / MINOR_SHEET.figure * MINOR_SHEET.width / image.width;
+    // Les rectangles mesurés évitent de couper les cheveux, les coups et les chaussures.
+    const image = cleanGeneratedImage(sheet);
+    const motion = standingSpriteMotion(animation, time);
+    const cell = listenSheet ? 6 + Math.floor(time / .35) % 2 : motion.walking ? 0 : minorSheetCell(animation, time, airborne);
+    const atlas = listenSheet ? listening : MINOR_ATLASES[entity.faction_id];
     ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(image, (cell % MINOR_SHEET.columns) * cw, Math.floor(cell / MINOR_SHEET.columns) * ch, cw, ch, -cw * k / 2, -MINOR_SHEET.feet * image.width / MINOR_SHEET.width * k, cw * k, ch * k);
+    if (atlas) {
+      const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
+      const k = height / atlas.referenceHeight;
+      const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
+      if (motion.walking) {
+        ctx.rotate(motion.stride * .025); ctx.scale(1 / motion.breathing, motion.breathing);
+        drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height, sw * k, motion);
+      } else ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
+    } else {
+      const cw = image.width / MINOR_SHEET.columns, ch = image.height / MINOR_SHEET.rows;
+      const k = height / MINOR_SHEET.figure * MINOR_SHEET.width / image.width;
+      ctx.drawImage(image, (cell % MINOR_SHEET.columns) * cw, Math.floor(cell / MINOR_SHEET.columns) * ch, cw, ch, -cw * k / 2, -MINOR_SHEET.feet * image.width / MINOR_SHEET.width * k, cw * k, ch * k);
+    }
   } else {
     if (animation === 'ko') { ctx.translate(-height * 0.1, -height * 0.12); ctx.rotate(-Math.PI / 2); }
     drawMinorFigure(ctx, entity.faction_id, height, animation, time, progress, (entity.combat?.height || 0) > 0.02);
   }
   ctx.restore();
-  // Nom au-dessus de la tête, aux couleurs du candidat.
-  if (animation !== 'ko') {
-    const look = MINOR_LOOKS[entity.faction_id], color = renderer.p.factions[entity.faction_id].color;
-    ctx.save(); ctx.font = '800 10px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const w = ctx.measureText(look.name).width + 12, y = feetY - height * 1.14;
-    ctx.fillStyle = '#fff6e6'; ctx.strokeStyle = color; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(x - w / 2, y - 8, w, 16, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#2a2622'; ctx.fillText(look.name, x, y + 0.5);
-    ctx.restore();
-  }
   return true;
 }

@@ -48,7 +48,7 @@ Les commandes omettent uniquement l’identité que l’hôte impose déjà à p
 
 ### Mesures reproductibles
 
-`npm run test:performance-multi` compare l’ancien calcul différentiel et le diffuseur optimisé sur les mêmes 254 états de campagne, arène, second tour et résultats. Il vérifie les paquets ainsi que la reconstruction exacte de chaque état. Six passages alternés réduisent l’effet de l’échauffement ; le tableau présente leur médiane. Ce test mesure la préparation des messages, avant fragmentation et transport, **pas les FPS ni la latence du Wi-Fi**.
+`npm run test:performance-multi` compare l’ancien calcul différentiel et le diffuseur optimisé sur les mêmes 254 états de campagne, débat, second tour et résultats. Il vérifie les paquets ainsi que la reconstruction exacte de chaque état. Six passages alternés réduisent l’effet de l’échauffement ; le tableau présente leur médiane. Ce test mesure la préparation des messages, avant fragmentation et transport, **pas les FPS ni la latence du Wi-Fi**.
 
 | Préparation des 254 états | Avant | Après | Réduction |
 | --- | ---: | ---: | ---: |
@@ -74,7 +74,7 @@ node scripts/validate-arcade-browser.mjs
 
 Les calculs d’influence regroupent les unités, bâtiments et candidats une fois par appel, au lieu de rechercher les mêmes éléments pour chaque zone et chaque camp. Ces regroupements sont reconstruits à chaque appel : un déplacement, une conversion, un import ou une construction au même tick reste immédiatement pris en compte. L’ordre des additions et les deux actualisations par tick sont conservés. Le calcul des revenus évite de créer le tableau détaillé lorsque seul le total est nécessaire. Ces gains concernent aussi l’hôte multijoueur, sans modifier le protocole ou les fréquences de synchronisation.
 
-Le dessin écarte les images de décor entièrement hors du cadrage, avec une marge de sécurité de deux pixels physiques. Les images, filtres de saison, animations et résolutions restent identiques. Les formateurs de nombres français sont réutilisés, et les textes inchangés des jauges d’arène ne sont plus remplacés.
+Le dessin écarte les images de décor entièrement hors du cadrage, avec une marge de sécurité de deux pixels physiques. Les images, filtres de saison, animations et résolutions restent identiques. Les formateurs de nombres français sont réutilisés, et les textes inchangés des jauges de débat ne sont plus remplacés.
 
 ### Vérifications et mesures
 
@@ -88,7 +88,7 @@ Les rapports se trouvent dans `artifacts/performance-mobile/`. Le profil de marc
 
 ## Chargement complet et stabilité des sprites — 24 septembre 2026
 
-La barre attend désormais toutes les images utilisées par la carte : décors des six biomes, façades des bâtiments réellement présents, personnages, tenues, pouvoirs et arène. Ces images restent protégées dans le cache pendant la partie. Changer de zone ne remplace plus cet ensemble par les seuls voisins du joueur, ce qui évite les évictions et les rechargements visibles. Les anciens panoramas complets, inutilisés quand les décors séparés sont disponibles, ne sont plus préchargés. Les pixels affichés restent les mêmes.
+La barre attend désormais toutes les images utilisées par la carte : décors des six biomes, façades des bâtiments réellement présents, personnages, tenues, pouvoirs et débat. Ces images restent protégées dans le cache pendant la partie. Changer de zone ne remplace plus cet ensemble par les seuls voisins du joueur, ce qui évite les évictions et les rechargements visibles. Les anciens panoramas complets, inutilisés quand les décors séparés sont disponibles, ne sont plus préchargés. Les pixels affichés restent les mêmes.
 
 Une image en erreur ne compte plus comme une réussite : le bouton propose « Réessayer » et relance les images échouées en conservant celles déjà prêtes. Les appels du dessin ne relancent toujours pas une image en échec en boucle. Le délai de 30 secondes mesure une absence de progression, plutôt que la durée totale du chargement ; les connexions lentes peuvent donc continuer tant que des images arrivent. La préparation et le premier dessin précèdent toujours les 100 %, en solo comme dans la préparation multijoueur.
 

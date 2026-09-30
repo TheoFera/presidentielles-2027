@@ -68,7 +68,7 @@ export function managementReport(state, config, candidate, npc, building) {
     if (building.type === 'meeting') lines.push(`Promontoire : ${building.meeting_candidate_id ? `${building.meeting_faction_id} · ${f(building.meeting_hold_ticks / hz)} / 15 s · pause ${f(building.meeting_pause_ticks / hz)} / 5 s` : 'aucun meeting en cours'} · meetings validés : ${building.meetings_held}`);
     if (building.type === 'institut_sondage') lines.push(`Dernier payeur : ${building.last_poll_candidate_id || 'aucun'} · âge : ${building.last_poll_tick === null ? 'aucun sondage' : `${f((state.tick - building.last_poll_tick) / hz)} s`}`);
     if (building.type === 'imprimerie' || building.variant === 'service_ordre') {
-      lines.push(`File : ${building.queue.length}/${settings.max_queue_length} · équipements récupérés : ${building.delivered_count}`);
+      lines.push(`File : ${building.queue.length} · équipements récupérés : ${building.delivered_count}`);
       const states = { QUEUED: 'En attente', PRINTING: 'Impression', READY: 'Prêt' };
       for (const order of building.queue) lines.push(`${order.id} · ${names[order.faction_id].name} · ${states[order.state]}\n  ${order.assigned_npc_id || 'Attend une unité disponible'} · production ${f(order.production_elapsed_ticks / hz)} / ${f(order.production_required_ticks ? order.production_required_ticks / hz : settings.equipment_seconds_by_level[0])} s`);
     }

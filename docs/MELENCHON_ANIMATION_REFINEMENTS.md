@@ -20,7 +20,7 @@ Use case: stylized-concept. Production transparent RGBA sprite sheet, exactly FO
 
 ## Vérification
 
-Tests réels de coups légers en campagne et en arène : position constante, aucun recul, libération après cinq ticks ; test existant du troisième coup qui sépare les combattants. Contrôle des poses légères, des six appuis, de la durée d’atterrissage et des dimensions de rendu à +6 %. Galerie animée et séquences de combat dans Chrome, puis suite complète et génération du jeu.
+Tests réels de coups légers en campagne et en débat : position constante, aucun recul, libération après cinq ticks ; test existant du troisième coup qui sépare les combattants. Contrôle des poses légères, des six appuis, de la durée d’atterrissage et des dimensions de rendu à +6 %. Galerie animée et séquences de combat dans Chrome, puis suite complète et génération du jeu.
 
 Aperçu : `/src/presentation/melenchon-actions-preview.html?v=fighter-walk-1`.
 

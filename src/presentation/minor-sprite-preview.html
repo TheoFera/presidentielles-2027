@@ -1,0 +1,8 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animations des candidats secondaires</title>
+<style>body{margin:24px;background:#f8f0df;color:#292721;font:16px system-ui}h1{font-size:26px}h2{font-size:21px}button,select{font:inherit;padding:8px}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.comparison,.poses{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.comparison{max-width:660px;margin-top:20px}figure{margin:0;text-align:center;background:#fffcf5;border:1px solid #d7c8ab;border-radius:8px}canvas{width:210px;height:220px}figcaption{padding:8px;font-size:13px}.comparison canvas{width:300px;height:255px}</style>
+<h1>Animations des candidats secondaires</h1>
+<p>Même moteur que les principaux : marche discrète hors combat, pas glissés en garde et coups animés en plusieurs phases.</p>
+<div class="controls"><label>Candidat <select id="candidate"></select></label><label>Animation <select id="mode"></select></label><button id="play">Mettre en pause</button><button id="direction">Tourner vers la gauche</button></div>
+<div class="comparison" id="comparison"></div><main id="gallery"></main>
+<script type="module" src="./minor-animation-preview.js"></script></html>

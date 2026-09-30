@@ -7,7 +7,7 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, arena: room.arena, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, debate: room.debate, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
   const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
   const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
   const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
@@ -62,7 +62,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
         if (action === 'create') {
           if (rooms.size >= 32) throw new Error('Le serveur est plein. Réessayez plus tard.');
           let code; do { code = randomBytes(3).toString('hex').toUpperCase(); } while (rooms.has(code));
-          room = { code, mode: roomMode(data.mode), players: [], phase: 'lobby', paused: false, arena: null, touched: Date.now() }; rooms.set(code, room);
+          room = { code, mode: roomMode(data.mode), players: [], phase: 'lobby', paused: false, debate: null, touched: Date.now() }; rooms.set(code, room);
         } else {
           room = rooms.get(String(data.code).trim().toUpperCase());
           if (!room) throw new Error('Ce code ne correspond à aucun salon.');

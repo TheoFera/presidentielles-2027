@@ -21,7 +21,7 @@ export function refreshInfluenceReference(state, config) {
       }
     }
     for (const candidate of state.candidates) {
-      if (!candidate.eliminated && !candidate.campaign_arena_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
+      if (!candidate.eliminated && !candidate.campaign_debate_id && !candidate.is_ko && candidate.campaign_active && !candidate.combat.attack_id && !candidate.combat.stun_ticks && !candidate.combat.hitstop_ticks
         && !candidate.combat.engaged && zoneAt(state.world, candidate.x).id === zone.id) sources[candidate.faction_id].candidate += config.balance.influence.candidate_presence_per_second;
     }
     for (const faction of FACTIONS) {

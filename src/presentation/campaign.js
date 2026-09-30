@@ -1,7 +1,22 @@
 import { seasonAt } from '../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../simulation/world.js';
-import { eventIconData } from './illustrated-icons.js';
 const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
+const siteNames={permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'};
+
+// Consigne courte, tournée vers le joueur. Les noms de candidats n'apparaissent que lorsqu'ils changent quelque chose.
+function eventOrder(e,state,config,hz){
+ const name=id=>config.prototype.presentation.factions[id]?.name,target=name(state.candidates.find(c=>c.id===e.target_candidate_ids[0])?.faction_id),live=e.status==='ACTIVE';
+ const site=state.buildings.find(b=>b.id===e.target_site_id);
+ switch(e.family){
+ case 'RASSEMBLEMENT':return live?({GATHERING:'Le cortège se forme : rejoignez-le',MARCHING:'Traversez le cortège pour convaincre les marcheurs',DISPERSING:'Le cortège se disperse'}[e.march?.phase]||'Traversez le cortège pour convaincre les marcheurs'):'Le cortège s’est dispersé';
+ case 'CANDIDAT_FRAGILISE':return `Prime au KO : ${target} perd ${e.parameters.ko_poll_loss} points en cas de KO`;
+ case 'FERMETURE_BATIMENT':return `${siteNames[site.type]} de ${target} bientôt neutralisé`;
+ case 'MEETING_DE_CRISE':return e.attempt?`Tenir le promontoire : ${(site.meeting_hold_ticks/hz).toFixed(1)} / 15 s${site.meeting_pause_ticks?` · remontez sous ${Math.max(0,5-site.meeting_pause_ticks/hz).toFixed(1)} s`:''}`:`Montez sur le promontoire et tenez 15 s · ${e.parameters.meeting_cost} k€`;
+ case 'DEBAT_THEMATIQUE':return e.winner?`Remporté par ${name(e.winner)}`:`Premier à payer ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€ au promontoire`;
+ case 'PIEGE_MEDIATIQUE':return `${target} doit battre les journalistes`;
+ default:return labels[e.family];
+ }
+}
 
 export class CampaignDisplay {
  constructor(config){this.config=config;this.cards=new Map();this.seen=new Map();this.seed=null;this.lastTick=0;this.root=document.createElement('div');this.root.id='campaign-events';this.root.setAttribute('aria-live','polite');(document.getElementById('game')||document.body).append(this.root);}
@@ -11,22 +26,21 @@ export class CampaignDisplay {
  const displaySeconds=this.config.balance.campaign_events.notification_display_seconds,arrivalSeconds=this.config.balance.campaign_events.notification_arrival_seconds;
  for(const e of state.campaign_events){if(!this.seen.has(e.id))this.seen.set(e.id,e.status==='ACTIVE'||e.start_tick>=previousTick?now:-Infinity);const age=(now-this.seen.get(e.id))/1000,visible=state.phase==='CAMPAIGN'&&(e.status==='ACTIVE'||age<displaySeconds);
  if(!visible){this.cards.get(e.id)?.remove();this.cards.delete(e.id);continue;}
- let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-expanded','false');const toggle=()=>{const expanded=card.classList.toggle('expanded');card.setAttribute('aria-expanded',String(expanded));};card.onclick=toggle;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}};this.root.append(card);this.cards.set(e.id,card);}
- const zone=state.world.subzones.find(z=>z.id===e.target_subzone_id),names=e.target_candidate_ids.map(id=>this.config.prototype.presentation.factions[state.candidates.find(c=>c.id===id).faction_id].name).join(', ');
- card.style.order = e.start_tick; card.dataset.family = e.family; card.style.setProperty('--event-icon', eventIconData[e.family] || 'none');
- const heading=e.title;
- const narrative=e.description;
- const effect=e.family==='RASSEMBLEMENT' ? ({GATHERING:'Les habitants se rassemblent',MARCHING:'Le cortège défile · convainquez en passant',DISPERSING:'Les habitants rentrent chez eux'}[e.march?.phase]||labels[e.family]) : e.family==='CANDIDAT_FRAGILISE' ? 'KO : −'+e.parameters.ko_poll_loss+' points nationaux vers les Neutres' : e.family==='FERMETURE_BATIMENT' ? ({permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'}[state.buildings.find(b=>b.id===e.target_site_id).type]+' bientôt neutralisé') : labels[e.family];
- const winner=e.winner&&this.config.prototype.presentation.factions[e.winner]?.name;
- const detail=e.family==='DEBAT_THEMATIQUE'&&winner?`${effect} · ${zone.biome_name} · remporté par ${winner}`:`${effect} · ${['RASSEMBLEMENT','MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CHOC_OPINION'].includes(e.family)?zone.biome_name+' · ':''}${['MEETING_DE_CRISE','DEBAT_THEMATIQUE'].includes(e.family)?'Ouvert aux trois candidats':names}`;
- const meeting=state.buildings.find(b=>b.id===e.target_site_id);const timer=e.family==='DEBAT_THEMATIQUE'?(e.status==='ACTIVE'?`Premier candidat à payer au promontoire : ${e.parameters.meeting_cost.toLocaleString('fr-FR')} k€`:'Victoire attribuée dès le paiement · Fiction satirique'):e.attempt?`Tenir le promontoire : ${(meeting.meeting_hold_ticks/hz).toFixed(1)} / 15 s${meeting.meeting_pause_ticks?` · remonter sous ${Math.max(0,5-meeting.meeting_pause_ticks/hz).toFixed(1)} s`:''}`:`${e.category==='INSTANT'?'Effet instantané':e.end_tick===null?'Battez les journalistes — le monde continue':Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s'} · Fiction satirique`;
- const contentKey=[heading,narrative,detail,timer].join('\n');
+ let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.dataset.family=e.family;card.style.order=e.start_tick;card.append(...[['span','news-tag'],['strong','news-title'],['span','news-time'],['span','news-order'],['span','news-ticker'],['i','news-bar']].map(([tag,name])=>{const node=document.createElement(tag);node.className=name;return node;}));this.root.append(card);this.cards.set(e.id,card);}
+ // Bandeau télévisé : titre + lieu, une consigne courte, le temps restant. Le contexte défile une seule fois.
+ const live=e.status==='ACTIVE',zone=state.world.subzones.find(z=>z.id===e.target_subzone_id);
+ const tag=!live?'TERMINÉ':e.category==='INSTANT'?'FLASH INFO':'EN DIRECT';
+ const title=`${e.title} · ${zone.biome_name}`;
+ const time=live&&e.category!=='INSTANT'&&e.end_tick!==null?Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s':'';
+ const order=eventOrder(e,state,this.config,hz),ticker=e.description||'';
+ const texts=[tag,title,time,order,ticker,''],contentKey=texts.join('\n');
  if(card.dataset.contentKey!==contentKey){
-   if(!card.children.length){const nodes=['strong','span','span','small'].map(tag=>document.createElement(tag));nodes[1].className='campaign-card-narrative';card.append(...nodes);}
-   [heading,narrative,detail,timer].forEach((text,index)=>{if(card.children[index].textContent!==text)card.children[index].textContent=text;});
-   card.setAttribute('aria-label',e.title+' : afficher ou masquer les détails');card.dataset.contentKey=contentKey;
+   texts.forEach((text,index)=>{if(card.children[index].textContent!==text)card.children[index].textContent=text;});
+   card.setAttribute('aria-label',`${title} : ${order}`);card.dataset.contentKey=contentKey;
  }
- card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('instant',e.category==='INSTANT');
+ const tickerSeconds=4+ticker.length*0.08;card.style.setProperty('--ticker-seconds',tickerSeconds.toFixed(1)+'s');
+ const left=live&&e.end_tick!==null&&e.end_tick>e.start_tick?Math.max(0,Math.min(1,(e.end_tick-state.tick)/(e.end_tick-e.start_tick))):0;card.children[5].style.setProperty('--news-left',(left*100).toFixed(1)+'%');
+ card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('ended',!live);card.classList.toggle('ticker-done',age>1+tickerSeconds);
  }
  }
 }
@@ -53,7 +67,8 @@ export function drawCampaignMarkers(renderer,state){
  for(const c of state.candidates){
  if(state.campaign_events.some(e=>e.status==='ACTIVE'&&e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id))){ctx.fillStyle='#ffdb76';ctx.fillText('⚠ Prime au KO',renderer.screenX(c.x),m.groundY-m.characterHeight-35);}
 
- }ctx.restore();
+ }
+ ctx.restore();
 }
 export function installCampaignDebug(panel){
  const box=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent='Année électorale et événements';box.append(legend);

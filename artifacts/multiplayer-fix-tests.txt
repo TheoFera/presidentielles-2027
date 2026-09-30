@@ -108,8 +108,8 @@ ok 21 - Difficulté : cadence de combat distincte, dash offensif et repli après
   ---
   duration_ms: 57.0249
   ...
-# Subtest: La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
-ok 22 - La difficulté reste appliquée dans l’arène et l’IA désactivée reste immobile
+# Subtest: La difficulté reste appliquée dans le débat et l’IA désactivée reste immobile
+ok 22 - La difficulté reste appliquée dans le débat et l’IA désactivée reste immobile
   ---
   duration_ms: 13.9481
   ...
@@ -193,8 +193,8 @@ ok 38 - Scandale : cinq points nationaux au KO, aucun malus à expiration
   ---
   duration_ms: 48.3444
   ...
-# Subtest: Piège humain : monde avance, candidat absent, commande vers arène
-ok 39 - Piège humain : monde avance, candidat absent, commande vers arène
+# Subtest: Piège humain : monde avance, candidat absent, commande vers débat
+ok 39 - Piège humain : monde avance, candidat absent, commande vers débat
   ---
   duration_ms: 57.6452
   ...
@@ -218,8 +218,8 @@ ok 43 - Anti-répétition, snapshot et continuation déterministe
   ---
   duration_ms: 263.5005
   ...
-# Subtest: Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
-ok 44 - Débat thématique : le premier paiement au Meeting gagne sans arène ni attente
+# Subtest: Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
+ok 44 - Débat thématique : le premier paiement au Meeting gagne sans débat ni attente
   ---
   duration_ms: 35.5959
   ...
@@ -228,8 +228,8 @@ ok 45 - IA se dirige vers un Meeting, et poursuit son occupant adverse
   ---
   duration_ms: 23.7603
   ...
-# Subtest: Sauvegarde d’arène, reprise et J0 ferment les événements proprement
-ok 46 - Sauvegarde d’arène, reprise et J0 ferment les événements proprement
+# Subtest: Sauvegarde de débat, reprise et J0 ferment les événements proprement
+ok 46 - Sauvegarde de débat, reprise et J0 ferment les événements proprement
   ---
   duration_ms: 101.9384
   ...
@@ -448,8 +448,8 @@ ok 89 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du da
   ---
   duration_ms: 34.8976
   ...
-# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
-ok 90 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
+ok 90 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
   ---
   duration_ms: 166.9548
   ...
@@ -473,8 +473,8 @@ ok 94 - Hologrammes : commande R en campagne et refus explicite pendant un coup
   ---
   duration_ms: 22.8228
   ...
-# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
-ok 95 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en débat
+ok 95 - Hologrammes : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 24.4425
   ...
@@ -483,8 +483,8 @@ ok 96 - Déferlante encapuchonnée : commande R en campagne et refus explicite p
   ---
   duration_ms: 16.6209
   ...
-# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
-ok 97 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
+ok 97 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 17.5631
   ...
@@ -493,8 +493,8 @@ ok 98 - Gilet jaune : commande R en campagne et refus explicite pendant un coup
   ---
   duration_ms: 19.4604
   ...
-# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
-ok 99 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en débat
+ok 99 - Gilet jaune : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 18.6011
   ...
@@ -503,8 +503,8 @@ ok 100 - Vague bleu marine : commande R en campagne et refus explicite pendant u
   ---
   duration_ms: 18.7559
   ...
-# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
-ok 101 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
+ok 101 - Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 18.6455
   ...
@@ -513,8 +513,8 @@ ok 102 - Invocation Zemmour : commande R en campagne et refus explicite pendant 
   ---
   duration_ms: 22.6141
   ...
-# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
-ok 103 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
+ok 103 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 23.8775
   ...
@@ -523,8 +523,8 @@ ok 104 - Bardellisation : commande R en campagne et refus explicite pendant un c
   ---
   duration_ms: 19.9955
   ...
-# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
-ok 105 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en débat
+ok 105 - Bardellisation : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 19.3883
   ...
@@ -533,8 +533,8 @@ ok 106 - Protection CRS : commande R en campagne et refus explicite pendant un c
   ---
   duration_ms: 16.2145
   ...
-# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
-ok 107 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en débat
+ok 107 - Protection CRS : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 17.2282
   ...
@@ -543,8 +543,8 @@ ok 108 - Écharpe du maire : commande R en campagne et refus explicite pendant u
   ---
   duration_ms: 22.4766
   ...
-# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
-ok 109 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
+ok 109 - Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 14.9746
   ...
@@ -553,8 +553,8 @@ ok 110 - Super Européiste : commande R en campagne et refus explicite pendant u
   ---
   duration_ms: 14.0995
   ...
-# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
-ok 111 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en débat
+ok 111 - Super Européiste : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 19.0152
   ...
@@ -568,8 +568,8 @@ ok 113 - Cibles valides : unités adverses, invocation configurable ; alliés et
   ---
   duration_ms: 122.396
   ...
-# Subtest: Dash : limites de l’arène conservées et recharge suspendue en debug
-ok 114 - Dash : limites de l’arène conservées et recharge suspendue en debug
+# Subtest: Dash : limites du débat conservées et recharge suspendue en debug
+ok 114 - Dash : limites du débat conservées et recharge suspendue en debug
   ---
   duration_ms: 26.4852
   ...
@@ -593,8 +593,8 @@ ok 118 - Bords rouges : dégâts cumulés, impact local, récupération et faibl
   ---
   duration_ms: 59.6334
   ...
-# Subtest: Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
-ok 119 - Bords rouges en arène : utilisent les points d’arène, pas la résistance de campagne
+# Subtest: Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne
+ok 119 - Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne
   ---
   duration_ms: 16.7441
   ...

@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { campaignConfig } from './validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController, LocalHumanController } from '../src/simulation/controllers.js';
-import { startArena, finishArena, finishSprint } from '../src/simulation/match-lifecycle.js';
+import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { PeerSession } from '../src/network/peer-session.js';
 import { stateDelta, applyStateDelta, presentationState } from '../src/network/state-stream.js';
 import { outgoingCommands } from '../src/network/shared-commands.js';
@@ -16,8 +16,8 @@ const advance = count => {
     if (i % 3 === 0) capture();
   }
 };
-capture(); advance(600); startArena(sim); capture(); advance(60);
-finishArena(sim, 'philippe'); capture(); advance(90);
+capture(); advance(600); startDebate(sim); capture(); advance(60);
+finishDebate(sim, 'philippe'); capture(); advance(90);
 for (const e of sim.state.electorate) e.support = { melenchon: 60, le_pen: 30, philippe: 0, neutral: 10 };
 finishSprint(sim); capture();
 

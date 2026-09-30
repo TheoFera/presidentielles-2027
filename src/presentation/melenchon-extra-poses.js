@@ -42,7 +42,7 @@ export function melenchonExtraPose(actor,state,config,guard,landingAge=null,walk
   const cycle=(frames,seconds=.12)=>frames[Math.floor(tick/(hz*seconds))%frames.length];
   const incoming=c.last_hit?.target_id===actor.id?c.last_hit:null;
   const surge=actor.faction_id==='melenchon'&&state.powers.find(power=>power.owner_id===actor.id&&power.kind==='SURGE');
-  if(actor.is_ko || actor.arena_hp<=0) {
+  if(actor.is_ko || actor.debate_hp<=0) {
     const age=tick-(actor.is_ko?actor.ko_started_tick:incoming?.tick);
     const duration=Math.max(1,Math.ceil(config.balance.candidate_combat.ko_fall_seconds*hz));
     const frame=Number.isFinite(age)?Math.min(3,Math.max(0,Math.floor(age/duration*4))):3;

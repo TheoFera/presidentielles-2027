@@ -29,7 +29,7 @@ if (parameters.get('ui') === '1') {
 }
 for (const [id, control] of Object.entries(controls)) if (parameters.has(id)) control.value = parameters.get(id);
 const sceneLabel = document.createElement('label'); sceneLabel.textContent = 'Scène ';
-const scene = document.createElement('select'); scene.id = 'scene'; scene.add(new Option('Campagne', 'world')); scene.add(new Option('Arène', 'arena'));
+const scene = document.createElement('select'); scene.id = 'scene'; scene.add(new Option('Campagne', 'world')); scene.add(new Option('Débat', 'debate'));
 sceneLabel.append(scene); document.querySelector('header').append(sceneLabel);
 scene.value = parameters.get('scene') || 'world';
 scene.addEventListener('change', refresh);
@@ -76,11 +76,11 @@ function refresh() {
     state.projectiles.push({x:candidate.x+3,direction:1,kind:candidate.faction_id==='le_pen'?'WAVE':'VERBAL',faction_id:candidate.faction_id});
   }
   renderer.resetCamera(); renderer.artZone = null;
-  if (scene.value === 'arena') {
-    const arenaSimulation = new GameSimulation(config);
-    arenaSimulation.applyCommand({type:'DebugForceJ0'});
-    state = arenaSimulation.getState();
-    void renderer.assets.keep(Object.keys(renderer.assets.manifest).filter(id => /^(character-|journalist-|security-|crs-|background-arena)/.test(id)));
+  if (scene.value === 'debate') {
+    const debateSimulation = new GameSimulation(config);
+    debateSimulation.applyCommand({type:'DebugForceJ0'});
+    state = debateSimulation.getState();
+    void renderer.assets.keep(Object.keys(renderer.assets.manifest).filter(id => /^(character-|journalist-|security-|crs-|background-debate)/.test(id)));
   }
 }
 for (const control of Object.values(controls)) control.addEventListener('change', refresh);

@@ -25,8 +25,8 @@ import { installLandscape } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
-import { ArenaMatch, arenaModeAICommands, arenaFighterIds } from './simulation/arena-mode.js';
-import { ArenaModeDisplay, arenaAssetIds, drawArenaMode } from './presentation/arena-mode.js';
+import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
+import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -118,14 +118,14 @@ async function start() {
   let debugElapsed = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
   let currentDay = state.days_remaining;
-  // Mode Arène : combat autonome, sans monde de campagne.
-  let arenaMatch = null, arenaState = null, arenaPrevious = null, arenaPending = [], arenaSetup = null;
-  // Arène multijoueur : combattants pilotés par un autre appareil (l’hôte simule, les invités affichent).
-  let arenaRemoteIds = new Set();
-  const arenaFighterOf = (setup, playerId) => arenaFighterIds(setup.fighters)[setup.fighters.findIndex(f => f.player === playerId)];
-  const arenaDisplay = new ArenaModeDisplay(config, {
-    rematch: () => { if (arenaSetup) void menu.arenaLoading(arenaSetup); },
-    setup: () => { returnHome(); menu.arena(); },
+  // Mode Débat : combat autonome, sans monde de campagne.
+  let debateMatch = null, debateState = null, debatePrevious = null, debatePending = [], debateSetup = null;
+  // Débat multijoueur : combattants pilotés par un autre appareil (l’hôte simule, les invités affichent).
+  let debateRemoteIds = new Set();
+  const debateFighterOf = (setup, playerId) => debateFighterIds(setup.fighters)[setup.fighters.findIndex(f => f.player === playerId)];
+  const debateDisplay = new DebateModeDisplay(config, {
+    rematch: () => { if (debateSetup) void menu.debateLoading(debateSetup); },
+    setup: () => { returnHome(); menu.debate(); },
     home: () => returnHome(),
   });
 
@@ -180,8 +180,8 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
     if (!help.hidden) { if (['h', 'escape'].includes(key)) toggleHelp(); return; }
-    if (!arenaMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
-    if (arenaMatch && ['arrowdown', 's', 'drop'].includes(key)) { if (!paused) arenaPending.push({ type: 'DropDown', candidateId: arenaState.local_candidate_id }); return; }
+    if (!debateMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
+    if (debateMatch && ['arrowdown', 's', 'drop'].includes(key)) { if (!paused) debatePending.push({ type: 'DropDown', candidateId: debateState.local_candidate_id }); return; }
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
     else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
@@ -189,21 +189,21 @@ async function start() {
     else if ([' ', 'j', 'attack'].includes(key)) { if (!paused) human.attack(); }
     else if (['ultimate', config.balance.special_charge.ultimate_key].includes(key)) {
       if (!paused) {
-        const view = arenaMatch ? arenaState : state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
-        const localId = arenaMatch ? arenaState.local_candidate_id : state.local_candidate_id;
+        const view = debateMatch ? debateState : state.phase === 'FIRST_ROUND_DEBATE' ? state.debate : state.campaign_events.find(e => e.debate && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.debate || state;
+        const localId = debateMatch ? debateState.local_candidate_id : state.local_candidate_id;
         const reason = ultimateBlockedReason({ state: view, config }, view.candidates.find(c => c.id === localId));
         if (reason) notify(reason, 4); else human.ultimate();
       }
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (key === 'h') toggleHelp();
-    else if (key === 'f3') { if (!session && !arenaMatch) debug.toggle(); }
+    else if (key === 'f3') { if (!session && !debateMatch) debug.toggle(); }
     else if (key === 'f') {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
         else await document.documentElement.requestFullscreen();
       } catch { notify('Le plein écran est indisponible dans ce navigateur.'); }
-    } else if (!session && !arenaMatch) debug.action(key);
+    } else if (!session && !debateMatch) debug.action(key);
   }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, config.balance.dash.double_tap_window_ms);
   const stylesDisplay = new CampaignStylesDisplay(config, profile, command => {
     if (menu?.active) return;
@@ -237,39 +237,39 @@ async function start() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
     void keepScreenAwake();
   }
-  function stopArena() {
-    arenaMatch = null; arenaState = null; arenaPrevious = null; arenaPending = []; arenaRemoteIds = new Set();
-    arenaDisplay.hide(); document.body.classList.remove('arena-mode'); renderer.resetCamera(); sounds.reset();
+  function stopDebate() {
+    debateMatch = null; debateState = null; debatePrevious = null; debatePending = []; debateRemoteIds = new Set();
+    debateDisplay.hide(); document.body.classList.remove('debate-mode'); renderer.resetCamera(); sounds.reset();
   }
-  /** Prépare un combat d’arène : simulation, puis images des combattants choisis.
-   * En multijoueur, chaque appareil prépare la même arène ; seul l’hôte la fait avancer. */
-  async function prepareArena(setup, onProgress = () => {}, multiplayer = null) {
+  /** Prépare un combat de débat : simulation, puis images des combattants choisis.
+   * En multijoueur, chaque appareil prépare la même débat ; seul l’hôte la fait avancer. */
+  async function prepareDebate(setup, onProgress = () => {}, multiplayer = null) {
     if (!multiplayer) stopSession();
-    stopArena();
+    stopDebate();
     paused = true; help.hidden = true; input.clear(); human.reset(); debug.toggle(false); clock.reset();
-    arenaSetup = setup;
-    arenaMatch = new ArenaMatch(config, { ...setup, seed: Math.floor(Math.random() * 2 ** 31) || 1 }, multiplayer ? null : profile);
+    debateSetup = setup;
+    debateMatch = new DebateMatch(config, { ...setup, seed: Math.floor(Math.random() * 2 ** 31) || 1 }, multiplayer ? null : profile);
     if (multiplayer) {
-      arenaMatch.state.local_candidate_id = multiplayer.localId;
-      arenaRemoteIds = new Set(arenaFighterIds(setup.fighters).filter((id, i) => setup.fighters[i].player && id !== multiplayer.localId));
+      debateMatch.state.local_candidate_id = multiplayer.localId;
+      debateRemoteIds = new Set(debateFighterIds(setup.fighters).filter((id, i) => setup.fighters[i].player && id !== multiplayer.localId));
     }
-    arenaState = arenaMatch.getState(); arenaPrevious = arenaState; arenaDisplay.reset(); arenaDisplay.multiplayer = !!multiplayer;
-    const wanted = arenaAssetIds(renderer.assets.manifest, setup);
+    debateState = debateMatch.getState(); debatePrevious = debateState; debateDisplay.reset(); debateDisplay.multiplayer = !!multiplayer;
+    const wanted = debateAssetIds(renderer.assets.manifest, setup);
     onProgress(0);
     let done = 0;
     await Promise.all(wanted.map(id => renderer.assets.load(id).then(() => onProgress(++done / wanted.length * 0.9))));
     // Un premier dessin révèle les dernières images utiles (poses, décor).
-    drawArenaMode(renderer, arenaState, arenaState, 1, 0);
+    drawDebateMode(renderer, debateState, debateState, 1, 0);
     await Promise.all([...renderer.assets.cache].filter(([, entry]) => !entry.ready).map(([id]) => renderer.assets.load(id)));
-    drawArenaMode(renderer, arenaState, arenaState, 1, 0);
+    drawDebateMode(renderer, debateState, debateState, 1, 0);
     onProgress(1);
   }
-  function playArena() {
-    document.body.classList.add('arena-mode');
+  function playDebate() {
+    document.body.classList.add('debate-mode');
     play();
   }
   function returnHome() {
-    stopArena();
+    stopDebate();
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
     void keepScreenAwake();
     matchDisplay.reset();
@@ -277,7 +277,7 @@ async function start() {
     menu.home();
   }
   async function prepare(candidateId, onProgress = () => {}) {
-    stopArena();
+    stopDebate();
     paused = true; help.hidden = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
     // Décor de la carte : « biomes » pour tous ; le profil betatest peut en choisir un autre dans son profil.
@@ -319,14 +319,14 @@ async function start() {
     } else if (room.phase === 'lobby') {
       updateLobby(menu, session, returnHome);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
-      if (room.mode === 'arena') {
-        void menu.arenaLoading(room.arena, { multiplayer: { localId: arenaFighterOf(room.arena, session.id), ready: () => session.request('ready') } });
+      if (room.mode === 'debate') {
+        void menu.debateLoading(room.debate, { multiplayer: { localId: debateFighterOf(room.debate, session.id), ready: () => session.request('ready') } });
       } else {
         menu.selected = session.candidateId.split(':')[1];
         void menu.loading({ multiplayer: true, ready: () => session.request('ready') });
       }
     } else if (room.phase === 'playing') {
-      if (roomPhase !== 'playing') { menu.close(); if (arenaMatch) playArena(); else play(); }
+      if (roomPhase !== 'playing') { menu.close(); if (debateMatch) playDebate(); else play(); }
       const changed = paused !== room.paused;
       paused = room.paused;
       void keepScreenAwake();
@@ -343,7 +343,7 @@ async function start() {
         if (!session?.host || paused) return;
         const player = session.room.players.find(p => p.id === packet.playerId);
         if (!player) return;
-        const id = arenaMatch ? arenaFighterOf(session.room.arena, player.id) : `candidate:${player.faction}`;
+        const id = debateMatch ? debateFighterOf(session.room.debate, player.id) : `candidate:${player.faction}`;
         const controller = remote.get(id) || { axis: 0, actions: [], seen: 0 };
         controller.seen = performance.now();
         for (const command of packet.commands) {
@@ -357,14 +357,14 @@ async function start() {
         const now = performance.now();
         snapshotInterval = snapshotReceivedAt ? Math.max(50, Math.min(250, now - snapshotReceivedAt)) : 100;
         snapshotReceivedAt = now;
-        if (arenaMatch) { arenaPrevious = arenaState; arenaState = { ...snapshot, local_candidate_id: arenaState.local_candidate_id }; return; }
+        if (debateMatch) { debatePrevious = debateState; debateState = { ...snapshot, local_candidate_id: debateState.local_candidate_id }; return; }
         if (snapshot.multiplayer_profile) stylesDisplay.profile = snapshot.multiplayer_profile;
         previous = state; state = { ...snapshot, local_candidate_id: session.candidateId };
         if (previous.phase !== state.phase) { previous = state; input.clear(); renderer.resetCamera(); }
       },
       ended: message => {
-        // Combat d’arène terminé : on garde l’écran des résultats, la connexion n’est plus utile.
-        if (arenaState?.phase === 'OVER') { stopSession(); return; }
+        // Combat de débat terminé : on garde l’écran des résultats, la connexion n’est plus utile.
+        if (debateState?.phase === 'OVER') { stopSession(); return; }
         returnHome(); menu.page('disconnected', 'La partie a été interrompue.', '<p id="disconnect-message" class="menu-intro" role="alert"></p><button id="back-to-home" class="menu-primary">Retour à l’accueil</button>');
         menu.element.querySelector('#disconnect-message').textContent = message;
         menu.element.querySelector('#back-to-home').onclick = () => menu.home();
@@ -375,7 +375,7 @@ async function start() {
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
   menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: (current, mode) => showMultiplayerSetup(current, connectRoom, mode),
-    arena: { config, prepare: prepareArena, play: playArena } });
+    debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
   if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
@@ -402,8 +402,8 @@ async function start() {
     const activeSession = session;
     if (!session.host && paused) return;
     const action = session.host ? 'snapshot' : 'commands';
-    const data = session.host ? { state: arenaMatch ? arenaState : { ...state, multiplayer_profile: profile } }
-      : { commands: outgoingCommands(arenaMatch ? [...human.commands(arenaState, arenaState.local_candidate_id), ...arenaPending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]) };
+    const data = session.host ? { state: debateMatch ? debateState : { ...state, multiplayer_profile: profile } }
+      : { commands: outgoingCommands(debateMatch ? [...human.commands(debateState, debateState.local_candidate_id), ...debatePending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]) };
     networkBusy = true;
     // A single lost frame is not fatal: heartbeats and connection states decide.
     session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
@@ -426,40 +426,40 @@ async function start() {
     document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
   }
 
-  /** Commandes d’un joueur distant en arène ; sans nouvelles depuis 1 s, son combattant s’arrête. */
-  function remoteArenaCommands(id) {
+  /** Commandes d’un joueur distant en débat ; sans nouvelles depuis 1 s, son combattant s’arrête. */
+  function remoteDebateCommands(id) {
     const controller = remote.get(id);
     const recent = controller && performance.now() - controller.seen < 1000;
     return [{ type: 'SetCampaignActive', candidateId: id, active: true }, { type: 'Move', candidateId: id, axis: recent ? controller.axis : 0 },
       ...(recent ? controller.actions.splice(0) : [{ type: 'CancelAttack', candidateId: id }])];
   }
 
-  /** Une image du mode Arène : simulation à pas fixe, puis affichage. */
-  function arenaFrame(elapsed, now) {
+  /** Une image du mode Débat : simulation à pas fixe, puis affichage. */
+  function debateFrame(elapsed, now) {
     const halted = paused || !help.hidden || document.hidden;
     // Un invité ne simule pas : il affiche les états envoyés par l’hôte.
     const guest = session && !session.host;
     if (!halted && !guest) {
       clock.advance(elapsed, () => {
-        arenaPrevious = arenaState;
-        const localId = arenaState.local_candidate_id;
-        const commands = arenaState.candidates.flatMap(c => c.id === localId ? human.commands(arenaState, c.id) : arenaRemoteIds.has(c.id) ? remoteArenaCommands(c.id) : arenaModeAICommands(arenaState, config, c.id));
-        arenaMatch.step([...commands, ...arenaPending.splice(0)]);
-        arenaState = arenaMatch.getState();
+        debatePrevious = debateState;
+        const localId = debateState.local_candidate_id;
+        const commands = debateState.candidates.flatMap(c => c.id === localId ? human.commands(debateState, c.id) : debateRemoteIds.has(c.id) ? remoteDebateCommands(c.id) : debateModeAICommands(debateState, config, c.id));
+        debateMatch.step([...commands, ...debatePending.splice(0)]);
+        debateState = debateMatch.getState();
       });
     }
     networkFrame(elapsed);
-    const fighter = arenaState.candidates.find(c => c.id === arenaState.local_candidate_id);
+    const fighter = debateState.candidates.find(c => c.id === debateState.local_candidate_id);
     const alpha = halted ? 1 : guest ? Math.min(1, (now - snapshotReceivedAt) / snapshotInterval) : clock.alpha;
-    arenaDisplay.update(arenaState, halted ? 0 : elapsed);
-    damageFeedback.update(arenaState, fighter, alpha, halted || arenaState.phase === 'OVER');
-    updateCombatButtons(arenaState, fighter);
+    debateDisplay.update(debateState, halted ? 0 : elapsed);
+    damageFeedback.update(debateState, fighter, alpha, halted || debateState.phase === 'OVER');
+    updateCombatButtons(debateState, fighter);
     const controls = document.getElementById('touch-controls');
-    controls.hidden = halted || arenaState.phase === 'OVER' || fighter.is_ko;
-    controls.classList.toggle('with-drop', !!arenaState.platforms.length);
-    sounds.update(arenaState, { paused: halted });
+    controls.hidden = halted || debateState.phase === 'OVER' || fighter.is_ko;
+    controls.classList.toggle('with-drop', !!debateState.platforms.length);
+    sounds.update(debateState, { paused: halted });
     setText(notice, ''); notice.hidden = true;
-    drawArenaMode(renderer, arenaState, halted ? arenaState : arenaPrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
+    drawDebateMode(renderer, debateState, halted ? debateState : debatePrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
   }
 
   function frame(now) {
@@ -468,7 +468,7 @@ async function start() {
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
-      if (arenaMatch) { arenaFrame(elapsed, now); requestAnimationFrame(frame); return; }
+      if (debateMatch) { debateFrame(elapsed, now); requestAnimationFrame(frame); return; }
       if (!paused && !document.hidden && (!session || session.host)) {
         clock.advance(elapsed * simulationSpeed, () => {
           previous = state;
@@ -491,9 +491,9 @@ async function start() {
       const waiting = session && state.campaign_style_selection && state.campaign_style_selection.candidate_id !== state.local_candidate_id;
       const networkStatus = document.getElementById('network-status'); networkStatus.hidden = !waiting;
       if (waiting) networkStatus.textContent = 'Un autre joueur choisit son style. La campagne reprendra dès qu’il aura terminé.';
-      document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.arena && e.participants.includes(state.local_candidate_id)));
+      document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(state.local_candidate_id)));
       const candidate = matchDisplay.viewedCandidate(state);
-      const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena || state;
+      const combatView = state.phase === 'FIRST_ROUND_DEBATE' ? state.debate : state.campaign_events.find(e => e.debate && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.debate || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
       damageFeedback.update(combatView, fighter, paused ? 1 : clock.alpha, paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       updateCombatButtons(combatView, fighter);
@@ -510,6 +510,7 @@ async function start() {
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));
       }
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      document.getElementById('touch-controls').classList.remove('with-drop'); // « Descendre » n’existe que dans le studio télé du mode Débat
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       if (noticeRemaining <= 0) setText(notice, '');
       notice.hidden = ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase);

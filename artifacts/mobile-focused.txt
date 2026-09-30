@@ -49,8 +49,8 @@ ok 6 - philippe : invulnérabilité 4 ticks, puis dégâts pendant la fin du das
   ---
   duration_ms: 11.4316
   ...
-# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
-ok 7 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et arène interdite
+# Subtest: Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
+ok 7 - Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdite
   ---
   duration_ms: 61.2474
   ...
@@ -69,48 +69,48 @@ ok 10 - Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; c
   ---
   duration_ms: 36.1923
   ...
-# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en arène
-ok 11 - Hologrammes : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Hologrammes : aucune activation sur attaque, commande manuelle en débat
+ok 11 - Hologrammes : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 8.629
   ...
-# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
-ok 12 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
+ok 12 - Déferlante encapuchonnée : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 9.3447
   ...
-# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en arène
-ok 13 - Gilet jaune : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Gilet jaune : aucune activation sur attaque, commande manuelle en débat
+ok 13 - Gilet jaune : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 8.5483
   ...
-# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
-ok 14 - Vague bleu marine : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
+ok 14 - Vague bleu marine : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 10.8753
   ...
-# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
-ok 15 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
+ok 15 - Invocation Zemmour : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 11.4516
   ...
-# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en arène
-ok 16 - Bardellisation : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Bardellisation : aucune activation sur attaque, commande manuelle en débat
+ok 16 - Bardellisation : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 10.8108
   ...
-# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en arène
-ok 17 - Protection CRS : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Protection CRS : aucune activation sur attaque, commande manuelle en débat
+ok 17 - Protection CRS : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 7.8358
   ...
-# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
-ok 18 - Écharpe du maire : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
+ok 18 - Écharpe du maire : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 9.0895
   ...
-# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en arène
-ok 19 - Super Européiste : aucune activation sur attaque, commande manuelle en arène
+# Subtest: Super Européiste : aucune activation sur attaque, commande manuelle en débat
+ok 19 - Super Européiste : aucune activation sur attaque, commande manuelle en débat
   ---
   duration_ms: 9.2388
   ...

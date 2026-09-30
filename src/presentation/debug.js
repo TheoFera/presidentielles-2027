@@ -20,7 +20,7 @@ export class DebugPanel {
     this.inspectNpc = document.getElementById('inspect-npc');
     this.inspectBuilding = document.getElementById('inspect-building');
     this.spawnFaction = document.getElementById('spawn-faction');
-    for (const [id, type] of [['force-j0', 'DebugForceJ0'], ['start-arena', 'DebugStartArena'], ['finish-arena', 'DebugFinishArena'], ['start-sprint', 'DebugStartSprint'], ['sprint-10', 'DebugSprint10'], ['force-tie', 'DebugForceTie'], ['neutral-all', 'DebugNeutral50All']]) {
+    for (const [id, type] of [['force-j0', 'DebugForceJ0'], ['start-debate', 'DebugStartDebate'], ['finish-debate', 'DebugFinishDebate'], ['start-sprint', 'DebugStartSprint'], ['sprint-10', 'DebugSprint10'], ['force-tie', 'DebugForceTie'], ['neutral-all', 'DebugNeutral50All']]) {
       document.getElementById(id).addEventListener('click', () => callbacks.queue({ type }));
     }
     document.getElementById('speed-five').addEventListener('click', callbacks.speedFive);
@@ -157,17 +157,17 @@ export class DebugPanel {
   update(state, fps) {
     this.campaignReport.textContent = campaignDebugReport(state);
     if (!this.visible) return;
-    const phaseNames = { CAMPAIGN: 'Campagne', FIRST_ROUND_RESULTS: 'Résultats du premier tour', FIRST_ROUND_ARENA: 'Premier tour · arène', SECOND_ROUND_SPRINT: 'Sprint du second tour', RESULTS: 'Résultat final' };
+    const phaseNames = { CAMPAIGN: 'Campagne', FIRST_ROUND_RESULTS: 'Résultats du premier tour', FIRST_ROUND_DEBATE: 'Premier tour · débat', SECOND_ROUND_SPRINT: 'Sprint du second tour', RESULTS: 'Résultat final' };
     const round = value => typeof value === 'number' ? Math.round(value * 1000) / 1000 : value;
     document.getElementById('match-debug-text').textContent = [
       `Phase : ${phaseNames[state.phase]}`, `Horloge du monde : ${state.tick} · horloge de partie : ${state.match_tick}`,
-      state.arena ? `Arène : ${(state.arena.tick / this.config.balance.simulation_architecture.fixed_tick_hz).toFixed(1)} s · ${state.arena.hit_count} impacts\n${state.arena.candidates.map(c => `${this.config.prototype.presentation.factions[c.faction_id].name} : ${round(c.arena_hp)} / ${round(c.arena_initial_hp)}`).join('\n')}` : '',
+      state.debate ? `Débat : ${(state.debate.tick / this.config.balance.simulation_architecture.fixed_tick_hz).toFixed(1)} s · ${state.debate.hit_count} impacts\n${state.debate.candidates.map(c => `${this.config.prototype.presentation.factions[c.faction_id].name} : ${round(c.debate_hp)} / ${round(c.debate_initial_hp)}`).join('\n')}` : '',
       `Éliminé : ${this.config.prototype.presentation.factions[state.eliminated_faction]?.name || 'aucun'}`,
       `Score autoritaire réel : ${JSON.stringify(state.actualGameState.national_support, (key, value) => round(value))}`,
       `Sous-zones ayant basculé : ${state.telemetry.changed_subzone_ids.length} · anciens PNJ reconvertis : ${state.telemetry.reconverted_npc_ids.length} · Meetings : ${state.telemetry.sprint_meetings}`,
       state.result ? JSON.stringify(state.telemetry, (key, value) => round(value), 2) : '',
     ].filter(Boolean).join('\n');
-    const combatView = state.phase === 'FIRST_ROUND_ARENA' ? state.arena : state.campaign_events.find(e => e.arena && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.arena;
+    const combatView = state.phase === 'FIRST_ROUND_DEBATE' ? state.debate : state.campaign_events.find(e => e.debate && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.debate;
     if (combatView) document.getElementById('match-debug-text').textContent += combatReport(combatView, this.config, combatView.candidates.find(c => c.id === state.local_candidate_id));
     const cfg = this.config;
     const hz = cfg.balance.simulation_architecture.fixed_tick_hz;

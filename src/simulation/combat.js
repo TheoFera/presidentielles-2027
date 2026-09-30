@@ -36,13 +36,13 @@ export function attackInput(sim, actor, type) {
       electoral_damage: b.electoral_damage_on_finisher_percent_points });
     return;
   }
-  if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_arena_id || actor.crisis_meeting_id && type !== 'Jump'
+  if (!actor.campaign_active || actor.is_ko || actor.eliminated || actor.campaign_debate_id || actor.crisis_meeting_id && type !== 'Jump'
     || c.stun_ticks) return;
   // Le saut interrompt un coup, sauf la réception d’un plongeon (sinon, plongeons à l’infini).
   const diveRecovery = sim.state.attacks.some(a => a.id === c.attack_id && a.kind === 'DIVE');
   if (type === 'Jump' && !airborne(actor) && !diveRecovery && Math.abs(c.knockback_velocity) <= 0.02) {
     cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.height = 0;
-    // Sur un pupitre du mode Arène, le saut part de la hauteur du pupitre.
+    // Sur un pupitre du mode Débat, le saut part de la hauteur du pupitre.
     if (sim.state.platforms?.length) { c.jump_base = actor.platform_id ? sim.state.platforms.find(p => p.id === actor.platform_id).height : 0; c.height = c.jump_base; c.drop_through_id = null; actor.platform_id = null; }
     actor.podium_site_id = null;
     actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
@@ -88,7 +88,7 @@ export function wallBlockedPosition(sim, actor, desired) {
 }
 
 /** Les candidats adverses ne se superposent pas au sol : en se collant, ils se repoussent
- * à parts égales (ou entièrement l’autre si l’un est contre un bord de l’arène).
+ * à parts égales (ou entièrement l’autre si l’un est contre un bord du débat).
  * Sauter par-dessus reste possible, le dash traverse, les PNJ ne sont pas concernés. */
 export function separateCandidates(sim) {
   const { state } = sim, width = sim.config.balance.candidate_combat.body_width;
@@ -140,7 +140,7 @@ function comboCancel(sim, actor) {
 function startCandidateAttack(sim, actor) {
   const c = actor.combat; const b = sim.config.balance;
   const cancel = comboCancel(sim, actor);
-  if (actor.campaign_arena_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) && !cancel || !actor.campaign_active || actor.is_ko) return;
+  if (actor.campaign_debate_id || actor.crisis_meeting_id || actor.eliminated || c.buffer_until_tick < sim.state.tick || interrupted(actor) && !cancel || !actor.campaign_active || actor.is_ko) return;
   // Pas de plongeon au ras du sol : l’appui reste en mémoire jusqu’à la hauteur minimale.
   if (diving(actor) || airborne(actor) && c.height < b.candidate_combat.dive_min_height) return;
   c.buffer_until_tick = -1;
@@ -219,7 +219,7 @@ function triggerSpecial(sim, actor) {
     const hologram = kind === 'HOLOGRAMS';
     const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
     power.expires_tick += sim.secondsToTicks(s.duration_seconds + (hologram ? s.appearance_seconds : 0));
-    const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i - (s.count - 1) / 2) * s.spawn_spacing)
+    const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i % 2 ? 1 : -1) * (s.spawn_distance + Math.floor(i / 2) * s.spawn_spacing))
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, ...(actor.team_id ? { team_id: actor.team_id } : {}), temporary: true, expired: false,
@@ -242,7 +242,7 @@ function meleeTargets(sim, owner, attack) {
 
 function updateAttacks(sim) {
   for (const attack of [...sim.state.attacks]) {
-    if (sim.state.arena_bounds && sim.state.eliminated_faction) break;
+    if (sim.state.debate_bounds && sim.state.eliminated_faction) break;
     const actor = combatActors(sim.state).find(a => a.id === attack.owner_id);
     if (!actor || actor.combat.attack_id !== attack.id || !actor.faction_id || actor.expired) continue;
     if (actor.combat.hitstop_ticks > 0) continue;
@@ -272,14 +272,16 @@ function updateAttacks(sim) {
 function updateProjectiles(sim) {
   const { state, config } = sim;
   for (const p of state.projectiles) {
-    if (state.arena_bounds && state.eliminated_faction) break;
+    if (state.debate_bounds && state.eliminated_faction) break;
     const owner = combatActors(state).find(a => a.id === p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
     if(p.launch_tick!=null&&state.tick<p.launch_tick)continue;
     if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;}
     if(p.kind==='MOLOTOV'&&!p.launched){
       const target=combatActors(state).find(actor=>actor.id===p.target_id&&enemies(owner,actor));
-      const targetX=target?.x??p.target_x??combatPosition(state,owner.x+owner.facing*6);
+      const visible=config.prototype.world.units_per_screen/2;
+      const seen=target&&Math.abs(combatDelta(state,owner.x,target.x))<=visible;
+      const targetX=seen?target.x:combatPosition(state,owner.x+owner.facing*6);
       const delta=combatDelta(state,owner.x,targetX);
       p.x=owner.x;p.target_x=targetX;p.direction=Math.sign(delta)||owner.facing;
       p.remaining_range=Math.max(.1,Math.abs(delta));p.initial_range=p.remaining_range;p.launched=true;
@@ -294,7 +296,7 @@ function updateProjectiles(sim) {
       && combatDelta(state, p.x, t.x) * p.direction <= step + radius)
       .sort((a, b) => distance(state, p.x, a.x) - distance(state, p.x, b.x) || stableIdOrder(a, b));
     for (const target of targets) {
-      if (state.arena_bounds && state.eliminated_faction) break;
+      if (state.debate_bounds && state.eliminated_faction) break;
       let damage = p.damage;
       if (p.kind === 'WAVE') {
         const s = config.balance.specials.le_pen_navy_wave;
@@ -309,7 +311,7 @@ function updateProjectiles(sim) {
     }
     const nextX = p.x + p.direction * step;
     p.x = combatPosition(state, nextX); p.remaining_range -= step;
-    if (state.arena_bounds && p.x !== nextX) p.remaining_range = 0;
+    if (state.debate_bounds && p.x !== nextX) p.remaining_range = 0;
   }
   state.projectiles = state.projectiles.filter(p => p.remaining_range > 0);
 }

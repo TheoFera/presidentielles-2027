@@ -6,7 +6,7 @@ Ce dossier est la **source de vérité** pour construire la greybox jouable du j
 
 Tester le gameplay avant la production graphique : déplacement, caméra, recrutement par proximité,
 implantation locale, bâtiments, unités autonomes, combat, influence électorale, premier tour,
-arène médiatique et sprint final.
+débat médiatique et sprint final.
 
 ## Changements majeurs V0.3
 

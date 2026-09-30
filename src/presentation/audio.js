@@ -69,11 +69,11 @@ export function soundCues(events = [], since, localId, faction) {
     else if (event.type === 'HitResolved' && event.source_id === localId) cues.push('hit');
     else if (event.type === 'HitResolved' && event.target_id === localId) cues.push('hurt');
     else if (event.type === 'CandidateKO' && mine) cues.push('ko');
-    else if (event.type === 'ArenaKnockout') cues.push('ko', 'cheer');
-    else if (event.type === 'ArenaFightStarted') cues.push('tick-final');
+    else if (event.type === 'DebateKnockout') cues.push('ko', 'cheer');
+    else if (event.type === 'DebateFightStarted') cues.push('tick-final');
     else if (event.type === 'UltimateActivated' && mine) cues.push('ultimate');
     else if (event.type === 'UltimateReady' && mine) cues.push('ready');
-    else if (event.type === 'StartCampaignEvent') cues.push('alert');
+    else if (event.type === 'StartCampaignEvent') cues.push('news');
     else if (event.type === 'DayChanged' && event.days_remaining > 0 && event.days_remaining <= 5) cues.push('tick');
   }
   return { cues, last };
@@ -205,7 +205,8 @@ export class GameAudio {
       case 'ko': this.tone(440, t, 0.7, 'sawtooth', 0.09, bus, 1800, 55); break;
       case 'ultimate': this.tone(200, t, 0.4, 'sawtooth', 0.08, bus, 2500, 1200); this.burst(t + 0.1, 0.4, 0.12, bus, 'highpass', 3000, 0.1); break;
       case 'ready': ['G5', 'B5', 'D6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.16, 'sine', 0.16, bus)); break;
-      case 'alert': this.tone(f(n('A5')), t, 0.09, 'square', 0.07, bus, 3000); this.tone(f(n('A5')), t + 0.14, 0.09, 'square', 0.07, bus, 3000); break;
+      // Jingle « flash info » : arpège montant puis double accord, façon générique de journal télévisé.
+      case 'news': ['G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.07, 0.09, 'square', 0.07, bus, 4000)); this.kick(t + 0.22, bus, 0.35); [0.22, 0.42].forEach(delay => ['C5', 'G5', 'C6'].forEach(note => this.tone(f(n(note)), t + delay, 0.16, 'square', 0.045, bus, 3200))); break;
       case 'tick': this.tone(1000, t, 0.05, 'sine', 0.16, bus); break;
       case 'tick-final': this.tone(1500, t, 0.08, 'sine', 0.2, bus); break;
       default: break;
@@ -224,8 +225,8 @@ export class SoundDirector {
     const local = state.candidates.find(c => c.id === state.local_candidate_id), faction = local?.faction_id;
     if (state.phase !== this.phase) {
       const previous = this.phase; this.phase = state.phase;
-      if (state.mode === 'ARENA') {
-        // Mode Arène : musique nerveuse pendant le combat, jingle à la fin.
+      if (state.mode === 'DEBATE') {
+        // Mode Débat : musique nerveuse pendant le combat, jingle à la fin.
         if (state.phase === 'OVER') { audio.music(null); if (previous !== null) audio.jingle(state.winner_id === state.local_candidate_id ? 'victory' : 'defeat', 0.4); }
         else audio.music('sprint');
       } else if (state.phase === 'CAMPAIGN') audio.music('campaign');
@@ -244,7 +245,7 @@ export class SoundDirector {
     const { cues, last } = soundCues(state.events, this.lastEvent, state.local_candidate_id, faction);
     this.lastEvent = last;
     if (!paused) for (const cue of cues) audio.play(cue);
-    if (state.mode === 'ARENA' && state.phase === 'COUNTDOWN' && !paused) {
+    if (state.mode === 'DEBATE' && state.phase === 'COUNTDOWN' && !paused) {
       const second = Math.ceil(state.countdown_ticks / this.hz);
       if (second !== this.second && second > 0) audio.play('tick');
       this.second = second;

@@ -81,4 +81,53 @@ try {
     await page.screenshot({ path: path.join(output, `pins-${biome}.png`), fullPage: true });
   }
   console.log('Portraits vérifiés :', results.join(', '));
+  let checked = 0;
+  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) {
+    checked += await page.evaluate(async ({ biome, config }) => {
+      const { drawIllustratedCharacter } = await import('/src/presentation/illustrated-characters.js');
+      const { npcSpriteFrame } = await import('/src/presentation/npc-sprite-geometry.js');
+      const { visualManifest } = await import('/src/presentation/visual-manifest.js');
+      const canvas = document.querySelector('canvas'); canvas.width = 1000; canvas.height = 1000;
+      const ctx = canvas.getContext('2d'); ctx.fillStyle = '#eee2cc'; ctx.fillRect(0, 0, 1000, 1000);
+      const probe = document.createElement('canvas'); probe.width = 200; probe.height = 200;
+      const probeCtx = probe.getContext('2d', { willReadFrequently: true });
+      const state = { tick: 100, npcs: [], attacks: [], buildings: [], candidates: [],
+        world: { subzones: [{ id: 'zone', biome_id: biome, start: 0, end: 10 }] } };
+      let activeImage;
+      const renderer = { ctx, metrics: { groundY: 0, characterHeight: 170 }, p: config.prototype.presentation,
+        config, assets: { get: () => activeImage, load: async () => null } };
+      for (let i = 0; i < 20; i++) {
+        const extents = [];
+        const column = i % 5, row = Math.floor(i / 5);
+        renderer.metrics.groundY = row * 250 + 210;
+        const ground = renderer.metrics.groundY + renderer.metrics.characterHeight * .06;
+        ctx.strokeStyle = '#9e8970'; ctx.beginPath();
+        ctx.moveTo(column * 200 + 5, ground); ctx.lineTo(column * 200 + 195, ground); ctx.stroke();
+        for (const [side, role] of ['SYMPATHISANT', 'MILITANT'].entries()) {
+          const id = `npc-${biome}-${i}${side ? '-militant' : ''}`;
+          const image = new Image(); image.src = visualManifest[id].file; await image.decode(); activeImage = image;
+          const frame = npcSpriteFrame(image);
+          const height = 155, width = height * frame.width / frame.height;
+          probeCtx.clearRect(0, 0, 200, 200);
+          probeCtx.drawImage(image, frame.x, frame.y, frame.width, frame.height, 100 - width / 2, 180 - height, width, height);
+          const pixels = probeCtx.getImageData(0, 0, 200, 200).data;
+          let top = 200, bottom = -1;
+          for (let y = 0; y < 200; y++) for (let x = 0; x < 200; x++) {
+            if (pixels[(y * 200 + x) * 4 + 3] >= 16) { top = Math.min(top, y); bottom = Math.max(bottom, y); }
+          }
+          if (Math.abs(bottom - 179) > 1) throw new Error(`Pieds décollés du sol : ${id}, ${bottom}`);
+          extents.push({ top, bottom });
+          const npc = { id: `npc:${i + 1}`, origin_subzone_id: 'zone', role, faction_id: 'le_pen',
+            x: 4, facing: 1, combat: { height: 0 }, converted_tick: -1 };
+          drawIllustratedCharacter(renderer, npc, column * 200 + 50 + side * 100, state);
+        }
+        if (Math.abs(extents[0].top - extents[1].top) > 1) throw new Error(`Hauteurs différentes : ${biome}-${i}`);
+        ctx.fillStyle = '#182a32'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(`${biome}-${i}`, column * 200 + 100, row * 250 + 245);
+      }
+      return 20;
+    }, { biome, config: campaignConfig() });
+    await page.screenshot({ path: path.join(output, `tailles-${biome}.png`), fullPage: true });
+  }
+  console.log(`${checked} paires vérifiées : même hauteur visible et pieds au sol.`);
 } finally { await browser.close(); }

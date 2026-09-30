@@ -9,10 +9,10 @@ export function validateCampaignSnapshot(state, config, fail) {
  for(const e of state.campaign_events){
  if(!e||typeof e.id!=='string'||ids.has(e.id)||!families.includes(e.family)||!['ACTIVE','RESOLVED','EXPIRED'].includes(e.status)||!['MINOR','MAJOR','CRISIS'].includes(e.intensity)||!Number.isInteger(e.start_tick)||e.start_tick<0||!(e.end_tick===null||Number.isInteger(e.end_tick)&&e.end_tick>=e.start_tick)||!e.parameters||!Array.isArray(e.target_candidate_ids)||e.target_candidate_ids.some(id=>!state.candidates.some(c=>c.id===id))||!state.buildings.some(b=>b.id===e.target_site_id))fail('événement de campagne invalide');
  ids.add(e.id);
- if(e.arena?.ai_difficulty!==undefined&&(!validAIDifficulty(e.arena.ai_difficulty)||e.arena.ai_difficulty!==(state.ai_difficulty??config.balance.ai?.difficulty??'normal')))fail('difficulté d’arène de campagne incohérente');
+ if(e.debate?.ai_difficulty!==undefined&&(!validAIDifficulty(e.debate.ai_difficulty)||e.debate.ai_difficulty!==(state.ai_difficulty??config.balance.ai?.difficulty??'normal')))fail('difficulté de débat de campagne incohérente');
  if(!e.style_snapshot||Object.keys(CAMPAIGN_STYLES).some(f=>!e.style_snapshot[f]||!e.style_snapshot[f].biome_multipliers||config.layout.biomes.some(b=>!finite(e.style_snapshot[f].biome_multipliers[b.id]))))fail('paramètres de style de l’événement invalides');
  if(e.attempt&&(!state.candidates.some(c=>c.id===e.attempt.candidate_id)||!finite(e.attempt.start_tick)||!finite(e.attempt.hits)))fail('tentative de Meeting invalide');
- if(e.arena&&(!Array.isArray(e.arena.candidates)||e.arena.candidates.some(c=>!finite(c.arena_hp)||!finite(c.x)||!c.combat)||!finite(e.arena.tick)||!Array.isArray(e.arena.attacks)))fail('arène de campagne invalide');
+ if(e.debate&&(!Array.isArray(e.debate.candidates)||e.debate.candidates.some(c=>!finite(c.debate_hp)||!finite(c.x)||!c.combat)||!finite(e.debate.tick)||!Array.isArray(e.debate.attacks)))fail('débat de campagne invalide');
  }
  if(JSON.stringify(d.active_event_ids)!==JSON.stringify(state.campaign_events.filter(e=>e.status==='ACTIVE').map(e=>e.id)))fail('pile d’événements incohérente');
  for(const c of state.candidates){
@@ -21,7 +21,7 @@ export function validateCampaignSnapshot(state, config, fail) {
  if(c.bardella_form&&(!c.bardellisation_used||c.current_campaign_style!=='le_pen_gouvernement'))fail('forme Bardella incohérente');
  if(c.style_hold&&(!Number.isInteger(c.style_hold.start_tick)||c.style_hold.start_tick<0||c.style_hold.start_tick>state.tick||!finite(c.style_hold.hits)||!finite(c.style_hold.x)))fail('maintien de style invalide');
  if(c.ultimate_effect&&(!['FIRE','SCARF','EUROPE'].includes(c.ultimate_effect.kind)||!Number.isInteger(c.ultimate_effect.expires_tick)||c.ultimate_effect.expires_tick<=state.tick||c.is_ko))fail('effet temporaire du candidat invalide');
- for(const field of ['campaign_arena_id','crisis_meeting_id'])if(c[field]!==null&&!state.campaign_events.some(e=>e.id===c[field]&&e.status==='ACTIVE'))fail('activité de campagne orpheline');
+ for(const field of ['campaign_debate_id','crisis_meeting_id'])if(c[field]!==null&&!state.campaign_events.some(e=>e.id===c[field]&&e.status==='ACTIVE'))fail('activité de campagne orpheline');
  }
  if(state.campaign_style_selection && (!state.candidates.some(c=>c.id===state.campaign_style_selection.candidate_id)||typeof state.campaign_style_selection.mandatory!=='boolean'))fail('sélection de style invalide');
  if(d.event_history.some(e=>!ids.has(e.id)||!families.includes(e.family)||!finite(e.day)))fail('historique de campagne invalide');
