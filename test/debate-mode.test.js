@@ -118,7 +118,8 @@ test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché
   const debate = new DebateSimulation(config, match.state);
   assert.equal(hit(debate, rival, player, { kind: 'CANDIDATE', step: 1, damage: 1, knockback: 0, direction: -1 }, 'sol'), null);
   rival.x = 20.5;
-  run(match, s => [{ type: 'DropDown', candidateId: s.candidates[0].id }], 1);
+  run(match, s => [{ type: 'Move', candidateId: s.candidates[0].id, axis: 1 }], 25);
+  run(match, s => [{ type: 'Move', candidateId: s.candidates[0].id, axis: 0 }], 1);
   run(match, () => [], 30);
   assert.equal(player.platform_id, null);
   assert.equal(player.combat.height, 0);

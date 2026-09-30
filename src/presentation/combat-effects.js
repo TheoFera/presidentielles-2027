@@ -58,8 +58,6 @@ export function drawCombatEffects(renderer, state, debug) {
         const b=config.balance.specials.zemmour, w=m.pixelsPerUnit*b.bubble_width_units, h=m.characterHeight*b.bubble_height;
         const y=m.groundY-m.characterHeight*(b.bubble_bottom+b.bubble_height);
         ctx.beginPath();ctx.roundRect(x-w/2,y,w,h,Math.min(5,h/3));ctx.fill();ctx.stroke();
-        ctx.fillStyle=ctx.strokeStyle;ctx.font=`bold ${Math.max(7,Math.min(10,h*.7))}px monospace`;ctx.textAlign='center';
-        ctx.fillText(p.label||'!?',x,y+h*.76,Math.max(1,w-4));
         continue;
       }
       const y = m.groundY - m.characterHeight * 0.9;

@@ -140,11 +140,6 @@ export class DebateMatch {
     if (s.phase !== 'FIGHT') return;
     const c = s.candidates.find(c => c.id === command?.candidateId);
     if (!c || c.is_ko) return;
-    if (command.type === 'DropDown') {
-      // ↓ sur un pupitre : on se laisse tomber à travers.
-      if (c.platform_id && !airborne(c) && !c.combat.stun_ticks && !c.combat.attack_id && !c.dash_active) startPlatformFall(debate, c, c.platform_id);
-      return;
-    }
     if (['Move', 'Attack', 'SetCampaignActive', 'PressAttack', 'ReleaseAttack', 'CancelAttack', 'Jump', 'Dash', 'ActivateUltimate'].includes(command.type)) debate.applyCommand(command);
   }
   step(commands = []) {
@@ -224,7 +219,7 @@ function platformCommands(state, config, c, target) {
   if (theirs < mine) {
     // Adversaire plus bas : se laisser tomber s’il est juste dessous, sinon marcher dans le vide vers lui.
     const own = state.platforms.find(p => p.id === c.platform_id);
-    if (own && Math.abs(target.x - own.x) <= own.half_width + 0.6) return [...base, { type: 'Move', candidateId: c.id, axis: 0 }, { type: 'DropDown', candidateId: c.id }];
+    if (own && Math.abs(target.x - own.x) <= own.half_width + 0.6) return [...base, move(own.x + (Math.sign(target.x - c.x) || c.facing) * (own.half_width + 0.5))];
     return [...base, move(target.x)];
   }
   if (!step) return null;

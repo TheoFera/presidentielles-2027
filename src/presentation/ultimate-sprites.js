@@ -154,8 +154,7 @@ export function drawUltimateProjectile(renderer,p,state) {
   if(p.kind==='BUBBLE') {
     const b=config.balance.specials.zemmour,w=m.pixelsPerUnit*b.bubble_width_units,h=m.characterHeight*b.bubble_height;
     const y=m.groundY-m.characterHeight*(b.bubble_bottom+b.bubble_height);
-    if(!drawUltimateEffect(renderer,'zemmour',4+cycle(state.tick,hz,4,12),x-(p.direction||1)*w/2,y,w,h,p.direction))return false;
-    const ctx=renderer.ctx;ctx.save();ctx.fillStyle='#24354d';ctx.font=`bold ${Math.max(7,Math.min(10,h*.7))}px monospace`;ctx.textAlign='center';ctx.fillText(p.label||'!?',x,y+h*.75,Math.max(1,w-4));ctx.restore();return true;
+    return drawUltimateEffect(renderer,'zemmour',4+cycle(state.tick,hz,4,12),x-(p.direction||1)*w/2,y,w,h,p.direction);
   }
   return false;
 }

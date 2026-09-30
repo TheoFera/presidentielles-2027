@@ -181,7 +181,6 @@ async function start() {
     if (menu?.active) return;
     if (!help.hidden) { if (['h', 'escape'].includes(key)) toggleHelp(); return; }
     if (!debateMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
-    if (debateMatch && ['arrowdown', 's', 'drop'].includes(key)) { if (!paused) debatePending.push({ type: 'DropDown', candidateId: debateState.local_candidate_id }); return; }
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
     else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
@@ -456,7 +455,6 @@ async function start() {
     updateCombatButtons(debateState, fighter);
     const controls = document.getElementById('touch-controls');
     controls.hidden = halted || debateState.phase === 'OVER' || fighter.is_ko;
-    controls.classList.toggle('with-drop', !!debateState.platforms.length);
     sounds.update(debateState, { paused: halted });
     setText(notice, ''); notice.hidden = true;
     drawDebateMode(renderer, debateState, halted ? debateState : debatePrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
@@ -510,7 +508,6 @@ async function start() {
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));
       }
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('touch-controls').classList.remove('with-drop'); // « Descendre » n’existe que dans le studio télé du mode Débat
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       if (noticeRemaining <= 0) setText(notice, '');
       notice.hidden = ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase);

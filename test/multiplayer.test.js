@@ -422,7 +422,7 @@ test('Salon de débat : ouvert dès deux joueurs, même candidat avec un autre s
   assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);
   assert.equal((await request('ready', auth)).status, 200);
   assert.equal((await request('ready', guestAuth)).status, 200);
-  assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'DropDown' }] })).status, 200);
+  assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'Jump' }] })).status, 200);
 });
 
 test('Diagnostic réseau : adresses visibles, masquées et réseau commun', () => {

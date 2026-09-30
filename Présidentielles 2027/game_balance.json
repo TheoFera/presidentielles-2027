@@ -258,10 +258,6 @@
       "projectile_range": 35,
       "damage": 4,
       "knockback": 0,
-      "bubble_labels": [
-        "ARABES",
-        "ISLAM"
-      ],
       "bubble_bottom": 0.62,
       "bubble_height": 0.14,
       "bubble_width_units": 0.8,

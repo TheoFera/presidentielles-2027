@@ -110,10 +110,6 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 .debate-result-actions button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 .debate-result-actions .debate-primary { border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); text-shadow: 1px 2px 1px #092309; }
 
-/* Bouton tactile pour descendre d’un pupitre (studio télé seulement). */
-#touch-controls #drop-touch { display: none; grid-column: 1; grid-row: 1; }
-#touch-controls.with-drop #drop-touch { display: block; }
-@media (hover: hover) and (pointer: fine) and (min-width: 901px) { #touch-controls.with-drop #drop-touch { display: none; } }
 
 /* Sur téléphone en paysage, les silhouettes restent visibles. */
 @media (max-height: 520px) {

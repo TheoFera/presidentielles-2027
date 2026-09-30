@@ -69,7 +69,7 @@ export function startStyleUltimate(sim, actor, power) {
   } else if (power.kind === 'ZEMMOUR') {
     const s = settings.zemmour;
     power.expires_tick += sim.secondsToTicks(s.duration_seconds);
-    temporary(sim, actor, power, 'ZEMMOUR', actor.x - actor.facing * 1.5, s.durability, { next_shot_tick: sim.state.tick, shot_count: 0 });
+    temporary(sim, actor, power, 'ZEMMOUR', actor.x - actor.facing * 1.5, s.durability, { next_shot_tick: sim.state.tick });
   } else if (power.kind === 'FIRE') {
     const visible = sim.config.prototype.world.units_per_screen / 2;
     const target = nearestEnemy(sim.state,actor,visible,t=>t.role==='CANDIDAT')
@@ -124,7 +124,7 @@ export function updateStyleTemporary(sim, unit) {
     const target = nearestEnemy(state, unit, state.world.length, t => t.role === 'CANDIDAT') || nearestEnemy(state, unit, s.projectile_range);
     if (target && state.tick >= unit.next_shot_tick) {
       unit.facing = Math.sign(combatDelta(state, unit.x, target.x)) || unit.facing;
-      createStyleProjectile(sim, unit, { id: unit.power_id }, 'BUBBLE', s, { target_id: target.id, label: s.bubble_labels[unit.shot_count++ % s.bubble_labels.length] });
+      createStyleProjectile(sim, unit, { id: unit.power_id }, 'BUBBLE', s, { target_id: target.id });
       unit.next_shot_tick = state.tick + sim.secondsToTicks(1 / s.shots_per_second);
     }
     return true;

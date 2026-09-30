@@ -38,7 +38,6 @@ export function validateCampaignConfig(config){
  for(const key of ['surge','fire','zemmour','scarf','europe']){
    const power=config.balance.specials[key];if(!power||Object.entries(power).some(([field,value])=>typeof value==='number'&&(field==='knockback'?(!Number.isFinite(value)||value<0):!positive(value))))fail('ultime '+key);
  }
- if(!Array.isArray(config.balance.specials.zemmour.bubble_labels)||!config.balance.specials.zemmour.bubble_labels.length||config.balance.specials.zemmour.bubble_labels.some(s=>typeof s!=='string'||!s.trim()))fail('textes des bulles');
  if(!b||!positive(b.max_simultaneous_events)||!positive(b.initial_event_delay_days)||!positive(b.notification_display_seconds)||!positive(b.notification_arrival_seconds)||b.notification_arrival_seconds>b.notification_display_seconds||!Array.isArray(b.frequency_curve)||b.frequency_curve.some(row=>row.length!==3||!positive(row[1])||row[2]<row[1]))fail('calendrier, annonces ou fréquence');
  for(const [family,p]of Object.entries(b.families)){for(const key of ['base_weight','duration','max_simultaneous','leader_weight','second_weight','third_weight'])if(!positive(p[key]))fail(family+' / '+key);if(p.minimum_day>p.maximum_day||Object.values(p.intensity_weights).some(v=>!positive(v)))fail(family);}
  if(config.campaignCatalog){const ids=new Set();for(const v of config.campaignCatalog){if(ids.has(v.event_id)||!b.families[v.family]||typeof v.title!=='string'||!positive(v.weight)||!Array.isArray(v.tags)||!v.mechanical_parameters)fail('variante '+v.event_id);ids.add(v.event_id);}}
