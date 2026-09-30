@@ -1,5 +1,11 @@
 # Roussel — sprites v6
 
+## Correction du dimensionnement
+
+Le calibrage sur la seule première pose dilatait horizontalement la planche de combat de 27 %. Cet étirement est supprimé. La réduction variable par pose a également été retirée : elle faisait rétrécir le personnage lorsqu'il écartait les pieds. Toutes les poses d'une même planche utilisent maintenant le même facteur de 0,92, après calibrage sur Philippe. La pose debout et sa marche générale sont réduites de 6 % sur les deux axes.
+
+Contrôles : six tests ciblés réussis, dont la constance de l'échelle sur les 44 poses ; dix animations vérifiées dans Chrome ; export web réussi. La silhouette peut naturellement s'élargir pendant un coup de pied ; cet écart ne change plus l'échelle de tout le corps.
+
 Planches dérivées exclusivement des deux références validées : pose debout fournie par l’utilisateur et `artifacts/roussel-proposals/roussel-single-guard.png`. Les planches rejetées ne servent pas de références. Outil : image_gen intégré, fond transparent ; images copiées dans le projet sans retouche raster. Découpes remesurées et échelle calibrée sur Philippe.
 
 ## base

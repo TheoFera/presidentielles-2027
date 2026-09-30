@@ -1,5 +1,5 @@
 import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialContent } from './arcade-content.js';
-import { enterLandscape, syncOrientation } from './landscape.js';
+import { enterLandscape, syncOrientation, toggleFullscreen } from './landscape.js';
 import { profileButton, profileContent, cleanNickname } from './player-profile.js';
 import { isBetatestProfile } from '../simulation/campaign-styles.js';
 import { showDebateSetup, defaultDebateSetup } from './debate-menu.js';
@@ -37,7 +37,13 @@ export class StartMenu {
     this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button></span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
     this.element.querySelector('#menu-profile')?.addEventListener('click', () => this.profile());
-    this.element.querySelector('#menu-fullscreen').onclick = () => void enterLandscape();
+    this.element.querySelector('#menu-fullscreen').onclick = async () => {
+      if (await toggleFullscreen()) return;
+      this.element.querySelector('.menu-toast')?.remove();
+      const toast = document.createElement('p'); toast.className = 'menu-toast'; toast.setAttribute('role', 'status');
+      toast.textContent = 'Plein écran indisponible dans ce navigateur. Sur iPhone : Partager → « Sur l’écran d’accueil », puis ouvrez le jeu depuis l’icône.';
+      this.element.append(toast); setTimeout(() => toast.remove(), 6000);
+    };
     const soundButton = this.element.querySelector('#menu-sound');
     if (soundButton) {
       const paint = () => {

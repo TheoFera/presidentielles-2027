@@ -2,6 +2,20 @@ import { animateQr, scanQr } from './qr-camera.js';
 import { copySignal } from './copy-signal.js';
 import { addressSummary } from '../network/peer-session.js';
 
+// The QR fills the screen: small phones cannot always show it large enough in the page.
+function zoomQr(title, code) {
+  const dialog = document.createElement('dialog'); dialog.className = 'qr-zoom';
+  dialog.innerHTML = '<h2></h2><div class="qr-display"></div><button>Fermer</button>';
+  dialog.querySelector('h2').textContent = title;
+  document.body.append(dialog); dialog.showModal();
+  const stop = animateQr(dialog.querySelector('.qr-display'), code);
+  let closed = false;
+  const close = () => { if (closed) return; closed = true; stop(); dialog.close(); dialog.remove(); };
+  dialog.querySelector('button').onclick = close;
+  dialog.oncancel = event => { event.preventDefault(); close(); };
+  return close;
+}
+
 export function showQrInvitations(menu, session, back, textMode, onContinue = null) {
   const slots = [2, 3];
   menu.page('qr-invite', 'Invitez vos amis', `<p class="menu-intro">Hôte : joueur 1. Un QR par ami. Vous choisirez vos candidats une fois connectés.</p><div class="qr-invitations">${slots.map(slot => `<article class="qr-card" data-qr-slot="${slot}"><h2>Joueur ${slot}</h2><div class="qr-display"><p>Préparation…</p></div><p class="qr-player-status" role="status">Place libre</p><div class="qr-card-actions"><button type="button" class="qr-enlarge" disabled>Agrandir</button><button type="button" class="qr-copy" disabled>Copier l’invitation</button></div></article>`).join('')}</div><p id="qr-host-status" class="menu-status" role="status">Chacun choisit un QR différent.</p><p id="qr-diagnostic" class="menu-note"></p><footer class="qr-actions"><button id="scan-answers" class="menu-primary">Scanner une réponse</button><button id="text-invite">Mode texte</button><button id="qr-continue" hidden>Jouer à deux ➜</button></footer>`, back);
@@ -61,16 +75,7 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
       const copy = card.querySelector('.qr-copy'); copy.disabled = false;
       copy.onclick = () => copySignal(code, status);
       const enlarge = card.querySelector('.qr-enlarge'); enlarge.disabled = false;
-      enlarge.onclick = () => {
-        const dialog = document.createElement('dialog'); dialog.className = 'qr-zoom';
-        dialog.innerHTML = '<h2></h2><div class="qr-display"></div><button>Fermer</button>';
-        dialog.querySelector('h2').textContent = `Invitation du joueur ${slot}`;
-        document.body.append(dialog); dialog.showModal();
-        const stop = animateQr(dialog.querySelector('.qr-display'), code);
-        closeZoom = () => { stop(); dialog.close(); dialog.remove(); };
-        dialog.querySelector('button').onclick = closeZoom;
-        dialog.oncancel = event => { event.preventDefault(); closeZoom(); };
-      };
+      enlarge.onclick = () => { closeZoom = zoomQr(`Invitation du joueur ${slot}`, code); };
     }).catch(error => { if (menu.generation === generation) { card.dataset.state = 'error'; delete card.dataset.peer; card.querySelector('.qr-player-status').textContent = error.message; } });
   }
   for (const slot of slots) if (!session.room.players.some(p => p.slot === slot)) prepare(slot);
@@ -78,8 +83,11 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
 }
 
 export function showQrAnswer(menu, session, leave, textMode) {
-  menu.page('qr-answer', 'Montrez votre réponse', '<p class="menu-intro">L’hôte scanne votre QR ou colle votre réponse en mode texte.</p><article class="qr-answer-card"><div class="qr-display"></div></article><p id="qr-copy-status" class="menu-status" role="status">Gardez cet écran ouvert. Le salon s’ouvrira automatiquement.</p><p id="qr-diagnostic" class="menu-note"></p><footer class="qr-actions"><button id="copy-answer" class="menu-primary">Copier la réponse</button><button id="text-answer">Mode texte</button></footer>', leave);
-  menu.cleanup = animateQr(menu.element.querySelector('.qr-display'), session.answer);
+  menu.page('qr-answer', 'Montrez votre réponse', '<p class="menu-intro">L’hôte scanne votre QR ou colle votre réponse en mode texte.</p><article class="qr-answer-card"><div class="qr-display"></div></article><p id="qr-copy-status" class="menu-status" role="status">Gardez cet écran ouvert. Le salon s’ouvrira automatiquement.</p><p id="qr-diagnostic" class="menu-note"></p><footer class="qr-actions"><button id="enlarge-answer" class="menu-primary">Agrandir le QR</button><button id="copy-answer">Copier la réponse</button><button id="text-answer">Mode texte</button></footer>', leave);
+  const stop = animateQr(menu.element.querySelector('.qr-display'), session.answer);
+  let closeZoom;
+  menu.cleanup = () => { stop(); closeZoom?.(); };
+  menu.element.querySelector('#enlarge-answer').onclick = () => { closeZoom = zoomQr('Votre réponse pour l’hôte', session.answer); };
   const host = session.peers.get('host');
   menu.element.querySelector('#qr-diagnostic').textContent = `Adresses de ce téléphone : ${addressSummary(session.addresses)} · de l’hôte : ${addressSummary(host?.remoteAddresses)}`;
   menu.element.querySelector('#text-answer').onclick = textMode;

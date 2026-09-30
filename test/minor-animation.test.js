@@ -17,7 +17,18 @@ test('Les six mineurs ont la même échelle que Philippe pour chaque famille de 
     const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
     const height = reference.referenceHeight || 340;
     assert.ok(Math.abs(atlas.frames[0][3] / atlas.referenceHeight - reference.frames[0][3] / height) < 1e-8);
-    assert.ok(Math.abs(atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight - reference.frames[0][2] / height) < 1e-8);
+    if (!atlas.frameScales) assert.ok(Math.abs(atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight - reference.frames[0][2] / height) < 1e-8);
+  }
+});
+
+test('Roussel : échelle réduite et constante sur les 44 poses, sans étirement du visage', () => {
+  for (const [sheet, atlas] of Object.entries(MINOR_ANIMATION_DATA.roussel)) {
+    const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
+    const height = reference.referenceHeight || 340;
+    assert.equal(atlas.widthScale * 1.06, 1.1236);
+    assert.equal(new Set(atlas.frameScales).size, 1);
+    assert.equal(atlas.frameScales[0], .92);
+    assert.ok(atlas.frames[0][3] / atlas.referenceHeight * .92 < reference.frames[0][3] / height);
   }
 });
 

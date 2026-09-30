@@ -142,14 +142,15 @@ export function drawMinorCandidate(renderer, entity, x, state) {
     ctx.imageSmoothingEnabled = true;
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
-      const k = height / atlas.referenceHeight;
+      const standingScale = !listenSheet && entity.faction_id === 'roussel' ? .94 : 1;
+      const k = height / atlas.referenceHeight * (atlas.frameScales?.[cell] ?? 1) * standingScale;
       // Même largeur de silhouette debout que Philippe (161 px pour 384 px).
       const widthScale = listenSheet ? (atlas.widthScale || 1) : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
       ctx.scale(widthScale, 1);
       const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
       if (motion.walking) {
         ctx.rotate(motion.stride * .025); ctx.scale(1 / motion.breathing, motion.breathing);
-        drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height, sw * k, motion);
+        drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height * standingScale, sw * k, motion);
       } else ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
     } else {
       const cw = image.width / MINOR_SHEET.columns, ch = image.height / MINOR_SHEET.rows;

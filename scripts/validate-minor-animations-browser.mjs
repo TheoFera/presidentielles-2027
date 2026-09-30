@@ -26,8 +26,13 @@ try {
       for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(data[(y*width+x)*4+3]>90){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
       return {width:right-left+1,height:bottom-top+1};
     }));
-    assert.ok(Math.abs(bounds[0].width-bounds[1].width)<=3,`${faction} : largeur comparable à Philippe`);
-    assert.ok(Math.abs(bounds[0].height-bounds[1].height)<=3,`${faction} : hauteur comparable à Philippe`);
+    if(faction==='roussel') {
+      assert.ok(bounds[1].width<=bounds[0].width,`${faction} : largeur sans dépassement`);
+      assert.ok(bounds[1].height<=bounds[0].height,`${faction} : hauteur sans dépassement`);
+    } else {
+      assert.ok(Math.abs(bounds[0].width-bounds[1].width)<=3,`${faction} : largeur comparable à Philippe`);
+      assert.ok(Math.abs(bounds[0].height-bounds[1].height)<=3,`${faction} : hauteur comparable à Philippe`);
+    }
     const all = await pixels(); assert.equal(all.length,46);
     assert.ok(all.every(({visible})=>visible>600&&visible<24000), `${faction} : les 44 poses et deux aperçus doivent être visibles.`);
     await page.screenshot({ path: `artifacts/minor-sprites/shared/${faction}.png`, fullPage: true });

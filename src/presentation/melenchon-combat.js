@@ -122,7 +122,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
   const [sx,sy,sw,sh,px,py] = definition.frames[pose.frame];
-  const scale = m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT));
+  const scale = m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[pose.frame] ?? 1);
   const jumpScale = pose.name === 'jump' || pose.name === 'jump_attack' ? MELENCHON_JUMP_SCALE : 1;
   const chargedScale = !extra && (pose.frame === 9 || pose.frame === 10) ? MELENCHON_CHARGED_SCALE : 1;
   const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06
