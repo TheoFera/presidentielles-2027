@@ -1,4 +1,7 @@
 import { ultimateAtlases } from './ultimate-sprite-data.js';
+import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
+import { MelenchonMotionTracker } from './melenchon-extra-poses.js';
+import { prepareAtlasFrames } from './minor-sprite-images.js';
 
 const sheets = { WAVE:'wave', FIRE:'fire', SURGE:'surge', WALL:'wall', ZEMMOUR:'zemmour', SCARF:'scarf', BARDELLA:'bardella', EUROPE:'europe' };
 const hzOf = config => config.balance.simulation_architecture.fixed_tick_hz;
@@ -69,7 +72,7 @@ export function ultimateCharacterPose(entity, state, config) {
 }
 
 function ready(renderer, sheet) {
-  const atlas = ultimateAtlases[sheet];
+  const atlas = ultimateGuardAtlases[sheet] || ultimateAtlases[sheet];
   if (!atlas) return null;
   const image = renderer.assets.get(atlas.sprite);
   if (!image) { void renderer.assets.load(atlas.sprite); return null; }
@@ -77,9 +80,22 @@ function ready(renderer, sheet) {
 }
 
 export function drawUltimateCharacter(renderer, entity, x, state) {
-  const pose = ultimateCharacterPose(entity,state,renderer.config);
-  if (!pose) return false;
-  const source = ready(renderer,pose.sheet);
+  let pose = ultimateCharacterPose(entity,state,renderer.config);
+  if (!pose) {
+    renderer.ultimateMotionTracker?.walk(entity,state,renderer.config,false);
+    return false;
+  }
+  let source = null;
+  if (['europe','bardella'].includes(pose.sheet)) {
+    renderer.ultimateMotionTracker ??= new MelenchonMotionTracker();
+    const walking = entity.moving && [1,2].includes(pose.frame);
+    const frame = renderer.ultimateMotionTracker.walk(entity,state,renderer.config,walking);
+    if (walking) {
+      source = ready(renderer,pose.sheet+'_guard');
+      if (source) pose = { ...pose, sheet: pose.sheet+'_guard', frame };
+    }
+  }
+  source ||= ready(renderer,pose.sheet);
   if (!source) return false;
   const { atlas,image } = source, {ctx,metrics:m} = renderer;
   const [sx,sy,sw,sh,px,py] = atlas.frames[pose.frame];
@@ -106,7 +122,8 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
   ctx.scale(pose.direction || entity.facing || 1,1);
   const clip=atlas.clips?.[pose.frame];
   if(clip){ctx.beginPath();clip.forEach(([cx,cy],i)=>ctx[i?'lineTo':'moveTo']((cx-px)*scaleX,(cy-py)*scaleY));ctx.closePath();ctx.clip();}
-  ctx.drawImage(image,sx,sy,sw,sh,(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
+  if (atlas.isolated) ctx.drawImage(prepareAtlasFrames(image,atlas)[pose.frame],(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
+  else ctx.drawImage(image,sx,sy,sw,sh,(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
   ctx.restore();
   return true;
 }

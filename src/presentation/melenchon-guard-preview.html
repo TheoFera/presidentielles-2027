@@ -16,19 +16,31 @@ import {combatAtlases,combatAtlasFor} from './melenchon-combat.js';
 import {extraAtlasesFor} from './candidate-extra-poses.js';
 import {previewSkin,skinQuery} from './animation-preview-skins.js';
 import {visualManifest} from './visual-manifest.js';
+import {ultimateGuardAtlases} from './ultimate-guard-sprites.js';
+import {ultimateAtlases} from './ultimate-sprite-data.js';
 const requested=new URLSearchParams(location.search).get('candidate'),faction=combatAtlases[requested]?requested:'melenchon';
 const skin=previewSkin(faction),actor={faction_id:faction,current_campaign_style:skin};
+const requestedForm=new URLSearchParams(location.search).get('form');
+const form=requestedForm==='europe'&&faction==='philippe'?'europe':requestedForm==='bardella'&&faction==='le_pen'?'bardella':null;
 const name={melenchon:'Mélenchon',le_pen:'Marine Le Pen',philippe:'Édouard Philippe'}[faction];
 document.title=name+' — marche en garde';document.querySelector('h1').textContent=name+' · Marche en garde';
+if(form)document.querySelector('h1').textContent+=' · '+(form==='europe'?'Super européiste':'Bardella');
+const transformations=document.createElement('p');
+transformations.innerHTML='<a href="?candidate=philippe&skin=philippe_europeiste&form=europe">Philippe · Super européiste</a> · <a href="?candidate=le_pen&skin=le_pen_gouvernement&form=bardella">Marine Le Pen · Bardella</a>';
+document.querySelector('h1').after(transformations);
 document.querySelector('#actions-link').href='melenchon-actions-preview.html'+skinQuery(faction,skin);
 const extra=extraAtlasesFor(actor)||{};
 if(extra.guardStep||extra.movement)document.querySelector('details img').src=visualManifest[(extra.guardStep||extra.movement).sprite].file;
+if(form)document.querySelector('details img').src=visualManifest[ultimateGuardAtlases[form+'_guard'].sprite].file;
 const config=await loadConfig(),sim=new GameSimulation(config,42,'candidate:'+faction),canvas=document.querySelector('#view'),r=new WorldRenderer(canvas,config);
 r.resizeObserver.disconnect();canvas.width=960;canvas.height=360;r.metrics={...r.metrics,characterHeight:170,groundY:300,pixelsPerUnit:90};
 const c=sim.state.candidates.find(a=>a.faction_id===faction),enemy=sim.state.candidates.find(a=>a.id!==c.id);sim.state.ai_enabled=false;sim.state.npcs=[];
 sim.state.candidates.forEach(a=>{a.x=a===c?100:a===enemy?104.8:300;a.axis=0;a.money=0;});c.facing=1;enemy.facing=-1;
 c.current_campaign_style=skin;
+if(form==='europe')c.ultimate_effect={kind:'EUROPE',expires_tick:1000000};
+if(form==='bardella'){c.bardella_form=true;c.bardella_transition_tick=-1000;}
 await Promise.all(['character-'+faction,'character-'+enemy.faction_id,combatAtlasFor(c).sprite,combatAtlases[enemy.faction_id].sprite,...(skin?['character-style-'+skin.replaceAll('_','-')]:[]),...Object.values(extra).map(a=>a.sprite)].map(id=>r.assets.load(id)));
+if(form)await r.assets.loadRequired([ultimateAtlases[form].sprite,ultimateGuardAtlases[form+'_guard'].sprite]);
 let automatic=true,axis=0,direction=1,wait=0,accumulator=0,last=performance.now(),previous=c.x;
 function manual(value){automatic=false;axis=value;}
 for(const [id,value]of [['left',-1],['right',1]]){const b=document.getElementById(id);b.onpointerdown=e=>{b.setPointerCapture(e.pointerId);manual(value);};b.onpointerup=()=>manual(0);b.onpointercancel=()=>manual(0);b.onlostpointercapture=()=>manual(0);}
@@ -48,7 +60,8 @@ function draw(alpha){
  r.drawPerson(enemy,screen(enemy.x),sim.state);r.drawPerson(c,screen(previous+(c.x-previous)*alpha),sim.state);
  document.querySelector('#status').textContent=c.moving?'Déplacement — cycle synchronisé sur la distance':'À l’arrêt — garde';
 }
-function loop(now){accumulator+=Math.min(100,now-last);last=now;while(accumulator>=1000/30){step();accumulator-=1000/30;draw(1);}draw(accumulator/(1000/30));requestAnimationFrame(loop);}
-window.guardPreview={sim,renderer:r,manual,advance(n){for(let i=0;i<n;i++){step();draw(1);}},get candidate(){return c;}};
+function loop(now){if(!paused){const interval=1000/config.balance.simulation_architecture.fixed_tick_hz;accumulator+=Math.min(100,now-last);while(accumulator>=interval){step();accumulator-=interval;draw(1);}draw(accumulator/interval);}last=now;requestAnimationFrame(loop);}
+let paused=false;
+window.guardPreview={sim,renderer:r,manual,setPaused(value){paused=value;},advance(n){for(let i=0;i<n;i++){step();draw(1);}},get candidate(){return c;}};
 draw(1);window.galleryReady=true;requestAnimationFrame(loop);
 </script></html>

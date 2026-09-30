@@ -20,12 +20,15 @@ import { CrowdSpacing } from './crowd-spacing.js';
 import { drawPersuasionFeedback } from './persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
+import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
   if (/^(panorama|v3|minor)-/.test(id)) preparePanorama(image, id);
   if (id.startsWith('minor-')) prepareMinorFrames(image, id.slice(6));
+  const ultimateGuard = Object.values(ultimateGuardAtlases).find(atlas => atlas.sprite === id);
+  if (ultimateGuard) prepareAtlasFrames(image, ultimateGuard);
   if (id.startsWith('character-minor-')) {
     const [faction, sheet] = id.slice('character-minor-'.length).split('-');
     prepareAtlasFrames(image, MINOR_ANIMATION_DATA[faction]?.[sheet]);
