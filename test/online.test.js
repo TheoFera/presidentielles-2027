@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SignalHub } from '../serveur-en-ligne/signal-hub.js';
 import { OnlineSession, onlineIceServers } from '../src/network/online-session.js';
-import { onlineInviteLink } from '../src/network/online-config.js';
+import { onlineInviteLink, ONLINE_GAME_URL } from '../src/network/online-config.js';
 
 // Socket factice côté serveur : garde les messages reçus.
 const serverSocket = () => ({ messages: [], closed: false, send(text) { this.messages.push(JSON.parse(text)); }, close() { this.closed = true; } });
@@ -58,7 +58,8 @@ test('Les adresses TURN du serveur sont utilisées, STUN seul en cas de panne', 
   assert.deepEqual(await onlineIceServers('https://s', async () => ({ ok: true, json: async () => ({ iceServers: turn }) })), turn);
   const fallback = await onlineIceServers('https://s', async () => { throw new Error('hors ligne'); });
   assert.match(JSON.stringify(fallback), /stun:/);
-  assert.equal(onlineInviteLink('A1B2C3', { origin: 'http://localhost:2027', pathname: '/' }), 'http://localhost:2027/?en-ligne=A1B2C3');
+  const base = ONLINE_GAME_URL || 'http://localhost:2027/';
+  assert.equal(onlineInviteLink('A1B2C3', { origin: 'http://localhost:2027', pathname: '/' }), `${base}?en-ligne=A1B2C3`);
 });
 
 // --- Faux WebRTC et faux WebSocket pour un salon complet sans réseau ---------
