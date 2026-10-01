@@ -315,6 +315,15 @@ async function start() {
       ]);
       // Prepare the first complete frame behind the loading screen. In
       // particular, texture uploads must not become simulation catch-up time.
+      // Chaque image est envoyée une fois à la carte graphique derrière l’écran de chargement :
+      // sinon ce transfert se fait au premier affichage, en pleine partie (à-coups).
+      const ready = [...renderer.assets.cache.values()].filter(entry => entry.ready).map(entry => entry.image);
+      for (let i = 0; i < ready.length; i += 6) {
+        renderer.ctx.save(); renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        for (const image of ready.slice(i, i + 6)) renderer.ctx.drawImage(image, 0, 0, 1, 1);
+        renderer.ctx.restore();
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
       renderer.draw(state, state, 1, 0);
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       onProgress(1);

@@ -24,6 +24,7 @@ import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
 import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
 import { recordMatchHistory } from './match-history.js';
+import { copyStateSharing } from '../network/state-stream.js';
 import { updateStrategicSites } from './strategic-sites.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
 import { initializeMoney, prepareDonations, scheduleNextDonation, settleMoney, updateDonationCourier } from './money.js';
@@ -115,7 +116,9 @@ export class GameSimulation {
   getState({ presentation = false } = {}) {
     if (!presentation) return clone(this.state);
     const { world, ...dynamic } = this.state;
-    return { ...clone({ ...dynamic, campaign_snapshot: null }), world: presentationWorld(world) };
+    // Les branches inchangées depuis la copie précédente sont partagées (lecture seule).
+    this.presentationCopy = copyStateSharing({ ...dynamic, campaign_snapshot: null }, this.presentationCopy);
+    return { ...this.presentationCopy, world: presentationWorld(world) };
   }
   exportSnapshot() {
     // Un outil de test ou une commande peut avoir changé un PNJ depuis le dernier tick.

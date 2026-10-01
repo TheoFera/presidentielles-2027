@@ -21,8 +21,11 @@ test('Les vues partagent uniquement une géométrie immuable et restent isolées
   assert.equal(first.world, second.world);
   assert.notEqual(first.world, sim.state.world);
   assert.throws(() => { first.world.subzones[0].start = -1; }, TypeError);
+  // Deux vues successives partagent leurs parties inchangées (lecture seule) ;
+  // aucune n'est reliée à la simulation.
+  assert.equal(first.candidates, second.candidates);
+  assert.notEqual(first.candidates, sim.state.candidates);
   first.candidates[0].money = -1;
-  assert.notEqual(first.candidates[0].money, second.candidates[0].money);
   assert.notEqual(first.candidates[0].money, sim.state.candidates[0].money);
   const saved = sim.exportSnapshot();
   sim.importSnapshot(saved);

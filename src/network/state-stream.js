@@ -18,21 +18,25 @@ const HOST_ONLY = new Set(['spawn_timers', 'rng_state', 'roam_wait_ticks']);
 // and the diff skips them at once. Never cache by state identity: callers may
 // update the same state object between broadcasts.
 export function encodePresentationState(state, previous = null) { return detach(presentationState(state), previous); }
+// Même copie détachée pour l'affichage local (solo ou hôte) : valeurs exactes, aucun champ
+// retiré, comme JSON.parse(JSON.stringify(state)). Seules les branches modifiées sont
+// recopiées : beaucoup moins de mémoire à libérer à chaque tick.
+export function copyStateSharing(state, previous = null) { return detach(state, previous, true); }
 // Number of fields of an encoded object, kept out of JSON: compared without
 // recounting the previous object.
 const FIELDS = Symbol('champs');
-function detach(value, old) {
+function detach(value, old, exact = false) {
   const type = typeof value;
-  if (type === 'number') return !Number.isFinite(value) ? null : Number.isInteger(value) ? value : Math.round(value * PRECISION) / PRECISION || 0;
+  if (type === 'number') return !Number.isFinite(value) ? null : exact || Number.isInteger(value) ? value : Math.round(value * PRECISION) / PRECISION || 0;
   if (type === 'string' || type === 'boolean' || value === null) return value;
   if (type !== 'object') return undefined;
-  if (typeof value.toJSON === 'function') return detach(value.toJSON(), old);
+  if (typeof value.toJSON === 'function') return detach(value.toJSON(), old, exact);
   if (Array.isArray(value)) {
     const before = Array.isArray(old) && old.length === value.length ? old : null, length = value.length;
     // The copy is only built from the first difference: unchanged branches allocate nothing.
     let copy = before === null ? new Array(length) : null;
     for (let i = 0; i < length; i++) {
-      let next = detach(value[i], before === null ? undefined : before[i]);
+      let next = detach(value[i], before === null ? undefined : before[i], exact);
       if (next === undefined) next = null;
       if (copy === null) { if (next === before[i]) continue; copy = before.slice(0, i); }
       copy[i] = next;
@@ -44,8 +48,8 @@ function detach(value, old) {
   let copy = before === null ? {} : null, count = 0;
   for (let k = 0; k < keys.length; k++) {
     const key = keys[k];
-    if (HOST_ONLY.has(key)) continue;
-    const next = detach(value[key], before === null ? undefined : before[key]);
+    if (!exact && HOST_ONLY.has(key)) continue;
+    const next = detach(value[key], before === null ? undefined : before[key], exact);
     if (copy === null) {
       const unchanged = next === undefined ? !Object.hasOwn(before, key) : next === before[key];
       if (unchanged) { if (next !== undefined) count++; continue; }

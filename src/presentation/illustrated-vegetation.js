@@ -30,7 +30,33 @@ const shapes = [
   { name: 'haie taillée', width: 1.65, crown: 0.72, forks: 8 },
 ];
 
+// Un arbre redessiné trait par trait à chaque image coûte cher : on garde son image prête,
+// refaite seulement quand la saison avance d'un palier ou que le feuillage finit de charger.
+const treeSprites = new Map();
+const MAX_TREE_SPRITES = 48;
 export function drawSeasonalTree(ctx, x, ground, height, shapeIndex, progress, seed = 0, canopy = null) {
+  const t = ctx.getTransform(), scale = Math.ceil(Math.max(Math.abs(t.a), Math.abs(t.d)) * 4) / 4;
+  if (t.b || t.c || typeof document === 'undefined') { drawTreeStrokes(ctx, x, ground, height, shapeIndex, progress, seed, canopy); return; }
+  const step = Math.round((progress || 0) * 600) / 600;
+  const key = `${shapeIndex}:${height}:${seed}:${step}:${canopy ? 1 : 0}:${scale}`;
+  let sprite = treeSprites.get(key);
+  const shape = shapes[shapeIndex % shapes.length], wide = height * shape.width;
+  const halfWidth = wide * 0.62 + height * 0.08 + 8, top = height * 1.3 + 8, bottom = height * 0.06 + 6;
+  if (sprite) treeSprites.delete(key);
+  else {
+    sprite = document.createElement('canvas');
+    sprite.width = Math.ceil(halfWidth * 2 * scale); sprite.height = Math.ceil((top + bottom) * scale);
+    const c = sprite.getContext('2d'); c.scale(scale, scale);
+    drawTreeStrokes(c, halfWidth, top, height, shapeIndex, step, seed, canopy);
+  }
+  treeSprites.set(key, sprite);
+  if (treeSprites.size > MAX_TREE_SPRITES) treeSprites.delete(treeSprites.keys().next().value);
+  ctx.save(); ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(sprite, x - halfWidth, ground - top, halfWidth * 2, top + bottom);
+  ctx.restore();
+}
+
+function drawTreeStrokes(ctx, x, ground, height, shapeIndex, progress, seed = 0, canopy = null) {
   const shape = shapes[shapeIndex % shapes.length], season = seasonAt(progress);
   const palette = [[92,135,60],[193,121,49],[146,131,88],[135,176,73]];
   const color = mix(palette[season.index], palette[(season.index + 1) % 4], season.blend);
