@@ -2,12 +2,14 @@ import { CALIBRATION } from './world-v3/calibration.js';
 import { MINOR_SPRITES } from './minor-sprites.js';
 import { MINOR_ANIMATION_FILES, minorAnimationId } from './minor-animation-sprites.js';
 import { ULTIMATE_GUARD_FILES } from './ultimate-guard-sprites.js';
+import { expandedWorldAssets } from './world-v2-expanded-data.js';
 
 // Les chemins restent écrits en entier : scripts/build-pages.mjs les repère pour l'export web.
 const v3 = Object.fromEntries(Object.entries(CALIBRATION).flatMap(([layer, entries]) =>
   Object.entries(entries).map(([id, entry]) => [`v3-${layer}-${id}`, { file: new URL(`../../${entry.file}`, import.meta.url).href }])));
 
 export const fixedWorldAssets = {
+  ...expandedWorldAssets,
   'panorama-bobo': { file: new URL('../../assets/generated/world-v2/panorama-bobo.png', import.meta.url).href },
   'panorama-banlieue': { file: new URL('../../assets/generated/world-v2/panorama-banlieue.png', import.meta.url).href },
   'panorama-periurbain': { file: new URL('../../assets/generated/world-v2/panorama-periurbain.png', import.meta.url).href },

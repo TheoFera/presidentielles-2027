@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="game_background">#222A2C</color>
+
+    <!-- Fond identique à celui du jeu : aucun flash blanc au démarrage. -->
+    <style name="Theme.Presidentielles" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/game_background</item>
+        <item name="android:colorBackground">@color/game_background</item>
+        <item name="android:statusBarColor">@color/game_background</item>
+        <item name="android:navigationBarColor">@color/game_background</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

@@ -1,0 +1,81 @@
+{
+  "width": 1672,
+  "height": 941,
+  "character_height_ratio": 0.18,
+  "arenas": [
+    {
+      "map": "face_a_face",
+      "file": "face-a-face-cadrage-v3.png",
+      "ground": 699,
+      "platforms": [
+        [
+          "scene-centrale",
+          263,
+          1412,
+          699
+        ],
+        [
+          "secours-gauche",
+          31,
+          222,
+          767
+        ],
+        [
+          "secours-droit",
+          1448,
+          1642,
+          767
+        ],
+        [
+          "balcon-gauche",
+          227,
+          570,
+          490
+        ],
+        [
+          "balcon-droit",
+          1101,
+          1446,
+          490
+        ]
+      ]
+    },
+    {
+      "map": "ecologie",
+      "file": "ecologie-cadrage-v3.png",
+      "ground": 695,
+      "platforms": [
+        [
+          "ilot-gauche",
+          64,
+          626,
+          695
+        ],
+        [
+          "ilot-central",
+          692,
+          974,
+          695
+        ],
+        [
+          "ilot-droit",
+          1041,
+          1606,
+          695
+        ],
+        [
+          "jardin-gauche",
+          276,
+          582,
+          486
+        ],
+        [
+          "jardin-droit",
+          1083,
+          1391,
+          486
+        ]
+      ]
+    }
+  ]
+}

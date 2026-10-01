@@ -1,0 +1,13 @@
+.gradle/
+build/
+app/build/
+local.properties
+.idea/
+*.iml
+.cxx/
+.kotlin/
+captures/
+# Clé de signature et mots de passe : ne jamais les envoyer sur GitHub.
+keystore.properties
+*.jks
+*.keystore

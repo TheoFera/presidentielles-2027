@@ -52,14 +52,26 @@ export class AIController extends Controller {
       return state.tick - candidate.combat.press_tick >= readyTicks
         ? [{ type: 'ReleaseAttack', candidateId }] : [{ type: 'Move', candidateId, axis: 0 }];
     }
-    if (candidate.minor) return minorAICommands(state, this.config, candidate);
-    if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return sprintAICommands(state, this.config, candidate);
+    if (candidate.minor) return steadyTurns(state, this.config, candidate, minorAICommands(state, this.config, candidate));
+    if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return steadyTurns(state, this.config, candidate, sprintAICommands(state, this.config, candidate));
     // Débat médiatique ou meeting de crise en cours : l’engagement prime.
     // Les autres événements sont pesés dans la stratégie, après les rivaux proches.
     const committed = campaignCommittedAICommands(state, this.config, candidate);
     if (committed) return committed;
-    return strategicAICommands(state, this.config, candidate);
+    return steadyTurns(state, this.config, candidate, strategicAICommands(state, this.config, candidate));
   }
+}
+
+/**
+ * Évite les volte-face frénétiques : juste après un demi-tour, l’IA attend un instant avant de repartir
+ * dans l’autre sens (elle reste sur place). Esquive, attaque, saut ou ruée gardent leur réactivité.
+ */
+function steadyTurns(state, config, candidate, result) {
+  const move = result.find(r => r.type === 'Move');
+  if (!move || move.axis !== -candidate.facing || result.some(r => ['Attack', 'Dash', 'Jump'].includes(r.type))) return result;
+  const pause = Math.ceil(0.6 * config.balance.simulation_architecture.fixed_tick_hz);
+  if (state.tick - (candidate.turn_tick ?? -pause) < pause) move.axis = 0;
+  return result;
 }
 
 export function collectCommands(state, human, ai) {

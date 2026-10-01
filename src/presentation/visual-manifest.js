@@ -1,7 +1,11 @@
 import { fixedWorldAssets } from './fixed-world-assets.js';
+import { paintedAssets } from './france-peinte-data.js';
+import { completePaintedAssets } from './france-peinte-complete-data.js';
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
   ...fixedWorldAssets,
+  ...paintedAssets,
+  ...completePaintedAssets,
   "building-meeting_stage-bobo": { file: new URL("../../assets/generated/buildings/building-meeting_stage-bobo.png", import.meta.url).href },
   "building-meeting_stage-banlieue": { file: new URL("../../assets/generated/buildings/building-meeting_stage-banlieue.png", import.meta.url).href },
   "building-meeting_stage-periurbain": { file: new URL("../../assets/generated/buildings/building-meeting_stage-periurbain.png", import.meta.url).href },
@@ -39,8 +43,6 @@ export const visualManifest = {
   'character-philippe-movement-v1': { file: new URL('../../assets/generated/animations/philippe-movement-v1.png', import.meta.url).href },
   'character-philippe-actions-v1': { file: new URL('../../assets/generated/animations/philippe-actions-v1.png', import.meta.url).href },
   'character-melenchon-guard-step-v4': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v4.png', import.meta.url).href },
-  'character-melenchon-guard-step-v2': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v2.png', import.meta.url).href },
-  'character-melenchon-guard-step-v1': { file: new URL('../../assets/generated/animations/melenchon-guard-step-v1.png', import.meta.url).href },
   'character-melenchon-grounded-walk-v1': { file: new URL('../../assets/generated/animations/melenchon-grounded-walk-v1.png', import.meta.url).href },
   'character-melenchon-shuffle-signature-v1': { file: new URL('../../assets/generated/animations/melenchon-shuffle-signature-v1.png', import.meta.url).href },
   'character-melenchon-fighter-walk-hit-v1': { file: new URL('../../assets/generated/animations/melenchon-fighter-walk-hit-v1.png', import.meta.url).href },
@@ -50,7 +52,6 @@ export const visualManifest = {
   "character-le-pen-combat-v1": { file: new URL("../../assets/generated/animations/le-pen-base-combat-v1.png", import.meta.url).href },
   "character-melenchon-combat-v4": { file: new URL("../../assets/generated/animations/melenchon-base-combat-v4.png", import.meta.url).href },
   "character-melenchon": { file: new URL("../../assets/generated/characters/melenchon.png", import.meta.url).href },
-  "npc-bobo-0": { file: new URL("../../assets/generated/npc/npc-bobo-0.png", import.meta.url).href },
   "building-campaign_local-bobo": { file: new URL("../../assets/generated/buildings/building-campaign_local-bobo.png", import.meta.url).href },
   "character-le_pen": { file: new URL("../../assets/generated/characters/character-le_pen.png", import.meta.url).href },
   "character-philippe": { file: new URL("../../assets/generated/characters/character-philippe.png", import.meta.url).href },
@@ -122,6 +123,10 @@ export const visualManifest = {
   "vegetation-3": { file: new URL("../../assets/generated/vegetation/vegetation-3.png", import.meta.url).href },
   "vegetation-4": { file: new URL("../../assets/generated/vegetation/vegetation-4.png", import.meta.url).href },
   "background-debate": { file: new URL("../../assets/generated/biomes/background-debate.png", import.meta.url).href },
+  "debate-elysee": { file: new URL("../../assets/generated/debate/elysee-illustre-v3.png", import.meta.url).href },
+  "debate-face-a-face": { file: new URL("../../assets/generated/debate/face-a-face-cadrage-v3.png", import.meta.url).href },
+  "debate-remue-menage": { file: new URL("../../assets/generated/debate/remue-menage-illustre-v2.png", import.meta.url).href },
+  "debate-ecologie": { file: new URL("../../assets/generated/debate/ecologie-cadrage-v3.png", import.meta.url).href },
   "building-campaign_local-periurbain": { file: new URL("../../assets/generated/buildings/building-campaign_local-periurbain.png", import.meta.url).href },
   "building-communication-banlieue": { file: new URL("../../assets/generated/buildings/building-communication-banlieue.png", import.meta.url).href },
   "building-communication-campagne": { file: new URL("../../assets/generated/buildings/building-communication-campagne.png", import.meta.url).href },

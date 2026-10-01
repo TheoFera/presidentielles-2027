@@ -10,3 +10,6 @@
 /JALON_*_SPEC.md
 /VALIDATION_*.md
 /src/vendor/*.js
+/.cache/
+/android/app/build/
+/android/.gradle/

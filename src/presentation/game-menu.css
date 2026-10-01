@@ -52,11 +52,11 @@
 
 /* A real asset progress bar and a short visual introduction. */
 #start-menu[data-screen='loading'] .menu-shell { max-width: 1120px; }
-#start-menu[data-screen='loading'] h1 { font-size: clamp(20px, 3.5cqh, 34px); line-height: 1.1; }
+#start-menu[data-screen='loading'] h1 { font-size: clamp(20px, 3.5cqh, 34px); line-height: 1.15; margin: clamp(8px, 2.5cqh, 28px) 0 clamp(4px, 1.5cqh, 16px); text-align: center; }
 .loading-scene { flex: 1; min-height: 0; display: grid; grid-template-columns: .75fr 1.4fr; gap: 4%; }
 .loading-candidate { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-height: 0; padding: 10px; background: radial-gradient(ellipse at 50% 75%, #268ffc55, transparent 68%); }
-.loading-candidate::after { content: ''; position: absolute; bottom: 22px; height: 7%; width: 88%; border: 3px solid #a5e5ff; border-radius: 50%; box-shadow: 0 0 20px #00c8ff, inset 0 0 20px #0084ff; z-index: -1; }
-.loading-candidate img { width: 100%; height: 85%; min-height: 0; object-fit: contain; filter: drop-shadow(0 0 10px #79bbff55); }
+.loading-candidate::after { content: ''; position: absolute; bottom: 12px; height: clamp(24px, 9%, 60px); width: 78%; border: 3px solid #a5e5ff; border-radius: 50%; box-shadow: 0 0 20px #00c8ff, inset 0 0 20px #0084ff; z-index: -1; }
+.loading-candidate img { width: 100%; height: 85%; min-height: 0; margin-bottom: clamp(10px, 4.5%, 28px); object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 10px #79bbff55); }
 .loading-guide { display: flex; flex-direction: column; justify-content: center; gap: clamp(8px, 2cqh, 24px); }
 .loading-guide h2 { margin: 0; font: 900 clamp(22px, 4.3cqh, 40px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; color: #ffe980; }
 .loading-tips { display: grid; gap: clamp(8px, 2cqh, 22px); }

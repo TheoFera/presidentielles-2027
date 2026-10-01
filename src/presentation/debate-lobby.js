@@ -15,7 +15,7 @@ function optionsContent(config, session, invite) {
   const { format, map } = hostOptions(config, session);
   const formats = count === 3 ? [['1v1v1', 'À trois']] : [['1v1', 'Duel'], ['1v1v1', 'À trois · + IA']];
   return `<div class="debate-options"><fieldset><legend>Format</legend>${formats.map(([id, name]) => `<button class="debate-option" data-format="${id}" aria-pressed="${id === format}">${name}</button>`).join('')}</fieldset>
-    <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset>${inviteButton}${code}</div>`;
+    <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset>${inviteButton}${code}<p class="debate-map-help">${escape(config.balance.debate_mode.maps[map].description || '')}</p></div>`;
 }
 function statusText(session) {
   if (session.selectionError) return session.selectionError;

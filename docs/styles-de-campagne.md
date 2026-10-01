@@ -22,7 +22,7 @@ Les points d’intégration sont `isCampaignStyleUnlocked`, `unlockCampaignStyle
 
 Les neuf costumes et portraits utilisent désormais neuf PNG générés distincts, dans `assets/generated/characters/character-style-*.png`. Cinq autres PNG représentent Bardella, Zemmour, les silhouettes encapuchonnées, le Gilet jaune et le Super Européiste. Les hologrammes réutilisent le sprite Universaliste ; les CRS gardent leurs assets existants. Les effets animés (vague, feu, écharpe, aura et étoiles) sont dessinés par le moteur du jeu.
 
-Les sources haute définition sont conservées dans `assets/generated/masters/`. Les prompts et la provenance de génération sont dans `visual_codex/production/character-style-*.json` et `character-ultimate-*.json`. Les 14 PNG intégrés possèdent un véritable canal transparent. La galerie `artifacts/styles-gallery.html` rassemble les neuf cartes et les captures des neuf ultimes.
+Les sources haute définition sont conservées dans `assets/generated/masters/`. Les 14 PNG intégrés possèdent un véritable canal transparent. `node scripts/build-styles-gallery.mjs` régénère une galerie des neuf cartes dans `artifacts/`.
 
 Les PNJ standards ne consultent jamais le style actif pour choisir leur apparence. Le nettoyage d’un ultime retire uniquement les effets et invocations temporaires du candidat concerné, sans modifier les PNJ standards, les bâtiments ou les scores déjà acquis.
 

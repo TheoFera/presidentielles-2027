@@ -3,10 +3,12 @@ import { enterLandscape, syncOrientation, toggleFullscreen } from './landscape.j
 import { profileButton, profileContent, cleanNickname } from './player-profile.js';
 import { isBetatestProfile } from '../simulation/campaign-styles.js';
 import { showDebateSetup, defaultDebateSetup } from './debate-menu.js';
+import { APP_BUILD } from '../app-build.js';
 const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
 export { CANDIDATES } from './arcade-content.js';
-const mobileLandscape = () => { if (window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
+// L'application Android est déjà en plein écran et en paysage.
+const mobileLandscape = () => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
 
 export class StartMenu {
   constructor({ prepare, play, multiplayer, combat, audio = null, account = null, debate = null }) {
@@ -34,10 +36,11 @@ export class StartMenu {
     this.element.hidden = false; this.game.inert = true;
     const left = screen !== 'home' ? '<button id="menu-back">← Retour</button>' : this.account ? profileButton(this.account.get()) : '<span></span>';
     const sound = this.audio ? '<button id="menu-sound" aria-pressed="false"></button>' : '';
-    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button></span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
+    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}${APP_BUILD ? '' : '<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button>'}</span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
     this.element.querySelector('#menu-profile')?.addEventListener('click', () => this.profile());
-    this.element.querySelector('#menu-fullscreen').onclick = async () => {
+    const fullscreenButton = this.element.querySelector('#menu-fullscreen');
+    if (fullscreenButton) fullscreenButton.onclick = async () => {
       if (await toggleFullscreen()) return;
       this.element.querySelector('.menu-toast')?.remove();
       const toast = document.createElement('p'); toast.className = 'menu-toast'; toast.setAttribute('role', 'status');
@@ -136,7 +139,7 @@ export class StartMenu {
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', "Plus qu'1 an avant le premier tour de l'élection présidentielle", tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
+    this.page('loading', "Plus qu'un an avant le premier tour de l'élection présidentielle", tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
     if (multiplayer) {
       const eyebrow = this.element.querySelector('.eyebrow'); if (eyebrow) eyebrow.textContent = `MULTIJOUEUR · ${candidate.short}`;
     }

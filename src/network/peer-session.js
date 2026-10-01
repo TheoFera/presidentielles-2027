@@ -179,7 +179,7 @@ export class PeerSession {
   }
   send(peer, type, data) {
     if (!this.canSend(peer, type)) return false;
-    const encoded = type === 'snapshot' ? encodePresentationState(data) : null;
+    const encoded = type === 'snapshot' ? (this.lastEncoded = encodePresentationState(data, this.lastEncoded)) : null;
     const json = encoded
       ? `{"type":"snapshot","data":${encodeStateDelta(encoded, peer.baseline)}}`
       : JSON.stringify({ type, data });
@@ -219,7 +219,7 @@ export class PeerSession {
     }
     const peers = [...this.peers.values()].filter(peer => peer.connected && this.canSend(peer, type));
     if (!peers.length) return;
-    const encoded = encodePresentationState(data), packets = new Map();
+    const encoded = this.lastEncoded = encodePresentationState(data, this.lastEncoded), packets = new Map();
     for (const peer of peers) {
       // Guests that received the same last frame share both the field encoding
       // and the final packet. A slow guest keeps its own baseline until enqueue.

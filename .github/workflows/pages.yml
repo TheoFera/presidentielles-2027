@@ -23,6 +23,13 @@ jobs:
           node-version: '24'
       - name: Tester le jeu
         run: npm test
+      # Les images converties en WebP sont gardées d'une publication à l'autre.
+      - name: Réutiliser les images WebP déjà converties
+        uses: actions/cache@v4
+        with:
+          path: .cache/webp
+          key: webp-${{ hashFiles('assets/generated/**/*.png') }}
+          restore-keys: webp-
       - name: Préparer les fichiers publics
         run: npm run build
       - uses: actions/upload-pages-artifact@v3

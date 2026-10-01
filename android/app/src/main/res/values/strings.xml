@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Présidentielles 2027</string>
+    <string name="camera_refused">Sans la caméra, collez l’invitation en mode texte.</string>
+</resources>

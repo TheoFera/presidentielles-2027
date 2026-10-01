@@ -1,3 +1,5 @@
+import { combatPosition } from './combat-geometry.js';
+
 // All durations and heights belong to the authoritative simulation, never the browser.
 export const actionState = () => ({ press_tick: null, charge_active: false, press_airborne: false, jump_tick: null, height: 0, dive_tick: null });
 export function cancelCharge(actor) {
@@ -48,16 +50,17 @@ export function startDive(sim, actor) {
 function updateDive(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat, state = sim.state, hz = sim.config.balance.simulation_architecture.fixed_tick_hz;
   const previousHeight = c.height;
-  c.height = Math.max(0, c.height - b.dive_vertical_speed / hz);
+  const nextHeight = c.height - b.dive_vertical_speed / hz;
+  c.height = state.fall_death_height != null ? nextHeight : Math.max(0, nextHeight);
   const x = actor.x + actor.facing * b.dive_horizontal_speed / hz;
-  actor.x = state.debate_bounds ? Math.max(state.debate_bounds.min, Math.min(state.debate_bounds.max, x)) : (x % state.world.length + state.world.length) % state.world.length;
+  actor.x = combatPosition(state, x);
   let landed = false;
   if (state.platforms?.length) {
     const landing = state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
       && previousHeight >= p.height && c.height <= p.height).sort((a, b) => b.height - a.height)[0];
     if (landing) { c.height = landing.height; actor.platform_id = landing.id; landed = true; }
   } else landed = podiumLanding(sim, actor, previousHeight, c.height);
-  if (!landed && c.height > 0) return;
+  if (!landed && (state.fall_death_height != null || c.height > 0)) return;
   Object.assign(c, { jump_tick: null, dive_tick: null, drop_through_id: null });
   if (!state.platforms?.length && !actor.podium_site_id) c.height = 0;
   // À l’atterrissage, le coup s’arrête et laisse place au temps de récupération.
@@ -70,7 +73,8 @@ function updateDive(sim, actor) {
 export const platformJump = state => state.platform_jump;
 const platformJumpHeight = (sim, c) => {
   const t = (sim.state.tick - c.jump_tick) / sim.secondsToTicks(platformJump(sim.state).duration_seconds);
-  return Math.max(0, c.jump_base + platformJump(sim.state).height * 4 * t * (1 - t));
+  const height = c.jump_base + platformJump(sim.state).height * 4 * t * (1 - t);
+  return sim.state.fall_death_height != null ? height : Math.max(0, height);
 };
 export const platformUnder = (state, x, height, ignoreId = null) => state.platforms.find(p => p.id !== ignoreId
   && Math.abs(x - p.x) <= p.half_width && Math.abs(p.height - height) < 1e-6) || null;
@@ -85,7 +89,7 @@ function updatePlatformHeight(sim, actor) {
   const c = actor.combat;
   if (!airborne(actor)) {
     // Debout sur un pupitre : quitter son bord déclenche la chute.
-    if (actor.platform_id && !platformUnder(sim.state, actor.x, c.height)) startPlatformFall(sim, actor);
+    if ((actor.platform_id || sim.state.fall_death_height != null) && !platformUnder(sim.state, actor.x, c.height)) startPlatformFall(sim, actor);
     else { if (!actor.platform_id) c.height = 0; return; }
   }
   const previousHeight = c.height;
@@ -94,7 +98,7 @@ function updatePlatformHeight(sim, actor) {
   const landing = sim.state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
     && previousHeight >= p.height && c.height <= p.height).sort((a, b) => b.height - a.height)[0];
   if (landing) { c.jump_tick = null; c.height = landing.height; c.drop_through_id = null; actor.platform_id = landing.id; return; }
-  if (c.height <= 0) { c.jump_tick = null; c.height = 0; c.drop_through_id = null; actor.platform_id = null; }
+  if (sim.state.fall_death_height == null && c.height <= 0) { c.jump_tick = null; c.height = 0; c.drop_through_id = null; actor.platform_id = null; }
 }
 export function verticalHit(config, source, target, spec) {
   if (spec.kind === 'BURN' || spec.retaliation) return true;
@@ -105,8 +109,8 @@ export function verticalHit(config, source, target, spec) {
   else if (spec.kind === 'BUBBLE') { low = config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
   else if (spec.kind === 'VERBAL') { low = 0.65; high = 0.9; }
   else if (spec.kind === 'SURGE') { low = 0; high = 1; }
-  // Le plongeon frappe autour et sous les pieds.
-  else if (spec.kind === 'DIVE') { low = Math.max(0, (source.combat?.height || 0) - 0.4); high = (source.combat?.height || 0) + 0.7; }
+  // Le plongeon frappe sous les pieds et à leur niveau : jamais un adversaire resté plus haut (pupitre non atteint).
+  else if (spec.kind === 'DIVE') { low = Math.max(0, (source.combat?.height || 0) - 0.4); high = (source.combat?.height || 0) + 0.15; }
   else { low = (source.combat?.height || 0) + height(source) * 0.3; high = low + height(source) * 0.65; }
   return bottom <= high && top >= low;
 }

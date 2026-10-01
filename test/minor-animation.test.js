@@ -21,15 +21,19 @@ test('Les six mineurs ont la même échelle que Philippe pour chaque famille de 
   }
 });
 
-test('Roussel : échelle réduite et constante sur les 44 poses, sans étirement du visage', () => {
+test('Roussel : échelle constante par rangée, marche à la taille de la garde, sans étirement du visage', () => {
+  const rendered = (atlas, frame) => atlas.frames[frame][3] / atlas.referenceHeight * atlas.frameScales[frame];
   for (const [sheet, atlas] of Object.entries(MINOR_ANIMATION_DATA.roussel)) {
     const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
     const height = reference.referenceHeight || 340;
     assert.equal(atlas.widthScale * 1.06, 1.1236);
-    assert.equal(new Set(atlas.frameScales).size, 1);
-    assert.ok(atlas.frameScales[0] > 0 && atlas.frameScales[0] <= .92);
+    for (let row = 0; row < atlas.frames.length; row += 4) assert.equal(new Set(atlas.frameScales.slice(row, row + 4)).size, 1);
+    assert.ok(atlas.frameScales.every(scale => scale > 0 && scale <= 1));
     assert.ok(atlas.frames[0][3] / atlas.referenceHeight * .92 < reference.frames[0][3] / height);
   }
+  // Les huit pas de garde ne doivent pas rapetisser Roussel par rapport à la garde de combat.
+  const { combat, movement } = MINOR_ANIMATION_DATA.roussel, guard = rendered(combat, 0);
+  for (let frame = 0; frame < 8; frame++) assert.ok(Math.abs(rendered(movement, frame) / guard - 1) < .04, `pas ${frame}`);
 });
 
 test('Les six secondaires utilisent les mêmes phases de coups, de charge et de saut que Philippe', () => {

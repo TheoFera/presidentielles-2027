@@ -1,8 +1,10 @@
 import { ringDelta } from '../simulation/world.js';
 import { buildingAssetId } from './illustrated-buildings.js';
 import { seasonAt } from '../simulation/campaign-events.js';
-import { v3AssetIds } from './fixed-world.js';
 import { currentMapDecor } from './map-decor.js';
+import { paintedAssetIds } from './france-peinte-data.js';
+import { completePaintedAssetIds } from './france-peinte-complete-data.js';
+import { expandedWorldAssetIds } from './world-v2-expanded-data.js';
 
 const masked = new WeakMap();
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
@@ -44,10 +46,11 @@ export function worldAssetIds(manifest, state) {
       wanted.add(`${separated ? 'landscape' : 'background-strip'}-${biome}`);
     }
     for (const building of state.buildings) wanted.add(buildingAssetId(building, state.world));
+  } else if (decor === 'france_peinte') {
+    for (const id of paintedAssetIds()) wanted.add(id);
+    for (const id of completePaintedAssetIds()) wanted.add(id);
   } else if (decor === 'panoramas') {
-    // Les façades sont incorporées aux panoramas ; aucun ancien local flottant à précharger.
-    for (const biome of biomeNames) wanted.add(`panorama-${biome}`);
-    for (const id of v3AssetIds()) wanted.add(id);
+    for (const id of expandedWorldAssetIds()) wanted.add(id);
   }
   for (const id of Object.keys(manifest)) {
     if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-|minor-)/.test(id)) wanted.add(id);

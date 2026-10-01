@@ -123,7 +123,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   const rally = animation === 'meeting' ? state.buildings?.find(b => b.id === entity.meeting_target_id) : null;
   const supporter = !!rally && entity.role === 'SYMPATHISANT' && entity.faction_id === rally.meeting_faction_id;
   const cheer = rally && !entity.moving ? Math.max(0, Math.sin(time * 6.5 + seed * 1.7)) : 0;
-  const groundY = m.groundY + m.characterHeight * (0.06 + (row ? row - 1 : 0) * 0.045);
+  const groundY = m.groundY + m.characterHeight * ((m.groundOffsetRatio ?? 0.06) + (row ? row - 1 : 0) * 0.045);
   const candidate = entity.role === 'CANDIDAT';
   const height = m.characterHeight * (candidate ? 1 : p.npc_height_multiplier) * (1 + (row ? row - 1 : 0) * 0.04);
   const converting = conversionProgress(renderer, entity, state);

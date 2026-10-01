@@ -7,7 +7,7 @@
 .match-summary-head h2:focus { outline: none; }
 #results .match-summary-head button { flex: none; min-height: max(38px, calc(var(--u) * 3.4)); padding: 0 max(12px, calc(var(--u) * 1.4)); font-size: max(13px, calc(var(--u) * 1.3)); white-space: nowrap; }
 
-.summary-chart-card { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: calc(var(--u) * .6); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * .6); background: #020a1f99; border: 1px solid #5cc1ff26; border-radius: calc(var(--u) * .9); }
+.summary-chart-card { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: calc(var(--u) * .6); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * .6); background: #020a1f99; border: 1px solid #5cc1ff26; border-radius: calc(var(--u) * .9); }
 .summary-chart-card h3 { margin: 0; font-size: max(11px, calc(var(--u) * 1.3)); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #cfe6ff; }
 .summary-chart-card h3 small { margin-left: .6em; font-size: .85em; font-weight: 600; letter-spacing: .02em; text-transform: none; color: #8fb4d9; }
 .summary-chart { display: block; width: 100%; height: 100%; min-height: 0; overflow: visible; }
@@ -18,6 +18,12 @@
 .summary-series { color: var(--party); }
 .summary-line { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: summary-draw 1.5s cubic-bezier(.3, .7, .3, 1) var(--delay) forwards; }
 .summary-series.is-you .summary-line { stroke-width: 4; filter: drop-shadow(0 0 4px currentColor); }
+.summary-series.is-minor .summary-line { stroke-width: 1.4; stroke-dasharray: none; stroke-dashoffset: 0; opacity: .75; animation: summary-fade .6s ease-out .3s backwards; }
+.summary-minors { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: max(11px, calc(var(--u) * 1.15)); color: #cfe6ff; }
+.summary-minors li { display: flex; align-items: center; gap: 5px; }
+.summary-minors i { width: 12px; height: 3px; border-radius: 2px; background: var(--party); }
+.summary-minors b { color: var(--party); }
+.summary-minors small { color: #8fb4d9; }
 .summary-area { fill: currentColor; opacity: 0; animation: summary-area .8s ease-out calc(var(--delay) + 1s) forwards; }
 .summary-dot { fill: currentColor; stroke: #fff; stroke-width: 2; opacity: 0; animation: summary-fade .3s ease-out calc(var(--delay) + 1.4s) forwards; }
 .summary-end { fill: var(--party); font: 900 12px system-ui, sans-serif; paint-order: stroke; stroke: #071433; stroke-width: 3px; opacity: 0; animation: summary-fade .3s ease-out 1.8s forwards; }

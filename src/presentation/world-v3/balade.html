@@ -23,7 +23,10 @@
   import { worldAssetIds } from '../illustrated-world.js';
   import { completePopulation } from '../../simulation/spawns.js';
   import { zoneAt } from '../../simulation/world.js';
-  if (!location.search.includes('decor=maquette')) { location.search = '?decor=maquette'; }
+  import { MAP_DECORS, currentMapDecor } from '../map-decor.js';
+  const requestedDecor = new URLSearchParams(location.search).get('decor');
+  if (requestedDecor !== 'maquette' && !MAP_DECORS.some(d => d.id === requestedDecor)) location.search = '?decor=maquette';
+  document.title = `Balade — ${MAP_DECORS.find(d => d.id === currentMapDecor())?.label || 'Fresque'}`;
   const config = await loadConfig();
   config.balance.campaign_events.event_enabled = false;
   const sim = new GameSimulation(config, 7); sim.state.ai_enabled = false;

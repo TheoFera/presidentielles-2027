@@ -19,7 +19,10 @@ const data = Object.fromEntries(Object.entries(MINOR_ANIMATION_FILES).map(([fact
       const restingWidth = atlas.frames[0][2] / atlas.referenceHeight * 1.1236;
       const targetWidth = reference.frames[0][2] / referenceHeight * 1.06;
       const fixedScale = Math.min(.92, targetWidth / restingWidth * .92);
-      atlas.frameScales = atlas.frames.map(() => fixedScale);
+      // Les planches générées ne dessinent pas Roussel à la même taille :
+      // correction par rangée, calée à l’œil sur la tête de la garde de combat.
+      const rowFactors = { combat: [1, 1, 1, 1], movement: [1.13, 1.09, 1.11, 1.11], actions: [1.15, 1.15, 1.15] }[sheet];
+      atlas.frameScales = atlas.frames.map((_, index) => fixedScale * rowFactors[Math.floor(index / 4)]);
     }
     console.log(`${faction} · ${sheet} : ${atlas.frames.length} poses mesurées.`);
     return [sheet, atlas];

@@ -11,13 +11,14 @@ import { distantJoin, drawIllustratedSky, landscapeJoin, scenerySeasonFilter } f
 import { drawSeasonalTree } from './illustrated-vegetation.js';
 import { drawFresque, fresqueSignFrame } from './world-v3/fresque/render.js';
 import { currentMapDecor } from './map-decor.js';
+import { drawPaintedWorld, drawPaintedFront, paintedSignFrame } from './france-peinte.js';
+import { drawExpandedWorld } from './world-v2-expanded.js';
 
 /**
  * Décor de la carte fixe, selon le décor choisi (map-decor.js) :
  * - « biomes » (par défaut) : rien ici, le moteur dessine l'ancien décor en couches peintes (illustrated-world.js) ;
  * - « fresque » : la fresque continue dessinée par le code (world-v3/fresque/) ;
- * - « panoramas » : décor v3 en couches pour les biomes dont les trois rues sont calibrées, sinon panoramas v2
- *   coupés net à la limite du biome, sans fondu.
+ * - « panoramas » : compléments world-v2 étendus en cinq plans, calés sur les portes du jeu.
  */
 const fresqueActive = () => currentMapDecor() === 'fresque';
 export const fixedPanoramaId = biome => `panorama-${fixedWorldArt[biome].art}`;
@@ -246,13 +247,23 @@ function drawV2Panoramas(renderer, state, biomes) {
 
 export function drawFixedWorld(renderer, state) {
   const world = state.world, biomes = worldBiomes(world), decor = currentMapDecor();
+  renderer.worldV2Sites = null;
   if (decor === 'biomes') return false; // l'ancien décor en couches est dessiné par le moteur
-  if (decor === 'fresque') {
+  if (decor === 'panoramas') {
+    renderer.fixedWorldLayered = new Set(); renderer.fixedWorldState = state;
+    const strength={horizon:1,far:1,mid:.9,back:.75,street:.45}, progress=state.campaign_progress_01;
+    renderer.ctx.save();renderer.ctx.imageSmoothingEnabled=true;
+    drawIllustratedSky(renderer,state);
+    const drawn=drawExpandedWorld(renderer,state,{seasonFilter:plane=>seasonFilter(progress,strength[plane]),snow:winterAmount(progress),snowCap});
+    renderer.ctx.restore();return drawn;
+  }
+  if (decor === 'fresque' || decor === 'france_peinte') {
     renderer.fixedWorldLayered = new Set(biomes.map(b => b.id)); renderer.fixedWorldState = state;
     const progress = state.campaign_progress_01, strength = { horizon: 1, far: 1, mid: 0.9, back: 0.75, street: 0.45 };
     renderer.ctx.save(); renderer.ctx.imageSmoothingEnabled = true;
     drawIllustratedSky(renderer, state);
-    drawFresque(renderer, state, { seasonFilter: plane => seasonFilter(progress, strength[plane]), drawSeasonalTree, snow: winterAmount(progress), snowCap });
+    const draw = decor === 'france_peinte' ? drawPaintedWorld : drawFresque;
+    draw(renderer, state, { seasonFilter: plane => seasonFilter(progress, strength[plane]), drawSeasonalTree, snow: winterAmount(progress), snowCap });
     renderer.ctx.restore(); return true;
   }
   const layered = layeredBiomes(renderer, world);
@@ -275,6 +286,7 @@ export function drawFixedWorld(renderer, state) {
 
 /** Avant-plan : appelé après les personnages. */
 export function drawFixedWorldFront(renderer, state) {
+  if (renderer.fixedWorldActive && currentMapDecor() === 'france_peinte') { drawPaintedFront(renderer, state); return; }
   if (renderer.fixedWorldActive && renderer.fixedWorldLayered?.size) drawFrontProps(renderer, state);
 }
 
@@ -284,6 +296,8 @@ export function drawFixedWorldFront(renderer, state) {
 export function buildingSignFrame(renderer, building) {
   const state = renderer.fixedWorldState;
   if (!renderer.fixedWorldActive || !state) return null;
+  if (currentMapDecor() === 'panoramas') return renderer.worldV2Sites?.get(building.site_id) || null;
+  if (currentMapDecor() === 'france_peinte') return paintedSignFrame(renderer, building);
   if (fresqueActive()) return fresqueSignFrame(renderer, building);
   const zone = state.world.subzones.find(z => z.id === building.subzone_id);
   if (renderer.fixedWorldLayered?.has(zone.biome_id)) {

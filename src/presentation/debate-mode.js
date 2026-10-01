@@ -1,6 +1,7 @@
 import { drawCombatEffects } from './combat-effects.js';
 import { campaignStyles } from '../simulation/campaign-styles.js';
 import { portraitContent, hydrateSelectionPortraits } from './debate-selection.js';
+import { DEBATE_ARENAS, arenaSupportHeight, drawDebateArena } from './debate-arenas.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -204,24 +205,29 @@ function drawNameTag(renderer, state, fighter, x, y, width, text) {
 export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
   const { ctx, canvas, width, height } = renderer;
   const original = renderer.metrics, originalScreenX = renderer.screenX;
-  const look = MAP_LOOK[state.map_id] || MAP_LOOK.plateau;
+  const arena = DEBATE_ARENAS[state.map_id];
+  const look = arena ? { ground: renderer.config.balance.debate_mode.maps[state.map_id].ground_y_ratio ?? 0.73, scale: 1.2 } : MAP_LOOK[state.map_id] || MAP_LOOK.plateau;
   const debateWidth = renderer.config.balance.first_round_debate.width_units;
-  renderer.metrics = { ...original, groundY: height * look.ground, characterHeight: original.characterHeight * look.scale, pixelsPerUnit: width / debateWidth };
+  renderer.metrics = { ...original, groundY: height * look.ground, groundOffsetRatio: arena ? 0 : 0.06, characterHeight: original.characterHeight * look.scale, pixelsPerUnit: width / debateWidth };
   renderer.screenX = x => x * width / debateWidth;
   const m = renderer.metrics, hz = renderer.config.balance.simulation_architecture.fixed_tick_hz;
   const time = (state.tick + alpha) / hz;
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
-  if (state.map_id === 'studio') drawStudio(renderer, state, time); else drawPlateau(renderer, state);
-  if (state.platforms?.length) drawPlatforms(renderer, state, time);
+  if (arena) drawDebateArena(renderer, state, time);
+  else {
+    if (state.map_id === 'studio') drawStudio(renderer, state, time); else drawPlateau(renderer, state);
+    if (state.platforms?.length) drawPlatforms(renderer, state, time);
+  }
   const olds = new Map([...(previous?.candidates || []), ...(previous?.temporary_units || [])].map(e => [e.id, e]));
   const entities = [...state.temporary_units, ...state.candidates].sort((a, b) => Number(!a.is_ko) - Number(!b.is_ko));
   const tags = [];
   for (const entity of entities) {
+    if (entity.disappeared || entity.expired) continue;
     const old = olds.get(entity.id) || entity;
     const x = old.x + (entity.x - old.x) * alpha;
     const h = (old.combat?.height ?? 0) + ((entity.combat?.height ?? 0) - (old.combat?.height ?? 0)) * alpha;
     // Le pupitre sert de sol local : pieds et ombre se posent dessus.
-    const support = entity.role === 'CANDIDAT' ? supportHeight(state, x, h) : 0;
+    const support = arena ? arenaSupportHeight(state, x, h) ?? Math.min(0, h) : entity.role === 'CANDIDAT' ? supportHeight(state, x, h) : 0;
     renderer.metrics = { ...m, groundY: m.groundY - support * m.characterHeight };
     renderer.drawPerson({ ...entity, x, combat: entity.combat && { ...entity.combat, height: Math.max(0, h - support) } }, renderer.screenX(x), state);
     renderer.metrics = m;
@@ -235,6 +241,10 @@ export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
     const width = ctx.measureText(text).width + 14;
     const x = Math.max(width / 2 + 4, Math.min(renderer.width - width / 2 - 4, feetX));
     let y = feetY - m.characterHeight * 1.08;
+    if (arena) for (const p of state.platforms) {
+      const top = m.groundY - p.height * m.characterHeight;
+      if (Math.abs(y - top) < 16 && Math.abs(x - renderer.screenX(p.x)) < p.half_width * m.pixelsPerUnit + width / 2) y = top - 20;
+    }
     while (placed.some(p => Math.abs(p.x - x) < (p.width + width) / 2 + 2 && Math.abs(p.y - y) < 20)) y -= 21;
     placed.push({ x, y, width });
     drawNameTag(renderer, state, fighter, x, y, width, text);
@@ -247,6 +257,7 @@ export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
 /** Images à charger avant le combat : planches des combattants choisis et ultimes. */
 export function debateAssetIds(manifest, setup) {
   return Object.keys(manifest).filter(id => id.startsWith('ultimate-') || id.startsWith('character-ultimate-') || id.startsWith('crs-')
+    || id === DEBATE_ARENAS[setup.map]?.asset
     || setup.map === 'plateau' && id === 'background-debate'
     || setup.fighters.some(f => {
       const faction = f.faction.replace(/_/g, '-');
@@ -314,7 +325,7 @@ export class DebateModeDisplay {
     if (state.phase === 'COUNTDOWN') { text = String(Math.max(1, Math.ceil(state.countdown_ticks / hz))); kind = 'count'; }
     else if (state.fight_started_tick != null && state.tick - state.fight_started_tick < mode.fight_banner_seconds * hz) { text = 'DÉBATTEZ !'; kind = 'fight'; }
     if (state.ko_order.length > this.koSeen) { this.koSeen = state.ko_order.length; this.koUntil = state.tick + hz * 1.1; }
-    if (!text && state.tick < this.koUntil) { text = 'K.O. !'; kind = 'ko'; }
+    if (!text && state.tick < this.koUntil) { text = state.candidates.find(c => c.id === state.ko_order.at(-1))?.ko_reason === 'FALL' ? 'CHUTE ! K.O. !' : 'K.O. !'; kind = 'ko'; }
     if (text !== this.bannerText) {
       this.bannerText = text; this.banner.hidden = !text;
       if (text) { this.banner.textContent = text; this.banner.dataset.kind = kind; this.banner.getAnimations().forEach(a => a.cancel()); this.banner.animate([{ transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0 }, { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,1.4,.4,1)' }); }
@@ -330,7 +341,7 @@ export class DebateModeDisplay {
     const panel = document.createElement('div'); panel.className = 'debate-result-panel';
     panel.innerHTML = `<p class="debate-result-eyebrow"></p><h2></h2><p class="debate-result-text"></p><ol class="debate-ranking"></ol><div class="debate-result-actions"><button class="debate-primary" data-debate-action="rematch">Revanche</button><button data-debate-action="setup">Changer de combattants</button><button data-debate-action="home">Menu</button></div>`;
     panel.querySelector('.debate-result-eyebrow').textContent = `${state.map_name} · ${state.format === '1v1' ? '1 contre 1' : '1 contre 1 contre 1'}`;
-    panel.querySelector('h2').textContent = won ? 'Victoire !' : 'Défaite…';
+    panel.querySelector('h2').textContent = winner ? won ? 'Victoire !' : 'Défaite…' : 'Match nul';
     panel.querySelector('h2').dataset.won = String(won);
     panel.querySelector('.debate-result-text').textContent = label ? `${label.name}${label.style ? ` (${label.style})` : ''} remporte le Débat télé${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
     const list = panel.querySelector('ol');

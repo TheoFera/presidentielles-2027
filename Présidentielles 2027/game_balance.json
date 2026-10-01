@@ -611,6 +611,154 @@
         "description": "Un plateau plat : rien pour se cacher.",
         "platforms": []
       },
+      "elysee": {
+        "name": "Tribune de l’Élysée",
+        "description": "Trois scènes séparées par des trous. Les bords lumineux sont praticables ; tomber dans le vide est mortel.",
+        "fall_death_height": -2.2,
+        "jump_height": 1.6,
+        "jump_duration_seconds": 0.95,
+        "platforms": [
+          {
+            "id": "scene-gauche",
+            "x": 4.90669856,
+            "half_width": 3.76794258,
+            "height": 0
+          },
+          {
+            "id": "scene-centrale",
+            "x": 14.00837321,
+            "half_width": 3.54186603,
+            "height": 0
+          },
+          {
+            "id": "scene-droite",
+            "x": 23.08492823,
+            "half_width": 3.7930622,
+            "height": 0
+          },
+          {
+            "id": "balcon-gauche",
+            "x": 6.87440191,
+            "half_width": 2.36961722,
+            "height": 1.21029638
+          },
+          {
+            "id": "balcon-droit",
+            "x": 21.1507177,
+            "half_width": 2.36124402,
+            "height": 1.21029638
+          }
+        ],
+        "ground_y_ratio": 0.65356004
+      },
+      "face_a_face": {
+        "name": "Face-à-face",
+        "description": "Une grande scène centrale, deux balcons et des petites plateformes de secours. Au-delà, la chute est mortelle.",
+        "fall_death_height": -2.2,
+        "jump_height": 1.6,
+        "jump_duration_seconds": 0.95,
+        "platforms": [
+          {
+            "id": "scene-centrale",
+            "x": 14.02511962,
+            "half_width": 9.6208134,
+            "height": 0
+          },
+          {
+            "id": "secours-gauche",
+            "x": 2.11842105,
+            "half_width": 1.5992823,
+            "height": -0.40146416
+          },
+          {
+            "id": "secours-droit",
+            "x": 25.87320574,
+            "half_width": 1.62440191,
+            "height": -0.40146416
+          },
+          {
+            "id": "balcon-gauche",
+            "x": 6.67344498,
+            "half_width": 2.87200957,
+            "height": 1.23391191
+          },
+          {
+            "id": "balcon-droit",
+            "x": 21.32655502,
+            "half_width": 2.88875598,
+            "height": 1.23391191
+          }
+        ],
+        "ground_y_ratio": 0.74282678
+      },
+      "remue_menage": {
+        "name": "Remue-ménage",
+        "description": "Une large scène suspendue et deux balcons. Restez sur les surfaces lumineuses : les sorties de scène sont mortelles.",
+        "fall_death_height": -2.2,
+        "jump_height": 2,
+        "jump_duration_seconds": 0.95,
+        "platforms": [
+          {
+            "id": "scene-centrale",
+            "x": 13.99162679,
+            "half_width": 12.6854067,
+            "height": 0
+          },
+          {
+            "id": "balcon-gauche",
+            "x": 4.58014354,
+            "half_width": 2.57057416,
+            "height": 1.6648955
+          },
+          {
+            "id": "balcon-droit",
+            "x": 23.42822967,
+            "half_width": 2.54545455,
+            "height": 1.6648955
+          }
+        ],
+        "ground_y_ratio": 0.66737513
+      },
+      "ecologie": {
+        "name": "Éco-débat",
+        "description": "Des îlots végétalisés au-dessus de l’eau. Sautez les passages entre les îlots : tomber dans l’eau est mortel.",
+        "fall_death_height": -2.2,
+        "jump_height": 1.6,
+        "jump_duration_seconds": 0.95,
+        "platforms": [
+          {
+            "id": "ilot-gauche",
+            "x": 5.77751196,
+            "half_width": 4.70574163,
+            "height": 0
+          },
+          {
+            "id": "ilot-central",
+            "x": 13.94976077,
+            "half_width": 2.36124402,
+            "height": 0
+          },
+          {
+            "id": "ilot-droit",
+            "x": 22.1638756,
+            "half_width": 4.73086124,
+            "height": 0
+          },
+          {
+            "id": "jardin-gauche",
+            "x": 7.18421053,
+            "half_width": 2.56220096,
+            "height": 1.23391191
+          },
+          {
+            "id": "jardin-droit",
+            "x": 20.715311,
+            "half_width": 2.57894737,
+            "height": 1.23391191
+          }
+        ],
+        "ground_y_ratio": 0.73857598
+      },
       "studio": {
         "name": "Studio télé",
         "description": "Des pupitres où grimper. La hauteur compte : au sol, on ne touche pas un candidat perché.",

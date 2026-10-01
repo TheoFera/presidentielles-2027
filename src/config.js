@@ -68,10 +68,15 @@ export function validateConfig(config) {
   if (!mode.maps[mode.default_map]) throw new Error('Configuration : carte de débat par défaut inconnue.');
   for (const [id, map] of Object.entries(mode.maps)) {
     if (!map.name || !Array.isArray(map.platforms)) throw new Error(`Configuration : carte de débat ${id} invalide.`);
+    if (map.ground_y_ratio != null && (!Number.isFinite(map.ground_y_ratio) || map.ground_y_ratio <= 0 || map.ground_y_ratio >= 1)) throw new Error(`Configuration : ligne de scène de la carte ${id} invalide.`);
+    if (map.fall_death_height != null && (!Number.isFinite(map.fall_death_height) || map.fall_death_height >= 0 || !map.platforms.length)) throw new Error(`Configuration : limite de chute de la carte ${id} invalide.`);
     if (map.platforms.length) { positive(map.jump_height, `saut de la carte ${id}`); positive(map.jump_duration_seconds, `durée du saut de la carte ${id}`); }
     for (const p of map.platforms) {
-      for (const key of ['x', 'half_width', 'height']) positive(p[key], `pupitre ${p.id} ${key}`);
-      if (p.x - p.half_width < debate.edge_margin || p.x + p.half_width > debate.width_units - debate.edge_margin) throw new Error(`Configuration : le pupitre ${p.id} dépasse du plateau.`);
+      for (const key of ['x', 'half_width']) positive(p[key], `pupitre ${p.id} ${key}`);
+      if (map.fall_death_height == null) positive(p.height, `pupitre ${p.id} height`);
+      else if (!Number.isFinite(p.height) || p.height <= map.fall_death_height) throw new Error(`Configuration : hauteur de la plateforme ${p.id} invalide.`);
+      const margin = map.fall_death_height == null ? debate.edge_margin : 0;
+      if (p.x - p.half_width < margin || p.x + p.half_width > debate.width_units - margin) throw new Error(`Configuration : le pupitre ${p.id} dépasse du plateau.`);
     }
   }
   const sprint = config.balance.second_round;

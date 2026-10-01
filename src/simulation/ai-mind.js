@@ -150,7 +150,8 @@ export function observeAxis(state, config, c, rival) {
   const d = combatDelta(state, c.x, rival.x), toward = Math.sign(d) || c.facing, distance = Math.abs(d);
   const keep = aiAttackRange(config, c) + 1.6;
   const roll = aiNoise(state.seed, `${c.id}:sway:${Math.floor(state.tick / ticks(config, 0.35))}`);
-  if (distance < keep) return -toward;
+  // Recul avec une marge : déjà tourné vers le rival, on ne recule que s’il s’approche nettement.
+  if (distance < keep - (c.facing === toward ? 0.8 : 0)) return -toward;
   if (distance > keep + 2.5) return roll < 0.5 ? toward : 0;
   const axis = roll < 0.2 ? toward : roll < 0.36 ? -toward : 0;
   return axis === 0 && c.facing !== toward ? toward : axis;

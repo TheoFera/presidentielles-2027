@@ -21,6 +21,8 @@ import { drawPersuasionFeedback } from './persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
 import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
+import { preparePaintedAtlas } from './france-peinte.js';
+import { prepareExpandedAtlas } from './world-v2-expanded.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
@@ -34,6 +36,8 @@ async function prepareImage(id, image) {
     prepareAtlasFrames(image, MINOR_ANIMATION_DATA[faction]?.[sheet]);
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
+  if (id.startsWith('peint-')) preparePaintedAtlas(id, image);
+  if (id.startsWith('world2-')) prepareExpandedAtlas(id, image);
   prepareSceneryImage(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
   if (id.startsWith('vegetation-')) await prepareVegetationImage(image);

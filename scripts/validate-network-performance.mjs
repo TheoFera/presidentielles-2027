@@ -5,7 +5,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController, LocalHumanController } from '../src/simulation/controllers.js';
 import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { PeerSession } from '../src/network/peer-session.js';
-import { stateDelta, applyStateDelta, presentationState } from '../src/network/state-stream.js';
+import { stateDelta, applyStateDelta, encodePresentationState } from '../src/network/state-stream.js';
 import { outgoingCommands } from '../src/network/shared-commands.js';
 
 const sim = new GameSimulation(campaignConfig(), 2027), ai = new AIController(sim.config), frames = [];
@@ -54,7 +54,7 @@ for (const guests of [1, 2]) {
   let received;
   for (let i = 0; i < actual.length; i++) {
     received = applyStateDelta(received, JSON.parse(actual[i][0]).data);
-    assert.deepEqual(received, presentationState(frames[i]));
+    assert.deepEqual(received, encodePresentationState(frames[i]));
   }
   const rounds = [];
   for (let round = 0; round < 6; round++) {

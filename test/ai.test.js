@@ -363,3 +363,19 @@ test('La réflexion de l’IA est sauvegardée et une réflexion invalide est re
   const broken = sim.getState(); broken.candidates.find(o => o.id === c.id).ai_mind.stance = 'RÊVER';
   assert.throws(() => restored.importSnapshot(broken), /réflexion/);
 });
+
+test('Une IA hésitante ne fait pas de va-et-vient frénétique gauche/droite', () => {
+  const config = campaignConfig();
+  const sim = new GameSimulation(config, 7, 'candidate:melenchon', {}, { aiDifficulty: 'normal' });
+  const ai = new AIController(config), hz = config.balance.simulation_architecture.fixed_tick_hz, turns = {};
+  for (let t = 0; t < hz * 80; t++) {
+    const before = new Map(sim.state.candidates.map(c => [c.id, c.facing]));
+    sim.step(sim.state.candidates.filter(c => !c.eliminated).flatMap(c => ai.commands(sim.state, c.id)));
+    for (const c of sim.state.candidates) if (c.facing !== before.get(c.id)) (turns[c.id] ||= []).push(sim.state.tick);
+  }
+  for (const [id, list] of Object.entries(turns)) {
+    let worst = 0;
+    for (let i = 0, j = 0; i < list.length; i++) { while (list[i] - list[j] > 2 * hz) j++; worst = Math.max(worst, i - j + 1); }
+    assert.ok(worst <= 6, `${id} change ${worst} fois de sens en 2 s`);
+  }
+});

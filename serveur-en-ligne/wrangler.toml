@@ -16,8 +16,8 @@ new_sqlite_classes = ["Salons"]
 [vars]
 # Adresses autorisées à utiliser le serveur, séparées par des virgules.
 # Vide = tout le monde. Exemple :
-# ALLOWED_ORIGINS = "https://theofera.github.io,https://localhost,http://localhost:2027"
-ALLOWED_ORIGINS = ""
+# ALLOWED_ORIGINS = "https://theofera.github.io,https://appassets.androidplatform.net,https://localhost,http://localhost:2027"
+ALLOWED_ORIGINS = "https://theofera.github.io,https://appassets.androidplatform.net,https://localhost,http://localhost:2027"
 
 # Secrets à NE PAS écrire ici (commande « npx wrangler secret put ») :
 #   TURN_KEY_ID          identifiant de la clé TURN Cloudflare

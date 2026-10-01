@@ -6,7 +6,8 @@ import { spawn } from 'node:child_process';
 import { createMultiplayerHandler } from './multiplayer-server.mjs';
 import { connectionInfo, lanAddresses } from './lan-addresses.mjs';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+// --dist sert l'export optimisé de l'application (npm run build) au lieu des sources.
+const root = fileURLToPath(new URL(process.argv.includes('--dist') ? '../dist/' : '../', import.meta.url));
 const port = Number(process.env.PORT || 2027);
 const host = process.env.HOST || '0.0.0.0';
 const multiplayer = createMultiplayerHandler({ status: req => connectionInfo(req, port, host) });
@@ -20,7 +21,7 @@ function openBrowser() {
   child.on('error', () => console.log(`Ouvre le jeu manuellement : ${url}`));
   child.unref();
 }
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.md': 'text/plain; charset=utf-8' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.md': 'text/plain; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   if (await multiplayer(req, res)) return;
   try {
@@ -28,7 +29,7 @@ const server = http.createServer(async (req, res) => {
     const file = path.resolve(root, `.${urlPath === '/' ? '/index.html' : urlPath}`);
     const relative = path.relative(root, file);
     const normalizedPath = '/' + relative.split(path.sep).join('/');
-    const publicPath = normalizedPath === '/index.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/generated/') || /^\/Présidentielles 2027\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
+    const publicPath = normalizedPath === '/index.html' || normalizedPath === '/confidentialite.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/generated/') || /^\/Présidentielles 2027\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
     if (!publicPath) { res.writeHead(404).end('Fichier introuvable.'); return; }
     if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(path.sep).some(p => p.startsWith('.'))) {
       res.writeHead(403).end('Accès refusé.'); return;

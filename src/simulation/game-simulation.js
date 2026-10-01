@@ -74,7 +74,7 @@ export class GameSimulation {
       id: `candidate:${faction}`, role: 'CANDIDAT', faction_id: faction, eliminated: false,
       ai_objective: null, ai_mind: null,
       x,
-      vehicle: null, vehicle_hold: null, axis: 0, facing: 1, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
+      vehicle: null, vehicle_hold: null, axis: 0, facing: 1, turn_tick: -1000000, moving: false, campaign_active: true, persuasion_target_ids: [], special_charge: 0, podium_site_id: null,
       combat: combatState(), electoral_damage_received: 0, hits_received: 0, refunds_received: 0,
       resistance: config.balance.candidate_combat.resistance_max, last_damage_tick: -1000000, is_ko: false, disappeared: false,
       ko_started_tick: -1, disappear_tick: -1, respawn_tick: -1, headquarters_site_id: null,
@@ -345,7 +345,7 @@ export class GameSimulation {
       if (candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id || movementBlocked(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
-      if (candidate.axis) candidate.facing = candidate.axis;
+      if (candidate.axis && candidate.axis !== candidate.facing) { candidate.facing = candidate.axis; candidate.turn_tick = state.tick; }
       if (candidate.podium_site_id) {
         const podium = state.buildings.find(b => b.id === candidate.podium_site_id);
         if (!podium || Math.abs(ringDelta(candidate.x, podium.x, state.world.length)) > this.config.balance.buildings.meeting.podium_half_width) {

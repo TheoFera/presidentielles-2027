@@ -219,12 +219,13 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
   for (const building of state.buildings) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
   for (const id of ['riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => id.startsWith('panorama-')), 'Les panoramas world-v2 ne sont chargés que si ce décor est choisi');
-  // Décor « panoramas » (betatest) : façades peintes dans les panoramas, aucun bâtiment flottant.
+  // Décor « panoramas » (betatest) : compléments world-v2 calés sur les sites, sans anciens panoramas agrandis.
   setMapDecor('panoramas');
   const panoramaIds = worldAssetIds(visualManifest, state);
   setMapDecor('biomes');
-  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) assert.ok(panoramaIds.includes(`panorama-${biome}`), biome);
-  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !id.startsWith('building-meeting_stage-')), 'Les bâtiments sont peints dans les panoramas ; seules les estrades provisoires de meeting sont des images');
+  for (const biome of ['paris', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches', 'landscapes', 'nature']) assert.ok(panoramaIds.includes(`world2-${biome}`), biome);
+  assert.ok(!panoramaIds.some(id => id.startsWith('panorama-')), 'Les originaux world-v2 restent des références, sans agrandissement');
+  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !id.startsWith('building-meeting_stage-')), 'Les locaux sont intégrés aux nouveaux éléments ; les estrades restent provisoires');
   for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) assert.ok(ids.includes(`building-meeting_stage-${biome}`), 'estrade ' + biome);
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');

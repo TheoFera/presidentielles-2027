@@ -127,7 +127,7 @@ export function strategicAICommands(state, config, c) {
 
   // 1. Un candidat rival en vue : observer, puis combattre, fuir ou l’éviter.
   const rival = visibleRival(state, c, Math.max(settings.detection_range, 4));
-  let avoid = null, stance = null;
+  let avoid = null, stance = null, avoidMargin = 2.6;
   if (rival) {
     const mind = reflectOnRival(state, config, c, rival, adaptation);
     note(mind); stance = mind.stance;
@@ -147,12 +147,14 @@ export function strategicAICommands(state, config, c) {
       return result;
     }
     if (stance === 'AVOID' || stance === 'OBSERVE' || escaped) avoid = rival;
+    // Après une fuite, ne pas revenir vers le rival juste au bord de la distance de sécurité (sinon va-et-vient).
+    avoidMargin = escaped ? 5.5 : 2.6;
   } else if (c.ai_mind?.opponent_id) note(null);
   // En évitement, ne jamais s’approcher du rival : attendre qu’il passe ou que l’avis change.
   const finish = result => {
     if (avoid) {
       const move = result.find(r => r.type === 'Move'), toward = Math.sign(ringDelta(c.x, avoid.x, state.world.length));
-      if (move && move.axis === toward && distance(state, c.x, avoid.x) <= aiAttackRange(config, c) + 2.6) move.axis = 0;
+      if (move && move.axis === toward && distance(state, c.x, avoid.x) <= aiAttackRange(config, c) + avoidMargin) move.axis = 0;
     }
     return [...notes, ...result];
   };

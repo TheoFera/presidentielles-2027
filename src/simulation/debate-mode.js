@@ -1,11 +1,12 @@
 import { DebateSimulation } from './debate-simulation.js';
 import { aiCombatCommands } from './ai-combat.js';
 import { aiNoise } from './ai-settings.js';
-import { airborne, startPlatformFall } from './combat-actions.js';
+import { airborne } from './combat-actions.js';
 import { campaignStyles, isCampaignStyleUnlocked } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { initializeMobileCombat } from './mobile-combat.js';
 import { ALL_FACTIONS, isMinorFaction } from './world.js';
+import { arenaNavigationCommands, edgeEscapeCommands, fallSafeCommands } from './debate-navigation.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -118,6 +119,7 @@ export class DebateMatch {
       ai_difficulty: setup.difficulty ?? config.balance.ai?.difficulty ?? 'normal',
       debate_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
       platforms: clone(map.platforms),
+      fall_death_height: map.fall_death_height ?? null,
       platform_jump: map.platforms.length ? { height: map.jump_height, duration_seconds: map.jump_duration_seconds } : null,
       candidates, npcs: [], buildings: [], electorate: [], campaign_events: [],
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [], events: [],
@@ -128,6 +130,11 @@ export class DebateMatch {
       winner_id: null, finished_tick: null, ko_order: [],
       local_candidate_id: candidates[0].id,
     };
+    if (this.state.fall_death_height != null) for (const c of candidates) {
+      const support = this.state.platforms.filter(p => Math.abs(c.x - p.x) <= p.half_width && p.height <= 0).sort((a, b) => b.height - a.height)[0];
+      if (!support) throw new Error('Le point de départ doit être sur une plateforme.');
+      c.platform_id = support.id; c.combat.height = support.height;
+    }
   }
   secondsToTicks(s) { return Math.ceil(s * this.hz - 1e-9); }
   emit(type, data) {
@@ -165,10 +172,15 @@ export class DebateMatch {
       const source = s.candidates.find(c => c.id === hit.source_id) || s.candidates.find(c => c.id === s.temporary_units.find(t => t.id === hit.source_id)?.owner_id);
       if (source) source.damage_dealt += hit.score_damage;
     }
-    for (const c of s.candidates) if (!c.is_ko && c.debate_hp <= 0) {
+    for (const c of s.candidates) if (!c.is_ko) {
+      if (s.fall_death_height != null && c.combat.height <= s.fall_death_height) {
+        c.debate_hp = 0; c.ko_reason = 'FALL'; c.disappeared = true;
+        this.emit('DebateFall', { candidate_id: c.id });
+      }
+      if (c.debate_hp > 0) continue;
       Object.assign(c, { is_ko: true, axis: 0, moving: false, campaign_active: false, ko_started_tick: s.tick, platform_id: null });
       s.ko_order.push(c.id);
-      this.emit('DebateKnockout', { candidate_id: c.id });
+      this.emit('DebateKnockout', { candidate_id: c.id, reason: c.ko_reason ?? 'DAMAGE' });
     }
     // Le moteur s’arrête au premier KO (règle du premier tour) : ici le combat continue.
     s.eliminated_faction = null;
@@ -217,7 +229,7 @@ function platformCommands(state, config, c, target) {
   if (Math.abs(theirs - mine) < 0.5) return null;
   if (c.combat.stun_ticks || c.combat.attack_id || c.combat.press_tick != null || c.dash_active) return [...base, { type: 'Move', candidateId: c.id, axis: 0 }];
   if (theirs < mine) {
-    // Adversaire plus bas : se laisser tomber s’il est juste dessous, sinon marcher dans le vide vers lui.
+    // Adversaire plus bas : marcher dans le vide vers lui, en passant par le bord du pupitre s’il est juste dessous.
     const own = state.platforms.find(p => p.id === c.platform_id);
     if (own && Math.abs(target.x - own.x) <= own.half_width + 0.6) return [...base, move(own.x + (Math.sign(target.x - c.x) || c.facing) * (own.half_width + 0.5))];
     return [...base, move(target.x)];
@@ -236,6 +248,8 @@ export function debateModeAICommands(state, baseConfig, candidateId) {
   const c = state.candidates.find(c => c.id === candidateId);
   if (!c || c.is_ko || state.phase !== 'FIGHT') return [];
   const target = debateModeTarget(state, config, c);
-  if (!target) return [{ type: 'Move', candidateId, axis: 0 }];
-  return platformCommands(state, config, c, target) || aiCombatCommands(state, config, c, target);
+  if (!target) return fallSafeCommands(state, config, c, [{ type: 'Move', candidateId, axis: 0 }]);
+  // Sur une arène à trous, chaque choix passe par le contrôle anti-chute.
+  return fallSafeCommands(state, config, c, arenaNavigationCommands(state, config, c, target) || edgeEscapeCommands(state, config, c, target)
+    || platformCommands(state, config, c, target) || aiCombatCommands(state, config, c, target));
 }

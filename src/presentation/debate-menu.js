@@ -30,7 +30,7 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
       ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>
       <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset></div>
-      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(error || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
+      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(error || config.balance.debate_mode.maps[setup.map].description || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
     </div>`, back);
     const root = menu.element;
     hydrateSelectionPortraits(root); bindRosterKeyboard(root);

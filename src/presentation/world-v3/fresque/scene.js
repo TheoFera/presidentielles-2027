@@ -79,8 +79,8 @@ const STREET = [
   [86.2, 91, 'tourCite', { floors: 14, accent: '#7fa3bf', stairAt: 0.3 }],
   [91, 93.7, 'pelouseCite', { path: 0 }],
   // Banlieue B — vieille rue commerçante de Saint-Denis, marché populaire devant la basilique.
-  [98.8, 103.6, 'faubourg', { floors: 3, shops: ['boulangerie', 'primeur'], color: '#e3d3b6', shutter: '#8c9aa0' }],
-  [103.6, 112.4, 'place', { paving: 'dalles', bancs: false }],
+  [93.7, 98.78, 'faubourg', { floors: 3, shops: ['boulangerie', 'primeur'], color: '#e3d3b6', shutter: '#8c9aa0' }],
+  [103.78, 112.4, 'place', { paving: 'dalles', bancs: false }],
   [104.9, 111.1, 'marche', { seed: 7 }],
   [112.4, 116.4, 'faubourg', { floors: 4, shops: ['kebab', 'tabac'], color: '#d8c8ae', shutter: null }],
   [116.4, 120.6, 'ruePerspective', { kind: 'saintdenis' }],
@@ -98,8 +98,8 @@ const STREET = [
   [153.5, 155.6, 'jardinLotissement', { items: [{ t: 'barbecue', at: 0.5 }] }],
   [159.9, 166, 'maisonLotissement', {}],
   // Périurbain B — maisons de brique, rond-point au premier plan, supermarché.
-  [170.7, 175.6, 'maisonsBrique', { count: 2 }],
-  [175.6, 184.4, 'rondPoint', {}],
+  [166, 170.5, 'maisonsBrique', { count: 2 }],
+  [175.1, 184.4, 'rondPoint', {}],
   [184.4, 191, 'grandeSurface', { color: '#2f7fbf', logo: 'feuille' }],
   // Périurbain C — usine de vallée, prés et montbéliardes au pied des Alpes.
   [191, 196, 'usine', {}],
@@ -111,8 +111,8 @@ const STREET = [
   [223.8, 231.9, 'serres', {}],
   [236.85, 238.8, 'champ', {}],
   // Campagne B — le village : maison de pierre, place et monument aux morts, mairie, bar-tabac.
-  [243.1, 247.3, 'maisonVillage', { vine: true, bench: true, seed: 4 }],
-  [247.3, 256.6, 'place', { paving: 'gravier' }],
+  [238.8, 243.18, 'maisonVillage', { vine: true, bench: true, seed: 4 }],
+  [247.38, 256.6, 'place', { paving: 'gravier' }],
   [249.3, 249.3, 'monumentMorts', {}],
   [256.6, 262.1, 'mairie', {}],
   [262.1, 266.3, 'barTabac', {}],
@@ -132,7 +132,8 @@ const STREET = [
   [310.4, 314.15, 'villaBalneaire', { hortensias: false }],
   [319.2, 328.8, 'promenade', {}],
   [320.6, 320.6, 'glacier', {}],
-  [328.8, 333.35, 'villaBalneaire', { volets: '#2f9f7f' }],
+  [328.8, 329.1, 'promenade', {}],
+  [333.3, 337.65, 'jardinVilla', { h: 170, seed: 13 }],
   // Retraités C — banlieue bourgeoise : villas toutes différentes, en retrait dans des jardins arborés.
   [337.65, 338.9, 'jardinVilla', { h: 200, seed: 2 }],
   [338.9, 344.3, 'villaBourgeoise', { variant: 'tourelle', seed: 3 }],
@@ -144,8 +145,8 @@ const STREET = [
   [366, 370.3, 'haussmannCossu', { floors: 3 }],
   [375.8, 382.4, 'hotelParticulier', {}],
   // Riches B — boutiques de luxe, place du kiosque face à la tour Eiffel.
-  [387.05, 391.6, 'haussmannCossu', { floors: 3, boutiques: ['mode'] }],
-  [391.6, 400.4, 'place', { paving: 'dalles' }],
+  [382.4, 386.98, 'haussmannCossu', { floors: 3, boutiques: ['mode'] }],
+  [391.58, 400.4, 'place', { paving: 'dalles' }],
   [392.9, 392.9, 'kiosque', {}],
   [400.4, 405.4, 'haussmannCossu', { floors: 3, boutiques: ['bijoux', 'mode'] }],
   [405.4, 411.1, 'haussmannCossu', { floors: 3 }],

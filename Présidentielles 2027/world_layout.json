@@ -329,7 +329,7 @@
       {
         "site_id": "site:banlieue_b",
         "subzone_id": "banlieue_b",
-        "x_ratio": 0.01076,
+        "x_ratio": 0.22,
         "type": "permanence",
         "controls_zone": true
       },
@@ -358,7 +358,7 @@
       {
         "site_id": "site:periurbain_b",
         "subzone_id": "periurbain_b",
-        "x_ratio": 0.014,
+        "x_ratio": 0.20,
         "type": "garage_scooter",
         "controls_zone": true
       },
@@ -386,7 +386,7 @@
       {
         "site_id": "site:campagne_b",
         "subzone_id": "campagne_b",
-        "x_ratio": 0.03992,
+        "x_ratio": 0.22,
         "type": "permanence",
         "controls_zone": true
       },
@@ -445,7 +445,7 @@
       {
         "site_id": "site:riches_b",
         "subzone_id": "riches_b",
-        "x_ratio": 0.0302,
+        "x_ratio": 0.22,
         "type": "permanence",
         "controls_zone": true
       },
@@ -475,7 +475,7 @@
       {
         "site_id": "site:retraites_b:institut_sondage",
         "subzone_id": "retraites_b",
-        "x_ratio": 0.97952,
+        "x_ratio": 0.80,
         "type": "institut_sondage",
         "controls_zone": false,
         "label": "Institut de sondage"

@@ -9,7 +9,7 @@ import { lanAddresses, connectionInfo } from '../scripts/lan-addresses.mjs';
 import { PeerSession, encodeInvitation, decodeInvitation, describeAddresses, addressSummary, sameNetwork } from '../src/network/peer-session.js';
 import { stateDelta, applyStateDelta, presentationState, encodePresentationState, encodeStateDelta } from '../src/network/state-stream.js';
 import { outgoingCommands } from '../src/network/shared-commands.js';
-import { LocalHumanController } from '../src/simulation/controllers.js';
+import { LocalHumanController, AIController } from '../src/simulation/controllers.js';
 import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
 
@@ -77,7 +77,7 @@ test('Le flux différentiel restitue la campagne, le duel et le résultat sans t
     const delta = stateDelta(sim.state, baseline);
     baseline = delta.next;
     received = applyStateDelta(received, JSON.parse(JSON.stringify(delta.packet)));
-    assert.deepEqual(received, presentationState(sim.state));
+    assert.deepEqual(received, encodePresentationState(sim.state));
     return JSON.stringify(delta.packet).length;
   };
   transfer(); startDebate(sim); transfer();
@@ -123,6 +123,55 @@ test('Un canal saturé attend, reprend ses fragments et conserve la base après 
   assert.equal(snapshots[1].text, first.text);
   assert.ok(maxBuffered < 65000);
   assert.deepEqual(errors, []);
+});
+
+test('Le flux allégé n’envoie que les changements, reste exact et ne modifie jamais l’état précédent de l’invité', () => {
+  const sim = new GameSimulation(campaignConfig(), 2027);
+  const ai = new AIController(sim.config);
+  let baseline = null, received = null;
+  const sizes = [];
+  for (let i = 0; i < 1800; i++) {
+    sim.step(sim.state.candidates.flatMap(c => ai.commands(sim.state, c.id)));
+    if (i % 3) continue;
+    const encoded = encodePresentationState(sim.getState({ presentation: true }), baseline);
+    const packet = encodeStateDelta(encoded, baseline);
+    const before = received && JSON.stringify(received);
+    const next = applyStateDelta(received, JSON.parse(packet));
+    if (before) assert.equal(JSON.stringify(received), before, 'l’état précédent sert à l’interpolation : intact');
+    if (i % 150 === 0) assert.deepEqual(next, encoded);
+    if (baseline) sizes.push(packet.length);
+    received = next; baseline = encoded;
+  }
+  const average = sizes.reduce((a, b) => a + b) / sizes.length;
+  assert.ok(average < 4000, `Envoi moyen trop lourd : ${average.toFixed(0)} octets`);
+  assert.equal(received.spawn_timers, undefined);
+  assert.equal(received.rng_state, undefined);
+  assert.ok(received.npcs.every(n => !('roam_wait_ticks' in n)));
+});
+
+test('Le flux allégé gère arrivées, départs, réordonnancement, suppressions et nombres arrondis', () => {
+  let baseline = null, received = null;
+  const send = state => {
+    const encoded = encodePresentationState(state, baseline);
+    received = applyStateDelta(received, JSON.parse(encodeStateDelta(encoded, baseline)));
+    assert.deepEqual(received, encoded);
+    baseline = encoded;
+    return encoded;
+  };
+  const state = { tick: 1, npcs: [{ id: 'a', x: 1.23456 }, { id: 'b', x: 2 }, { id: 'c', x: 3 }], list: [1, 2, 3], gone: true, nan: NaN };
+  assert.equal(send(state).npcs[0].x, 1.235);
+  assert.equal(received.nan, null);
+  state.npcs.splice(1, 1); state.npcs.push({ id: 'd', x: 4, extra: { deep: [1, { v: 2 }] } });
+  send(state);
+  state.npcs.reverse(); state.npcs[0].extra.deep[1].v = 3; delete state.gone; state.list.push(4);
+  send(state);
+  state.npcs = []; state.list = [];
+  send(state);
+  state.npcs.push({ id: 7, x: 1 }, { id: '8', x: 2 });
+  assert.equal(JSON.parse(encodeStateDelta(encodePresentationState(state, baseline), baseline)).npcs.length, 1, 'une liste vidée est renvoyée entière');
+  send(state);
+  assert.throws(() => applyStateDelta(received, { npcs: { k: {}, o: ['inconnu'] } }), /invalide/);
+  assert.throws(() => applyStateDelta(null, {}), /invalide/);
 });
 
 test('L’encodage mutualisé produit exactement le format réseau existant, y compris les suppressions', () => {

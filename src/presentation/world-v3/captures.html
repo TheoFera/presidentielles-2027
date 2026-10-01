@@ -42,12 +42,14 @@
   } else {
   state.world.subzones.forEach((zone, i) => draw(zone.center, `${String(i).padStart(2, '0')}-centre-${zone.id}.png`));
   state.world.subzones.forEach((zone, i) => draw(zone.start, `${String(i).padStart(2, '0')}-raccord-${zone.id}.png`));
-  const paris = state.world.subzones[1];
-  for (const [progress, season] of [[0.3, 'automne'], [0.55, 'hiver'], [0.8, 'printemps']]) draw(paris.center, `saison-${season}.png`, progress);
+  const seasonTarget = params.get('saisons') || 'paris_b';
+  const seasonZones = state.world.subzones.filter(z => seasonTarget === 'toutes' || z.id === seasonTarget);
+  for (const zone of seasonZones)
+    for (const [progress, season] of [[0.3, 'automne'], [0.55, 'hiver'], [0.8, 'printemps']]) draw(zone.center, `saison-${zone.id}-${season}.png`, progress);
   }
   if (params.has('export'))
     for (const [name, data] of Object.entries(shots)) await fetch(`/__export?name=${encodeURIComponent(name)}`, { method: 'POST', body: data });
-  else for (const data of Object.values(shots)) { const img = new Image(); img.src = data; document.getElementById('list').append(img); }
+  else for (const [name, data] of Object.entries(shots)) { const img = new Image(); img.src = data; img.alt = name; document.getElementById('list').append(img); }
   document.title = 'Captures prêtes';
 </script>
 </body>

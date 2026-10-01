@@ -3,14 +3,18 @@ import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { DebateMatch, debateModeAICommands, debateSetupError, debateStyleAvailable, debateFighterIds, multiplayerDebateSetup } from '../src/simulation/debate-mode.js';
 import { hit } from '../src/simulation/combat-state.js';
+import { verticalHit } from '../src/simulation/combat-actions.js';
 import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { debateStyles } from '../src/simulation/debate-mode.js';
 import { chooseCandidate, candidatesReady, startRoom } from '../src/network/lobby.js';
 import { debateAssetIds } from '../src/presentation/debate-mode.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { DEBATE_ARENAS, arenaSupportHeight } from '../src/presentation/debate-arenas.js';
+import { validateConfig } from '../src/config.js';
+import { fallSafeCommands, predictLanding } from '../src/simulation/debate-navigation.js';
 
-const config = campaignConfig();
+const config = validateConfig(campaignConfig());
 const fighter = (faction, style) => ({ faction, style });
 const duel = (map = 'studio', a = fighter('melenchon', 'melenchon_universaliste'), b = fighter('le_pen', 'le_pen_souverainiste')) => ({ format: '1v1', map, seed: 5, fighters: [a, b] });
 const trio = map => ({ format: '1v1v1', map, seed: 9, fighters: [fighter('philippe', 'philippe_gestionnaire'), fighter('le_pen', 'le_pen_zemmouriste'), fighter('melenchon', 'melenchon_populiste')] });
@@ -23,6 +27,139 @@ function started(setup) {
   return match;
 }
 const run = (match, commands = () => [], ticks = 1) => { for (let i = 0; i < ticks; i++) match.step(commands(match.state)); };
+
+for (const map of Object.keys(DEBATE_ARENAS)) {
+  test(`${map} : départ sur une surface réelle, visuel chargé, sortie de scène mortelle`, () => {
+    const match = started(duel(map));
+    const [player, enemy] = match.state.candidates;
+    for (const c of new DebateMatch(config, trio(map)).state.candidates) {
+      assert.ok(c.platform_id);
+      assert.equal(arenaSupportHeight(match.state, c.x, c.combat.height), c.combat.height);
+    }
+    assert.ok(debateAssetIds(visualManifest, duel(map)).includes(DEBATE_ARENAS[map].asset));
+    player.x = 1.3; player.platform_id = null;
+    run(match, () => [{ type: 'Move', candidateId: player.id, axis: -1 }], 80);
+    assert.equal(player.debate_hp, 0);
+    assert.equal(player.is_ko, true);
+    assert.equal(player.ko_reason, 'FALL');
+    assert.equal(player.disappeared, true);
+    assert.equal(match.state.winner_id, enemy.id);
+    assert.ok(match.state.events.some(e => e.type === 'DebateFall' && e.candidate_id === player.id));
+  });
+}
+
+test('Arène : marcher dans un trou tue ; sauter ce même trou permet d’atterrir sur la scène suivante', () => {
+  for (const jump of [false, true]) {
+    const match = started(duel('elysee'));
+    const [player, enemy] = match.state.candidates;
+    const left = match.state.platforms.find(p => p.id === 'scene-gauche');
+    player.x = left.x + left.half_width - 0.4; enemy.x = 23;
+    run(match, () => [{ type: 'Move', candidateId: player.id, axis: 1 }, ...(jump ? [{ type: 'Jump', candidateId: player.id }] : [])]);
+    run(match, () => [{ type: 'Move', candidateId: player.id, axis: 1 }], 27);
+    run(match, () => [{ type: 'Move', candidateId: player.id, axis: 0 }], 55);
+    if (jump) {
+      assert.equal(player.is_ko, false); assert.equal(player.platform_id, 'scene-centrale');
+      assert.equal(player.combat.height, 0);
+    } else { assert.equal(player.ko_reason, 'FALL'); assert.equal(player.is_ko, true); }
+  }
+});
+
+test('Arène : quitter un balcon au-dessus d’une scène fait atterrir, sans K.O.', () => {
+  const match = started(duel('elysee'));
+  const player = match.state.candidates[0];
+  const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+  Object.assign(player, { x: balcony.x - balcony.half_width + 0.1, platform_id: balcony.id }); player.combat.height = balcony.height;
+  run(match, () => [{ type: 'Move', candidateId: player.id, axis: -1 }], 4);
+  run(match, () => [{ type: 'Move', candidateId: player.id, axis: 0 }], 45);
+  assert.equal(player.platform_id, 'scene-gauche'); assert.equal(player.combat.height, 0);
+  assert.equal(player.debate_hp, 100);
+});
+
+test('Face-à-face : une plateforme sous le niveau principal rattrape une chute', () => {
+  const match = started(duel('face_a_face'));
+  const player = match.state.candidates[0];
+  const rescue = match.state.platforms.find(p => p.id === 'secours-gauche');
+  player.x = rescue.x; player.platform_id = null;
+  run(match, () => [], 30);
+  assert.equal(player.combat.height, rescue.height); assert.equal(player.platform_id, rescue.id);
+  assert.equal(player.is_ko, false);
+  run(match, () => [{ type: 'Jump', candidateId: player.id }]);
+  assert.ok(player.combat.height > rescue.height);
+});
+
+test('Arène : le coup plongeant dans un trou continue sous zéro et donne un K.O.', () => {
+  const match = started(duel('elysee'));
+  const player = match.state.candidates[0];
+  player.x = 10.2; player.platform_id = null; player.combat.height = 0.5;
+  player.combat.jump_tick = match.state.tick; player.combat.jump_base = 0;
+  player.combat.dive_tick = match.state.tick; player.facing = -1;
+  // Se placer hors de toute plateforme, même pendant le mouvement diagonal du plongeon.
+  player.x = -3;
+  run(match, () => [], 60);
+  assert.equal(player.ko_reason, 'FALL'); assert.equal(player.is_ko, true);
+});
+
+test('Arène : dash et recul peuvent sortir de la scène malgré l’invulnérabilité', () => {
+  for (const mode of ['dash', 'recul']) {
+    const match = started(duel('remue_menage'));
+    const player = match.state.candidates[0];
+    player.x = 24.9;
+    if (mode === 'dash') run(match, () => [{ type: 'Dash', candidateId: player.id, direction: 1 }]);
+    else player.combat.knockback_velocity = 15;
+    run(match, () => [], 90);
+    assert.equal(player.ko_reason, 'FALL', mode);
+  }
+});
+
+test('Arènes : l’IA franchit les trous et rejoint une cible située sur un autre îlot', () => {
+  for (const map of ['elysee', 'ecologie']) {
+    const match = started(duel(map));
+    const [target, ai] = match.state.candidates;
+    let reached = false;
+    for (let i = 0; i < 450 && !ai.is_ko; i++) {
+      match.step(debateModeAICommands(match.state, config, ai.id));
+      if (ai.platform_id === target.platform_id) { reached = true; break; }
+    }
+    assert.ok(reached, map); assert.equal(ai.is_ko, false, map);
+  }
+});
+
+test('Arènes : l’IA ne tombe jamais seule, où que se trouve son adversaire', () => {
+  for (const map of ['elysee', 'face_a_face', 'remue_menage', 'ecologie']) for (const [i, platform] of config.balance.debate_mode.maps[map].platforms.entries()) {
+    const match = started({ ...duel(map), seed: 3 + i });
+    const [target, ai] = match.state.candidates;
+    Object.assign(target, { x: platform.x, platform_id: platform.id }); target.combat.height = platform.height;
+    for (let t = 0; t < 600 && match.state.phase !== 'OVER'; t++) match.step(debateModeAICommands(match.state, config, ai.id));
+    assert.notEqual(ai.ko_reason, 'FALL', `${map} / ${platform.id}`);
+  }
+});
+
+test('Arène : l’IA prévoit sa trajectoire avant de marcher, sauter ou dasher vers un trou', () => {
+  const match = started(duel('elysee'));
+  const ai = match.state.candidates[1];
+  const left = match.state.platforms.find(p => p.id === 'scene-gauche');
+  Object.assign(ai, { x: left.x + left.half_width - 0.3, platform_id: left.id, facing: 1 });
+  assert.equal(predictLanding(match.state, config, ai, { axis: 1 }), null);
+  assert.equal(predictLanding(match.state, config, ai, { axis: 1, jump: true })?.id, 'scene-centrale');
+  const safe = fallSafeCommands(match.state, config, ai, [{ type: 'Move', candidateId: ai.id, axis: 1 }, { type: 'Dash', candidateId: ai.id, direction: 1 }]);
+  assert.equal(safe.some(c => c.type === 'Dash'), false);
+  assert.notEqual(safe.findLast(c => c.type === 'Move').axis, 1);
+  // Repoussée vers le vide, l’IA arrête de frapper et lutte contre le recul.
+  Object.assign(ai, { x: left.x + left.half_width - 1.2 }); ai.combat.knockback_velocity = 6;
+  const pushed = fallSafeCommands(match.state, config, ai, [{ type: 'Move', candidateId: ai.id, axis: 1 }, { type: 'Attack', candidateId: ai.id, direction: 1 }]);
+  assert.equal(pushed.some(c => c.type === 'Attack'), false);
+  assert.equal(pushed.findLast(c => c.type === 'Move').axis, -1);
+});
+
+test('Arène à trois : une chute élimine seulement sa victime, deux chutes simultanées donnent un match nul', () => {
+  const match = started(trio('elysee'));
+  match.state.candidates[0].x = -2;
+  run(match, () => [], 70);
+  assert.equal(match.state.phase, 'FIGHT'); assert.equal(match.state.ko_order.length, 1);
+  for (const c of match.state.candidates.filter(c => !c.is_ko)) { c.x = -2; c.platform_id = null; }
+  run(match, () => [], 70);
+  assert.equal(match.state.phase, 'OVER'); assert.equal(match.state.winner_id, null);
+});
 
 test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ultime', () => {
   for (const faction of MINOR_FACTIONS) {
@@ -103,7 +240,7 @@ test('Duel miroir : deux Mélenchon sont bien adversaires, identifiants distinct
   assert.ok(b.debate_hp < 100);
 });
 
-test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché, ↓ fait redescendre', () => {
+test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché, marcher dans le vide fait redescendre', () => {
   const match = started(duel());
   const [player, rival] = match.state.candidates;
   const desk = match.state.platforms.find(p => p.id === 'pupitre-gauche');
@@ -123,6 +260,21 @@ test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché
   run(match, () => [], 30);
   assert.equal(player.platform_id, null);
   assert.equal(player.combat.height, 0);
+});
+
+test('Studio : le coup plongeant ne touche pas un adversaire perché que le sauteur n’a pas atteint', () => {
+  const match = started(duel());
+  const [player, rival] = match.state.candidates;
+  const desk = match.state.platforms.find(p => p.id === 'pupitre-gauche');
+  const dive = { kind: 'DIVE' };
+  rival.combat.height = desk.height;
+  player.combat.height = 0.5;
+  assert.equal(verticalHit(config, player, rival, dive), false);
+  player.combat.height = desk.height;
+  assert.equal(verticalHit(config, player, rival, dive), true);
+  rival.combat.height = 0;
+  player.combat.height = 0.5;
+  assert.equal(verticalHit(config, player, rival, dive), true);
 });
 
 test('Studio : marcher au-delà du bord d’un pupitre fait tomber', () => {
@@ -154,7 +306,7 @@ test('IA : elle passe par un pupitre latéral pour atteindre le bureau central',
 });
 
 test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier debout gagne', () => {
-  for (const map of ['plateau', 'studio']) {
+  for (const map of ['plateau', 'studio', ...Object.keys(DEBATE_ARENAS)]) {
     const match = started(trio(map));
     const limit = 30 * 240;
     while (match.state.phase !== 'OVER' && match.state.tick < limit) match.step(match.state.candidates.flatMap(c => debateModeAICommands(match.state, config, c.id)));
@@ -173,8 +325,10 @@ test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier d
 });
 
 test('Même graine, mêmes commandes : combat identique', () => {
-  const play = () => { const m = started(duel()); for (let i = 0; i < 600; i++) m.step(m.state.candidates.flatMap(c => debateModeAICommands(m.state, config, c.id))); return JSON.stringify(m.getState()); };
-  assert.equal(play(), play());
+  for (const map of ['studio', ...Object.keys(DEBATE_ARENAS)]) {
+    const play = () => { const m = started(duel(map)); for (let i = 0; i < 600; i++) m.step(m.state.candidates.flatMap(c => debateModeAICommands(m.state, config, c.id))); return JSON.stringify(m.getState()); };
+    assert.equal(play(), play(), map);
+  }
 });
 
 test('Débat multijoueur : un combattant par joueur, une IA libre pour compléter le 1 contre 1 contre 1', () => {

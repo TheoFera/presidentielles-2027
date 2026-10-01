@@ -20,6 +20,9 @@ Desktop.ini
 artifacts/
 .codex-remote-attachments/
 
+# Cache des images WebP converties par npm run build
+.cache/
+
 # Fichiers temporaires de Wrangler (serveur de salons en ligne)
 serveur-en-ligne/.wrangler/
 serveur-en-ligne/.dev.vars

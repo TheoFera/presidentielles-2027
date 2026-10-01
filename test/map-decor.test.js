@@ -8,7 +8,7 @@ import { normalizeCampaignProfile } from '../src/simulation/campaign-styles.js';
 
 test('Décor de la carte : « biomes » par défaut, seul le profil betatest peut en choisir un autre', () => {
   assert.equal(DEFAULT_MAP_DECOR, 'biomes');
-  assert.deepEqual(MAP_DECORS.map(d => d.id), ['biomes', 'panoramas', 'fresque']);
+  assert.deepEqual(MAP_DECORS.map(d => d.id), ['biomes', 'panoramas', 'fresque', 'france_peinte']);
   assert.equal(decorForProfile({}), 'biomes');
   assert.equal(decorForProfile({ nickname: 'Joueur', map_decor: 'fresque' }), 'biomes', 'un profil ordinaire ignore un choix enregistré');
   assert.equal(decorForProfile({ nickname: 'betatest' }), 'biomes');

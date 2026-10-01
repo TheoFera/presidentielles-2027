@@ -88,7 +88,7 @@ export function profileContent(profile) {
     </section>
     <section class="profile-stats" aria-label="Statistiques">${tiles.map(([label, value]) => `<p><strong>${value}</strong><span>${label}</span></p>`).join('')}</section>
     <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>
-    ${isBetatestProfile(profile) ? decorPicker(profile) : ''}
+    ${isBetatestProfile(profile) && MAP_DECORS.length > 1 ? decorPicker(profile) : ''}
     <p class="profile-note menu-note">Profil enregistré sur cet appareil. De nouveaux skins et tenues seront bientôt à débloquer ici.</p>
   </div>`;
 }

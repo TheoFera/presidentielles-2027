@@ -4,8 +4,22 @@
     {
       "name": "jeu",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/serve.mjs"],
+      "runtimeArgs": [
+        "scripts/serve.mjs"
+      ],
       "port": 2027
+    },
+    {
+      "name": "appli",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/serve.mjs",
+        "--dist"
+      ],
+      "port": 2028,
+      "env": {
+        "PORT": "2028"
+      }
     }
   ]
 }

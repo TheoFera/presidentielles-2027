@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Le jeu web optimisé, produit par « npm run build » à la racine du projet.
+def webDir = rootProject.file('../dist')
+
+// Clé de signature pour le Play Store : voir android/LISEZMOI.md.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+android {
+    namespace = 'fr.presidentielles2027.jeu'
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = 'fr.presidentielles2027.jeu'
+        minSdk = 24
+        targetSdk = 36
+        // À augmenter de 1 à chaque nouvelle version envoyée sur le Play Store.
+        versionCode = 1
+        versionName = '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = rootProject.file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            // Les fichiers du jeu sont servis depuis la racine des assets de l'application.
+            assets.srcDirs = [webDir]
+        }
+    }
+
+    androidResources {
+        // Images déjà compressées : inutile de les recompresser dans l'APK.
+        noCompress += ['webp', 'png']
+    }
+}
+
+tasks.named('preBuild') {
+    doFirst {
+        if (!new File(webDir, 'index.html').exists()) {
+            throw new GradleException('Le dossier dist/ est absent : lancez d\'abord « npm run build » à la racine du projet.')
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+}

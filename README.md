@@ -1,6 +1,6 @@
 # Présidentielles 2027 — cinquième jalon jouable
 
-Pour travailler avec Codex et préparer les fichiers de la future application mobile : [guide d'optimisation du projet](docs/optimisation-projet.md). `npm run build` produit le dossier `dist/` à embarquer et affiche son poids.
+Application Android et publication sur le Play Store : [guide pas à pas](android/LISEZMOI.md), `npm run android`. Optimisation de l'export et organisation du projet : [guide d'optimisation](docs/optimisation-projet.md).
 
 Une partie complète : **campagne → débat à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
 
@@ -63,7 +63,7 @@ Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni install
 
 Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. En Solo, la partie est locale à chaque onglet : recharger la page la recommence. En multijoueur, recharger la page quitte la session.
 
-`npm run build` prépare le dossier `dist/` avec uniquement la page, le code du jeu et ses quatre fichiers de réglages. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
+`npm run build` prépare le dossier `dist/` avec uniquement la page, le code réellement chargé par le jeu, ses fichiers de réglages et ses images converties en WebP sans perte. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
 
 ### Sur ordinateur, en local
 
@@ -112,11 +112,7 @@ Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel final
 
 **F4** met en pause quand le debug est ouvert. **K** charge le pouvoir, y compris dans le débat. Les anciens outils restent présents. Les commandes incompatibles avec la phase sont refusées. Après le résultat, seule une nouvelle partie relance la simulation.
 
-Ces fichiers sont importables dans **F3 → Déplacements, fonds de test et sauvegardes → Importer un état JSON** ; `npm run test:partie` les régénère :
-
-- `artifacts/jalon5-debat-visuelle.json` : jauges 34/30/26, pouvoirs prêts, camp Le Pen établi près de la caméra du monde.
-- `artifacts/jalon5-effondrement.json` : ce camp vient d’être neutralisé ; douze anciens alliés repartent vers leurs origines.
-- `artifacts/jalon5-j0.json`, `jalon5-sprint.json`, `jalon5-resultat.json` : étapes d’une campagne normale de trois IA, graine 2027.
+Un état exporté par le debug est importable dans **F3 → Déplacements, fonds de test et sauvegardes → Importer un état JSON**.
 
 Les sauvegardes utilisent le **format 5**, lié aux réglages courants. Les anciens JSON des jalons précédents sont incompatibles. Un import invalide est refusé sans modifier la partie ouverte.
 
@@ -178,11 +174,10 @@ La règle alternative `J0_THEN_SEED` départage une égalité par le score à J0
 
 ```text
 npm test
-npm run test:partie
+npm run test:campagne
 ```
 
 `GamePhase` valide les commandes. `DebateSimulation` possède sa propre horloge et son propre combat ; `GameSimulation` conserve le monde complet jusqu’au retour. Impacts, jauges, élimination et résultats sont autoritaires, indépendants du rendu. Aucun réseau n’est implémenté.
 
 Le résumé DEBUG enregistre les scores à J0, l’éliminé, la durée et les coups du débat, les scores du sprint, les zones ayant changé de contrôle, les anciens PNJ reconvertis, les Meetings et le vainqueur.
 
-Voir [VALIDATION_JALON_5.md](VALIDATION_JALON_5.md), [JALON_5_SPEC.md](JALON_5_SPEC.md) et [le guide du quatrième jalon](GUIDE_JALON_4.md). Ce dernier conserve les détails des systèmes validés ; ses mentions de J0 hors périmètre et des anciennes sauvegardes sont historiques. Le banc `test:conquete` isole sa campagne de 900 s avec J-100 pour éviter le nouveau premier tour.

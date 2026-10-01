@@ -9,6 +9,7 @@ import { decorForProfile, setMapDecor } from './presentation/map-decor.js';
 import { formatCarriedMoney } from './presentation/money.js';
 import { MoneyCounter } from './presentation/money-counter.js';
 import { GameAudio, SoundDirector } from './presentation/audio.js';
+import { CombatPoseTracker } from './presentation/melenchon-combat.js';
 import { recordMatchResult } from './presentation/player-profile.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
@@ -58,6 +59,8 @@ async function start() {
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
   document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button')) audio.play('ui'); }, true);
   const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
+  // Même détection que la garde dessinée à l'écran, pour passer à la musique de combat.
+  const combatMusic = new CombatPoseTracker();
   let resultRecorded = false;
   let simulation = new GameSimulation(config, config.prototype.seed, 'candidate:melenchon', profile);
   let state = simulation.getState();
@@ -134,7 +137,7 @@ async function start() {
   const queue = command => { pending.push(command); canvas.focus(); };
   const resetPresentation = () => {
     state = simulation.getState(); previous = state; pending = []; clock.reset(); input.clear(); renderer.resetCamera();
-    matchDisplay.reset(); moneyCounter.reset(); sounds.reset();
+    matchDisplay.reset(); moneyCounter.reset(); sounds.reset(); combatMusic.clear();
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
     currentDay = state.days_remaining;
@@ -503,7 +506,9 @@ async function start() {
         if (config.balance.display.show_day_change_flash) notify(`J-${currentDay}`, config.prototype.presentation.day_flash_seconds);
       }
       moneyCounter.update(candidate.money, candidate.id, elapsed);
-      sounds.update(state, { paused: paused || !help.hidden });
+      const local = state.candidates.find(c => c.id === state.local_candidate_id);
+      const inCombat = state.phase === 'CAMPAIGN' && !!local && !local.eliminated && combatMusic.active(local, state, config);
+      sounds.update(state, { paused: paused || !help.hidden, combat: inCombat });
       if (state.phase === 'RESULTS' && !resultRecorded) {
         resultRecorded = true;
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));

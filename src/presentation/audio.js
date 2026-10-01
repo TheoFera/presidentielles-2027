@@ -39,6 +39,10 @@ const TRACKS = {
   sprint: { bpm: 160, chords: ['Dm', 'Bb', 'C', 'A'], lead: 0.09, drivingBass: true,
     melody: 'D5 . D5 . F5 . D5 . A5 - - - G5 - F5 - | F5 . F5 . D5 . F5 . Bb5 - - - A5 - G5 - | E5 . E5 . G5 . E5 . C6 - - - Bb5 - G5 - | A5 - - - C#6 - - - E6 - - - C#6 - A5 -',
     kick: 'x...x...x...x...', snare: '....x.......x.x.', hat: 'xxxxxxxxxxxxxxxx' },
+  // En campagne, quand notre candidat se met en garde : riff mineur tendu, basse pulsée, batterie syncopée.
+  combat: { bpm: 144, chords: ['Em', 'C', 'D', 'B'], lead: 0.085, drivingBass: true,
+    melody: 'E5 . E5 . G5 . E5 . B5 - - - A5 - G5 - | E5 . E5 . G5 . E5 . C6 - - - B5 - G5 - | F#5 . F#5 . A5 . F#5 . D6 - - - C6 - A5 - | B5 - - - A5 - - - G5 - - - F#5 - D#5 -',
+    kick: 'x..x..x.x..x..x.', snare: '....x.......x...', hat: 'x.xxx.xxx.xxx.xx' },
 };
 for (const track of Object.values(TRACKS)) { track.notes = parseMelody(track.melody); track.harmony = track.chords.map(chord); }
 
@@ -113,7 +117,7 @@ export class GameAudio {
     this.ducked = ducked;
     if (this.ctx) this.musicBus.gain.setTargetAtTime(ducked ? 0.09 : 0.24, this.ctx.currentTime, 0.2);
   }
-  /** Change de morceau : 'menu', 'campaign', 'sprint' ou null pour le silence. */
+  /** Change de morceau : 'menu', 'campaign', 'combat', 'sprint' ou null pour le silence. */
   music(name, force = false) {
     if (this.wanted === name && !force) return;
     this.wanted = name;
@@ -217,8 +221,9 @@ export class GameAudio {
 /* Choisit la musique selon l'écran et la phase, et déclenche bruitages et jingles. */
 export class SoundDirector {
   constructor(audio, hz) { this.audio = audio; this.hz = hz; this.reset(); }
-  reset() { this.lastEvent = null; this.phase = null; this.second = null; }
-  update(state, { menu = false, paused = false } = {}) {
+  reset() { this.lastEvent = null; this.phase = null; this.second = null; this.combatUntil = -1; }
+  /** combat : notre candidat est en position de combat (même détection que l'animation de garde). */
+  update(state, { menu = false, paused = false, combat = false } = {}) {
     const audio = this.audio;
     if (menu) { audio.duck(false); audio.music('menu'); this.reset(); return; }
     audio.duck(paused || !!state.campaign_style_selection);
@@ -229,8 +234,7 @@ export class SoundDirector {
         // Mode Débat : musique nerveuse pendant le combat, jingle à la fin.
         if (state.phase === 'OVER') { audio.music(null); if (previous !== null) audio.jingle(state.winner_id === state.local_candidate_id ? 'victory' : 'defeat', 0.4); }
         else audio.music('sprint');
-      } else if (state.phase === 'CAMPAIGN') audio.music('campaign');
-      else if (state.phase === 'SECOND_ROUND_SPRINT') audio.music(local?.eliminated ? 'campaign' : 'sprint');
+      } else if (state.phase === 'SECOND_ROUND_SPRINT') audio.music(local?.eliminated ? 'campaign' : 'sprint');
       else if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) {
         audio.music(null);
         // Le jingle tombe avec le tampon « Qualifié / Élu » de la soirée électorale.
@@ -238,6 +242,11 @@ export class SoundDirector {
         const success = state.phase === 'FIRST_ROUND_RESULTS' ? state.first_round_result?.ranking.slice(0, 2).includes(faction) : state.result?.winner === faction;
         if (previous !== null) audio.jingle(state.phase === 'FIRST_ROUND_RESULTS' ? success ? 'qualified' : 'eliminated' : success ? 'victory' : 'defeat', delay);
       }
+    }
+    if (state.mode !== 'DEBATE' && state.phase === 'CAMPAIGN') {
+      // Musique de combat tant qu'on est en garde, gardée 2 s de plus pour ne pas alterner à chaque esquive.
+      if (combat) this.combatUntil = state.tick + 2 * this.hz;
+      audio.music(state.tick <= this.combatUntil ? 'combat' : 'campaign');
     }
     const newest = Math.max(0, ...(state.events || []).map(e => Number(String(e.id).slice(6)) || 0));
     // Nouvelle partie ou premier affichage : on ne rejoue pas les anciens événements.
