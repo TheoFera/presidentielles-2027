@@ -24,7 +24,7 @@ async function open() {
     } });
   });
   await page.goto(process.env.CAMPAIGN_TEST_URL || 'http://localhost:2027');
-  await page.locator('#multiplayer').click(); return page;
+  await page.locator('#multiplayer').click(); await page.locator('#offline-mode').click(); return page;
 }
 async function fits(page, name) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));

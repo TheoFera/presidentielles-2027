@@ -61,7 +61,7 @@ const PARIS_LAYERS = {
 const BANLIEUE_LAYERS = {
   horizon:[['banlieue-horizon',82,22,132,.2,.28],['banlieue-horizon',104,22,132,.2,.28],['banlieue-horizon',126,22,132,.2,.28]],
   far:[['banlieue-far',84,22,112,.3,.2],['banlieue-far',108,22,112,.3,.2],['banlieue-far',132,22,112,.3,.2],['saint-denis',108,6,125,.3,.17]],
-  mid:[['banlieue-mid-a',84,22,64,.5,.14],['banlieue-mid-b',108,20,64,.5,.14],['banlieue-mid-c',138,22,100,.5,.14]],
+  mid:[['banlieue-mid-a',84,22,64,.5,.14],['banlieue-mid-b',108,20,64,.5,.14],['banlieue-mid-c',135.5,22,145,.5,.14]],
   back:[['banlieue-back-a',80,13,30,.72,.05],['banlieue-back-a',91,13,30,.72,.05],['banlieue-back-b',102,14,30,.72,.05],['banlieue-back-b',114,14,30,.72,.05],['banlieue-back-c',126,14,30,.72,.05],['banlieue-back-c',138,14,30,.72,.05],['banlieue-marche',108,14.4,32,.86,0]],
 };
 const PERIURBAIN_LAYERS = {
@@ -70,6 +70,14 @@ const PERIURBAIN_LAYERS = {
   mid:[['periurbain-mid-a',156,24,210,.5,.14],['periurbain-mid-b',180,22,64,.5,.14],['periurbain-mid-c',204,24,64,.5,.14]],
   back:[['periurbain-back-a',150,14,30,.72,.05],['periurbain-back-a',163,14,30,.72,.05],['periurbain-back-b',180,20,32,.72,.02],['periurbain-back-c',204,24,30,.72,.05]],
 };
+
+export function completeHorizonScale(metrics, entry, span, base, zoom) {
+  const scale = span * metrics.pixelsPerUnit / entry.width;
+  const u = metrics.characterHeight / 81;
+  // Garder le sommet entier après le cadrage du jeu, même sur un écran très large.
+  const available = metrics.groundY / zoom - (base + 12) * u;
+  return Math.min(scale, available / (entry.baseline - entry.top));
+}
 
 export function drawCompletePlane(renderer,state,tools,planeId) {
   const {ctx,metrics:m} = renderer, plane = PARIS_LAYERS[planeId];
@@ -97,7 +105,7 @@ export function drawCompletePlane(renderer,state,tools,planeId) {
   for(const [name,center,span,base,speed,haze] of PERIURBAIN_LAYERS[planeId] || [])
     drawCompleteDetail(renderer,state,tools,name,center,span,base,speed,planeId,haze);
   if (planeId==='back') {
-    drawCompleteDetail(renderer,state,tools,'banlieue-transition-est',144,16,100,.72);
+    drawCompleteDetail(renderer,state,tools,'banlieue-transition-est',137,16,110,.72);
     drawCompleteDetail(renderer,state,tools,'periurbain-transition-est',216,16,30,.72);
     drawCompleteDetail(renderer,state,tools,'paris-transition-ouest',0,16,30,.72);
     drawCompleteDetail(renderer,state,tools,'paris-transition-est',72,16,30,.72);
@@ -111,9 +119,13 @@ function drawCompleteDetail(renderer,state,tools,name,center,span,base,speed,pla
   if(!image || !entry) return;
   const {ctx,metrics:m}=renderer, delta=ringDelta(renderer.cameraX,center,state.world.length);
   const limit=3.84, drift=limit*Math.tanh(delta*(1-speed)/limit);
-  const x=m.anchorX+(delta-drift)*m.pixelsPerUnit, width=span*m.pixelsPerUnit;
+  const x=m.anchorX+(delta-drift)*m.pixelsPerUnit;
+  const scale=name==='periurbain-massif'
+    ? completeHorizonScale(m,entry,span,base,renderer.config.balance.camera.framing_zoom ?? 1)
+    : span*m.pixelsPerUnit/entry.width;
+  const width=entry.width*scale;
   if(x+width/2<0 || x-width/2>renderer.width) return;
-  const scale=width/entry.width, top=m.groundY-base*m.characterHeight/81-entry.baseline*scale;
+  const top=m.groundY-base*m.characterHeight/81-entry.baseline*scale;
   ctx.save();ctx.filter=tools.seasonFilter(plane);
   ctx.drawImage(atmosphericImage(image,haze),x-width/2,top,width,entry.height*scale);
   if(tools.snow>.02 && plane==='back' && !renderer.assets.get(`quartier-${name}-hiver`)) {

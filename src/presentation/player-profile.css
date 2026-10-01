@@ -10,36 +10,68 @@
 
 /* Page « Mon profil ». */
 .profile-screen { flex: 1 !important; min-height: 0; display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.7fr); grid-template-rows: minmax(0, 1fr) auto auto auto; gap: clamp(8px, 2cqh, 18px); }
-.profile-identity { grid-row: 1 / 3; min-height: 0; display: flex; flex-direction: column; gap: clamp(6px, 1.5cqh, 12px); padding: clamp(10px, 2cqh, 18px); border: 1px solid #647da6; border-top: 3px solid var(--arcade-gold); background: linear-gradient(180deg, #1b2c55e6, #111a35e6); }
-.profile-hero { flex: 1; min-height: 0; display: flex; justify-content: center; border-bottom: 3px solid var(--arcade-pink); background: radial-gradient(ellipse at 50% 85%, #63edff30, transparent 65%); }
-.profile-hero img { height: 100%; width: 100%; min-height: 0; object-fit: contain; object-position: bottom; filter: drop-shadow(4px 6px 0 #0005); }
+/* Couleur du parti, reprise des résultats de l'élection. */
+.profile-screen [data-faction='melenchon'] { --party: #e3363f; --party-dark: #7a0d18; }
+.profile-screen [data-faction='le_pen'] { --party: #2f6fe4; --party-dark: #0c2a78; }
+.profile-screen [data-faction='philippe'] { --party: #e2a53a; --party-dark: #6f420b; }
+@keyframes profile-pop { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes profile-fill { from { width: 0; } }
+@keyframes profile-spot { 50% { opacity: .55; } }
+
+/* Carte d'identité du joueur : bandeau tricolore, projecteur aux couleurs du candidat préféré. */
+.profile-identity { position: relative; grid-row: 1 / 3; min-height: 0; display: flex; flex-direction: column; gap: clamp(6px, 1.5cqh, 12px); padding: clamp(10px, 2cqh, 18px); padding-top: calc(clamp(10px, 2cqh, 18px) + 5px); border: 2px solid #6a83b0; background: linear-gradient(180deg, color-mix(in srgb, var(--party-dark, #1b2c55) 55%, #14213f), #0e1630 70%); box-shadow: 0 0 0 4px #0a1128, 6px 6px 0 #00000059; animation: profile-pop .35s ease-out both; }
+.profile-identity::before { content: ''; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #2b55c9 33.3%, #f2f5ff 33.3% 66.6%, #e3363f 66.6%); }
+.profile-hero { position: relative; flex: 1; min-height: 0; display: flex; justify-content: center; overflow: hidden; border-bottom: 3px solid var(--party, var(--arcade-pink)); background: radial-gradient(ellipse 60% 40% at 50% 100%, color-mix(in srgb, var(--party, #63edff) 55%, transparent), transparent 70%), repeating-linear-gradient(115deg, #ffffff08 0 14px, transparent 14px 28px); }
+.profile-hero::before { content: ''; position: absolute; inset: 0 10%; background: conic-gradient(from 165deg at 50% 0, transparent, #ffffff2e 15deg, transparent 30deg); pointer-events: none; animation: profile-spot 4s ease-in-out infinite; }
+.profile-hero img { position: relative; height: 100%; width: 100%; min-height: 0; object-fit: contain; object-position: bottom; filter: drop-shadow(5px 6px 0 #0007); }
+.profile-rank { position: absolute; z-index: 1; top: 6px; left: 6px; padding: 4px 10px 3px; font: 900 clamp(11px, 1.7cqh, 15px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .05em; color: #14162e; background: var(--arcade-gold); box-shadow: 3px 3px 0 #483057; transform: rotate(-3deg); }
 #start-menu .profile-name { display: grid; gap: 4px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: var(--arcade-gold); }
-#start-menu .profile-name input { font: 800 clamp(16px, 2.6cqh, 22px) system-ui, sans-serif; min-height: 40px; }
-.profile-identity .menu-note strong { color: #fff; }
+#start-menu .profile-name input { font: 900 clamp(17px, 2.8cqh, 24px) Impact, 'Arial Black', sans-serif; letter-spacing: .04em; min-height: 42px; padding-left: 12px; border: 2px solid var(--arcade-gold); background: #060b1c; box-shadow: 3px 3px 0 #483057; }
+.profile-identity .menu-note strong { color: var(--party, #fff); text-transform: uppercase; font-weight: 900; }
 
+/* Tuiles de statistiques : icône, gros chiffre arcade, filigrane et jauge éventuelle. */
 .profile-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.4cqh, 12px); align-content: stretch; min-height: 0; }
-#start-menu .profile-stats p { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; padding: clamp(8px, 1.8cqh, 16px) 12px; background: #15213de6; border: 1px solid #4d6390; border-left: 3px solid var(--arcade-cyan); }
-.profile-stats p:nth-child(2) { border-left-color: var(--arcade-gold) !important; }
-.profile-stats strong { font: 900 clamp(20px, 5cqh, 42px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .02em; color: #fff; font-variant-numeric: tabular-nums; }
-.profile-stats p:nth-child(2) strong { color: var(--arcade-gold); }
-.profile-stats span { font-size: clamp(10px, 1.6cqh, 14px); color: var(--arcade-muted); line-height: 1.2; }
+#start-menu .profile-stat { --tone: var(--arcade-cyan); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; min-width: 0; min-height: 0; padding: clamp(8px, 1.8cqh, 16px) clamp(10px, 1.4cqw, 16px); background: linear-gradient(160deg, color-mix(in srgb, var(--tone) 16%, #18244a) 0%, #111a35 55%); border: 1px solid color-mix(in srgb, var(--tone) 45%, #3c4e78); border-left: 4px solid var(--tone); box-shadow: 4px 4px 0 #0000004d; animation: profile-pop .35s ease-out both; animation-delay: var(--delay); transition: transform .15s, box-shadow .15s; }
+#start-menu .profile-stat:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #0000005c; }
+#start-menu .profile-stat[data-stat='wins'], #start-menu .profile-stat[data-stat='qualified'] { --tone: var(--arcade-gold); }
+#start-menu .profile-stat[data-stat='rate'], #start-menu .profile-stat[data-stat='score'] { --tone: var(--arcade-pink); }
+.profile-stat svg { position: absolute; top: clamp(6px, 1.4cqh, 12px); right: clamp(8px, 1.2cqw, 14px); width: clamp(24px, 4.4cqh, 36px); height: clamp(24px, 4.4cqh, 36px); padding: 5px; fill: none; stroke: #0b1128; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; background: var(--tone); clip-path: polygon(25% 0, 100% 0, 100% 75%, 75% 100%, 0 100%, 0 25%); }
+/* Filigrane : une grande icône pleine, dans le coin. */
+.profile-stat::after { content: ''; position: absolute; right: 2%; bottom: -14%; width: min(52%, 9em); aspect-ratio: 1; background: var(--tone); opacity: .08; transform: rotate(-12deg); -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; pointer-events: none; }
+.profile-stat strong { position: relative; font: 900 clamp(22px, 6cqh, 52px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .02em; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 3px 3px 0 #483057; }
+.profile-stat[data-stat='wins'] strong { color: var(--arcade-gold); }
+.profile-stat > span { position: relative; font-size: clamp(10px, 1.6cqh, 14px); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--arcade-muted); line-height: 1.2; }
+.profile-meter { position: relative; display: block; height: 6px; margin-top: 4px; background: #050a1c; box-shadow: inset 0 0 0 1px #ffffff1f; }
+.profile-meter::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--v); background: linear-gradient(90deg, var(--tone), var(--arcade-gold)); box-shadow: 0 0 8px var(--tone); animation: profile-fill .8s .2s ease-out both; }
+.profile-stat[data-stat='games'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 11h16v9H4zM8 4h8v7h-2V8h-4v3H8z'/%3E%3C/svg%3E"); }
+.profile-stat[data-stat='wins'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 3h12v5a6 6 0 0 1-12 0zM3 4h3v4H5a2 2 0 0 1-2-2zM18 4h3v2a2 2 0 0 1-2 2h-1zM11 14h2v3h3v4H8v-4h3z'/%3E%3C/svg%3E"); }
+.profile-stat[data-stat='rate'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zm0 4a6 6 0 1 1 0 12a6 6 0 1 1 0-12zm0 3a3 3 0 1 0 0 6a3 3 0 1 0 0-6z'/%3E%3C/svg%3E"); }
+.profile-stat[data-stat='qualified'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 2h2v20H4zM7 3h13l-3 4.5L20 12H7z'/%3E%3C/svg%3E"); }
+.profile-stat[data-stat='score'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 12h5v9H3zM9.5 3h5v18h-5zM16 8h5v13h-5z'/%3E%3C/svg%3E"); }
+.profile-stat[data-stat='voters'] { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 4a4 4 0 1 1 0 8a4 4 0 1 1 0-8zM1 21c0-4.5 3.5-7.5 8-7.5s8 3 8 7.5zM16 4a4 4 0 0 1 0 8zM18 14c3 .8 5 3.4 5 7h-4c0-2.8-.4-5-1-7z'/%3E%3C/svg%3E"); }
 
+/* Cartes par candidat, à la couleur de leur parti. */
 .profile-candidates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.4cqh, 12px); }
-.profile-candidate { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 6px 10px 6px 6px; background: linear-gradient(120deg, #233958, #131c35); border: 1px solid #51668c; }
-.profile-candidate img { flex: none; width: clamp(38px, 8cqh, 64px); aspect-ratio: 1; object-fit: cover; object-position: top; border-radius: 50%; background: #0a1330; border: 2px solid #6e89bc; }
+.profile-candidate { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 6px 10px 6px 6px; background: linear-gradient(110deg, color-mix(in srgb, var(--party) 30%, #18244a), #111a35 65%); border: 1px solid color-mix(in srgb, var(--party) 50%, #3c4e78); border-left: 4px solid var(--party); box-shadow: 4px 4px 0 #0000004d; animation: profile-pop .35s .3s ease-out both; }
+.profile-candidate.is-favorite { border-color: var(--arcade-gold); border-left-color: var(--party); box-shadow: 4px 4px 0 #0000004d, 0 0 14px #ffe27540; }
+.profile-candidate img { flex: none; width: clamp(38px, 8cqh, 64px); aspect-ratio: 1; object-fit: cover; object-position: top; border-radius: 50%; background: radial-gradient(circle at 50% 70%, var(--party), var(--party-dark)); border: 3px solid var(--party); box-shadow: 0 0 0 2px #0a1128; }
 .profile-candidate > div { display: grid; gap: 2px; min-width: 0; }
-.profile-candidate strong { font: 900 clamp(14px, 2.4cqh, 20px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; }
+.profile-candidate strong { font: 900 clamp(14px, 2.4cqh, 20px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; text-shadow: 2px 2px 0 #483057; }
 .profile-candidate span { font-size: clamp(10px, 1.6cqh, 13px); color: var(--arcade-muted); line-height: 1.25; }
-.profile-styles { display: flex; align-items: center; gap: 4px; }
+.profile-favorite { position: absolute; top: -8px; right: 8px; padding: 2px 7px; font: 900 10px/1.2 Impact, 'Arial Black', sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .06em; color: #14162e; background: var(--arcade-gold); box-shadow: 2px 2px 0 #483057; transform: rotate(3deg); }
+.profile-styles { display: flex; align-items: center; gap: 5px; }
 .profile-styles i { width: 9px; height: 9px; border: 1px solid #8ea4cc; transform: rotate(45deg); }
-.profile-styles i.is-owned { background: var(--arcade-gold); border-color: var(--arcade-gold); }
+.profile-styles i.is-owned { background: var(--arcade-gold); border-color: var(--arcade-gold); box-shadow: 0 0 6px #ffe27599; }
 .profile-styles small { margin-left: 4px; font-size: inherit; }
 .profile-note { grid-column: 1 / -1; text-align: center; }
 
 @media (orientation: portrait) {
   .profile-screen { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: auto; align-content: start; overflow: auto; }
-  .profile-identity { grid-row: auto; display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; }
-  .profile-hero { grid-row: 1 / 3; height: 110px; flex: none; }
+  .profile-identity { grid-row: auto; display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; }
+  .profile-hero { grid-row: 1 / 3; height: 120px; flex: none; }
+  .profile-rank { top: auto; bottom: 4px; left: 50%; font-size: 9px; padding: 3px 5px 2px; white-space: nowrap; transform: translateX(-50%) rotate(-3deg); }
+  .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #start-menu .profile-stat { min-height: 96px; }
   .profile-candidates { grid-template-columns: 1fr; }
   /* Chaque bloc garde sa hauteur : l'écran défile au lieu d'écraser les statistiques. */
   .profile-screen > * { min-height: auto; }
@@ -48,8 +80,18 @@
 /* Choix du décor de la carte (profil betatest seulement) */
 #start-menu .profile-decor { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 6px 10px 8px; border: 1px dashed var(--arcade-gold); background: #0f1830cc; }
 #start-menu .profile-decor legend { padding: 0 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--arcade-gold); }
-#start-menu .profile-decor label { flex: 1 1 180px; display: flex; align-items: center; gap: 8px; min-height: 36px; cursor: pointer; }
+#start-menu .profile-decor label { flex: 1 1 180px; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 8px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s; }
+#start-menu .profile-decor label:hover { background: #ffffff0d; }
+#start-menu .profile-decor label:has(input:checked) { border-color: var(--arcade-gold); background: #ffe27517; box-shadow: 3px 3px 0 #483057; }
 #start-menu .profile-decor input { width: 18px; height: 18px; accent-color: var(--arcade-gold); flex: none; }
 #start-menu .profile-decor span { display: grid; line-height: 1.2; }
 #start-menu .profile-decor strong { font-size: 13px; color: #fff; }
 #start-menu .profile-decor small { font-size: 11px; color: var(--arcade-muted); }
+/* Écran bas (téléphone en paysage) : tuiles lisibles, choix du décor sur une ligne. */
+@media (max-height: 500px) {
+  /* Les tuiles gardent une taille lisible ; au besoin la page défile. */
+  .profile-screen { overflow-y: auto; grid-template-rows: minmax(160px, 1fr) auto auto auto; }
+  #start-menu .profile-decor { padding-block: 2px 4px; }
+  #start-menu .profile-decor label { flex-basis: 140px; min-height: 28px; padding: 2px 6px; }
+  #start-menu .profile-decor small { display: none; }
+}

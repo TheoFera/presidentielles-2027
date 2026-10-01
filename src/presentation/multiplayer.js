@@ -1,8 +1,9 @@
 import { CANDIDATES, candidatesContent } from './arcade-content.js';
 import { scanQr } from './qr-camera.js';
+import { copySignal } from './copy-signal.js';
 import { showQrInvitations, showQrAnswer } from './qr-pairing.js';
 import { decodeInvitation } from '../network/peer-session.js';
-import { onlineServer, onlineInviteLink } from '../network/online-config.js';
+import { onlineServer, onlineInviteLink, normalizeRoomCode } from '../network/online-config.js';
 import { candidatesReady, minimumPlayers } from '../network/lobby.js';
 import { showDebateLobby, updateDebateLobby } from './debate-lobby.js';
 
@@ -60,10 +61,39 @@ export class MultiplayerSession {
   close() { this.closed = true; clearInterval(this.heartbeat); this.source?.close(); if (this.token) this.request('leave', {}, { keepalive: true }).catch(() => {}); }
 }
 
+/** Entre amis : créer une partie (on reçoit un code) ou rejoindre avec un code. */
 export async function showMultiplayerSetup(menu, connect, mode = 'campaign') {
-  const debate = mode === 'debate';
-  menu.page('multiplayer', debate ? 'Débat télé entre amis' : 'Campagne entre amis', `<p class="menu-intro">${debate ? '2 ou 3 appareils' : '3 appareils'} sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="online">En ligne · avec un code</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
+  if (!onlineServer() || new URLSearchParams(location.search).has('salon')) return showLocalSetup(menu, connect, mode);
+  const debate = mode === 'debate', friends = debate ? '1 ou 2 amis' : '2 amis';
+  const invited = normalizeRoomCode(new URLSearchParams(location.search).get('en-ligne'));
+  menu.page('multiplayer', debate ? 'Débat télé multijoueur' : 'Campagne multijoueur', `<p class="menu-intro">Jouez avec ${friends}, à côté ou à distance.</p><div class="mode-grid network-modes online-modes"><div class="tutorial-card"><h2>Créer une partie</h2><p>Vous recevez un code à envoyer à ${friends}.</p><button type="button" class="menu-primary arcade-button" id="create-room">Créer</button></div><form id="room-form" class="tutorial-card"><h2>Rejoindre</h2><label for="room-code">Code reçu</label><input id="room-code" class="code-input" placeholder="A1B2C3" maxlength="200" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" required><button class="menu-primary arcade-button" type="submit" id="join-room">Rejoindre</button></form></div><p id="room-error" class="menu-status" role="alert"></p><button type="button" id="offline-mode" class="menu-link">Pas d’Internet ? Jouez sur le même Wi-Fi avec des QR codes</button>`);
   menu.back = () => menu.players(mode);
+  const generation = menu.generation, root = menu.element;
+  const input = root.querySelector('#room-code'), error = root.querySelector('#room-error');
+  const buttons = () => root.querySelectorAll('#create-room, #join-room, #offline-mode');
+  input.oninput = () => { const code = normalizeRoomCode(input.value); if (input.value !== code) input.value = code; error.textContent = ''; };
+  if (invited) { input.value = invited; root.querySelector('#join-room').focus(); }
+  root.querySelector('#offline-mode').onclick = () => showLocalSetup(menu, connect, mode);
+  async function submit(action) {
+    const code = normalizeRoomCode(input.value);
+    if (action === 'join' && code.length !== 6) { error.textContent = 'Le code fait 6 caractères, par exemple A1B2C3.'; input.focus(); return; }
+    buttons().forEach(b => { b.disabled = true; });
+    error.textContent = action === 'create' ? 'Création de la partie…' : 'Connexion à la partie…';
+    try { await connect(action, { transport: 'online', mode, code }); }
+    catch (failure) {
+      if (generation !== menu.generation) return;
+      error.textContent = /ne répond pas|injoignable|perdue/.test(failure.message) ? `${failure.message} Sans Internet, utilisez les QR codes ci-dessous.` : failure.message;
+    } finally { if (generation === menu.generation) buttons().forEach(b => { b.disabled = false; }); }
+  }
+  root.querySelector('#create-room').onclick = () => submit('create');
+  root.querySelector('#room-form').onsubmit = event => { event.preventDefault(); void submit('join'); };
+}
+
+// Secours sans Internet : connexion directe par QR (même Wi-Fi) ou serveur de l’ordinateur.
+async function showLocalSetup(menu, connect, mode = 'campaign') {
+  const debate = mode === 'debate';
+  menu.page('multiplayer-local', 'Sans Internet · même Wi-Fi', `<p class="menu-intro">${debate ? '2 ou 3 appareils' : '3 appareils'} sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
+  menu.back = () => onlineServer() ? showMultiplayerSetup(menu, connect, mode) : menu.players(mode);
   const generation = menu.generation;
   const joinCard = menu.element.querySelector('#room-code').closest('.tutorial-card');
   const scan = document.createElement('button'); scan.type = 'button'; scan.id = 'scan-invitation'; scan.className = 'menu-primary'; scan.textContent = 'Scanner un QR';
@@ -88,28 +118,18 @@ export async function showMultiplayerSetup(menu, connect, mode = 'campaign') {
   };
   let check = 0;
   const method = menu.element.querySelector('#network-method');
-  const invitedRoom = new URLSearchParams(location.search).get('salon'), onlineRoom = new URLSearchParams(location.search).get('en-ligne');
+  const invitedRoom = new URLSearchParams(location.search).get('salon');
   if (invitedRoom) { method.value = 'server'; menu.element.querySelector('#room-code').value = invitedRoom.toUpperCase(); }
-  if (onlineRoom) { method.value = 'online'; menu.element.querySelector('#room-code').value = onlineRoom.toUpperCase().slice(0, 6); }
-  const intro = menu.element.querySelector('.menu-intro'), hostHelp = menu.element.querySelector('.network-modes > :first-child p');
   async function updateMethod() {
     const requestId = ++check;
-    const direct = method.value === 'direct', online = method.value === 'online';
+    const direct = method.value === 'direct';
     joinMode(!direct); textJoin.hidden = !direct;
-    intro.textContent = `${debate ? '2 ou 3 appareils' : '3 appareils'} ${online ? 'connectés à internet, où qu’ils soient' : 'sur le même Wi-Fi'}. L’un crée la partie.`;
-    hostHelp.textContent = online ? 'Recevez un code à envoyer à vos amis.' : 'Affichez les deux QR pour vos amis.';
     const status = menu.element.querySelector('#server-status'), input = menu.element.querySelector('#room-code');
     menu.element.querySelector('#room-code-label').textContent = direct ? 'Invitation reçue' : 'Code du salon';
     input.placeholder = direct ? 'Collez l’invitation P27:…' : 'Ex. A1B2C3';
     input.maxLength = direct ? 30000 : 6;
     menu.element.querySelectorAll('#room-form button').forEach(b => { b.disabled = false; });
     if (direct) { status.textContent = 'Sans ordinateur : scannez un QR, puis montrez votre réponse.'; return; }
-    if (online) {
-      const ready = !!onlineServer();
-      status.textContent = ready ? 'Créez un salon, puis envoyez le code (ou le lien) à vos amis.' : 'Le jeu en ligne n’est pas encore configuré sur cette version.';
-      menu.element.querySelectorAll('#room-form button').forEach(b => { b.disabled = !ready; });
-      return;
-    }
     status.textContent = 'Recherche du serveur…';
     try {
       const response = await fetch('/api/multiplayer/status', { signal: AbortSignal.timeout(5000) });
@@ -188,14 +208,8 @@ export function showLobby(menu, session, leave = () => menu.home()) {
   const count = session.room.players.length, min = minimumPlayers(session.room);
   if (count < min) {
     if (session.direct && session.host) { showPeerInvite(menu, session); return; }
-    menu.page('waiting', 'Connexion des joueurs', `<p id="room-message" class="menu-status" role="status"></p>${session.direct ? '<p class="menu-note">Gardez cette page ouverte pendant que l’hôte connecte le dernier joueur.</p>' : '<span class="eyebrow">CODE DU SALON</span><span class="room-code"></span><label for="join-url">Adresse à ouvrir sur les autres appareils</label><div class="copy-row"><input id="join-url" readonly><button id="copy-link">Copier</button></div>'}`, leave);
-    if (!session.direct) {
-      menu.element.querySelector('.room-code').textContent = session.code;
-      const base = menu.connection?.join_urls?.[0] || location.origin;
-      const link = new URL(location.pathname, base); link.searchParams.set('salon', session.code);
-      const input = menu.element.querySelector('#join-url'); input.value = session.online ? onlineInviteLink(session.code) : link.href;
-      menu.element.querySelector('#copy-link').onclick = () => copyCode(input, menu.element.querySelector('#room-message'));
-    }
+    if (session.direct) menu.page('waiting', 'Connexion des joueurs', '<p id="room-message" class="menu-status" role="status"></p><p class="menu-note">Gardez cette page ouverte pendant que l’hôte connecte le dernier joueur.</p>', leave);
+    else showWaitingRoom(menu, session, leave);
     updateLobby(menu, session, leave);
     return;
   }
@@ -221,12 +235,40 @@ export function showLobby(menu, session, leave = () => menu.home()) {
   });
   updateLobby(menu, session, leave);
 }
+// Lien d’invitation : celui du jeu en ligne, ou l’adresse du serveur de l’ordinateur.
+function invitationLink(menu, session) {
+  if (session.online) return onlineInviteLink(session.code);
+  const link = new URL(location.pathname, menu.connection?.join_urls?.[0] || location.origin);
+  link.searchParams.set('salon', session.code);
+  return link.href;
+}
+/** Salle d’attente : un grand code à partager et les places des joueurs. */
+function showWaitingRoom(menu, session, leave) {
+  const link = invitationLink(menu, session);
+  menu.page('waiting', 'Invitez vos amis', `<div class="waiting-room"><div class="tutorial-card waiting-code"><span class="eyebrow">Code de la partie</span><strong class="room-code"></strong><p>Vos amis touchent « Rejoindre » et tapent ce code, ou ouvrent le lien.</p><div class="copy-row"><button id="share-room" class="menu-primary arcade-button">Envoyer l’invitation</button><button id="copy-link">Copier le lien</button></div></div><ol class="lobby-slots" aria-label="Joueurs"></ol></div><p id="room-message" class="menu-status" role="status"></p>`, leave);
+  const root = menu.element, status = root.querySelector('#room-message');
+  root.querySelector('.room-code').textContent = session.code;
+  const share = root.querySelector('#share-room');
+  share.hidden = typeof navigator.share !== 'function';
+  share.onclick = () => navigator.share({ title: 'Présidentielles 2027', text: `Rejoins ma partie de Présidentielles 2027 ! Code : ${session.code}`, url: link }).catch(() => {});
+  root.querySelector('#copy-link').onclick = () => copySignal(link, status);
+}
+function updateSlots(menu, session) {
+  const list = menu.element.querySelector('.lobby-slots');
+  if (!list) return;
+  list.innerHTML = [1, 2, 3].map(slot => {
+    const player = session.room.players.find(p => p.slot === slot);
+    const label = !player ? (slot === 3 && session.room.mode === 'debate' ? 'Facultatif' : 'En attente…') : player.id === session.id ? 'Vous' : player.host ? 'Hôte' : 'Connecté';
+    return `<li data-ready="${!!player}"><strong>J${slot}</strong><span>${label}</span></li>`;
+  }).join('');
+}
 export function updateLobby(menu, session, leave = () => menu.home()) {
   const count = session.room.players.length, min = minimumPlayers(session.room);
   // L’hôte reste sur ses QR tant que le salon n’est pas complet (en débat, il peut commencer à deux).
   if (count < 3 && menu.screen === 'qr-invite') { menu.roomUpdate?.(); return; }
   if (count < min) {
     if (menu.screen !== 'waiting') { showLobby(menu, session, leave); return; }
+    updateSlots(menu, session);
     menu.element.querySelector('#room-message').textContent = (session.notice ? `${session.notice} ` : '') + (min === 3 ? `${count}/3 joueurs connectés · La sélection s’ouvrira quand les trois joueurs seront connectés.` : `${count}/3 joueurs connectés · La sélection s’ouvrira dès que deux joueurs seront connectés.`);
     return;
   }

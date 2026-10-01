@@ -80,7 +80,7 @@ try {
     await page.screenshot({ path: path.join(output, `tutoriel-${label}.png`) });
     await page.locator('#start-campaign').click(); await page.keyboard.press('Escape');
     for (const tab of ['controls', 'field', 'election']) { await page.locator(`[data-help-tab="${tab}"]`).click(); await fits(page, '#help', `Pause ${tab} ${label}`); }
-    await page.locator('#pause-home').click(); await page.locator('#multiplayer').click();
+    await page.locator('#pause-home').click(); await page.locator('#multiplayer').click(); await page.locator('#offline-mode').click();
     await fits(page, '#start-menu', `Multijoueur ${label}`);
     await page.locator('#text-join').click(); await page.locator('#room-code').fill('erreur'); await page.locator('button[type="submit"]').click();
     await page.locator('#room-error').filter({ hasText: 'invalide' }).waitFor();
@@ -119,11 +119,11 @@ try {
   const host = await open({ width: 844, height: 390 });
   const guest = await open({ width: 844, height: 390 });
   const third = await open({ width: 667, height: 375 });
-  await host.locator('#multiplayer').click(); await host.locator('#create-room').click();
+  await host.locator('#multiplayer').click(); await host.locator('#offline-mode').click(); await host.locator('#create-room').click();
   async function pair(client, faction) {
     await host.locator('#invite-player').click(); await host.locator('#text-invite').click(); await host.locator('#copy-signal:not([disabled])').waitFor();
     const invitation = await host.locator('#outgoing-code').inputValue();
-    await client.locator('#multiplayer').click();
+    await client.locator('#multiplayer').click(); await client.locator('#offline-mode').click();
     await client.locator('#text-join').click(); await client.locator('#room-code').fill(invitation); await client.locator('button[type="submit"]').click();
     await client.locator('#text-answer').click(); await client.locator('#outgoing-code').waitFor(); await fits(client, '#start-menu', `Réponse ${faction}`);
     const answer = await client.locator('#outgoing-code').inputValue();
@@ -150,7 +150,7 @@ try {
   await guest.keyboard.press('Escape'); await host.locator('#help').waitFor();
   await guest.locator('#pause-home').click(); await host.locator('#disconnect-message').waitFor();
   await fits(host, '#start-menu', 'Déconnexion');
-  await host.locator('#back-to-home').click(); await host.locator('#multiplayer').click(); await host.locator('#create-room').click();
+  await host.locator('#back-to-home').click(); await host.locator('#multiplayer').click(); await host.locator('#offline-mode').click(); await host.locator('#create-room').click();
   await pair(guest, 'le_pen'); await pair(third, 'philippe');
   assert.equal(await host.locator('#invite-player').isDisabled(), true);
   await fits(host, '#start-menu', 'Salon complet'); await host.screenshot({ path: path.join(output, 'salon-trois-telephones.png') });

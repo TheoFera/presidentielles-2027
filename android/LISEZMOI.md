@@ -56,7 +56,7 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 1. **Compte développeur** : sur [play.google.com/console](https://play.google.com/console), crée un compte (25 $ une seule fois, pièce d'identité demandée). La vérification peut prendre quelques jours.
 2. **Créer l'application** : nom « Présidentielles 2027 », langue française, type *Jeu*, *Gratuit*.
 3. **Politique de confidentialité** : la page `confidentialite.html` est publiée avec le site GitHub Pages du jeu après ton prochain envoi sur GitHub. Vérifie qu'elle s'ouvre, puis colle son adresse dans la Play Console.
-4. **Fiche du Play Store** : textes, catégorie et réponses aux questionnaires dans [`play-store/fiche-play-store.md`](play-store/fiche-play-store.md). Icône et bannière dans `play-store/`. Ajoute 2 à 8 captures d'écran prises sur ton téléphone.
+4. **Fiche du Play Store** : textes, catégorie et réponses aux questionnaires dans [`play-store/fiche-play-store.md`](play-store/fiche-play-store.md). Envoie l'icône `play-store/icone-512-v2.png` et la bannière dans `play-store/`. Les icônes du téléphone sont déjà intégrées au projet : voir [le guide des icônes](play-store/icones.md). Ajoute 2 à 8 captures d'écran prises sur ton téléphone.
 5. **Test fermé obligatoire** : pour un compte personnel récent, Google exige un test fermé avec **au moins 12 testeurs pendant 14 jours d'affilée** avant d'autoriser la publication publique. Crée un *Test fermé*, envoie le fichier `.aab`, puis invite tes testeurs (leurs adresses Gmail).
 6. **Production** : une fois le test validé, demande l'accès à la production, envoie le même `.aab` (ou une version plus récente) et lance le déploiement. Google examine l'application, souvent en quelques jours.
 

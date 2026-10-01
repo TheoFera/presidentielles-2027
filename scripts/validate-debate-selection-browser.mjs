@@ -55,7 +55,7 @@ try {
     await solo.screenshot({ path: `${output}/solo-${viewport.width}.png` });
   }
   await solo.setViewportSize({width:1280,height:800});
-  await solo.locator('[data-map="plateau"]').click(); await solo.locator('#debate-fight').click();
+  await solo.locator('[data-map="elysee"]').click(); await solo.locator('#debate-fight').click();
   await solo.locator('#debate-mode-hud:not([hidden])').waitFor({timeout:60000});
   assert.equal(await solo.locator('.debate-fighter').count(),2);
   assert.equal(await solo.locator('.debate-fighter-ultimate:not([hidden])').count(),0);
@@ -63,13 +63,13 @@ try {
   await solo.close();
 
   // Deux véritables clients du salon local, avec choix propagés puis chargement commun.
-  const host = await newPage(); await host.locator('#multiplayer').click();
+  const host = await newPage(); await host.locator('#multiplayer').click(); await host.locator('#offline-mode').click();
   await host.locator('#network-method').selectOption('server');
   await host.locator('#create-room:not([disabled])').waitFor();
   const creation = host.waitForResponse(r => r.url().endsWith('/api/multiplayer/create'));
   await host.locator('#create-room').click();
   const { code } = await (await creation).json();
-  const guest = await newPage(); await guest.locator('#multiplayer').click();
+  const guest = await newPage(); await guest.locator('#multiplayer').click(); await guest.locator('#offline-mode').click();
   await guest.locator('#network-method').selectOption('server');
   await guest.locator('#room-form button[type="submit"]:not([disabled])').waitFor();
   await guest.locator('#room-code').fill(code); await guest.locator('#room-form button[type="submit"]').click();

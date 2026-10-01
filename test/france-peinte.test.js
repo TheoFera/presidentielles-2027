@@ -10,7 +10,7 @@ import { worldAssetIds } from '../src/presentation/illustrated-world.js';
 import { setMapDecor } from '../src/presentation/map-decor.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { COMPLETE_CALIBRATION } from '../src/presentation/france-peinte-calibration.js';
-import { completeStreetFrame } from '../src/presentation/france-peinte-complete.js';
+import { completeStreetFrame, completeHorizonScale } from '../src/presentation/france-peinte-complete.js';
 import { completePaintedAssetIds, COMPLETE_ZONES, completePaintedAssets } from '../src/presentation/france-peinte-complete-data.js';
 
 const { world, buildings, ...rest }=new GameSimulation(structuredClone(config),42).state;
@@ -100,4 +100,17 @@ test('Paris et banlieue en hiver : les variantes gardent les portes, les panneau
 
 test('Quartiers peints : chaque image déclarée existe dans les sources',()=>{
   for(const [id,asset] of Object.entries(completePaintedAssets)) assert.ok(existsSync(new URL(asset.file)),id);
+});
+
+test('Massif : le sommet reste entier après le cadrage dans les trois formats',()=>{
+  const entry=COMPLETE_CALIBRATION.layers['periurbain-massif'];
+  assert.ok(entry.top>0 && entry.top<entry.baseline);
+  for(const width of [720,960,1170]) {
+    const metrics={groundY:484,characterHeight:81,pixelsPerUnit:width/24};
+    const scale=completeHorizonScale(metrics,entry,58,20,1.25);
+    const peak=metrics.groundY-20-(entry.baseline-entry.top)*scale;
+    const visiblePeak=metrics.groundY+(peak-metrics.groundY)*1.25;
+    assert.ok(visiblePeak>=14.99,`${width} : sommet coupé`);
+    assert.ok(scale<=58*metrics.pixelsPerUnit/entry.width);
+  }
 });

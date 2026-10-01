@@ -73,6 +73,15 @@ for (const name of ['paris-horizon','paris-far','paris-mid','paris-back','paris-
   if (!existsSync(file)) continue;
   const image = readPng(file);
   result.layers[name] = { width: image.width, height: image.height, baseline: measureBaseline(image,.3) };
+  if (name === 'periurbain-massif') {
+    // Mesurer le sommet peint, sans compter la marge transparente au-dessus.
+    const top = Array.from({length:image.height},(_,y)=>y).find(y=> {
+      let solid=0;
+      for(let x=0;x<image.width;x++) if(image.data[(y*image.width+x)*4+3]>128) solid++;
+      return solid>=4;
+    });
+    result.layers[name].top = top;
+  }
 }
 writeFileSync(`${root}src/presentation/france-peinte-calibration.js`,
   `// Mesures générées par scripts/france-peinte-calibrate.mjs. Ne prouvent pas la qualité visuelle.\nexport const COMPLETE_CALIBRATION = ${JSON.stringify(result,null,2)};\n`);

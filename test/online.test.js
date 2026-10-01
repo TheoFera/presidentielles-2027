@@ -128,9 +128,17 @@ test('Salon en ligne : un code suffit pour relier deux téléphones, puis le sal
   await guest.request('choose', { faction: 'le_pen', style: 'classique' });
   await host.request('choose', { faction: 'melenchon', style: 'classique' });
   await until(() => host.room.players.every(p => p.faction), 'choix des candidats');
-  await host.request('start', { setup: { format: '1v1', map: 'plateau', fighters: host.room.players.map(p => ({ faction: p.faction, style: p.style, player: p.id })) } });
+  await host.request('start', { setup: { format: '1v1', map: 'elysee', fighters: host.room.players.map(p => ({ faction: p.faction, style: p.style, player: p.id })) } });
   assert.equal(host.socket, null, 'le lancement ferme le salon en ligne');
   await until(() => hub.rooms.size === 0, 'fermeture du salon sur le serveur');
   await until(() => guestRooms.at(-1)?.phase === 'loading', 'préparation chez l’invité');
   assert.deepEqual(ended, []);
+});
+
+test('Le code saisi est nettoyé : minuscules, lettre O, espaces et lien collé', async () => {
+  const { normalizeRoomCode } = await import('../src/network/online-config.js');
+  assert.equal(normalizeRoomCode('a1b2c3'), 'A1B2C3');
+  assert.equal(normalizeRoomCode('o0ab-cd 9'), '00ABCD');
+  assert.equal(normalizeRoomCode('Rejoins-moi : https://exemple.fr/jeu/?en-ligne=e76aaf'), 'E76AAF');
+  assert.equal(normalizeRoomCode('zzz'), '');
 });

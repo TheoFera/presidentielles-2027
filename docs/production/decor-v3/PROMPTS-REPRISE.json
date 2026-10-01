@@ -570,6 +570,484 @@
       "prompt": "Use case: sketch-to-render. Paint a complete transparent HALF-STREET game environment on a SQUARE canvas matching image2's960×960 proportions exactly. Image1 world-v2 bobo is the absolute style reference: rich warm detailed hand-painted French cartoon, tactile stucco brick slate foliage, soft light, convincing feet and generous life. Image2 is an exact gray composition template: preserve its relative building positions, empty cream-sign center and baseline. Image3 world-v2 campagne gives character only, NEVER copy vehicles, stone stage, sky or signs. Scale in logical template pixels: panelwidth960=12 game units, ordinary entrance184high, floor168high, commercialgroundfloor256high. Keep doors human-sized. Full painted sidewalk, gardens, buildings from base to roof, no cut foundations. Above roof and plant silhouettes, and below continuous pavement edge, TRUE TRANSPARENCY. NO sky, painted background, fog matte, letters, brands, people, vehicles or bicycles. No Haussmann buildings. Low garden/hedge ends, no half building cut at side edges. Background planes generated separately. Deliver one cohesive painted sidewalk scene, not isolated building sprite or asset sheet. SQUARE canvas, preserve supplied composition.\nMatch each dark door rectangle EXACTLY: door184logicalpixels, about19.2%canvaswidth. No tiny entrances. Ordinarycountry architecture, no Haussmann.\nOnly generousgoldenwheatfieldsandverylowbocagehedges behindsidewalk, wroughtsimplefieldgatecenter, detailed wheatstemsandpoppies, one modestAGRICULTURAL METALSILO slendercomplete tower at~72%width, one SMALLroadsidewarmemorial shortlimestoneobelisk offcenterat~40%width notblockingplayerpath, noletters. Ruralminimum: NOhouse, shop, church, garage or creamblankpanel. Noeoliennesinthisforeground. Allskyoutlinestransparent, noopaquerectangle offieldtexture attop, texturedfieldrisesgentlywith naturalhedges. Lowerlefthedgeverylow70px to let neighborlocaldoorread. Completesilo endsnotcropped, lowgardenends. Graypavedwalkwaytransitiontosoftcountryverge continuoussamebaseline.",
       "image_source": null,
       "etat_generation": "À produire ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-rue-retraites-a-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nTwo modest detached French suburban pavilions, set back in meticulously clipped thuya gardens, simple tiled roofs and maintained lawns. On the right a neighbourhood car-repair workshop with visible workbench, tools and open roller shutter, no vehicle. One small garden gnome beside a hedge, modest charcoal barbecue in the left garden. No cream gameplay sign on this half. Low walls at both ends.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-a-gauche.png",
+        "artifacts/france-peinte/reprise/references/pavillons-retraites.jpg",
+        "artifacts/france-peinte/reprise/references/garage-retraites.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-retraites-a-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nTwo ordinary, well-kept middle-class detached French pavilions, the first with the interactive permanence in its ground floor and ONE blank cream sign. Side garden paths, clipped thuya, modest lawns, iron garden gates. The second has different shutters and a small porch, no second sign. A little glimpse of a boules pitch behind the garden on the right, no people. Not luxurious villas, not Parisian townhouses.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-a-droite.png",
+        "artifacts/france-peinte/reprise/references/pavillons-retraites.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-retraites-b-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nWest half of a French Atlantic resort square, Les Sables-d’Olonne / Royan character, NOT Haussmann. Left smaller pharmacy with green cross pictogram without letters, beside an asymmetrical seaside villa adapted into the conservative newspaper office; ONE blank cream sign above its door. Cream render, red brick details, slate gables, modest shutters. Final 35% at the right is open square pavement, only a low border and flower pots below knee height. No canopy, tree, shop, fountain or monument in that meeting space. Sea belongs to a separate background.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-b-gauche.png",
+        "artifacts/france-peinte/reprise/references/galerie-balneaire.jpg",
+        "artifacts/france-peinte/reprise/references/villas-balneaires.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-retraites-b-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nEast half of the same Atlantic resort square: first 35% at the left is entirely open paved meeting space, no solid object above knee height. On the right, a characterful seaside villa with redbrick trims, balcony and decorative gable; ground-floor polling institute with ONE blank cream sign above the door. A small adjoining beach-goods display without words at the far right, but complete villa silhouette and low-wall panel ends. No Haussmann facade, no Paris skyline; sea is a separate plane.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-b-droite.png",
+        "artifacts/france-peinte/reprise/references/galerie-balneaire.jpg",
+        "artifacts/france-peinte/reprise/references/villas-balneaires.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-retraites-c-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nOne unique Neuilly / Le Vésinet bourgeois villa in meulière stone and decorative red brick, a projecting bay, complex slate roof and small corner turret, all complete. Standing back in a mature tree garden behind an elegant iron fence and low stone wall; generous garden to the right and small gate. This is a residential street seen from its sidewalk, not a palace isolated on a lawn. No cream gameplay sign. No identical or attached villa rows.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-c-gauche.png",
+        "artifacts/france-peinte/reprise/references/villa-meuliere.jpg",
+        "artifacts/france-peinte/reprise/references/villa-vesinet.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-retraites-c-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nA second unique, fully visible detached Neuilly villa, pale meulière, contrasting cream cornerstones and redbrick bay, decorative steep slate roof different from the neighbouring panel. Mature garden, carefully clipped hedges, ornate low fence and gate leading directly to the gameplay entrance. Ground-floor permanence with ONE blank cream sign; no symbols or letters. House does not touch another house; low garden walls complete both panel ends.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/guides/retraites-c-droite.png",
+        "artifacts/france-peinte/reprise/references/villa-meuliere.jpg",
+        "artifacts/france-peinte/reprise/references/villa-vesinet.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-a-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nElegant Paris 16e street, one detailed limestone Haussmann corner residence on the left, mansard roof, balconies and sculpted lintels, warm ground-floor windows without signs. The right two-thirds opens onto a well-kept public park behind a low iron fence, large trees, gravel path and floral beds. Keep the last 260 pixels low garden so the neighbouring media entrance can overlap naturally. This visible park follows the user’s table, rather than the narrower no-park wording in the HTML. No La Défense here.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-a-gauche.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-a-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nNational mainstream media premises inspired by the curved horizontal facade of the Maison de la Radio: complete human-scale ground-floor frontage with curved glass windows, pale concrete vertical ribs and a low glazed entrance canopy, ONE blank cream sign above the entrance. Tall full circular radio headquarters belongs in a separate midground, do not cram its giant tower into this street. A small landscaped courtyard and an elegant Paris residential wing in perspective at the right, no second sign. Low garden ends. The template intentionally places the door at x=250; the WHOLE panel will be shifted to align with the unchanged simulation site near the half-street boundary.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-a-droite.png",
+        "artifacts/france-peinte/reprise/references/maison-radio.jpg",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-b-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nWest half of a luxurious Paris avenue square, sculpted pale limestone Haussmann buildings, mansards, continuous balconies with depth and side alleys rather than a flat facade wall. Small luxury fashion boutique on the left with tasteful clothes visible, no words or brand. Second ground-floor frontage is the gameplay permanence with ONE blank cream sign. The final 35% at right is completely clear square pavement for the engine’s meeting stage, no tree, canopy, fountain or building there. Eiffel Tower is a separate far layer, not painted into this street.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-b-gauche.png",
+        "artifacts/france-peinte/reprise/references/boutique-luxe.jpg",
+        "artifacts/france-peinte/reprise/references/kiosque-paris.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-b-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nEast half of the same Paris luxury square. First 35% at left is entirely clear meeting pavement. Two elegant full Haussmann residences on the right, different roof heights and cornices, luxury handbag/jewellery display windows without labels. Human-height entrances, narrow perspective side passage and small window flowerboxes. No cream gameplay signs. Low complete sidewalk ends, no tall facade cut at the canvas edges. Eiffel Tower and green newspaper kiosk will be in separate layers.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-b-droite.png",
+        "artifacts/france-peinte/reprise/references/boutique-luxe.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-c-gauche",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nClassical Paris Haussmann street, pale limestone, zinc mansards, balconies, detailed mature facades, warm ordinary urban character. Small tech start-up behind a contemporary ground-floor window on the left, desks and monitors visible without letters or brands. On the right the gameplay cabinet has ONE blank cream sign, dark human-height entrance. Keep the last 300 pixels low garden or recessed alley, since the next whole panel overlaps toward the site near its left edge. La Défense is far background only, never a glass office tower in this street.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-c-gauche.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-rue-riches-c-droite",
+      "prompt": "Use case: sketch-to-render. Image 1 is the world-v2 panorama: follow its hand-painted detailed gouache/cartoon texture, fine warm outlines, lively architecture, restrained French colours and light from the left, NOT its old scale, old Haussmann seaside architecture or painted gameplay labels. Image 2 is the geometric template, authoritative for the frontage, doors, sign and baseline. Other images are architectural reference photographs. Paint a COMPLETE HALF-STREET, not a collage of isolated props, seen straight on from a sidewalk at human height, 960x960 reference canvas representing 12 world units. Delivery scale: human 162px, dark entrance 184px high, upper floor 168px, commercial ground floor 256px. Match ALL dark guide doors, including non-gameplay houses. Sidewalk baseline y=940. Whole buildings, grounded foundations, complete roof and natural low-wall/garden ends; no cut facade at an edge, no giant roof, no front aerial perspective. Real transparent background outside roofs/trees and below the sidewalk, no sky, no fog, no empty rectangular backdrop, no gradient-fade edges. No people, vehicles, bicycles, text, letters, logos or brand labels. No painted meeting podium. ONE cream blank sign only when the template has a cream rectangle. Other facade bands must have distinctive colours, not cream. Preserve guide architecture scale.\nClassical Paris Haussmann block with a contemporary polling institute in the first ground-floor frontage, ONE blank cream sign above a human-height door. Second building eases into a warmer concept-store/cafe street, blank fascia and visible shelves, anticipating Paris 19e. Vary roof heights, introduce a perspective passage and planted railings, no flat continuous wall. Complete buildings and low natural ends. Door at template x=250 deliberately allows the whole panel to align with the unchanged site close to the half-street boundary. No Defence architecture here; it is a distant plane.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/guides/riches-c-droite.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Gabarit et références préparés ; image à produire après rétablissement du quota."
+    },
+    {
+      "id": "prompt-campagne-horizon",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nVery distant continuous soft rolling French countryside, small wooded hills and hedgerow patchwork, descending from the Alpine transition at the far left. No mountain summit, no town, no turbine or large farm. Low silhouette below y=460, all land slopes return toward the baseline before both edges.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-far-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nA-side rural distance: rolling wheat and vegetable fields, wooded copses, hedgerow lanes and orchard belts. No house or other building in the market-garden sector. Complete low undulating profile with a perspective field path.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/clocher-champs.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-far-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nB-side distant compact French village with a SMALL church and simple complete bell tower, varied tiled stone houses tucked onto a gentle slope, hedgerow farmland around it. Village looks genuinely distant, no huge foreground church, no cathedral. Both outer ends are natural fields descending to baseline.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/clocher-champs.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-far-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nC-side very distant wheat fields and small village bell tower, then a wind farm across gently rolling fields. Turbines are modest distant silhouettes, complete slender three-blade shapes with bases in their land, never cut at the edges. No nearby house or other solid structure.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/clocher-champs.jpg",
+        "artifacts/france-peinte/reprise/references/eoliennes.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-mid-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nMarket-garden field depth: perspective beds of vegetables, irrigation channels, planted paths, small low glasshouse silhouettes in the distance and hedgerows. No additional farm building or house. Tunnels have visible ribs and tomato plants, not modern industrial warehouses.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/serres-tomates.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-mid-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nSmall French village behind its street, complete traditional stone houses with varied tiled roofs, a perspective side lane ascending toward a modest church seen between roofs. No large church duplication; give the foreground streets a believable hillside with visible foundations, never roofs floating on trees.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/maisons-village.jpg",
+        "artifacts/france-peinte/reprise/references/mairie-village.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-mid-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nWheat fields, fallow strips, hedges and a gently curving farm lane, modest distant wind turbines confined to the rear fields. First very small new pavilion roofs only at the far right edge, anticipating the next biome, complete low roofs without truncation. No foreground house.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/eoliennes.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-back-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNear rural depth immediately behind the street greenhouses: vegetable rows, a low fence, fruit bushes, garden allotment details and soil paths in perspective. No building or shed. Natural low planted edges, no massive canopy that would hide a foreground entrance.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/serres-tomates.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-back-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nBack edge of a village square: two modest stone house clusters at the outer thirds, central perspective alley and churchyard wall LOW enough to preserve the meeting space. A small French war memorial stone obelisk at the far left outside the central 35–65% opening. No painted stage. No letters, names or engraved text.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/maisons-village.jpg",
+        "artifacts/france-peinte/reprise/references/mairie-village.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-back-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nBocage next to wheat fields, a complete small farm silo at an outer edge, low meadow grasses, fence posts and planted banks. Centre remains low fields and hedges, no houses. Trees leave gaps revealing the separate distant village.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-campagne-transition-est",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nInvisible transition from wheat countryside to the first tidy detached pavilions at the end of the fields. Agricultural hedges turn into clipped thuya; first stone pines hint at the coast. Left side is rural fields and low fence, right has TWO complete modest new houses set back behind gardens. No town sign, no sea-front avenue yet.",
+      "references": [
+        "assets/generated/world-v2/panorama-campagne.png",
+        "artifacts/france-peinte/reprise/references/lotissement-cote.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-horizon",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nDistant Atlantic bay, blue water clearly visible in the middle, low wooded coastal hills at both sides and very distant headlands. Fine restrained horizon, no Haussmann roofs, no Paris monuments. No ships, boats or people. Water is a solid painted shape with a natural shoreline at its lower edge, no sky rectangle or fade band.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/mer-arcachon.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-far-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nRetired residential A-side distant low wooded hills, orchard patchwork, a handful of small complete pavilion roofs among trees. A glimpse of the sea beyond the low hills, no Paris architecture. All foreground and detailed houses are absent from this distance layer.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/pavillons-retraites.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-far-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nA genuine French Atlantic seaside resort, low villas and modest late-20th-century resort residences along both sides of a wide bay, centre opens broadly onto visible blue sea and sand beach. No Haussmann avenue and no mountain. No boats, people or cars. Natural low seaside vegetation at both ends.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/mer-arcachon.jpg",
+        "artifacts/france-peinte/reprise/references/galerie-balneaire.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-far-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNeuilly / Le Vésinet distant garden suburb, complete varied slate villa roofs between tall mature trees, gentle wooded rise. Different villas, no identical terrace row, no La Défense towers at this boundary. Atmospheric distance but crisp readable roof structure.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/villa-meuliere.jpg",
+        "artifacts/france-peinte/reprise/references/villa-vesinet.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-mid-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nTidy detached residential neighbourhood in depth, modest white-render and redbrick pavilions, orchard patches, clipped thuya and tree-lined side lanes. Side facades and garden paths visible, human-scale houses grounded on gently rising gardens. No big mansards or rich Paris palaces.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/pavillons-retraites.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-mid-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nResort promenade descending gently toward the beach, distinctive seaside villa gables at the outer thirds, a restrained low modern shopping gallery in perspective on one side. The broad central view remains open to the sea; do not fill it with a tall building or tree. No pharmacy cross or gameplay sign in this midground.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/galerie-balneaire.jpg",
+        "artifacts/france-peinte/reprise/references/villas-balneaires.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-mid-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nGarden suburb with three UNIQUE detached meulière and redbrick villas, different steep slate roofs, turrets and bay windows, each separated by a mature wooded garden and low iron fence. Complete grounded houses, no touching villas or roof wall. Slight perspective lets visible paths support their foundations.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/villa-meuliere.jpg",
+        "artifacts/france-peinte/reprise/references/villa-vesinet.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-back-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNear garden depth: neatly clipped thuya, lawns, fruit trees, small low boules court and garden paths, no people. A tiny garden gnome and modest barbecue beside a hedge. No extra house, no cream gameplay sign, no tall foreground wall.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/pavillons-retraites.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-back-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNear seaside square to promenade transition, low coastal railings, a SMALL row of complete traditional painted beach cabins near the far-right beach path, broad sea-view opening in centre, stone-pine foliage framing the OUTER edges. Keep centre low and clear for the separately rendered square and stage. No painted sea rectangle, main sea is separate.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/villas-balneaires.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-back-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nClose garden layer of prosperous suburb, varied wrought-iron grilles, meulière low walls, mature planted borders and tree trunks set to the sides, opening a clear side garden view in the middle. No building or high solid frontage, no repetition of identical villa silhouettes.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/villa-vesinet.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-retraites-transition-est",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNeuilly garden streets gently become the bois de Boulogne: whole mature trees at outer sides, winding gravel park paths, a clear glimpse of the park lake in the middle, elegant wrought-iron park fence at the front. Right edge hints at a refined Paris limestone roof beyond the park. NO Defence tower or Grande Arche here. Natural low edges, no cut canopy or isolated floating tree.",
+      "references": [
+        "assets/generated/world-v2/panorama-retraites.png",
+        "artifacts/france-peinte/reprise/references/allee-bois.jpg",
+        "artifacts/france-peinte/reprise/references/lac-bois.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-horizon",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nContinuous very distant Paris roofline, small zinc roofs and classical domes behind low treetop silhouettes, no large close structure. No Eiffel Tower or Defence duplicated; their dedicated far layers provide those monuments. Whole subtle silhouette returns low at both ends.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-far-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nDistant western Paris, classical roofs, small recognisable Invalides gilded dome and Grand Palais glass barrel roof among lower roofs. No giant random cathedral, no Eiffel duplicate, no skyscraper. Low atmospheric distant scale with grounded complete landmarks.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-far-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nOne architecturally faithful COMPLETE Eiffel Tower centred over a perspective Paris avenue, all four feet visible on a small distant esplanade. Real latticed iron shape, curved arches, three platforms, thin top antenna. Modest low surrounding roofs at both sides; tower must stand free and be visible over the meeting square. Keep peak BELOW y=220 on a 2160x720 canvas to leave ample headroom at game scale, feet at y=690. No second tower or close tall facade.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/tour-eiffel.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-far-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nLa Défense in the FAR distance behind classical Paris: real Grande Arche as a square hollow rectangular frame with broad straight pillars and flat horizontal roof, NOT a triumphal arch or bridge. Complete varied modern towers on either side, their feet supported by a distant urban base. Entire composition low enough not to dominate the foreground, no tower chopped at an edge. Architecture only in this C-zone far plane.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/grande-arche.jpg",
+        "artifacts/france-peinte/reprise/references/defense.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-mid-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nThe recognisable rounded Maison de la Radio in midground, complete curved horizontal bands and ONE restrained central rectangular tower, surrounded by elegant Paris roofs and mature trees of a visible well-kept public park. This park follows the user’s table. All foundations belong to a coherent ground terrace behind the street; no floating roofs. No media logo or sign.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/maison-radio.jpg",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-mid-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nRich Paris avenue depth, elegant complete Haussmann roof groups and zinc mansards at the outer sides, open central avenue perspective framed by smaller roofs. No Eiffel duplication; the separate far tower must remain visible through centre. Side trees do not hide the square or skyline.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/boutique-luxe.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-mid-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nOrdinary classical Paris roof depth easing toward the livelier 19e: varied cream and ochre Haussmann roofs, a perspective side street and tree patches. No glass office towers here; Defence stays only in the far layer. Complete supported facades, light atmospheric blue depth, no roof cut at image edges.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-back-a",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nA cared-for Paris park edge, mature trees, low ornate fence, garden path and restrained flower beds. One small complete refined limestone pavilion only at the outer edge, no large extra building hiding the media entrance. The centre provides a clear grounded park view.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/allee-bois.jpg",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-back-b",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNear depth of an elegant avenue and square, classical corners at the outer sides, clear centre receding to the distant Eiffel axis, planted stone edges and perspective paving. No fountain, house, stage or tall tree in central 35–65%. No Eiffel Tower painted in this near plane.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-back-c",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nNear Paris corner streets and low planted edges, a small complete cafe courtyard at one side, perspective side alleys and modest warm architectural details anticipating bobo concept stores. Central entrances and cream-sign regions remain unobstructed. No Defence towers, no large monument.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/avenue-riches.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
+    },
+    {
+      "id": "prompt-riches-mobilier",
+      "prompt": "Use case: game-asset. Produce ONE independently composable painted background plane, NOT a complete scene or isolated atlas sprites. Image1 is the absolute world-v2 painterly style reference: finely textured warm outlines, detailed French architecture, left light, restrained colours, natural perspective. Photographs ground the specified architecture only. Wide2160x720 transparent PNG reference; highest objects comfortably below the top and complete feet near y=690. No sky or solid colour rectangle outside the silhouette, no painted street or foreground road, no gradient fading at image edges, no fog disguising a join. Natural landscape returns to its baseline toward BOTH ends; leave complete roofs and trees before edge, no clipped steep hill, vertical rectangle end, floating fragment, or house sunk into grass. This is one depth plane within a five-plane parallax scene, main street and playable facades are separate. No text, words, logos, people, cars, bicycles or scooters. Never reproduce the world-v2 panorama as one giant backdrop.\nOne SMALL complete traditional dark-green Paris newspaper kiosk with its curved ornamental roof, rows of newspaper-cover rectangles with no readable letters, pavement feet and modest planter. Transparent isolated furniture companion, not a giant building. At reference delivery scale human would be162px and kiosk about230px high; leave transparent margins. No person or sign text.",
+      "references": [
+        "assets/generated/world-v2/panorama-riches.png",
+        "artifacts/france-peinte/reprise/references/kiosque-paris.jpg"
+      ],
+      "image_source": null,
+      "etat_generation": "Plan séparé à peindre ; quota ImageGen atteint."
     }
   ],
   "reprise_imagegen": {

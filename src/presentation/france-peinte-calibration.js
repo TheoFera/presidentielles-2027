@@ -501,7 +501,8 @@ export const COMPLETE_CALIBRATION = {
     "periurbain-massif": {
       "width": 2172,
       "height": 724,
-      "baseline": 690
+      "baseline": 690,
+      "top": 339
     },
     "periurbain-far": {
       "width": 2172,

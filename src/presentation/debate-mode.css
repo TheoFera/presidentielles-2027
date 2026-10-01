@@ -28,7 +28,8 @@
 .select-name > span { color: var(--player-color); }
 .select-empty { display: grid; place-items: center; height: 100%; color: #ffffff18; font: 900 110px/1 Impact, sans-serif; }
 .select-versus { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-9deg); z-index: 2; font: italic 900 clamp(38px, 9cqh, 90px)/1 Impact, sans-serif; color: #f7d574; text-shadow: 4px 5px #972c41, 8px 9px #080d1b; pointer-events: none; }
-.select-stage[data-count='3'] .select-versus { top: 35%; left: 33.7%; font-size: clamp(28px, 6cqh, 60px); }
+.select-stage[data-count='3'] .select-versus { top: 35%; left: 33%; font-size: clamp(28px, 6cqh, 60px); }
+.select-stage[data-count='3'] .select-versus-second { left: 67%; }
 .select-console { padding: 8px 10px; border: 1px solid #51627d66; background: #111b2bcc; }
 .select-roster-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 7px; color: #859bb9; font: 600 11px/1.2 system-ui, sans-serif; letter-spacing: .06em; }
 .select-roster-heading strong { color: #f7d574; text-transform: uppercase; }

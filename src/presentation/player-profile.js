@@ -63,30 +63,55 @@ function decorPicker(profile) {
 export const profileButton = profile => `<button id="menu-profile" aria-label="Mon profil : ${escape(cleanNickname(profile.nickname))}" title="Mon profil">
   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg><span>${escape(cleanNickname(profile.nickname))}</span></button>`;
 
+/* Petites icônes au trait (24 × 24) pour les tuiles de statistiques. */
+const ICONS = {
+  games: 'M4 11h16v9H4z M8 11V4h8v7 M10 7h4 M9 15h6',
+  wins: 'M7 4h10v4a5 5 0 0 1-10 0z M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10 M17 5h3v1.5a3.5 3.5 0 0 1-3.5 3.5 M12 13v3 M8 20h8 M9.5 16h5v4h-5z',
+  rate: 'M12 3a9 9 0 1 0 9 9 M12 7a5 5 0 1 0 5 5 M12 12l7-7 M16 5h3v3',
+  qualified: 'M5 21V4 M5 4h11l-2 3.5 2 3.5H5',
+  score: 'M5 20v-7 M12 20V5 M19 20v-10 M3 20h18',
+  voters: 'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6z M3 20c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5 M16 5.5a3 3 0 0 1 0 5.5 M18 14.5c1.8.7 2.8 2.6 3 5.5',
+};
+const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
+
+/** Grade affiché sur la carte du joueur, d'après sa carrière. */
+export function profileRank(stats) {
+  if (stats.wins >= 5) return 'Habitué de l’Élysée';
+  if (stats.wins) return 'Élu à l’Élysée';
+  if (stats.qualified) return 'Finaliste';
+  if (stats.games >= 3) return 'Candidat confirmé';
+  if (stats.games) return 'Militant de terrain';
+  return 'Nouvel inscrit';
+}
+
 export function profileContent(profile) {
   const stats = normalizeStats(profile.stats), favorite = favoriteCandidate(stats);
   const hero = CANDIDATES.find(c => c.id === (favorite || 'melenchon'));
-  const rate = stats.games ? `${format(stats.wins / stats.games * 100)} %` : '—';
+  const ratio = stats.games ? stats.wins / stats.games * 100 : null;
+  // [icône, libellé, valeur, jauge en % (facultative)]
   const tiles = [
-    ['Parties jouées', format(stats.games)], ['Victoires', format(stats.wins)], ['Taux de victoire', rate],
-    ['Qualifications au 2nd tour', format(stats.qualified)],
-    ['Meilleur score au 2nd tour', stats.best_score == null ? '—' : `${format(stats.best_score, 2)} %`],
-    ['Record d’électeurs', format(stats.best_voters)],
+    ['games', 'Parties jouées', format(stats.games)], ['wins', 'Victoires', format(stats.wins)],
+    ['rate', 'Taux de victoire', ratio == null ? '—' : `${format(ratio)} %`, ratio ?? 0],
+    ['qualified', 'Qualifications au 2nd tour', format(stats.qualified)],
+    ['score', 'Meilleur score au 2nd tour', stats.best_score == null ? '—' : `${format(stats.best_score, 2)} %`, stats.best_score ?? 0],
+    ['voters', 'Record d’électeurs', format(stats.best_voters)],
   ];
   const unlocked = profile.unlocked_campaign_styles || {};
   const candidates = CANDIDATES.map(c => {
     const s = stats.by_candidate[c.id], total = CAMPAIGN_STYLES[c.id]?.length || 0, owned = Math.min(total, unlocked[c.id]?.length || 1);
-    return `<article class="profile-candidate" data-faction="${c.id}"><img src="${portrait(c)}" alt="">
-      <div><strong>${c.short}</strong><span>${format(s.games)} partie${s.games > 1 ? 's' : ''} · ${format(s.wins)} victoire${s.wins > 1 ? 's' : ''}</span>
+    const star = c.id === favorite ? '<em class="profile-favorite" title="Candidat préféré">★ Préféré</em>' : '';
+    return `<article class="profile-candidate${c.id === favorite ? ' is-favorite' : ''}" data-faction="${c.id}"><img src="${portrait(c)}" alt="">
+      <div><strong>${c.short}</strong>${star}<span>${format(s.games)} partie${s.games > 1 ? 's' : ''} · ${format(s.wins)} victoire${s.wins > 1 ? 's' : ''}</span>
       <span class="profile-styles" aria-label="${owned} style${owned > 1 ? 's' : ''} de campagne débloqué${owned > 1 ? 's' : ''} sur ${total}">${Array.from({ length: total }, (_, i) => `<i class="${i < owned ? 'is-owned' : ''}"></i>`).join('')}<small>${owned}/${total} styles</small></span></div></article>`;
   }).join('');
   return `<div class="profile-screen">
-    <section class="profile-identity">
-      <div class="profile-hero"><img src="${portrait(hero)}" alt=""></div>
+    <section class="profile-identity" data-faction="${hero.id}">
+      <div class="profile-hero"><span class="profile-rank">★ ${profileRank(stats)}</span><img src="${portrait(hero)}" alt=""></div>
       <label class="profile-name">Pseudo<input id="profile-nickname" maxlength="${NICKNAME_MAX}" autocomplete="nickname" spellcheck="false" value="${escape(cleanNickname(profile.nickname))}"></label>
       <p class="menu-note">${favorite ? `Candidat préféré : <strong>${hero.short}</strong>` : 'Jouez une partie complète pour lancer vos statistiques.'}</p>
     </section>
-    <section class="profile-stats" aria-label="Statistiques">${tiles.map(([label, value]) => `<p><strong>${value}</strong><span>${label}</span></p>`).join('')}</section>
+    <section class="profile-stats" aria-label="Statistiques">${tiles.map(([key, label, value, meter], i) =>
+      `<p class="profile-stat" data-stat="${key}" style="--delay:${i * 60}ms">${icon(key)}<strong>${value}</strong><span>${label}</span>${meter == null ? '' : `<i class="profile-meter" style="--v:${Math.round(meter)}%" aria-hidden="true"></i>`}</p>`).join('')}</section>
     <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>
     ${isBetatestProfile(profile) && MAP_DECORS.length > 1 ? decorPicker(profile) : ''}
     <p class="profile-note menu-note">Profil enregistré sur cet appareil. De nouveaux skins et tenues seront bientôt à débloquer ici.</p>

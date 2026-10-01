@@ -14,7 +14,7 @@ const style = (id, name, biome, summary, ultimate, kind, tags, accent, outfit) =
 export const CAMPAIGN_STYLES = {
   melenchon: [
     style('melenchon_universaliste', 'Universaliste', 'paris_19e', 'L’écologie et les quartiers urbains.', 'Hologrammes', 'HOLOGRAMS', ['urban', 'ecology', 'vegetarian', 'transport', 'university'], '#dc575a', 'red'),
-    style('melenchon_communautariste', 'Communautariste', 'banlieue', 'Bousculer les lignes adverses.', 'Déferlante encapuchonnée', 'SURGE', ['suburb', 'community'], '#a26ce2', 'purple'),
+    style('melenchon_communautariste', 'Créolisé', 'banlieue', 'Bousculer les lignes adverses.', 'Déferlante encapuchonnée', 'SURGE', ['suburb', 'community'], '#a26ce2', 'purple'),
     style('melenchon_populiste', 'Populiste', 'periurbain_usine', 'Le pouvoir d’achat, sur le terrain.', 'Gilet jaune', 'FIRE', ['industry', 'fuel', 'factory', 'salary', 'purchasing_power'], '#f6c943', 'worker'),
   ],
   le_pen: [

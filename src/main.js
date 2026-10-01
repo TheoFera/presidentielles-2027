@@ -22,6 +22,8 @@ import { ElectoralDisplay } from './presentation/electoral.js';
 import { interpolatedPlayerX } from './presentation/player-position.js';
 import { MatchDisplay } from './presentation/match.js';
 import { StartMenu } from './presentation/start-menu.js';
+import { showLegalNotice, warmUpBehindNotice } from './presentation/legal-notice.js';
+import { worldAssetIds } from './presentation/illustrated-world.js';
 import { installLandscape } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
@@ -44,6 +46,7 @@ function showError(error, duringGame = false) {
 }
 
 async function start() {
+  showLegalNotice();
   const config = applyDecorPreview(await loadConfig());
   const chargeDuration = `${config.balance.candidate_combat.charge_ready_seconds.toLocaleString('fr-FR')} s`;
   document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
@@ -70,6 +73,9 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  // Pendant l'avertissement, les images de la campagne se chargent déjà en arrière-plan.
+  setMapDecor(decorForProfile(profile));
+  warmUpBehindNotice(renderer.assets, worldAssetIds(renderer.assets.manifest, { buildings: [] }));
   const damageFeedback = new DamageFeedbackDisplay(config);
   const campaignDisplay = new CampaignDisplay(config);
   const electoralDisplay = new ElectoralDisplay(config);

@@ -604,13 +604,8 @@
     "fight_banner_seconds": 1,
     "victory_delay_seconds": 1.6,
     "ai_retarget_seconds": 1.6,
-    "default_map": "studio",
+    "default_map": "remue_menage",
     "maps": {
-      "plateau": {
-        "name": "Plateau médiatique",
-        "description": "Un plateau plat : rien pour se cacher.",
-        "platforms": []
-      },
       "elysee": {
         "name": "Tribune de l’Élysée",
         "description": "Trois scènes séparées par des trous. Les bords lumineux sont praticables ; tomber dans le vide est mortel.",
@@ -758,17 +753,6 @@
           }
         ],
         "ground_y_ratio": 0.73857598
-      },
-      "studio": {
-        "name": "Studio télé",
-        "description": "Des pupitres où grimper. La hauteur compte : au sol, on ne touche pas un candidat perché.",
-        "jump_height": 1.6,
-        "jump_duration_seconds": 0.95,
-        "platforms": [
-          { "id": "pupitre-gauche", "name": "Pupitre gauche", "x": 8, "half_width": 1.4, "height": 1 },
-          { "id": "pupitre-droit", "name": "Pupitre droit", "x": 20, "half_width": 1.4, "height": 1 },
-          { "id": "bureau-central", "name": "Bureau du présentateur", "x": 14, "half_width": 1.9, "height": 1.9 }
-        ]
       }
     }
   },

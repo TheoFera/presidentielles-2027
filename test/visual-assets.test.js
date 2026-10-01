@@ -180,6 +180,20 @@ test('Le cache partage un chargement, protège les voisins et évince les ancien
   assert.equal(cache.status().pending,0); assert.equal(cache.cache.size,2);
 });
 
+test('Le préchargement de l’avertissement passe après les images demandées et les garde en mémoire', async () => {
+  const images = [];
+  const cache = new VisualAssets({a:{file:'a'},b:{file:'b'},c:{file:'c'}}, {limit:1, concurrency:2, createImage:()=>{const image={};images.push(image);return image;}});
+  cache.warmUp(['a', 'b', 'c']);
+  assert.deepEqual(images.map(i => i.src), ['a'], 'l’arrière-plan laisse une place libre au jeu');
+  const c = cache.load('c');
+  assert.deepEqual(images.map(i => i.src), ['a', 'c'], 'une image demandée passe devant');
+  images[0].onload(); await cache.load('a');
+  assert.deepEqual(images.map(i => i.src), ['a', 'c'], 'l’arrière-plan attend la fin de la demande du jeu');
+  images[1].onload(); await c;
+  images[2].onload(); await cache.load('b');
+  assert.ok(cache.get('a') && cache.get('b') && cache.get('c'), 'les images préchargées ne sont pas évincées');
+});
+
 test('Un export absent ne bloque pas une scène et une erreur ne provoque pas de boucle réseau', async () => {
   const images=[]; const cache=new VisualAssets({bad:{file:'bad'}},{createImage:()=>{const image={};images.push(image);return image;}});
   assert.equal(await cache.load('absent'),null);

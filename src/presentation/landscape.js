@@ -4,7 +4,9 @@ export const portraitPhone = () => window.matchMedia('(any-pointer: coarse) and 
 export function syncOrientation() {
   const blocked = portraitPhone();
   const menu = document.getElementById('start-menu');
-  menu.inert = blocked;
+  // L'avertissement de l'allumage garde le menu inaccessible tant qu'il n'est pas validé.
+  const notice = document.getElementById('legal-notice');
+  menu.inert = blocked || !!notice && !notice.hidden && !notice.classList.contains('closing');
   document.getElementById('game').inert = blocked || !menu.hidden;
   document.getElementById('landscape-gate').hidden = !blocked;
 }

@@ -4,7 +4,7 @@ Les six tenues supplémentaires possèdent chacune trois planches transparentes 
 
 | Candidat | Nouvelles tenues |
 | --- | --- |
-| Mélenchon | Populiste, Communautariste |
+| Mélenchon | Populiste, Créolisé |
 | Marine Le Pen | Libérale · Parti de gouvernement, Zemmouriste |
 | Édouard Philippe | Européiste, Notable local |
 

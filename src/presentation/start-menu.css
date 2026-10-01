@@ -63,6 +63,24 @@
 #loading-status, .menu-status { font-size: clamp(11px, 1.7cqh, 14px); color: var(--arcade-cyan); min-height: 1.3em; }
 #room-error, #pair-error { color: #ffb6bc; }
 .boot-message { text-align: center; padding-top: 35vh; }
+/* Avertissement de l'allumage : fond noir, au-dessus de tout, lisible en portrait comme en paysage. */
+#legal-notice { position: fixed; inset: 0; z-index: 200; display: flex; align-items: safe center; justify-content: center; overflow-y: auto; padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); background: #000; color: #d9d5cc; color-scheme: dark; }
+#legal-notice[hidden] { display: none; }
+/* Ouverture : le texte sort du noir. Fermeture : il y retourne, puis le noir s'efface sur le menu. */
+.legal-notice-text { width: min(100%, 34em); display: grid; gap: 14px; text-align: center; font: clamp(15px, 1.25vw + 4px, 19px)/1.55 system-ui, sans-serif; animation: legal-notice-in 1.1s ease-out .2s both; }
+#legal-notice.closing { opacity: 0; pointer-events: none; transition: opacity .5s ease-in .35s; }
+#legal-notice.closing .legal-notice-text { opacity: 0; transition: opacity .35s ease-in; }
+@keyframes legal-notice-in { from { opacity: 0; transform: translateY(6px); } }
+.legal-notice-text h1 { margin: 0; font: 900 clamp(22px, 5vw, 30px)/1.1 Impact, 'Arial Black', system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #ffd75a; }
+.legal-notice-text p { margin: 0; text-wrap: pretty; hyphens: manual; }
+.legal-notice-text .legal-notice-lead { font-size: 1.15em; line-height: 1.4; color: #fff; text-wrap: balance; }
+.legal-notice-text .legal-notice-motto { font-style: italic; color: #b5b0a5; text-wrap: balance; }
+.legal-notice-text hr { width: 48px; margin: 2px auto; border: 0; border-top: 2px solid #ffd75a66; }
+#legal-notice-accept { justify-self: center; margin-top: 8px; min-height: 44px; padding: 10px 24px; color: #000; background: #ffd75a; border: 0; border-radius: 3px; font: 800 16px/1.2 system-ui, sans-serif; cursor: pointer; transition: opacity .3s; }
+#legal-notice-accept:disabled { opacity: .35; cursor: progress; }
+#legal-notice-accept:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+@media (max-height: 460px) { .legal-notice-text { width: min(100%, 44em); gap: 7px; font-size: 13.5px; line-height: 1.42; } .legal-notice-text h1 { font-size: 21px; } .legal-notice-text hr { display: none; } #legal-notice-accept { margin-top: 2px; min-height: 40px; padding: 8px 20px; } }
+@media (prefers-reduced-motion: reduce) { .legal-notice-text { animation: none; } #legal-notice.closing, #legal-notice.closing .legal-notice-text { transition-duration: .01s; transition-delay: 0s; } }
 #start-menu input, #start-menu select { width: 100%; min-width: 0; min-height: 44px; color: #fff; background: #090f24; border: 1px solid #7187ad; box-shadow: none; border-radius: 2px; font-size: 16px; padding: 8px; }
 #start-menu label { color: var(--arcade-muted); font-size: 13px; }
 .multiplayer-form { display: flex; flex-direction: column; gap: clamp(8px, 2cqh, 18px); flex: 1; min-height: 0; }
@@ -75,6 +93,18 @@
 .answer-card { flex: 1; min-height: 0; }
 .lobby-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .room-code { font: 850 clamp(20px, 4cqh, 34px)/1.3 ui-monospace, monospace; letter-spacing: .12em; color: var(--arcade-gold); }
+/* Multijoueur en ligne : un code bien lisible, la solution sans Internet en simple lien. */
+.code-input { font: 850 clamp(18px, 3.6cqh, 30px)/1.2 ui-monospace, monospace; letter-spacing: .25em; text-align: center; text-transform: uppercase; }
+#start-menu .menu-link { align-self: center; min-height: 44px; padding: 6px 10px; background: none; border: 0; box-shadow: none; color: var(--arcade-cyan); text-decoration: underline; text-underline-offset: 3px; font-weight: 750; }
+#start-menu .menu-link:hover { background: none; color: #fff; }
+.waiting-room { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; flex: 1; min-height: 0; }
+.waiting-code { align-items: center; text-align: center; }
+.waiting-code .room-code { font-size: clamp(32px, 9cqh, 68px); letter-spacing: .18em; line-height: 1.1; }
+.waiting-code .copy-row { flex-wrap: wrap; justify-content: center; }
+.lobby-slots { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: center; }
+.lobby-slots li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 2px dashed #6e89bc; border-radius: 10px; color: var(--arcade-muted); font-weight: 750; }
+.lobby-slots li[data-ready="true"] { border-style: solid; border-color: var(--arcade-cyan); background: #15213de6; color: #fff; }
+.lobby-slots strong { color: var(--arcade-gold); }
 .lobby-players { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1; min-height: 0; }
 .lobby-player { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; min-width: 0; text-align: center; padding: 12px; border: 2px solid var(--arcade-cyan); background: #17243c; }
 .lobby-player.vacant { border-color: #465372; background: #10182b; }
@@ -303,4 +333,16 @@
   .qr-zoom > button { grid-column: 2; align-self: end; }
   [data-screen="qr-answer"] .menu-intro { display: none; }
   #qr-diagnostic { font-size: 10px; }
+}
+@media (max-width: 600px) { .waiting-room { grid-template-columns: 1fr; gap: 10px; } }
+@media (max-height: 500px) {
+  .waiting-room { gap: 8px; }
+  .waiting-code { padding: 8px 12px; gap: 4px; }
+  .waiting-code .room-code { font-size: clamp(28px, 11cqh, 44px); }
+  .lobby-slots { gap: 5px; }
+  .lobby-slots li { padding: 5px 10px; }
+  #start-menu .menu-link { min-height: 36px; padding: 2px 8px; }
+  .online-modes .tutorial-card { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .online-modes .tutorial-card button { flex: none; }
+  .online-modes label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }

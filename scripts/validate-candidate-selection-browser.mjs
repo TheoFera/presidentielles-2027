@@ -18,7 +18,7 @@ async function open() {
   return page;
 }
 async function setup(page) {
-  await page.locator('#multiplayer').click();
+  await page.locator('#multiplayer').click(); await page.locator('#offline-mode').click();
   await page.locator('#network-method').selectOption('server');
   await page.waitForFunction(() => document.querySelector('#server-status').textContent.includes('Serveur'));
 }

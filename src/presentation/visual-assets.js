@@ -10,6 +10,8 @@ export class VisualAssets {
     this.concurrency = Math.max(1, concurrency);
     this.prepareImage = prepareImage;
     this.queue = [];
+    // Images chargées en avance (pendant l'avertissement) : elles passent après les demandes du jeu.
+    this.backgroundQueue = [];
     this.active = 0;
   }
 
@@ -39,20 +41,43 @@ export class VisualAssets {
   }
 
   load(id) {
-    if (this.cache.has(id)) return this.cache.get(id).promise;
+    if (this.cache.has(id)) {
+      // Une image attendue en arrière-plan devient prioritaire dès que le jeu la demande.
+      const waiting = this.backgroundQueue.findIndex(task => task.id === id);
+      if (waiting >= 0) { this.queue.push(...this.backgroundQueue.splice(waiting, 1)); this.pump(); }
+      return this.cache.get(id).promise;
+    }
+    const task = this.task(id);
+    if (!task) return Promise.resolve(null);
+    this.queue.push(task);
+    this.pump();
+    return task.entry.promise;
+  }
+
+  /** Charge des images en avance, sans ralentir celles que le jeu demande, et les garde en mémoire. */
+  warmUp(ids) {
+    for (const id of new Set(ids)) {
+      if (!this.manifest[id] || this.failures.has(id)) continue;
+      this.protectedIds.add(id);
+      if (!this.cache.has(id)) this.backgroundQueue.push(this.task(id));
+    }
+    this.pump();
+  }
+
+  task(id) {
     const source = this.manifest[id];
-    if (!source || this.failures.has(id)) return Promise.resolve(null);
+    if (!source || this.failures.has(id)) return null;
     const entry = { image: null, ready: false, promise: null, resolve: null };
     entry.promise = new Promise(resolve => { entry.resolve = resolve; });
     this.cache.set(id, entry);
-    this.queue.push({ id, source, entry });
-    this.pump();
-    return entry.promise;
+    return { id, source, entry };
   }
 
   pump() {
-    while (this.active < this.concurrency && this.queue.length) {
-      const { id, source, entry } = this.queue.shift();
+    // L'arrière-plan n'occupe que la moitié des téléchargements simultanés.
+    const backgroundSlots = Math.max(1, Math.floor(this.concurrency / 2));
+    while (this.active < this.concurrency && (this.queue.length || this.backgroundQueue.length && this.active < backgroundSlots)) {
+      const { id, source, entry } = this.queue.length ? this.queue.shift() : this.backgroundQueue.shift();
       this.active++;
       let finished = false;
       const finish = failed => {

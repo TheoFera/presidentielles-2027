@@ -18,3 +18,11 @@ export function onlineInviteLink(code, location = globalThis.location) {
   link.searchParams.set('en-ligne', code);
   return link.href;
 }
+
+// Code d’invitation : 6 caractères (0-9, A-F). On accepte aussi un lien collé, et
+// la lettre O tapée à la place du chiffre 0.
+export function normalizeRoomCode(text) {
+  const value = String(text ?? '');
+  const fromLink = /[?&]en-ligne=([0-9a-fA-F]{6})/.exec(value);
+  return (fromLink ? fromLink[1] : value).toUpperCase().replace(/O/g, '0').replace(/[^0-9A-F]/g, '').slice(0, 6);
+}

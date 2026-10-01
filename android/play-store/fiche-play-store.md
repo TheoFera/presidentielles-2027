@@ -54,11 +54,13 @@ Jeu humoristique et parodique. Il n'est affilié à aucun candidat, parti politi
 
 | Élément | Fichier | Règle Google |
 |---|---|---|
-| Icône | `icone-512.png` | 512 × 512 px, PNG |
+| Icône | `icone-512-v2.png` | 512 × 512 px, PNG opaque, moins de 1 Mio |
 | Image de présentation | `banniere-1024x500.png` | 1024 × 500 px |
 | Captures d'écran (téléphone) | à faire toi-même | 2 à 8 captures, en paysage, depuis l'application |
 
 Pour les captures : lance l'application sur ton téléphone, joue quelques secondes, puis appuie en même temps sur *Marche/Arrêt* et *Volume bas*. Prends l'accueil, une rue avec des passants, un combat, le débat télé et les résultats.
+
+Les fichiers d'icône pour Android sont déjà intégrés au projet. Voir [le guide des icônes](icones.md) et [l'aperçu](apercu-icones-v2.png). L'ancienne icône `icone-512.png` est conservée.
 
 ## Questionnaires de la Play Console
 

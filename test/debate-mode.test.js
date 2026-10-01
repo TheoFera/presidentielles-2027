@@ -15,8 +15,17 @@ import { validateConfig } from '../src/config.js';
 import { fallSafeCommands, predictLanding } from '../src/simulation/debate-navigation.js';
 
 const config = validateConfig(campaignConfig());
+// Carte de test (ancien studio retiré du jeu) : pupitres simples pour vérifier la physique des plateformes.
+config.balance.debate_mode.maps.pupitres_test = {
+  name: 'Pupitres (test)', jump_height: 1.6, jump_duration_seconds: 0.95,
+  platforms: [
+    { id: 'pupitre-gauche', name: 'Pupitre gauche', x: 8, half_width: 1.4, height: 1 },
+    { id: 'pupitre-droit', name: 'Pupitre droit', x: 20, half_width: 1.4, height: 1 },
+    { id: 'bureau-central', name: 'Bureau du présentateur', x: 14, half_width: 1.9, height: 1.9 },
+  ],
+};
 const fighter = (faction, style) => ({ faction, style });
-const duel = (map = 'studio', a = fighter('melenchon', 'melenchon_universaliste'), b = fighter('le_pen', 'le_pen_souverainiste')) => ({ format: '1v1', map, seed: 5, fighters: [a, b] });
+const duel = (map = 'remue_menage', a = fighter('melenchon', 'melenchon_universaliste'), b = fighter('le_pen', 'le_pen_souverainiste')) => ({ format: '1v1', map, seed: 5, fighters: [a, b] });
 const trio = map => ({ format: '1v1v1', map, seed: 9, fighters: [fighter('philippe', 'philippe_gestionnaire'), fighter('le_pen', 'le_pen_zemmouriste'), fighter('melenchon', 'melenchon_populiste')] });
 // Profil sans déblocage : seul le premier style de chaque candidat est jouable.
 const fresh = { nickname: 'Joueur' };
@@ -166,7 +175,7 @@ test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ult
     const style = debateStyles(config, faction)[0];
     assert.equal(style.ultimate, null);
     assert.equal(debateStyleAvailable(config, fresh, faction, style.id), true);
-    const setup = duel('plateau', fighter(faction, style.id));
+    const setup = duel('remue_menage', fighter(faction, style.id));
     assert.equal(debateSetupError(config, setup, fresh), null);
     const match = started(setup), [player, enemy] = match.state.candidates;
     assert.equal(player.minor, true);
@@ -192,7 +201,7 @@ test('Salon : candidats mineurs acceptés en Débat télé et exclus de la campa
   chooseCandidate(room, 'b', 'attal', 'attal_standard');
   assert.equal(candidatesReady(room), true);
   assert.throws(() => chooseCandidate(room, 'b', 'arthaud', 'arthaud_standard'), /autre joueur/);
-  const setup = multiplayerDebateSetup(config, room, { format: '1v1v1', map: 'studio' });
+  const setup = multiplayerDebateSetup(config, room, { format: '1v1v1', map: 'remue_menage' });
   assert.equal(debateSetupError(config, setup), null);
   startRoom(room, setup);
   assert.equal(room.phase, 'loading');
@@ -203,16 +212,16 @@ test('Salon : candidats mineurs acceptés en Débat télé et exclus de la campa
 
 test('Réglages : même candidat seulement avec un autre style, styles verrouillés sauf profil betatest', () => {
   assert.equal(debateSetupError(config, duel()), null);
-  assert.equal(debateSetupError(config, duel('studio', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_populiste'))), null);
-  assert.match(debateSetupError(config, duel('studio', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_universaliste'))), /autre style/);
+  assert.equal(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_populiste'))), null);
+  assert.match(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_universaliste'))), /autre style/);
   assert.match(debateSetupError(config, { ...duel(), fighters: [duel().fighters[0]] }), /2 combattants/);
   assert.match(debateSetupError(config, { ...duel(), map: 'inconnue' }), /carte/);
-  const locked = duel('studio', fighter('melenchon', 'melenchon_populiste'));
+  const locked = duel('remue_menage', fighter('melenchon', 'melenchon_populiste'));
   assert.match(debateSetupError(config, locked, fresh), /débloqué/);
   assert.equal(debateStyleAvailable(config, { nickname: ' BetaTest ' }, 'melenchon', 'melenchon_populiste'), true);
   assert.equal(debateSetupError(config, locked, { nickname: 'betatest' }), null);
   // L’IA peut utiliser n’importe quel style, même verrouillé pour le joueur.
-  assert.equal(debateSetupError(config, duel('studio', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_gouvernement')), fresh), null);
+  assert.equal(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_gouvernement')), fresh), null);
 });
 
 test('Compte à rebours : aucune commande avant « Débattez ! », puis 100 PV chacun', () => {
@@ -231,7 +240,7 @@ test('Compte à rebours : aucune commande avant « Débattez ! », puis 100 PV c
 });
 
 test('Duel miroir : deux Mélenchon sont bien adversaires, identifiants distincts', () => {
-  const match = started(duel('plateau', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_populiste')));
+  const match = started(duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('melenchon', 'melenchon_populiste')));
   const [a, b] = match.state.candidates;
   assert.deepEqual([a.id, b.id], ['candidate:melenchon', 'candidate:melenchon:2']);
   const debate = new DebateSimulation(config, match.state);
@@ -241,7 +250,7 @@ test('Duel miroir : deux Mélenchon sont bien adversaires, identifiants distinct
 });
 
 test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché, marcher dans le vide fait redescendre', () => {
-  const match = started(duel());
+  const match = started(duel('pupitres_test'));
   const [player, rival] = match.state.candidates;
   const desk = match.state.platforms.find(p => p.id === 'pupitre-gauche');
   player.x = desk.x; rival.x = 20.5;
@@ -263,7 +272,7 @@ test('Studio : on monte sur un pupitre, le sol ne touche pas un candidat perché
 });
 
 test('Studio : le coup plongeant ne touche pas un adversaire perché que le sauteur n’a pas atteint', () => {
-  const match = started(duel());
+  const match = started(duel('pupitres_test'));
   const [player, rival] = match.state.candidates;
   const desk = match.state.platforms.find(p => p.id === 'pupitre-gauche');
   const dive = { kind: 'DIVE' };
@@ -278,7 +287,7 @@ test('Studio : le coup plongeant ne touche pas un adversaire perché que le saut
 });
 
 test('Studio : marcher au-delà du bord d’un pupitre fait tomber', () => {
-  const match = started(duel());
+  const match = started(duel('pupitres_test'));
   const [player, rival] = match.state.candidates;
   const desk = match.state.platforms.find(p => p.id === 'pupitre-gauche');
   rival.x = 24; player.x = desk.x;
@@ -292,7 +301,7 @@ test('Studio : marcher au-delà du bord d’un pupitre fait tomber', () => {
 });
 
 test('IA : elle passe par un pupitre latéral pour atteindre le bureau central', () => {
-  const match = started(duel());
+  const match = started(duel('pupitres_test'));
   const [player, ai] = match.state.candidates;
   const center = match.state.platforms.find(p => p.id === 'bureau-central');
   const path = new Set();
@@ -306,7 +315,7 @@ test('IA : elle passe par un pupitre latéral pour atteindre le bureau central',
 });
 
 test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier debout gagne', () => {
-  for (const map of ['plateau', 'studio', ...Object.keys(DEBATE_ARENAS)]) {
+  for (const map of [...Object.keys(DEBATE_ARENAS)]) {
     const match = started(trio(map));
     const limit = 30 * 240;
     while (match.state.phase !== 'OVER' && match.state.tick < limit) match.step(match.state.candidates.flatMap(c => debateModeAICommands(match.state, config, c.id)));
@@ -325,7 +334,7 @@ test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier d
 });
 
 test('Même graine, mêmes commandes : combat identique', () => {
-  for (const map of ['studio', ...Object.keys(DEBATE_ARENAS)]) {
+  for (const map of [...Object.keys(DEBATE_ARENAS)]) {
     const play = () => { const m = started(duel(map)); for (let i = 0; i < 600; i++) m.step(m.state.candidates.flatMap(c => debateModeAICommands(m.state, config, c.id))); return JSON.stringify(m.getState()); };
     assert.equal(play(), play(), map);
   }
@@ -333,11 +342,11 @@ test('Même graine, mêmes commandes : combat identique', () => {
 
 test('Débat multijoueur : un combattant par joueur, une IA libre pour compléter le 1 contre 1 contre 1', () => {
   const room = { players: [{ id: 'b', slot: 2, faction: 'melenchon', style: 'melenchon_populiste' }, { id: 'a', slot: 1, faction: 'melenchon', style: 'melenchon_universaliste' }] };
-  const duo = multiplayerDebateSetup(config, room, { format: '1v1', map: 'studio' });
+  const duo = multiplayerDebateSetup(config, room, { format: '1v1', map: 'remue_menage' });
   assert.deepEqual(duo.fighters.map(f => f.player), ['a', 'b']);
   assert.equal(duo.format, '1v1');
   assert.equal(debateSetupError(config, duo), null);
-  const withAI = multiplayerDebateSetup(config, room, { format: '1v1v1', map: 'plateau' });
+  const withAI = multiplayerDebateSetup(config, room, { format: '1v1v1', map: 'elysee' });
   assert.equal(withAI.format, '1v1v1');
   assert.equal(withAI.fighters[2].player, null);
   assert.notEqual(withAI.fighters[2].faction, 'melenchon', 'l’IA prend un candidat absent');
