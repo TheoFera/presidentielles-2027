@@ -1,9 +1,10 @@
 import { ringDelta, wrap } from '../simulation/world.js';
+import { formatNumber } from './number-format.js';
 
-export const formatEuros = cents => `${(cents / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} €`;
+export const formatEuros = cents => `${formatNumber(cents / 100, 2)} €`;
 export const formatCarriedMoney = thousands => thousands < 1
   ? formatEuros(Math.round(thousands * 100000))
-  : `${thousands.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} k €`;
+  : `${formatNumber(thousands, 1)} k €`;
 const sprites = new Map();
 
 function moneySprite(tier) {

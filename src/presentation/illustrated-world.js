@@ -30,8 +30,29 @@ export function sceneryVisible(renderer, left, width) {
 export function scenerySeasonFilter(progress) {
   const season=seasonAt(progress||0), values=[[1,0,1],[.65,.3,1],[.24,0,1.06],[1.08,.06,1.08]];
   const current=values[season.index],next=values[(season.index+1)%4];
-  const [saturation,sepia,brightness]=current.map((v,i)=>v+(next[i]-v)*season.blend);
+  // Arrondi au cinquantième : la teinte évolue par petits paliers invisibles,
+  // ce qui permet de réutiliser les images déjà filtrées (voir seasonalImage).
+  const [saturation,sepia,brightness]=current.map((v,i)=>Math.round((v+(next[i]-v)*season.blend)*50)/50);
+  if(saturation===1&&sepia===0&&brightness===1)return 'none';
   return `saturate(${saturation}) sepia(${sepia}) brightness(${brightness})`;
+}
+
+// Un filtre posé sur ctx.filter est recalculé à chaque dessin : très coûteux sur téléphone.
+// On garde donc une copie déjà filtrée de chaque décor, refaite seulement quand la saison
+// change de palier. Les copies les plus anciennes sont oubliées pour limiter la mémoire.
+const seasonalCopies = new Map();
+const MAX_SEASONAL_COPIES = 8;
+export function seasonalImage(image, filter) {
+  if (!filter || filter === 'none') return image;
+  const cached = seasonalCopies.get(image);
+  if (cached?.filter === filter) { seasonalCopies.delete(image); seasonalCopies.set(image, cached); return cached.canvas; }
+  const canvas = cached?.canvas || document.createElement('canvas');
+  seasonalCopies.delete(image);
+  canvas.width = image.naturalWidth || image.width; canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext('2d'); context.filter = filter; context.drawImage(image, 0, 0);
+  seasonalCopies.set(image, { filter, canvas });
+  if (seasonalCopies.size > MAX_SEASONAL_COPIES) seasonalCopies.delete(seasonalCopies.keys().next().value);
+  return canvas;
 }
 
 export function worldAssetIds(manifest, state) {
@@ -125,14 +146,14 @@ export function landscapeJoin(image) {
 }
 export function drawIllustratedDistance(renderer, state) {
   const {ctx, width, height, metrics: m} = renderer;
-  ctx.save(); ctx.imageSmoothingEnabled = true;ctx.filter=scenerySeasonFilter(state.campaign_progress_01);
+  ctx.save(); ctx.imageSmoothingEnabled = true;const filter=scenerySeasonFilter(state.campaign_progress_01);
   const groups = sceneryGroups(state.world).map(group => ({...group, x:sceneryProjection(renderer.cameraX,group.center,state.world.length,m.pixelsPerUnit,m.anchorX,sceneryParallax.distant)})).sort((a,b)=>a.x-b.x);
   for (const group of groups) {
     const w = group.width*m.pixelsPerUnit*sceneryParallax.distant+36;
     if(group.x+w/2<0||group.x-w/2>width) continue;
     if (!sceneryVisible(renderer, group.x - w / 2, w)) continue;
     const image = renderer.assets.get(`distant-${group.biome}`); if(!image) continue;
-    const strip = distantJoin(image);
+    const strip = seasonalImage(distantJoin(image), filter);
     const h=sceneryImageHeight(image,w);
     const base=m.groundY-height*.32;
     ctx.drawImage(strip,0,strip.height-24,strip.width,24,group.x-w/2,base-1,w,m.groundY-base+1);
@@ -146,7 +167,7 @@ export function drawIllustratedMiddle(renderer,state) {
   const visible=sceneryGroups(state.world).map(group=>({...group,x:sceneryProjection(renderer.cameraX,group.center,state.world.length,m.pixelsPerUnit,m.anchorX,sceneryParallax.middle),w:group.width*m.pixelsPerUnit*sceneryParallax.middle+2})).filter(group=>group.x+group.w/2>=0&&group.x-group.w/2<=width);
   const separated=visible.every(group=>renderer.assets.get(`landscape-${group.biome}`));
   if(!separated&&visible.some(group=>!renderer.assets.get(`background-strip-${group.biome}`)))return false;
-  ctx.save();ctx.imageSmoothingEnabled=true;ctx.filter=scenerySeasonFilter(state.campaign_progress_01);
+  ctx.save();ctx.imageSmoothingEnabled=true;const filter=scenerySeasonFilter(state.campaign_progress_01);
   for(const group of visible.sort((a,b)=>a.x-b.x)) {
     const image=renderer.assets.get(`${separated?'landscape':'background-strip'}-${group.biome}`);
     const repeats=separated?2:1;
@@ -156,7 +177,7 @@ export function drawIllustratedMiddle(renderer,state) {
     if (!sceneryVisible(renderer, x - w / 2, w)) continue;
     const h=sceneryImageHeight(image,w);
     const base=m.groundY-(separated?height*.12:0);
-    const strip=separated?landscapeJoin(image):image;
+    const strip=seasonalImage(separated?landscapeJoin(image):image,filter);
     if(separated) {
       // The last rows contain only terrain. Continue that ground down behind
       // the street while preserving the proportions of every landmark above.

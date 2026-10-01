@@ -449,7 +449,7 @@ async function start() {
     // Un invité ne simule pas : il affiche les états envoyés par l’hôte.
     const guest = session && !session.host;
     if (!halted && !guest) {
-      clock.advance(elapsed, () => {
+      clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
         debatePrevious = debateState;
         const localId = debateState.local_candidate_id;
         const commands = debateState.candidates.flatMap(c => c.id === localId ? human.commands(debateState, c.id) : debateRemoteIds.has(c.id) ? remoteDebateCommands(c.id) : debateModeAICommands(debateState, config, c.id));
@@ -478,18 +478,27 @@ async function start() {
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
       if (debateMatch) { debateFrame(elapsed, now); requestAnimationFrame(frame); return; }
       if (!paused && !document.hidden && (!session || session.host)) {
-        clock.advance(elapsed * simulationSpeed, () => {
-          previous = state;
+        const frameStart = state;
+        let changedCamera = false;
+        // Après un ralentissement, on rattrape au plus max_presentation_frame_seconds :
+        // un appareil lent ne s’enfonce pas dans une avalanche de ticks.
+        clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds) * simulationSpeed, () => {
+          // Plusieurs ticks dans la même image : seuls les deux derniers états sont copiés
+          // pour l’affichage. Entre-temps, les contrôleurs lisent l’état vivant sans le modifier.
+          const lastTick = clock.accumulator + 1e-10 < 2 * clock.dt;
           const commands = [...matchCommands(), ...pending];
-          const changedCamera = pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
+          changedCamera ||= pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
+          if (lastTick) previous = state === simulation.state ? simulation.getState({ presentation: true }) : state;
           simulation.step(commands);
-          state = simulation.getState({ presentation: true });
-          const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= previous.tick);
-          if (rejected && !previous.events.some(e => e.id === rejected.id)) notify(rejected.reason, 4);
-          if (state.phase !== previous.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
-          if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
+          state = lastTick ? simulation.getState({ presentation: true }) : simulation.state;
         });
+        if (state !== frameStart) {
+          const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= frameStart.tick);
+          if (rejected && !frameStart.events.some(e => e.id === rejected.id)) notify(rejected.reason, 4);
+          if (state.phase !== frameStart.phase) { previous = state; renderer.resetCamera(); input.clear(); noticeRemaining = 0; }
+          if (changedCamera) { previous = state; renderer.resetCamera(); input.clear(); }
+        }
       }
       if (!paused && !document.hidden) { noticeRemaining -= elapsed; }
       networkFrame(elapsed);
