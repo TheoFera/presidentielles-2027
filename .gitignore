@@ -19,3 +19,7 @@ Desktop.ini
 # Rapports locaux et pièces jointes (les fichiers déjà suivis restent suivis)
 artifacts/
 .codex-remote-attachments/
+
+# Fichiers temporaires de Wrangler (serveur de salons en ligne)
+serveur-en-ligne/.wrangler/
+serveur-en-ligne/.dev.vars

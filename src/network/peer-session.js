@@ -87,7 +87,8 @@ export class PeerSession {
     if (typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas la connexion directe. Essayez un navigateur à jour.');
     this.isHost = action === 'create';
     if (this.host) {
-      this.camera = await openCamera();
+      // En ligne, aucun QR n’est scanné : la caméra est inutile.
+      if (!this.online) this.camera = await openCamera();
       this.cameraTimer = setTimeout(() => this.releaseCamera(), 15000);
       this.code = id().slice(0, 6).toUpperCase();
       this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
@@ -119,7 +120,7 @@ export class PeerSession {
   }
   checkFingerprint(data) { if (data.fingerprint !== this.fingerprint) throw new Error('Les versions du jeu diffèrent. Rechargez la page sur tous les appareils.'); }
   makePeer(peerId) {
-    const peer = { id: peerId, connection: new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }), connected: false, seen: Date.now(), buffer: '', sequence: null, cancelled: false };
+    const peer = { id: peerId, connection: new RTCPeerConnection({ iceServers: this.iceServers ?? [{ urls: 'stun:stun.l.google.com:19302' }] }), connected: false, seen: Date.now(), buffer: '', sequence: null, cancelled: false };
     this.peers.set(peerId, peer);
     // 'disconnected' is often transient on mobile Wi-Fi (power saving, roaming):
     // only a definitive 'failed' ends the link, and the heartbeat covers the rest.
@@ -252,6 +253,8 @@ export class PeerSession {
       else if (packet.type === 'ended') this.fail(String(packet.data.message));
     }
   }
+  // Première place ni occupée ni déjà promise à une invitation en cours.
+  freeSlot() { return [2, 3].find(s => !this.room.players.some(p => p.slot === s) && !this.inviteId(s)) ?? null; }
   async invite(slot = [2, 3].find(s => !this.room.players.some(p => p.slot === s))) {
     if (!this.host || this.room.phase !== 'lobby' || this.room.players.length >= 3) throw new Error('Le salon ne peut plus accueillir de joueur.');
     if (![2, 3].includes(slot) || this.room.players.some(p => p.slot === slot)) throw new Error('Cette place est déjà occupée.');
@@ -283,7 +286,7 @@ export class PeerSession {
       await peer.connection.setRemoteDescription(answer.description);
       await peer.connection.addIceCandidate(null);
     } catch (error) { peer.accepting = false; throw error; }
-    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.peerLost(peer, `Un joueur n’a pas pu se connecter. ${this.failureMessage(peer)} Faites-lui ensuite scanner le nouveau QR.`); }, 25000);
+    peer.timeout = setTimeout(() => { if (!peer.connected && !peer.cancelled) this.peerLost(peer, `Un joueur n’a pas pu se connecter. ${this.failureMessage(peer)}${this.online ? '' : ' Faites-lui ensuite scanner le nouveau QR.'}`); }, 25000);
     return sameNetwork(this.addresses, peer.remoteAddresses);
   }
   cancelInvite(peerId = null) {

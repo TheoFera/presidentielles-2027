@@ -1,0 +1,24 @@
+# Configuration du serveur de salons (Cloudflare Workers).
+# Déploiement : voir docs/multijoueur-en-ligne.md
+name = "presidentielles-2027-salons"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[[durable_objects.bindings]]
+name = "SALONS"
+class_name = "Salons"
+
+# Le stockage SQLite est le seul disponible sur l’offre gratuite.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Salons"]
+
+[vars]
+# Adresses autorisées à utiliser le serveur, séparées par des virgules.
+# Vide = tout le monde. Exemple :
+# ALLOWED_ORIGINS = "https://theofera.github.io,https://localhost,http://localhost:2027"
+ALLOWED_ORIGINS = ""
+
+# Secrets à NE PAS écrire ici (commande « npx wrangler secret put ») :
+#   TURN_KEY_ID          identifiant de la clé TURN Cloudflare
+#   TURN_KEY_API_TOKEN   jeton de cette clé

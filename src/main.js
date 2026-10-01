@@ -24,6 +24,7 @@ import { StartMenu } from './presentation/start-menu.js';
 import { installLandscape } from './presentation/landscape.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
+import { OnlineSession } from './network/online-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
@@ -335,7 +336,7 @@ async function start() {
   }
   async function connectRoom(action, data) {
     const generation = menu.generation;
-    const Session = data.transport === 'direct' ? PeerSession : MultiplayerSession;
+    const Session = data.transport === 'direct' ? PeerSession : data.transport === 'online' ? OnlineSession : MultiplayerSession;
     const nextSession = new Session({
       room: roomChanged,
       commands: packet => {
@@ -377,7 +378,7 @@ async function start() {
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
-  if (new URLSearchParams(location.search).has('salon')) void showMultiplayerSetup(menu, connectRoom);
+  if (['salon', 'en-ligne'].some(key => new URLSearchParams(location.search).has(key))) void showMultiplayerSetup(menu, connectRoom);
 
   function matchCommands() {
     if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
