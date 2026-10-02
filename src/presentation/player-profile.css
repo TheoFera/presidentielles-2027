@@ -95,3 +95,7 @@
   #start-menu .profile-decor label { flex-basis: 140px; min-height: 28px; padding: 2px 6px; }
   #start-menu .profile-decor small { display: none; }
 }
+/* Clavier ouvert : seul le champ du pseudo reste, pour qu'il tienne au-dessus du clavier. */
+.menu-keyboard .profile-screen { display: flex; flex-direction: column; justify-content: center; overflow: visible; }
+.menu-keyboard .profile-screen > :not(.profile-identity), .menu-keyboard .profile-identity > :not(.profile-name) { display: none; }
+.menu-keyboard .profile-identity { display: block; flex: none; animation: none; }

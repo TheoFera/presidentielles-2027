@@ -264,7 +264,8 @@
   #campaign-styles .campaign-style-card small { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { #start-menu *, #campaign-styles * { animation: none !important; transition: none !important; } }
-.menu-keyboard #start-menu .menu-shell > :not(.multiplayer-form):not(.pairing-grid) { display: none; }
+/* Clavier ouvert : on garde le bloc du champ actif, sinon il perd le focus et le clavier se referme aussitôt. */
+.menu-keyboard #start-menu .menu-shell > :not(.multiplayer-form):not(.pairing-grid):not(.keyboard-field) { display: none; }
 .menu-keyboard #start-menu .setup-fields, .menu-keyboard #server-status, .menu-keyboard .network-modes > :first-child, .menu-keyboard .pairing-grid > :first-child { display: none; }
 .menu-keyboard #start-menu .network-modes, .menu-keyboard #start-menu .pairing-grid { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .menu-keyboard #start-menu .tutorial-card { display: flex; flex-direction: column; flex: 1; justify-content: center; padding: 8px; gap: 6px; }

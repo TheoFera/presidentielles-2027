@@ -18,7 +18,13 @@ export class StartMenu {
     const resize = () => {
       const height = window.visualViewport?.height || window.innerHeight;
       document.documentElement.style.setProperty('--menu-height', `${height}px`);
-      document.body.classList.toggle('menu-keyboard', height < window.innerHeight * .78 && document.activeElement?.tagName === 'INPUT' && !document.activeElement.readOnly);
+      const field = document.activeElement?.tagName === 'INPUT' && !document.activeElement.readOnly ? document.activeElement : null;
+      const typing = !!field && height < window.innerHeight * .78;
+      // Le bloc qui contient le champ reste affiché : masqué, il perdrait le focus et refermerait le clavier.
+      const block = typing ? field.closest('.menu-shell > *') : null;
+      this.element.querySelectorAll('.keyboard-field').forEach(element => element !== block && element.classList.remove('keyboard-field'));
+      block?.classList.add('keyboard-field');
+      document.body.classList.toggle('menu-keyboard', typing);
     };
     window.visualViewport?.addEventListener('resize', resize); window.addEventListener('resize', resize);
     this.element.addEventListener('focusin', resize); this.element.addEventListener('focusout', () => setTimeout(resize, 0)); resize();
