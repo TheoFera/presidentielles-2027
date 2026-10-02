@@ -197,7 +197,7 @@ async function start() {
     save: () => {
       const blob = new Blob([simulation.exportSnapshot()], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); link.href = url; link.download = `presidentielles-${state.seed}-tick-${state.tick}.json`;
+      const link = document.createElement('a'); link.href = url; link.download = `presidentielle-${state.seed}-tick-${state.tick}.json`;
       link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       notify('État de la partie exporté.');
     },

@@ -301,9 +301,10 @@ test('IA : termine sa charge et privilégie le combo contre une charge adverse',
 test('Réglages modifiables : plusieurs hauteurs et durées sans dépendance aux anciennes valeurs', () => {
   for (const [height, seconds] of [[1, 1], [1.8, 1.5], [0.6, 0.4]]) {
     const { sim, c } = setup();
-    Object.assign(sim.config.balance.candidate_combat, { jump_height_ratio: height, charge_ready_seconds: seconds });
-    input(sim, c, 'Jump'); ticks(sim, 12); assert.equal(c.combat.height, height);
-    ticks(sim, 12); input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds) - 1);
+    Object.assign(sim.config.balance.candidate_combat, { jump_height_ratio: height, jump_duration_seconds: seconds, charge_ready_seconds: seconds });
+    const duration = sim.secondsToTicks(seconds), half = Math.floor(duration / 2);
+    input(sim, c, 'Jump'); ticks(sim, half); assert.ok(Math.abs(c.combat.height - height) < 0.01);
+    ticks(sim, duration - half); input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds) - 1);
     input(sim, c, 'ReleaseAttack'); updateCombat(sim); assert.equal(sim.state.attacks[0].partial, true);
     ticks(sim, 60, true);
     input(sim, c, 'PressAttack'); c.combat.buffer_until_tick = -1; ticks(sim, sim.secondsToTicks(seconds)); input(sim, c, 'ReleaseAttack');

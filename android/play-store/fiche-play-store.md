@@ -60,7 +60,7 @@ Jeu humoristique et parodique. Il n'est affilié à aucun candidat, parti politi
 
 Pour les captures : lance l'application sur ton téléphone, joue quelques secondes, puis appuie en même temps sur *Marche/Arrêt* et *Volume bas*. Prends l'accueil, une rue avec des passants, un combat, le débat télé et les résultats.
 
-Les fichiers d'icône pour Android sont déjà intégrés au projet. Voir [le guide des icônes](icones.md) et [l'aperçu](apercu-icones-v2.png). L'ancienne icône `icone-512.png` est conservée.
+Les fichiers d'icône pour Android sont déjà intégrés au projet. Voir [le guide des icônes](icones.md) et [l'aperçu](apercu-icones-v2.png). Seules les icônes actuelles au singulier sont conservées.
 
 ## Questionnaires de la Play Console
 

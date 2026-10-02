@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { DebateMatch, debateModeAICommands, debateSetupError, debateStyleAvailable, debateFighterIds, multiplayerDebateSetup } from '../src/simulation/debate-mode.js';
 import { hit } from '../src/simulation/combat-state.js';
-import { verticalHit } from '../src/simulation/combat-actions.js';
+import { updateActions, verticalHit } from '../src/simulation/combat-actions.js';
+import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { debateStyles } from '../src/simulation/debate-mode.js';
@@ -17,7 +18,7 @@ import { fallSafeCommands, predictLanding } from '../src/simulation/debate-navig
 const config = validateConfig(campaignConfig());
 // Carte de test (ancien studio retiré du jeu) : pupitres simples pour vérifier la physique des plateformes.
 config.balance.debate_mode.maps.pupitres_test = {
-  name: 'Pupitres (test)', jump_height: 1.6, jump_duration_seconds: 0.95,
+  name: 'Pupitres (test)',
   platforms: [
     { id: 'pupitre-gauche', name: 'Pupitre gauche', x: 8, half_width: 1.4, height: 1 },
     { id: 'pupitre-droit', name: 'Pupitre droit', x: 20, half_width: 1.4, height: 1 },
@@ -36,6 +37,76 @@ function started(setup) {
   return match;
 }
 const run = (match, commands = () => [], ticks = 1) => { for (let i = 0; i < ticks; i++) match.step(commands(match.state)); };
+
+test('Saut commun : trajectoire identique en campagne, au premier tour et dans les quatre arènes', () => {
+  const campaign = new GameSimulation(config, 42);
+  campaign.state.buildings = [];
+  const simulations = [campaign,
+    new DebateSimulation(config, DebateSimulation.create(config, campaign.state)),
+    ...Object.keys(DEBATE_ARENAS).map(map => {
+      const match = started(duel(map));
+      return new DebateSimulation(match.config, match.state);
+    }),
+  ];
+  let reference = null;
+  for (const sim of simulations) {
+    const actor = sim.state.candidates[0];
+    actor.x = 14; actor.platform_id = null;
+    Object.assign(actor.combat, { jump_tick: sim.state.tick, jump_base: 0, height: 0 });
+    const heights = [];
+    const duration = sim.secondsToTicks(config.balance.candidate_combat.jump_duration_seconds);
+    for (let tick = 0; tick < duration; tick++) {
+      sim.state.tick++; updateActions(sim, actor); heights.push(actor.combat.height);
+    }
+    assert.ok(Math.abs(Math.max(...heights) - 1.6) < 0.003);
+    if (reference) assert.deepEqual(heights, reference, sim.state.map_id ?? 'débat du premier tour');
+    else reference = heights;
+  }
+});
+
+test('Une arène ne peut pas réintroduire un réglage de saut individuel', () => {
+  for (const key of ['jump_height', 'jump_duration_seconds']) {
+    const invalid = structuredClone(config);
+    invalid.balance.debate_mode.maps.remue_menage[key] = 2;
+    assert.throws(() => validateConfig(invalid), /saut commun/);
+  }
+});
+
+test('IA : sous un balcon étroit, sauter tout droit évite de rester bloqué au sol', () => {
+  const match = started(duel('elysee'));
+  const [actor, target] = match.state.candidates;
+  const balcony = match.state.platforms.find(p => p.id === 'balcon-droit');
+  actor.x = 21.03; actor.platform_id = 'scene-droite';
+  target.x = 23.13; target.platform_id = balcony.id; target.combat.height = balcony.height;
+  const commands = debateModeAICommands(match.state, config, actor.id);
+  assert.ok(commands.some(c => c.type === 'Jump'));
+  assert.equal(commands.find(c => c.type === 'Move').axis, 0);
+  for (let i = 0; i < 40 && actor.platform_id !== balcony.id; i++) {
+    match.step(debateModeAICommands(match.state, config, actor.id));
+  }
+  assert.equal(actor.platform_id, balcony.id);
+});
+
+test('Les deux balcons de chaque arène ont la même hauteur et se rejoignent avec le saut commun', () => {
+  const heights = [];
+  for (const map of Object.keys(DEBATE_ARENAS)) {
+    for (const platform of config.balance.debate_mode.maps[map].platforms.filter(p => p.height > 0)) {
+      heights.push(platform.height);
+      const match = started(duel(map));
+      const actor = match.state.candidates[0];
+      const floor = match.state.platforms.find(p => p.height === 0 && Math.abs(platform.x - p.x) <= p.half_width);
+      assert.ok(floor);
+      actor.x = platform.x; actor.combat.height = 0; actor.platform_id = floor.id;
+      match.state.candidates[1].x = platform.x < 14 ? 23 : 5;
+      run(match, () => [{ type: 'Jump', candidateId: actor.id }]);
+      run(match, () => [], match.secondsToTicks(config.balance.candidate_combat.jump_duration_seconds) + 2);
+      assert.equal(actor.platform_id, platform.id, `${map} : ${platform.id}`);
+      assert.equal(actor.combat.height, platform.height);
+    }
+  }
+  assert.equal(heights.length, 8);
+  assert.ok(heights.every(height => height === heights[0]));
+});
 
 for (const map of Object.keys(DEBATE_ARENAS)) {
   test(`${map} : départ sur une surface réelle, visuel chargé, sortie de scène mortelle`, () => {

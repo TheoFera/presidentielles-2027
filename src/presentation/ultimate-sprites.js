@@ -2,6 +2,7 @@ import { ultimateAtlases } from './ultimate-sprite-data.js';
 import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
 import { MelenchonMotionTracker } from './melenchon-extra-poses.js';
 import { prepareAtlasFrames } from './minor-sprite-images.js';
+import { waveEffectAtlas, waveEffectBounds } from './wave-sprites.js';
 
 const sheets = { WAVE:'wave', FIRE:'fire', SURGE:'surge', WALL:'wall', ZEMMOUR:'zemmour', SCARF:'scarf', BARDELLA:'bardella', EUROPE:'europe' };
 const hzOf = config => config.balance.simulation_architecture.fixed_tick_hz;
@@ -72,7 +73,7 @@ export function ultimateCharacterPose(entity, state, config) {
 }
 
 function ready(renderer, sheet) {
-  const atlas = ultimateGuardAtlases[sheet] || ultimateAtlases[sheet];
+  const atlas = sheet === 'wave_effect' ? waveEffectAtlas : ultimateGuardAtlases[sheet] || ultimateAtlases[sheet];
   if (!atlas) return null;
   const image = renderer.assets.get(atlas.sprite);
   if (!image) { void renderer.assets.load(atlas.sprite); return null; }
@@ -143,8 +144,8 @@ export function drawUltimateProjectile(renderer,p,state) {
   const {metrics:m,config}=renderer,x=renderer.screenX(p.x),hz=hzOf(config);
   if(p.kind==='WAVE'&&p.launch_tick!=null&&state.tick<p.launch_tick)return true;
   if(p.kind==='WAVE') {
-    const width=m.pixelsPerUnit*2.6;
-    return drawUltimateEffect(renderer,'wave',4+cycle(state.tick-(p.launch_tick||0),hz,4,7),x-(p.direction||1)*width/2,m.groundY+m.characterHeight*.14-m.characterHeight*1.65,width,m.characterHeight*1.65,p.direction);
+    const {width,height,bottom}=waveEffectBounds(m);
+    return drawUltimateEffect(renderer,'wave_effect',cycle(state.tick-(p.launch_tick||0),hz,4,7),x-(p.direction||1)*width/2,bottom-height,width,height,p.direction);
   }
   if(p.kind==='MOLOTOV') {
     if(p.launch_tick!=null&&state.tick<p.launch_tick)return true;

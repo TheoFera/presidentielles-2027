@@ -48,8 +48,11 @@ export function arenaNavigationCommands(state, config, actor, target) {
     if (edges.length) return commands(Math.sign(edges[0] - actor.x));
   }
   // Sauter dès que la trajectoire prévue se pose sur la plateforme suivante.
-  const jumpNow = predictLanding(state, config, actor, { axis: direction, jump: true })?.id === next.id;
-  return [...commands(direction), ...(jumpNow ? [{ type: 'Jump', candidateId: actor.id }] : [])];
+  // Sous un balcon étroit, avancer pendant tout le saut peut le dépasser.
+  // Essayer aussi de monter tout droit pour rejoindre un adversaire perché.
+  const jumpAxis = [direction, 0].find(axis => predictLanding(state, config, actor, { axis, jump: true })?.id === next.id);
+  if (jumpAxis != null) return [...commands(jumpAxis), { type: 'Jump', candidateId: actor.id }];
+  return commands(direction);
 }
 
 const tickRate = config => config.balance.simulation_architecture.fixed_tick_hz;

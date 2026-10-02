@@ -170,6 +170,13 @@ test('Double appui directionnel : relâchement obligatoire, maintien et répéti
   win.send('keydown', { key:'d', repeat:false }); win.send('keydown', { key:'d', repeat:true }); assert.equal(actions.length,1);
   win.send('keyup',{key:'d'}); win.send('keydown',{key:'d',repeat:false}); assert.deepEqual(actions,['dash-left','dash-right']);
 });
+test('Relâcher la direction opposée ne compte pas comme un appui', t => {
+  const { actions, win } = setup(t);
+  win.send('keydown', { key:'q', repeat:false }); win.send('keydown', { key:'d', repeat:false }); win.send('keyup', { key:'q' });
+  assert.deepEqual(actions, []);
+  win.send('keyup', { key:'d' }); win.send('keydown', { key:'d', repeat:false });
+  assert.deepEqual(actions, ['dash-right']);
+});
 test('Deux directions différentes ou annulation tactile ne déclenchent pas de dash', t => {
   const { get, actions } = setup(t);
   get('move-left').send('pointerdown'); get('move-left').send('pointerup');

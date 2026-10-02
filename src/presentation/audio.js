@@ -72,6 +72,7 @@ export function soundCues(events = [], since, localId, faction) {
     else if (event.type === 'MeetingStarted' && mine) cues.push('cheer');
     else if (event.type === 'HitResolved' && event.source_id === localId) cues.push('hit');
     else if (event.type === 'HitResolved' && event.target_id === localId) cues.push('hurt');
+    else if (event.type === 'DashUnavailable' && mine) cues.push('dash-empty');
     else if (event.type === 'CandidateKO' && mine) cues.push('ko');
     else if (event.type === 'DebateKnockout') cues.push('ko', 'cheer');
     else if (event.type === 'DebateFightStarted') cues.push('tick-final');
@@ -206,6 +207,8 @@ export class GameAudio {
       case 'cheer': this.burst(t, 0.9, 0.12, bus, 'bandpass', 1300, 0.15); ['G4', 'C5', 'E5'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.09, 0.25, 'square', 0.06, bus, 2800)); break;
       case 'hit': this.burst(t, 0.07, 0.25, bus, 'bandpass', 900); this.tone(220, t, 0.08, 'square', 0.06, bus, 1500, 110); break;
       case 'hurt': this.tone(330, t, 0.2, 'square', 0.1, bus, 1600, 90); this.burst(t, 0.1, 0.18, bus, 'lowpass', 700); break;
+      // Dash sans charge : petit bruit sourd et descendant, « à vide ».
+      case 'dash-empty': this.tone(160, t, 0.09, 'square', 0.06, bus, 900, 90); break;
       case 'ko': this.tone(440, t, 0.7, 'sawtooth', 0.09, bus, 1800, 55); break;
       case 'ultimate': this.tone(200, t, 0.4, 'sawtooth', 0.08, bus, 2500, 1200); this.burst(t + 0.1, 0.4, 0.12, bus, 'highpass', 3000, 0.1); break;
       case 'ready': ['G5', 'B5', 'D6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.16, 'sine', 0.16, bus)); break;

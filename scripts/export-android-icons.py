@@ -1,7 +1,7 @@
 """Exporte le visuel existant pour le Play Store et les lanceurs Android.
 
 Utilisation : python scripts/export-android-icons.py
-Nécessite Pillow. Les anciens fichiers d'icône sont conservés.
+Nécessite Pillow. Exporte uniquement les versions courantes des icônes.
 """
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -9,10 +9,9 @@ import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "assets/generated/masters/application-icone-v1.png"
+SOURCE = ROOT / "assets/generated/masters/application-icone-v3.png"
 RES = ROOT / "android/app/src/main/res"
 STORE = ROOT / "android/play-store"
-BACKGROUND = "#222A2C"
 DENSITIES = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
 
 
@@ -22,12 +21,23 @@ def save_png(image, path):
 
 
 def foreground(artwork, size):
-    # Calque de 108 dp : illustration centrale de 60 dp, marge de 24 dp.
-    # Le titre et « 2027 » restent au centre lors du découpage par le téléphone.
-    canvas = Image.new("RGBA", (size, size))
-    side = round(size * 60 / 108)
+    # L'image remplit les 72 dp visibles, sans marge laissant voir le fond sombre.
+    # Les pixels des bords prolongent le décor dans les 18 dp extérieurs :
+    # même lorsque le lanceur anime le calque, aucune bande vide n'apparaît.
+    side = round(size * 72 / 108)
     offset = (size - side) // 2
-    canvas.alpha_composite(artwork.resize((side, side), Image.Resampling.LANCZOS), (offset, offset))
+    image = artwork.resize((side, side), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (size, size))
+    source_edges = [(0, 1), (0, side), (side - 1, side)]
+    target_edges = [(0, offset), (offset, offset + side), (offset + side, size)]
+    for column in range(3):
+        for row in range(3):
+            left, right = target_edges[column]
+            top, bottom = target_edges[row]
+            source_left, source_right = source_edges[column]
+            source_top, source_bottom = source_edges[row]
+            tile = image.crop((source_left, source_top, source_right, source_bottom))
+            canvas.paste(tile.resize((right - left, bottom - top), Image.Resampling.NEAREST), (left, top))
     return canvas
 
 
@@ -73,9 +83,7 @@ def export_monochrome():
 
 
 def preview(artwork, mono):
-    layer = foreground(artwork, 432)
-    full = Image.new("RGBA", layer.size, BACKGROUND)
-    full.alpha_composite(layer)
+    full = foreground(artwork, 432)
     # Un lanceur affiche généralement les 72 dp centraux du calque de 108 dp.
     visible = full.crop((72, 72, 360, 360))
     themed = Image.new("RGBA", mono.size, "#D7E9DD")
@@ -107,8 +115,9 @@ def preview(artwork, mono):
 
 def main():
     artwork = Image.open(SOURCE).convert("RGBA")
-    assert artwork.size == (512, 512), "Le visuel source doit mesurer 512 × 512 pixels."
+    assert artwork.width == artwork.height and artwork.width >= 512, "Le visuel source doit être carré et mesurer au moins 512 × 512 pixels."
     assert artwork.getchannel("A").getextrema() == (255, 255), "Le fond Play Store doit être opaque."
+    artwork = artwork.resize((512, 512), Image.Resampling.LANCZOS)
     store_file = STORE / "icone-512-v2.png"
     save_png(artwork, store_file)
     assert store_file.stat().st_size <= 1024 * 1024, "L'icône Play Store dépasse 1 Mio."
@@ -125,7 +134,7 @@ def main():
         save_png(foreground(artwork, round(108 * scale)), directory / "ic_launcher_foreground_v2.png")
     mono = export_monochrome()
     preview(artwork, mono)
-    # Vérifier les dimensions et la transparence des fichiers exportés.
+    # Vérifier les dimensions et l'absence de marges transparentes dans le calque.
     for density, scale in DENSITIES.items():
         directory = RES / f"mipmap-{density}"
         for name, dp in [("ic_launcher_v2", 48), ("ic_launcher_round_v2", 48), ("ic_launcher_foreground_v2", 108)]:
@@ -133,7 +142,12 @@ def main():
                 assert exported.size == (round(dp * scale),) * 2
                 exported.verify()
         with Image.open(directory / "ic_launcher_foreground_v2.png") as exported:
-            assert exported.getchannel("A").getextrema() == (0, 255)
+            assert exported.getchannel("A").getextrema() == (255, 255), "Une marge vide laisserait apparaître le fond sombre."
+            side = round(exported.width * 72 / 108)
+            offset = (exported.width - side) // 2
+            visible = exported.crop((offset, offset, offset + side, offset + side))
+            expected = artwork.resize((side, side), Image.Resampling.LANCZOS)
+            assert visible.tobytes() == expected.tobytes(), "L'illustration centrale doit remplir toute la zone visible."
     for polygon in monochrome_polygons():
         assert all((x - 54) ** 2 + (y - 54) ** 2 <= 33 ** 2 for x, y in polygon)
     for path in [RES / "drawable/ic_launcher_monochrome_v2.xml", *RES.glob("mipmap-anydpi-v*/ic_launcher*v2.xml")]:

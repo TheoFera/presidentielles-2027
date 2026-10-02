@@ -6,6 +6,7 @@ import {GameSimulation} from '../src/simulation/game-simulation.js';
 import {activateUltimate,beginCombatTick,updateCombat,cancelCurrentAttack} from '../src/simulation/combat.js';
 import {tryBardellisation,surgeMotionPlan} from '../src/simulation/style-ultimates.js';
 import {ultimateAtlases} from '../src/presentation/ultimate-sprite-data.js';
+import {waveEffectAtlas} from '../src/presentation/wave-sprites.js';
 import {ultimateGuardAtlases} from '../src/presentation/ultimate-guard-sprites.js';
 import {ultimateCharacterPose,scarfPose,drawUltimateCharacter,drawUltimateProjectile,drawUltimateEffect,molotovArcHeight,SURGE_HEIGHT_RATIO} from '../src/presentation/ultimate-sprites.js';
 import {drawStyleEffects} from '../src/presentation/style-effects.js';
@@ -83,11 +84,26 @@ test('Molotov : départ au lâcher du geste et visée actualisée',()=>{
   beginCombatTick(sim);updateCombat(sim);
   assert.equal(projectile.launched,true);assert.equal(projectile.initial_range,8);assert.ok(projectile.x>102);
 });
-test('Vague : sprite allongé et animation visuelle ralentie',()=>{
+test('Vague : proportions conservées, contour complet et animation visuelle ralentie',()=>{
   const projectile={kind:'WAVE',x:2,direction:1},r0=recordingRenderer(),r2=recordingRenderer(),r5=recordingRenderer();
   drawUltimateProjectile(r0,projectile,{tick:0});drawUltimateProjectile(r2,projectile,{tick:2});drawUltimateProjectile(r5,projectile,{tick:5});
   const d0=r0.calls.find(c=>c[0]==='drawImage'),d2=r2.calls.find(c=>c[0]==='drawImage'),d5=r5.calls.find(c=>c[0]==='drawImage');
-  assert.equal(d0[8],2.6*r0.metrics.pixelsPerUnit);assert.equal(d0[2],d2[2]);assert.notEqual(d0[2],d5[2]);
+  assert.equal(d0[8]/d0[9],d0[4]/d0[5]);assert.ok(d0[8]>d0[9]);
+  assert.deepEqual(d0.slice(2,6),d2.slice(2,6));assert.notDeepEqual(d0.slice(2,6),d5.slice(2,6));
+  assert.equal(d0[1].id,waveEffectAtlas.sprite);
+  const png=readFileSync(new URL(visualManifest[waveEffectAtlas.sprite].file));
+  assert.equal(png[25],6);
+  for(const [sx,sy,sw,sh]of waveEffectAtlas.frames){assert.ok(sx+sw<=png.readUInt32BE(16));assert.ok(sy+sh<=png.readUInt32BE(20));}
+  // Les deux directions gardent le même centre, le même sol et les mêmes proportions.
+  for(const pixelsPerUnit of [15,120])for(const direction of [1,-1]){
+    const r=recordingRenderer();r.metrics.pixelsPerUnit=pixelsPerUnit;
+    drawUltimateProjectile(r,{...projectile,direction},{tick:0});
+    const draw=r.calls.find(c=>c[0]==='drawImage'),translation=r.calls.find(c=>c[0]==='translate');
+    assert.equal(draw[8]/draw[9],1.5);
+    assert.equal(translation[1]+direction*draw[8]/2,r.screenX(projectile.x));
+    assert.equal(translation[2]+draw[9],340);
+    assert.ok(!r.calls.some(c=>c[0]==='clip'));
+  }
 });
 test('Vague : départ retardé jusqu’aux bras tendus et orientation prise au lancement',()=>{
   const sim=make(),state=sim.state,actor=state.candidates.find(c=>c.faction_id==='le_pen');

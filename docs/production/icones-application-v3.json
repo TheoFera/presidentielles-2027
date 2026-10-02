@@ -1,0 +1,22 @@
+{
+  "outil": "image_gen — outil intégré",
+  "objectif": "Titre « Présidentielle 2027 » au singulier ; titre recentré dans les icônes Android.",
+  "icone": {
+    "origine": "Ancienne illustration au pluriel, supprimée après remplacement.",
+    "source": "assets/generated/masters/application-icone-v3.png",
+    "sorties": [
+      "android/play-store/icone-512-v2.png",
+      "android/play-store/apercu-icones-v2.png",
+      "android/app/src/main/res/mipmap-*/ic_launcher*v2.png"
+    ],
+    "prompt": "Use case: precise-object-edit.\nEdit target: the supplied existing app icon for the French satirical arcade videogame.\nPrimary request: correct ONLY the game's title and the placement of its central title emblem. Replace the exact plural word \"PRÉSIDENTIELLES\" with the exact singular \"PRÉSIDENTIELLE\" (P R É S I D E N T I E L L E). Keep \"2027\" verbatim. Center the combined crown, title, numbers and tricolour flags as one cohesive emblem BOTH horizontally AND vertically in the square icon. The whole emblem's bounding box centre must be exactly at the canvas centre, with visually balanced equal left/right margins. Emblem contains the large gold 2027 below the white and blue PRÉSIDENTIELLE and the small golden crown above. Increase clear balanced space at both sides of the word, keep title and year fully readable inside round AND rounded square masks. Compose the main emblem within the central ~78 percent width and ~55 percent height, centred vertically, keep the entire \"2027\" in the central circular safe region. Move the group downward from its current top-heavy location into the centre.\nInvariants: retain existing colourful illustration style, navy outlines, white-blue title typography, bold golden numbers, gold crown, French tricolour flags, festive blue sky and warm gold presidential palace background, overall arcade visual identity. Retain the surrounding illustrated scene where practical; make room naturally for the corrected centered title. No extra text, no changed year, no new logos.\nCanvas: a square app icon, fully opaque full-bleed artwork right to all four edges, no black margins, no frame, no pre-rounded corners, no alpha, no artificial shadow outside the icon. Output one finished icon, not a grid of previews."
+  },
+  "accueil": {
+    "origine": "Ancienne illustration au pluriel, supprimée après remplacement.",
+    "source": "assets/generated/masters/accueil-singulier-v3.png",
+    "sorties": [
+      "assets/generated/menus/accueil.png",
+      "android/play-store/banniere-1024x500.png"
+    ]
+  }
+}

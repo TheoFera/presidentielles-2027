@@ -22,7 +22,7 @@ export function validateCombatSnapshot(state, sim, fail) {
       if (['dash_charges', 'dash_max_charges', 'dash_recharge_progress', 'dash_until_tick', 'dash_invulnerable_until_tick'].some(k => !integer(actor[k]))
         || actor.dash_max_charges !== sim.config.balance.dash.max_charges || actor.dash_charges > actor.dash_max_charges
         || actor.dash_recharge_progress >= sim.secondsToTicks(sim.config.balance.dash.recharge_seconds)
-        || ![-1, 1].includes(actor.dash_direction) || ['dash_active', 'dash_recharge_disabled', 'special_decay_started', 'bardella_guardian_armed'].some(k => typeof actor[k] !== 'boolean')
+        || ![-1, 1].includes(actor.dash_direction) || ![undefined, -1, 0, 1].includes(actor.dash_buffer_direction) || actor.dash_buffer_until_tick !== undefined && !Number.isInteger(actor.dash_buffer_until_tick) || ['dash_active', 'dash_recharge_disabled', 'special_decay_started', 'bardella_guardian_armed'].some(k => typeof actor[k] !== 'boolean')
         || !Number.isInteger(actor.last_successful_hit_tick) || !finite(actor.special_decay_origin) || actor.special_decay_origin > sim.config.balance.special_charge.required_points
         || actor.special_threshold !== sim.config.balance.special_charge.required_points
         || actor.active_ultimate_id !== null && !['HOLOGRAMS','WAVE','WALL','SURGE','FIRE','ZEMMOUR','BARDELLA','SCARF','EUROPE'].includes(actor.active_ultimate_id)) fail('dash ou momentum invalide');

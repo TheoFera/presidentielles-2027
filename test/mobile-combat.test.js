@@ -36,8 +36,8 @@ for (const faction of Object.keys(CAMPAIGN_STYLES)) {
     ticks(sim, 1); assert.ok(hit(sim, enemy, c, { damage: 10, knockback: 4 }, 'test:5')); assert.equal(Math.abs(c.combat.knockback_velocity), 4);
   });
 }
-test('Restrictions : KO, stun, attaque, Meeting, interaction, sélection et débat interdit', () => {
-  for (const reason of ['ko','stun','attack','meeting','hold','style','debate']) {
+test('Restrictions : KO, stun, attaque, Meeting, sélection et débat interdit', () => {
+  for (const reason of ['ko','stun','attack','meeting','style','debate']) {
     const { sim, c } = setup();
     if (reason === 'ko') c.is_ko = true;
     if (reason === 'stun') c.combat.stun_ticks = 5;
@@ -48,6 +48,19 @@ test('Restrictions : KO, stun, attaque, Meeting, interaction, sélection et déb
     if (reason === 'debate') { sim.state.debate_bounds = {}; sim.config.balance.dash.allowed_in_debate = false; }
     requestDash(sim, c, 1); assert.equal(c.dash_charges, 3, reason);
   }
+});
+test('Dash prioritaire sur un achat en cours, sans charge : son à vide', () => {
+  const { sim, c } = setup(); c.purchase_hold = {};
+  requestDash(sim, c, 1); assert.equal(c.dash_active, true); assert.equal(c.purchase_hold, null);
+  const empty = setup(); const events = []; empty.sim.emit = (type, data) => events.push(type); empty.c.dash_charges = 0;
+  requestDash(empty.sim, empty.c, 1); assert.deepEqual(events, ['DashUnavailable']);
+});
+test('Dash demandé trop tôt : gardé en mémoire un court instant', () => {
+  const { sim, c } = setup(); c.combat.stun_ticks = 2;
+  requestDash(sim, c, -1); assert.equal(c.dash_active, false);
+  ticks(sim, 3); assert.equal(c.dash_active, true); assert.equal(c.dash_direction, -1); assert.equal(c.dash_charges, 2);
+  const late = setup(); late.c.combat.stun_ticks = 30;
+  requestDash(late.sim, late.c, 1); ticks(late.sim, 31); assert.equal(late.c.dash_active, false); assert.equal(late.c.dash_charges, 3);
 });
 test('Décharge linéaire : 100 ou 60 %, stable 10 s, zéro à 15 s ; nouveau hit interrompt', () => {
   for (const value of [10, 6]) {

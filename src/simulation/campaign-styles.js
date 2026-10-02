@@ -90,7 +90,7 @@ export function clearCampaignUltimate(sim, candidate, resetLife = false) {
   candidate.combat.attack_id = null; candidate.combat.buffer_until_tick = -1;
   candidate.ultimate_effect = null; candidate.style_hold = null; candidate.style_interaction_held = false;
   candidate.special_charge = 0; candidate.special_decay_started = false; candidate.special_decay_origin = 0; candidate.bardella_guardian_armed = false; candidate.active_ultimate_id = null;
-  candidate.dash_active = false; candidate.dash_until_tick = 0; candidate.dash_invulnerable_until_tick = 0;
+  candidate.dash_active = false; candidate.dash_until_tick = 0; candidate.dash_invulnerable_until_tick = 0; candidate.dash_buffer_direction = 0; candidate.dash_buffer_until_tick = -1;
   if (resetLife) { candidate.bardella_form = false; candidate.bardellisation_used = false; }
 }
 

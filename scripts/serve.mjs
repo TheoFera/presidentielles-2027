@@ -29,7 +29,7 @@ const server = http.createServer(async (req, res) => {
     const file = path.resolve(root, `.${urlPath === '/' ? '/index.html' : urlPath}`);
     const relative = path.relative(root, file);
     const normalizedPath = '/' + relative.split(path.sep).join('/');
-    const publicPath = normalizedPath === '/index.html' || normalizedPath === '/confidentialite.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/generated/') || /^\/Présidentielles 2027\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
+    const publicPath = normalizedPath === '/index.html' || normalizedPath === '/confidentialite.html' || normalizedPath === '/conditions.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/generated/') || /^\/Présidentielles 2027\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
     if (!publicPath) { res.writeHead(404).end('Fichier introuvable.'); return; }
     if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(path.sep).some(p => p.startsWith('.'))) {
       res.writeHead(403).end('Accès refusé.'); return;

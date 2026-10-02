@@ -1,6 +1,6 @@
 export class BrowserInput {
   constructor(canvas, human, onAction, anchorRatio, touchPauseRadius, doubleTapWindow = 300) {
-    this.doubleTapWindow = doubleTapWindow; this.lastTap = null; this.lastAxis = 0;
+    this.doubleTapWindow = doubleTapWindow; this.lastTap = null; this.lastHeld = {};
     this.attackSources = new Set(); this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
     this.human = human; this.onAction = onAction; this.canvas = canvas; this.anchorRatio = anchorRatio;
     window.addEventListener('keydown', event => {
@@ -69,13 +69,16 @@ export class BrowserInput {
   update() {
     const left = ['arrowleft', 'q', 'a'].some(k => this.keys.has(k));
     const right = ['arrowright', 'd'].some(k => this.keys.has(k));
-    const axis = this.pointerAxis || Number(right) - Number(left);
-    if (axis && !this.lastAxis) {
+    // Un appui compte seulement quand une direction vient d’être enfoncée :
+    // relâcher la direction opposée ne doit pas passer pour un nouvel appui.
+    const pointing = [...this.pointers.values()];
+    const held = { [-1]: left || pointing.includes(-1), [1]: right || pointing.includes(1) };
+    for (const axis of [-1, 1]) if (held[axis] && !this.lastHeld[axis]) {
       const now = performance.now();
       if (this.lastTap?.axis === axis && now - this.lastTap.time <= this.doubleTapWindow) { this.onAction(axis < 0 ? 'dash-left' : 'dash-right'); this.lastTap = null; }
       else this.lastTap = { axis, time: now };
     }
-    this.lastAxis = axis;
+    this.lastHeld = held;
     if (left && right && !this.pointerAxis) this.human.setAxis(0);
     else this.human.setAxis(this.pointerAxis || Number(right) - Number(left));
   }
@@ -88,5 +91,5 @@ export class BrowserInput {
     if (!this.attackSources.delete(source)) return;
     if (!this.attackSources.size) this.onAction('attack-release');
   }
-  clear() { this.attackSources.clear(); this.lastTap = null; this.lastAxis = 0; this.keys.clear(); this.pointers.clear(); this.pointerAxis = 0; this.human.reset(); }
+  clear() { this.attackSources.clear(); this.lastTap = null; this.lastHeld = {}; this.keys.clear(); this.pointers.clear(); this.pointerAxis = 0; this.human.reset(); }
 }

@@ -191,6 +191,7 @@ export function activateUltimate(sim, actor) {
   sim.state.attacks = sim.state.attacks.filter(a => a.owner_id !== actor.id);
   Object.assign(actor.combat, { attack_id: null, buffer_until_tick: -1, requested_direction: null, hitstop_ticks: 0, knockback_velocity: 0 });
   actor.dash_active = false; actor.dash_until_tick = 0; actor.dash_invulnerable_until_tick = 0;
+  actor.dash_buffer_direction = 0; actor.dash_buffer_until_tick = -1;
   actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false; actor.interaction_active = false;
   actor.interaction_locked = false; actor.axis = 0;
   const meeting = sim.state.campaign_events?.find(e => e.id === actor.crisis_meeting_id && e.attempt?.candidate_id === actor.id);

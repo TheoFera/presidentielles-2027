@@ -15,9 +15,12 @@ try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base);
+    if (await page.locator('#legal-notice-accept').isVisible()) await page.locator('#legal-notice-accept').click({ timeout: 60000 });
     await page.locator('#debate').click(); await page.locator('#solo').click();
+    await page.locator('[data-faction="melenchon"]').click();
+    await page.locator('[data-faction="philippe"]').click();
     await page.locator(`[data-map="${map}"]`).click();
-    assert.equal(await page.locator('[data-map]').count(), 6);
+    assert.equal(await page.locator('[data-map]').count(), 4);
     assert.match(await page.locator('.select-footer .menu-note').innerText(), /mortel/);
     if (map === 'elysee') {
       for (const viewport of [{ width: 844, height: 390 }, { width: 667, height: 375 }, { width: 1280, height: 720 }]) {

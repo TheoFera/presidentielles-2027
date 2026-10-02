@@ -157,8 +157,8 @@
     "charged_damage": 21,
     "charged_partial_max_ratio": 0.8,
     "charged_stun_seconds": 0.3,
-    "jump_height_ratio": 1,
-    "jump_duration_seconds": 0.8,
+    "jump_height_ratio": 1.6,
+    "jump_duration_seconds": 0.95,
     "combo_cancel_seconds": 0.2,
     "body_width": 0.9,
     "knockdown_fall_seconds": 0.3,
@@ -610,8 +610,6 @@
         "name": "Tribune de l’Élysée",
         "description": "Trois scènes séparées par des trous. Les bords lumineux sont praticables ; tomber dans le vide est mortel.",
         "fall_death_height": -2.2,
-        "jump_height": 1.6,
-        "jump_duration_seconds": 0.95,
         "platforms": [
           {
             "id": "scene-gauche",
@@ -635,13 +633,13 @@
             "id": "balcon-gauche",
             "x": 6.87440191,
             "half_width": 2.36961722,
-            "height": 1.21029638
+            "height": 1.23391191
           },
           {
             "id": "balcon-droit",
             "x": 21.1507177,
             "half_width": 2.36124402,
-            "height": 1.21029638
+            "height": 1.23391191
           }
         ],
         "ground_y_ratio": 0.65356004
@@ -650,8 +648,6 @@
         "name": "Face-à-face",
         "description": "Une grande scène centrale, deux balcons et des petites plateformes de secours. Au-delà, la chute est mortelle.",
         "fall_death_height": -2.2,
-        "jump_height": 1.6,
-        "jump_duration_seconds": 0.95,
         "platforms": [
           {
             "id": "scene-centrale",
@@ -690,8 +686,6 @@
         "name": "Remue-ménage",
         "description": "Une large scène suspendue et deux balcons. Restez sur les surfaces lumineuses : les sorties de scène sont mortelles.",
         "fall_death_height": -2.2,
-        "jump_height": 2,
-        "jump_duration_seconds": 0.95,
         "platforms": [
           {
             "id": "scene-centrale",
@@ -703,13 +697,13 @@
             "id": "balcon-gauche",
             "x": 4.58014354,
             "half_width": 2.57057416,
-            "height": 1.6648955
+            "height": 1.23391191
           },
           {
             "id": "balcon-droit",
             "x": 23.42822967,
             "half_width": 2.54545455,
-            "height": 1.6648955
+            "height": 1.23391191
           }
         ],
         "ground_y_ratio": 0.66737513
@@ -718,8 +712,6 @@
         "name": "Éco-débat",
         "description": "Des îlots végétalisés au-dessus de l’eau. Sautez les passages entre les îlots : tomber dans l’eau est mortel.",
         "fall_death_height": -2.2,
-        "jump_height": 1.6,
-        "jump_duration_seconds": 0.95,
         "platforms": [
           {
             "id": "ilot-gauche",
@@ -1084,7 +1076,8 @@
     "duration_seconds": 0.24,
     "distance": 2.3,
     "invulnerability_seconds": 0.12,
-    "double_tap_window_ms": 300,
+    "double_tap_window_ms": 350,
+    "input_buffer_seconds": 0.2,
     "allowed_in_debate": true
   },
   "damage_feedback": {

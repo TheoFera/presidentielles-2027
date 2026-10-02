@@ -14,7 +14,7 @@ export function validateConfig(config) {
   if (combat.charge_activation_seconds >= combat.charge_ready_seconds) throw new Error('Configuration : la préparation doit commencer avant que la charge soit prête.');
   positive(config.balance.first_round_debate.damage.charged, 'dégâts chargés en débat');
   const dash = config.balance.dash, charge = config.balance.special_charge;
-  for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms']) positive(dash?.[key], `dash : ${key}`);
+  for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms', 'input_buffer_seconds']) positive(dash?.[key], `dash : ${key}`);
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   if (!Number.isInteger(dash.max_charges) || Math.ceil(dash.invulnerability_seconds * hz) >= Math.ceil(dash.duration_seconds * hz)) throw new Error('Configuration : le dash doit avoir des charges entières et une invulnérabilité plus courte que sa durée.');
   for (const key of ['required_points', 'points_per_light_hit', 'points_per_second_hit', 'points_per_finisher_hit', 'decay_delay_seconds', 'decay_duration_seconds']) positive(charge?.[key], `ultime : ${key}`);
@@ -70,7 +70,7 @@ export function validateConfig(config) {
     if (!map.name || !Array.isArray(map.platforms)) throw new Error(`Configuration : carte de débat ${id} invalide.`);
     if (map.ground_y_ratio != null && (!Number.isFinite(map.ground_y_ratio) || map.ground_y_ratio <= 0 || map.ground_y_ratio >= 1)) throw new Error(`Configuration : ligne de scène de la carte ${id} invalide.`);
     if (map.fall_death_height != null && (!Number.isFinite(map.fall_death_height) || map.fall_death_height >= 0 || !map.platforms.length)) throw new Error(`Configuration : limite de chute de la carte ${id} invalide.`);
-    if (map.platforms.length) { positive(map.jump_height, `saut de la carte ${id}`); positive(map.jump_duration_seconds, `durée du saut de la carte ${id}`); }
+    if ('jump_height' in map || 'jump_duration_seconds' in map) throw new Error(`Configuration : la carte ${id} doit utiliser le saut commun du jeu.`);
     for (const p of map.platforms) {
       for (const key of ['x', 'half_width']) positive(p[key], `pupitre ${p.id} ${key}`);
       if (map.fall_death_height == null) positive(p.height, `pupitre ${p.id} height`);

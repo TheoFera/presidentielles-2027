@@ -37,6 +37,17 @@
 #start-menu #multiplayer > span { color: #ffbbe0; text-shadow: 0 2px 0 #7f0138; }
 #start-menu #debate { background: linear-gradient(#ffe066, #ffb400 27%, #e07a00 55%, #f08a00 72%, #ffd23a); outline-color: #fff0a0; box-shadow: inset 0 3px 0 white, inset 0 -8px 0 #7a3a00, 0 5px 0 #000b, 0 0 15px #ffb40099; }
 #start-menu #debate > span { color: #fff4c0; text-shadow: 0 2px 0 #7a3a00; }
+/* Même contour sombre pour les deux boutons (l’ancien menu imposait un bord rose au dernier). */
+#start-menu .mode-card.arcade-button { border-color: #0a1020; }
+/* Grand écran avec souris : halo et éclat adoucis, plus discrets que sur téléphone. */
+@media (hover: hover) and (pointer: fine) {
+  #start-menu .arcade-button { filter: saturate(.88); }
+  /* Impact est une police serrée : on aère les lettres au lieu de les resserrer. */
+  #start-menu .mode-card strong { letter-spacing: .03em; }
+  #start-menu .arcade-button:hover { filter: saturate(.95) brightness(1.06); }
+  #start-menu .mode-card { box-shadow: inset 0 2px 0 #ffffffb0, inset 0 -8px 0 #002e78, 0 5px 0 #000b, 0 0 8px #27ddff55; }
+  #start-menu #debate { box-shadow: inset 0 2px 0 #ffffffb0, inset 0 -8px 0 #7a3a00, 0 5px 0 #000b, 0 0 8px #ffb40055; }
+}
 
 #start-menu[data-screen='candidates'] .candidate-grid { position: absolute; inset: 25% 12% 15%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3%; padding: 0; }
 #start-menu[data-screen='candidates'] .candidate-card { display: block; position: relative; min-height: 0; padding: 0; border: 3px solid transparent; border-radius: 12%; background: transparent; box-shadow: none; transition: background .15s, box-shadow .15s; }

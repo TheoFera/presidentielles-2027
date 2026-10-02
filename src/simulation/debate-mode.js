@@ -121,7 +121,9 @@ export class DebateMatch {
       debate_bounds: { min: b.edge_margin, max: b.width_units - b.edge_margin },
       platforms: clone(map.platforms),
       fall_death_height: map.fall_death_height ?? null,
-      platform_jump: map.platforms.length ? { height: map.jump_height, duration_seconds: map.jump_duration_seconds } : null,
+      // Même saut qu’en campagne : les arènes règlent leurs plateformes, pas le saut.
+      platform_jump: map.platforms.length ? { height: config.balance.candidate_combat.jump_height_ratio,
+        duration_seconds: config.balance.candidate_combat.jump_duration_seconds } : null,
       candidates, npcs: [], buildings: [], electorate: [], campaign_events: [],
       attacks: [], projectiles: [], powers: [], temporary_units: [], hit_results: [], events: [],
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_event_id: 1, next_raid_id: 1,

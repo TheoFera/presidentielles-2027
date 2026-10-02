@@ -1,6 +1,8 @@
 .gradle/
 build/
 app/build/
+# Paquets Android exportés : conserver localement, sans les envoyer sur GitHub.
+app/release/
 local.properties
 .idea/
 *.iml

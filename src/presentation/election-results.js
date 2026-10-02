@@ -118,7 +118,7 @@ function markup(m, options) {
     <div class="election-backdrop" aria-hidden="true"><span class="election-beam"></span><span class="election-beam"></span><span class="election-watermark">2027</span></div>
     <div class="election-screen">
       <header class="election-top">
-        <span class="election-brand"><i class="election-flag" aria-hidden="true"></i><b>Présidentielles</b> <strong>2027</strong></span>
+        <span class="election-brand"><i class="election-flag" aria-hidden="true"></i><b>Présidentielle</b> <strong>2027</strong></span>
         <span class="election-program">Soirée électorale <em>${m.first ? '1<sup>er</sup> tour' : '2<sup>nd</sup> tour'}</em></span>
         <span class="election-live"><b><i aria-hidden="true"></i>${options.preview ? 'Données fictives' : 'En direct'}</b><time>20:00</time></span>
       </header>
@@ -142,7 +142,7 @@ function markup(m, options) {
         <div class="election-actions">${actions(m, options)}</div>
       </footer>
     </div>
-    <div class="election-countdown" aria-hidden="true"><p>Estimations</p><strong>19:59:57</strong><span>Présidentielles <b>2027</b></span></div>
+    <div class="election-countdown" aria-hidden="true"><p>Estimations</p><strong>19:59:57</strong><span>Présidentielle <b>2027</b></span></div>
     <div class="election-wipe" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="election-flash" aria-hidden="true"></div>
     <div class="election-confetti" aria-hidden="true"></div>
