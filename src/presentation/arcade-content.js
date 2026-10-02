@@ -8,7 +8,7 @@ export const CANDIDATES = [
 export const portrait = candidate => visualManifest[`character-${candidate.id}`].file;
 
 export function homeContent() {
-  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielles 2027</h1><div class="mode-grid"><button class="mode-card arcade-button" id="campaign"><span aria-hidden="true">★</span><strong>Campagne</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="debate"><span aria-hidden="true">⚔</span><strong>Débat télé</strong><span aria-hidden="true">⚔</span></button></div></div>`;
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Présidentielle 2027 : Le Jeu</h1><div class="mode-grid"><button class="mode-card arcade-button" id="campaign"><span aria-hidden="true">★</span><strong>Campagne</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="debate"><span aria-hidden="true">⚔</span><strong>Débat télé</strong><span aria-hidden="true">⚔</span></button></div></div>`;
 }
 /** Deuxième écran : le même choix « Avec qui ? » pour la campagne et le débat. */
 export function playersContent(mode) {

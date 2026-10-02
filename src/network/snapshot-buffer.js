@@ -13,7 +13,7 @@ export class SnapshotBuffer {
   }
   reset() {
     this.items = []; this.offset = null; this.jitter = 0; this.spacing = 0.1; this.lastArrival = null;
-    this.renderTick = null; this.renderedAt = null;
+    this.cursors = new Map();
   }
   /** Range un état reçu. `now` en secondes (horloge locale). */
   push(state, now) {
@@ -44,28 +44,33 @@ export class SnapshotBuffer {
   }
   /** Le plus récent état reçu (pour les commandes et l'interface). */
   get latest() { return this.items.at(-1)?.state ?? null; }
-  /** Deux états et la proportion entre eux pour l'instant affiché. */
-  sample(now) {
+  /** Retard réduit au strict rythme d'envoi : pour son propre personnage, plus réactif. */
+  get freshDelay() { return Math.max(0.03, Math.min(this.delay, this.spacing + 0.01)); }
+  /**
+   * Deux états et la proportion entre eux pour l'instant affiché.
+   * `fresh` : seconde tête de lecture, plus proche du présent (personnage du joueur).
+   */
+  sample(now, { fresh = false } = {}) {
     const items = this.items;
     if (!items.length) return null;
     if (items.length === 1 || this.offset === null) { const state = items.at(-1).state; return { previous: state, state, alpha: 1 }; }
     // L'instant affiché avance toujours : il accélère ou ralentit d'au plus 10 %
     // pour rejoindre sa cible, sans jamais reculer quand la gigue change.
-    const target = (now - this.offset - this.delay) / this.dt;
-    if (this.renderTick === null || Math.abs(target - this.renderTick) > 15) this.renderTick = target;
+    const cursor = this.cursors.get(fresh) || { tick: null, at: null };
+    const target = (now - this.offset - (fresh ? this.freshDelay : this.delay)) / this.dt;
+    if (cursor.tick === null || Math.abs(target - cursor.tick) > 15) cursor.tick = target;
     else {
-      const speed = 1 + Math.max(-0.1, Math.min(0.1, (target - this.renderTick) * 0.05));
-      this.renderTick += Math.max(0, now - this.renderedAt) / this.dt * speed;
+      const speed = 1 + Math.max(-0.1, Math.min(0.1, (target - cursor.tick) * 0.05));
+      cursor.tick += Math.max(0, now - cursor.at) / this.dt * speed;
     }
-    this.renderedAt = now;
-    const renderTick = this.renderTick;
+    cursor.at = now; this.cursors.set(fresh, cursor);
+    const renderTick = cursor.tick;
     if (renderTick >= items.at(-1).tick) { const state = items.at(-1).state; return { previous: state, state, alpha: 1 }; }
-    if (renderTick <= items[0].tick) return { previous: items[0].state, state: items[0].state, alpha: 1 };
-    let i = 1;
-    while (items[i].tick <= renderTick) i++;
-    // Les états plus anciens que la paire affichée ne servent plus.
-    if (i > 1) items.splice(0, i - 1), i = 1;
-    const a = items[0], b = items[1];
+    let i = items.findIndex(item => item.tick > renderTick);
+    if (i <= 0) return { previous: items[0].state, state: items[0].state, alpha: 1 };
+    // Les états plus anciens que la paire affichée ne servent plus (la tête principale est la plus en retard).
+    if (!fresh && i > 1) items.splice(0, i - 1), i = 1;
+    const a = items[i - 1], b = items[i];
     return { previous: a.state, state: b.state, alpha: (renderTick - a.tick) / (b.tick - a.tick) };
   }
 }

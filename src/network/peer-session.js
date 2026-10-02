@@ -158,6 +158,11 @@ export class PeerSession {
       try {
         if (typeof event.data !== 'string' || event.data.length > 50000) throw new Error();
         const part = JSON.parse(event.data);
+        // Message court envoyé d’un seul tenant, sans enveloppe de découpage.
+        if (typeof part.type === 'string' && part.n === undefined) {
+          if (peer.next < peer.total) throw new Error();
+          peer.seen = Date.now(); this.receive(peer, part); return;
+        }
         if (!Number.isInteger(part.n) || part.n < 0 || part.n > 249 || !Number.isInteger(part.total) || part.total < 1 || part.total > 250 || typeof part.data !== 'string' || part.data.length > 8000) throw new Error();
         if (part.n === 0) { peer.sequence = part.id; peer.next = 0; peer.total = part.total; peer.buffer = ''; }
         if (peer.sequence !== part.id || part.total !== peer.total || part.n !== peer.next++) throw new Error();
@@ -202,7 +207,9 @@ export class PeerSession {
       let sent = 0;
       while (peer.outbox.length && peer.channel.bufferedAmount < 32000 && sent < 4) {
         const item = peer.outbox[0], n = item.n;
-        peer.channel.send(JSON.stringify({ id: item.serial, n, total: item.total, data: item.json.slice(n * 8000, (n + 1) * 8000) }));
+        // Un message qui tient en un morceau part tel quel : l’enveloppe (et l’échappement
+        // de tous ses guillemets) coûtait près d’un quart des données.
+        peer.channel.send(item.total === 1 ? item.json : JSON.stringify({ id: item.serial, n, total: item.total, data: item.json.slice(n * 8000, (n + 1) * 8000) }));
         item.n++; sent++;
         if (item.n === item.total) peer.outbox.shift();
       }

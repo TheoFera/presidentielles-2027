@@ -250,7 +250,7 @@ function showWaitingRoom(menu, session, leave) {
   root.querySelector('.room-code').textContent = session.code;
   const share = root.querySelector('#share-room');
   share.hidden = typeof navigator.share !== 'function';
-  share.onclick = () => navigator.share({ title: 'Présidentielles 2027', text: `Rejoins ma partie de Présidentielles 2027 ! Code : ${session.code}`, url: link }).catch(() => {});
+  share.onclick = () => navigator.share({ title: 'Présidentielle 2027 : Le Jeu', text: `Rejoins ma partie de Présidentielle 2027 : Le Jeu ! Code : ${session.code}`, url: link }).catch(() => {});
   root.querySelector('#copy-link').onclick = () => copySignal(link, status);
 }
 function updateSlots(menu, session) {

@@ -1,4 +1,4 @@
-# Icônes de Présidentielles 2027
+# Icônes de Présidentielle 2027 : Le Jeu
 
 ## Fichier à envoyer sur le Play Store
 

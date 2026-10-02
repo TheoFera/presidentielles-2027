@@ -1,4 +1,4 @@
-# Présidentielles 2027 — cinquième jalon jouable
+# Présidentielle 2027 : Le Jeu — cinquième jalon jouable
 
 Application Android et publication sur le Play Store : [guide pas à pas](android/LISEZMOI.md), `npm run android`. Optimisation de l'export et organisation du projet : [guide d'optimisation](docs/optimisation-projet.md).
 

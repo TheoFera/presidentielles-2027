@@ -14,7 +14,7 @@ import { recordMatchResult } from './presentation/player-profile.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
-import { zoneAt } from './simulation/world.js';
+import { zoneAt, ringDelta, wrap } from './simulation/world.js';
 import { WorldRenderer } from './presentation/renderer.js';
 import { BrowserInput } from './presentation/input.js';
 import { DebugPanel } from './presentation/debug.js';
@@ -120,6 +120,7 @@ async function start() {
   let remote = new Map();
   let networkElapsed = 0;
   let networkBusy = false;
+  let sentAxis = 0;
   // Invité : les états de l’hôte passent par un tampon pour un affichage fluide malgré la 4G.
   const snapshots = new SnapshotBuffer(1 / config.balance.simulation_architecture.fixed_tick_hz);
   let guestAlpha = 1;
@@ -435,17 +436,28 @@ async function start() {
   function networkFrame(elapsed) {
     if (!session || menu.active || session.room.phase !== 'playing') return;
     networkElapsed += elapsed;
-    // Débat : 20 états par seconde (combat rapide, état léger) ; campagne : 15.
-    if (networkBusy || networkElapsed < (session.host ? (debateMatch ? 0.05 : 1 / 15) : 0.05)) return;
-    networkElapsed = 0;
+    if (networkBusy) return;
     const activeSession = session;
-    if (!session.host && paused) return;
-    const action = session.host ? 'snapshot' : 'commands';
-    const data = session.host ? { state: debateMatch ? debateState : { ...state, multiplayer_profile: profile } }
-      : { commands: outgoingCommands(debateMatch ? [...human.commands(debateState, debateState.local_candidate_id), ...debatePending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]) };
-    networkBusy = true;
-    // A single lost frame is not fatal: heartbeats and connection states decide.
-    session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
+    const send = (action, data) => {
+      networkBusy = true;
+      // A single lost frame is not fatal: heartbeats and connection states decide.
+      session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
+    };
+    if (session.host) {
+      // Débat : 20 états par seconde (combat rapide, état léger) ; campagne : 15.
+      if (networkElapsed < (debateMatch ? 0.05 : 1 / 15)) return;
+      networkElapsed = 0;
+      send('snapshot', { state: debateMatch ? debateState : { ...state, multiplayer_profile: profile } });
+      return;
+    }
+    if (paused) return;
+    // Invité : les commandes partent dès qu’une touche change (moins de délai), et seulement
+    // un signe de vie 4 fois par seconde quand rien ne bouge (moins de données).
+    const commands = outgoingCommands(debateMatch ? [...human.commands(debateState, debateState.local_candidate_id), ...debatePending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]);
+    const axis = commands.find(c => c.type === 'Move')?.axis ?? 0;
+    if (axis === sentAxis && networkElapsed < 0.25 && !commands.some(c => c.type !== 'Move')) return;
+    networkElapsed = 0; sentAxis = axis;
+    send('commands', { commands });
   }
 
   /** Boutons tactiles de combat : jauge d’ultime et charge du coup. */
@@ -475,10 +487,27 @@ async function start() {
 
   /** Invité : l’état affiché est pris dans le tampon, avec un léger retard constant. */
   function guestView() {
-    const view = snapshots.sample(performance.now() / 1000);
+    const now = performance.now() / 1000;
+    const fresh = snapshots.sample(now, { fresh: true }), view = snapshots.sample(now);
     if (!view) return;
-    if (debateMatch) { debateState = view.state; debatePrevious = view.previous; } else { state = view.state; previous = view.previous; }
-    guestAlpha = Math.max(0, Math.min(1, view.alpha));
+    const alpha = Math.max(0, Math.min(1, view.alpha));
+    let shown = view.state, before = view.previous;
+    // Son propre personnage vient de la tête de lecture la plus récente : ses gestes
+    // s’affichent plus tôt. Les autres restent sur l’affichage tamponné, bien fluide.
+    const id = shown.local_candidate_id, mine = fresh && fresh.state.candidates.find(c => c.id === id);
+    if (mine && shown.candidates.some(c => c.id === id)) {
+      const old = fresh.previous.candidates.find(c => c.id === id) || mine, t = Math.max(0, Math.min(1, fresh.alpha));
+      const lerp = (a, b) => a + (b - a) * t;
+      // Campagne : le monde est circulaire, on passe par le plus court chemin.
+      const length = shown.world?.length, x = debateMatch || !length ? lerp(old.x, mine.x) : wrap(old.x + ringDelta(old.x, mine.x, length) * t, length);
+      const local = { ...mine, x, combat: mine.combat && { ...mine.combat, height: lerp(old.combat?.height ?? 0, mine.combat.height ?? 0) } };
+      // Même objet avant et après : l’interpolation de l’affichage le laisse en place.
+      const swap = list => list.map(c => c.id === id ? local : c);
+      shown = { ...shown, candidates: swap(shown.candidates) };
+      before = { ...before, candidates: swap(before.candidates) };
+    }
+    if (debateMatch) { debateState = shown; debatePrevious = before; } else { state = shown; previous = before; }
+    guestAlpha = alpha;
   }
 
   /** Une image du mode Débat : simulation à pas fixe, puis affichage. */

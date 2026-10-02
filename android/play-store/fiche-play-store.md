@@ -5,7 +5,7 @@ Tous ces textes se collent dans la **Play Console**, rubrique *Croissance → Pr
 ## Nom de l'application (30 caractères maximum)
 
 ```
-Présidentielles 2027
+Présidentielle 2027 : Le Jeu
 ```
 
 ## Description courte (80 caractères maximum)
@@ -19,7 +19,7 @@ Menez campagne dans toute la France et gagnez le débat télé. Jeu parodique.
 ```
 Plus qu'un an avant le premier tour : à vous de conquérir la France !
 
-Présidentielles 2027 est un jeu d'action et de stratégie parodique. Choisissez votre candidat, parcourez la France des grandes villes aux campagnes, convainquez les passants, installez vos permanences et repoussez vos adversaires… parfois à coups de poing.
+Présidentielle 2027 : Le Jeu est un jeu d'action et de stratégie parodique. Choisissez votre candidat, parcourez la France des grandes villes aux campagnes, convainquez les passants, installez vos permanences et repoussez vos adversaires… parfois à coups de poing.
 
 UNE CAMPAGNE COMPLÈTE
 • 18 territoires à parcourir : Paris, banlieues, zones périurbaines, campagnes, villes de retraités et quartiers aisés.

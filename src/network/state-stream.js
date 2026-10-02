@@ -1,6 +1,24 @@
 // Snapshots used to resume the simulation stay on the host. Guests only render.
+// Événements que l’affichage d’un invité ne lit jamais (seul le panneau de debug de
+// l’hôte les montre) : ils restent chez l’hôte et n’encombrent pas la connexion.
+const HOST_ONLY_EVENTS = new Set(['AttackStarted', 'BardellaGuardianArmed', 'BardellaGuardianTriggered', 'BardellisationTriggered',
+  'BuildingClosed', 'CampaignStyleChanged', 'CandidateKnockedDown', 'CandidateRespawned', 'CommunicationBroadcast', 'ControllerChanged',
+  'DashChargeConsumed', 'DashChargeRecovered', 'DashEnded', 'DashEvadedHit', 'DashStarted', 'DebateFall', 'DebateFinished',
+  'DebugBuildingConstructed', 'DebugMoneyGranted', 'DebugSpawnCapacityReached', 'DebugUnitSpawned', 'DebugZoneControlled',
+  'DonationReady', 'EquipmentOrdered', 'EquipmentReady', 'EquipmentRefunded', 'EquipmentWorkerAssigned', 'FirstRoundResults',
+  'FundingDropped', 'GuardEquipped', 'GuardReturnedHome', 'HeadquartersSucceeded', 'InterruptCrisisMeeting', 'MatchFinished',
+  'MilitantEquipped', 'MilitantGroupDisbanded', 'MilitantGroupFormed', 'MinorCandidateDefeated', 'NeutralSpawned', 'NpcDemobilized',
+  'NpcNeutralized', 'NpcReturnedHome', 'OvertimeStarted', 'RaidStarted', 'RallyParticipantReturned', 'ScandalKOTriggered',
+  'SiteNeutralized', 'SpecialTriggered', 'SprintStarted', 'StartCrisisMeeting', 'SuccessfulCombatHit', 'TractReady',
+  'TractWorkerAssigned', 'UltimateChargeChanged', 'UltimateChargeLost', 'UltimateDecayStarted', 'VehicleMounted', 'WinThematicDebate']);
+const shownEvents = events => Array.isArray(events) ? events.filter(event => !HOST_ONLY_EVENTS.has(event?.type)) : events;
 export function presentationState(state) {
-  return { ...state, campaign_snapshot: null };
+  const shown = { ...state, campaign_snapshot: null };
+  if ('events' in state) shown.events = shownEvents(state.events);
+  // Débats de campagne et du premier tour : même tri pour leurs journaux.
+  if (state.debate?.events) shown.debate = { ...state.debate, events: shownEvents(state.debate.events) };
+  if (Array.isArray(state.campaign_events)) shown.campaign_events = state.campaign_events.map(event => event?.debate?.events ? { ...event, debate: { ...event.debate, events: shownEvents(event.debate.events) } } : event);
+  return shown;
 }
 
 // Fractional numbers travel rounded to the thousandth: far below a pixel on screen,
@@ -70,11 +88,16 @@ function detach(value, old, exact = false) {
 
 // Patch format, applied to the guest's previous state:
 //   [value]          replace by value (first packet: [whole state])
+//   value            replace by a plain value: text, true/false, null or a number
+//                    other than 0 (saves the brackets of the most frequent change)
 //   0                delete this object field
 //   { key: patch }   object: only changed fields
 //   { k, o? }        list of entities with unique ids (PNJ, candidats…): changed
 //                    entities by id; o = new id order when entities come, go or move
-//   { i }            other list of the same length: changed items by index
+//   { k, s, a? }     same, for a sliding list (events, hits…): drop the s first
+//                    entities, then append the ids of a (new ones, in k)
+//   { i }            list of the same length (or entities in the same order, whose
+//                    long ids need not travel): changed items by index
 function entityIds(list) {
   if (!list.length) return null;
   const seen = new Set();
@@ -84,14 +107,16 @@ function entityIds(list) {
   }
   return list.map(item => item.id);
 }
+// Remplacement : une valeur simple part sans crochets (sauf 0, qui veut dire « supprimé »).
+const replace = value => isObject(value) || value === 0 ? [value] : value;
 function diff(before, after) {
   if (before === after) return undefined;
-  if (!isObject(before) || !isObject(after) || Array.isArray(before) !== Array.isArray(after)) return [after];
+  if (!isObject(before) || !isObject(after) || Array.isArray(before) !== Array.isArray(after)) return replace(after);
   const patch = {};
   let changed = false;
   if (!Array.isArray(after)) {
     for (const key of Object.keys(after)) {
-      const op = Object.hasOwn(before, key) ? diff(before[key], after[key]) : [after[key]];
+      const op = Object.hasOwn(before, key) ? diff(before[key], after[key]) : replace(after[key]);
       if (op !== undefined) { patch[key] = op; changed = true; }
     }
     for (const key of Object.keys(before)) if (!Object.hasOwn(after, key)) { patch[key] = 0; changed = true; }
@@ -99,14 +124,28 @@ function diff(before, after) {
   }
   const beforeIds = entityIds(before), afterIds = entityIds(after);
   if (beforeIds && afterIds) {
+    const sameOrder = beforeIds.length === afterIds.length && beforeIds.every((id, i) => id === afterIds[i]);
+    // Même ordre : les entités changées sont désignées par leur position, plus courte que leur identifiant.
+    if (sameOrder) {
+      after.forEach((item, i) => { const op = diff(before[i], item); if (op !== undefined) { patch[i] = op; changed = true; } });
+      return changed ? { i: patch } : undefined;
+    }
     const previous = new Map(before.map(item => [String(item.id), item]));
     for (const item of after) {
       const old = previous.get(String(item.id));
       const op = old ? diff(old, item) : [item];
       if (op !== undefined) { patch[String(item.id)] = op; changed = true; }
     }
-    const sameOrder = beforeIds.length === afterIds.length && beforeIds.every((id, i) => id === afterIds[i]);
-    if (sameOrder) return changed ? { k: patch } : undefined;
+    // Liste glissante : les plus anciens sortent au début, les nouveaux entrent à la fin.
+    // On évite de renvoyer tout l’ordre des identifiants à chaque nouvel événement.
+    const known = new Set(beforeIds.map(String));
+    let kept = 0;
+    while (kept < afterIds.length && known.has(String(afterIds[kept]))) kept++;
+    const drop = beforeIds.length - kept;
+    if (drop >= 0 && afterIds.slice(0, kept).every((id, i) => id === beforeIds[drop + i]) && afterIds.slice(kept).every(id => !known.has(String(id)))) {
+      const added = afterIds.slice(kept);
+      return added.length ? { k: patch, s: drop, a: added } : { k: patch, s: drop };
+    }
     return { k: patch, o: afterIds };
   }
   if (before.length !== after.length) return [after];
@@ -119,6 +158,7 @@ const invalid = () => new Error('État réseau invalide.');
 // guest keeps for interpolation and must never be modified.
 function patchValue(previous, op) {
   if (Array.isArray(op)) { if (op.length !== 1) throw invalid(); return op[0]; }
+  if (!isObject(op)) return op;
   if (!isObject(op) || !isObject(previous)) throw invalid();
   if (!Array.isArray(previous)) {
     const next = { ...previous };
@@ -137,9 +177,11 @@ function patchValue(previous, op) {
     }
     return next;
   }
-  if (!isObject(op.k) || (op.o !== undefined && !Array.isArray(op.o))) throw invalid();
+  if (!isObject(op.k) || (op.o !== undefined && !Array.isArray(op.o)) || (op.a !== undefined && !Array.isArray(op.a))) throw invalid();
+  if (op.s !== undefined && (!Number.isInteger(op.s) || op.s < 0 || op.s > previous.length)) throw invalid();
   const old = new Map(previous.map(item => [String(item?.id), item]));
-  return (op.o ?? previous.map(item => item.id)).map(id => {
+  const order = op.o ?? (op.s !== undefined ? [...previous.slice(op.s).map(item => item.id), ...(op.a || [])] : previous.map(item => item.id));
+  return order.map(id => {
     const key = String(id);
     if (Object.hasOwn(op.k, key)) return patchValue(old.get(key), op.k[key]);
     if (!old.has(key)) throw invalid();

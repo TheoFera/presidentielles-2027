@@ -48,7 +48,7 @@ export default {
     const url = new URL(request.url);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request) });
     if (!allowedOrigin(request, env)) return new Response('Origine refusée.', { status: 403 });
-    if (url.pathname === '/') return json(request, { available: true, game: 'Présidentielles 2027' });
+    if (url.pathname === '/') return json(request, { available: true, game: 'Présidentielle 2027 : Le Jeu' });
     if (url.pathname === '/ice') return json(request, { iceServers: await iceServers(env) });
     if (url.pathname === '/salon') {
       if (request.headers.get('Upgrade') !== 'websocket') return new Response('WebSocket attendu.', { status: 426 });

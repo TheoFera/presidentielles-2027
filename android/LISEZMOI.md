@@ -1,6 +1,6 @@
 # Application Android — du projet au Play Store
 
-Ce dossier contient l'application Android de Présidentielles 2027. Elle affiche le jeu web en plein écran, en paysage, **sans connexion Internet nécessaire** (sauf pour le multijoueur entre téléphones). Les fichiers du jeu viennent de `dist/`, produit automatiquement à partir des sources.
+Ce dossier contient l'application Android de « Présidentielle 2027 : Le Jeu ». Elle affiche le jeu web en plein écran, en paysage, **sans connexion Internet nécessaire** (sauf pour le multijoueur entre téléphones). Les fichiers du jeu viennent de `dist/`, produit automatiquement à partir des sources.
 
 - Identifiant Play Store : `fr.presidentielles2027.jeu` (définitif après la première publication).
 - Android 7.0 minimum, cible Android 16 (API 36), exigence actuelle de Google.
@@ -54,7 +54,7 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 ## 4. Publier sur Google Play
 
 1. **Compte développeur** : sur [play.google.com/console](https://play.google.com/console), crée un compte (25 $ une seule fois, pièce d'identité demandée). La vérification peut prendre quelques jours.
-2. **Créer l'application** : nom « Présidentielles 2027 », langue française, type *Jeu*, *Gratuit*.
+2. **Créer l'application** : nom « Présidentielle 2027 : Le Jeu », langue française, type *Jeu*, *Gratuit*.
 3. **Politique de confidentialité** : la page `confidentialite.html` est publiée avec le site GitHub Pages du jeu après ton prochain envoi sur GitHub. Vérifie qu'elle s'ouvre, puis colle son adresse dans la Play Console.
 4. **Fiche du Play Store** : textes, catégorie et réponses aux questionnaires dans [`play-store/fiche-play-store.md`](play-store/fiche-play-store.md). Envoie l'icône `play-store/icone-512-v2.png` et la bannière dans `play-store/`. Les icônes du téléphone sont déjà intégrées au projet : voir [le guide des icônes](play-store/icones.md). Ajoute 2 à 8 captures d'écran prises sur ton téléphone.
 5. **Test fermé obligatoire** : pour un compte personnel récent, Google exige un test fermé avec **au moins 12 testeurs pendant 14 jours d'affilée** avant d'autoriser la publication publique. Crée un *Test fermé*, envoie le fichier `.aab`, puis invite tes testeurs (leurs adresses Gmail).

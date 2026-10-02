@@ -395,7 +395,9 @@ test('Salon direct : un invité perdu libère sa place sans fermer le salon des 
   assert.equal(host.peers.has('g3'), false);
   assert.deepEqual(host.room.players.map(p => p.id), ['h', 'g2']);
   assert.equal(rooms.at(-1).players.length, 2);
-  assert.ok(g2.sent.some(text => JSON.parse(JSON.parse(text).data).type === 'room'), 'le joueur restant reçoit le salon à jour');
+  // Message court : envoyé tel quel ; long : découpé dans une enveloppe.
+  const packet = text => { const part = JSON.parse(text); return part.n === undefined ? part : JSON.parse(part.data); };
+  assert.ok(g2.sent.some(text => packet(text).type === 'room'), 'le joueur restant reçoit le salon à jour');
   assert.ok(host.notice);
   host.receive(g2, { type: 'leave', data: {} });
   assert.equal(host.closed, false);
@@ -561,4 +563,30 @@ test('Débat multijoueur : changer de combattants ramène le salon à la sélect
   assert.equal(room.players[0].faction, 'philippe');
   assert.throws(() => returnToLobby({ ...room, mode: 'campaign', phase: 'playing' }));
   assert.throws(() => returnToLobby(room)); // Déjà en sélection.
+});
+
+test('Flux d’états : une liste glissante n’envoie que les sorties et les entrées', async () => {
+  const { encodePresentationState, encodeStateDelta, applyStateDelta } = await import('../src/network/state-stream.js');
+  const events = n => Array.from({ length: 5 }, (_, i) => ({ id: `event:${n + i}`, tick: n + i }));
+  const before = encodePresentationState({ tick: 1, events: events(1) });
+  const after = encodePresentationState({ tick: 2, events: events(3) }, before);
+  const packet = JSON.parse(encodeStateDelta(after, before));
+  assert.deepEqual(packet.events.s, 2);
+  assert.deepEqual(packet.events.a, ['event:6', 'event:7']);
+  assert.equal(packet.events.o, undefined);
+  assert.deepEqual(applyStateDelta(JSON.parse(JSON.stringify(before)), packet), JSON.parse(JSON.stringify(after)));
+  // Réordonnancement quelconque : l’ordre complet reste envoyé.
+  const shuffled = encodePresentationState({ tick: 3, events: [...events(3)].reverse() }, after);
+  const other = JSON.parse(encodeStateDelta(shuffled, after));
+  assert.ok(Array.isArray(other.events.o));
+  assert.deepEqual(applyStateDelta(JSON.parse(JSON.stringify(after)), other), JSON.parse(JSON.stringify(shuffled)));
+});
+
+test('Salon direct : un message court part sans enveloppe et reste compris', () => {
+  const { host, g2 } = lobbyHost();
+  const before = g2.sent.length;
+  host.send(host.peers.get('g2'), 'ping', {});
+  const raw = g2.sent.slice(before).at(-1);
+  assert.equal(JSON.parse(raw).type, 'ping');
+  assert.equal(JSON.parse(raw).n, undefined);
 });
