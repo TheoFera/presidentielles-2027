@@ -136,8 +136,20 @@ async function start() {
   let debateRemoteIds = new Set();
   const debateFighterOf = (setup, playerId) => debateFighterIds(setup.fighters)[setup.fighters.findIndex(f => f.player === playerId)];
   const debateDisplay = new DebateModeDisplay(config, {
-    rematch: () => { if (debateSetup) void menu.debateLoading(debateSetup); },
-    setup: () => { returnHome(); menu.debate(); },
+    rematch: () => {
+      // Multijoueur : on vote ; le combat repart quand tous les joueurs ont voté.
+      if (session) {
+        debateDisplay.setRematch({ voted: true });
+        session.request('rematch').catch(error => debateDisplay.setRematch({ voted: false, closed: error.transient ? '' : 'Revanche impossible' }));
+        return;
+      }
+      if (debateSetup) void menu.debateLoading(debateSetup);
+    },
+    setup: () => {
+      // Multijoueur : tout le salon revient à la sélection, connexion conservée.
+      if (session) { session.request('lobby').catch(() => debateDisplay.setRematch({ closed: 'Indisponible' })); return; }
+      returnHome(); menu.debate();
+    },
     home: () => returnHome(),
   });
 
@@ -337,6 +349,8 @@ async function start() {
     if (room.phase === 'pairing') {
       showPeerAnswer(menu, session, returnHome);
     } else if (room.phase === 'lobby') {
+      // Retour à la sélection après un débat : on quitte le plateau, le salon reste connecté.
+      if (roomPhase === 'playing' || roomPhase === 'loading') { stopDebate(); paused = true; input.clear(); }
       updateLobby(menu, session, returnHome);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
       if (room.mode === 'debate') {
@@ -347,6 +361,10 @@ async function start() {
       }
     } else if (room.phase === 'playing') {
       if (roomPhase !== 'playing') { menu.close(); if (debateMatch) playDebate(); else play(); }
+      if (debateMatch) {
+        const votes = room.rematch || [];
+        debateDisplay.setRematch({ voted: votes.includes(session.id) || debateDisplay.rematch.voted, waiting: votes.filter(id => id !== session.id).length });
+      }
       const changed = paused !== room.paused;
       paused = room.paused;
       void keepScreenAwake();
@@ -384,7 +402,7 @@ async function start() {
       },
       ended: message => {
         // Combat de débat terminé : on garde l’écran des résultats, la connexion n’est plus utile.
-        if (debateState?.phase === 'OVER') { stopSession(); return; }
+        if (debateState?.phase === 'OVER') { stopSession(); debateDisplay.setRematch({ closed: 'Adversaire parti' }); return; }
         returnHome(); menu.page('disconnected', 'La partie a été interrompue.', '<p id="disconnect-message" class="menu-intro" role="alert"></p><button id="back-to-home" class="menu-primary">Retour à l’accueil</button>');
         menu.element.querySelector('#disconnect-message').textContent = message;
         menu.element.querySelector('#back-to-home').onclick = () => menu.home();

@@ -1,6 +1,6 @@
 import { sanitizeCommands } from './shared-commands.js';
 import { encodePresentationState, encodeStateDelta, applyStateDelta } from './state-stream.js';
-import { chooseCandidate, factions, roomMode, startRoom } from './lobby.js';
+import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby } from './lobby.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
@@ -243,6 +243,8 @@ export class PeerSession {
       if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction) });
       else if (packet.type === 'ready' && this.room.phase === 'loading') this.setReady(player);
       else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
+      else if (packet.type === 'rematch' && this.room.phase === 'playing') { try { voteRematch(this.room, player.id); this.publishRoom(); } catch { /* Vote hors d’un débat : ignoré. */ } }
+      else if (packet.type === 'lobby' && this.room.phase === 'playing') { try { returnToLobby(this.room); this.publishRoom(); } catch { /* Hors d’un débat : ignoré. */ } }
     } else {
       if (packet.type === 'room') { this.room = packet.data; this.selectionError = ''; this.callbacks.room(this.room); }
       else if (packet.type === 'selectionError') { this.selectionError = String(packet.data.message); this.callbacks.room(this.room); }
@@ -314,7 +316,7 @@ export class PeerSession {
   async request(action, data = {}) {
     if (this.closed) throw new Error('La connexion est fermée.');
     if (!this.host) {
-      if (!['commands', 'ready', 'pause', 'choose'].includes(action)) throw new Error('Cette action n’est pas disponible à cette étape.');
+      if (!['commands', 'ready', 'pause', 'choose', 'rematch', 'lobby'].includes(action)) throw new Error('Cette action n’est pas disponible à cette étape.');
       if (!this.send(this.peers.get('host'), action, data)) {
         // The channel is reopening or closing: onclose and the heartbeat decide.
         const error = new Error('La connexion à l’hôte n’est pas prête.'); error.transient = true; throw error;
@@ -326,6 +328,8 @@ export class PeerSession {
       this.cancelInvite(); this.publishRoom();
     } else if (action === 'ready' && this.room.phase === 'loading') this.setReady(this.room.players[0]);
     else if (action === 'pause' && this.room.phase === 'playing') { this.room.paused = data.paused === true; this.publishRoom(); }
+    else if (action === 'rematch') { voteRematch(this.room, this.id); this.publishRoom(); }
+    else if (action === 'lobby') { returnToLobby(this.room); this.publishRoom(); }
     else if (action === 'snapshot' && this.room.phase === 'playing') this.broadcast('snapshot', data.state);
     else throw new Error('Cette action n’est pas disponible à cette étape.');
     return { ok: true };

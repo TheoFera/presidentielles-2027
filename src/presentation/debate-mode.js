@@ -282,7 +282,7 @@ export class DebateModeDisplay {
     });
     this.reset();
   }
-  reset() { this.signature = null; this.cards = new Map(); this.resultShown = false; this.bannerText = null; this.koSeen = 0; this.koUntil = 0; this.hide(); }
+  reset() { this.signature = null; this.cards = new Map(); this.resultShown = false; this.bannerText = null; this.koSeen = 0; this.koUntil = 0; this.rematch = { voted: false, waiting: 0, closed: '' }; this.hide(); }
   hide() { this.hud.hidden = true; this.banner.hidden = true; this.result.hidden = true; this.result.replaceChildren(); this.resultShown = false; }
   build(state) {
     this.hud.replaceChildren(); this.cards.clear();
@@ -332,6 +332,17 @@ export class DebateModeDisplay {
     }
     if (state.phase === 'OVER' && !this.resultShown && state.tick - state.finished_tick >= mode.victory_delay_seconds * hz) this.showResult(state);
   }
+  /** Multijoueur : vote de revanche. voted = ce joueur a voté ; waiting = autres joueurs partants ; closed = raison si impossible. */
+  setRematch(status) { Object.assign(this.rematch, status); this.renderRematch(); }
+  renderRematch() {
+    const button = this.multiplayer && this.result.querySelector('[data-debate-action="rematch"]');
+    if (!button) return;
+    const { voted, waiting, closed } = this.rematch;
+    button.disabled = !!closed || voted;
+    button.textContent = closed || (voted ? 'En attente de l’adversaire…' : waiting ? 'Revanche ! (adversaire partant)' : 'Revanche');
+    const setup = this.result.querySelector('[data-debate-action="setup"]');
+    if (setup) setup.disabled = !!closed;
+  }
   showResult(state) {
     this.resultShown = true; this.banner.hidden = true;
     const winner = state.candidates.find(c => c.id === state.winner_id);
@@ -354,9 +365,9 @@ export class DebateModeDisplay {
       item.querySelector('small').textContent = `${Math.round(fighter.damage_dealt)} dégâts infligés`;
       list.append(item);
     }
-    // En multijoueur, la revanche et le changement de combattants passent par un nouveau salon.
-    if (this.multiplayer) panel.querySelectorAll('[data-debate-action="rematch"], [data-debate-action="setup"]').forEach(button => button.remove());
+    // En multijoueur, la revanche se vote à plusieurs ; changer de combattants ramène tout le salon à la sélection.
     this.result.replaceChildren(panel); this.result.hidden = false;
+    this.renderRematch();
     panel.querySelector('button').focus({ preventScroll: true });
   }
 }

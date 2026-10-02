@@ -41,3 +41,27 @@ export function startRoom(room, setup = null) {
   if (room.mode === 'debate') room.debate = debateStart(room, setup);
   room.phase = 'loading'; room.players.forEach(p => { p.ready = false; });
 }
+
+/**
+ * Débat terminé : chaque joueur vote pour la revanche. Quand tous ont voté,
+ * le même combat (plateau, format, combattants) repart en préparation.
+ */
+export function voteRematch(room, playerId) {
+  if (room.mode !== 'debate' || room.phase !== 'playing' || !room.debate) throw new Error('La revanche n’est pas disponible.');
+  if (!room.players.some(p => p.id === playerId)) throw new Error('Joueur introuvable.');
+  room.rematch = [...new Set([...(room.rematch || []), playerId])].filter(id => room.players.some(p => p.id === id));
+  if (room.players.every(p => room.rematch.includes(p.id))) {
+    room.rematch = []; room.paused = false;
+    room.phase = 'loading'; room.players.forEach(p => { p.ready = false; });
+  }
+}
+
+/**
+ * Débat terminé : retour de tout le salon à la sélection des combattants.
+ * Les choix précédents restent cochés ; chacun peut les modifier, puis l’hôte relance.
+ */
+export function returnToLobby(room) {
+  if (room.mode !== 'debate' || room.phase !== 'playing') throw new Error('Le changement de combattants n’est pas disponible.');
+  room.phase = 'lobby'; room.rematch = []; room.paused = false;
+  room.players.forEach(p => { p.ready = false; });
+}

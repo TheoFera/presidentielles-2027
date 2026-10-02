@@ -108,6 +108,7 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 .debate-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; }
 .debate-result-actions button { min-height: 44px; padding: .8cqw 2cqw; border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); color: #fff; font: 900 clamp(13px, 1.8cqw, 22px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714; cursor: pointer; }
 .debate-result-actions button:hover { filter: brightness(1.16); }
+.debate-result-actions button:disabled { opacity: .65; cursor: default; filter: none; }
 .debate-result-actions button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 .debate-result-actions .debate-primary { border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); text-shadow: 1px 2px 1px #092309; }
 

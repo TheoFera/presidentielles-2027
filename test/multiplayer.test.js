@@ -529,3 +529,36 @@ test('Salon direct : une connexion rétablie pendant le délai de grâce continu
   assert.deepEqual(ended, []);
   assert.equal(peer.connected, true);
 });
+
+test('Débat multijoueur : la revanche repart quand tous les joueurs ont voté', async () => {
+  const { voteRematch } = await import('../src/network/lobby.js');
+  const debate = { format: '1v1', map: 'plateau', fighters: [] };
+  const room = { mode: 'debate', phase: 'playing', paused: false, debate, players: [{ id: 'a', ready: true }, { id: 'b', ready: true }] };
+  voteRematch(room, 'a');
+  assert.equal(room.phase, 'playing');
+  assert.deepEqual(room.rematch, ['a']);
+  voteRematch(room, 'a'); // Un double appui ne compte qu’une fois.
+  assert.equal(room.phase, 'playing');
+  voteRematch(room, 'b');
+  assert.equal(room.phase, 'loading');
+  assert.equal(room.debate, debate);
+  assert.deepEqual(room.rematch, []);
+  assert.ok(room.players.every(p => !p.ready));
+  assert.throws(() => voteRematch({ ...room, mode: 'campaign', phase: 'playing' }, 'a'));
+  assert.throws(() => voteRematch({ ...room, phase: 'playing' }, 'intrus'));
+});
+
+test('Débat multijoueur : changer de combattants ramène le salon à la sélection', async () => {
+  const { returnToLobby, chooseCandidate } = await import('../src/network/lobby.js');
+  const room = { mode: 'debate', phase: 'playing', paused: false, rematch: ['a'], debate: { format: '1v1' },
+    players: [{ id: 'a', faction: 'melenchon', style: 'classique', ready: true }, { id: 'b', faction: 'le_pen', style: 'classique', ready: true }] };
+  returnToLobby(room);
+  assert.equal(room.phase, 'lobby');
+  assert.deepEqual(room.rematch, []);
+  assert.ok(room.players.every(p => !p.ready));
+  assert.equal(room.players[0].faction, 'melenchon'); // Les choix restent proposés.
+  chooseCandidate(room, 'a', 'philippe', 'classique'); // Et peuvent être changés.
+  assert.equal(room.players[0].faction, 'philippe');
+  assert.throws(() => returnToLobby({ ...room, mode: 'campaign', phase: 'playing' }));
+  assert.throws(() => returnToLobby(room)); // Déjà en sélection.
+});

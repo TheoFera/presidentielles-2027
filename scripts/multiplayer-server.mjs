@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { chooseCandidate, roomMode, startRoom } from '../src/network/lobby.js';
+import { chooseCandidate, roomMode, startRoom, voteRematch, returnToLobby } from '../src/network/lobby.js';
 
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -7,7 +7,7 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, debate: room.debate, players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, debate: room.debate, rematch: room.rematch || [], players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
   const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
   const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
   const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
@@ -88,6 +88,10 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
         player.ready = true;
         if (room.players.every(p => p.ready)) room.phase = 'playing';
         changed(room);
+      } else if (action === 'rematch') {
+        voteRematch(room, player.id); changed(room);
+      } else if (action === 'lobby') {
+        returnToLobby(room); changed(room);
       } else if (action === 'pause') {
         if (room.phase !== 'playing') throw new Error('La partie n’a pas commencé.');
         room.paused = data.paused === true; changed(room);
