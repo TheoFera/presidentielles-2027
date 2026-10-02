@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { candidateCombatPose, usesCandidateCombat, combatAtlasFor } from '../src/presentation/melenchon-combat.js';
 import { candidateExtraPose, extraAtlasesFor } from '../src/presentation/candidate-extra-poses.js';
-import { MINOR_ANIMATION_FILES } from '../src/presentation/minor-animation-sprites.js';
+import { MINOR_ANIMATION_FILES, minorCombatAtlases } from '../src/presentation/minor-animation-sprites.js';
 import { MINOR_ANIMATION_DATA } from '../src/presentation/minor-animation-data.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
@@ -13,12 +13,17 @@ import { additionalCombatAtlases } from '../src/presentation/candidate-combat-at
 import { additionalExtraAtlases } from '../src/presentation/candidate-extra-atlases.js';
 
 test('Les six mineurs ont la même échelle que Philippe pour chaque famille de poses', () => {
-  for (const sheets of Object.values(MINOR_ANIMATION_DATA)) for (const [sheet, atlas] of Object.entries(sheets)) {
+  for (const [faction, sheets] of Object.entries(MINOR_ANIMATION_DATA)) for (const [sheet, atlas] of Object.entries(sheets)) {
     const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
     const height = reference.referenceHeight || 340;
     assert.ok(Math.abs(atlas.frames[0][3] / atlas.referenceHeight - reference.frames[0][3] / height) < 1e-8);
-    if (!atlas.frameScales) assert.ok(Math.abs(atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight - reference.frames[0][2] / height) < 1e-8);
+    if (!atlas.frameScales && faction !== 'dupont_aignan') assert.ok(Math.abs(atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight - reference.frames[0][2] / height) < 1e-8);
   }
+});
+
+test('Dupont-Aignan garde ses proportions : aucune pose étirée en hauteur', () => {
+  for (const atlas of Object.values(MINOR_ANIMATION_DATA.dupont_aignan)) assert.equal(atlas.widthScale * 1.06, 1.1236);
+  assert.equal(minorCombatAtlases.dupont_aignan.minor, true);
 });
 
 test('Roussel : échelle constante par rangée, marche à la taille de la garde, sans étirement du visage', () => {

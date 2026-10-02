@@ -1299,7 +1299,7 @@ export const MINOR_ANIMATION_DATA = {
           1187
         ]
       ],
-      "widthScale": 0.9875767813267814
+      "widthScale": 1.0599999999999998
     },
     "movement": {
       "referenceHeight": 354.71380471380473,
@@ -1433,7 +1433,7 @@ export const MINOR_ANIMATION_DATA = {
           1231
         ]
       ],
-      "widthScale": 1.0042546678910316
+      "widthScale": 1.0599999999999998
     },
     "actions": {
       "referenceHeight": 477.45508982035926,
@@ -1535,7 +1535,7 @@ export const MINOR_ANIMATION_DATA = {
           1219
         ]
       ],
-      "widthScale": 0.9990341896851459
+      "widthScale": 1.0599999999999998
     }
   },
   "retailleau": {

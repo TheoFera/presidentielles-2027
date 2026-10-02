@@ -29,6 +29,7 @@ import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer }
 import { PeerSession } from './network/peer-session.js';
 import { OnlineSession } from './network/online-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
+import { SnapshotBuffer } from './network/snapshot-buffer.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
 
@@ -119,8 +120,9 @@ async function start() {
   let remote = new Map();
   let networkElapsed = 0;
   let networkBusy = false;
-  let snapshotReceivedAt = 0;
-  let snapshotInterval = 100;
+  // Invité : les états de l’hôte passent par un tampon pour un affichage fluide malgré la 4G.
+  const snapshots = new SnapshotBuffer(1 / config.balance.simulation_architecture.fixed_tick_hz);
+  let guestAlpha = 1;
   let simulationSpeed = 1;
   let wasHidden = false;
   let noticeRemaining = 0;
@@ -243,7 +245,7 @@ async function start() {
   document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
   durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Financement : ${format(config.balance.buildings.financement.capture_cost)} k€. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   function stopSession() {
-    const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false;
+    const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset();
     void keepScreenAwake();
   }
   function stopDebate() {
@@ -329,7 +331,7 @@ async function start() {
       onProgress(1);
     } finally { finished = true; clearTimeout(timeout); }
   }
-  function play() { paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
+  function play() { snapshots.reset(); paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
     if (room.phase === 'pairing') {
@@ -372,13 +374,13 @@ async function start() {
       },
       snapshot: snapshot => {
         if (!session || session.host || menu.active) return;
-        const now = performance.now();
-        snapshotInterval = snapshotReceivedAt ? Math.max(50, Math.min(250, now - snapshotReceivedAt)) : 100;
-        snapshotReceivedAt = now;
-        if (debateMatch) { debatePrevious = debateState; debateState = { ...snapshot, local_candidate_id: debateState.local_candidate_id }; return; }
+        const now = performance.now() / 1000;
+        if (debateMatch) { snapshots.push({ ...snapshot, local_candidate_id: debateState.local_candidate_id }, now); return; }
         if (snapshot.multiplayer_profile) stylesDisplay.profile = snapshot.multiplayer_profile;
-        previous = state; state = { ...snapshot, local_candidate_id: session.candidateId };
-        if (previous.phase !== state.phase) { previous = state; input.clear(); renderer.resetCamera(); }
+        const latest = snapshots.latest;
+        // Changement de phase : l’ancien état ne doit pas se mélanger au nouveau.
+        if (latest && latest.phase !== snapshot.phase) { snapshots.reset(); input.clear(); renderer.resetCamera(); }
+        snapshots.push({ ...snapshot, local_candidate_id: session.candidateId }, now);
       },
       ended: message => {
         // Combat de débat terminé : on garde l’écran des résultats, la connexion n’est plus utile.
@@ -415,7 +417,8 @@ async function start() {
   function networkFrame(elapsed) {
     if (!session || menu.active || session.room.phase !== 'playing') return;
     networkElapsed += elapsed;
-    if (networkBusy || networkElapsed < (session.host ? 0.1 : 0.05)) return;
+    // Débat : 20 états par seconde (combat rapide, état léger) ; campagne : 15.
+    if (networkBusy || networkElapsed < (session.host ? (debateMatch ? 0.05 : 1 / 15) : 0.05)) return;
     networkElapsed = 0;
     const activeSession = session;
     if (!session.host && paused) return;
@@ -452,11 +455,20 @@ async function start() {
       ...(recent ? controller.actions.splice(0) : [{ type: 'CancelAttack', candidateId: id }])];
   }
 
+  /** Invité : l’état affiché est pris dans le tampon, avec un léger retard constant. */
+  function guestView() {
+    const view = snapshots.sample(performance.now() / 1000);
+    if (!view) return;
+    if (debateMatch) { debateState = view.state; debatePrevious = view.previous; } else { state = view.state; previous = view.previous; }
+    guestAlpha = Math.max(0, Math.min(1, view.alpha));
+  }
+
   /** Une image du mode Débat : simulation à pas fixe, puis affichage. */
   function debateFrame(elapsed, now) {
     const halted = paused || !help.hidden || document.hidden;
     // Un invité ne simule pas : il affiche les états envoyés par l’hôte.
     const guest = session && !session.host;
+    if (guest) guestView();
     if (!halted && !guest) {
       clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
         debatePrevious = debateState;
@@ -468,7 +480,7 @@ async function start() {
     }
     networkFrame(elapsed);
     const fighter = debateState.candidates.find(c => c.id === debateState.local_candidate_id);
-    const alpha = halted ? 1 : guest ? Math.min(1, (now - snapshotReceivedAt) / snapshotInterval) : clock.alpha;
+    const alpha = halted ? 1 : guest ? guestAlpha : clock.alpha;
     debateDisplay.update(debateState, halted ? 0 : elapsed);
     damageFeedback.update(debateState, fighter, alpha, halted || debateState.phase === 'OVER');
     updateCombatButtons(debateState, fighter);
@@ -486,6 +498,7 @@ async function start() {
       if (wasHidden) { elapsed = 0; wasHidden = false; }
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
       if (debateMatch) { debateFrame(elapsed, now); requestAnimationFrame(frame); return; }
+      if (session && !session.host) guestView();
       if (!paused && !document.hidden && (!session || session.host)) {
         const frameStart = state;
         let changedCamera = false;
@@ -542,7 +555,7 @@ async function start() {
       if (noticeRemaining <= 0) setText(notice, '');
       notice.hidden = ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase);
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
-      const renderAlpha = session && !session.host ? Math.min(1, (now - snapshotReceivedAt) / snapshotInterval) : clock.alpha;
+      const renderAlpha = session && !session.host ? guestAlpha : clock.alpha;
       electoralDisplay.update(state, candidate, interpolatedPlayerX(viewState, paused ? viewState : previous, candidate, paused ? 1 : renderAlpha));
       renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;

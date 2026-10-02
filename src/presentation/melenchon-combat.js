@@ -128,7 +128,7 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06
     : ['attack_3_finisher','interaction_hold','ko_fall','ko_ground'].includes(pose.name) ? 1.06 : 1;
   const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * (definition.widthScale || 1) * jumpScale * chargedScale * actionScale * (pose.name==='ultimate'&&entity.faction_id==='le_pen'?1.12:1);
-  const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (!extra && pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale * actionScale;
+  const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (!extra && !definition.minor && pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale * actionScale;
   if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
   const clip=definition.clips?.[pose.frame];
   if(clip) {

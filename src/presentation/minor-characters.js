@@ -144,8 +144,9 @@ export function drawMinorCandidate(renderer, entity, x, state) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
       const standingScale = !listenSheet && entity.faction_id === 'roussel' ? .94 : 1;
       const k = height / atlas.referenceHeight * (atlas.frameScales?.[cell] ?? 1) * standingScale;
-      // Même largeur de silhouette debout que Philippe (161 px pour 384 px).
-      const widthScale = listenSheet ? (atlas.widthScale || 1) : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
+      // Même largeur de silhouette debout que Philippe (161 px pour 384 px),
+      // sauf Dupont-Aignan, plus mince : sa largeur naturelle évite de l’écraser.
+      const widthScale = listenSheet ? (atlas.widthScale || 1) : entity.faction_id === 'dupont_aignan' ? 1 : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
       ctx.scale(widthScale, 1);
       const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
       if (motion.walking) {

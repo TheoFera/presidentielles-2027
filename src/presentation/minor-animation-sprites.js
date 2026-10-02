@@ -11,5 +11,5 @@ export const MINOR_ANIMATION_FILES = {
 };
 
 export const minorAnimationId = (faction, sheet) => `character-minor-${faction}-${sheet}`;
-export const minorCombatAtlases = Object.fromEntries(Object.entries(MINOR_ANIMATION_DATA).map(([faction, sheets]) => [faction, { ...sheets.combat, sprite: minorAnimationId(faction, 'combat'), isolated: true }]));
+export const minorCombatAtlases = Object.fromEntries(Object.entries(MINOR_ANIMATION_DATA).map(([faction, sheets]) => [faction, { ...sheets.combat, sprite: minorAnimationId(faction, 'combat'), isolated: true, minor: true }]));
 export const minorExtraAtlases = Object.fromEntries(Object.entries(MINOR_ANIMATION_DATA).map(([faction, sheets]) => [faction, Object.fromEntries(['movement', 'actions'].map(sheet => [sheet, { ...sheets[sheet], sprite: minorAnimationId(faction, sheet), isolated: true }]))]));
