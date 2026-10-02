@@ -130,3 +130,9 @@ Le reste (choix des candidats, débat, lancement) est identique au mode Wi-Fi.
 - Si l’hôte perd Internet moins d’une minute dans le salon, il reprend son code automatiquement ; au-delà, les joueurs déjà reliés restent, mais plus personne ne peut entrer.
 - Tous les appareils doivent avoir la même version du jeu (message « Les versions du jeu diffèrent » sinon).
 - Coût TURN : seules les parties qui ne peuvent pas se connecter en direct passent par le relais. Surveillez la consommation dans le tableau de bord Cloudflare (Realtime → TURN).
+
+## Comptes, classement et parties classées
+
+Le même Worker sert aussi l'API des comptes PartageTonJeu (`/api/v1`, base D1) : compte obligatoire pour le multijoueur
+une fois Google/Apple configuré, parties en ligne classées (Elo), candidats débloqués. Voir `docs/comptes-partagetonjeu.md`.
+Attention : `npx wrangler deploy` demande désormais l'identifiant de la base D1 dans `wrangler.toml`.

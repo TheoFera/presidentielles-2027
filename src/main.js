@@ -32,6 +32,13 @@ import { outgoingCommands } from './network/shared-commands.js';
 import { SnapshotBuffer } from './network/snapshot-buffer.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
+import { APP_BUILD } from './app-build.js';
+import { AccountClient } from './network/account-api.js';
+import { accountsConfigured } from './network/auth-providers.js';
+import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
+import { requireAccount, showAccountToast, decorateProfile } from './presentation/account-screens.js';
+import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/account-progress.js';
+import { earnedUnlocks } from './simulation/unlock-catalog.js';
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -58,6 +65,15 @@ async function start() {
     get: () => profile,
     save: patch => { Object.assign(profile, patch); try { Object.assign(profile, saveCampaignProfile(profile)); } catch { /* Stockage indisponible : gardé pour cette session. */ } },
   };
+  // Compte PartageTonJeu (facultatif) : jamais demandé au lancement ni pour le solo.
+  const accounts = new AccountClient({ platform: globalThis.PTJNativeAuth?.platform?.() || (APP_BUILD ? 'android' : 'web') });
+  const syncProgress = () => { applyAccountProgress(profile, accounts); account.save({}); };
+  accounts.onChange(syncProgress); syncProgress();
+  // Session retrouvée : le profil du compte se met à jour en arrière-plan (hors ligne, la copie locale sert).
+  void accounts.refresh().catch(() => {});
+  const ranked = new RankedMatches(accounts, { notify: showAccountToast });
+  // Campagne solo d'un joueur connecté, déclarée au serveur pour valider les déblocages en fin de partie.
+  let soloRun = null;
   const audio = new GameAudio();
   // Le navigateur n'autorise le son qu'après un geste de l'utilisateur.
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
@@ -221,7 +237,11 @@ async function start() {
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
     else if (key === 'h') toggleHelp();
-    else if (key === 'f3') { if (!session && !debateMatch) debug.toggle(); }
+    else if (key === 'f3') {
+      if (!session && !debateMatch) debug.toggle();
+      // Outils de débogage (accélération, triche) : cette partie ne débloquera rien sur le compte.
+      if (debug.visible && soloRun) soloRun.tainted = true;
+    }
     else if (key === 'f') {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
@@ -308,6 +328,7 @@ async function start() {
     setMapDecor(decorForProfile(profile));
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
+    startSoloRun(candidateId);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
     renderer.artZone = null;
     renderer.draw(state, state, 1, 0);
@@ -344,6 +365,30 @@ async function start() {
       onProgress(1);
     } finally { finished = true; clearTimeout(timeout); }
   }
+  function startSoloRun(candidateId) {
+    soloRun = null;
+    if (session || !accounts.ready) return;
+    const run = soloRun = { id: null, tainted: false };
+    accounts.startRun(candidateId.split(':')[1]).then(result => { run.id = result.run_id; }).catch(() => { /* Hors ligne : partie jouable, déblocage non enregistré. */ });
+  }
+  /** Fin normale de la campagne : les candidats mis K.-O. sont débloqués maintenant (jamais avant). */
+  function finishProgress() {
+    const faction = state.local_candidate_id.split(':')[1];
+    const won = earnedUnlocks(state, faction);
+    const announce = ids => { if (ids.length) showAccountToast(`Débloqué : ${unlockNames(ids)} !`, 'ok'); };
+    if (session?.room?.match) {
+      ranked.report(session, { placements: campaignPlacements(session.room, state), knockouts: campaignKnockouts(session.room, state) });
+      return;
+    }
+    if (!accounts.signedIn) { announce(addDeviceUnlocks(profile, won)); account.save({}); return; }
+    const run = soloRun; soloRun = null;
+    if (session || !run?.id || run.tainted) {
+      if (won.length) showAccountToast(session ? 'Partie non classée : aucun déblocage enregistré sur le compte.' : 'Déblocage non enregistré : partie hors ligne ou accélérée.');
+      return;
+    }
+    accounts.completeRun(run.id, won).then(result => announce(result.unlocked))
+      .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
+  }
   function play() { snapshots.reset(); paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
@@ -354,6 +399,8 @@ async function start() {
       if (roomPhase === 'playing' || roomPhase === 'loading') { stopDebate(); paused = true; input.clear(); }
       updateLobby(menu, session, returnHome);
     } else if (room.phase === 'loading' && roomPhase !== 'loading') {
+      // Partie en ligne d'un joueur connecté : déclarée au serveur pour le classement.
+      ranked.declare(session);
       if (room.mode === 'debate') {
         void menu.debateLoading(room.debate, { multiplayer: { localId: debateFighterOf(room.debate, session.id), ready: () => session.request('ready') } });
       } else {
@@ -371,9 +418,11 @@ async function start() {
       void keepScreenAwake();
       if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; canvas.focus(); }
     }
+    ranked.join(session);
     roomPhase = room.phase;
   }
   async function connectRoom(action, data) {
+    if (accountsConfigured() && !accounts.ready) throw new Error('Connectez-vous à votre compte PartageTonJeu pour jouer en multijoueur.');
     const generation = menu.generation;
     const Session = data.transport === 'direct' ? PeerSession : data.transport === 'online' ? OnlineSession : MultiplayerSession;
     const nextSession = new Session({
@@ -413,11 +462,16 @@ async function start() {
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
-  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: (current, mode) => showMultiplayerSetup(current, connectRoom, mode),
+  // Multijoueur : compte obligatoire. Une fois connecté, l'action voulue reprend toute seule.
+  const multiplayerGate = (current, mode) => requireAccount(current, accounts, { resume: () => showMultiplayerSetup(current, connectRoom, mode), back: () => current.players(mode), suggestion: profile.nickname });
+  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: multiplayerGate,
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
+  menu.onProfile = current => decorateProfile(current, accounts);
   window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
-  if (['salon', 'en-ligne'].some(key => new URLSearchParams(location.search).has(key))) void showMultiplayerSetup(menu, connectRoom);
+  if (['salon', 'en-ligne'].some(key => new URLSearchParams(location.search).has(key))) {
+    void requireAccount(menu, accounts, { resume: () => showMultiplayerSetup(menu, connectRoom), back: () => menu.home(), suggestion: profile.nickname });
+  }
 
   function matchCommands() {
     if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
@@ -529,6 +583,9 @@ async function start() {
     const fighter = debateState.candidates.find(c => c.id === debateState.local_candidate_id);
     const alpha = halted ? 1 : guest ? guestAlpha : clock.alpha;
     debateDisplay.update(debateState, halted ? 0 : elapsed);
+    // Débat en ligne terminé : chaque joueur envoie l'ordre d'arrivée qu'il a vu.
+    const match = debateState.phase === 'OVER' && session?.room?.match;
+    if (match && !ranked.reported.has(match.id)) ranked.report(session, { placements: debatePlacements(session.room, debateState), knockouts: [] });
     damageFeedback.update(debateState, fighter, alpha, halted || debateState.phase === 'OVER');
     updateCombatButtons(debateState, fighter);
     const controls = document.getElementById('touch-controls');
@@ -596,6 +653,7 @@ async function start() {
       if (state.phase === 'RESULTS' && !resultRecorded) {
         resultRecorded = true;
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));
+        finishProgress();
       }
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;

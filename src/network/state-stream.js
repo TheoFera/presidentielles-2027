@@ -189,6 +189,28 @@ function patchValue(previous, op) {
   });
 }
 
+// Passants loin de l’écran d’un invité : il ne les voit pas, inutile de lui envoyer
+// chacun de leurs pas. Ils gardent leur dernier état connu et sont rafraîchis une fois
+// toutes les `refreshEvery` mises à jour, à tour de rôle pour étaler les envois.
+// `view` : marge en unités de monde de part et d’autre du candidat (un écran en fait 24).
+const ringGap = (a, b, length) => { const d = Math.abs(a - b) % length; return Math.min(d, length - d); };
+const turn = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+export function cullDistantNpcs(encoded, baseline, centerX, round, { view = 32, refreshEvery = 15 } = {}) {
+  const length = encoded?.world?.length;
+  if (!baseline || !Array.isArray(encoded.npcs) || !Array.isArray(baseline.npcs) || !Number.isFinite(centerX) || !(length > 0)) return encoded;
+  const known = new Map(baseline.npcs.map(npc => [npc?.id, npc]));
+  let changed = false;
+  const npcs = encoded.npcs.map(npc => {
+    const old = known.get(npc?.id);
+    if (!old || old === npc || !Number.isFinite(npc.x) || !Number.isFinite(old.x)) return npc;
+    // Un passant qui entre à l’écran ou en sort est toujours envoyé.
+    if (ringGap(npc.x, centerX, length) <= view || ringGap(old.x, centerX, length) <= view) return npc;
+    if ((round + turn(npc.id)) % refreshEvery === 0) return npc;
+    changed = true; return old;
+  });
+  return changed ? { ...encoded, npcs } : encoded;
+}
+
 // baseline: the last encoded state this guest received (null for the first packet).
 export function stateDelta(state, baseline = null) {
   const next = encodePresentationState(state);

@@ -10,6 +10,7 @@ import { random } from './world.js';
 import { releaseDonation, dropCandidateMoney } from './money.js';
 import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
+import { recordKnockout } from './unlock-catalog.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null,
@@ -98,6 +99,8 @@ export function hit(sim, source, target, spec, attackId) {
       const koLoss = target.minor ? 0 : electoralDamage(sim, target.faction_id, config.balance.candidate_combat.ko_electoral_damage_percent_points);
       result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
       target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
+      // Noté pour les déblocages, validés seulement en fin de partie.
+      recordKnockout(state, source, target);
       target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds + config.balance.candidate_combat.ko_ground_seconds);
       const progress = Math.max(0, Math.min(1, state.campaign_progress_01));
       const combat = config.balance.candidate_combat;

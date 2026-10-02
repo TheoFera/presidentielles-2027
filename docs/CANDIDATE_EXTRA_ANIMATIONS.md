@@ -1,6 +1,6 @@
 # Animations supplémentaires — Marine Le Pen et Édouard Philippe
 
-Génération avec l’outil ImageGen intégré, à partir du personnage original et de sa planche de combat déjà intégrée. Ces poses concernent la tenue de base et les styles visuellement compatibles (Souverainiste et Gestionnaire). Les autres costumes conservent leurs propres sprites.
+Génération avec l’outil ImageGen intégré, à partir du personnage original et de sa planche de combat déjà intégrée. Ces poses concernent la tenue de base et les styles visuellement compatibles (Protectionniste et Gestionnaire). Les autres costumes conservent leurs propres sprites.
 
 Chaque candidat dispose de deux nouvelles planches de 16 poses. La marche en garde suit la distance réellement parcourue : huit positions de jambes, puis trois poses de dash, deux réactions légères, deux réactions fortes et un recul. La seconde planche contient étourdissement, atterrissage, persuasion, signature, chute, KO et déclenchement d’ultime. Les coups, la charge et le saut utilisent toujours leurs planches de combat existantes.
 

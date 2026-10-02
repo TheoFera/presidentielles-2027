@@ -2,7 +2,7 @@ import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialCon
 import { enterLandscape, syncOrientation, toggleFullscreen } from './landscape.js';
 import { profileButton, profileContent, cleanNickname } from './player-profile.js';
 import { isBetatestProfile } from '../simulation/campaign-styles.js';
-import { showDebateSetup, defaultDebateSetup } from './debate-menu.js';
+import { showDebateSetup, defaultDebateSetup, emptyDebateSetup } from './debate-menu.js';
 import { APP_BUILD } from '../app-build.js';
 const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
@@ -78,7 +78,7 @@ export class StartMenu {
   /** « Avec qui ? » : seul contre l’IA, ou entre amis, pour la campagne comme pour le débat. */
   players(mode) {
     this.page('players', '', playersContent(mode));
-    this.element.querySelector('#solo').onclick = () => { mobileLandscape(); if (mode === 'debate') this.debate(); else this.candidates(); };
+    this.element.querySelector('#solo').onclick = () => { mobileLandscape(); if (mode === 'debate') this.debate(emptyDebateSetup(this.debateMode.config)); else this.candidates(); };
     this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this, mode); };
   }
   /** Mode Débat : réglages du combat. Le dernier réglage est gardé pour la revanche. */
@@ -119,13 +119,16 @@ export class StartMenu {
   }
   profile() {
     this.page('profile', 'Mon profil', profileContent(this.account.get()));
+    this.onProfile?.(this);
     const input = this.element.querySelector('#profile-nickname');
+    this.element.querySelectorAll('input[name="map-decor"]').forEach(radio => radio.addEventListener('change', () => { if (radio.checked) this.account.save({ map_decor: radio.value }); }));
+    // Connecté à un compte : le pseudo se change dans « Mon compte ».
+    if (!input) return;
     const save = () => { const nickname = cleanNickname(input.value); this.account.save({ nickname }); return nickname; };
     const betatest = isBetatestProfile(this.account.get());
     input.addEventListener('input', save);
     // Le choix du décor n'apparaît (ou ne disparaît) qu'une fois le pseudo validé, pour ne pas couper la saisie.
     input.addEventListener('change', () => { input.value = save(); if (isBetatestProfile(this.account.get()) !== betatest) this.profile(); });
-    this.element.querySelectorAll('input[name="map-decor"]').forEach(radio => radio.addEventListener('change', () => { if (radio.checked) this.account.save({ map_decor: radio.value }); }));
     input.addEventListener('keydown', event => { if (event.key === 'Enter') input.blur(); });
   }
   candidates() {

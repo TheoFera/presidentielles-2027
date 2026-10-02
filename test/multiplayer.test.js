@@ -590,3 +590,45 @@ test('Salon direct : un message court part sans enveloppe et reste compris', () 
   assert.equal(JSON.parse(raw).type, 'ping');
   assert.equal(JSON.parse(raw).n, undefined);
 });
+
+test('Connexion directe : les gros messages partent compressés quand l’autre appareil sait les lire', async t => {
+  const errors = [], snapshots = [], sent = [];
+  const host = new PeerSession({ ended: error => errors.push(error) }, 'test');
+  const guest = new PeerSession({ ended: error => errors.push(error), snapshot: state => snapshots.push(state) }, 'test');
+  guest.room = { phase: 'playing' };
+  const incoming = { readyState: 'open', bufferedAmount: 0 };
+  guest.bindChannel({ connection: { close() {} } }, incoming);
+  const channel = { readyState: 'open', bufferedAmount: 0, send(data) { sent.push(data); incoming.onmessage({ data: typeof data === 'string' ? data : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) }); } };
+  const peer = { connection: { close() {} } }; host.bindChannel(peer, channel); host.peers.set('guest', peer);
+  t.after(() => { host.close(); guest.close(); });
+  // Sans annonce de l’invité : texte, compris par tous les navigateurs.
+  host.send(peer, 'snapshot', { tick: 1, text: 'campagne '.repeat(500) });
+  assert.equal(typeof sent.at(-1), 'string');
+  host.receive(peer, { type: 'caps', data: { deflate: true } });
+  host.send(peer, 'snapshot', { tick: 2, text: 'débat télé '.repeat(500) });
+  for (let i = 0; i < 100 && snapshots.length < 2; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.ok(sent.at(-1) instanceof Uint8Array, 'message compressé');
+  assert.ok(sent.at(-1).byteLength < 300, `${sent.at(-1).byteLength} octets`);
+  assert.equal(snapshots.length, 2);
+  assert.equal(snapshots[1].text, 'débat télé '.repeat(500));
+  // Un message court qui suit garde son ordre.
+  host.send(peer, 'snapshot', { tick: 3, text: 'débat télé '.repeat(500) });
+  for (let i = 0; i < 100 && snapshots.length < 3; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.deepEqual(snapshots.map(s => s.tick), [1, 2, 3]);
+  assert.deepEqual(errors, []);
+});
+
+test('Flux d’états : les passants loin de l’écran d’un invité ne sont rafraîchis qu’à tour de rôle', async () => {
+  const { cullDistantNpcs } = await import('../src/network/state-stream.js');
+  const state = (shift, extra = []) => ({ world: { length: 1000 }, npcs: [{ id: 'npc:1', x: 10 + shift }, { id: 'npc:2', x: 500 + shift }, ...extra] });
+  const before = state(0), after = state(1, [{ id: 'npc:3', x: 600 }]);
+  const view = cullDistantNpcs(after, before, 0, 1, { refreshEvery: 1000 });
+  assert.equal(view.npcs[0].x, 11, 'passant proche : toujours à jour');
+  assert.equal(view.npcs[1].x, 500, 'passant lointain : dernier état connu');
+  assert.equal(view.npcs[2].x, 600, 'nouveau passant : toujours envoyé');
+  // Le monde est circulaire : 995 est tout près de 0.
+  assert.equal(cullDistantNpcs(state(985), state(984), 0, 1, { refreshEvery: 1000 }).npcs[0].x, 995);
+  // À son tour, le passant lointain est rafraîchi.
+  const refreshed = Array.from({ length: 15 }, (_, round) => cullDistantNpcs(after, before, 0, round).npcs[1].x);
+  assert.equal(refreshed.filter(x => x === 501).length, 1);
+});

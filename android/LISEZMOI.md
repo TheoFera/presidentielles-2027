@@ -72,3 +72,4 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 - La première conversion des images en WebP prend quelques minutes (avec `ffmpeg`), ensuite elle est gardée dans `.cache/webp/`.
 - Le mode multijoueur « Avec un serveur local » n'existe pas dans l'application ; le mode « Entre téléphones » fonctionne.
 - Le jeu met en scène des personnalités politiques réelles de façon parodique. Google peut refuser une application qui laisse croire à un lien officiel : la description précise qu'il s'agit d'une parodie non affiliée. Ce n'est pas un avis juridique.
+- Connexion au compte PartageTonJeu : l'appli utilise la connexion Google native (Credential Manager), car Google refuse les connexions dans une WebView. Il faut créer un client OAuth « Android » avec l'empreinte SHA-1 de chaque clé de signature (test et Play Store) : voir `docs/comptes-partagetonjeu.md`, « Ce qu'il reste à configurer ».

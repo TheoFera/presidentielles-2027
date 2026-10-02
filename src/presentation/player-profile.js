@@ -60,8 +60,10 @@ function decorPicker(profile) {
     `<label><input type="radio" name="map-decor" value="${d.id}" ${d.id === chosen ? 'checked' : ''}><span><strong>${escape(d.label)}</strong><small>${escape(d.note)}</small></span></label>`).join('')}</fieldset>`;
 }
 
-export const profileButton = profile => `<button id="menu-profile" aria-label="Mon profil : ${escape(cleanNickname(profile.nickname))}" title="Mon profil">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg><span>${escape(cleanNickname(profile.nickname))}</span></button>`;
+/** Nom affiché : le pseudo du compte PartageTonJeu si le joueur est connecté, sinon celui de l'appareil. */
+export const displayName = profile => profile.account?.username || cleanNickname(profile.nickname);
+export const profileButton = profile => `<button id="menu-profile" aria-label="Mon profil : ${escape(displayName(profile))}" title="Mon profil">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg><span>${escape(displayName(profile))}</span></button>`;
 
 /* Petites icônes au trait (24 × 24) pour les tuiles de statistiques. */
 const ICONS = {
@@ -107,13 +109,15 @@ export function profileContent(profile) {
   return `<div class="profile-screen">
     <section class="profile-identity" data-faction="${hero.id}">
       <div class="profile-hero"><span class="profile-rank">★ ${profileRank(stats)}</span><img src="${portrait(hero)}" alt=""></div>
-      <label class="profile-name">Pseudo<input id="profile-nickname" maxlength="${NICKNAME_MAX}" autocomplete="nickname" spellcheck="false" value="${escape(cleanNickname(profile.nickname))}"></label>
+      ${profile.account?.username ? `<p class="profile-name profile-account-name">Compte PartageTonJeu<strong>${escape(profile.account.username)}</strong></p>`
+        : `<label class="profile-name">Pseudo<input id="profile-nickname" maxlength="${NICKNAME_MAX}" autocomplete="nickname" spellcheck="false" value="${escape(cleanNickname(profile.nickname))}"></label>`}
+      <div class="profile-account-actions"></div>
       <p class="menu-note">${favorite ? `Candidat préféré : <strong>${hero.short}</strong>` : 'Jouez une partie complète pour lancer vos statistiques.'}</p>
     </section>
     <section class="profile-stats" aria-label="Statistiques">${tiles.map(([key, label, value, meter], i) =>
       `<p class="profile-stat" data-stat="${key}" style="--delay:${i * 60}ms">${icon(key)}<strong>${value}</strong><span>${label}</span>${meter == null ? '' : `<i class="profile-meter" style="--v:${Math.round(meter)}%" aria-hidden="true"></i>`}</p>`).join('')}</section>
     <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>
     ${isBetatestProfile(profile) && MAP_DECORS.length > 1 ? decorPicker(profile) : ''}
-    <p class="profile-note menu-note">Profil enregistré sur cet appareil. De nouveaux skins et tenues seront bientôt à débloquer ici.</p>
+    <p class="profile-note menu-note">${profile.account ? 'Candidats débloqués et classement enregistrés sur ton compte PartageTonJeu, sur tous tes appareils.' : 'Profil enregistré sur cet appareil. Mets un candidat K.-O. en campagne puis termine la partie pour le débloquer.'}</p>
   </div>`;
 }

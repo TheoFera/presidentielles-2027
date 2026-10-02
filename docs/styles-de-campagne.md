@@ -14,7 +14,7 @@ Un événement mémorise les multiplicateurs de chaque candidat à son déclench
 
 ## Profil
 
-Le profil est distinct de la sauvegarde de partie. La clé de stockage du navigateur est `presidentielles2027:profile:v1`. Les styles Universaliste, Souverainiste et Gestionnaire sont les seuls débloqués par défaut.
+Le profil est distinct de la sauvegarde de partie. La clé de stockage du navigateur est `presidentielles2027:profile:v1`. Les styles Universaliste, Protectionniste et Gestionnaire sont les seuls débloqués par défaut.
 
 Les points d’intégration sont `isCampaignStyleUnlocked`, `unlockCampaignStyle` et `persistCampaignStyleUnlock`. Cette dernière fonction enregistre un déblocage pour les parties suivantes ; une future interface de progression devra aussi actualiser le profil de la simulation et de la sélection si elle autorise un déblocage pendant une partie. Aucun système de boutique, challenge ou monnaie n’est créé.
 

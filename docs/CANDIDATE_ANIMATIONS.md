@@ -8,7 +8,7 @@ Deux planches de seize poses distinctes, intégrées au rendu du jeu : garde et 
 - Édouard Philippe : `assets/generated/animations/philippe-base-combat-v1.png`.
 - Chaque planche est un PNG RGBA transparent de 1254 × 1254. Les images générées sont copiées sans transformation ; le moteur découpe les silhouettes grâce aux coordonnées de `src/presentation/candidate-combat-atlases.js`.
 - Les deux candidats utilisent exactement les réglages d’affichage validés pour Mélenchon : référence 340, hauteur × 1,1236, largeur × 1,06 ; saut et coup aérien × 1,06 ; charge prête et frappe chargée × 1,06 ; deuxième garde rehaussée de 5,5 %. Les pieds servent de points d’ancrage.
-- Application au costume de base et aux styles Souverainiste / Gestionnaire. Les autres costumes, Bardella et les transformations d’ultime conservent leur rendu existant.
+- Application au costume de base et aux styles Protectionniste / Gestionnaire. Les autres costumes, Bardella et les transformations d’ultime conservent leur rendu existant.
 - Aperçu : `/src/presentation/combat-preview.html?candidate=le_pen` ou `?candidate=philippe`. Un lien permet aussi de comparer avec Mélenchon.
 - Les poses sont dessinées séparément, sans animation de membres découpés. Leur correspondance artistique reste issue d’une génération ; l’aperçu permet de comparer les proportions réelles.
 

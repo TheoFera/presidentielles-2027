@@ -2,8 +2,10 @@
 //   GET /        → vérifie que le serveur répond
 //   GET /ice     → adresses STUN/TURN (identifiants TURN temporaires, 24 h)
 //   GET /salon   → WebSocket de mise en relation (?action=create|join|resume)
+//   /api/v1/…    → comptes PartageTonJeu, classement, progression (base D1, voir docs/comptes-partagetonjeu.md)
 // Un seul Durable Object (« standard ») garde tous les salons en mémoire.
 import { SignalHub } from './signal-hub.js';
+import { handleApi, maintenance } from './api/router.js';
 
 const STUN_ONLY = [{ urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }];
 
@@ -11,10 +13,12 @@ function allowedOrigin(request, env) {
   const list = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const origin = request.headers.get('Origin');
   // Liste vide : tout le monde est accepté. Pas d’en-tête Origin : outil en ligne de commande.
-  return !list.length || !origin || list.includes(origin);
+  // Même origine : formulaire de désinscription servi par ce serveur.
+  return !list.length || !origin || list.includes(origin) || origin === new URL(request.url).origin;
 }
 function corsHeaders(request) {
-  return { 'Access-Control-Allow-Origin': request.headers.get('Origin') || '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Vary': 'Origin' };
+  return { 'Access-Control-Allow-Origin': request.headers.get('Origin') || '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Max-Age': '600', 'Vary': 'Origin' };
 }
 function json(request, value, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...corsHeaders(request) } });
@@ -50,12 +54,19 @@ export default {
     if (!allowedOrigin(request, env)) return new Response('Origine refusée.', { status: 403 });
     if (url.pathname === '/') return json(request, { available: true, game: 'Présidentielle 2027 : Le Jeu' });
     if (url.pathname === '/ice') return json(request, { iceServers: await iceServers(env) });
+    if (url.pathname.startsWith('/api/v1/')) {
+      const response = await handleApi(request, env);
+      for (const [name, value] of Object.entries(corsHeaders(request))) response.headers.set(name, value);
+      return response;
+    }
     if (url.pathname === '/salon') {
       if (request.headers.get('Upgrade') !== 'websocket') return new Response('WebSocket attendu.', { status: 426 });
       return env.SALONS.get(env.SALONS.idFromName('standard')).fetch(request);
     }
     return new Response('Introuvable.', { status: 404 });
   },
+  // Tâche planifiée (wrangler.toml, [triggers]) : résultats en attente et nettoyage des comptes.
+  async scheduled(event, env, ctx) { ctx.waitUntil(maintenance(env)); },
 };
 
 export class Salons {

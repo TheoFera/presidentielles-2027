@@ -2,7 +2,7 @@ import { DebateSimulation } from './debate-simulation.js';
 import { aiCombatCommands } from './ai-combat.js';
 import { aiNoise } from './ai-settings.js';
 import { airborne } from './combat-actions.js';
-import { campaignStyles, isCampaignStyleUnlocked } from './campaign-styles.js';
+import { campaignStyles, isCampaignStyleUnlocked, isMinorCandidateUnlocked } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { initializeMobileCombat } from './mobile-combat.js';
 import { ALL_FACTIONS, isMinorFaction } from './world.js';
@@ -22,9 +22,9 @@ export function debateStyles(config, faction) {
   return campaignStyles(config, faction);
 }
 
-/** Styles jouables en Débat par ce profil : ceux débloqués, ou tous pour « betatest ». */
+/** Styles jouables en Débat par ce profil : ceux débloqués (candidats mineurs compris), ou tous pour « betatest ». */
 export function debateStyleAvailable(config, profile, faction, styleId) {
-  return debateStyles(config, faction).some(s => s.id === styleId) && (isMinorFaction(faction) || isCampaignStyleUnlocked(profile, faction, styleId));
+  return debateStyles(config, faction).some(s => s.id === styleId) && (isMinorFaction(faction) ? isMinorCandidateUnlocked(profile, faction) : isCampaignStyleUnlocked(profile, faction, styleId));
 }
 
 /** Renvoie un message d’erreur lisible, ou null si le combat peut commencer. */
@@ -35,7 +35,8 @@ export function debateSetupError(config, setup, profile = null) {
   if (!Array.isArray(setup.fighters) || setup.fighters.length !== count) return `Il faut ${count} combattants.`;
   const seen = new Set();
   for (const [index, fighter] of setup.fighters.entries()) {
-    if (!ALL_FACTIONS.includes(fighter?.faction)) return 'Candidat inconnu.';
+    if (!fighter?.faction) return index ? 'Choisissez le candidat de l’IA.' : 'Choisissez votre candidat.';
+    if (!ALL_FACTIONS.includes(fighter.faction)) return 'Candidat inconnu.';
     if (!debateStyles(config, fighter.faction).some(s => s.id === fighter.style)) return 'Choisissez un style pour chaque combattant.';
     // Seul le style du joueur dépend de son profil ; l’IA peut tout utiliser.
     if (index === 0 && profile && !debateStyleAvailable(config, profile, fighter.faction, fighter.style)) return 'Ce style n’est pas encore débloqué.';

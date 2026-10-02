@@ -1,5 +1,27 @@
 import { sanitizeCommands } from './shared-commands.js';
-import { encodePresentationState, encodeStateDelta, applyStateDelta } from './state-stream.js';
+import { encodePresentationState, encodeStateDelta, applyStateDelta, cullDistantNpcs } from './state-stream.js';
+
+// Compression des messages (deflate, intégrée aux navigateurs récents) : les états,
+// très répétitifs, perdent 40 à 55 % de leur poids. Utilisée seulement si l’autre
+// appareil a annoncé savoir décompresser ; sinon, le texte part tel quel.
+const DEFLATE = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
+const COMPRESS_FROM = 200; // En dessous, le gain ne vaut pas l’effort.
+async function deflate(text) {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function inflate(bytes, limit = 2_000_000) {
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const parts = []; let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    // Garde-fou : un message trafiqué ne doit pas gonfler sans limite.
+    if ((size += value.length) > limit) { void reader.cancel(); throw new Error('Message trop volumineux.'); }
+    parts.push(value);
+  }
+  return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
+}
 import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby } from './lobby.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
@@ -142,39 +164,58 @@ export class PeerSession {
   }
   bindChannel(peer, channel) {
     peer.channel = channel;
-    peer.outbox = [];
+    peer.outbox = []; peer.inbox = Promise.resolve(); peer.deflate = false;
+    channel.binaryType = 'arraybuffer';
     channel.bufferedAmountLowThreshold = 16000;
     channel.onbufferedamountlow = () => this.pump(peer);
     channel.onopen = () => {
       if (this.closed || peer.cancelled) return;
       peer.connected = true; peer.seen = Date.now(); clearTimeout(peer.timeout);
+      // Chacun annonce ce qu’il sait décoder ; l’autre adapte ses envois.
+      if (DEFLATE) this.enqueue(peer, JSON.stringify({ type: 'caps', data: { deflate: true } }));
       if (this.host) {
         this.room.players.push({ id: peer.id, slot: peer.slot, faction: null, style: null, host: false, ready: false });
         this.publishRoom();
       }
     };
+    // Les messages compressés se décodent en différé : tant qu’un décodage est en cours,
+    // les suivants attendent dans une file pour garder l’ordre d’arrivée.
+    const invalid = () => this.peerLost(peer, 'Un message réseau est invalide. Recréez la partie.');
     channel.onmessage = event => {
       if (this.closed) return;
-      try {
-        if (typeof event.data !== 'string' || event.data.length > 50000) throw new Error();
-        const part = JSON.parse(event.data);
-        // Message court envoyé d’un seul tenant, sans enveloppe de découpage.
-        if (typeof part.type === 'string' && part.n === undefined) {
-          if (peer.next < peer.total) throw new Error();
-          peer.seen = Date.now(); this.receive(peer, part); return;
-        }
-        if (!Number.isInteger(part.n) || part.n < 0 || part.n > 249 || !Number.isInteger(part.total) || part.total < 1 || part.total > 250 || typeof part.data !== 'string' || part.data.length > 8000) throw new Error();
-        if (part.n === 0) { peer.sequence = part.id; peer.next = 0; peer.total = part.total; peer.buffer = ''; }
-        if (peer.sequence !== part.id || part.total !== peer.total || part.n !== peer.next++) throw new Error();
-        peer.buffer += part.data;
-        if (peer.buffer.length > 2_000_000) throw new Error();
-        if (part.n === part.total - 1) { const packet = JSON.parse(peer.buffer); peer.buffer = ''; peer.seen = Date.now(); this.receive(peer, packet); }
-      } catch { this.peerLost(peer, 'Un message réseau est invalide. Recréez la partie.'); }
+      const data = event.data;
+      if (typeof data === 'string' && !peer.decoding) { try { this.receiveText(peer, data); } catch { invalid(); } return; }
+      peer.decoding = (peer.decoding || 0) + 1;
+      peer.inbox = peer.inbox.then(async () => {
+        if (this.closed || peer.cancelled) return;
+        try {
+          if (typeof data === 'string') { this.receiveText(peer, data); return; }
+          const size = data?.byteLength ?? data?.size;
+          if (!DEFLATE || !(data instanceof ArrayBuffer || ArrayBuffer.isView(data) || data instanceof Blob) || !(size <= 50000)) throw new Error();
+          const text = await inflate(data);
+          if (!this.closed && !peer.cancelled) this.receiveText(peer, text, true);
+        } catch { invalid(); }
+      }).finally(() => { peer.decoding--; });
     };
     channel.onclose = () => { if (!this.closed && !peer.cancelled && peer.connected) this.peerLost(peer, 'Un joueur a quitté la partie ou perdu la connexion.'); };
     // Mobile Safari reports errors on channels that recover or are about to close:
     // onclose and the connection state decide, never onerror alone.
     channel.onerror = () => {};
+  }
+  receiveText(peer, text, inflated = false) {
+    if (text.length > (inflated ? 2_000_000 : 50000)) throw new Error();
+    const part = JSON.parse(text);
+    // Message court (ou décompressé) envoyé d’un seul tenant, sans enveloppe de découpage.
+    if (typeof part.type === 'string' && part.n === undefined) {
+      if (peer.next < peer.total) throw new Error();
+      peer.seen = Date.now(); this.receive(peer, part); return;
+    }
+    if (inflated || !Number.isInteger(part.n) || part.n < 0 || part.n > 249 || !Number.isInteger(part.total) || part.total < 1 || part.total > 250 || typeof part.data !== 'string' || part.data.length > 8000) throw new Error();
+    if (part.n === 0) { peer.sequence = part.id; peer.next = 0; peer.total = part.total; peer.buffer = ''; }
+    if (peer.sequence !== part.id || part.total !== peer.total || part.n !== peer.next++) throw new Error();
+    peer.buffer += part.data;
+    if (peer.buffer.length > 2_000_000) throw new Error();
+    if (part.n === part.total - 1) { const packet = JSON.parse(peer.buffer); peer.buffer = ''; peer.seen = Date.now(); this.receive(peer, packet); }
   }
   canSend(peer, type) {
     if (peer.channel?.readyState !== 'open') return false;
@@ -184,18 +225,34 @@ export class PeerSession {
   }
   send(peer, type, data) {
     if (!this.canSend(peer, type)) return false;
-    const encoded = type === 'snapshot' ? (this.lastEncoded = encodePresentationState(data, this.lastEncoded)) : null;
-    const json = encoded
-      ? `{"type":"snapshot","data":${encodeStateDelta(encoded, peer.baseline)}}`
-      : JSON.stringify({ type, data });
-    return this.enqueue(peer, json, encoded);
+    if (type === 'snapshot') {
+      const encoded = this.lastEncoded = encodePresentationState(data, this.lastEncoded);
+      return this.enqueueSnapshot(peer, encoded, this.snapshotRound = (this.snapshotRound || 0) + 1);
+    }
+    return this.enqueue(peer, JSON.stringify({ type, data }));
+  }
+  /** État pour un invité : les passants loin de son candidat ne sont pas renvoyés à chaque fois. */
+  enqueueSnapshot(peer, encoded, round) {
+    const faction = this.room?.players?.find(p => p.id === peer.id)?.faction;
+    const own = faction && Array.isArray(encoded.candidates) ? encoded.candidates.find(c => c?.id === `candidate:${faction}`) : null;
+    const view = own ? cullDistantNpcs(encoded, peer.baseline, own.x, round) : encoded;
+    return this.enqueue(peer, `{"type":"snapshot","data":${encodeStateDelta(view, peer.baseline)}}`, view);
   }
   enqueue(peer, json, baseline = null) {
     if (json.length > 2_000_000) throw new Error('La partie est trop volumineuse pour la connexion.');
     if (peer.outbox.length >= 100) throw new Error('La connexion ne répond plus. Reconnectez les joueurs.');
     const serial = ++this.serial, total = Math.ceil(json.length / 8000);
-    peer.outbox.push({ json, serial, total, n: 0 });
+    const item = { json, serial, total, n: 0 };
+    peer.outbox.push(item);
     if (baseline) peer.baseline = baseline;
+    if (peer.deflate && json.length >= COMPRESS_FROM) {
+      // La compression est asynchrone : le message garde sa place dans la file.
+      item.pending = true;
+      deflate(json).then(bytes => { if (bytes.byteLength <= 8000) { item.binary = bytes; item.total = 1; } })
+        .catch(() => { /* Le texte part tel quel. */ })
+        .finally(() => { item.pending = false; this.pump(peer); });
+      return true;
+    }
     this.pump(peer);
     return true;
   }
@@ -207,9 +264,10 @@ export class PeerSession {
       let sent = 0;
       while (peer.outbox.length && peer.channel.bufferedAmount < 32000 && sent < 4) {
         const item = peer.outbox[0], n = item.n;
+        if (item.pending) return;
         // Un message qui tient en un morceau part tel quel : l’enveloppe (et l’échappement
         // de tous ses guillemets) coûtait près d’un quart des données.
-        peer.channel.send(item.total === 1 ? item.json : JSON.stringify({ id: item.serial, n, total: item.total, data: item.json.slice(n * 8000, (n + 1) * 8000) }));
+        peer.channel.send(item.binary ?? (item.total === 1 ? item.json : JSON.stringify({ id: item.serial, n, total: item.total, data: item.json.slice(n * 8000, (n + 1) * 8000) })));
         item.n++; sent++;
         if (item.n === item.total) peer.outbox.shift();
       }
@@ -226,18 +284,16 @@ export class PeerSession {
     }
     const peers = [...this.peers.values()].filter(peer => peer.connected && this.canSend(peer, type));
     if (!peers.length) return;
-    const encoded = this.lastEncoded = encodePresentationState(data, this.lastEncoded), packets = new Map();
-    for (const peer of peers) {
-      // Guests that received the same last frame share both the field encoding
-      // and the final packet. A slow guest keeps its own baseline until enqueue.
-      if (!this.canSend(peer, type)) continue;
-      if (!packets.has(peer.baseline)) packets.set(peer.baseline, `{"type":"snapshot","data":${encodeStateDelta(encoded, peer.baseline)}}`);
-      this.enqueue(peer, packets.get(peer.baseline), encoded);
-    }
+    const encoded = this.lastEncoded = encodePresentationState(data, this.lastEncoded);
+    const round = this.snapshotRound = (this.snapshotRound || 0) + 1;
+    // Chaque invité reçoit sa propre vue (passants proches de son candidat).
+    // A slow guest keeps its own baseline until enqueue.
+    for (const peer of peers) if (this.canSend(peer, type)) this.enqueueSnapshot(peer, encoded, round);
   }
   publishRoom() { this.broadcast('room', this.room); this.callbacks.room(this.room); }
   receive(peer, packet) {
     if (packet.type === 'ping') return;
+    if (packet.type === 'caps') { peer.deflate = DEFLATE && packet.data?.deflate === true; return; }
     if (packet.type === 'leave') { this.peerLost(peer, 'Un joueur a quitté le salon.'); return; }
     if (this.host) {
       const player = this.room.players.find(p => p.id === peer.id);

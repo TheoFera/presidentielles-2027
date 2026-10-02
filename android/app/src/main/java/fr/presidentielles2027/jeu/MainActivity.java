@@ -11,11 +11,13 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
@@ -27,7 +29,21 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 import android.window.OnBackInvokedDispatcher;
 
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
 import androidx.webkit.WebViewAssetLoader;
+
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 
@@ -92,6 +108,10 @@ public class MainActivity extends Activity {
         // La taille de police du système ne doit pas déformer l'interface du jeu.
         settings.setTextZoom(100);
 
+        // Connexion au compte PartageTonJeu : Google refuse les connexions dans une WebView,
+        // le jeu passe donc par ce pont natif (window.PTJNativeAuth, voir src/network/auth-providers.js).
+        webView.addJavascriptInterface(new NativeAuthBridge(), "PTJNativeAuth");
+
         WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .setDomain(HOST)
                 .addPathHandler("/", new WebViewAssetLoader.AssetsPathHandler(this))
@@ -147,6 +167,70 @@ public class MainActivity extends Activity {
                 if (request == pendingPermission) pendingPermission = null;
             }
         });
+    }
+
+    /** Pont appelé par le jeu. Il ne renvoie qu'un jeton d'identité Google : notre serveur le vérifie. */
+    private final class NativeAuthBridge {
+        @JavascriptInterface
+        public String providers() {
+            return "[\"google\"]";
+        }
+
+        @JavascriptInterface
+        public String platform() {
+            return "android";
+        }
+
+        @JavascriptInterface
+        public void signIn(String provider, String nonce, String clientId, String requestId) {
+            runOnUiThread(() -> startSignIn(provider, nonce, clientId, requestId));
+        }
+    }
+
+    private void startSignIn(String provider, String nonce, String clientId, String requestId) {
+        if (!"google".equals(provider) || clientId == null || clientId.isEmpty() || nonce == null || nonce.isEmpty()) {
+            deliverAuth(requestId, "error", "Connexion indisponible sur cet appareil.");
+            return;
+        }
+        // Bouton « Se connecter avec Google » : clientId = identifiant client OAuth « Web » (jeton destiné à notre serveur).
+        GetSignInWithGoogleOption option = new GetSignInWithGoogleOption.Builder(clientId).setNonce(nonce).build();
+        GetCredentialRequest request = new GetCredentialRequest.Builder().addCredentialOption(option).build();
+        CredentialManager.create(this).getCredentialAsync(this, request, new CancellationSignal(), this::runOnUiThread,
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse response) {
+                        Credential credential = response.getCredential();
+                        if (credential instanceof CustomCredential
+                                && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
+                            try {
+                                deliverAuth(requestId, "id_token", GoogleIdTokenCredential.createFrom(credential.getData()).getIdToken());
+                            } catch (Exception error) {
+                                deliverAuth(requestId, "error", "Réponse de Google illisible.");
+                            }
+                        } else {
+                            deliverAuth(requestId, "error", "Type de connexion inattendu.");
+                        }
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException error) {
+                        if (error instanceof GetCredentialCancellationException) deliverAuth(requestId, "cancelled", null);
+                        else deliverAuth(requestId, "error", "La connexion Google a échoué. Vérifiez la connexion Internet.");
+                    }
+                });
+    }
+
+    private void deliverAuth(String requestId, String kind, String value) {
+        if (webView == null) return;
+        JSONObject result = new JSONObject();
+        try {
+            if ("cancelled".equals(kind)) result.put("cancelled", true);
+            else result.put(kind, value);
+        } catch (JSONException ignored) {
+            // Clés fixes : ne peut pas arriver.
+        }
+        webView.evaluateJavascript("window.PTJNativeAuthResult && window.PTJNativeAuthResult("
+                + JSONObject.quote(String.valueOf(requestId)) + "," + JSONObject.quote(result.toString()) + ")", null);
     }
 
     @Override

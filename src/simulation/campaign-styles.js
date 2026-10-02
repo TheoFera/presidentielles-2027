@@ -1,5 +1,5 @@
 import { actionState } from './combat-actions.js';
-import { ringDelta } from './world.js';
+import { ringDelta, MINOR_FACTIONS } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
 import { aiNoise } from './ai-settings.js';
 
@@ -18,7 +18,7 @@ export const CAMPAIGN_STYLES = {
     style('melenchon_populiste', 'Populiste', 'periurbain_usine', 'Le pouvoir d’achat, sur le terrain.', 'Gilet jaune', 'FIRE', ['industry', 'fuel', 'factory', 'salary', 'purchasing_power'], '#f6c943', 'worker'),
   ],
   le_pen: [
-    style('le_pen_souverainiste', 'Souverainiste', 'periurbain_usine', 'Une vague qui repousse tout.', 'Vague bleu marine', 'WAVE', ['industry', 'fuel', 'rural'], '#4977bf', 'navy'),
+    style('le_pen_souverainiste', 'Protectionniste', 'periurbain_usine', 'Une vague qui repousse tout.', 'Vague bleu marine', 'WAVE', ['industry', 'fuel', 'rural'], '#4977bf', 'navy'),
     style('le_pen_zemmouriste', 'Zemmouriste', 'quartiers_riches', 'Une invocation fragile, mais insistante.', 'Invocation Zemmour', 'ZEMMOUR', ['wealth', 'security'], '#9b6d4d', 'dark'),
     style('le_pen_gouvernement', 'Libérale · Parti de gouvernement', 'retraites', 'Une relève au moment décisif.', 'Bardellisation', 'BARDELLA', ['retirement', 'government'], '#81b9ce', 'formal'),
   ],
@@ -32,11 +32,16 @@ export const CAMPAIGN_STYLES = {
 export const DEFAULT_UNLOCKS = Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) => [f, [styles[0].id]]));
 export function normalizeCampaignProfile(profile = {}) {
   return { ...profile, unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) =>
-    [f, [...new Set([...DEFAULT_UNLOCKS[f], ...(Array.isArray(profile.unlocked_campaign_styles?.[f]) ? profile.unlocked_campaign_styles[f] : [])])].filter(id => styles.some(s => s.id === id))])) };
+    [f, [...new Set([...DEFAULT_UNLOCKS[f], ...(Array.isArray(profile.unlocked_campaign_styles?.[f]) ? profile.unlocked_campaign_styles[f] : [])])].filter(id => styles.some(s => s.id === id))])),
+    // Candidats mineurs jouables en Débat : tous verrouillés au départ, gagnés en les battant en campagne.
+    unlocked_minor_candidates: MINOR_FACTIONS.filter(id => Array.isArray(profile.unlocked_minor_candidates) && profile.unlocked_minor_candidates.includes(id)) };
 }
-/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Débat. */
+/** Pseudo du profil de test : tous les styles sont débloqués, en campagne comme en Débat.
+ *  Connecté à un compte PartageTonJeu (`profile.account`), seule la progression du compte compte. */
 export const BETATEST_NICKNAME = 'betatest';
-export const isBetatestProfile = profile => String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
+export const isBetatestProfile = profile => !profile?.account && String(profile?.nickname ?? '').trim().toLowerCase() === BETATEST_NICKNAME;
+export const isMinorCandidateUnlocked = (profile, faction) => MINOR_FACTIONS.includes(faction)
+  && (isBetatestProfile(profile) || normalizeCampaignProfile(profile).unlocked_minor_candidates.includes(faction));
 export function isCampaignStyleUnlocked(profile, faction, styleId) {
   if (!CAMPAIGN_STYLES[faction]?.some(s => s.id === styleId)) return false;
   return isBetatestProfile(profile) || normalizeCampaignProfile(profile).unlocked_campaign_styles[faction].includes(styleId);

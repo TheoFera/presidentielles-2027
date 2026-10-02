@@ -43,7 +43,9 @@ export function rosterContent(config, fighters, active, { disabled = false, unav
   return `<div class="select-roster" role="group" aria-label="Choix du candidat">${DEBATE_CANDIDATES.map(c => {
     const selected = fighters[active]?.faction === c.id;
     const markers = fighters.map((f, i) => f.faction === c.id ? `<span class="select-marker" style="--player-color:${PLAYER_COLORS[i]}">${f.badge || (i ? `IA ${i}` : 'J1')}</span>` : '').join('');
-    return `<button class="select-tile" data-faction="${c.id}" aria-label="${escape(c.name)}" aria-pressed="${selected}" ${disabled || unavailable(c.id) ? 'disabled' : ''} style="--candidate-color:${config.prototype.presentation.factions[c.id].color}">${portraitContent(c.id)}<span class="select-markers" aria-hidden="true">${markers}</span><strong>${escape(c.short)}</strong></button>`;
+    // Candidat mineur verrouillé : il se débloque en le mettant K.-O. en campagne, partie terminée.
+    const locked = c.minor && !disabled && unavailable(c.id);
+    return `<button class="select-tile" data-faction="${c.id}" aria-label="${escape(c.name)}${locked ? ' · verrouillé' : ''}" ${locked ? 'title="À débloquer : mettez-le K.-O. en campagne, puis terminez la partie"' : ''} aria-pressed="${selected}" ${disabled || unavailable(c.id) ? 'disabled' : ''} style="--candidate-color:${config.prototype.presentation.factions[c.id].color}">${portraitContent(c.id)}<span class="select-markers" aria-hidden="true">${markers}</span><strong>${escape(c.short)}</strong></button>`;
   }).join('')}</div>`;
 }
 export const PLAYER_COLORS = ['#69dcff', '#ff6685', '#f5d369'];

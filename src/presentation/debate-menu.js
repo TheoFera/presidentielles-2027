@@ -10,7 +10,13 @@ export function defaultDebateSetup(config, profile, faction = 'melenchon') {
   return { format: '1v1', map: config.balance.debate_mode.default_map, fighters };
 }
 
+/** Nouvelle sélection : personne n’est choisi, le joueur commence, puis l’IA. */
+export function emptyDebateSetup(config) {
+  return { format: '1v1', map: config.balance.debate_mode.default_map, fighters: [0, 1, 2].map(() => ({ faction: null, style: null })) };
+}
+
 function freeStyle(config, profile, setup, index, faction, preferred = null) {
+  if (!faction) return null;
   const taken = setup.fighters.filter((f, i) => i !== index && i < DEBATE_FORMATS[setup.format] && f.faction === faction).map(f => f.style);
   const usable = debateStyles(config, faction).filter(s => !taken.includes(s.id) && (index > 0 || debateStyleAvailable(config, profile, faction, s.id)));
   return usable.find(s => s.id === preferred)?.id ?? usable[0]?.id ?? null;
@@ -18,7 +24,10 @@ function freeStyle(config, profile, setup, index, faction, preferred = null) {
 
 export function showDebateSetup(menu, { config, profile, setup, start, back }) {
   let active = 0;
-  while (setup.fighters.length < 3) setup.fighters.push(defaultDebateSetup(config, profile).fighters[setup.fighters.length]);
+  while (setup.fighters.length < 3) setup.fighters.push({ faction: null, style: null });
+  // Le curseur se place sur le premier combattant encore sans candidat.
+  const firstEmpty = () => setup.fighters.slice(0, DEBATE_FORMATS[setup.format]).findIndex(f => !f.faction);
+  if (firstEmpty() > 0) active = firstEmpty();
   const render = focus => {
     const fighters = setup.fighters.slice(0, DEBATE_FORMATS[setup.format]);
     const error = debateSetupError(config, chosenSetup(setup), profile);
@@ -26,7 +35,7 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
     menu.page('debate', 'Débat télé', `<div class="debate-setup select-screen">
       <div class="select-topline"><span>Sélection des candidats</span><span class="select-live">● En direct</span></div>
       <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true, styles: i === active ? stylesContent(config, profile, current, { ai: active > 0, taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
-      <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>Choisissez votre candidat</span></div>
+      <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>${active ? 'Choisissez le candidat de l’IA' : 'Choisissez votre candidat'}</span></div>
       ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>
       <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset></div>
@@ -40,9 +49,12 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
       setup.format = b.dataset.format; active = Math.min(active, DEBATE_FORMATS[setup.format] - 1);
       if (DEBATE_FORMATS[setup.format] > previousCount) {
         const index = previousCount, saved = setup.fighters[index];
-        const faction = freeStyle(config, profile, setup, index, saved.faction, saved.style) ? saved.faction
-          : DEBATE_CANDIDATES.find(c => freeStyle(config, profile, setup, index, c.id))?.id;
-        setup.fighters[index] = { faction, style: freeStyle(config, profile, setup, index, faction, saved.style) };
+        if (!saved.faction) active = index; // Nouvelle IA sans candidat : on la choisit tout de suite.
+        else {
+          const faction = freeStyle(config, profile, setup, index, saved.faction, saved.style) ? saved.faction
+            : DEBATE_CANDIDATES.find(c => freeStyle(config, profile, setup, index, c.id))?.id;
+          setup.fighters[index] = { faction, style: freeStyle(config, profile, setup, index, faction, saved.style) };
+        }
       }
       for (let i = 0; i < DEBATE_FORMATS[setup.format]; i++) setup.fighters[i].style = freeStyle(config, profile, setup, i, setup.fighters[i].faction, setup.fighters[i].style);
       render(`[data-format="${b.dataset.format}"]`);
@@ -52,6 +64,9 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
       const style = freeStyle(config, profile, setup, active, b.dataset.faction, current.faction === b.dataset.faction ? current.style : null);
       if (!style) return;
       setup.fighters[active] = { faction: b.dataset.faction, style };
+      // Passe tout seul au combattant suivant qui n’a pas encore de candidat.
+      const next = firstEmpty();
+      if (next >= 0) active = next;
       render(`[data-faction="${b.dataset.faction}"]`);
     });
     root.querySelectorAll('[data-style]').forEach(b => b.onclick = () => { setup.fighters[active].style = b.dataset.style; render(`[data-style="${b.dataset.style}"]`); });

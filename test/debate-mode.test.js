@@ -174,9 +174,13 @@ test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ult
   for (const faction of MINOR_FACTIONS) {
     const style = debateStyles(config, faction)[0];
     assert.equal(style.ultimate, null);
-    assert.equal(debateStyleAvailable(config, fresh, faction, style.id), true);
+    // Verrouillés au départ, jouables une fois battus en campagne (déblocage).
+    assert.equal(debateStyleAvailable(config, fresh, faction, style.id), false);
+    const owner = { unlocked_minor_candidates: [faction] };
+    assert.equal(debateStyleAvailable(config, owner, faction, style.id), true);
     const setup = duel('remue_menage', fighter(faction, style.id));
-    assert.equal(debateSetupError(config, setup, fresh), null);
+    assert.equal(debateSetupError(config, setup, fresh), 'Ce style n’est pas encore débloqué.');
+    assert.equal(debateSetupError(config, setup, owner), null);
     const match = started(setup), [player, enemy] = match.state.candidates;
     assert.equal(player.minor, true);
     const x = player.x;

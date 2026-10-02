@@ -1,5 +1,7 @@
-# Configuration du serveur de salons (Cloudflare Workers).
-# Déploiement : voir docs/multijoueur-en-ligne.md
+# Configuration du serveur de salons et des comptes PartageTonJeu (Cloudflare Workers).
+# Déploiement : voir docs/multijoueur-en-ligne.md et docs/comptes-partagetonjeu.md
+#   Déployer : npx wrangler deploy
+# Un seul Worker et une seule base D1 (production), utilisés aussi par le jeu lancé sur localhost.
 name = "presidentielles-2027-salons"
 main = "worker.js"
 compatibility_date = "2026-09-01"
@@ -13,12 +15,36 @@ class_name = "Salons"
 tag = "v1"
 new_sqlite_classes = ["Salons"]
 
+# Base des comptes, du classement et de la progression (base distante de production).
+# Migrations : npx wrangler d1 migrations apply partagetonjeu-comptes --remote
+[[d1_databases]]
+binding = "DB"
+database_name = "partagetonjeu-comptes"
+database_id = "bbebd6ca-858c-484f-9696-553eaa088896"
+migrations_dir = "migrations"
+
+# Toutes les 10 minutes : règle les résultats de parties en attente, efface sessions et nonces expirés.
+[triggers]
+crons = ["*/10 * * * *"]
+
 [vars]
-# Adresses autorisées à utiliser le serveur, séparées par des virgules.
+# Adresses autorisées à utiliser le serveur, séparées par des virgules
+# (http://localhost:2027 : le jeu lancé avec « npm start » utilise ce Worker et cette base).
 # Vide = tout le monde. Exemple :
 # ALLOWED_ORIGINS = "https://theofera.github.io,https://appassets.androidplatform.net,https://localhost,http://localhost:2027"
 ALLOWED_ORIGINS = "https://theofera.github.io,https://appassets.androidplatform.net,https://localhost,http://localhost:2027"
+# Identifiants client OAuth Google acceptés (web, et iOS plus tard), séparés par des virgules.
+# Ce ne sont pas des secrets. Vide = connexion Google désactivée.
+GOOGLE_CLIENT_IDS = "314104215391-7r3vl4pjmlg9049kniu6fklq5mog5rta.apps.googleusercontent.com"
+# Identifiants Apple acceptés : Bundle ID de l'appli iOS et Services ID du web. Vide = Apple désactivé.
+APPLE_CLIENT_IDS = ""
+# Domaines des adresses relais Apple (« Masquer mon adresse e-mail »).
+APPLE_RELAY_DOMAINS = "privaterelay.appleid.com"
+# Termes interdits dans les pseudos (modération), séparés par des virgules.
+BLOCKED_USERNAME_TERMS = ""
 
-# Secrets à NE PAS écrire ici (commande « npx wrangler secret put ») :
-#   TURN_KEY_ID          identifiant de la clé TURN Cloudflare
-#   TURN_KEY_API_TOKEN   jeton de cette clé
+# Secrets à NE PAS écrire ici (commande « npx wrangler secret put NOM ») :
+#   TURN_KEY_ID                    identifiant de la clé TURN Cloudflare
+#   TURN_KEY_API_TOKEN             jeton de cette clé
+#   NEWSLETTER_UNSUBSCRIBE_SECRET  signature des liens de désinscription (texte aléatoire long)
+#   APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY   révocation Sign in with Apple (appli iOS)
