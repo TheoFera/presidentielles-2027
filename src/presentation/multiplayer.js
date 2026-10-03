@@ -4,7 +4,8 @@ import { copySignal } from './copy-signal.js';
 import { showQrInvitations, showQrAnswer } from './qr-pairing.js';
 import { decodeInvitation } from '../network/peer-session.js';
 import { onlineServer, onlineInviteLink, normalizeRoomCode } from '../network/online-config.js';
-import { candidatesReady, minimumPlayers } from '../network/lobby.js';
+import { candidatesReady, selectionOpen, playerName } from '../network/lobby.js';
+import { escape } from './debate-selection.js';
 import { showDebateLobby, updateDebateLobby } from './debate-lobby.js';
 
 // Phones lose the link for a few seconds all the time (screen lock, app switch,
@@ -169,10 +170,10 @@ function signalOutput(label) {
   return `<label for="outgoing-code">${label}</label><div class="copy-row"><input id="outgoing-code" readonly spellcheck="false"><button id="copy-signal" type="button">Copier</button></div>`;
 }
 export function showPeerInvite(menu, session) {
-  // Débat à deux : « Retour » et « Jouer à deux » ramènent au salon au lieu de le quitter.
-  const lobby = () => showDebateLobby(menu, session, () => menu.home(), () => showPeerInvite(menu, session));
-  const back = () => { if (session.room.mode === 'debate' && session.room.players.length >= 2) lobby(); else menu.home(); };
-  showQrInvitations(menu, session, back, () => showTextInvite(menu, session), lobby);
+  // Débat à deux : « Jouer à deux » ferme le salon, et la sélection s’ouvre pour tout le monde.
+  const playTwo = () => session.request('close').catch(error => { session.notice = error.message; menu.roomUpdate?.(); });
+  const back = () => { if (selectionOpen(session.room)) showLobby(menu, session); else menu.home(); };
+  showQrInvitations(menu, session, back, () => showTextInvite(menu, session), playTwo);
 }
 async function showTextInvite(menu, session) {
   menu.page('invite', 'Invitez un ami', `<div class="pairing-grid"><article class="tutorial-card"><h2>01 · Envoyez l’invitation</h2><p>Votre ami ouvre Multijoueur → Mode texte et colle cette invitation dans « Rejoindre ».</p>${signalOutput('Invitation à envoyer')}<p id="copy-status" class="menu-status" role="status">Préparation de l’invitation…</p></article><form id="answer-form" class="tutorial-card"><h2>02 · Collez sa réponse</h2><p>Votre ami vous renvoie une réponse. Collez-la ici pour le connecter.</p><label for="answer-code">Réponse de votre ami</label><input id="answer-code" placeholder="Collez la réponse P27:…" autocomplete="off" spellcheck="false" autocapitalize="off" required maxlength="30000"><button id="accept-peer" class="menu-primary">Connecter le joueur</button><p id="pair-error" class="menu-status" role="status"></p></form></div><p class="menu-note">Une invitation par ami. Revenez au jeu après avoir envoyé le texte.</p>`, () => { showLobby(menu, session, () => menu.home()); });
@@ -205,15 +206,14 @@ function showTextAnswer(menu, session, leave) {
   menu.element.querySelector('#copy-signal').onclick = () => copyCode(menu.element.querySelector('#outgoing-code'), menu.element.querySelector('#copy-status'));
 }
 export function showLobby(menu, session, leave = () => menu.home()) {
-  const count = session.room.players.length, min = minimumPlayers(session.room);
-  if (count < min) {
+  // Tant que le salon n’est pas prêt, tout le monde reste dans la salle d’attente.
+  if (!selectionOpen(session.room)) {
     if (session.direct && session.host) { showPeerInvite(menu, session); return; }
-    if (session.direct) menu.page('waiting', 'Connexion des joueurs', '<p id="room-message" class="menu-status" role="status"></p><p class="menu-note">Gardez cette page ouverte pendant que l’hôte connecte le dernier joueur.</p>', leave);
-    else showWaitingRoom(menu, session, leave);
+    showWaitingRoom(menu, session, leave);
     updateLobby(menu, session, leave);
     return;
   }
-  if (session.room.mode === 'debate') { showDebateLobby(menu, session, leave, () => showPeerInvite(menu, session)); return; }
+  if (session.room.mode === 'debate') { showDebateLobby(menu, session, leave); return; }
   menu.page('candidates', 'Choisissez votre candidat', candidatesContent(), leave);
   menu.element.dataset.multiplayer = 'true';
   menu.cleanup = () => { delete menu.element.dataset.multiplayer; };
@@ -242,34 +242,60 @@ function invitationLink(menu, session) {
   link.searchParams.set('salon', session.code);
   return link.href;
 }
-/** Salle d’attente : un grand code à partager et les places des joueurs. */
+/**
+ * Salle d’attente : le code à partager (en ligne) et les trois places, avec le pseudo
+ * de chaque joueur. En débat, l’hôte peut commencer à deux sans attendre le 3e.
+ */
 function showWaitingRoom(menu, session, leave) {
-  const link = invitationLink(menu, session);
-  menu.page('waiting', 'Invitez vos amis', `<div class="waiting-room"><div class="tutorial-card waiting-code"><span class="eyebrow">Code de la partie</span><strong class="room-code"></strong><p>Vos amis touchent « Rejoindre » et tapent ce code, ou ouvrent le lien.</p><div class="copy-row"><button id="share-room" class="menu-primary arcade-button">Envoyer l’invitation</button><button id="copy-link">Copier le lien</button></div></div><ol class="lobby-slots" aria-label="Joueurs"></ol></div><p id="room-message" class="menu-status" role="status"></p>`, leave);
+  const code = !session.direct;
+  const debate = session.room.mode === 'debate';
+  menu.page('waiting', code ? 'Invitez vos amis' : 'Salon', `<div class="waiting-room" data-code="${code}">${code ? `<section class="tutorial-card waiting-code"><span class="eyebrow">Code de la partie</span><strong class="room-code"></strong><p>${debate ? '1 ou 2 amis' : 'Vos 2 amis'} touchent « Rejoindre » et tapent ce code, ou ouvrent le lien.</p><div class="waiting-actions"><button id="share-room" class="menu-primary waiting-button"><span aria-hidden="true">✉</span> Envoyer l’invitation</button><button id="copy-link" class="waiting-button"><span aria-hidden="true">⧉</span> Copier le lien</button></div></section>` : ''}<section class="tutorial-card waiting-players"><header><h2>Joueurs</h2><span class="waiting-count"></span></header><ol class="lobby-slots" aria-label="Joueurs"></ol><button id="play-two" class="menu-primary waiting-button" hidden>Commencer à deux <span aria-hidden="true">➜</span></button></section></div><p id="room-message" class="menu-status" role="status"></p>`, leave);
   const root = menu.element, status = root.querySelector('#room-message');
+  root.querySelector('#play-two').onclick = event => {
+    event.currentTarget.disabled = true;
+    session.request('close').catch(error => { session.notice = error.message; updateLobby(menu, session, leave); });
+  };
+  if (!code) return;
+  const link = invitationLink(menu, session);
   root.querySelector('.room-code').textContent = session.code;
-  const share = root.querySelector('#share-room');
+  const share = root.querySelector('#share-room'), copy = root.querySelector('#copy-link');
+  // Sans partage natif (ordinateur), copier le lien devient le bouton principal.
   share.hidden = typeof navigator.share !== 'function';
+  copy.classList.toggle('menu-primary', share.hidden);
   share.onclick = () => navigator.share({ title: 'Présidentielle 2027 : Le Jeu', text: `Rejoins ma partie de Présidentielle 2027 : Le Jeu ! Code : ${session.code}`, url: link }).catch(() => {});
-  root.querySelector('#copy-link').onclick = () => copySignal(link, status);
+  copy.onclick = () => copySignal(link, status);
 }
-function updateSlots(menu, session) {
-  const list = menu.element.querySelector('.lobby-slots');
+/** Une place : numéro, initiale, pseudo et rôle (hôte, vous). */
+function slotContent(session, slot) {
+  const player = session.room.players.find(p => p.slot === slot);
+  if (!player) {
+    const optional = slot === 3 && session.room.mode === 'debate';
+    return `<li data-ready="false"><span class="slot-number">J${slot}</span><span class="slot-avatar" aria-hidden="true">?</span><span class="slot-name">En attente…</span>${optional ? '<span class="slot-tags"><em>Facultatif</em></span>' : ''}</li>`;
+  }
+  const name = playerName(player), self = player.id === session.id;
+  const tags = [player.host && 'Hôte', self && 'Vous'].filter(Boolean).map(t => `<em>${t}</em>`).join('');
+  return `<li data-ready="true" data-self="${self}"><span class="slot-number">J${slot}</span><span class="slot-avatar" aria-hidden="true">${escape([...name][0].toUpperCase())}</span><span class="slot-name">${escape(name)}</span><span class="slot-tags">${tags}</span></li>`;
+}
+function updateWaitingRoom(menu, session) {
+  const root = menu.element, room = session.room, count = room.players.length;
+  const list = root.querySelector('.lobby-slots');
   if (!list) return;
-  list.innerHTML = [1, 2, 3].map(slot => {
-    const player = session.room.players.find(p => p.slot === slot);
-    const label = !player ? (slot === 3 && session.room.mode === 'debate' ? 'Facultatif' : 'En attente…') : player.id === session.id ? 'Vous' : player.host ? 'Hôte' : 'Connecté';
-    return `<li data-ready="${!!player}"><strong>J${slot}</strong><span>${label}</span></li>`;
-  }).join('');
+  list.innerHTML = [1, 2, 3].map(slot => slotContent(session, slot)).join('');
+  root.querySelector('.waiting-count').textContent = `${count}/3`;
+  const debate = room.mode === 'debate';
+  const playTwo = root.querySelector('#play-two');
+  playTwo.hidden = !(debate && count === 2 && session.host); playTwo.disabled = false;
+  const next = !debate ? 'La sélection s’ouvrira quand les trois joueurs seront connectés.'
+    : count < 2 ? 'Envoyez le code à 1 ou 2 amis.'
+    : session.host ? 'Attendez un 3e joueur, ou commencez à deux.' : 'L’hôte attend un 3e joueur ou lance le débat à deux.';
+  root.querySelector('#room-message').textContent = (session.notice ? `${session.notice} ` : '') + next;
 }
 export function updateLobby(menu, session, leave = () => menu.home()) {
-  const count = session.room.players.length, min = minimumPlayers(session.room);
-  // L’hôte reste sur ses QR tant que le salon n’est pas complet (en débat, il peut commencer à deux).
-  if (count < 3 && menu.screen === 'qr-invite') { menu.roomUpdate?.(); return; }
-  if (count < min) {
+  // L’hôte reste sur ses QR tant que la sélection n’est pas ouverte.
+  if (!selectionOpen(session.room)) {
+    if (menu.screen === 'qr-invite') { menu.roomUpdate?.(); return; }
     if (menu.screen !== 'waiting') { showLobby(menu, session, leave); return; }
-    updateSlots(menu, session);
-    menu.element.querySelector('#room-message').textContent = (session.notice ? `${session.notice} ` : '') + (min === 3 ? `${count}/3 joueurs connectés · La sélection s’ouvrira quand les trois joueurs seront connectés.` : `${count}/3 joueurs connectés · La sélection s’ouvrira dès que deux joueurs seront connectés.`);
+    updateWaitingRoom(menu, session);
     return;
   }
   if (session.room.mode === 'debate') {
@@ -284,9 +310,9 @@ export function updateLobby(menu, session, leave = () => menu.home()) {
     card.setAttribute('aria-pressed', String(player?.id === session.id));
     card.disabled = !!session.choosing || !!player && player.id !== session.id;
     card.dataset.occupied = String(!!player);
-    card.querySelector('.candidate-badge').textContent = player ? `♛ J${player.slot}` : '';
-    card.setAttribute('aria-label', `${candidate.name}${player ? ` · Joueur ${player.slot}${player.id === session.id ? ' · Vous' : ''}` : ' · Disponible'}`);
+    card.querySelector('.candidate-badge').textContent = player ? `♛ J${player.slot} · ${playerName(player)}` : '';
+    card.setAttribute('aria-label', `${candidate.name}${player ? ` · ${playerName(player)}${player.id === session.id ? ' · Vous' : ''}` : ' · Disponible'}`);
   });
   menu.element.querySelector('#prepare-game').disabled = !candidatesReady(session.room);
-  menu.element.querySelector('#room-message').textContent = session.selectionError || (!me?.faction ? `Vous êtes le joueur ${me?.slot} · Choisissez votre candidat.` : !candidatesReady(session.room) ? 'En attente du choix des autres joueurs…' : session.host ? 'Tout le monde a choisi. Vous pouvez valider.' : 'En attente du lancement par l’hôte…');
+  menu.element.querySelector('#room-message').textContent = session.selectionError || (!me?.faction ? `${playerName(me)} (J${me?.slot}) · Choisissez votre candidat.` : !candidatesReady(session.room) ? 'En attente du choix des autres joueurs…' : session.host ? 'Tout le monde a choisi. Vous pouvez valider.' : 'En attente du lancement par l’hôte…');
 }

@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
-import { DebateMatch, debateModeAICommands, debateSetupError, debateStyleAvailable, debateFighterIds, multiplayerDebateSetup } from '../src/simulation/debate-mode.js';
+import { DebateMatch, debateModeAICommands, debateSetupError, debateStyleAvailable, debateFighterIds, multiplayerDebateSetup, debateThemes } from '../src/simulation/debate-mode.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { updateActions, verticalHit } from '../src/simulation/combat-actions.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { debateStyles } from '../src/simulation/debate-mode.js';
-import { chooseCandidate, candidatesReady, startRoom } from '../src/network/lobby.js';
+import { chooseCandidate, candidatesReady, startRoom, closeRoom } from '../src/network/lobby.js';
 import { debateAssetIds } from '../src/presentation/debate-mode.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { DEBATE_ARENAS, arenaSupportHeight } from '../src/presentation/debate-arenas.js';
@@ -91,7 +91,7 @@ test('Les deux balcons de chaque arène ont la même hauteur et se rejoignent av
   const heights = [];
   for (const map of Object.keys(DEBATE_ARENAS)) {
     for (const platform of config.balance.debate_mode.maps[map].platforms.filter(p => p.height > 0)) {
-      heights.push(platform.height);
+      heights.push([map, platform.height]);
       const match = started(duel(map));
       const actor = match.state.candidates[0];
       const floor = match.state.platforms.find(p => p.height === 0 && Math.abs(platform.x - p.x) <= p.half_width);
@@ -105,7 +105,8 @@ test('Les deux balcons de chaque arène ont la même hauteur et se rejoignent av
     }
   }
   assert.equal(heights.length, 8);
-  assert.ok(heights.every(height => height === heights[0]));
+  // Chaque balcon suit son dessin : même hauteur des deux côtés d’une arène, pas forcément d’une arène à l’autre.
+  for (const map of Object.keys(DEBATE_ARENAS)) assert.equal(new Set(heights.filter(([m]) => m === map).map(([, h]) => h)).size, 1, map);
 });
 
 for (const map of Object.keys(DEBATE_ARENAS)) {
@@ -123,7 +124,9 @@ for (const map of Object.keys(DEBATE_ARENAS)) {
     assert.equal(player.is_ko, true);
     assert.equal(player.ko_reason, 'FALL');
     assert.equal(player.disappeared, true);
-    assert.equal(match.state.winner_id, enemy.id);
+    // La chute termine le round (pas le débat) : l’adversaire le remporte.
+    assert.equal(match.state.phase, 'ROUND_OVER');
+    assert.equal(match.state.rounds[0].winner_id, enemy.id);
     assert.ok(match.state.events.some(e => e.type === 'DebateFall' && e.candidate_id === player.id));
   });
 }
@@ -231,14 +234,78 @@ test('Arène : l’IA prévoit sa trajectoire avant de marcher, sauter ou dasher
   assert.equal(pushed.findLast(c => c.type === 'Move').axis, -1);
 });
 
-test('Arène à trois : une chute élimine seulement sa victime, deux chutes simultanées donnent un match nul', () => {
+test('Arène à trois : une chute élimine seulement sa victime, deux chutes simultanées donnent un round nul', () => {
   const match = started(trio('elysee'));
   match.state.candidates[0].x = -2;
   run(match, () => [], 70);
   assert.equal(match.state.phase, 'FIGHT'); assert.equal(match.state.ko_order.length, 1);
   for (const c of match.state.candidates.filter(c => !c.is_ko)) { c.x = -2; c.platform_id = null; }
   run(match, () => [], 70);
-  assert.equal(match.state.phase, 'OVER'); assert.equal(match.state.winner_id, null);
+  assert.equal(match.state.phase, 'ROUND_OVER'); assert.equal(match.state.rounds[0].winner_id, null);
+  assert.deepEqual(match.state.candidates.map(c => c.rounds_won), [0, 0, 0]);
+});
+
+// Termine le round en cours : les perdants tombent à 0 PV, puis on attend le round suivant.
+function finishRound(match, losers) {
+  while (match.state.phase === 'COUNTDOWN') match.step();
+  for (const id of losers) match.state.candidates.find(c => c.id === id).debate_hp = 0;
+  match.step();
+  while (match.state.phase === 'ROUND_OVER') match.step();
+}
+
+test('Thèmes : trois thèmes différents tirés de la graine, ou ceux choisis pour le salon', () => {
+  const ids = config.balance.debate_mode.themes.map(t => t.id);
+  for (const seed of [1, 5, 77, 123456]) {
+    const themes = debateThemes(config, { ...duel(), seed });
+    assert.equal(themes.length, 3); assert.equal(new Set(themes).size, 3);
+    assert.ok(themes.every(id => ids.includes(id)));
+    assert.deepEqual(debateThemes(config, { ...duel(), seed }), themes, 'même graine, mêmes thèmes');
+  }
+  assert.deepEqual(debateThemes(config, { ...duel(), themes: ['economie', 'immigration', 'ecologie'] }), ['economie', 'immigration', 'ecologie']);
+  assert.notDeepEqual(debateThemes(config, { ...duel(), seed: 1, themes: ['economie', 'economie', 'ecologie'] }), ['economie', 'economie', 'ecologie']);
+  assert.deepEqual(new DebateMatch(config, duel()).state.rounds.map(r => r.theme), debateThemes(config, duel()));
+});
+
+test('Toujours 3 rounds : tout repart à zéro entre deux thèmes, 2 – 1 donne la victoire', () => {
+  const match = new DebateMatch(config, duel());
+  const [a, b] = match.state.candidates.map(c => c.id);
+  const start = match.state.candidates.map(c => c.x);
+  assert.equal(match.state.phase, 'COUNTDOWN');
+  match.step();
+  assert.ok(match.state.events.some(e => e.type === 'DebateRoundStarted' && e.round === 1 && e.theme === match.state.rounds[0].theme));
+  while (match.state.phase === 'COUNTDOWN') match.step();
+  // Pendant le round : on se déplace, on charge l’ultime, on dashe.
+  const first = match.state.candidates[0];
+  first.x += 3; first.special_charge = 50; first.dash_charges = 0;
+  finishRound(match, [b]);
+  assert.equal(match.state.round_index, 1); assert.equal(match.state.phase, 'COUNTDOWN');
+  const fresh = match.state.candidates[0];
+  assert.deepEqual(match.state.candidates.map(c => c.x), start);
+  assert.deepEqual(match.state.candidates.map(c => c.debate_hp), [100, 100]);
+  assert.equal(fresh.special_charge, 0); assert.equal(fresh.dash_charges, config.balance.dash.max_charges);
+  assert.deepEqual(match.state.candidates.map(c => c.rounds_won), [1, 0]);
+  // Même 2 – 0, le troisième thème se joue.
+  finishRound(match, [b]);
+  assert.equal(match.state.round_index, 2); assert.notEqual(match.state.phase, 'OVER');
+  finishRound(match, [a]);
+  const s = match.state;
+  assert.equal(s.phase, 'OVER'); assert.equal(s.rounds.length, 3);
+  assert.equal(s.winner_id, a); assert.deepEqual(s.standings, [a, b]);
+  assert.deepEqual(s.rounds.map(r => r.winner_id), [a, a, b]);
+  assert.deepEqual(s.candidates.map(c => c.rounds_won), [2, 1]);
+});
+
+test('À trois, 1 – 1 – 1 : un round bonus « Question du public » départage', () => {
+  const match = new DebateMatch(config, trio('remue_menage'));
+  const [a, b, c] = match.state.candidates.map(x => x.id);
+  finishRound(match, [b, c]);
+  finishRound(match, [a, c]);
+  finishRound(match, [a, b]);
+  assert.equal(match.state.rounds.length, 4);
+  assert.deepEqual(match.state.rounds[3], { theme: config.balance.debate_mode.bonus_theme.id, winner_id: null, bonus: true });
+  assert.equal(match.state.round_index, 3); assert.equal(match.state.phase, 'COUNTDOWN');
+  finishRound(match, [a, c]);
+  assert.equal(match.state.phase, 'OVER'); assert.equal(match.state.winner_id, b); assert.equal(match.state.standings[0], b);
 });
 
 test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ultime', () => {
@@ -272,6 +339,9 @@ test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ult
 
 test('Salon : candidats mineurs acceptés en Débat télé et exclus de la campagne', () => {
   const room = { mode: 'debate', phase: 'lobby', players: [{ id: 'a', slot: 1 }, { id: 'b', slot: 2 }] };
+  // À deux, la sélection attend que l’hôte renonce au 3e joueur.
+  assert.throws(() => chooseCandidate(room, 'a', 'arthaud', 'arthaud_standard'), /troisième joueur/);
+  closeRoom(room);
   chooseCandidate(room, 'a', 'arthaud', 'arthaud_standard');
   chooseCandidate(room, 'b', 'attal', 'attal_standard');
   assert.equal(candidatesReady(room), true);
@@ -389,18 +459,23 @@ test('IA : elle passe par un pupitre latéral pour atteindre le bureau central',
   assert.ok(path.size >= 2, 'le bureau central n’est pas accessible directement depuis le sol');
 });
 
-test('1 contre 1 contre 1 : le combat continue après le premier K.O., dernier debout gagne', () => {
+test('1 contre 1 contre 1 : le round continue après le premier K.O., dernier debout le gagne', () => {
   for (const map of [...Object.keys(DEBATE_ARENAS)]) {
     const match = started(trio(map));
-    const limit = 30 * 240;
+    const limit = 30 * 400;
     while (match.state.phase !== 'OVER' && match.state.tick < limit) match.step(match.state.candidates.flatMap(c => debateModeAICommands(match.state, config, c.id)));
     const s = match.state;
     assert.equal(s.phase, 'OVER', map);
-    assert.equal(s.ko_order.length, 2);
     assert.equal(s.events.at(-1).type, 'DebateFinished');
-    const winner = s.candidates.find(c => c.id === s.winner_id);
-    assert.ok(winner && !winner.is_ko);
-    assert.ok(!s.ko_order.includes(winner.id));
+    // Dernier round : le dernier debout le remporte.
+    const last = s.rounds.at(-1).winner_id;
+    if (last) {
+      assert.equal(s.ko_order.length, 2);
+      assert.ok(!s.candidates.find(c => c.id === last).is_ko && !s.ko_order.includes(last));
+    }
+    // Le débat revient à celui qui a gagné le plus de rounds.
+    const winner = s.candidates.find(c => c.id === s.standings[0]);
+    assert.equal(winner.rounds_won, Math.max(...s.candidates.map(c => c.rounds_won)));
     // Après la fin, la simulation finit les animations mais ne rejoue plus le combat.
     const hp = s.candidates.map(c => c.debate_hp);
     run(match, () => [{ type: 'Attack', candidateId: winner.id }], 60);

@@ -115,7 +115,7 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
   const scale = height / atlas.referenceHeight * (pose.sheet === 'fire' ? 1.1236 : 1);
   const castScale=['scarf','wave'].includes(pose.sheet);
   const scaleX=scale*(castScale?1.12:1),scaleY=scale*(castScale?1.06:1);
-  const ground = m.groundY + m.characterHeight * .06;
+  const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   ctx.save();
   ctx.globalAlpha*=surgeAlpha;
   ctx.fillStyle='#26313230';ctx.beginPath();ctx.ellipse(x,ground,height*.24,3,0,0,Math.PI*2);ctx.fill();

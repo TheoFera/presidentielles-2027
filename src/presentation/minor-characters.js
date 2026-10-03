@@ -119,7 +119,7 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   const animation = characterAnimation(entity, state), time = state.tick / hz;
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
   const progress = attack ? Math.min(1, attack.elapsed_ticks / Math.max(1, attack.windup_ticks + attack.active_ticks)) : 0;
-  const height = m.characterHeight, groundY = m.groundY + height * 0.06;
+  const height = m.characterHeight, groundY = m.groundY + height * (m.groundOffsetRatio ?? 0.06);
   const feetY = groundY - (entity.combat?.height || 0) * height;
   if (drawCandidateCombat(renderer, entity, x, state)) return true;
   ctx.save();

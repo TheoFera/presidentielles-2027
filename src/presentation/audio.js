@@ -76,6 +76,7 @@ export function soundCues(events = [], since, localId, faction) {
     else if (event.type === 'CandidateKO' && mine) cues.push('ko');
     else if (event.type === 'DebateKnockout') cues.push('ko', 'cheer');
     else if (event.type === 'DebateFightStarted') cues.push('tick-final');
+    else if (event.type === 'DebateRoundStarted') cues.push('news');
     else if (event.type === 'UltimateActivated' && mine) cues.push('ultimate');
     else if (event.type === 'UltimateReady' && mine) cues.push('ready');
     else if (event.type === 'StartCampaignEvent') cues.push('news');
@@ -258,8 +259,9 @@ export class SoundDirector {
     this.lastEvent = last;
     if (!paused) for (const cue of cues) audio.play(cue);
     if (state.mode === 'DEBATE' && state.phase === 'COUNTDOWN' && !paused) {
+      // Pendant l’annonce du thème, pas de tic : seulement sur 3, 2, 1.
       const second = Math.ceil(state.countdown_ticks / this.hz);
-      if (second !== this.second && second > 0) audio.play('tick');
+      if (second !== this.second && second > 0 && state.countdown_ticks <= (state.countdown_digit_ticks ?? Infinity)) audio.play('tick');
       this.second = second;
     }
     if (state.phase === 'SECOND_ROUND_SPRINT' && !paused) {

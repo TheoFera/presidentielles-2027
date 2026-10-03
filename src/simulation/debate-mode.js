@@ -47,6 +47,20 @@ export function debateSetupError(config, setup, profile = null) {
   return null;
 }
 
+/** Thèmes des rounds : ceux du salon s’ils sont valides, sinon tirés de la graine (identiques chez tous les joueurs). */
+export function debateThemes(config, setup) {
+  const mode = config.balance.debate_mode, pool = mode.themes.map(t => t.id);
+  const count = Math.min(mode.rounds, pool.length);
+  if (Array.isArray(setup.themes) && setup.themes.length === count && new Set(setup.themes).size === count
+    && setup.themes.every(id => pool.includes(id))) return [...setup.themes];
+  let x = Number(setup.seed) >>> 0 || 1;
+  for (let i = pool.length - 1; i > 0; i--) {
+    x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+    const j = x % (i + 1); [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
+
 /** Identifiants des combattants, dans l’ordre : le deuxième Mélenchon devient « candidate:melenchon:2 ». */
 export function debateFighterIds(fighters) {
   const counts = {};
@@ -107,13 +121,11 @@ export class DebateMatch {
   constructor(config, setup, profile = null) {
     const error = debateSetupError(config, setup, profile);
     if (error) throw new Error(error);
-    this.config = debateConfig(config); this.setup = clone(setup);
+    this.config = debateConfig(config); this.baseConfig = config; this.setup = clone(setup);
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
     const b = config.balance.first_round_debate, mode = config.balance.debate_mode, map = mode.maps[setup.map];
     const seed = Number(setup.seed) >>> 0 || 1;
-    const places = setup.fighters.length === 2 ? [0.25, 0.75] : [0.18, 0.5, 0.82];
-    const ids = debateFighterIds(setup.fighters);
-    const candidates = setup.fighters.map((fighter, i) => createFighter(config, fighter, ids[i], places[i] * b.width_units, b.width_units));
+    const candidates = this.createCandidates();
     this.state = {
       mode: 'DEBATE', phase: 'COUNTDOWN', format: setup.format, map_id: setup.map, map_name: map.name,
       tick: 0, seed, rng_state: seed, world: { length: b.width_units }, ai_enabled: true,
@@ -129,17 +141,31 @@ export class DebateMatch {
       next_attack_id: 1, next_projectile_id: 1, next_power_id: 1, next_temporary_id: 1, next_hit_id: 1, next_event_id: 1, next_raid_id: 1,
       eliminated_faction: null, hit_count: 0, candidate_hit_count: 0,
       campaign_hit_damage: true,
-      countdown_ticks: this.secondsToTicks(mode.countdown_seconds), fight_started_tick: null,
-      winner_id: null, finished_tick: null, ko_order: [],
+      // Toujours 3 rounds, un thème chacun ; un round bonus départage une égalité.
+      rounds: debateThemes(config, setup).map(theme => ({ theme, winner_id: null, bonus: false })), round_index: 0,
+      countdown_ticks: this.countdownTicks(), countdown_digit_ticks: this.secondsToTicks(mode.countdown_seconds),
+      round_started_tick: null, fight_started_tick: null, round_over_tick: null,
+      winner_id: null, finished_tick: null, ko_order: [], standings: null,
       local_candidate_id: candidates[0].id,
     };
-    if (this.state.fall_death_height != null) for (const c of candidates) {
-      const support = this.state.platforms.filter(p => Math.abs(c.x - p.x) <= p.half_width && p.height <= 0).sort((a, b) => b.height - a.height)[0];
+    this.placeOnPlatforms();
+  }
+  secondsToTicks(s) { return Math.ceil(s * this.hz - 1e-9); }
+  countdownTicks() { const mode = this.config.balance.debate_mode; return this.secondsToTicks(mode.theme_intro_seconds + mode.countdown_seconds); }
+  createCandidates() {
+    const b = this.baseConfig.balance.first_round_debate, fighters = this.setup.fighters;
+    const places = fighters.length === 2 ? [0.25, 0.75] : [0.18, 0.5, 0.82];
+    const ids = debateFighterIds(fighters);
+    return fighters.map((fighter, i) => ({ ...createFighter(this.baseConfig, fighter, ids[i], places[i] * b.width_units, b.width_units), rounds_won: 0 }));
+  }
+  placeOnPlatforms() {
+    const s = this.state;
+    if (s.fall_death_height != null) for (const c of s.candidates) {
+      const support = s.platforms.filter(p => Math.abs(c.x - p.x) <= p.half_width && p.height <= 0).sort((a, b) => b.height - a.height)[0];
       if (!support) throw new Error('Le point de départ doit être sur une plateforme.');
       c.platform_id = support.id; c.combat.height = support.height;
     }
   }
-  secondsToTicks(s) { return Math.ceil(s * this.hz - 1e-9); }
   emit(type, data) {
     this.state.events.push({ ...data, type, id: `event:${this.state.next_event_id++}`, tick: this.state.tick });
     if (this.state.events.length > this.config.prototype.debug.event_history_limit) this.state.events.shift();
@@ -159,7 +185,18 @@ export class DebateMatch {
       if (s.tick - s.finished_tick < this.secondsToTicks(6)) new DebateSimulation(this.config, s).step();
       return;
     }
+    if (s.phase === 'ROUND_OVER') {
+      // Le K.O. se termine à l’écran, puis tout repart à zéro pour le thème suivant.
+      if (s.tick - s.round_over_tick < this.secondsToTicks(this.config.balance.debate_mode.round_end_seconds)) new DebateSimulation(this.config, s).step();
+      else this.startRound(s.round_index + 1);
+      return;
+    }
     if (s.phase === 'COUNTDOWN') {
+      if (s.round_started_tick == null) {
+        const round = s.rounds[s.round_index];
+        s.round_started_tick = s.tick;
+        this.emit('DebateRoundStarted', { round: s.round_index + 1, theme: round.theme, bonus: round.bonus });
+      }
       s.tick++;
       if (--s.countdown_ticks <= 0) { s.phase = 'FIGHT'; s.fight_started_tick = s.tick; this.emit('DebateFightStarted', {}); }
       return;
@@ -188,11 +225,38 @@ export class DebateMatch {
     // Le moteur s’arrête au premier KO (règle du premier tour) : ici le combat continue.
     s.eliminated_faction = null;
     const alive = s.candidates.filter(c => !c.is_ko);
-    if (alive.length <= 1) {
-      s.phase = 'OVER'; s.winner_id = alive[0]?.id ?? null; s.finished_tick = s.tick;
-      for (const c of alive) { c.axis = 0; c.moving = false; }
-      this.emit('DebateFinished', { winner_id: s.winner_id });
+    if (alive.length <= 1) this.finishRound(alive[0]?.id ?? null);
+  }
+  finishRound(winnerId) {
+    const s = this.state, round = s.rounds[s.round_index];
+    round.winner_id = winnerId;
+    for (const c of s.candidates) {
+      if (c.id === winnerId) c.rounds_won++;
+      if (!c.is_ko) { c.axis = 0; c.moving = false; }
     }
+    this.emit('DebateRoundFinished', { round: s.round_index + 1, winner_id: winnerId });
+    if (s.round_index < s.rounds.length - 1) { s.phase = 'ROUND_OVER'; s.round_over_tick = s.tick; return; }
+    // Égalité en tête après les 3 thèmes (1-1-1, ou round nul) : un seul round bonus.
+    const best = Math.max(...s.candidates.map(c => c.rounds_won));
+    if (!round.bonus && s.candidates.filter(c => c.rounds_won === best).length > 1) {
+      s.rounds.push({ theme: this.config.balance.debate_mode.bonus_theme.id, winner_id: null, bonus: true });
+      s.phase = 'ROUND_OVER'; s.round_over_tick = s.tick; return;
+    }
+    // Classement : rounds gagnés, puis dégâts infligés sur tout le débat.
+    const order = s.candidates.map((c, i) => ({ c, i })).sort((a, b) => b.c.rounds_won - a.c.rounds_won || b.c.damage_dealt - a.c.damage_dealt || a.i - b.i);
+    const [first, second] = order;
+    s.standings = order.map(o => o.c.id);
+    s.phase = 'OVER'; s.finished_tick = s.tick;
+    s.winner_id = second && first.c.rounds_won === second.c.rounds_won && first.c.damage_dealt === second.c.damage_dealt ? null : first.c.id;
+    this.emit('DebateFinished', { winner_id: s.winner_id });
+  }
+  /** Nouveau round : vie, positions, dash et ultime remis à zéro ; seuls les rounds gagnés et les dégâts restent. */
+  startRound(index) {
+    const s = this.state, before = new Map(s.candidates.map(c => [c.id, c]));
+    s.candidates = this.createCandidates().map(c => Object.assign(c, { rounds_won: before.get(c.id).rounds_won, damage_dealt: before.get(c.id).damage_dealt }));
+    Object.assign(s, { phase: 'COUNTDOWN', round_index: index, countdown_ticks: this.countdownTicks(), round_started_tick: null, fight_started_tick: null,
+      round_over_tick: null, ko_order: [], eliminated_faction: null, attacks: [], projectiles: [], powers: [], temporary_units: [] });
+    this.placeOnPlatforms();
   }
 }
 

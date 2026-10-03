@@ -92,6 +92,45 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 #debate-mode-banner[data-kind='fight'] { color: #ffffff; font-size: clamp(34px, 8.5cqw, 120px); }
 #debate-mode-banner[data-kind='ko'] { color: #ff4d6d; }
 #debate-mode-banner[hidden] { display: none; }
+#debate-mode-banner[data-kind='count'] { top: 30%; }
+
+/* Thèmes des rounds : pastilles entre les jauges (sous les jauges à trois joueurs). */
+#debate-mode-rounds { position: absolute; top: 1.9cqw; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: .6cqw; pointer-events: none; }
+#debate-mode-rounds[data-count='3'] { top: 9.2cqw; }
+#debate-mode-rounds[hidden] { display: none; }
+.debate-round { width: 3.3cqw; height: 3.3cqw; min-width: 24px; min-height: 24px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid #ffffff4d; background: #070b22d9; color: #ffffff80; box-shadow: 0 .3cqw .8cqw #0006; }
+.debate-round svg { width: 58%; height: 58%; }
+.debate-round[data-state='current'] { border-color: var(--theme-color); color: var(--theme-color); box-shadow: 0 0 0 .25cqw #070b2299, 0 0 1.2cqw var(--theme-color); }
+.debate-round[data-state='won'] { border-color: #fff; background: var(--winner-color); color: #fff; }
+.debate-round[data-state='draw'] { border-color: #ffffff66; background: #3a3f55; color: #ffffffb0; }
+
+/* Annonce du thème : une plaque télé inclinée d’un seul bloc (pictogramme, « THÈME 2 », mot),
+   même inclinaison que le « VS » de la sélection. */
+#debate-mode-theme { position: absolute; left: 0; right: 0; top: 47%; z-index: 3; display: flex; justify-content: center; pointer-events: none;
+  transition: transform .35s cubic-bezier(.2,1.4,.4,1); }
+#debate-mode-theme[hidden] { display: none; }
+/* Pendant 3, 2, 1 : la plaque descend sous les pieds des combattants. */
+#debate-mode-theme[data-step='count'] { transform: translateY(15cqw) scale(.72); }
+.debate-theme-plate { position: relative; overflow: hidden; display: flex; transform: skewX(-10deg); white-space: nowrap;
+  background: #0b1030f2; border: 2px solid #ffffff38; border-bottom: .55cqw solid var(--theme-color);
+  box-shadow: .7cqw .7cqw 0 #000000a0, 0 0 3cqw color-mix(in srgb, var(--theme-color) 45%, transparent); }
+.debate-theme-icon { display: grid; place-items: center; padding: 0 1.6cqw; background: var(--theme-color); color: #0b1030; }
+.debate-theme-icon svg { width: clamp(30px, 6cqw, 80px); height: clamp(30px, 6cqw, 80px); }
+.debate-theme-text { display: flex; flex-direction: column; justify-content: center; gap: .3cqw; padding: 1cqw 3cqw 1.1cqw 2cqw;
+  font-family: Impact, 'Arial Black', sans-serif; font-weight: 900; text-transform: uppercase; line-height: 1; }
+.debate-theme-label { font-size: clamp(12px, 2cqw, 28px); letter-spacing: .16em; color: var(--theme-color); }
+.debate-theme-word { font-size: clamp(30px, 6.4cqw, 88px); letter-spacing: .02em; color: #fff; text-shadow: 0 .35cqw 0 #000000a0; }
+/* Reflet qui traverse la plaque à son arrivée. */
+.debate-theme-plate::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, #ffffff60 50%, transparent 65%);
+  transform: translateX(-100%); animation: debate-theme-shine .75s .25s ease-out forwards; }
+@keyframes debate-theme-shine { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { #debate-mode-theme { transition: none; } .debate-theme-plate::after { display: none; } }
+
+.debate-result-score { margin: 0; font: 900 clamp(26px, 4.6cqw, 56px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .04em; color: #fff; }
+.debate-result-rounds { display: flex; justify-content: center; gap: 1.2cqw; }
+.debate-result-rounds .debate-round { width: 4.6cqw; height: 4.6cqw; min-width: 34px; min-height: 34px; }
+.debate-result-score[hidden], .debate-result-rounds[hidden] { display: none; }
 
 /* Conteneur propre : sur tactile, #game perd son conteneur et les cqw suivraient tout l’écran. */
 #debate-mode-result { position: absolute; inset: 0; z-index: 4; container-type: size; display: grid; place-items: center; background: radial-gradient(ellipse at center, #10163acc, #04061cf2); }

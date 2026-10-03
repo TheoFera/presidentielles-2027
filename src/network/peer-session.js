@@ -22,7 +22,7 @@ async function inflate(bytes, limit = 2_000_000) {
   }
   return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
 }
-import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby } from './lobby.js';
+import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
@@ -108,12 +108,13 @@ export class PeerSession {
   async connect(action, data) {
     if (typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas la connexion directe. Essayez un navigateur à jour.');
     this.isHost = action === 'create';
+    this.name ??= cleanName(data?.name);
     if (this.host) {
       // En ligne, aucun QR n’est scanné : la caméra est inutile.
       if (!this.online) this.camera = await openCamera();
       this.cameraTimer = setTimeout(() => this.releaseCamera(), 15000);
       this.code = id().slice(0, 6).toUpperCase();
-      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, faction: null, style: null, host: true, ready: false }] };
+      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, name: this.name, faction: null, style: null, host: true, ready: false }] };
     } else {
       const offer = decodeInvitation(data.code, 'offer');
       this.checkFingerprint(offer);
@@ -174,9 +175,9 @@ export class PeerSession {
       // Chacun annonce ce qu’il sait décoder ; l’autre adapte ses envois.
       if (DEFLATE) this.enqueue(peer, JSON.stringify({ type: 'caps', data: { deflate: true } }));
       if (this.host) {
-        this.room.players.push({ id: peer.id, slot: peer.slot, faction: null, style: null, host: false, ready: false });
+        this.room.players.push({ id: peer.id, slot: peer.slot, name: null, faction: null, style: null, host: false, ready: false });
         this.publishRoom();
-      }
+      } else if (this.name) this.enqueue(peer, JSON.stringify({ type: 'profile', data: { name: this.name } })); // Le pseudo, pour le salon.
     };
     // Les messages compressés se décodent en différé : tant qu’un décodage est en cours,
     // les suivants attendent dans une file pour garder l’ordre d’arrivée.
@@ -298,6 +299,10 @@ export class PeerSession {
     if (this.host) {
       const player = this.room.players.find(p => p.id === peer.id);
       if (!player) return;
+      if (packet.type === 'profile') {
+        if (this.room.phase === 'lobby') { player.name = cleanName(packet.data?.name); this.publishRoom(); }
+        return;
+      }
       if (packet.type === 'choose') {
         try { chooseCandidate(this.room, player.id, packet.data.faction, packet.data.style); this.publishRoom(); }
         catch (error) { this.send(peer, 'selectionError', { message: error.message }); }
@@ -321,7 +326,7 @@ export class PeerSession {
   // Première place ni occupée ni déjà promise à une invitation en cours.
   freeSlot() { return [2, 3].find(s => !this.room.players.some(p => p.slot === s) && !this.inviteId(s)) ?? null; }
   async invite(slot = [2, 3].find(s => !this.room.players.some(p => p.slot === s))) {
-    if (!this.host || this.room.phase !== 'lobby' || this.room.players.length >= 3) throw new Error('Le salon ne peut plus accueillir de joueur.');
+    if (!this.host || !joinable(this.room)) throw new Error('Le salon ne peut plus accueillir de joueur.');
     if (![2, 3].includes(slot) || this.room.players.some(p => p.slot === slot)) throw new Error('Cette place est déjà occupée.');
     const existing = [...this.peers.values()].find(p => p.slot === slot && !p.cancelled);
     if (existing) return existing.invitation;
@@ -369,7 +374,7 @@ export class PeerSession {
     try { peer.connection.close(); } catch { /* Already closed. */ }
     this.peers.delete(peer.id);
     const count = this.room.players.length;
-    this.room.players = this.room.players.filter(p => p.id !== peer.id);
+    leaveRoom(this.room, peer.id);
     this.notice = message;
     if (this.room.players.length !== count) this.publishRoom(); else this.callbacks.room?.(this.room);
   }
@@ -386,6 +391,9 @@ export class PeerSession {
       }
     } else if (action === 'choose') {
       chooseCandidate(this.room, this.id, data.faction, data.style); this.publishRoom();
+    } else if (action === 'close') {
+      // Débat à deux : plus d’invitation en attente, la sélection s’ouvre.
+      closeRoom(this.room); this.cancelInvite(); this.publishRoom();
     } else if (action === 'start') {
       startRoom(this.room, data.setup);
       this.cancelInvite(); this.publishRoom();

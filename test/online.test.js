@@ -113,17 +113,25 @@ test('Salon en ligne : un code suffit pour relier deux téléphones, puis le sal
   const lost = new OnlineSession({ room() {}, ended: m => ended.push(m) }, 'test', options);
   t.after(() => { host.close(); guest.close(); lost.close(); globalThis.RTCPeerConnection = original; });
 
-  await host.connect('create', { mode: 'debate' });
+  await host.connect('create', { mode: 'debate', name: 'Hôte' });
   assert.match(host.code, /^[A-F0-9]{6}$/); assert.equal(host.room.code, host.code);
   await assert.rejects(lost.connect('join', { code: 'ABCDEF' }), /aucun salon/);
   await assert.rejects(lost.connect('join', { code: 'pas bon' }), /6 caractères/);
 
-  await guest.connect('join', { code: host.code.toLowerCase() });
+  await guest.connect('join', { code: host.code.toLowerCase(), name: 'Invité' });
   assert.equal(guest.room.phase, 'lobby');
   assert.equal(guest.room.players.length, 2);
   assert.equal(guest.socket, null, 'l’invité relié quitte le serveur de salons');
   assert.deepEqual(FakePeer.all.get(1).config.iceServers, turn, 'les adresses TURN servent à la connexion');
   await until(() => hostRooms.at(-1)?.players.length === 2, 'salon de l’hôte à deux');
+  // Les pseudos s’affichent dans le salon de chacun.
+  await until(() => guestRooms.at(-1)?.players.map(p => p.name).join() === 'Hôte,Invité', 'pseudos échangés');
+  // À deux, la sélection attend : l’hôte doit choisir de commencer sans 3e joueur.
+  await assert.rejects(host.request('choose', { faction: 'melenchon', style: 'classique' }), /troisième joueur/);
+  await host.request('close');
+  await until(() => guestRooms.at(-1)?.closed === true, 'salon fermé chez l’invité');
+  await assert.rejects(lost.connect('join', { code: host.code }), /complet/);
+  lost.close(); // Comme le jeu après un refus.
 
   await guest.request('choose', { faction: 'le_pen', style: 'classique' });
   await host.request('choose', { faction: 'melenchon', style: 'classique' });

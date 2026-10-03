@@ -601,7 +601,25 @@
   "debate_mode": {
     "dash_distance": 3.6,
     "countdown_seconds": 3,
+    "theme_intro_seconds": 1.4,
     "fight_banner_seconds": 1,
+    "rounds": 3,
+    "round_end_seconds": 2.6,
+    "themes": [
+      { "id": "economie", "name": "Économie" },
+      { "id": "immigration", "name": "Immigration" },
+      { "id": "ecologie", "name": "Écologie" },
+      { "id": "securite", "name": "Sécurité" },
+      { "id": "sante", "name": "Santé" },
+      { "id": "retraites", "name": "Retraites" },
+      { "id": "education", "name": "Éducation" },
+      { "id": "europe", "name": "Europe" },
+      { "id": "energie", "name": "Énergie" },
+      { "id": "logement", "name": "Logement" },
+      { "id": "agriculture", "name": "Agriculture" },
+      { "id": "democratie", "name": "Démocratie" }
+    ],
+    "bonus_theme": { "id": "public", "name": "Question du public" },
     "victory_delay_seconds": 1.6,
     "ai_retarget_seconds": 1.6,
     "default_map": "remue_menage",
@@ -633,16 +651,16 @@
             "id": "balcon-gauche",
             "x": 6.87440191,
             "half_width": 2.36961722,
-            "height": 1.23391191
+            "height": 1.19848861
           },
           {
             "id": "balcon-droit",
             "x": 21.1507177,
             "half_width": 2.36124402,
-            "height": 1.23391191
+            "height": 1.19848861
           }
         ],
-        "ground_y_ratio": 0.65356004
+        "ground_y_ratio": 0.64505845
       },
       "face_a_face": {
         "name": "Face-à-face",
@@ -659,28 +677,28 @@
             "id": "secours-gauche",
             "x": 2.11842105,
             "half_width": 1.5992823,
-            "height": -0.40146416
+            "height": -0.42507970
           },
           {
             "id": "secours-droit",
             "x": 25.87320574,
             "half_width": 1.62440191,
-            "height": -0.40146416
+            "height": -0.42507970
           },
           {
             "id": "balcon-gauche",
             "x": 6.67344498,
             "half_width": 2.87200957,
-            "height": 1.23391191
+            "height": 1.22800803
           },
           {
             "id": "balcon-droit",
             "x": 21.32655502,
             "half_width": 2.88875598,
-            "height": 1.23391191
+            "height": 1.22800803
           }
         ],
-        "ground_y_ratio": 0.74282678
+        "ground_y_ratio": 0.73326249
       },
       "remue_menage": {
         "name": "Remue-ménage",
@@ -697,16 +715,16 @@
             "id": "balcon-gauche",
             "x": 4.58014354,
             "half_width": 2.57057416,
-            "height": 1.23391191
+            "height": 1.13354587
           },
           {
             "id": "balcon-droit",
             "x": 23.42822967,
             "half_width": 2.54545455,
-            "height": 1.23391191
+            "height": 1.13354587
           }
         ],
-        "ground_y_ratio": 0.66737513
+        "ground_y_ratio": 0.64505845
       },
       "ecologie": {
         "name": "Éco-débat",
@@ -735,16 +753,16 @@
             "id": "jardin-gauche",
             "x": 7.18421053,
             "half_width": 2.56220096,
-            "height": 1.23391191
+            "height": 1.22210414
           },
           {
             "id": "jardin-droit",
             "x": 20.715311,
             "half_width": 2.57894737,
-            "height": 1.23391191
+            "height": 1.22210414
           }
         ],
-        "ground_y_ratio": 0.73857598
+        "ground_y_ratio": 0.73007439
       }
     }
   },

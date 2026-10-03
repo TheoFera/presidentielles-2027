@@ -114,7 +114,8 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   const atlas = renderer.assets.get(definition.sprite);
   if (!atlas) { void renderer.assets.load(definition.sprite); return false; }
   const { ctx, metrics: m } = renderer;
-  const floor = m.groundY + m.characterHeight * .06;
+  // Même sol que la pose d’attente : décalage de la campagne, nul sur les plateaux peints du débat.
+  const floor = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   const feet = floor - (entity.combat.height || 0) * m.characterHeight;
   const breathing = pose.name === 'combat_idle' ? Math.sin(state.tick / 6) * m.characterHeight * .006 : 0;
   const step = !extra && pose.name === 'combat_walk' ? Math.sin(state.tick * .65) * m.characterHeight * .02 : 0;

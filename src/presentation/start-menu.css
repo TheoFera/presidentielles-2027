@@ -97,14 +97,33 @@
 .code-input { font: 850 clamp(18px, 3.6cqh, 30px)/1.2 ui-monospace, monospace; letter-spacing: .25em; text-align: center; text-transform: uppercase; }
 #start-menu .menu-link { align-self: center; min-height: 44px; padding: 6px 10px; background: none; border: 0; box-shadow: none; color: var(--arcade-cyan); text-decoration: underline; text-underline-offset: 3px; font-weight: 750; }
 #start-menu .menu-link:hover { background: none; color: #fff; }
-.waiting-room { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; flex: 1; min-height: 0; }
+.waiting-room { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; flex: 1; min-height: 0; }
+.waiting-room[data-code="false"] { grid-template-columns: minmax(0, 640px); justify-content: center; }
 .waiting-code { align-items: center; text-align: center; }
-.waiting-code .room-code { font-size: clamp(32px, 9cqh, 68px); letter-spacing: .18em; line-height: 1.1; }
-.waiting-code .copy-row { flex-wrap: wrap; justify-content: center; }
-.lobby-slots { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: center; }
-.lobby-slots li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 2px dashed #6e89bc; border-radius: 10px; color: var(--arcade-muted); font-weight: 750; }
-.lobby-slots li[data-ready="true"] { border-style: solid; border-color: var(--arcade-cyan); background: #15213de6; color: #fff; }
-.lobby-slots strong { color: var(--arcade-gold); }
+.waiting-code p { margin: 0; color: var(--arcade-muted); font-size: clamp(14px, 2cqh, 18px); }
+.waiting-code .room-code { font-size: clamp(36px, 10cqh, 76px); letter-spacing: .18em; line-height: 1.1; }
+/* Les actions du salon : de vrais gros boutons, faciles à toucher. */
+.waiting-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 12px; width: min(100%, 560px); }
+#start-menu .waiting-button { min-height: clamp(52px, 9cqh, 72px); padding: 10px 20px; border-radius: 12px; font-size: clamp(16px, 2.6cqh, 22px); font-weight: 900; }
+#start-menu .waiting-button[hidden] { display: none; }
+.waiting-players { justify-content: flex-start; }
+[data-screen="waiting"] #room-message { font-size: clamp(14px, 2.2cqh, 18px); color: var(--arcade-ink); }
+.waiting-players header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.waiting-count { font: 900 clamp(18px, 3cqh, 28px)/1 ui-monospace, monospace; color: var(--arcade-cyan); }
+.lobby-slots { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(6px, 1.4cqh, 12px); }
+.lobby-slots li { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: clamp(52px, 9cqh, 76px); padding: 8px 14px; border: 2px dashed #6e89bc; border-radius: 12px; color: var(--arcade-muted); }
+.lobby-slots li[data-ready="true"] { border-style: solid; border-color: var(--arcade-cyan); background: #1b2a4ee6; color: #fff; }
+.lobby-slots li[data-self="true"] { border-color: var(--arcade-gold); box-shadow: 0 0 14px #ffe27555; }
+.slot-number { font: 900 clamp(14px, 2cqh, 18px)/1 ui-monospace, monospace; color: var(--arcade-gold); }
+.slot-avatar { display: grid; place-items: center; width: clamp(34px, 6.5cqh, 52px); aspect-ratio: 1; border-radius: 50%; border: 2px dashed #6e89bc; font: 900 clamp(16px, 3cqh, 24px)/1 system-ui, sans-serif; }
+[data-ready="true"] .slot-avatar { border: 2px solid var(--arcade-cyan); background: #0d1630; color: var(--arcade-cyan); }
+[data-self="true"] .slot-avatar { border-color: var(--arcade-gold); color: var(--arcade-gold); }
+.slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 850 clamp(16px, 2.8cqh, 26px)/1.2 system-ui, sans-serif; }
+[data-ready="false"] .slot-name { font-weight: 650; font-style: italic; }
+.slot-tags { display: flex; gap: 6px; }
+.slot-tags em { padding: 3px 8px; border-radius: 999px; background: #0d1630; border: 1px solid currentColor; font: 800 clamp(10px, 1.5cqh, 13px)/1.2 ui-monospace, monospace; font-style: normal; text-transform: uppercase; letter-spacing: .05em; }
+[data-ready="true"] .slot-tags em { color: var(--arcade-cyan); }
+[data-self="true"] .slot-tags em:last-child { color: var(--arcade-gold); }
 .lobby-players { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1; min-height: 0; }
 .lobby-player { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 8px; min-height: 0; min-width: 0; text-align: center; padding: 12px; border: 2px solid var(--arcade-cyan); background: #17243c; }
 .lobby-player.vacant { border-color: #465372; background: #10182b; }
@@ -340,8 +359,11 @@
   .waiting-room { gap: 8px; }
   .waiting-code { padding: 8px 12px; gap: 4px; }
   .waiting-code .room-code { font-size: clamp(28px, 11cqh, 44px); }
+  .waiting-code p { font-size: 13px; }
+  #start-menu .waiting-button { min-height: 44px; padding: 6px 14px; font-size: 15px; }
   .lobby-slots { gap: 5px; }
-  .lobby-slots li { padding: 5px 10px; }
+  .lobby-slots li { min-height: 40px; padding: 4px 10px; gap: 8px; }
+  .slot-avatar { width: 30px; }
   #start-menu .menu-link { min-height: 36px; padding: 2px 8px; }
   .online-modes .tutorial-card { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
   .online-modes .tutorial-card button { flex: none; }

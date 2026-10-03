@@ -448,7 +448,7 @@ test('Serveur local : un invité qui quitte le salon libère sa place, l’hôte
   assert.equal((await request('heartbeat', { code: again.code, token: again.token })).status, 400);
 });
 
-test('Salon de débat : ouvert dès deux joueurs, même candidat avec un autre style, réglages vérifiés', async t => {
+test('Salon de débat : à deux sur décision de l’hôte, pseudos, même candidat avec un autre style, réglages vérifiés', async t => {
   const handler = createMultiplayerHandler();
   const server = http.createServer(handler);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -462,8 +462,13 @@ test('Salon de débat : ouvert dès deux joueurs, même candidat avec un autre s
   assert.equal(host.room.mode, 'debate');
   const auth = { code: host.code, token: host.token };
   assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400, 'seul, on attend un adversaire');
-  const guest = await request('join', { code: host.code });
+  const guest = await request('join', { code: host.code, name: 'Marianne<b>' });
+  assert.equal(guest.room.players[1].name, 'Marianneb', 'pseudo affiché, nettoyé');
   const guestAuth = { code: guest.code, token: guest.token };
+  assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400, 'à deux, on attend le 3e ou l’hôte');
+  assert.equal((await request('close', guestAuth)).status, 400, 'seul l’hôte joue à deux');
+  assert.equal((await request('close', auth)).status, 200);
+  assert.equal((await request('join', { code: host.code })).status, 400, 'salon fermé : plus personne n’entre');
   assert.equal((await request('choose', { ...auth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 200);
   assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon', style: 'melenchon_populiste' })).status, 400);
   assert.equal((await request('choose', { ...guestAuth, faction: 'melenchon' })).status, 400, 'le style est obligatoire en débat');
@@ -552,7 +557,7 @@ test('Débat multijoueur : la revanche repart quand tous les joueurs ont voté',
 
 test('Débat multijoueur : changer de combattants ramène le salon à la sélection', async () => {
   const { returnToLobby, chooseCandidate } = await import('../src/network/lobby.js');
-  const room = { mode: 'debate', phase: 'playing', paused: false, rematch: ['a'], debate: { format: '1v1' },
+  const room = { mode: 'debate', phase: 'playing', paused: false, closed: true, rematch: ['a'], debate: { format: '1v1' },
     players: [{ id: 'a', faction: 'melenchon', style: 'classique', ready: true }, { id: 'b', faction: 'le_pen', style: 'classique', ready: true }] };
   returnToLobby(room);
   assert.equal(room.phase, 'lobby');

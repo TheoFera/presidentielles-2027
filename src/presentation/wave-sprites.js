@@ -8,5 +8,5 @@ export function waveEffectBounds(metrics) {
   const height = metrics.characterHeight * 1.65;
   // Une seule échelle pour les deux axes, même lorsque le cadrage du jeu change.
   // Compenser aussi la marge transparente sous l'écume pour la poser sur le sol.
-  return { width: height * 1.5, height, bottom: metrics.groundY + metrics.characterHeight * .40 };
+  return { width: height * 1.5, height, bottom: metrics.groundY + metrics.characterHeight * .31 };
 }

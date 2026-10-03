@@ -40,7 +40,7 @@ function mark(renderer, entity) {
   const saved = renderer.personMarks?.get(entity.id);
   if (!saved) return null;
   const height = saved.height ?? m.characterHeight * (entity.role === 'CANDIDAT' ? 1 : renderer.p.npc_height_multiplier);
-  return { feetY: m.groundY + m.characterHeight * 0.06, ...saved, height };
+  return { feetY: m.groundY + m.characterHeight * (m.groundOffsetRatio ?? 0.06), ...saved, height };
 }
 
 export function drawPersuasionFeedback(renderer, state) {

@@ -458,7 +458,8 @@ async function start() {
         menu.element.querySelector('#back-to-home').onclick = () => menu.home();
       },
     }, state.config_fingerprint);
-    try { await nextSession.connect(action, data); } catch (error) { nextSession.close(); throw error; }
+    // Le pseudo du compte (ou du profil local) s’affiche dans le salon des autres joueurs.
+    try { await nextSession.connect(action, { ...data, name: accounts.username || profile.nickname || null }); } catch (error) { nextSession.close(); throw error; }
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }

@@ -1,5 +1,6 @@
 import { PeerSession, decodeInvitation } from './peer-session.js';
 import { onlineServer } from './online-config.js';
+import { cleanName, joinable } from './lobby.js';
 
 // Multijoueur en ligne : la même connexion directe WebRTC que le mode Wi-Fi, mais
 // les invitations passent automatiquement par le serveur de salons au lieu des QR.
@@ -36,6 +37,7 @@ export class OnlineSession extends PeerSession {
   async connect(action, data) {
     if (!this.server) throw new Error('Le jeu en ligne n’est pas encore configuré : renseignez l’adresse du serveur dans src/network/online-config.js.');
     if (typeof this.WebSocketClass !== 'function' || typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas le jeu en ligne. Essayez un navigateur à jour.');
+    this.name = cleanName(data.name);
     this.iceServers = await onlineIceServers(this.server, this.fetcher);
     if (action === 'create') {
       await super.connect('create', data);
@@ -146,7 +148,7 @@ export class OnlineSession extends PeerSession {
   async welcome(guest) {
     try {
       if (this.room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
-      const slot = this.freeSlot();
+      const slot = joinable(this.room) && this.freeSlot();
       if (!slot) throw new Error('Ce salon est complet.');
       const pending = this.invite(slot);
       this.guests.set(guest, this.inviteId(slot));

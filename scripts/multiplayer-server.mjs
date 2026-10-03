@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { chooseCandidate, roomMode, startRoom, voteRematch, returnToLobby } from '../src/network/lobby.js';
+import { chooseCandidate, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from '../src/network/lobby.js';
 
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -7,7 +7,7 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, debate: room.debate, rematch: room.rematch || [], players: room.players.map(p => ({ id: p.id, slot: p.slot, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, closed: room.closed === true, debate: room.debate, rematch: room.rematch || [], players: room.players.map(p => ({ id: p.id, slot: p.slot, name: p.name, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
   const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
   const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
   const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
@@ -23,7 +23,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
   // The host, or anybody once the match is loading or running, ends the room.
   const remove = (room, player, message) => {
     if (player.host || room.phase !== 'lobby') { close(room, message); return; }
-    player.stream?.end(); room.players = room.players.filter(p => p !== player); changed(room);
+    player.stream?.end(); leaveRoom(room, player.id); changed(room);
   };
   // Phones throttle or suspend hidden pages: the lobby tolerates a longer silence.
   const silenceLimit = room => room.phase === 'playing' ? 30000 : 120000;
@@ -67,9 +67,9 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
           room = rooms.get(String(data.code).trim().toUpperCase());
           if (!room) throw new Error('Ce code ne correspond à aucun salon.');
           if (room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
-          if (room.players.length >= 3) throw new Error('Ce salon est complet.');
+          if (!joinable(room)) throw new Error('Ce salon est complet.');
         }
-        const player = { id: randomBytes(8).toString('hex'), slot: [1, 2, 3].find(s => !room.players.some(p => p.slot === s)), token: randomBytes(24).toString('hex'), host: action === 'create', faction: null, style: null, ready: false, seen: Date.now() };
+        const player = { id: randomBytes(8).toString('hex'), slot: [1, 2, 3].find(s => !room.players.some(p => p.slot === s)), token: randomBytes(24).toString('hex'), host: action === 'create', name: cleanName(data.name), faction: null, style: null, ready: false, seen: Date.now() };
         room.players.push(player); room.touched = Date.now(); changed(room);
         reply(200, { code: room.code, token: player.token, id: player.id, room: view(room) }); return true;
       }
@@ -80,6 +80,9 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       if (action === 'heartbeat') { /* Presence survives a paused or hidden tab. */ }
       else if (action === 'leave') remove(room, player, 'Un joueur a quitté la partie.'); else if (action === 'choose') {
         chooseCandidate(room, player.id, data.faction, data.style); changed(room);
+      } else if (action === 'close') {
+        if (!player.host) throw new Error('Seul l’hôte peut lancer le débat à deux.');
+        closeRoom(room); changed(room);
       } else if (action === 'start') {
         if (!player.host) throw new Error('Seul l’hôte peut lancer la partie.');
         startRoom(room, data.setup); changed(room);

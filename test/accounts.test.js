@@ -554,5 +554,10 @@ test('Multijoueur : déclaration et ordre d’arrivée calculés depuis le salon
   const debate = { mode: 'debate', players: room.players.slice(0, 2), debate: { format: '1v1v1', fighters: [
     { faction: 'melenchon', style: 'melenchon_universaliste', player: 'aaaaaaaaaaaaaaaa' }, { faction: 'le_pen', style: 'le_pen_souverainiste', player: 'bbbbbbbbbbbbbbbb' }, { faction: 'attal', style: 'attal_standard', player: null }] } };
   assert.deepEqual(debatePlacements(debate, { phase: 'OVER', winner_id: 'candidate:attal', ko_order: ['candidate:le_pen', 'candidate:melenchon'] }), ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb']);
+  // Débat en 3 rounds : le classement par rounds gagnés prime sur les K.-O. du dernier round.
+  assert.deepEqual(debatePlacements(debate, { phase: 'OVER', winner_id: 'candidate:attal', ko_order: ['candidate:le_pen', 'candidate:melenchon'],
+    standings: ['candidate:attal', 'candidate:melenchon', 'candidate:le_pen'] }), ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb']);
+  assert.deepEqual(debatePlacements(debate, { phase: 'OVER', winner_id: 'candidate:attal', ko_order: [],
+    standings: ['candidate:le_pen', 'candidate:attal', 'candidate:melenchon'] }), ['bbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaa']);
   assert.equal(matchDeclaration(debate, 'aaaaaaaaaaaaaaaa').format, '1v1v1');
 });

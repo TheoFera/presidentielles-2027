@@ -30,12 +30,13 @@ export function campaignPlacements(room, state) {
 export function campaignKnockouts(room, state) {
   return room.players.flatMap(p => earnedUnlocks(state, p.faction).map(candidate_id => ({ seat: p.id, candidate_id })));
 }
-/** Ordre d'arrivée d'un débat : vainqueur, puis les K.-O. du dernier au premier (IA ignorée). */
+/** Ordre d'arrivée d'un débat : classement en rounds gagnés (sinon vainqueur, puis K.-O. du dernier au premier), IA ignorée. */
 export function debatePlacements(room, state) {
   const setup = room.debate;
   if (state?.phase !== 'OVER' || !setup) return null;
   const ids = debateFighterIds(setup.fighters);
-  const order = [state.winner_id, ...[...(state.ko_order || [])].reverse(), ...ids].filter((id, i, all) => id && all.indexOf(id) === i);
+  const ranking = state.standings?.length ? state.standings : [state.winner_id, ...[...(state.ko_order || [])].reverse()];
+  const order = [...ranking, ...ids].filter((id, i, all) => id && all.indexOf(id) === i);
   const seats = order.map(id => setup.fighters[ids.indexOf(id)]?.player).filter(p => p && room.players.some(x => x.id === p));
   return seats.length === room.players.length ? seats : null;
 }

@@ -1,6 +1,7 @@
 import { animateQr, scanQr } from './qr-camera.js';
 import { copySignal } from './copy-signal.js';
 import { addressSummary } from '../network/peer-session.js';
+import { playerName } from '../network/lobby.js';
 
 // The QR fills the screen: small phones cannot always show it large enough in the page.
 function zoomQr(title, code) {
@@ -25,7 +26,7 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
   const status = menu.element.querySelector('#qr-host-status');
   menu.roomUpdate = () => {
     for (const slot of slots) {
-      const connected = session.room.players.some(p => p.slot === slot);
+      const player = session.room.players.find(p => p.slot === slot), connected = !!player;
       const card = menu.element.querySelector(`[data-qr-slot="${slot}"]`);
       if (connected) {
         stops.get(slot)?.(); stops.delete(slot);
@@ -33,7 +34,7 @@ export function showQrInvitations(menu, session, back, textMode, onContinue = nu
         card.querySelector('.qr-display').innerHTML = '<strong class="qr-connected">✓ Connecté</strong>';
         card.querySelector('.qr-enlarge').disabled = true;
         card.querySelector('.qr-copy').disabled = true;
-        card.querySelector('.qr-player-status').textContent = 'Prêt à rejoindre la partie';
+        card.querySelector('.qr-player-status').textContent = `${playerName(player)} est connecté`;
       } else if (card.dataset.state === 'connected' || card.dataset.peer && !session.hasInvite(card.dataset.peer)) {
         // The player left or the pairing failed: this place gets a fresh invitation.
         prepare(slot, 'Place libérée · Nouveau QR prêt');

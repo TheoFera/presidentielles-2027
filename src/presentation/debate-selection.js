@@ -53,7 +53,7 @@ export const PLAYER_COLORS = ['#69dcff', '#ff6685', '#f5d369'];
 export function fighterCardContent(config, fighter, index, { active = false, editable = false, styles = '' } = {}) {
   const candidate = DEBATE_CANDIDATES.find(c => c.id === fighter?.faction);
   const style = candidate && debateStyles(config, candidate.id).find(s => s.id === fighter.style);
-  const label = fighter.badge || (index ? `IA ${index}` : 'J1 · Vous');
+  const label = fighter.label || fighter.badge || (index ? `IA ${index}` : 'J1 · Vous');
   return `<article class="select-fighter ${active ? 'active' : ''}" style="--player-color:${PLAYER_COLORS[index]};--candidate-color:${candidate ? config.prototype.presentation.factions[candidate.id].color : '#56708f'}">
     ${editable ? `<button class="select-slot" data-slot="${index}" aria-pressed="${active}" aria-label="Choisir le candidat de ${escape(label)}">${escape(label)}</button>` : `<span class="select-slot">${escape(label)}</span>`}
     ${portraitContent(candidate?.id)}<div class="select-name"><small>${candidate ? escape(candidate.name) : 'Sélection en cours'}</small><strong>${candidate ? escape(candidate.short) : '…'}</strong>${styles || (style?.ultimate ? `<span>${escape(style.name.split(' · ')[0])}</span>` : '')}</div>

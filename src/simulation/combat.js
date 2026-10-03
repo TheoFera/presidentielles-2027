@@ -310,7 +310,9 @@ function updateProjectiles(sim) {
         else if (target.role === 'SERVICE_D_ORDRE') damage = config.balance.physical_units.service_ordre.hidden_durability * s.service_ordre_damage_fraction_of_full_durability;
         else if (target.temporary) damage = config.balance.physical_units.service_ordre.hidden_durability * s.service_ordre_damage_fraction_of_full_durability;
       }
-      hit(sim, owner, target, { ...p, damage, ranged: true, strong: p.kind === 'WAVE' }, p.id);
+      const result = hit(sim, owner, target, { ...p, damage, ranged: true, strong: p.kind === 'WAVE' }, p.id);
+      // Une esquive ou un relevé protégé ne consomme pas la touche de la vague.
+      if (p.kind === 'WAVE' && !result) continue;
       p.hit_ids.push(target.id);
       if (['VERBAL', 'BUBBLE'].includes(p.kind)) { p.remaining_range = 0; break; }
     }

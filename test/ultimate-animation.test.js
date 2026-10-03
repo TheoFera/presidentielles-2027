@@ -101,7 +101,7 @@ test('Vague : proportions conservées, contour complet et animation visuelle ral
     const draw=r.calls.find(c=>c[0]==='drawImage'),translation=r.calls.find(c=>c[0]==='translate');
     assert.equal(draw[8]/draw[9],1.5);
     assert.equal(translation[1]+direction*draw[8]/2,r.screenX(projectile.x));
-    assert.equal(translation[2]+draw[9],340);
+    assert.equal(translation[2]+draw[9],331);
     assert.ok(!r.calls.some(c=>c[0]==='clip'));
   }
 });
@@ -115,6 +115,30 @@ test('Vague : départ retardé jusqu’aux bras tendus et orientation prise au l
   assert.equal(ultimateCharacterPose(actor,state,config)?.frame,2);
   beginCombatTick(sim);updateCombat(sim);
   assert.equal(projectile.launched,true);assert.equal(projectile.direction,-1);assert.ok(projectile.x<104&&projectile.x>103);
+});
+test('Vague : un contact esquivé ne consomme pas les dégâts si la protection finit pendant le passage',()=>{
+  for(const direction of [1,-1])for(const protection of ['relevé','esquive']){
+    const sim=make(),state=sim.state,actor=state.candidates.find(c=>c.faction_id==='le_pen');
+    const target=state.candidates.find(c=>c.faction_id==='melenchon');
+    state.npcs=[];state.ai_enabled=false;
+    for(const candidate of state.candidates)candidate.x=130;
+    actor.x=100;actor.facing=direction;actor.current_campaign_style='le_pen_souverainiste';
+    actor.special_charge=sim.config.balance.special_charge.required_points;
+    activateUltimate(sim,actor);const projectile=state.projectiles[0];
+    state.tick=projectile.launch_tick;target.x=actor.x+direction*.25;
+    if(protection==='relevé')target.combat.invulnerable_until_tick=state.tick+1;
+    else {target.dash_active=true;target.dash_invulnerable_until_tick=state.tick;}
+    const before=target.resistance;
+    updateCombat(sim);
+    assert.equal(target.resistance,before,protection);
+    assert.ok(!projectile.hit_ids.includes(target.id),'Un contact protégé ne doit pas compter comme une touche');
+    state.tick++;updateCombat(sim);
+    assert.equal(target.resistance,before-sim.config.balance.specials.le_pen_navy_wave.candidate_resistance_damage);
+    assert.equal(projectile.hit_ids.filter(id=>id===target.id).length,1);
+    // Même en restant dans la vague, un adversaire ne reçoit les dégâts qu'une fois.
+    const after=target.resistance;target.x=projectile.x;state.tick++;updateCombat(sim);
+    assert.equal(target.resistance,after);
+  }
 });
 test('Feu au niveau des pieds, effets découpés et aucun nom Bardella',()=>{
   const r=recordingRenderer();drawStyleEffects(r,{tick:0,powers:[{fire_zone:{x:2,expires_tick:10}}],candidates:[],npcs:[],temporary_units:[],attacks:[]});

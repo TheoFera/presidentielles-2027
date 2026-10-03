@@ -2,10 +2,12 @@ import { drawCombatEffects } from './combat-effects.js';
 import { campaignStyles } from '../simulation/campaign-styles.js';
 import { portraitContent, hydrateSelectionPortraits } from './debate-selection.js';
 import { DEBATE_ARENAS, arenaSupportHeight, drawDebateArena } from './debate-arenas.js';
+import { themeColor, themeIcon, themeName } from './debate-themes.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
 const CROWD_SEATS = 30;
+const reducedMotion = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const hash = n => { let x = Math.imul(n + 1, 2654435761) >>> 0; x ^= x >>> 15; return (x >>> 0) / 4294967296; };
 
 export const fighterStyle = (config, fighter) => campaignStyles(config, fighter.faction_id).find(s => s.id === fighter.current_campaign_style) || null;
@@ -274,16 +276,24 @@ export class DebateModeDisplay {
     this.hud = document.createElement('div'); this.hud.id = 'debate-mode-hud'; this.hud.hidden = true;
     this.hud.setAttribute('aria-label', 'Jauges de vie du combat');
     this.banner = document.createElement('div'); this.banner.id = 'debate-mode-banner'; this.banner.hidden = true; this.banner.setAttribute('role', 'status');
+    // Les 3 thèmes du débat, entre les jauges ; chaque round gagné prend la couleur de son vainqueur.
+    this.rounds = document.createElement('div'); this.rounds.id = 'debate-mode-rounds'; this.rounds.hidden = true;
+    this.rounds.setAttribute('role', 'list'); this.rounds.setAttribute('aria-label', 'Thèmes du débat');
+    // Annonce du thème pendant le compte à rebours.
+    this.theme = document.createElement('div'); this.theme.id = 'debate-mode-theme'; this.theme.hidden = true; this.theme.setAttribute('role', 'status');
     this.result = document.createElement('section'); this.result.id = 'debate-mode-result'; this.result.hidden = true; this.result.setAttribute('aria-label', 'Résultat du combat');
-    game.append(this.hud, this.banner, this.result);
+    game.append(this.hud, this.rounds, this.theme, this.banner, this.result);
     this.result.addEventListener('click', event => {
       const action = event.target.closest('[data-debate-action]')?.dataset.debateAction;
       if (action) this.actions[action]?.();
     });
     this.reset();
   }
-  reset() { this.signature = null; this.cards = new Map(); this.resultShown = false; this.bannerText = null; this.koSeen = 0; this.koUntil = 0; this.rematch = { voted: false, waiting: 0, closed: '' }; this.hide(); }
-  hide() { this.hud.hidden = true; this.banner.hidden = true; this.result.hidden = true; this.result.replaceChildren(); this.resultShown = false; }
+  reset() {
+    this.signature = null; this.cards = new Map(); this.resultShown = false; this.bannerText = null; this.koSeen = 0; this.koUntil = 0; this.koRound = null;
+    this.roundsKey = null; this.themeRound = null; this.themeShown = false; this.rematch = { voted: false, waiting: 0, closed: '' }; this.hide();
+  }
+  hide() { this.hud.hidden = true; this.banner.hidden = true; this.rounds.hidden = true; this.theme.hidden = true; this.theme.getAnimations().forEach(a => a.cancel()); this.result.hidden = true; this.result.replaceChildren(); this.resultShown = false; }
   build(state) {
     this.hud.replaceChildren(); this.cards.clear();
     this.hud.dataset.count = String(state.candidates.length);
@@ -320,10 +330,16 @@ export class DebateModeDisplay {
       card.card.classList.toggle('ko', fighter.is_ko);
       card.card.classList.toggle('danger', !fighter.is_ko && ratio < 0.25);
     }
-    // Bandeau central : 3, 2, 1, DÉBATTEZ !, K.O. !
+    this.updateRounds(state);
+    this.updateTheme(state);
+    // Bandeau central : le thème s’annonce seul, puis 3, 2, 1, DÉBATTEZ !, K.O. !
     let text = null, kind = '';
-    if (state.phase === 'COUNTDOWN') { text = String(Math.max(1, Math.ceil(state.countdown_ticks / hz))); kind = 'count'; }
-    else if (state.fight_started_tick != null && state.tick - state.fight_started_tick < mode.fight_banner_seconds * hz) { text = 'DÉBATTEZ !'; kind = 'fight'; }
+    if (state.phase === 'COUNTDOWN') {
+      if (state.countdown_ticks <= (state.countdown_digit_ticks ?? Infinity)) { text = String(Math.max(1, Math.ceil(state.countdown_ticks / hz))); kind = 'count'; }
+    } else if (state.fight_started_tick != null && state.tick - state.fight_started_tick < mode.fight_banner_seconds * hz) { text = 'DÉBATTEZ !'; kind = 'fight'; }
+    // Pendant 3, 2, 1, le thème descend sous les pieds des combattants.
+    if (this.themeShown) this.theme.dataset.step = kind === 'count' ? 'count' : 'intro';
+    if (state.round_index !== this.koRound) { this.koRound = state.round_index; this.koSeen = state.ko_order.length; }
     if (state.ko_order.length > this.koSeen) { this.koSeen = state.ko_order.length; this.koUntil = state.tick + hz * 1.1; }
     if (!text && state.tick < this.koUntil) { text = state.candidates.find(c => c.id === state.ko_order.at(-1))?.ko_reason === 'FALL' ? 'CHUTE ! K.O. !' : 'K.O. !'; kind = 'ko'; }
     if (text !== this.bannerText) {
@@ -331,6 +347,66 @@ export class DebateModeDisplay {
       if (text) { this.banner.textContent = text; this.banner.dataset.kind = kind; this.banner.getAnimations().forEach(a => a.cancel()); this.banner.animate([{ transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0 }, { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,1.4,.4,1)' }); }
     }
     if (state.phase === 'OVER' && !this.resultShown && state.tick - state.finished_tick >= mode.victory_delay_seconds * hz) this.showResult(state);
+  }
+  /** Pastilles des rounds : thème à venir, en cours, gagné (couleur du vainqueur) ou nul. */
+  roundSlot(state, round, i, ended) {
+    const slot = document.createElement('span'); slot.className = 'debate-round'; slot.setAttribute('role', 'listitem');
+    const done = i < state.round_index || i === state.round_index && ended;
+    const winner = done && round.winner_id ? state.candidates.find(c => c.id === round.winner_id) : null;
+    slot.dataset.state = winner ? 'won' : done ? 'draw' : i === state.round_index ? 'current' : 'next';
+    slot.style.setProperty('--theme-color', themeColor(round.theme));
+    if (winner) slot.style.setProperty('--winner-color', fighterLabel(this.config, winner).color);
+    const name = themeName(this.config, round.theme);
+    slot.setAttribute('aria-label', winner ? `${name} : ${fighterLabel(this.config, winner).name}` : done ? `${name} : match nul` : name);
+    slot.innerHTML = themeIcon(round.theme);
+    return slot;
+  }
+  updateRounds(state) {
+    const rounds = state.rounds || [];
+    this.rounds.hidden = !rounds.length;
+    const ended = ['ROUND_OVER', 'OVER'].includes(state.phase);
+    const key = `${state.candidates.length}|${state.round_index}|${ended}|${rounds.map(r => `${r.theme}:${r.winner_id}`).join()}`;
+    if (key === this.roundsKey) return;
+    const animate = this.roundsKey !== null && !reducedMotion();
+    const before = [...this.rounds.children].map(slot => slot.dataset.state);
+    this.roundsKey = key; this.rounds.dataset.count = String(state.candidates.length);
+    this.rounds.replaceChildren(...rounds.map((round, i) => this.roundSlot(state, round, i, ended)));
+    // Un round qui vient de se terminer « tamponne » sa pastille.
+    if (animate) [...this.rounds.children].forEach((slot, i) => {
+      if (['won', 'draw'].includes(slot.dataset.state) && before[i] !== slot.dataset.state) slot.animate([{ transform: 'scale(1.9)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(.2,1.4,.4,1)' });
+    });
+  }
+  /** « THÈME 2 » + pictogramme + mot pendant le compte à rebours, puis le bloc file vers sa pastille. */
+  updateTheme(state) {
+    const round = state.rounds?.[state.round_index];
+    const show = !!round && state.phase === 'COUNTDOWN';
+    if (show && this.themeRound !== state.round_index) {
+      this.themeRound = state.round_index; this.themeShown = true;
+      this.theme.style.setProperty('--theme-color', themeColor(round.theme));
+      this.theme.innerHTML = `<div class="debate-theme-plate"><span class="debate-theme-icon">${themeIcon(round.theme)}</span><span class="debate-theme-text"><span class="debate-theme-label"></span><span class="debate-theme-word"></span></span></div>`;
+      this.theme.querySelector('.debate-theme-label').textContent = round.bonus ? 'Round bonus' : `Thème ${state.round_index + 1}`;
+      this.theme.querySelector('.debate-theme-word').textContent = themeName(this.config, round.theme);
+      this.theme.getAnimations().forEach(a => a.cancel());
+      this.theme.dataset.step = 'intro'; this.theme.hidden = false;
+      // La plaque glisse depuis la gauche, puis le pictogramme claque.
+      if (!reducedMotion()) {
+        this.theme.animate([{ transform: 'translateX(-100%)', opacity: 0 }, { transform: 'translateX(4%)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 360, easing: 'ease-out' });
+        this.theme.querySelector('.debate-theme-icon svg').animate([{ transform: 'scale(0)' }, { transform: 'scale(1.35)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 320, delay: 220, easing: 'ease-out', fill: 'backwards' });
+      }
+    }
+    if (show || !this.themeShown) return;
+    this.themeShown = false;
+    const slot = this.rounds.children[state.round_index];
+    if (!slot || reducedMotion() || state.phase !== 'FIGHT') { this.theme.hidden = true; return; }
+    const from = this.theme.getBoundingClientRect(), to = slot.getBoundingClientRect();
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const current = getComputedStyle(this.theme).transform, start = current === 'none' ? '' : current;
+    const flight = this.theme.animate([{ transform: start || 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) ${start} scale(.08)`, opacity: 0.4 }], { duration: 340, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' });
+    flight.onfinish = () => {
+      if (this.themeShown) return;
+      this.theme.hidden = true; flight.cancel();
+      slot.animate([{ transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 280, easing: 'cubic-bezier(.2,1.4,.4,1)' });
+    };
   }
   /** Multijoueur : vote de revanche. voted = ce joueur a voté ; waiting = autres joueurs partants ; closed = raison si impossible. */
   setRematch(status) { Object.assign(this.rematch, status); this.renderRematch(); }
@@ -347,14 +423,21 @@ export class DebateModeDisplay {
     this.resultShown = true; this.banner.hidden = true;
     const winner = state.candidates.find(c => c.id === state.winner_id);
     const won = state.winner_id === state.local_candidate_id;
-    const order = [winner, ...[...state.ko_order].reverse().map(id => state.candidates.find(c => c.id === id))].filter(Boolean);
+    const standings = (state.standings || []).map(id => state.candidates.find(c => c.id === id)).filter(Boolean);
+    const order = standings.length ? standings : [winner, ...[...state.ko_order].reverse().map(id => state.candidates.find(c => c.id === id))].filter(Boolean);
     const label = winner ? fighterLabel(this.config, winner) : null;
     const panel = document.createElement('div'); panel.className = 'debate-result-panel';
-    panel.innerHTML = `<p class="debate-result-eyebrow"></p><h2></h2><p class="debate-result-text"></p><ol class="debate-ranking"></ol><div class="debate-result-actions"><button class="debate-primary" data-debate-action="rematch">Revanche</button><button data-debate-action="setup">Changer de combattants</button><button data-debate-action="home">Menu</button></div>`;
+    panel.innerHTML = `<p class="debate-result-eyebrow"></p><h2></h2><p class="debate-result-score"></p><div class="debate-result-rounds" role="list" aria-label="Thèmes du débat"></div><p class="debate-result-text"></p><ol class="debate-ranking"></ol><div class="debate-result-actions"><button class="debate-primary" data-debate-action="rematch">Revanche</button><button data-debate-action="setup">Changer de combattants</button><button data-debate-action="home">Menu</button></div>`;
     panel.querySelector('.debate-result-eyebrow').textContent = `${state.map_name} · ${state.format === '1v1' ? '1 contre 1' : '1 contre 1 contre 1'}`;
     panel.querySelector('h2').textContent = winner ? won ? 'Victoire !' : 'Défaite…' : 'Match nul';
     panel.querySelector('h2').dataset.won = String(won);
-    panel.querySelector('.debate-result-text').textContent = label ? `${label.name}${label.style ? ` (${label.style})` : ''} remporte le Débat télé${won ? ' : bravo !' : '.'}` : 'Match nul : tout le monde est K.O.';
+    panel.querySelector('.debate-result-text').textContent = label ? `${label.name}${label.style ? ` (${label.style})` : ''} remporte le Débat télé${won ? ' : bravo !' : '.'}` : 'Égalité parfaite : personne ne l’emporte.';
+    // Score en rounds (2 – 1, 3 – 0…) et les thèmes aux couleurs de leurs vainqueurs.
+    const score = panel.querySelector('.debate-result-score'), rounds = panel.querySelector('.debate-result-rounds');
+    if (standings.length && state.rounds?.length) {
+      score.textContent = standings.map(c => c.rounds_won).join(' – ');
+      rounds.replaceChildren(...state.rounds.map((round, i) => this.roundSlot(state, round, i, true)));
+    } else { score.hidden = true; rounds.hidden = true; }
     const list = panel.querySelector('ol');
     for (const fighter of order) {
       const item = document.createElement('li'); const l = fighterLabel(this.config, fighter);
@@ -362,7 +445,9 @@ export class DebateModeDisplay {
       item.innerHTML = `${portraitContent(fighter.faction_id)}<span class="ranking-name"></span><small></small>`;
       hydrateSelectionPortraits(item);
       item.querySelector('.ranking-name').textContent = `${l.name}${l.style ? ` · ${l.style}` : ''}${fighter.id === state.local_candidate_id ? ' (vous)' : ''}`;
-      item.querySelector('small').textContent = `${Math.round(fighter.damage_dealt)} dégâts infligés`;
+      item.querySelector('small').textContent = fighter.rounds_won != null
+        ? `${fighter.rounds_won} round${fighter.rounds_won > 1 ? 's' : ''} · ${Math.round(fighter.damage_dealt)} dégâts`
+        : `${Math.round(fighter.damage_dealt)} dégâts infligés`;
       list.append(item);
     }
     // En multijoueur, la revanche se vote à plusieurs ; changer de combattants ramène tout le salon à la sélection.
