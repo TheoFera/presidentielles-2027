@@ -1,0 +1,547 @@
+{
+  "characterHeight": 90,
+  "loadedImages": 20,
+  "draws": [
+    {
+      "faction": "philippe",
+      "case": "Au repos",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "le_pen",
+      "case": "Au repos",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "roussel",
+      "case": "Au repos",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "attal",
+      "case": "Au repos",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "arthaud",
+      "case": "Au repos",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "philippe",
+      "case": "Marche hors combat",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "le_pen",
+      "case": "Marche hors combat",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "roussel",
+      "case": "Marche hors combat",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "attal",
+      "case": "Marche hors combat",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "arthaud",
+      "case": "Marche hors combat",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "philippe",
+      "case": "Garde",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "le_pen",
+      "case": "Garde",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "roussel",
+      "case": "Garde",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "attal",
+      "case": "Garde",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "arthaud",
+      "case": "Garde",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "philippe",
+      "case": "Pas de garde",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 0,
+        "name": "combat_walk",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "Pas de garde",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 0,
+        "name": "combat_walk",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "Pas de garde",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 0,
+        "name": "combat_walk",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "Pas de garde",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 0,
+        "name": "combat_walk",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "Pas de garde",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 0,
+        "name": "combat_walk",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "Persuasion",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 5,
+        "name": "persuade",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "Persuasion",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 5,
+        "name": "persuade",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "Persuasion",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 5,
+        "name": "persuade",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "Persuasion",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 5,
+        "name": "persuade",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "Persuasion",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 5,
+        "name": "persuade",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "Écoute en persuasion",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "le_pen",
+      "case": "Écoute en persuasion",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "roussel",
+      "case": "Écoute en persuasion",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "attal",
+      "case": "Écoute en persuasion",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "arthaud",
+      "case": "Écoute en persuasion",
+      "success": true,
+      "pose": null
+    },
+    {
+      "faction": "philippe",
+      "case": "Réaction à un coup léger",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 12,
+        "name": "hit_light",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "Réaction à un coup léger",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 12,
+        "name": "hit_light",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "Réaction à un coup léger",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 12,
+        "name": "hit_light",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "Réaction à un coup léger",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 12,
+        "name": "hit_light",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "Réaction à un coup léger",
+      "success": true,
+      "pose": {
+        "sheet": "movement",
+        "frame": 12,
+        "name": "hit_light",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "K.O. après 0 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 10,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "K.O. après 0 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 10,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "K.O. après 0 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 8,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "K.O. après 0 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 8,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "K.O. après 0 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 8,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "K.O. après 0,3 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "K.O. après 0,3 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "K.O. après 0,3 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 9,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "K.O. après 0,3 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 9,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "K.O. après 0,3 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 9,
+        "name": "ko_fall",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "K.O. après 0,6 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 13,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "K.O. après 0,6 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 13,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "K.O. après 0,6 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "K.O. après 0,6 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "K.O. après 0,6 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "philippe",
+      "case": "K.O. après 1,2 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 13,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "le_pen",
+      "case": "K.O. après 1,2 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 13,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "roussel",
+      "case": "K.O. après 1,2 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "attal",
+      "case": "K.O. après 1,2 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    },
+    {
+      "faction": "arthaud",
+      "case": "K.O. après 1,2 s",
+      "success": true,
+      "pose": {
+        "sheet": "actions",
+        "frame": 11,
+        "name": "ko_ground",
+        "direction": 1,
+        "extra": true
+      }
+    }
+  ],
+  "errors": []
+}

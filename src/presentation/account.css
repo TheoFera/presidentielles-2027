@@ -15,8 +15,8 @@
 #start-menu .auth-apple { color: #fff; background: #000; border: 2px solid #fff; }
 #start-menu .auth-google { color: #1f1f1f; background: #fff; border: 2px solid #dadce0; }
 .auth-logo { width: 20px; height: 20px; flex: none; background: center / contain no-repeat; }
-.auth-apple .auth-logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.8 0-3.4 1-4.3 2.6-1.8 3.2-.5 7.9 1.3 10.5.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.6 1-1.5 1.4-2.9 1.4-3-.1 0-2.6-1-2.6-4.2zM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z'/%3E%3C/svg%3E"); }
-.auth-google .auth-logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.2C12.4 13.7 17.7 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 7.2-9.6 7.2-17z'/%3E%3Cpath fill='%23FBBC05' d='M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.2C1 16.4 0 20.1 0 24s1 7.6 2.6 10.9l7.9-6.2z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.2-8.8 2.2-6.3 0-11.6-4.2-13.5-10l-7.9 6.2C6.6 42.6 14.6 48 24 48z'/%3E%3C/svg%3E"); }
+[data-provider='apple'] > .auth-logo, .auth-apple .auth-logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.8 0-3.4 1-4.3 2.6-1.8 3.2-.5 7.9 1.3 10.5.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.6 1-1.5 1.4-2.9 1.4-3-.1 0-2.6-1-2.6-4.2zM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z'/%3E%3C/svg%3E"); }
+[data-provider='google'] > .auth-logo, .auth-google .auth-logo { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.2C12.4 13.7 17.7 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 7.2-9.6 7.2-17z'/%3E%3Cpath fill='%23FBBC05' d='M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.2C1 16.4 0 20.1 0 24s1 7.6 2.6 10.9l7.9-6.2z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.2-8.8 2.2-6.3 0-11.6-4.2-13.5-10l-7.9 6.2C6.6 42.6 14.6 48 24 48z'/%3E%3C/svg%3E"); }
 .auth-dev { display: grid; gap: 4px; padding-top: 6px; border-top: 1px dashed #647da6; font-size: 12px; color: var(--arcade-muted); }
 .auth-dev input { min-width: 0; flex: 1; }
 #start-menu .menu-status[data-tone='ok'] { color: #a9ff7a; }
@@ -43,20 +43,38 @@
 .account-optin-text { display: grid; gap: 2px; min-width: 0; }
 .account-optin-text strong { font-weight: 700; line-height: 1.3; }
 .account-optin-text small { color: var(--arcade-muted); font-size: clamp(11px, 1.6cqh, 13px); }
-.account-consent { border-left-color: var(--arcade-pink) !important; }
 
-/* Mon compte. */
-.account-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 1.6cqw, 14px); align-content: start; }
-.account-settings .tutorial-card { justify-content: flex-start; gap: 10px; }
+/* Mon compte : une seule carte, lue de haut en bas. */
+.account-settings { display: grid; justify-items: center; align-content: start; }
+.account-sheet { width: min(560px, 100%); justify-content: flex-start !important; gap: 10px !important; border-left-color: var(--arcade-gold) !important; }
+.account-sheet .menu-status:empty { display: none; }
+.account-head { display: flex; align-items: center; gap: 12px; }
+.account-avatar { flex: none; display: grid; place-items: center; width: 52px; height: 52px; font: 900 28px/1 Impact, 'Arial Black', sans-serif; color: #14162e; background: var(--arcade-gold); box-shadow: 3px 3px 0 #483057; clip-path: polygon(18% 0, 100% 0, 100% 82%, 82% 100%, 0 100%, 0 18%); }
+.account-name-field { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; }
+/* Le pseudo ressemble à un titre ; il devient un champ quand on le touche. */
+#start-menu .account-name-field input { width: 100%; min-height: 44px; padding: 0 36px 0 6px; font: 900 clamp(20px, 3.4cqh, 30px) Impact, 'Arial Black', sans-serif; letter-spacing: .04em; color: #fff; background: transparent; border: 2px solid transparent; border-bottom-color: #3c4e78; border-radius: 6px; }
+#start-menu .account-name-field input:hover { border-bottom-color: var(--arcade-gold); }
+#start-menu .account-name-field input:focus { background: #060b1c; border-color: var(--arcade-gold); outline: none; }
+.account-edit { position: absolute; right: 8px; color: var(--arcade-gold); font-size: 20px; pointer-events: none; }
+.account-name-field:focus-within .account-edit { opacity: 0; }
 .account-identities { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.account-identities li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 6px 10px; background: #0a1430; border-left: 3px solid var(--arcade-cyan); }
-.account-identities strong { font: 900 15px/1.2 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; }
-.account-identities span { color: var(--arcade-muted); font-size: 13px; overflow-wrap: anywhere; }
-.account-actions, .account-unlink { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.account-identities li { display: flex; gap: 10px; align-items: center; min-height: 40px; padding: 4px 6px 4px 10px; background: #0a1430; border-left: 3px solid var(--arcade-cyan); }
+.account-identities li > span:not(.auth-logo) { flex: 1; min-width: 0; color: #fff; font-size: 14px; overflow-wrap: anywhere; }
+#start-menu .account-unlink { flex: none; width: 34px; height: 34px; padding: 0; font: 900 20px/1 system-ui, sans-serif; color: var(--arcade-muted); background: transparent; border: 0; box-shadow: none; }
+#start-menu .account-unlink:hover { color: #ff97b9; }
+.account-link { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+#start-menu .account-email { min-height: 40px; padding: 0 10px; font: 600 14px system-ui, sans-serif; color: #fff; background: #060b1c; border: 1px solid var(--arcade-gold); }
+.account-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding-top: 10px; border-top: 1px solid #3c4e78; }
+/* Suppression : un simple lien discret, obligatoire mais pas mis en avant. */
+#start-menu .account-delete-link { padding: 6px 4px; font: 600 13px system-ui, sans-serif; text-transform: none; letter-spacing: 0; color: var(--arcade-muted); text-decoration: underline; background: none; border: 0; box-shadow: none; }
+#start-menu .account-delete-link:hover { color: #ff97b9; }
 #start-menu .account-delete { color: #fff; border-color: #ff8fb3; background: linear-gradient(#b3264f, #6d0f2c); box-shadow: inset 0 2px 0 #ffffff66, 0 4px 0 #2c0512; }
-.account-danger { border-left-color: var(--arcade-pink) !important; }
-.account-delete-card { max-width: 720px; width: 100%; margin: auto; }
-
+.account-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.account-delete-card { max-width: 560px; width: 100%; margin: auto; gap: 14px !important; }
+/* Bouton à maintenir : une jauge claire se remplit de gauche à droite pendant 2 secondes. */
+#start-menu .account-hold { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.account-hold::before { content: ''; position: absolute; inset: 0; background: #ffffff59; transform: scaleX(var(--hold, 0)); transform-origin: left; pointer-events: none; }
+.account-hold span { position: relative; }
 /* Classement. */
 .leaderboard { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.6fr); grid-template-rows: auto 1fr auto; gap: clamp(8px, 1.6cqw, 14px); }
 .leaderboard-tabs { grid-column: 1 / -1; display: flex; gap: 10px; }
@@ -95,6 +113,6 @@
 
 /* Téléphone en paysage (peu de hauteur) ou écran étroit : une seule colonne. */
 @media (max-width: 640px) {
-  .account-gate, .account-settings, .leaderboard { grid-template-columns: minmax(0, 1fr); }
+  .account-gate, .leaderboard { grid-template-columns: minmax(0, 1fr); }
   .leaderboard-list, .leaderboard-help { grid-column: 1; grid-row: auto; }
 }

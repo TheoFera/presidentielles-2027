@@ -255,6 +255,14 @@ test('Liaison Google + Apple, sans fusion automatique par e-mail', async () => {
   // Un nonce de connexion ne sert pas à lier (et inversement).
   const wrong = await providerLogin(api, 'apple', 'a-zzz', { purpose: 'login' });
   assert.equal((await api.call('POST', 'account/link/apple', { token: g2, body: wrong })).body.error.code, 'invalid_nonce');
+  // Adresse des actualités : par défaut la dernière utilisée (Apple), sinon celle choisie parmi les comptes liés.
+  api.sql("UPDATE auth_identities SET last_login_at = last_login_at - 60 WHERE provider = 'google' AND provider_subject = 'g-link'");
+  const subscribed = await api.call('PATCH', 'me', { token: g, body: { newsletter: true } });
+  assert.equal(subscribed.body.newsletter.provider, 'apple');
+  assert.equal(api.sql("SELECT email FROM newsletter_subscribers WHERE username = 'Liant'")[0].email, 'a-link@gmail.com');
+  assert.equal((await api.call('PATCH', 'me', { token: g, body: { newsletter_provider: 'google' } })).body.newsletter.provider, 'google');
+  assert.equal(api.sql("SELECT email FROM newsletter_subscribers WHERE username = 'Liant'")[0].email, 'g-link@gmail.com');
+  assert.equal((await api.call('PATCH', 'me', { token: g, body: { newsletter_provider: 'facebook' } })).body.error.code, 'invalid_input', 'jamais une adresse non liée');
   // Délier : jamais le dernier moyen de connexion.
   assert.equal((await api.call('DELETE', 'account/link/apple', { token: g })).body.identities.length, 1);
   assert.equal((await api.call('DELETE', 'account/link/google', { token: g })).body.error.code, 'last_identity');

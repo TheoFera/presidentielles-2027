@@ -9,6 +9,7 @@ import { decorForProfile, setMapDecor } from './presentation/map-decor.js';
 import { formatCarriedMoney } from './presentation/money.js';
 import { MoneyCounter } from './presentation/money-counter.js';
 import { GameAudio, SoundDirector } from './presentation/audio.js';
+import { InterstitialAds } from './presentation/ads.js';
 import { CombatPoseTracker } from './presentation/melenchon-combat.js';
 import { recordMatchResult } from './presentation/player-profile.js';
 import { GameSimulation } from './simulation/game-simulation.js';
@@ -79,6 +80,8 @@ async function start() {
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
   document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button')) audio.play('ui'); }, true);
   const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
+  // Pub plein écran au clic de fin de partie, en solo seulement (voir docs/publicites.md).
+  const ads = new InterstitialAds({ audio });
   // Même détection que la garde dessinée à l'écran, pour passer à la musique de combat.
   const combatMusic = new CombatPoseTracker();
   let resultRecorded = false;
@@ -105,7 +108,12 @@ async function start() {
       state = simulation.getState(); previous = state; renderer.resetCamera(); canvas.focus();
     },
     follow: () => { renderer.resetCamera(); canvas.focus(); },
-    replay: () => { if (session) returnHome(); else { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); } }, return: () => returnHome(),
+    replay: () => {
+      if (session) { returnHome(); return; }
+      void ads.afterGame('campaign', () => { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); });
+    },
+    // Quitter après le 1er tour est un abandon : pas de pub.
+    return: () => { if (session || state.phase !== 'RESULTS') returnHome(); else void ads.afterGame('campaign', returnHome); },
   });
   const help = document.getElementById('help');
   const money = document.getElementById('money');
@@ -160,14 +168,14 @@ async function start() {
         session.request('rematch').catch(error => debateDisplay.setRematch({ voted: false, closed: error.transient ? '' : 'Revanche impossible' }));
         return;
       }
-      if (debateSetup) void menu.debateLoading(debateSetup);
+      void ads.afterGame('debate', () => { if (debateSetup) void menu.debateLoading(debateSetup); });
     },
     setup: () => {
       // Multijoueur : tout le salon revient à la sélection, connexion conservée.
       if (session) { session.request('lobby').catch(() => debateDisplay.setRematch({ closed: 'Indisponible' })); return; }
-      returnHome(); menu.debate();
+      void ads.afterGame('debate', () => { returnHome(); menu.debate(); });
     },
-    home: () => returnHome(),
+    home: () => { if (session) returnHome(); else void ads.afterGame('debate', returnHome); },
   });
 
   const notify = (text, seconds = config.prototype.presentation.zone_flash_seconds) => { notice.textContent = text; noticeRemaining = seconds; };
@@ -465,7 +473,7 @@ async function start() {
   }
   // Multijoueur : compte obligatoire. Une fois connecté, l'action voulue reprend toute seule.
   const multiplayerGate = (current, mode) => requireAccount(current, accounts, { resume: () => showMultiplayerSetup(current, connectRoom, mode), back: () => current.players(mode), suggestion: profile.nickname });
-  menu = new StartMenu({ prepare, play, audio, account, combat: config.balance.candidate_combat, multiplayer: multiplayerGate,
+  menu = new StartMenu({ prepare, play, audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate,
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   menu.onProfile = current => decorateProfile(current, accounts);

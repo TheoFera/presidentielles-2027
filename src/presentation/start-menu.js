@@ -11,8 +11,8 @@ export { CANDIDATES } from './arcade-content.js';
 const mobileLandscape = () => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, debate = null }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, debateMode: debate, selected: null, generation: 0 });
+  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, ads, debateMode: debate, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -74,6 +74,14 @@ export class StartMenu {
     this.page('home', '', homeContent());
     this.element.querySelector('#campaign').onclick = () => { mobileLandscape(); this.players('campaign'); };
     this.element.querySelector('#debate').onclick = () => { mobileLandscape(); this.players('debate'); };
+    // Appli en Europe : le joueur peut revoir ses choix de consentement aux pubs (obligation RGPD).
+    if (this.ads?.privacyRequired()) {
+      const privacy = document.createElement('button');
+      privacy.id = 'menu-ad-privacy'; privacy.textContent = 'Pubs';
+      privacy.title = privacy.ariaLabel = 'Choix de confidentialité des publicités';
+      privacy.onclick = () => this.ads.openPrivacy();
+      this.element.querySelector('.menu-tools')?.prepend(privacy);
+    }
   }
   /** « Avec qui ? » : seul contre l’IA, ou entre amis, pour la campagne comme pour le débat. */
   players(mode) {

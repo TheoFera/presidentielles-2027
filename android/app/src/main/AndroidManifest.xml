@@ -22,6 +22,18 @@
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Presidentielles">
 
+        <!-- Identifiant de l'application AdMob (android/gradle.properties). Obligatoire dès que le SDK des pubs est présent. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+        <!-- Démarrage plus rapide : le SDK des pubs s'initialise hors du fil principal. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+            android:value="true" />
+        <meta-data
+            android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+            android:value="true" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

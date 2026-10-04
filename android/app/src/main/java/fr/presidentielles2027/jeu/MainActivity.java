@@ -71,6 +71,7 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private PermissionRequest pendingPermission;
+    private AdsManager ads;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +83,10 @@ public class MainActivity extends Activity {
             getWindow().setAttributes(attributes);
         }
         WebView.setWebContentsDebuggingEnabled((getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
+        ads = new AdsManager(this, script -> { if (webView != null) webView.evaluateJavascript(script, null); });
         createWebView();
         webView.loadUrl(START_URL);
+        ads.start();
         hideSystemBars();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
@@ -111,6 +114,8 @@ public class MainActivity extends Activity {
         // Connexion au compte PartageTonJeu : Google refuse les connexions dans une WebView,
         // le jeu passe donc par ce pont natif (window.PTJNativeAuth, voir src/network/auth-providers.js).
         webView.addJavascriptInterface(new NativeAuthBridge(), "PTJNativeAuth");
+        // Pubs de fin de partie (AdMob) : le jeu décide du moment, voir src/presentation/ads.js.
+        webView.addJavascriptInterface(ads.bridge(), "PTJNativeAds");
 
         WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .setDomain(HOST)

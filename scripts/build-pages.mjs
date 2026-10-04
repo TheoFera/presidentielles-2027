@@ -72,7 +72,9 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
 
   const code = await reachableFiles();
   // La politique de confidentialité est publiée avec le jeu (adresse demandée par le Play Store).
-  const files = [...code, 'confidentialite.html', 'conditions.html', ...await licenseFiles()];
+  // ads.txt / app-ads.txt (régies publicitaires, voir docs/publicites.md) : publiés s'ils existent.
+  const adsFiles = (await readdir(root)).filter(name => ['ads.txt', 'app-ads.txt'].includes(name));
+  const files = [...code, 'confidentialite.html', 'conditions.html', ...adsFiles, ...await licenseFiles()];
   const images = new Set();
   for (const file of code) {
     const source = await readFile(resolve(root, file), 'utf8');

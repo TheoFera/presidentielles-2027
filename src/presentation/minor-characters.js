@@ -4,7 +4,7 @@ import { cleanGeneratedImage } from './fixed-world.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { minorExtraAtlases } from './minor-animation-sprites.js';
-import { drawCandidateCombat } from './melenchon-combat.js';
+import { drawCandidateCombat, MELENCHON_HEIGHT_STRETCH, MELENCHON_WIDTH_STRETCH } from './melenchon-combat.js';
 import { drawStandingSprite, standingSpriteMotion } from './standing-sprite-motion.js';
 
 /**
@@ -143,10 +143,11 @@ export function drawMinorCandidate(renderer, entity, x, state) {
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
       const standingScale = !listenSheet && entity.faction_id === 'roussel' ? .94 : 1;
-      const k = height / atlas.referenceHeight * (atlas.frameScales?.[cell] ?? 1) * standingScale;
+      // L'écoute réutilise la planche d'actions : même étirement qu'en combat, sinon la frame paraît 10 % trop petite.
+      const k = height / atlas.referenceHeight * (atlas.frameScales?.[cell] ?? 1) * standingScale * (listenSheet ? MELENCHON_HEIGHT_STRETCH : 1);
       // Même largeur de silhouette debout que Philippe (161 px pour 384 px),
       // sauf Dupont-Aignan, plus mince : sa largeur naturelle évite de l’écraser.
-      const widthScale = listenSheet ? (atlas.widthScale || 1) : entity.faction_id === 'dupont_aignan' ? 1 : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
+      const widthScale = listenSheet ? (atlas.widthScale || 1) * MELENCHON_WIDTH_STRETCH / MELENCHON_HEIGHT_STRETCH : entity.faction_id === 'dupont_aignan' ? 1 : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
       ctx.scale(widthScale, 1);
       const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
       if (motion.walking) {

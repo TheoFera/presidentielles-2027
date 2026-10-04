@@ -2,6 +2,8 @@
 
 Application Android et publication sur le Play Store : [guide pas à pas](android/LISEZMOI.md), `npm run android`. Optimisation de l'export et organisation du projet : [guide d'optimisation](docs/optimisation-projet.md).
 
+Publicités plein écran de fin de partie (AdMob, AdSense) et démarches à faire : [guide des publicités](docs/publicites.md).
+
 Une partie complète : **campagne → débat à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
 
 L’IA mène des offensives contre les implantations adverses et utilise les trois styles de chaque candidat. Les niveaux **facile, normal et difficile** sont configurables dans le code : voir [le fonctionnement et les réglages de l’IA](docs/intelligence-artificielle.md).

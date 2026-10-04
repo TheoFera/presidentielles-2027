@@ -1,5 +1,9 @@
 # Fresque : éléments à peindre par Codex / ChatGPT
 
+> **Obsolète (octobre 2026).** Ce fichier concernait les éléments séparés et les plans en parallaxe de la fresque
+> dessinée par le code. Pour la nouvelle carte peinte d'un seul plan, la seule référence est
+> `cahier-des-charges-decor-sans-parallaxe.html`. Ne pas l'utiliser pour générer des images.
+
 La fresque visible avec `http://localhost:2027/?decor=maquette` (et en travelling automatique avec
 `http://localhost:2027/src/presentation/world-v3/balade.html?decor=maquette`) est **entièrement dessinée par le code**,
 dans un seul style (`src/presentation/world-v3/fresque/`). Les seules images du jeu utilisées sont les estrades

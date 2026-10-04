@@ -5,6 +5,16 @@ plugins {
 // Le jeu web optimisé, produit par « npm run build » à la racine du projet.
 def webDir = rootProject.file('../dist')
 
+// Publicités AdMob : identifiants à renseigner dans android/gradle.properties (voir docs/publicites.md).
+// En version de test (debug), ce sont toujours les identifiants de test publics de Google : aucune vraie pub.
+def admobTestAppId = 'ca-app-pub-3940256099942544~3347511713'
+def admobTestInterstitialId = 'ca-app-pub-3940256099942544/1033173712'
+def admobAppId = (findProperty('admobAppId') ?: '').trim()
+def admobInterstitialId = (findProperty('admobInterstitialId') ?: '').trim()
+if (!admobAppId || !admobInterstitialId) {
+    logger.warn('AdMob non configuré (android/gradle.properties) : la version Play Store sera sans publicité.')
+}
+
 // Clé de signature pour le Play Store : voir android/LISEZMOI.md.
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('keystore.properties')
@@ -25,6 +35,10 @@ android {
         versionName = '1.0.0'
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -37,7 +51,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders = [admobAppId: admobTestAppId]
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', "\"${admobTestInterstitialId}\""
+        }
         release {
+            // Sans identifiants : le SDK exige quand même un identifiant d'appli, mais aucune pub n'est demandée.
+            manifestPlaceholders = [admobAppId: admobAppId ?: admobTestAppId]
+            buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', "\"${admobAppId ? admobInterstitialId : ''}\""
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -77,4 +98,7 @@ dependencies {
     implementation 'androidx.credentials:credentials:1.5.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.5.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
+    // Publicités interstitielles (AdMob) et formulaire de consentement RGPD de Google (UMP).
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 }

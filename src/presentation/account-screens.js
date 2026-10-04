@@ -89,9 +89,9 @@ export function showAccountGate(menu, accounts, { resume, back, suggestion = '' 
   });
 }
 
-/** Case des actualités, dessinée dans le style du jeu (jamais cochée d'avance). */
-const optIn = checked => `<label class="account-optin" for="account-newsletter"><input type="checkbox" id="account-newsletter" ${checked ? 'checked' : ''}>
-  <span class="account-optin-box" aria-hidden="true"></span><span class="account-optin-text"><strong>${esc(NEWSLETTER_TEXT)}</strong><small>${esc(NEWSLETTER_NOTE)}</small></span></label>`;
+/** Case des actualités, dessinée dans le style du jeu (jamais cochée d'avance). La note n'apparaît qu'à l'inscription. */
+const optIn = (checked, withNote = true) => `<label class="account-optin" for="account-newsletter"><input type="checkbox" id="account-newsletter" ${checked ? 'checked' : ''}>
+  <span class="account-optin-box" aria-hidden="true"></span><span class="account-optin-text"><strong>${esc(NEWSLETTER_TEXT)}</strong>${withNote ? `<small>${esc(NEWSLETTER_NOTE)}</small>` : ''}</span></label>`;
 
 /** Toute première connexion : une seule carte, pseudo → case des actualités → création. */
 export function showOnboarding(menu, accounts, { resume, back, suggestion = '' }) {
@@ -139,82 +139,113 @@ export function showOnboarding(menu, accounts, { resume, back, suggestion = '' }
   };
 }
 
-function identityLine(identity) {
-  const email = identity.email_is_private_relay ? 'Adresse masquée (relais Apple)' : identity.email ? esc(identity.email) : 'E-mail non communiqué';
-  return `<li data-provider="${esc(identity.provider)}"><strong>${esc(PROVIDER_NAMES[identity.provider] || identity.provider)}</strong><span>${email}</span></li>`;
+const shownEmail = identity => identity.email_is_private_relay ? 'Adresse masquée (Apple)' : identity.email || 'Sans e-mail';
+
+/** Une ligne par compte lié : logo, adresse, et une croix pour le retirer s'il en reste un autre. */
+function identityLine(identity, removable) {
+  const name = PROVIDER_NAMES[identity.provider] || identity.provider;
+  return `<li data-provider="${esc(identity.provider)}"><span class="auth-logo" role="img" aria-label="${esc(name)}"></span><span>${esc(shownEmail(identity))}</span>
+    ${removable ? `<button type="button" class="account-unlink" data-unlink="${esc(identity.provider)}" aria-label="Délier ${esc(name)}">×</button>` : ''}</li>`;
 }
 
-/** Paramètres → Compte : pseudo, connexions liées, actualités, déconnexion, suppression. */
+/** Paramètres → Compte : une seule carte (pseudo, comptes liés, actualités, déconnexion). */
 export function showAccountSettings(menu, accounts, { back, signedOut = back } = {}) {
   if (!accounts.signedIn) { signedOut(); return; }
   const me = accounts.me;
   const linked = me.identities.map(i => i.provider);
   const linkable = availableProviders().filter(p => !linked.includes(p.id));
-  menu.page('account', 'Mon compte PartageTonJeu', `<div class="account-settings">
-    <form id="account-name" class="tutorial-card"><h2>Pseudo</h2>
-      <label class="account-field" for="account-username">Pseudo affiché<input id="account-username" value="${esc(me.user.username)}" maxlength="16" autocomplete="nickname" autocapitalize="off" spellcheck="false" required></label>
-      <button type="submit" class="menu-primary">Enregistrer</button><p id="name-status" class="menu-status" role="status"></p></form>
-    <section class="tutorial-card"><h2>Connexion</h2><ul class="account-identities">${me.identities.map(identityLine).join('')}</ul>
-      ${linkable.length ? `<p class="menu-note">Lier un autre moyen de connexion au même compte :</p><div class="auth-buttons" id="account-link"></div>` : ''}
-      ${linked.length > 1 ? `<div class="account-unlink">${linked.map(p => `<button type="button" class="menu-link" data-unlink="${esc(p)}">Délier ${esc(PROVIDER_NAMES[p] || p)}</button>`).join('')}</div>` : ''}
-      <p id="link-status" class="menu-status" role="status"></p></section>
-    <section class="tutorial-card account-consent"><h2>E-mails</h2>
-      ${optIn(me.newsletter.granted)}
-      <p class="menu-note">L’e-mail du compte sert à la connexion ; il n’est utilisé pour ces informations que si la case est cochée.</p>
-      <p id="newsletter-status" class="menu-status" role="status"></p></section>
-    <section class="tutorial-card account-danger"><h2>Session</h2>
-      <div class="account-actions"><button type="button" id="account-logout" class="menu-primary">Se déconnecter</button><button type="button" id="account-logout-all">Déconnecter tous mes appareils</button></div>
-      <button type="button" id="account-delete" class="account-delete">Supprimer mon compte…</button>
-      <p id="session-status" class="menu-status" role="status"></p></section>
+  const emails = me.identities.filter(i => i.email);
+  menu.page('account', 'Mon compte', `<div class="account-settings">
+    <section class="tutorial-card account-sheet">
+      <form id="account-name" class="account-head" novalidate>
+        <span class="account-avatar" aria-hidden="true">${esc((me.user.username || '?').charAt(0).toUpperCase())}</span>
+        <label class="account-name-field" for="account-username"><span class="visually-hidden">Pseudo</span>
+          <input id="account-username" value="${esc(me.user.username)}" maxlength="16" autocomplete="nickname" autocapitalize="off" spellcheck="false" enterkeyhint="done" required>
+          <span class="account-edit" aria-hidden="true">✎</span></label>
+      </form>
+      <p id="name-status" class="menu-status" role="status"></p>
+      <ul class="account-identities">${me.identities.map(i => identityLine(i, linked.length > 1)).join('')}</ul>
+      ${linkable.length ? '<div class="auth-buttons account-link" id="account-link"></div>' : ''}
+      <p id="link-status" class="menu-status" role="status"></p>
+      ${optIn(me.newsletter.granted, false)}
+      ${emails.length > 1 ? `<select id="newsletter-email" class="account-email" aria-label="Adresse qui reçoit les nouvelles" ${me.newsletter.granted ? '' : 'hidden'}>
+        ${emails.map(i => `<option value="${esc(i.provider)}" ${i.provider === me.newsletter.provider ? 'selected' : ''}>✉ ${esc(shownEmail(i))}</option>`).join('')}</select>` : ''}
+      <p id="newsletter-status" class="menu-status" role="status"></p>
+      <footer class="account-foot"><button type="button" id="account-logout" class="menu-primary">Se déconnecter</button>
+        <button type="button" id="account-delete" class="account-delete-link">Supprimer le compte</button></footer>
+    </section>
   </div>`, back);
   const generation = menu.generation, root = menu.element;
   const say = (id, text, tone = '') => { if (generation !== menu.generation) return; const el = root.querySelector(id); el.textContent = text; el.dataset.tone = tone; };
   const failText = failure => failure.offline ? 'Pas de connexion Internet. Réessayez plus tard.' : failure.message;
-  root.querySelector('#account-name').onsubmit = async event => {
-    event.preventDefault();
-    try { await accounts.updateProfile({ username: root.querySelector('#account-username').value }); say('#name-status', '✓ Pseudo enregistré.', 'ok'); }
-    catch (failure) { say('#name-status', failText(failure), 'error'); }
+  const reopen = () => { if (generation === menu.generation) showAccountSettings(menu, accounts, { back, signedOut }); };
+  // Pseudo : enregistré en validant ou en quittant le champ, sans bouton.
+  const nameInput = root.querySelector('#account-username');
+  root.querySelector('#account-name').onsubmit = event => { event.preventDefault(); nameInput.blur(); };
+  nameInput.onchange = async () => {
+    try {
+      await accounts.updateProfile({ username: nameInput.value });
+      if (generation !== menu.generation) return;
+      nameInput.value = accounts.username;
+      root.querySelector('.account-avatar').textContent = accounts.username.charAt(0).toUpperCase();
+      say('#name-status', '✓', 'ok');
+    } catch (failure) { say('#name-status', failText(failure), 'error'); }
   };
+  const emailSelect = root.querySelector('#newsletter-email');
   root.querySelector('#account-newsletter').onchange = async event => {
     const wanted = event.target.checked;
-    try { await accounts.updateProfile({ newsletter: wanted }); say('#newsletter-status', wanted ? '✓ Inscription enregistrée.' : '✓ Vous ne recevrez plus nos actualités.', 'ok'); }
-    catch (failure) { event.target.checked = !wanted; say('#newsletter-status', failText(failure), 'error'); }
+    try {
+      await accounts.updateProfile({ newsletter: wanted });
+      if (emailSelect) emailSelect.hidden = !wanted;
+      say('#newsletter-status', '✓', 'ok');
+    } catch (failure) { event.target.checked = !wanted; say('#newsletter-status', failText(failure), 'error'); }
+  };
+  if (emailSelect) emailSelect.onchange = async () => {
+    try { await accounts.updateProfile({ newsletter_provider: emailSelect.value }); say('#newsletter-status', '✓', 'ok'); }
+    catch (failure) { emailSelect.value = accounts.me.newsletter.provider; say('#newsletter-status', failText(failure), 'error'); }
   };
   const linkBox = root.querySelector('#account-link');
   if (linkBox) void mountProviders(linkBox, accounts, { purpose: 'link', exclude: linked, fail: failure => say('#link-status', failText(failure), 'error'),
     done: async (provider, proof) => {
-      try { await accounts.link(provider, proof); if (generation === menu.generation) showAccountSettings(menu, accounts, { back, signedOut }); }
+      try { await accounts.link(provider, proof); reopen(); }
       catch (failure) { say('#link-status', failText(failure), 'error'); }
     } });
   root.querySelectorAll('[data-unlink]').forEach(button => button.onclick = async () => {
-    try { await accounts.unlink(button.dataset.unlink); showAccountSettings(menu, accounts, { back, signedOut }); }
+    try { await accounts.unlink(button.dataset.unlink); reopen(); }
     catch (failure) { say('#link-status', failText(failure), 'error'); }
   });
   root.querySelector('#account-logout').onclick = async () => { await accounts.logout(); showAccountToast('Vous êtes déconnecté. Le solo reste disponible.'); signedOut(); };
-  root.querySelector('#account-logout-all').onclick = async () => {
-    try { await accounts.logoutAll(); showAccountToast('Tous vos appareils sont déconnectés.'); signedOut(); }
-    catch (failure) { say('#session-status', failText(failure), 'error'); }
-  };
   root.querySelector('#account-delete').onclick = () => showDeleteAccount(menu, accounts, { back: () => showAccountSettings(menu, accounts, { back, signedOut }), deleted: signedOut });
 }
 
-/** Paramètres → Compte → Supprimer mon compte, avec confirmation explicite. */
+const HOLD_MS = 2000;
+
+/** Paramètres → Compte → Supprimer : on garde le doigt appuyé 2 secondes, une jauge se remplit. */
 export function showDeleteAccount(menu, accounts, { back, deleted }) {
-  menu.page('account-delete', 'Supprimer mon compte', `<form id="delete-form" class="tutorial-card account-delete-card" novalidate><h2>Action définitive</h2>
-    <p>Seront effacés : ton pseudo, tes moyens de connexion et e-mails, tes choix d’e-mails, tes candidats débloqués, tes statistiques et ton classement. Toutes tes sessions seront fermées.</p>
-    <p class="menu-note">Les parties déjà jouées restent dans les statistiques des autres joueurs, sous une forme anonyme qui ne permet plus de te retrouver. Ta progression sur cet appareil (hors compte) n’est pas touchée.</p>
-    <label class="account-field" for="delete-confirm">Pour confirmer, écris SUPPRIMER<input id="delete-confirm" autocomplete="off" autocapitalize="characters" spellcheck="false" required></label>
-    <footer class="account-actions"><button type="button" id="delete-cancel" class="menu-primary">Annuler</button><button type="submit" id="delete-account" class="account-delete" disabled>Supprimer définitivement</button></footer>
-    <p id="delete-status" class="menu-status" role="alert"></p></form>`, back);
-  const generation = menu.generation, root = menu.element, input = root.querySelector('#delete-confirm'), button = root.querySelector('#delete-account');
-  input.oninput = () => { button.disabled = input.value.trim().toUpperCase() !== 'SUPPRIMER'; };
+  menu.page('account-delete', 'Supprimer le compte', `<div class="tutorial-card account-delete-card">
+    <p>Ton pseudo, tes connexions, tes déblocages et ton classement seront effacés pour toujours.</p>
+    <footer class="account-actions"><button type="button" id="delete-cancel" class="menu-primary">Annuler</button>
+      <button type="button" id="delete-account" class="account-delete account-hold"><span>Maintenir pour supprimer</span></button></footer>
+    <p id="delete-status" class="menu-status" role="alert"></p></div>`, back);
+  const generation = menu.generation, root = menu.element, button = root.querySelector('#delete-account'), status = root.querySelector('#delete-status');
   root.querySelector('#delete-cancel').onclick = back;
-  root.querySelector('#delete-form').onsubmit = async event => {
-    event.preventDefault();
-    if (button.disabled) return;
-    button.disabled = true;
-    const status = root.querySelector('#delete-status');
-    status.textContent = 'Suppression…';
+  let started = 0, frame = 0, busy = false;
+  const setFill = ratio => button.style.setProperty('--hold', ratio.toFixed(3));
+  const stop = () => { cancelAnimationFrame(frame); started = 0; if (!busy) setFill(0); };
+  const tick = now => {
+    if (!started) return;
+    const ratio = Math.min(1, (now - started) / HOLD_MS);
+    setFill(ratio);
+    if (ratio < 1) frame = requestAnimationFrame(tick); else { started = 0; void remove(); }
+  };
+  const start = () => { if (busy || started) return; started = performance.now(); frame = requestAnimationFrame(tick); };
+  button.onpointerdown = event => { try { button.setPointerCapture(event.pointerId); } catch { /* Pointeur déjà relâché. */ } start(); };
+  button.onpointerup = button.onpointercancel = button.onlostpointercapture = stop;
+  button.onkeydown = event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); start(); } };
+  button.onkeyup = stop;
+  button.oncontextmenu = event => event.preventDefault(); // Appui long sur téléphone : pas de menu.
+  async function remove() {
+    busy = true; button.disabled = true; status.textContent = 'Suppression…';
     try {
       const extra = {};
       // iOS : Apple exige de révoquer l'autorisation ; on redemande un code à l'appli.
@@ -226,11 +257,11 @@ export function showDeleteAccount(menu, accounts, { back, deleted }) {
       showAccountToast('Ton compte a été supprimé.');
       deleted();
     } catch (failure) {
-      if (generation !== menu.generation || failure instanceof AuthCancelled) return;
-      status.textContent = failure.offline ? 'Pas de connexion Internet : la suppression n’a pas pu être faite. Réessayez plus tard.' : failure.message;
-      button.disabled = false;
+      if (generation !== menu.generation) return;
+      busy = false; button.disabled = false; setFill(0);
+      status.textContent = failure instanceof AuthCancelled ? '' : failure.offline ? 'Pas de connexion Internet : la suppression n’a pas pu être faite. Réessayez plus tard.' : failure.message;
     }
-  };
+  }
 }
 
 /** Classement global et rang personnel, par mode de jeu. */

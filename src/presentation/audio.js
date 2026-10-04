@@ -102,10 +102,17 @@ export class GameAudio {
       const length = this.ctx.sampleRate; this.noise = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
       const data = this.noise.getChannelData(0); for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
       this.timer = setInterval(() => this.schedule(), 25);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) void this.ctx.suspend(); else void this.ctx.resume(); });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) void this.ctx.suspend(); else if (!this.held) void this.ctx.resume(); });
       if (this.wanted) this.music(this.wanted, true);
     }
-    if (this.ctx.state === 'suspended' && !document.hidden) void this.ctx.resume();
+    if (this.ctx.state === 'suspended' && !document.hidden && !this.held) void this.ctx.resume();
+  }
+  /** Silence complet pendant une publicité, sans changer le réglage du son du joueur. */
+  hold(held) {
+    this.held = held;
+    if (!this.ctx) return;
+    if (held) void this.ctx.suspend();
+    else if (!document.hidden) void this.ctx.resume();
   }
   setMuted(muted) {
     this.muted = muted;

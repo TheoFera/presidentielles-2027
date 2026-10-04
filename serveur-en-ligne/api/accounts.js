@@ -134,6 +134,13 @@ export async function updateProfile(db, env, userId, body, now = nowSeconds()) {
     // Le premier choix (même un refus) est gardé ; ensuite, seulement les changements.
     if (current.date === null || current.granted !== body.newsletter) statements.push(consentStatement(db, userId, body.newsletter, user.status === 'pending_profile' ? 'onboarding' : 'settings', now));
   }
+  if (body.newsletter_provider !== undefined) {
+    // Seulement un compte lié qui a un e-mail : l'adresse reste celle vérifiée par Google/Apple.
+    const linked = typeof body.newsletter_provider === 'string'
+      && await db.prepare('SELECT 1 AS ok FROM auth_identities WHERE user_id = ? AND provider = ? AND email IS NOT NULL').bind(userId, body.newsletter_provider).first('ok');
+    if (!linked) throw new ApiError(400, 'invalid_input', 'Cette adresse n’est pas liée à votre compte.');
+    statements.push(db.prepare('UPDATE users SET newsletter_provider = ?, updated_at = ? WHERE id = ?').bind(body.newsletter_provider, now, userId));
+  }
   if (!statements.length) return;
   try { await db.batch(statements); }
   catch (error) {
@@ -142,10 +149,17 @@ export async function updateProfile(db, env, userId, body, now = nowSeconds()) {
   }
 }
 
+/** Compte dont l'e-mail reçoit les actualités : le choix du joueur, sinon le dernier utilisé (comme la liste d'envoi). */
+function newsletterProvider(chosen, identities) {
+  const withEmail = identities.filter(i => i.email);
+  if (withEmail.some(i => i.provider === chosen)) return chosen;
+  return withEmail.reduce((last, i) => !last || i.last_login_at > last.last_login_at ? i : last, null)?.provider ?? null;
+}
+
 /** Données du joueur connecté (consultation du profil). */
 export async function getMe(db, userId) {
   const [user, identities, unlocks, ratings, newsletter] = await Promise.all([
-    db.prepare('SELECT id, username, status, created_at FROM users WHERE id = ?').bind(userId).first(),
+    db.prepare('SELECT id, username, status, created_at, newsletter_provider FROM users WHERE id = ?').bind(userId).first(),
     db.prepare('SELECT provider, email, email_is_private_relay, created_at, last_login_at FROM auth_identities WHERE user_id = ? ORDER BY created_at').bind(userId).all(),
     db.prepare('SELECT candidate_id, unlock_method, unlocked_at FROM player_candidate_unlocks WHERE user_id = ? ORDER BY unlocked_at, candidate_id').bind(userId).all(),
     db.prepare('SELECT ladder, rating, games, wins, losses FROM player_ratings WHERE user_id = ? AND season = \'global\'').bind(userId).all(),
@@ -155,7 +169,7 @@ export async function getMe(db, userId) {
   return {
     user: { id: user.id, username: user.username, status: user.status, created_at: user.created_at },
     identities: identities.results.map(i => ({ provider: i.provider, email: i.email, email_is_private_relay: i.email_is_private_relay === 1, linked_at: i.created_at, last_login_at: i.last_login_at })),
-    newsletter,
+    newsletter: { ...newsletter, provider: newsletterProvider(user.newsletter_provider, identities.results) },
     unlocks: unlocked,
     stats: Object.fromEntries(ratings.results.map(r => [r.ladder, { rating: Math.round(r.rating), games: r.games, wins: r.wins, losses: r.losses }])),
   };
@@ -178,7 +192,7 @@ export async function deleteAccount(db, userId, now = nowSeconds()) {
     db.prepare('DELETE FROM player_ratings WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM rating_events WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM game_runs WHERE user_id = ?').bind(userId),
-    db.prepare(`UPDATE users SET username = NULL, username_key = NULL, status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?`).bind(now, now, userId),
+    db.prepare(`UPDATE users SET username = NULL, username_key = NULL, newsletter_provider = NULL, status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?`).bind(now, now, userId),
     audit(db, userId, 'account_deleted'),
   ]);
 }

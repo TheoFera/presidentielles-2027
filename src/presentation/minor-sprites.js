@@ -8,11 +8,11 @@
  */
 export const MINOR_SPRITES = {
   glucksmann: 'assets/generated/minor-candidates/glucksmann.png',
-  roussel: 'assets/generated/minor-candidates/roussel-v6.png',
-  arthaud: 'assets/generated/minor-candidates/arthaud-v2.png',
+  roussel: 'assets/generated/minor-candidates/roussel-v7.png',
+  arthaud: 'assets/generated/minor-candidates/arthaud-v3.png',
   dupont_aignan: 'assets/generated/minor-candidates/dupont_aignan-v2.png',
   retailleau: 'assets/generated/minor-candidates/retailleau-v2.png',
-  attal: 'assets/generated/minor-candidates/attal.png',
+  attal: 'assets/generated/minor-candidates/attal-v2.png',
 };
 
 /** Ordre des cases, de gauche à droite puis de haut en bas. */

@@ -12,7 +12,7 @@ export const APPLE_REDIRECT_URI = '';
 
 /** Texte exact de la case des actualités et sa version (même version dans serveur-en-ligne/api/accounts.js). */
 export const NEWSLETTER_TEXT = 'J’accepte de recevoir des informations sur les prochaines créations de PartageTonJeu';
-export const NEWSLETTER_NOTE = 'Vous pourrez vous désinscrire à tout moment.';
+export const NEWSLETTER_NOTE = 'Désinscription en un clic.';
 export const ACCOUNT_NEWSLETTER_VERSION = 'newsletter-2026-10-v2';
 
 /** Adresse de l'API des comptes : le même Worker Cloudflare (et la même base) que les salons en ligne,

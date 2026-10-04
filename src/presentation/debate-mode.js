@@ -399,7 +399,8 @@ export class DebateModeDisplay {
     const slot = this.rounds.children[state.round_index];
     if (!slot || reducedMotion() || state.phase !== 'FIGHT') { this.theme.hidden = true; return; }
     const from = this.theme.getBoundingClientRect(), to = slot.getBoundingClientRect();
-    const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    // La plaque rétrécit depuis son bord haut (transform-origin) : son centre final est à 4 % de sa hauteur sous ce bord.
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height * 0.04);
     const current = getComputedStyle(this.theme).transform, start = current === 'none' ? '' : current;
     const flight = this.theme.animate([{ transform: start || 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) ${start} scale(.08)`, opacity: 0.4 }], { duration: 340, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' });
     flight.onfinish = () => {
