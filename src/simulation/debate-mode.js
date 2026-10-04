@@ -38,8 +38,8 @@ export function debateSetupError(config, setup, profile = null) {
     if (!fighter?.faction) return index ? 'Choisissez le candidat de l’IA.' : 'Choisissez votre candidat.';
     if (!ALL_FACTIONS.includes(fighter.faction)) return 'Candidat inconnu.';
     if (!debateStyles(config, fighter.faction).some(s => s.id === fighter.style)) return 'Choisissez un style pour chaque combattant.';
-    // Seul le style du joueur dépend de son profil ; l’IA peut tout utiliser.
-    if (index === 0 && profile && !debateStyleAvailable(config, profile, fighter.faction, fighter.style)) return 'Ce style n’est pas encore débloqué.';
+    // En solo, le joueur ne combat qu’avec ou contre des candidats qu’il a débloqués (l’IA aussi).
+    if (profile && !debateStyleAvailable(config, profile, fighter.faction, fighter.style)) return index ? 'Ce candidat n’est pas encore débloqué : l’IA ne peut pas le jouer.' : 'Ce style n’est pas encore débloqué.';
     const key = `${fighter.faction}:${fighter.style}`;
     if (seen.has(key)) return 'Un même candidat peut revenir, mais avec un autre style.';
     seen.add(key);

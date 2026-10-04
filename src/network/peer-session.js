@@ -23,6 +23,7 @@ async function inflate(bytes, limit = 2_000_000) {
   return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
 }
 import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
+import { cleanPlayerCard } from '../simulation/player-titles.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
 export function encodeInvitation(value) {
@@ -109,12 +110,14 @@ export class PeerSession {
     if (typeof RTCPeerConnection !== 'function') throw new Error('Ce navigateur ne permet pas la connexion directe. Essayez un navigateur à jour.');
     this.isHost = action === 'create';
     this.name ??= cleanName(data?.name);
+    // Carte du joueur (avatar, titre, palier, candidats débloqués) : montrée dans le salon, vérifiée par l’hôte.
+    this.card ??= cleanPlayerCard(data?.card);
     if (this.host) {
       // En ligne, aucun QR n’est scanné : la caméra est inutile.
       if (!this.online) this.camera = await openCamera();
       this.cameraTimer = setTimeout(() => this.releaseCamera(), 15000);
       this.code = id().slice(0, 6).toUpperCase();
-      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, name: this.name, faction: null, style: null, host: true, ready: false }] };
+      this.room = { code: this.code, mode: roomMode(data.mode), phase: 'lobby', paused: false, debate: null, players: [{ id: this.id, slot: 1, name: this.name, card: this.card, faction: null, style: null, host: true, ready: false }] };
     } else {
       const offer = decodeInvitation(data.code, 'offer');
       this.checkFingerprint(offer);
@@ -175,9 +178,9 @@ export class PeerSession {
       // Chacun annonce ce qu’il sait décoder ; l’autre adapte ses envois.
       if (DEFLATE) this.enqueue(peer, JSON.stringify({ type: 'caps', data: { deflate: true } }));
       if (this.host) {
-        this.room.players.push({ id: peer.id, slot: peer.slot, name: null, faction: null, style: null, host: false, ready: false });
+        this.room.players.push({ id: peer.id, slot: peer.slot, name: null, card: null, faction: null, style: null, host: false, ready: false });
         this.publishRoom();
-      } else if (this.name) this.enqueue(peer, JSON.stringify({ type: 'profile', data: { name: this.name } })); // Le pseudo, pour le salon.
+      } else if (this.name || this.card) this.enqueue(peer, JSON.stringify({ type: 'profile', data: { name: this.name, card: this.card } })); // Pseudo et carte, pour le salon.
     };
     // Les messages compressés se décodent en différé : tant qu’un décodage est en cours,
     // les suivants attendent dans une file pour garder l’ordre d’arrivée.
@@ -300,7 +303,7 @@ export class PeerSession {
       const player = this.room.players.find(p => p.id === peer.id);
       if (!player) return;
       if (packet.type === 'profile') {
-        if (this.room.phase === 'lobby') { player.name = cleanName(packet.data?.name); this.publishRoom(); }
+        if (this.room.phase === 'lobby') { player.name = cleanName(packet.data?.name); player.card = cleanPlayerCard(packet.data?.card); this.publishRoom(); }
         return;
       }
       if (packet.type === 'choose') {

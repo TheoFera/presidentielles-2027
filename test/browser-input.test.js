@@ -82,6 +82,18 @@ test('Deux pouces : marcher et frapper sans interrompre le déplacement', t => {
   assert.equal(human.axis, 0);
 });
 
+test('Tactile : rater de peu la flèche droite (à gauche de l’écran) va quand même à droite', t => {
+  const { get, canvas, human } = setup(t);
+  const rect = (left, top) => ({ left, top, right: left + 50, bottom: top + 50, width: 50, height: 50 });
+  get('move-left').getBoundingClientRect = () => rect(20, 400);
+  get('move-right').getBoundingClientRect = () => rect(80, 400);
+  canvas.send('pointerdown', { pointerId: 1, clientX: 145, clientY: 410 });
+  assert.equal(human.axis, 1, 'Juste à droite de la flèche droite');
+  canvas.send('pointerup', { pointerId: 1 });
+  canvas.send('pointerdown', { pointerId: 2, clientX: 300, clientY: 200 });
+  assert.equal(human.axis, -1, 'Loin des flèches : la gauche de l’écran garde son sens');
+});
+
 test('Frapper au clavier : maintien sans répétition et un seul relâchement pour Espace/J', t => {
   const { win, actions } = setup(t);
   win.send('keydown', { key: ' ', repeat: false });

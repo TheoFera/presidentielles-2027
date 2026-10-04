@@ -1,0 +1,14 @@
+{
+  "id": "raccord-04-05",
+  "x": 7616,
+  "y": 0,
+  "w": 128,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 640,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-04-05-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-04-05-brute.png",
+  "pixelsModifies": 138239,
+  "pixelsExterieursIdentiques": true
+}

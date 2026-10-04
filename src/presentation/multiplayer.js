@@ -7,6 +7,8 @@ import { onlineServer, onlineInviteLink, normalizeRoomCode } from '../network/on
 import { candidatesReady, selectionOpen, playerName } from '../network/lobby.js';
 import { escape } from './debate-selection.js';
 import { showDebateLobby, updateDebateLobby } from './debate-lobby.js';
+import { hydrateMedallions, medallionContent, titleContent } from './player-card.js';
+import { titleName } from '../simulation/player-titles.js';
 
 // Phones lose the link for a few seconds all the time (screen lock, app switch,
 // Wi-Fi power saving). The browser reconnects the event stream by itself: only a
@@ -265,7 +267,7 @@ function showWaitingRoom(menu, session, leave) {
   share.onclick = () => navigator.share({ title: 'Présidentielle 2027 : Le Jeu', text: `Rejoins ma partie de Présidentielle 2027 : Le Jeu ! Code : ${session.code}`, url: link }).catch(() => {});
   copy.onclick = () => copySignal(link, status);
 }
-/** Une place : numéro, initiale, pseudo et rôle (hôte, vous). */
+/** Une place : numéro, médaillon (ou initiale), pseudo, titre et rôle (hôte, vous). */
 function slotContent(session, slot) {
   const player = session.room.players.find(p => p.slot === slot);
   if (!player) {
@@ -274,13 +276,15 @@ function slotContent(session, slot) {
   }
   const name = playerName(player), self = player.id === session.id;
   const tags = [player.host && 'Hôte', self && 'Vous'].filter(Boolean).map(t => `<em>${t}</em>`).join('');
-  return `<li data-ready="true" data-self="${self}"><span class="slot-number">J${slot}</span><span class="slot-avatar" aria-hidden="true">${escape([...name][0].toUpperCase())}</span><span class="slot-name">${escape(name)}</span><span class="slot-tags">${tags}</span></li>`;
+  const avatar = player.card ? medallionContent(player.card, { size: 'md' }) : `<span class="slot-avatar" aria-hidden="true">${escape([...name][0].toUpperCase())}</span>`;
+  return `<li data-ready="true" data-self="${self}"><span class="slot-number">J${slot}</span>${avatar}<span class="slot-name">${escape(name)}${titleContent(player.card)}</span><span class="slot-tags">${tags}</span></li>`;
 }
 function updateWaitingRoom(menu, session) {
   const root = menu.element, room = session.room, count = room.players.length;
   const list = root.querySelector('.lobby-slots');
   if (!list) return;
   list.innerHTML = [1, 2, 3].map(slot => slotContent(session, slot)).join('');
+  hydrateMedallions(list);
   root.querySelector('.waiting-count').textContent = `${count}/3`;
   const debate = room.mode === 'debate';
   const playTwo = root.querySelector('#play-two');
@@ -310,7 +314,7 @@ export function updateLobby(menu, session, leave = () => menu.home()) {
     card.setAttribute('aria-pressed', String(player?.id === session.id));
     card.disabled = !!session.choosing || !!player && player.id !== session.id;
     card.dataset.occupied = String(!!player);
-    card.querySelector('.candidate-badge').textContent = player ? `♛ J${player.slot} · ${playerName(player)}` : '';
+    card.querySelector('.candidate-badge').textContent = player ? `♛ J${player.slot} · ${playerName(player)}${titleName(player.card?.title) ? ` · ${titleName(player.card.title)}` : ''}` : '';
     card.setAttribute('aria-label', `${candidate.name}${player ? ` · ${playerName(player)}${player.id === session.id ? ' · Vous' : ''}` : ' · Disponible'}`);
   });
   menu.element.querySelector('#prepare-game').disabled = !candidatesReady(session.room);

@@ -1,6 +1,7 @@
 import { debateSetupError, debateStyleAvailable, debateStyles, multiplayerDebateSetup } from '../simulation/debate-mode.js';
 import { candidatesReady, playerName } from '../network/lobby.js';
 import { escape, rosterContent, fighterCardContent, stylesContent, hydrateSelectionPortraits, bindRosterKeyboard } from './debate-selection.js';
+import { titleName } from '../simulation/player-titles.js';
 
 function hostOptions(config, session) {
   const options = session.debateOptions ||= { format: '1v1', map: config.balance.debate_mode.default_map };
@@ -45,7 +46,7 @@ export function showDebateLobby(menu, session, leave) {
     const players = [...session.room.players].sort((a, b) => a.slot - b.slot);
     const active = players.findIndex(p => p.id === session.id), me = players[active];
     // Pseudo de chaque joueur sur sa carte ; le marqueur de la grille reste court (J1, J2…).
-    const fighters = players.map(p => ({ ...p, badge: `J${p.slot}`, label: `J${p.slot} · ${playerName(p)}${p.id === session.id ? ' (vous)' : ''}` }));
+    const fighters = players.map(p => ({ ...p, badge: `J${p.slot}`, label: `J${p.slot} · ${playerName(p)}${titleName(p.card?.title) ? ` · ${titleName(p.card.title)}` : ''}${p.id === session.id ? ' (vous)' : ''}` }));
     if (session.host && hostOptions(config, session).format === '1v1v1' && players.length === 2 && candidatesReady(session.room)) {
       fighters.push({ ...multiplayerDebateSetup(config, session.room, hostOptions(config, session)).fighters[2], badge: 'IA' });
     }

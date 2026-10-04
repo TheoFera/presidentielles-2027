@@ -1,0 +1,12 @@
+{
+  "pixels_hors_bande_identiques": true,
+  "bande": {
+    "x": 1856,
+    "largeur": 128
+  },
+  "raccord": {
+    "seam": 21.258024691358024,
+    "normal": 15.49753086419753,
+    "visible": false
+  }
+}

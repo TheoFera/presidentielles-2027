@@ -35,7 +35,7 @@ Worker Cloudflare « presidentielles-2027-salons » (déjà utilisé pour les sa
 
 | Fichier | Rôle |
 |---|---|
-| `serveur-en-ligne/migrations/0001_comptes.sql` | Schéma D1 (migration versionnée) |
+| `serveur-en-ligne/migrations/0001_comptes.sql` | Schéma D1 (migration versionnée) ; `0002`, `0003` : ajouts |
 | `serveur-en-ligne/api/router.js` | Routes `/api/v1`, tâche planifiée (cron) |
 | `serveur-en-ligne/api/oidc.js`, `providers.js` | Vérification des jetons ; fournisseurs Google et Apple |
 | `serveur-en-ligne/api/sessions.js` | Sessions PartageTonJeu |
@@ -171,8 +171,14 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
 - **Verrouillés** : les 6 autres styles et les 6 candidats mineurs (en Débat télé). Nouveau style ou nouveau mineur :
   l'ajouter à `src/simulation/unlock-catalog.js` (un test le rappelle s'il manque).
 - **Règle** : mettre K.-O. (soi-même ou son camp) un candidat mineur, ou un candidat principal portant un style non débloqué,
-  le **note** dans la partie (`state.knockouts`). Il n'est **débloqué qu'à la fin normale** de la campagne (résultats).
-  Quitter ou abandonner avant : rien.
+  le **note** dans la partie (`state.knockouts`). Il n'est **débloqué qu'à la fin normale** de la campagne, et **seulement
+  si ce joueur a gagné l'élection** (solo comme multijoueur ; le serveur ne retient que le vainqueur). Quitter, abandonner
+  ou perdre : rien. Un bandeau félicite le joueur au K.-O. et rappelle qu'il doit gagner l'élection.
+- **Profil public** (migration `0003_profil_avatar_titre.sql`) : `users.avatar` (candidat débloqué choisi, `PATCH /me`)
+  et `users.title_rank` (meilleur titre atteint, jamais perdu). Titres et paliers : `src/simulation/player-titles.js`.
+  Le classement renvoie avatar, titre et meilleur Elo de chaque joueur. **Appliquer la migration avant de déployer.**
+- **Débat télé en solo** : ni le joueur ni l'IA ne peuvent prendre un candidat que le joueur n'a pas débloqué.
+  En multijoueur, chacun choisit parmi ses propres déblocages (carte du joueur envoyée au salon).
 - **Compte = source de vérité** : `player_candidate_unlocks`, retrouvé sur tout appareil. Le jeu garde une copie pour l'affichage.
 - **Aucune route « débloquer »**. Enregistrement seulement par :
   - une **partie multijoueur confirmée** par les joueurs (K.-O. inclus dans le résultat) ;

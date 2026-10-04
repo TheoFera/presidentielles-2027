@@ -1,0 +1,167 @@
+{
+  "id": "paris-c-institut-panneau-calage",
+  "auteur": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-institut-panneau-calage-generation.png",
+  "sortie": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-institut-panneau-calage-calibree.png",
+  "profil": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-institut-panneau-calage-profil.json",
+  "cellules": [
+    {
+      "source": {
+        "x": 390,
+        "y": 90,
+        "w": 37,
+        "h": 11
+      },
+      "cible": {
+        "x": 390,
+        "y": 90,
+        "w": 37,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 390,
+        "y": 101,
+        "w": 37,
+        "h": 46
+      },
+      "cible": {
+        "x": 390,
+        "y": 104,
+        "w": 37,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 390,
+        "y": 147,
+        "w": 37,
+        "h": 13
+      },
+      "cible": {
+        "x": 390,
+        "y": 148,
+        "w": 37,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 427,
+        "y": 90,
+        "w": 260,
+        "h": 11
+      },
+      "cible": {
+        "x": 427,
+        "y": 90,
+        "w": 258,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 427,
+        "y": 101,
+        "w": 260,
+        "h": 46
+      },
+      "cible": {
+        "x": 427,
+        "y": 104,
+        "w": 258,
+        "h": 44
+      },
+      "role": "panneau",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 427,
+        "y": 147,
+        "w": 260,
+        "h": 13
+      },
+      "cible": {
+        "x": 427,
+        "y": 148,
+        "w": 258,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 687,
+        "y": 90,
+        "w": 33,
+        "h": 11
+      },
+      "cible": {
+        "x": 685,
+        "y": 90,
+        "w": 35,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 687,
+        "y": 101,
+        "w": 33,
+        "h": 46
+      },
+      "cible": {
+        "x": 685,
+        "y": 104,
+        "w": 35,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 687,
+        "y": 147,
+        "w": 33,
+        "h": 13
+      },
+      "cible": {
+        "x": 685,
+        "y": 148,
+        "w": 35,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    }
+  ],
+  "porte": null,
+  "panneau": {
+    "x": 427,
+    "y": 104,
+    "w": 258,
+    "h": 44,
+    "xDansTuile": 1296,
+    "yDansFresque": 764,
+    "centreX": 1425,
+    "bas": 808
+  },
+  "superpositions": 0,
+  "pixelsNonOpaques": 0,
+  "pixelsHorsCellulesConserves": true,
+  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu."
+}

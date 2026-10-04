@@ -1,0 +1,16 @@
+{
+  "id": "riches-a-rdc-calage",
+  "x": 29545,
+  "y": 660,
+  "w": 600,
+  "h": 420,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 420,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-a-rdc-calage-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-a-rdc-calage-brute.png",
+  "pixelsModifies": 142418,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

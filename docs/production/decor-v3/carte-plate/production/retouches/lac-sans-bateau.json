@@ -1,0 +1,18 @@
+{
+  "id": "lac-sans-bateau",
+  "x": 28440,
+  "y": 400,
+  "w": 360,
+  "h": 680,
+  "context": 256,
+  "canvasWidth": 872,
+  "canvasHeight": 680,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\lac-sans-bateau-guide.png",
+  "replaceTop": 370,
+  "replaceHeight": 125,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\lac-sans-bateau-brute.png",
+  "pixelsModifies": 44997,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "annuleeLe": "2026-10-04T11:02:48.247Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "paris-c-institut-calage",
+  "x": 5117,
+  "y": 740,
+  "w": 310,
+  "h": 340,
+  "context": 256,
+  "canvasWidth": 822,
+  "canvasHeight": 340,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-institut-calage-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-institut-calage-brute.png",
+  "pixelsModifies": 22469,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

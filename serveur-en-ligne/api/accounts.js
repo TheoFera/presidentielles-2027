@@ -2,6 +2,8 @@
 // consentement aux actualités, consultation et suppression.
 import { ApiError, audit, nowSeconds, randomId, list } from './util.js';
 import { DEFAULT_UNLOCKED } from '../../src/simulation/unlock-catalog.js';
+import { cleanAvatar, titleRank } from '../../src/simulation/player-titles.js';
+import { listUnlocks } from './progression.js';
 import { revokeAllSessions } from './sessions.js';
 
 // ---- Pseudo ---------------------------------------------------------------
@@ -128,6 +130,12 @@ export async function updateProfile(db, env, userId, body, now = nowSeconds()) {
         status = CASE WHEN status = 'pending_profile' THEN 'active' ELSE status END WHERE id = ?`).bind(username, key, now, now, userId));
     }
   } else if (user.status === 'pending_profile') throw new ApiError(400, 'username_empty', 'Choisissez un pseudo.');
+  if (body.avatar !== undefined) {
+    // Seulement un candidat que le joueur possède.
+    const owned = await listUnlocks(db, userId);
+    if (typeof body.avatar !== 'string' || !owned.includes(body.avatar)) throw new ApiError(400, 'invalid_input', 'Cet avatar n’est pas débloqué.');
+    statements.push(db.prepare('UPDATE users SET avatar = ?, updated_at = ? WHERE id = ?').bind(body.avatar, now, userId));
+  }
   if (body.newsletter !== undefined) {
     if (typeof body.newsletter !== 'boolean') throw new ApiError(400, 'invalid_input', 'Choix des actualités invalide.');
     const current = await newsletterStatus(db, userId);
@@ -159,7 +167,7 @@ function newsletterProvider(chosen, identities) {
 /** Données du joueur connecté (consultation du profil). */
 export async function getMe(db, userId) {
   const [user, identities, unlocks, ratings, newsletter] = await Promise.all([
-    db.prepare('SELECT id, username, status, created_at, newsletter_provider FROM users WHERE id = ?').bind(userId).first(),
+    db.prepare('SELECT id, username, status, created_at, newsletter_provider, avatar, title_rank FROM users WHERE id = ?').bind(userId).first(),
     db.prepare('SELECT provider, email, email_is_private_relay, created_at, last_login_at FROM auth_identities WHERE user_id = ? ORDER BY created_at').bind(userId).all(),
     db.prepare('SELECT candidate_id, unlock_method, unlocked_at FROM player_candidate_unlocks WHERE user_id = ? ORDER BY unlocked_at, candidate_id').bind(userId).all(),
     db.prepare('SELECT ladder, rating, games, wins, losses FROM player_ratings WHERE user_id = ? AND season = \'global\'').bind(userId).all(),
@@ -167,7 +175,8 @@ export async function getMe(db, userId) {
   ]);
   const unlocked = [...new Set([...DEFAULT_UNLOCKED, ...unlocks.results.map(u => u.candidate_id)])];
   return {
-    user: { id: user.id, username: user.username, status: user.status, created_at: user.created_at },
+    user: { id: user.id, username: user.username, status: user.status, created_at: user.created_at,
+      avatar: user.avatar && cleanAvatar(user.avatar, unlocked) === user.avatar ? user.avatar : null, title_rank: titleRank(unlocked, user.title_rank) },
     identities: identities.results.map(i => ({ provider: i.provider, email: i.email, email_is_private_relay: i.email_is_private_relay === 1, linked_at: i.created_at, last_login_at: i.last_login_at })),
     newsletter: { ...newsletter, provider: newsletterProvider(user.newsletter_provider, identities.results) },
     unlocks: unlocked,

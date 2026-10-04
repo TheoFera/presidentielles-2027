@@ -1,0 +1,25 @@
+{
+  "id": "riches-b-maconnerie-finition",
+  "x": 30842,
+  "y": 600,
+  "w": 600,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 480,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-maconnerie-finition-guide.png",
+  "replaceTop": 0,
+  "replaceHeight": 160,
+  "replaceLeft": 14,
+  "replaceWidth": 586,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-maconnerie-finition-generation.png",
+  "appliquee": false,
+  "integreeDansCandidat": "riches-b-rdc-dessin",
+  "pixelsExterieursIdentiques": true,
+  "rectangle": {
+    "x": 270,
+    "y": 0,
+    "w": 586,
+    "h": 160
+  }
+}

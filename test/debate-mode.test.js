@@ -365,8 +365,12 @@ test('Réglages : même candidat seulement avec un autre style, styles verrouill
   assert.match(debateSetupError(config, locked, fresh), /débloqué/);
   assert.equal(debateStyleAvailable(config, { nickname: ' BetaTest ' }, 'melenchon', 'melenchon_populiste'), true);
   assert.equal(debateSetupError(config, locked, { nickname: 'betatest' }), null);
-  // L’IA peut utiliser n’importe quel style, même verrouillé pour le joueur.
-  assert.equal(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_gouvernement')), fresh), null);
+  // En solo, l’IA non plus ne peut pas jouer un candidat que le joueur n’a pas débloqué.
+  assert.match(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_gouvernement')), fresh), /IA/);
+  assert.equal(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_souverainiste')), fresh), null);
+  assert.match(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('attal', 'attal_standard')), fresh), /IA/);
+  // Multijoueur (pas de profil) : chacun a été vérifié sur son appareil, l’IA peut tout jouer.
+  assert.equal(debateSetupError(config, duel('remue_menage', fighter('melenchon', 'melenchon_universaliste'), fighter('le_pen', 'le_pen_gouvernement'))), null);
 });
 
 test('Compte à rebours : aucune commande avant « Débattez ! », puis 100 PV chacun', () => {

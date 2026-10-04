@@ -5,32 +5,109 @@
 #start-menu #menu-sound .wave { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 #start-menu #menu-sound[aria-pressed="true"] { color: #ff97b9; }
 #start-menu #menu-profile { display: flex; align-items: center; gap: 8px; max-width: min(40cqw, 260px); padding: 5px 14px 5px 8px; border-color: var(--arcade-gold); }
-#start-menu #menu-profile svg { flex: none; width: 28px; height: 28px; padding: 3px; fill: #14162e; background: var(--arcade-gold); border-radius: 50%; }
+#start-menu #menu-profile .medallion { --medallion-size: 30px; }
 #start-menu #menu-profile span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Impact, 'Arial Black', sans-serif; font-size: clamp(15px, 1.8cqw, 22px); letter-spacing: .03em; }
 
-/* Page « Mon profil ». */
-.profile-screen { flex: 1 !important; min-height: 0; display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.7fr); grid-template-rows: minmax(0, 1fr) auto auto auto; gap: clamp(8px, 2cqh, 18px); }
+/* Médaillon du joueur : buste carré du candidat choisi, bord à la couleur du palier en ligne.
+   Le palier n'est jamais nommé : bronze, argent, or, puis bleu-blanc-rouge pour le plus haut. */
+.medallion { --medallion-size: 44px; --tier: #6a7fa6; position: relative; flex: none; display: inline-block; width: var(--medallion-size); height: var(--medallion-size); padding: max(2px, calc(var(--medallion-size) * .06)); border-radius: calc(var(--medallion-size) * .2); background: var(--tier); box-shadow: 2px 2px 0 #0007; box-sizing: border-box; }
+.medallion[data-size='sm'] { --medallion-size: 28px; }
+.medallion[data-size='md'] { --medallion-size: 48px; }
+.medallion[data-size='lg'] { --medallion-size: clamp(72px, 15cqh, 120px); box-shadow: 4px 4px 0 #0008; }
+.medallion[data-tier='bronze'] { --tier: #c98a52; }
+.medallion[data-tier='silver'] { --tier: #d7dee9; }
+.medallion[data-tier='gold'] { --tier: #ffd75e; }
+.medallion[data-tier='elysee'] { background: linear-gradient(90deg, #2b55c9 33.3%, #f2f5ff 33.3% 66.6%, #e3363f 66.6%); }
+.medallion-face { --face-bg: linear-gradient(150deg, color-mix(in srgb, var(--candidate-color, #56708f) 32%, #142036), #080d1b); display: block; width: 100%; height: 100%; border-radius: calc(var(--medallion-size) * .14); background: var(--face-bg); }
+/* Cadrage commun à tout le jeu (comme le Débat télé) : l'image prend toute la largeur, en partant du haut de la tête. */
+.medallion-face[style*='url('] { background-repeat: no-repeat; background-size: 100% auto, 100% 100%; background-position: 50% 0, 0 0; }
+/* Image de Roussel plus large que les autres : cadrée sur la hauteur, comme dans le Débat télé. */
+.medallion-face[data-avatar='roussel'][style*='url('] { background-size: auto 220%, 100% 100%; }
+/* Titre écrit après le pseudo, sur la même ligne. */
+.player-title { display: inline-block; margin-left: .5em; padding: 1px 7px; font: 800 .78em/1.4 system-ui, sans-serif; letter-spacing: .02em; text-transform: none; color: var(--arcade-gold, #ffe275); border: 1px solid #ffe27566; background: #ffe2751a; white-space: nowrap; vertical-align: middle; }
+
+/* Page « Mon profil » : en-tête (médaillon, pseudo, collection), onglets, contenu qui défile. */
+.profile-screen { flex: 1 !important; min-height: 0; display: flex; flex-direction: column; gap: clamp(6px, 1.6cqh, 14px); }
 /* Couleur du parti, reprise des résultats de l'élection. */
 .profile-screen [data-faction='melenchon'] { --party: #e3363f; --party-dark: #7a0d18; }
 .profile-screen [data-faction='le_pen'] { --party: #2f6fe4; --party-dark: #0c2a78; }
 .profile-screen [data-faction='philippe'] { --party: #e2a53a; --party-dark: #6f420b; }
 @keyframes profile-pop { from { opacity: 0; transform: translateY(10px) scale(.97); } }
 @keyframes profile-fill { from { width: 0; } }
-@keyframes profile-spot { 50% { opacity: .55; } }
 
-/* Carte d'identité du joueur : bandeau tricolore, projecteur aux couleurs du candidat préféré. */
-.profile-identity { position: relative; grid-row: 1 / 3; min-height: 0; display: flex; flex-direction: column; gap: clamp(6px, 1.5cqh, 12px); padding: clamp(10px, 2cqh, 18px); padding-top: calc(clamp(10px, 2cqh, 18px) + 5px); border: 2px solid #6a83b0; background: linear-gradient(180deg, color-mix(in srgb, var(--party-dark, #1b2c55) 55%, #14213f), #0e1630 70%); box-shadow: 0 0 0 4px #0a1128, 6px 6px 0 #00000059; animation: profile-pop .35s ease-out both; }
+/* Carte d'identité : bandeau tricolore, médaillon, pseudo et titre, barre de collection. */
+.profile-identity { position: relative; flex: none; display: flex; align-items: center; gap: clamp(10px, 2cqw, 22px); padding: clamp(8px, 1.8cqh, 16px) clamp(10px, 2cqw, 20px); padding-top: calc(clamp(8px, 1.8cqh, 16px) + 5px); border: 2px solid #6a83b0; background: linear-gradient(180deg, #1b2c55, #0e1630 80%); box-shadow: 0 0 0 4px #0a1128, 6px 6px 0 #00000059; animation: profile-pop .35s ease-out both; }
 .profile-identity::before { content: ''; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #2b55c9 33.3%, #f2f5ff 33.3% 66.6%, #e3363f 66.6%); }
-.profile-hero { position: relative; flex: 1; min-height: 0; display: flex; justify-content: center; overflow: hidden; border-bottom: 3px solid var(--party, var(--arcade-pink)); background: radial-gradient(ellipse 60% 40% at 50% 100%, color-mix(in srgb, var(--party, #63edff) 55%, transparent), transparent 70%), repeating-linear-gradient(115deg, #ffffff08 0 14px, transparent 14px 28px); }
-.profile-hero::before { content: ''; position: absolute; inset: 0 10%; background: conic-gradient(from 165deg at 50% 0, transparent, #ffffff2e 15deg, transparent 30deg); pointer-events: none; animation: profile-spot 4s ease-in-out infinite; }
-.profile-hero img { position: relative; height: 100%; width: 100%; min-height: 0; object-fit: contain; object-position: bottom; filter: drop-shadow(5px 6px 0 #0007); }
-.profile-rank { position: absolute; z-index: 1; top: 6px; left: 6px; padding: 4px 10px 3px; font: 900 clamp(11px, 1.7cqh, 15px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .05em; color: #14162e; background: var(--arcade-gold); box-shadow: 3px 3px 0 #483057; transform: rotate(-3deg); }
-#start-menu .profile-name { display: grid; gap: 4px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: var(--arcade-gold); }
-#start-menu .profile-name input { font: 900 clamp(17px, 2.8cqh, 24px) Impact, 'Arial Black', sans-serif; letter-spacing: .04em; min-height: 42px; padding-left: 12px; border: 2px solid var(--arcade-gold); background: #060b1c; box-shadow: 3px 3px 0 #483057; }
-.profile-identity .menu-note strong { color: var(--party, #fff); text-transform: uppercase; font-weight: 900; }
+.profile-identity-main { flex: 1; min-width: 0; display: grid; gap: clamp(4px, 1cqh, 10px); }
+#start-menu .profile-name { display: grid; gap: 4px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; color: var(--arcade-gold); }
+.profile-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 0; min-width: 0; }
+.profile-account-name strong { font: 900 clamp(18px, 3.2cqh, 28px) Impact, 'Arial Black', sans-serif; letter-spacing: .04em; color: #fff; text-transform: none; }
+#start-menu .profile-name input { flex: 0 1 18ch; min-width: 0; font: 900 clamp(17px, 2.8cqh, 24px) Impact, 'Arial Black', sans-serif; letter-spacing: .04em; min-height: 40px; padding-left: 12px; border: 2px solid var(--arcade-gold); background: #060b1c; box-shadow: 3px 3px 0 #483057; }
+.profile-name .player-title { font-size: clamp(11px, 1.8cqh, 15px); }
+.collection-progress { display: grid; gap: 3px; max-width: 520px; }
+.collection-progress p { display: flex; justify-content: space-between; margin: 0; font-size: clamp(11px, 1.7cqh, 14px); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--arcade-muted); }
+.collection-progress strong { color: #fff; font: 900 1.2em Impact, 'Arial Black', sans-serif; }
+.collection-progress .profile-meter { --tone: var(--arcade-gold); height: 9px; margin: 0; }
+.profile-identity .profile-account-actions { flex: none; display: grid; gap: 6px; }
+
+/* Onglets Collection / Solo / En ligne. */
+.profile-tabs { flex: none; display: flex; gap: 6px; }
+#start-menu .profile-tabs button { flex: 1; min-height: 40px; font: 900 clamp(13px, 2cqh, 18px) Impact, 'Arial Black', sans-serif; letter-spacing: .05em; text-transform: uppercase; }
+#start-menu .profile-tabs [aria-selected='true'] { color: #14162e; background: var(--arcade-gold); border-color: var(--arcade-gold); box-shadow: 3px 3px 0 #483057; }
+/* La largeur de la grille se calcule sur le panneau lui-même (pas sur tout l'écran) : aucun débordement. */
+.profile-panel { container-type: inline-size; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: clamp(6px, 1.4cqh, 12px); padding: 8px 4px 4px; }
+.profile-panel[hidden] { display: none; }
+.profile-hint { margin: 0; padding: 6px 10px; font-size: clamp(12px, 1.8cqh, 15px); font-weight: 700; color: #fff; border-left: 4px solid var(--arcade-gold); background: #ffe27514; }
+
+/* Collection : une colonne par candidat principal (ses styles), puis les candidats mineurs. */
+/* Une seule grille : une carte par candidat, toutes de la même taille, même espacement. */
+/* Comme la grille du Débat télé : les 9 candidats sur une ligne (3 × 3 en portrait). */
+.collection-groups { --card-w: min(132px, calc((100cqw - 72px) / 9)); display: grid; grid-template-columns: repeat(9, minmax(0, var(--card-w))); gap: 8px; }
+#start-menu .collection-card { position: relative; display: grid; justify-items: center; gap: 4px; min-width: 0; padding: 3px 2px 7px; color: #dce4f1; text-align: center; border-radius: 2px; border: 1px solid #51627d; background: linear-gradient(150deg, color-mix(in srgb, var(--candidate-color) 32%, #142036), #080d1b); }
+/* Le portrait et le nom forment le bouton principal (choisir l'avatar). */
+#start-menu .collection-pick { display: grid; justify-items: center; gap: 2px; width: 100%; min-width: 0; min-height: 0; padding: 0; color: inherit; font: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; cursor: pointer; }
+#start-menu .collection-pick:hover { background: none; }
+/* Losanges : un par style ; plein = débloqué ; entouré = celui affiché ; on les touche pour changer de style. */
+.collection-pips { display: flex; justify-content: center; gap: 4px; min-height: 26px; }
+#start-menu .collection-pip { width: 26px; height: 26px; min-height: 0; padding: 0; display: grid; place-items: center; background: none; border: 0; box-shadow: none; }
+#start-menu .collection-pip::before { content: ''; width: 10px; height: 10px; border: 1px solid #8ea4cc; transform: rotate(45deg); }
+#start-menu .collection-pip.is-owned::before { background: var(--arcade-gold); border-color: var(--arcade-gold); }
+#start-menu .collection-pip[aria-pressed='true']::before { outline: 2px solid #fff; outline-offset: 2px; }
+/* Carte de collection : même case que la grille du Débat télé. */
+.collection-card .medallion-face { --medallion-size: 60px; width: 100%; height: auto; aspect-ratio: 1; border-radius: 0; }
+.collection-card strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 900 clamp(11px, 1.6cqh, 14px) Impact, 'Arial Black', sans-serif; letter-spacing: .03em; }
+.collection-card small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(10px, 1.4cqh, 12px); color: var(--arcade-muted); }
+.collection-card em { position: absolute; top: -7px; right: -4px; padding: 1px 6px; font: 900 10px/1.3 Impact, 'Arial Black', sans-serif; font-style: normal; text-transform: uppercase; color: #14162e; background: var(--arcade-gold); box-shadow: 2px 2px 0 #483057; }
+#start-menu .collection-card.is-avatar { border: 2px solid #f7d574; box-shadow: 0 0 0 1px #f7d574, 0 0 18px #f7d57440; }
+#start-menu .collection-card:not([data-locked]):has(.collection-pick:hover) { border-color: #fff; }
+/* Verrouillé : silhouette sombre et cadenas ; l'explication apparaît au survol ou au toucher. */
+#start-menu .collection-card[data-locked] { cursor: help; }
+/* Le candidat reste reconnaissable (c'est lui qu'il faut battre), mais éteint. */
+.collection-card[data-locked] .medallion-face { filter: grayscale(1) brightness(.4) contrast(1.1); }
+.collection-card[data-locked] strong, .collection-card[data-locked] small { color: #8794b4; }
+.collection-lock { position: absolute; top: 8px; right: 8px; font-size: clamp(13px, 2.2cqh, 18px); filter: drop-shadow(0 2px 2px #000a); }
+.collection-card[data-locked]::after { content: attr(data-hint); position: absolute; z-index: 2; inset: 3px 3px auto; display: grid; place-items: center; aspect-ratio: 1; padding: 3px; overflow: hidden; font: 800 clamp(8px, calc(var(--card-w) * .11), 12px)/1.15 system-ui, sans-serif; color: #14162e; background: #ffe275f2; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.collection-card[data-locked]:is(:hover, :focus-visible, .show-hint)::after { opacity: 1; }
+
+/* En ligne : un bloc par classement, barre vers la couleur de cadre suivante. */
+.profile-ladders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(6px, 1.4cqw, 14px); }
+.profile-ladder { display: grid; align-content: start; gap: 6px; padding: clamp(8px, 1.6cqh, 14px); border: 1px solid #3c4e78; border-left: 4px solid var(--arcade-cyan); background: linear-gradient(160deg, #18244a, #111a35 60%); box-shadow: 4px 4px 0 #0000004d; }
+.profile-ladder h3 { margin: 0; font: 900 clamp(14px, 2.2cqh, 20px) Impact, 'Arial Black', sans-serif; letter-spacing: .05em; text-transform: uppercase; }
+.profile-elo { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.profile-elo strong { font: 900 clamp(28px, 6cqh, 48px)/1 Impact, 'Arial Black', sans-serif; text-shadow: 3px 3px 0 #483057; }
+.profile-elo span, .profile-record { margin: 0; font-weight: 800; text-transform: uppercase; color: var(--arcade-muted); }
+.tier-track { display: flex; align-items: center; gap: 6px; }
+.tier-track i { position: relative; flex: 1; height: 8px; background: #050a1c; box-shadow: inset 0 0 0 1px #ffffff1f; }
+.tier-track i::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--tier, #6a7fa6); animation: profile-fill .8s .2s ease-out both; }
+.tier-swatch { width: 18px; height: 18px; border-radius: 5px; background: var(--tier, #6a7fa6); box-shadow: 2px 2px 0 #0007; }
+:is(.tier-swatch, .tier-track i)[data-tier='bronze'] { --tier: #c98a52; }
+:is(.tier-swatch, .tier-track i)[data-tier='silver'] { --tier: #d7dee9; }
+:is(.tier-swatch, .tier-track i)[data-tier='gold'] { --tier: #ffd75e; }
+:is(.tier-swatch, .tier-track i)[data-tier='elysee'] { --tier: #f2f5ff; }
+.tier-swatch[data-tier='elysee'] { background: linear-gradient(90deg, #2b55c9 33.3%, #f2f5ff 33.3% 66.6%, #e3363f 66.6%); }
 
 /* Tuiles de statistiques : icône, gros chiffre arcade, filigrane et jauge éventuelle. */
-.profile-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.4cqh, 12px); align-content: stretch; min-height: 0; }
+.profile-stats { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(6px, 1.4cqh, 12px); align-content: stretch; }
 #start-menu .profile-stat { --tone: var(--arcade-cyan); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; min-width: 0; min-height: 0; padding: clamp(8px, 1.8cqh, 16px) clamp(10px, 1.4cqw, 16px); background: linear-gradient(160deg, color-mix(in srgb, var(--tone) 16%, #18244a) 0%, #111a35 55%); border: 1px solid color-mix(in srgb, var(--tone) 45%, #3c4e78); border-left: 4px solid var(--tone); box-shadow: 4px 4px 0 #0000004d; animation: profile-pop .35s ease-out both; animation-delay: var(--delay); transition: transform .15s, box-shadow .15s; }
 #start-menu .profile-stat:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #0000005c; }
 #start-menu .profile-stat[data-stat='wins'], #start-menu .profile-stat[data-stat='qualified'] { --tone: var(--arcade-gold); }
@@ -59,22 +136,15 @@
 .profile-candidate strong { font: 900 clamp(14px, 2.4cqh, 20px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; text-shadow: 2px 2px 0 #483057; }
 .profile-candidate span { font-size: clamp(10px, 1.6cqh, 13px); color: var(--arcade-muted); line-height: 1.25; }
 .profile-favorite { position: absolute; top: -8px; right: 8px; padding: 2px 7px; font: 900 10px/1.2 Impact, 'Arial Black', sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .06em; color: #14162e; background: var(--arcade-gold); box-shadow: 2px 2px 0 #483057; transform: rotate(3deg); }
-.profile-styles { display: flex; align-items: center; gap: 5px; }
-.profile-styles i { width: 9px; height: 9px; border: 1px solid #8ea4cc; transform: rotate(45deg); }
-.profile-styles i.is-owned { background: var(--arcade-gold); border-color: var(--arcade-gold); box-shadow: 0 0 6px #ffe27599; }
-.profile-styles small { margin-left: 4px; font-size: inherit; }
-.profile-note { grid-column: 1 / -1; text-align: center; }
 
 @media (orientation: portrait) {
-  .profile-screen { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: auto; align-content: start; overflow: auto; }
-  .profile-identity { grid-row: auto; display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; }
-  .profile-hero { grid-row: 1 / 3; height: 120px; flex: none; }
-  .profile-rank { top: auto; bottom: 4px; left: 50%; font-size: 9px; padding: 3px 5px 2px; white-space: nowrap; transform: translateX(-50%) rotate(-3deg); }
+  .profile-identity { flex-wrap: wrap; }
+  .profile-identity .profile-account-actions { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #start-menu .profile-stat { min-height: 96px; }
   .profile-candidates { grid-template-columns: 1fr; }
-  /* Chaque bloc garde sa hauteur : l'écran défile au lieu d'écraser les statistiques. */
-  .profile-screen > * { min-height: auto; }
+  .collection-groups { --card-w: min(132px, calc((100vw - 64px) / 3)); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-ladders { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Choix du décor de la carte (profil betatest seulement) */
@@ -90,12 +160,30 @@
 /* Écran bas (téléphone en paysage) : tuiles lisibles, choix du décor sur une ligne. */
 @media (max-height: 500px) {
   /* Les tuiles gardent une taille lisible ; au besoin la page défile. */
-  .profile-screen { overflow-y: auto; grid-template-rows: minmax(160px, 1fr) auto auto auto; }
+  .profile-screen { overflow: hidden auto; gap: 4px; }
+  .profile-panel { flex: none; overflow: visible; }
+  /* Téléphone en paysage : en-tête compact pour que les cartes de la collection restent entièrement visibles. */
+  .medallion[data-size='lg'] { --medallion-size: 52px; }
+  .profile-identity { gap: 10px; padding: 8px 10px 5px; }
+  .profile-identity-main { gap: 4px; }
+  #start-menu .profile-name { font-size: 0; gap: 0; }
+  #start-menu .profile-name input { min-height: 30px; font-size: 16px; }
+  .collection-progress { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto auto; grid-auto-flow: column; column-gap: 14px; row-gap: 2px; }
+  .collection-progress .profile-meter { height: 6px; }
+  #start-menu .profile-identity .profile-account-actions button { min-height: 34px; padding: 4px 12px; }
+  #start-menu .profile-tabs button { min-height: 32px; }
+  .profile-panel { padding-top: 4px; }
+  #start-menu .collection-card { gap: 0; padding: 2px 2px 2px; }
+  .collection-pips { min-height: 22px; gap: 0; }
+  /* Trois losanges tiennent toujours dans la largeur de la carte. */
+  #start-menu .collection-pip { width: min(21px, calc((var(--card-w) - 8px) / 3)); height: 22px; }
+  .collection-card strong { font-size: clamp(9px, calc(var(--card-w) * .16), 13px); letter-spacing: 0; }
+  .collection-card small { font-size: clamp(8px, calc(var(--card-w) * .14), 11px); }
   #start-menu .profile-decor { padding-block: 2px 4px; }
   #start-menu .profile-decor label { flex-basis: 140px; min-height: 28px; padding: 2px 6px; }
   #start-menu .profile-decor small { display: none; }
 }
 /* Clavier ouvert : seul le champ du pseudo reste, pour qu'il tienne au-dessus du clavier. */
 .menu-keyboard .profile-screen { display: flex; flex-direction: column; justify-content: center; overflow: visible; }
-.menu-keyboard .profile-screen > :not(.profile-identity), .menu-keyboard .profile-identity > :not(.profile-name) { display: none; }
+.menu-keyboard .profile-screen > :not(.profile-identity), .menu-keyboard .profile-identity > :not(.profile-identity-main), .menu-keyboard .profile-identity-main > :not(.profile-name) { display: none; }
 .menu-keyboard .profile-identity { display: block; flex: none; animation: none; }

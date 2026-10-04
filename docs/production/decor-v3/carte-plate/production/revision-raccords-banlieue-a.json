@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-04",
+  "retouches": [
+    {
+      "id": "raccord-tours-03-04",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-479269f1-2edc-4562-a6b3-d0a42a502e28.png",
+      "prompt": "Image1 est un gros plan768×1080 de raccord dans une fresque de jeu2D. Image2 est la référence vraie world-v2. Répare UNIQUEMENT la bande verticaleCENTRALE x256..512 ducadre. Àx384actuel, l'arbre et les grilles sont coupés, le muret change de niveau et le pavage a une marche. Redessine cette bande pour prolonger naturellement les枝arbres de chaque côté, les feuilles, le petit escalier derrière et les bâtiments en brique ; n'ajoute pas d'autre bâtiment ni arbreprincipal. Les mêmes matériaux, traits et lumière doivent se rejoindre trait par trait aux bordsx256etx512. Raccorde surtout les lignes des murets, grille, pavés, bordure de trottoir et route du bas à leurs extrémités sur les256px fixes de gauche et de droite. Fais un trottoir continu avec très légère pente naturelle entreleshauteurs existantes, aucune marche ou cassure surlacoupe. Garde les lampadaires déjà présents ; ne double aucun poteau. Au-dessus conservele même ciel et nuages, bleu#9FCFEEenhaut puis#E4F1F6horizon. Étématinsoleilgauche, styleworld-v2contourspeints nets, aucune voiture, aucun texte, pas de personnage. Une retouche entièrement opaque, AUCUNFONDU, aucune transparence, pas de mélange de couches. Les256pxdechaquebord sontcontextefixe, ne lesmodifiepas. Même cadre768×1080. Ne crée aucune porte ou panneau dans la bande, la rédaction est horschamp. Priorité à la continuité des lignesdu pavage et du muret et à la forme de l'arbre.",
+      "appliquee": true
+    },
+    {
+      "id": "raccord-tours-04-05",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-dda4e41e-e579-493d-b1ac-239427940adc.png",
+      "prompt": "Image1 est un raccord768×1080 de fresque de jeu2D ; image2 est la référence vraieworld-v2pourstyle. Répare uniquement la bande verticale centrale x256..512. La coupureactuellex384 partage brutalement un arbre et deux niveauxdu trottoir ; les nuages y sont déchirés. Peins une continuité organique de cet arbre, ses mêmes feuilles, branches et du mur beige à droite. Raccorde l'ancienne grille et le muret de gauche au petit portail derrièrel'arbreàdroite, sans autre pilier ni portaildupliqué. Le pavement et la borduredoivent être des lignes continues, chaquejointpartant du256pxfixegauche rejoint lespointsducôtéfixedroit, trèslégèrepente si nécessaire, pasdemarches verticales àlacoupe. La routea la même textureetleniveausepoursuit. Enhaut mêmescielété#9FCFEEvers#E4F1F6etpetitsnuages naturels sansborddéchiré. Nechangepas la petite maisonàdroite, sa porteou panneau : elleestmajoritairementdanscontextefixe. Necrée aucune nouvelletour ni monument. Stylepeint2Dworld-v2, matinlumière gauche, aucuntexte, marque, personnage ni voiture. Retoucheopaqueunique, aucunfondu ni transparence ni collage. Les256pxgauche et256pxdroite doivent resteridentiques, nepeinsqueles256pxcentraux. Cadre768×1080 identiqueimage1. Touttrait et contourdanslabande rejointlescontextes sansrectangleapparent.",
+      "appliquee": true
+    }
+  ],
+  "methode": "Remplacement opaque d’une bande de256px par coupe du résultat généré avec256pxdecontexte de chaque côté. Pixels extérieurs conservés, aucun fondu, aucune transparence."
+}

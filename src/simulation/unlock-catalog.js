@@ -32,7 +32,7 @@ export function knockoutUnlockId(target) {
 
 /**
  * Note un K.-O. dans l'état de la partie. Rien n'est débloqué ici : le déblocage
- * n'est validé qu'à la fin de la partie (phase RESULTS), voir earnedUnlocks().
+ * n'est validé qu'à la fin de la partie, et seulement pour le vainqueur, voir earnedUnlocks().
  * `source` peut être le candidat ou une unité de son camp (militant, garde…).
  */
 export function recordKnockout(state, source, target) {
@@ -57,8 +57,8 @@ export function profileUnlockIds(profile = {}) {
   return ALL_CANDIDATE_IDS.filter(id => DEFAULT_UNLOCKED.includes(id) || styles.includes(id) || (profile.unlocked_minor_candidates || []).includes(id));
 }
 
-/** Candidats gagnés par ce camp, seulement une fois la partie terminée normalement. */
+/** Candidats gagnés par ce camp : seulement s'il a remporté l'élection (pas de victoire, pas de déblocage). */
 export function earnedUnlocks(state, faction) {
-  if (state?.phase !== 'RESULTS' || !Array.isArray(state.knockouts)) return [];
+  if (state?.phase !== 'RESULTS' || state.result?.winner !== faction || !Array.isArray(state.knockouts)) return [];
   return [...new Set(state.knockouts.filter(k => k?.by_faction === faction && isUnlockable(k.candidate_id)).map(k => k.candidate_id))];
 }

@@ -35,12 +35,14 @@ export function eloChanges(players) {
   return changes;
 }
 
+// avatar et title_rank : la carte du joueur (médaillon et titre) affichée dans le classement.
 const publicRow = r => ({ rank: r.rank, username: r.username, rating: Math.round(r.rating), games: r.games, wins: r.wins, losses: r.losses,
-  win_rate: r.games ? Math.round(r.wins / r.games * 1000) / 10 : 0 });
+  win_rate: r.games ? Math.round(r.wins / r.games * 1000) / 10 : 0, avatar: r.avatar ?? null, title_rank: r.title_rank ?? 0,
+  best_rating: Math.round(r.best_rating ?? r.rating) });
 
 /** Classement global d'un mode. Seuls les comptes actifs ayant joué au moins une partie classée. */
 export async function leaderboard(db, ladder, { limit = 50, offset = 0, season = 'global' } = {}) {
-  const rows = await db.prepare(`SELECT ROW_NUMBER() OVER (ORDER BY r.rating DESC, r.wins DESC, r.user_id) AS rank, u.username, r.rating, r.games, r.wins, r.losses, r.user_id
+  const rows = await db.prepare(`SELECT ROW_NUMBER() OVER (ORDER BY r.rating DESC, r.wins DESC, r.user_id) AS rank, u.username, u.avatar, u.title_rank, (SELECT MAX(x.rating) FROM player_ratings x WHERE x.user_id = r.user_id AND x.season = r.season AND x.games > 0) AS best_rating, r.rating, r.games, r.wins, r.losses, r.user_id
     FROM player_ratings r JOIN users u ON u.id = r.user_id AND u.status = 'active'
     WHERE r.ladder = ? AND r.season = ? AND r.games > 0 ORDER BY rank LIMIT ? OFFSET ?`).bind(ladder, season, limit, offset).all();
   const total = await db.prepare(`SELECT COUNT(*) AS n FROM player_ratings r JOIN users u ON u.id = r.user_id AND u.status = 'active'
@@ -50,7 +52,7 @@ export async function leaderboard(db, ladder, { limit = 50, offset = 0, season =
 
 /** Rang personnel (même ordre que le classement). */
 export async function myRank(db, userId, ladder, season = 'global') {
-  const me = await db.prepare(`SELECT r.rating, r.games, r.wins, r.losses, u.username FROM player_ratings r JOIN users u ON u.id = r.user_id
+  const me = await db.prepare(`SELECT r.rating, r.games, r.wins, r.losses, u.username, u.avatar, u.title_rank, (SELECT MAX(x.rating) FROM player_ratings x WHERE x.user_id = r.user_id AND x.season = r.season AND x.games > 0) AS best_rating FROM player_ratings r JOIN users u ON u.id = r.user_id
     WHERE r.user_id = ? AND r.ladder = ? AND r.season = ?`).bind(userId, ladder, season).first();
   if (!me || !me.games) return { ladder, season, ranked: false, rating: INITIAL_RATING, games: 0, wins: 0, losses: 0, win_rate: 0 };
   const ahead = await db.prepare(`SELECT COUNT(*) AS n FROM player_ratings r JOIN users u ON u.id = r.user_id AND u.status = 'active'

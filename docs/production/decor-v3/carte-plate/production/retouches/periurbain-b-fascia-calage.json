@@ -1,0 +1,21 @@
+{
+  "id": "periurbain-b-fascia-calage",
+  "x": 13524,
+  "y": 660,
+  "w": 600,
+  "h": 420,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 420,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-b-fascia-calage-guide.png",
+  "replaceTop": 90,
+  "replaceHeight": 70,
+  "replaceLeft": 74,
+  "replaceWidth": 372,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-b-fascia-calage-brute.png",
+  "pixelsModifies": 25997,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "translationVerticale": 0,
+  "annuleeLe": "2026-10-04T16:35:27.169Z"
+}

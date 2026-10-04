@@ -1,0 +1,17 @@
+{
+  "id": "retraites-b-meeting-ouvert",
+  "x": 25580,
+  "y": 0,
+  "w": 700,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 1212,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-b-meeting-ouvert-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-b-meeting-ouvert-brute.png",
+  "pixelsModifies": 287521,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "translationVerticale": 0,
+  "annuleeLe": "2026-10-04T16:33:03.849Z"
+}

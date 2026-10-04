@@ -1,0 +1,18 @@
+{
+  "id": "retraites-c-entree-calage",
+  "x": 27703,
+  "y": 460,
+  "w": 900,
+  "h": 620,
+  "context": 256,
+  "canvasWidth": 1412,
+  "canvasHeight": 620,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-c-entree-calage-guide.png",
+  "replaceTop": 0,
+  "replaceHeight": 544,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-c-entree-calage-brute.png",
+  "pixelsModifies": 489583,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

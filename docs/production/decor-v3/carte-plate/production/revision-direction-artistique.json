@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-04",
+  "directives": "../DIRECTIVES-UTILISATEUR.md",
+  "restaurations": [
+    "retraites-b-meeting-ouvert",
+    "periurbain-b-fascia-calage",
+    "periurbain-b-rdc-calage",
+    "campagne-a-entree-humaine"
+  ],
+  "generations": [
+    {
+      "id": "periurbain-b-scooter-interieur",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-315122e5-655e-4270-8551-840e27170f86.png",
+      "prompt": "Image1 cible : morceau de carteplate932×480 représentant un atelier de briqueorangée dans une zoneartisanale. Image2référencestyleworld-v2. Ajoute UN scooter de ville clairement reconnaissable DANS l'atelier visibleàgauchede la porte latérale, derrièrelecadreetenretraitduseuil. Scootercompact bleuacier oucrème, vu de profil troisquarts, 2petitesrouesrondes, plancherouvert, tablieravantavecguidon, selle noire : un scooter, pasunvélo, pasune moto sportive. Silhouette entièrelisible, lesdeuxroues dansl'ouverture, assezgrandpourêtre reconnu immédiatement, proportionné àune personne162px. Il est garé àl'intérieur sur le solde l'atelier, jamais surletrottoir. Conserve derrièrelui établi, outils, tiroirs et lampes ; laissevoirune partie des outils autourdu scooter, pasd'encombrement ou secondvéhicule. Façade de brique, grandevitrine ouverteetpetiteporte latérale restentnaturelles, adaptées àl'atelier ; n'imposepasuneformeuniforme de gabarit. Panneaucrème vierge àlalargeur actuelle, sans texte ni pictogramme ajouté. Conserve exactement les maisons, végétation, rond-point, rue et contexte256pxdechaquebord, mêmesombres. Dessin world-v2été, lumièrematindegauche, aucune marque, personne ouvoiture, aucun fondu ni transparence. Ne déplacepas l'immeuble, la porte ou lepanneau. Le seulchangement artistique est le scooter dans l'atelier, matériel d'entretien naturel autour.",
+      "reference": "photos/10-periurbain-b/deja-dans-le-jeu-1.jpg"
+    },
+    {
+      "id": "campagne-a-scooter-interieur",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-5e3f2ad7-c3cd-4d5e-b27b-10d34f9bcfd5.png",
+      "prompt": "Image1 cible : morceau de carte plate932×480, grangeenpierre avecungrandportailboisbleu fermé, pluspetitannexeàgaucheetserres ; image2référenceobligatoireworld-v2. Faiscomprendrequelagrangeest ungarageàscooter de campagne : entrouvre ououvre sesdeuxvantauxboisbleus surlescôtés de l'ouverture existante, enconservant lalargeuretla hauteur naturellesdu portail et l'architecturede pierre. Dans l'ombre clairede l'intérieur, montre UNscootercomplet facileàidentifier : scooterclassique crème avecsellebruneoudeuxrouesnoires, tablierarrondi, plancherouvert etguidon, vu de profil troisquarts. Petite étagèreàoutils et établi enbois contreunmurintérieur, outilsaccrochés sans texte. Scootertotalement àl'intérieur derrièrele seuil, ses2roues sontvisibles, jamais dehors ni devantla façade, tailleadaptéeàune personne162px. Le grandportail ressembleàune vraieentrée de grangeouverte, ne letransformepas enpetiteporte urbaine standard ou enmagasinvitré. Conserveau-dessuslepanneaucrèmevierge, sonencadrementdiscret, la maçonnerieirrégulière, le lierre,la végétation, l'annexe, less erres, lesroses, muretetpavage. Les256pxdesbordsdoivent resteridentiques. Été,lumièrematinvenantdegauche, illustrationworld-v2 opaque, finetnaturel. Aucuntexte, marque, voitureoupersonnage, pasdefonduoutransparence. Unseul scooter et unseulgarage surcettefaçade, fonctionslisibles parlesobjets sans enseigne écrite.",
+      "reference": "photos/13-campagne-a/deja-dans-le-jeu-1.jpg"
+    }
+  ],
+  "vehiculeParisB": "Vélo déjà visible dans la vitrine d’atelier, conservé.",
+  "variantesNonAppliquees": [
+    {
+      "id": "retraites-b-meeting-ouvert",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-ecfd7460-46d4-459e-a2cc-6c7b62fa4677.png",
+      "prompt": "Use case: precise-object-edit. Image 1 cible : morceau de carte plate de 1212 × 1080 pixels, promenade balnéaire entre une villa de pierre à gauche et un bâtiment Art déco saumon à droite. Image2 référence obligatoireworld-v2, style seulement (ne recopie pas les bâtiments). La largeur à repeindre est x256..956, les 256px à chaque bord sont le contexte conservé. Débarrasse TOUT le centre : dans x308..884 (la place de meeting du jeu), aucun lampadaire, potelet, poteau, palmier, branche basse, chaise, table, parasol, muret, grille, marche ou bâtiment. Place toute plane et libre, pavés clairs continus depuis les côtés, ligne de sol jouable y1004, trottoir et chaussée sous y1004. Une ouverture naturelle vers la plage et la mer au fond, personne ni véhicule. Le gros palmier et le lampadaire actuellement à gauche de la place doivent disparaître entièrement, du sommet jusqu'au pied, pour ne pas laisser un tronc ou une cime qui flotte. Les parasols et chaises sous lui et àdroite disparaissent du centre ; déplace les éléments de mobilier uniquement horsx308..884 ou omets-les. Les murets et barrières des bords peuvent se terminer en petits piliers àx285 etx915, horsla bande libre, sans barrer la place au milieu. Garde au fond la plage et la mer bleue, quelques petits voiliers lointains et la côte rocheuse à gauche, perspective de paysage ouverte. Pasdegrandbâtiment ajouté au fond. Conserve exactement les morceaux de façades de gauche et droite, leurs portes et panneaux : ils sont en dehorsde la zone àrepeindre. Été, même cielbleu et nuances horizon, soleil du matin venant de gauche, rendu dessinéworld-v2 détaillé cohérent avec image1. Pas de texte, marque ou personnage. Aucun fondu ni transparence ni duplication. Peins les raccords du pavage aux bords et la bordure dechaussée en continuité sans rectangle visible ; ne change pas l’échelle ni le cadrage. Toutle centre doit pouvoir accueillir une estrade temporaire et une foule.",
+      "raison": "Composition restaurée selon la demande de proximité et de petite place."
+    },
+    {
+      "id": "retraites-b-meeting-bord-gauche",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-9962c966-b310-41fd-bb5d-f9ca55128cfb.png",
+      "prompt": "Image1 cible692×480 pixels, image2référenceworld-v2. Modifie uniquement la bande centrale x256..436, y230..480. Supprime les petits piliers et morceauxde muret de pierre qui débordent dans la place, surtout x256..330et y290..355. Àlaplace, fais quelques petitsmassifs bas de fleursjaunes et vertes en retrait, se terminant avanty315 ; sousy315etdanslereste dela bande, pavageclairqui rejoint la place ouverte àdroite, surface parfaitement plate sansbarrière ou marche. Aucun pilier,mur,poteau,rocher,tabledanslabandecentrale. Legrandmuret, lespotsetfleursàgauchede256restentdanslecontexte, etla plage,mer etvoiliersenhautrestent identiques. Pasd'ajoutde bâtiment,d'enseigne,véhicule,personnage ouparasol. Seuily404correspondàlalignesoljouable1004dujeu, bordurecontinueenbasversy462..480selonimage1. Raccorde chaque jointdepavés, sabledelaplageetmassifauxbordssansrectanglevisible ; mêmeéchelle, été matinéegauche, world-v2opaque. Contexte256pxdechaquecôtéf ixe, pasdefondu ni transparence. La retouche est uniquement l'effacement des 2 petits piliersdansla placeetle pavageàleurpied.",
+      "raison": "Variante liée à la place très dégagée abandonnée avant application."
+    }
+  ]
+}

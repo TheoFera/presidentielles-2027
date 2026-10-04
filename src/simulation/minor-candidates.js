@@ -96,13 +96,13 @@ export function minorAICommands(state, config, c) {
 
 export function validateMinorConfig(config) {
   const entries = config.layout.minor_candidates;
-  if (!Array.isArray(entries) || entries.map(e => e.faction_id).join() !== MINOR_FACTIONS.join()) throw new Error('Configuration : candidats mineurs incomplets.');
+  if (!Array.isArray(entries) || entries.map(e => e.faction_id).join() !== MINOR_FACTIONS.join()) throw new Error('Configuration : liste des candidats incomplète.');
   for (const entry of entries) {
     const slot = config.layout.strategic_site_generation.slots.find(s => s.site_id === entry.site_id);
-    if (!entry.name || !slot || slot.type !== 'permanence' || slot.subzone_id !== entry.subzone_id) throw new Error(`Configuration : QG du candidat mineur ${entry.faction_id} invalide.`);
-    if (!config.prototype.presentation.factions[entry.faction_id]) throw new Error(`Configuration : couleur du candidat mineur ${entry.faction_id} absente.`);
+    if (!entry.name || !slot || slot.type !== 'permanence' || slot.subzone_id !== entry.subzone_id) throw new Error(`Configuration : QG du candidat ${entry.faction_id} invalide.`);
+    if (!config.prototype.presentation.factions[entry.faction_id]) throw new Error(`Configuration : couleur du candidat ${entry.faction_id} absente.`);
   }
-  if (typeof minorSettings(config).enabled !== 'boolean') throw new Error('Configuration : candidats mineurs enabled invalide.');
-  for (const [key, value] of Object.entries(minorSettings(config))) if (key !== 'enabled' && (!Number.isFinite(value) || value <= 0)) throw new Error(`Configuration : candidats mineurs ${key} invalide.`);
+  if (typeof minorSettings(config).enabled !== 'boolean') throw new Error('Configuration : candidats, enabled invalide.');
+  for (const [key, value] of Object.entries(minorSettings(config))) if (key !== 'enabled' && (!Number.isFinite(value) || value <= 0)) throw new Error(`Configuration : candidats, ${key} invalide.`);
   if (ALL_FACTIONS.length !== new Set(ALL_FACTIONS).size) throw new Error('Configuration : camps en double.');
 }

@@ -1,0 +1,240 @@
+{
+  "id": "paris-b-atelier-calage",
+  "auteur": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-atelier-calage-generation.png",
+  "sortie": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-atelier-calage-calibree.png",
+  "profil": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-atelier-calage-profil.json",
+  "cellules": [
+    {
+      "source": {
+        "x": 286,
+        "y": 86,
+        "w": 30,
+        "h": 23
+      },
+      "cible": {
+        "x": 286,
+        "y": 90,
+        "w": 15,
+        "h": 74
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 286,
+        "y": 109,
+        "w": 30,
+        "h": 42
+      },
+      "cible": {
+        "x": 286,
+        "y": 164,
+        "w": 15,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 286,
+        "y": 151,
+        "w": 30,
+        "h": 13
+      },
+      "cible": {
+        "x": 286,
+        "y": 208,
+        "w": 15,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 316,
+        "y": 86,
+        "w": 240,
+        "h": 23
+      },
+      "cible": {
+        "x": 301,
+        "y": 90,
+        "w": 258,
+        "h": 74
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 316,
+        "y": 109,
+        "w": 240,
+        "h": 42
+      },
+      "cible": {
+        "x": 301,
+        "y": 164,
+        "w": 258,
+        "h": 44
+      },
+      "role": "panneau",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 316,
+        "y": 151,
+        "w": 240,
+        "h": 13
+      },
+      "cible": {
+        "x": 301,
+        "y": 208,
+        "w": 258,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 556,
+        "y": 86,
+        "w": 30,
+        "h": 23
+      },
+      "cible": {
+        "x": 559,
+        "y": 90,
+        "w": 15,
+        "h": 74
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 556,
+        "y": 109,
+        "w": 30,
+        "h": 42
+      },
+      "cible": {
+        "x": 559,
+        "y": 164,
+        "w": 15,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 556,
+        "y": 151,
+        "w": 30,
+        "h": 13
+      },
+      "cible": {
+        "x": 559,
+        "y": 208,
+        "w": 15,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 286,
+        "y": 164,
+        "w": 123,
+        "h": 211
+      },
+      "cible": {
+        "x": 286,
+        "y": 220,
+        "w": 96,
+        "h": 184
+      },
+      "role": "vitrine",
+      "fit": "cover"
+    },
+    {
+      "source": {
+        "x": 409,
+        "y": 164,
+        "w": 69,
+        "h": 211
+      },
+      "cible": {
+        "x": 382,
+        "y": 220,
+        "w": 96,
+        "h": 184
+      },
+      "role": "porte",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 478,
+        "y": 164,
+        "w": 108,
+        "h": 211
+      },
+      "cible": {
+        "x": 478,
+        "y": 220,
+        "w": 96,
+        "h": 184
+      },
+      "role": "vitrine",
+      "fit": "cover"
+    },
+    {
+      "source": {
+        "x": 286,
+        "y": 375,
+        "w": 300,
+        "h": 105
+      },
+      "cible": {
+        "x": 286,
+        "y": 404,
+        "w": 288,
+        "h": 76
+      },
+      "role": "trottoir et chaussée",
+      "fit": "fill"
+    }
+  ],
+  "porte": {
+    "x": 382,
+    "y": 220,
+    "w": 96,
+    "h": 184,
+    "xDansTuile": 396,
+    "yDansFresque": 820,
+    "centreX": 444,
+    "bas": 1004
+  },
+  "panneau": {
+    "x": 301,
+    "y": 164,
+    "w": 258,
+    "h": 44,
+    "xDansTuile": 315,
+    "yDansFresque": 764,
+    "centreX": 444,
+    "bas": 808
+  },
+  "superpositions": 0,
+  "pixelsNonOpaques": 0,
+  "pixelsHorsCellulesConserves": true,
+  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu."
+}

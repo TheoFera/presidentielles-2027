@@ -1,0 +1,25 @@
+{
+  "id": "campagne-a-maconnerie-finition",
+  "x": 18454,
+  "y": 600,
+  "w": 600,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 480,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\campagne-a-maconnerie-finition-guide.png",
+  "replaceTop": 105,
+  "replaceHeight": 53,
+  "replaceLeft": 134,
+  "replaceWidth": 410,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\campagne-a-maconnerie-finition-generation.png",
+  "appliquee": false,
+  "integreeDansCandidat": "campagne-a-entree-humaine",
+  "pixelsExterieursIdentiques": true,
+  "rectangle": {
+    "x": 390,
+    "y": 105,
+    "w": 410,
+    "h": 53
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "paris-b-place-libre",
+  "x": 2592,
+  "y": 600,
+  "w": 576,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 1088,
+  "canvasHeight": 480,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-place-libre-guide.png",
+  "replaceTop": 190,
+  "replaceHeight": 290,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-place-libre-brute.png",
+  "pixelsModifies": 167026,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

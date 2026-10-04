@@ -4,6 +4,9 @@
 import { NEWSLETTER_TEXT, NEWSLETTER_NOTE } from '../network/account-config.js';
 import { availableProviders, accountsConfigured, nativeProviders, nativeReauthorize, AuthCancelled } from '../network/auth-providers.js';
 import { cleanNickname, DEFAULT_NICKNAME } from './player-profile.js';
+import { hydrateMedallions, medallionContent, titleContent } from './player-card.js';
+import { cleanAvatar, ratingTier } from '../simulation/player-titles.js';
+import { ALL_CANDIDATE_IDS } from '../simulation/unlock-catalog.js';
 
 const esc = text => String(text ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const PITCH = 'Crée ton compte PartageTonJeu pour jouer en ligne, retrouver tes statistiques et grimper dans le classement.';
@@ -265,29 +268,33 @@ export function showDeleteAccount(menu, accounts, { back, deleted }) {
 }
 
 /** Classement global et rang personnel, par mode de jeu. */
-export async function showLeaderboard(menu, accounts, { back, ladder = 'campaign' } = {}) {
+/** Modes où le joueur connecté a au moins une partie classée : le classement ne s'ouvre qu'à partir de là. */
+export const rankedLadders = accounts => accounts.ready ? LADDERS.filter(([id]) => accounts.me?.stats?.[id]?.games > 0) : [];
+
+export async function showLeaderboard(menu, accounts, { back, ladder = null } = {}) {
+  const ladders = rankedLadders(accounts);
+  if (!ladders.length) return back();
+  if (!ladders.some(([id]) => id === ladder)) ladder = ladders[0][0];
   menu.page('leaderboard', 'Classement', `<div class="leaderboard">
-    <div class="leaderboard-tabs" role="tablist">${LADDERS.map(([id, label]) => `<button type="button" role="tab" data-ladder="${id}" aria-selected="${id === ladder}">${label}</button>`).join('')}</div>
+    <div class="leaderboard-tabs" role="tablist">${ladders.map(([id, label]) => `<button type="button" role="tab" data-ladder="${id}" aria-selected="${id === ladder}">${label}</button>`).join('')}</div>
     <section class="tutorial-card leaderboard-me" aria-live="polite"><p class="menu-note">Chargement…</p></section>
     <ol class="leaderboard-list" aria-label="Meilleurs joueurs"></ol>
-    <p class="menu-note leaderboard-help">Classement Elo : battre un joueur mieux classé rapporte plus de points. Parties en ligne seulement.</p>
   </div>`, back);
   const generation = menu.generation, root = menu.element;
   root.querySelectorAll('[data-ladder]').forEach(tab => tab.onclick = () => showLeaderboard(menu, accounts, { back, ladder: tab.dataset.ladder }));
   const meBox = root.querySelector('.leaderboard-me'), list = root.querySelector('.leaderboard-list');
   try {
-    const [board, mine] = await Promise.all([accounts.leaderboard(ladder), accounts.ready ? accounts.myRank(ladder) : null]);
+    const [board, mine] = await Promise.all([accounts.leaderboard(ladder), accounts.myRank(ladder)]);
     if (generation !== menu.generation) return;
-    meBox.innerHTML = !accounts.ready
-      ? '<p>Connecte-toi pour apparaître dans le classement.</p><button type="button" id="leaderboard-login" class="menu-primary">Se connecter</button>'
-      : mine.ranked
+    meBox.innerHTML = mine.ranked
         ? `<p class="leaderboard-rank"><strong>${format(mine.rank)}<sup>${mine.rank === 1 ? 'er' : 'e'}</sup></strong><span>${esc(accounts.username)}</span></p>
            <dl class="leaderboard-stats"><div><dt>Elo</dt><dd>${format(mine.rating)}</dd></div><div><dt>Parties</dt><dd>${format(mine.games)}</dd></div><div><dt>Victoires</dt><dd>${format(mine.wins)}</dd></div><div><dt>Défaites</dt><dd>${format(mine.losses)}</dd></div><div><dt>Taux</dt><dd>${format(mine.win_rate)} %</dd></div></dl>`
-        : `<p>${esc(accounts.username)} : pas encore de partie classée dans ce mode. Joue une partie en ligne pour entrer au classement (départ à 1 000).</p>`;
-    meBox.querySelector('#leaderboard-login')?.addEventListener('click', () => requireAccount(menu, accounts, { resume: () => showLeaderboard(menu, accounts, { back, ladder }), back }));
-    list.innerHTML = board.entries.length ? board.entries.map(e => `<li data-me="${e.is_me}"><span class="leaderboard-pos">${format(e.rank)}</span><strong>${esc(e.username)}</strong>
-      <span class="leaderboard-elo">${format(e.rating)}</span><small>${format(e.wins)} V · ${format(e.losses)} D · ${format(e.win_rate)} %</small></li>`).join('')
-      : '<li class="leaderboard-empty">Personne n’est encore classé. À toi de jouer !</li>';
+        : '';
+    // Médaillon (avatar + couleur du meilleur classement) et titre, comme dans le profil.
+    const card = e => ({ avatar: cleanAvatar(e.avatar, ALL_CANDIDATE_IDS), title: e.title_rank, tier: ratingTier(e.best_rating ?? e.rating) });
+    list.innerHTML = board.entries.length ? board.entries.map(e => `<li data-me="${e.is_me}"><span class="leaderboard-pos">${format(e.rank)}</span><span class="leaderboard-player">${medallionContent(card(e), { size: 'sm' })}<strong>${esc(e.username)}</strong>${titleContent(card(e))}</span>
+      <span class="leaderboard-elo">${format(e.rating)}</span><small>${format(e.wins)} V · ${format(e.losses)} D · ${format(e.win_rate)} %</small></li>`).join('') : '';
+    hydrateMedallions(list);
   } catch (failure) {
     if (generation !== menu.generation) return;
     meBox.innerHTML = `<p class="menu-status">${failure.offline ? 'Le classement demande une connexion Internet. Le solo reste disponible.' : esc(failure.message)}</p>`;
@@ -299,9 +306,11 @@ export function decorateProfile(menu, accounts) {
   const box = menu.element.querySelector('.profile-account-actions');
   if (!box) return;
   const reopen = () => menu.profile();
-  if (!accountsConfigured()) { box.innerHTML = `<button type="button" id="profile-leaderboard">Classement</button>`; }
-  else if (accounts.ready) box.innerHTML = '<button type="button" id="profile-account" class="menu-primary">Mon compte</button><button type="button" id="profile-leaderboard">Classement</button>';
-  else box.innerHTML = '<button type="button" id="profile-login" class="menu-primary">Se connecter</button><button type="button" id="profile-leaderboard">Classement</button>';
+  // Le classement n'apparaît qu'avec au moins une partie classée.
+  const leaderboard = rankedLadders(accounts).length ? '<button type="button" id="profile-leaderboard">Classement</button>' : '';
+  if (!accountsConfigured()) box.innerHTML = '';
+  else if (accounts.ready) box.innerHTML = `<button type="button" id="profile-account" class="menu-primary">Mon compte</button>${leaderboard}`;
+  else box.innerHTML = '<button type="button" id="profile-login" class="menu-primary">Se connecter</button>';
   box.querySelector('#profile-account')?.addEventListener('click', () => showAccountSettings(menu, accounts, { back: reopen, signedOut: reopen }));
   box.querySelector('#profile-login')?.addEventListener('click', () => requireAccount(menu, accounts, { resume: reopen, back: reopen, suggestion: menu.account?.get()?.nickname }));
   box.querySelector('#profile-leaderboard')?.addEventListener('click', () => showLeaderboard(menu, accounts, { back: reopen }));

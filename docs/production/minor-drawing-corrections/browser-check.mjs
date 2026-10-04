@@ -30,7 +30,7 @@ try {
       { label: 'Persuasion', guard: false, persuade: true },
       { label: 'Écoute en persuasion', guard: false, listening: true },
       { label: 'Réaction à un coup léger', guard: true, hurt: true },
-      ...[0, .3, .6, 1.2].map(age => ({ label: `K.O. après ${age.toLocaleString('fr-FR')} s`, ko: age })),
+      ...[0, .3, .45, .6].map(age => ({ label: `K.O. après ${age.toLocaleString('fr-FR')} s`, ko: age })),
     ];
     document.body.innerHTML = '<main style="background:#e8e4de;padding:16px;font:16px Arial;color:#222"><h1 style="font-size:22px">Dessins corrigés — rendu du jeu</h1><p>Philippe · Le Pen · Roussel · Attal · Arthaud, pieds sur la même ligne</p><div id="poses"></div></main>';
     const draws = [], characterHeight = compositionMetrics(config, 1100, 600).characterHeight;
@@ -70,6 +70,7 @@ try {
     if (draw.case === 'Réaction à un coup léger' && draw.pose.frame !== 12) throw new Error('Mauvaise pose de réaction');
   }
   await page.locator('main').screenshot({ path: 'docs/production/minor-drawing-corrections/rendu-jeu.png' });
+  await page.locator('canvas').nth(2).screenshot({ path: 'docs/production/minor-drawing-corrections/garde-corrigee.png' });
   writeFileSync('docs/production/minor-drawing-corrections/browser-report.json', JSON.stringify({ ...report, errors }, null, 2) + '\n');
   console.log(`33 rendus de candidats corrigés, 33 rendus vers la gauche, ${report.loadedImages} images décodées ; aucune erreur.`);
 } finally { await browser.close(); }

@@ -1,0 +1,141 @@
+{
+  "id": "paris-c-cabinet-panneau-calage",
+  "tileLeft": 3840,
+  "cells": [
+    {
+      "source": [
+        390,
+        90,
+        37,
+        10
+      ],
+      "target": [
+        390,
+        90,
+        37,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        390,
+        100,
+        37,
+        47
+      ],
+      "target": [
+        390,
+        104,
+        37,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        390,
+        147,
+        37,
+        13
+      ],
+      "target": [
+        390,
+        148,
+        37,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        427,
+        90,
+        260,
+        10
+      ],
+      "target": [
+        427,
+        90,
+        258,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        427,
+        100,
+        260,
+        47
+      ],
+      "target": [
+        427,
+        104,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        427,
+        147,
+        260,
+        13
+      ],
+      "target": [
+        427,
+        148,
+        258,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        687,
+        90,
+        33,
+        10
+      ],
+      "target": [
+        685,
+        90,
+        35,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        687,
+        100,
+        33,
+        47
+      ],
+      "target": [
+        685,
+        104,
+        35,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        687,
+        147,
+        33,
+        13
+      ],
+      "target": [
+        685,
+        148,
+        35,
+        12
+      ],
+      "role": "encadrement"
+    }
+  ]
+}

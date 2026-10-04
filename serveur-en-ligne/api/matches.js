@@ -15,6 +15,7 @@
 import { ApiError, audit, nowSeconds, randomId, randomToken, sha256Hex } from './util.js';
 import { STYLE_UNLOCKS, MINOR_UNLOCKS, DEFAULT_UNLOCKED, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { eloChanges, INITIAL_RATING } from './ratings.js';
+import { updateTitleRank } from './progression.js';
 
 export const MATCH_RULES = {
   // Campagne : 365 jours de jeu × 2,5 s ≈ 15 min (game_balance.json), sans accélération en multijoueur.
@@ -202,9 +203,9 @@ async function finalize(db, match, players, payload, hash, now) {
     statements.push(db.prepare('UPDATE match_players SET placement = ?, result = ?, rating_before = ?, rating_after = ? WHERE match_id = ? AND seat = ?')
       .bind(placement.get(p.seat), placement.get(p.seat) === 1 ? 'win' : 'loss', before?.rating ?? null, before ? before.rating + changes.get(p.seat) : null, match.id, p.seat));
   }
-  // Déblocages : seulement maintenant, la partie étant terminée et confirmée.
+  // Déblocages : seulement maintenant, la partie étant terminée et confirmée, et pour le seul vainqueur.
   for (const k of payload.knockouts) {
-    const owner = players.find(p => p.seat === k.seat)?.user_id;
+    const owner = placement.get(k.seat) === 1 ? players.find(p => p.seat === k.seat)?.user_id : null;
     if (owner) statements.push(db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_match_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)')
       .bind(owner, k.candidate_id, match.id, now));
   }
@@ -216,6 +217,9 @@ async function finalize(db, match, players, payload, hash, now) {
     await db.prepare('UPDATE multiplayer_matches SET status = \'playing\', completed_at = NULL WHERE id = ? AND status = \'finalizing\'').bind(match.id).run();
     throw error;
   }
+  // Meilleur titre du vainqueur, si la partie lui a débloqué un candidat.
+  const winner = players.find(p => placement.get(p.seat) === 1 && payload.knockouts.some(k => k.seat === p.seat))?.user_id;
+  if (winner) await updateTitleRank(db, winner);
   return 'completed';
 }
 

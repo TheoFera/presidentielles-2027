@@ -1,0 +1,18 @@
+{
+  "id": "paris-b-fond-compact",
+  "x": 2580,
+  "y": 0,
+  "w": 600,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-fond-compact-guide.png",
+  "replaceTop": 200,
+  "replaceHeight": 680,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-fond-compact-brute.png",
+  "pixelsModifies": 407874,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

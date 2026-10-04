@@ -1,0 +1,23 @@
+[
+  {
+    "fichier": "paris-a-correction.png",
+    "largeur": 1920,
+    "hauteur": 1080,
+    "pixels_transparents": 0,
+    "pixels_du_ciel_non_conformes_sur_64_lignes": 122880
+  },
+  {
+    "fichier": "extension-paris-b.png",
+    "largeur": 1920,
+    "hauteur": 1080,
+    "pixels_transparents": 0,
+    "pixels_du_ciel_non_conformes_sur_64_lignes": 122880
+  },
+  {
+    "fichier": "assemblage-retouche.png",
+    "largeur": 3584,
+    "hauteur": 1080,
+    "pixels_transparents": 0,
+    "pixels_du_ciel_non_conformes_sur_64_lignes": 229376
+  }
+]

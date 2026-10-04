@@ -1,0 +1,18 @@
+{
+  "id": "paris-b-atelier-calage",
+  "x": 2190,
+  "y": 600,
+  "w": 360,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 872,
+  "canvasHeight": 480,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-atelier-calage-guide.png",
+  "replaceLeft": 30,
+  "replaceWidth": 320,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-atelier-calage-brute.png",
+  "pixelsModifies": 153575,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

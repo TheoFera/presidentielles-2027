@@ -1,0 +1,186 @@
+{
+  "id": "periurbain-a-rdc-calage",
+  "tileLeft": 11520,
+  "cells": [
+    {
+      "source": [
+        384,
+        90,
+        38,
+        11
+      ],
+      "target": [
+        384,
+        90,
+        43,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        384,
+        101,
+        38,
+        41
+      ],
+      "target": [
+        384,
+        104,
+        43,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        384,
+        142,
+        38,
+        5
+      ],
+      "target": [
+        384,
+        148,
+        43,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        422,
+        90,
+        232,
+        11
+      ],
+      "target": [
+        427,
+        90,
+        258,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        422,
+        101,
+        232,
+        41
+      ],
+      "target": [
+        427,
+        104,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        422,
+        142,
+        232,
+        5
+      ],
+      "target": [
+        427,
+        148,
+        258,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        654,
+        90,
+        37,
+        11
+      ],
+      "target": [
+        685,
+        90,
+        6,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        654,
+        101,
+        37,
+        41
+      ],
+      "target": [
+        685,
+        104,
+        6,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        654,
+        142,
+        37,
+        5
+      ],
+      "target": [
+        685,
+        148,
+        6,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        384,
+        147,
+        105,
+        172
+      ],
+      "target": [
+        384,
+        160,
+        124,
+        184
+      ],
+      "role": "mur latéral"
+    },
+    {
+      "source": [
+        489,
+        147,
+        94,
+        172
+      ],
+      "target": [
+        508,
+        160,
+        96,
+        184
+      ],
+      "role": "porte"
+    },
+    {
+      "source": [
+        583,
+        147,
+        108,
+        172
+      ],
+      "target": [
+        604,
+        160,
+        87,
+        184
+      ],
+      "role": "mur latéral"
+    }
+  ]
+}

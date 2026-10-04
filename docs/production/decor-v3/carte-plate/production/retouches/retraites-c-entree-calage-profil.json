@@ -1,0 +1,426 @@
+{
+  "id": "retraites-c-entree-calage",
+  "tileLeft": 26880,
+  "cells": [
+    {
+      "source": [
+        560,
+        200,
+        69,
+        34
+      ],
+      "target": [
+        560,
+        200,
+        13,
+        100
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        560,
+        234,
+        69,
+        5
+      ],
+      "target": [
+        560,
+        300,
+        13,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        560,
+        239,
+        69,
+        37
+      ],
+      "target": [
+        560,
+        304,
+        13,
+        44
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        560,
+        276,
+        69,
+        7
+      ],
+      "target": [
+        560,
+        348,
+        13,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        560,
+        283,
+        69,
+        20
+      ],
+      "target": [
+        560,
+        352,
+        13,
+        8
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        629,
+        200,
+        6,
+        34
+      ],
+      "target": [
+        573,
+        200,
+        4,
+        100
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        629,
+        234,
+        6,
+        5
+      ],
+      "target": [
+        573,
+        300,
+        4,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        629,
+        239,
+        6,
+        37
+      ],
+      "target": [
+        573,
+        304,
+        4,
+        44
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        629,
+        276,
+        6,
+        7
+      ],
+      "target": [
+        573,
+        348,
+        4,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        629,
+        283,
+        6,
+        20
+      ],
+      "target": [
+        573,
+        352,
+        4,
+        8
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        635,
+        200,
+        170,
+        34
+      ],
+      "target": [
+        577,
+        200,
+        258,
+        100
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        635,
+        234,
+        170,
+        5
+      ],
+      "target": [
+        577,
+        300,
+        258,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        635,
+        239,
+        170,
+        37
+      ],
+      "target": [
+        577,
+        304,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        635,
+        276,
+        170,
+        7
+      ],
+      "target": [
+        577,
+        348,
+        258,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        635,
+        283,
+        170,
+        20
+      ],
+      "target": [
+        577,
+        352,
+        258,
+        8
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        805,
+        200,
+        6,
+        34
+      ],
+      "target": [
+        835,
+        200,
+        4,
+        100
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        805,
+        234,
+        6,
+        5
+      ],
+      "target": [
+        835,
+        300,
+        4,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        805,
+        239,
+        6,
+        37
+      ],
+      "target": [
+        835,
+        304,
+        4,
+        44
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        805,
+        276,
+        6,
+        7
+      ],
+      "target": [
+        835,
+        348,
+        4,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        805,
+        283,
+        6,
+        20
+      ],
+      "target": [
+        835,
+        352,
+        4,
+        8
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        811,
+        200,
+        48,
+        34
+      ],
+      "target": [
+        839,
+        200,
+        20,
+        100
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        811,
+        234,
+        48,
+        5
+      ],
+      "target": [
+        839,
+        300,
+        20,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        811,
+        239,
+        48,
+        37
+      ],
+      "target": [
+        839,
+        304,
+        20,
+        44
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        811,
+        276,
+        48,
+        7
+      ],
+      "target": [
+        839,
+        348,
+        20,
+        4
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        811,
+        283,
+        48,
+        20
+      ],
+      "target": [
+        839,
+        352,
+        20,
+        8
+      ],
+      "role": "encadrement et maçonnerie"
+    },
+    {
+      "source": [
+        560,
+        303,
+        107,
+        222
+      ],
+      "target": [
+        560,
+        360,
+        98,
+        184
+      ],
+      "role": "mur latéral"
+    },
+    {
+      "source": [
+        667,
+        303,
+        103,
+        222
+      ],
+      "target": [
+        658,
+        360,
+        96,
+        184
+      ],
+      "role": "porte"
+    },
+    {
+      "source": [
+        770,
+        303,
+        89,
+        222
+      ],
+      "target": [
+        754,
+        360,
+        105,
+        184
+      ],
+      "role": "mur latéral"
+    }
+  ]
+}

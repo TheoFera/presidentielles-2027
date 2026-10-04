@@ -1,0 +1,18 @@
+{
+  "id": "riches-b-fond-compact",
+  "x": 31340,
+  "y": 0,
+  "w": 700,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 1212,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-fond-compact-guide.png",
+  "replaceTop": 100,
+  "replaceHeight": 720,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-fond-compact-brute.png",
+  "pixelsModifies": 503990,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "translationVerticale": -125
+}

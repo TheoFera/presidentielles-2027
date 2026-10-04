@@ -1,0 +1,114 @@
+{
+  "image": "2432 × 1080",
+  "mesures": [
+    {
+      "centreAttenduDansCadre": 631,
+      "centreAttenduDansTuile": 375,
+      "porte": {
+        "attendu": {
+          "haut": 820,
+          "bas": 1003,
+          "largeur": 96,
+          "hauteur": 184
+        },
+        "aplatObserve": {
+          "couleurEchantillon": [
+            36,
+            62,
+            69
+          ],
+          "gauche": 565,
+          "droite": 661,
+          "haut": 800,
+          "bas": 940,
+          "largeur": 97,
+          "hauteur": 141,
+          "centreX": 613
+        }
+      },
+      "panneau": {
+        "attendu": {
+          "haut": 764,
+          "bas": 807,
+          "largeur": 258,
+          "hauteur": 44
+        },
+        "aplatObserve": {
+          "couleurEchantillon": [
+            36,
+            62,
+            69
+          ],
+          "gauche": 564,
+          "droite": 661,
+          "haut": 754,
+          "bas": 834,
+          "largeur": 98,
+          "hauteur": 81,
+          "centreX": 612.5
+        }
+      }
+    },
+    {
+      "centreAttenduDansCadre": 1792,
+      "centreAttenduDansTuile": 1536,
+      "porte": {
+        "attendu": {
+          "haut": 820,
+          "bas": 1003,
+          "largeur": 96,
+          "hauteur": 184
+        },
+        "aplatObserve": {
+          "couleurEchantillon": [
+            36,
+            61,
+            69
+          ],
+          "gauche": 1771,
+          "droite": 1868,
+          "haut": 800,
+          "bas": 941,
+          "largeur": 98,
+          "hauteur": 142,
+          "centreX": 1819.5
+        }
+      },
+      "panneau": {
+        "attendu": {
+          "haut": 764,
+          "bas": 807,
+          "largeur": 258,
+          "hauteur": 44
+        },
+        "aplatObserve": {
+          "couleurEchantillon": [
+            37,
+            62,
+            69
+          ],
+          "gauche": 1771,
+          "droite": 1868,
+          "haut": 756,
+          "bas": 834,
+          "largeur": 98,
+          "hauteur": 79,
+          "centreX": 1819.5
+        }
+      }
+    }
+  ],
+  "raccordsProposition": {
+    "gauche": {
+      "seam": 71.22345679012345,
+      "normal": 8.774382716049383,
+      "visible": true
+    },
+    "droite": {
+      "seam": 72.16666666666667,
+      "normal": 6.116049382716049,
+      "visible": true
+    }
+  },
+  "limite": "Mesures des aplats connectés, pas des contours artistiques extérieurs ; la conformité au pixel près exige une inspection des huisseries. Aucun seuil du vérificateur officiel modifié."
+}

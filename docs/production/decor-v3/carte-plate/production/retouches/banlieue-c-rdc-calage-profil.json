@@ -1,0 +1,186 @@
+{
+  "id": "banlieue-c-rdc-calage",
+  "tileLeft": 9600,
+  "cells": [
+    {
+      "source": [
+        360,
+        80,
+        156,
+        18
+      ],
+      "target": [
+        360,
+        80,
+        67,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        360,
+        98,
+        156,
+        30
+      ],
+      "target": [
+        360,
+        104,
+        67,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        360,
+        128,
+        156,
+        10
+      ],
+      "target": [
+        360,
+        148,
+        67,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        516,
+        80,
+        178,
+        18
+      ],
+      "target": [
+        427,
+        80,
+        258,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        516,
+        98,
+        178,
+        30
+      ],
+      "target": [
+        427,
+        104,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        516,
+        128,
+        178,
+        10
+      ],
+      "target": [
+        427,
+        148,
+        258,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        694,
+        80,
+        118,
+        18
+      ],
+      "target": [
+        685,
+        80,
+        127,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        694,
+        98,
+        118,
+        30
+      ],
+      "target": [
+        685,
+        104,
+        127,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        694,
+        128,
+        118,
+        10
+      ],
+      "target": [
+        685,
+        148,
+        127,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        360,
+        138,
+        182,
+        194
+      ],
+      "target": [
+        360,
+        160,
+        148,
+        184
+      ],
+      "role": "mur latéral"
+    },
+    {
+      "source": [
+        542,
+        138,
+        129,
+        194
+      ],
+      "target": [
+        508,
+        160,
+        96,
+        184
+      ],
+      "role": "porte"
+    },
+    {
+      "source": [
+        671,
+        138,
+        141,
+        194
+      ],
+      "target": [
+        604,
+        160,
+        208,
+        184
+      ],
+      "role": "mur latéral"
+    }
+  ]
+}

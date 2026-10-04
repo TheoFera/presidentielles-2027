@@ -18,8 +18,13 @@ export const MINOR_ANIMATION_FILES = {
  */
 export const MINOR_FRAME_CORRECTIONS = {
   glucksmann: { combat: { all: .95, 13: 1.08 }, actions: { 11: 1.11 } },
-  // Trois légers ajustements après réduction des têtes dans les nouvelles images.
-  roussel: { combat: { 15: .97 }, movement: { 15: .91 }, actions: { 2: 1.03, 9: .93, 11: 1.1 } },
+  // Roussel : les anciennes échelles réduisaient aussi son corps après la retouche des têtes.
+  // Garde et marche restent cohérentes ; les poses déjà à la bonne taille sont conservées.
+  roussel: {
+    combat: { 0: 1.1, 1: 1.1, 2: 1.1, 3: 1.1, 4: 1.05, 5: 1.05, 6: 1.05, 7: 1.05, 9: 1.07, 10: 1.07, 11: 1.07, 13: 1.02, 14: 1.1, 15: .97 },
+    movement: { 0: 1.1, 1: 1.1, 2: 1.1, 3: 1.1, 4: 1.1, 5: 1.1, 6: 1.1, 7: 1.1, 8: 1.06, 9: 1.06, 10: 1.12, 11: 1.07, 12: 1.05, 13: 1.1, 14: 1.1, 15: 1 },
+    actions: { 0: 1.1, 1: 1.1, 2: 1.13, 3: 1.1, 4: 1.1, 5: 1.1, 6: 1.1, 7: 1.1, 8: 1.12, 9: .93, 10: 1.1, 11: 1.1 },
+  },
   arthaud: { movement: { 9: .97 }, actions: { 8: 1.1, 10: 1.1, 11: 1.2 } },
   dupont_aignan: { actions: { 8: 1.13, 10: 1.13, 11: 1.13 } },
   retailleau: { actions: { 10: 1.08 } },

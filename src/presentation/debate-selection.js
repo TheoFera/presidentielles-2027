@@ -43,9 +43,9 @@ export function rosterContent(config, fighters, active, { disabled = false, unav
   return `<div class="select-roster" role="group" aria-label="Choix du candidat">${DEBATE_CANDIDATES.map(c => {
     const selected = fighters[active]?.faction === c.id;
     const markers = fighters.map((f, i) => f.faction === c.id ? `<span class="select-marker" style="--player-color:${PLAYER_COLORS[i]}">${f.badge || (i ? `IA ${i}` : 'J1')}</span>` : '').join('');
-    // Candidat mineur verrouillé : il se débloque en le mettant K.-O. en campagne, partie terminée.
+    // Candidat mineur verrouillé : il se débloque en le mettant K.-O. en campagne, puis en gagnant l’élection.
     const locked = c.minor && !disabled && unavailable(c.id);
-    return `<button class="select-tile" data-faction="${c.id}" aria-label="${escape(c.name)}${locked ? ' · verrouillé' : ''}" ${locked ? 'title="À débloquer : mettez-le K.-O. en campagne, puis terminez la partie"' : ''} aria-pressed="${selected}" ${disabled || unavailable(c.id) ? 'disabled' : ''} style="--candidate-color:${config.prototype.presentation.factions[c.id].color}">${portraitContent(c.id)}<span class="select-markers" aria-hidden="true">${markers}</span><strong>${escape(c.short)}</strong></button>`;
+    return `<button class="select-tile" data-faction="${c.id}" aria-label="${escape(c.name)}${locked ? ' · verrouillé' : ''}" ${locked ? 'title="Mettre KO en campagne et gagner l’élection pour débloquer"' : ''} aria-pressed="${selected}" ${disabled || unavailable(c.id) ? 'disabled' : ''} ${locked ? 'data-locked' : ''} style="--candidate-color:${config.prototype.presentation.factions[c.id].color}">${portraitContent(c.id)}<span class="select-markers" aria-hidden="true">${markers}</span>${locked ? '<span class="collection-lock" aria-hidden="true">🔒</span>' : ''}<strong>${escape(c.short)}</strong></button>`;
   }).join('')}</div>`;
 }
 export const PLAYER_COLORS = ['#69dcff', '#ff6685', '#f5d369'];
@@ -63,7 +63,7 @@ export function stylesContent(config, profile, fighter, { ai = false, disabled =
   if (!fighter?.faction || MINOR_FACTIONS.includes(fighter.faction)) return '';
   return `<div class="select-styles" role="group" aria-label="Style du candidat">${debateStyles(config, fighter.faction).map(s => {
     const locked = !ai && !debateStyleAvailable(config, profile, fighter.faction, s.id), used = taken(s.id);
-    return `<button class="debate-style" data-style="${s.id}" aria-pressed="${fighter.style === s.id}" ${locked || used || disabled ? 'disabled' : ''} title="${escape(locked ? 'À débloquer en campagne' : used ? 'Déjà sélectionné' : s.ultimate.name)}" style="--style-color:${s.skin.accent}">${locked ? '<span aria-hidden="true">🔒</span> ' : ''}${escape(s.name.split(' · ')[0])}</button>`;
+    return `<button class="debate-style" data-style="${s.id}" aria-pressed="${fighter.style === s.id}" ${locked || used || disabled ? 'disabled' : ''} title="${escape(locked ? 'Mettre KO en campagne et gagner l’élection pour débloquer' : used ? 'Déjà sélectionné' : s.ultimate.name)}" style="--style-color:${s.skin.accent}">${locked ? '<span aria-hidden="true">🔒</span> ' : ''}${escape(s.name.split(' · ')[0])}</button>`;
   }).join('')}</div>`;
 }
 

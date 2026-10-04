@@ -1,0 +1,167 @@
+{
+  "id": "periurbain-b-fascia-calage",
+  "auteur": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-b-fascia-calage-generation.png",
+  "sortie": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-b-fascia-calage-calibree.png",
+  "profil": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-b-fascia-calage-profil.json",
+  "cellules": [
+    {
+      "source": {
+        "x": 330,
+        "y": 90,
+        "w": 106,
+        "h": 13
+      },
+      "cible": {
+        "x": 330,
+        "y": 90,
+        "w": 97,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 330,
+        "y": 103,
+        "w": 106,
+        "h": 34
+      },
+      "cible": {
+        "x": 330,
+        "y": 104,
+        "w": 97,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 330,
+        "y": 137,
+        "w": 106,
+        "h": 23
+      },
+      "cible": {
+        "x": 330,
+        "y": 148,
+        "w": 97,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 436,
+        "y": 90,
+        "w": 201,
+        "h": 13
+      },
+      "cible": {
+        "x": 427,
+        "y": 90,
+        "w": 258,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 436,
+        "y": 103,
+        "w": 201,
+        "h": 34
+      },
+      "cible": {
+        "x": 427,
+        "y": 104,
+        "w": 258,
+        "h": 44
+      },
+      "role": "panneau",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 436,
+        "y": 137,
+        "w": 201,
+        "h": 23
+      },
+      "cible": {
+        "x": 427,
+        "y": 148,
+        "w": 258,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 637,
+        "y": 90,
+        "w": 65,
+        "h": 13
+      },
+      "cible": {
+        "x": 685,
+        "y": 90,
+        "w": 17,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 637,
+        "y": 103,
+        "w": 65,
+        "h": 34
+      },
+      "cible": {
+        "x": 685,
+        "y": 104,
+        "w": 17,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 637,
+        "y": 137,
+        "w": 65,
+        "h": 23
+      },
+      "cible": {
+        "x": 685,
+        "y": 148,
+        "w": 17,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    }
+  ],
+  "porte": null,
+  "panneau": {
+    "x": 427,
+    "y": 104,
+    "w": 258,
+    "h": 44,
+    "xDansTuile": 255,
+    "yDansFresque": 764,
+    "centreX": 384,
+    "bas": 808
+  },
+  "superpositions": 0,
+  "pixelsNonOpaques": 0,
+  "pixelsHorsCellulesConserves": true,
+  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu."
+}

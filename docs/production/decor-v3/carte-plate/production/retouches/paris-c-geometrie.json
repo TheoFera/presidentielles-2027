@@ -1,0 +1,15 @@
+{
+  "id": "paris-c-geometrie",
+  "x": 3840,
+  "y": 0,
+  "w": 1920,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 2432,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-geometrie-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-c-geometrie-brute.png",
+  "pixelsModifies": 2073586,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false
+}

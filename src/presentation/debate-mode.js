@@ -282,7 +282,10 @@ export class DebateModeDisplay {
     // Annonce du thème pendant le compte à rebours.
     this.theme = document.createElement('div'); this.theme.id = 'debate-mode-theme'; this.theme.hidden = true; this.theme.setAttribute('role', 'status');
     this.result = document.createElement('section'); this.result.id = 'debate-mode-result'; this.result.hidden = true; this.result.setAttribute('aria-label', 'Résultat du combat');
-    game.append(this.hud, this.rounds, this.theme, this.banner, this.result);
+    // Calque propre au débat : sur tactile, #game perd son conteneur et les cqw suivraient tout l’écran.
+    const layer = document.createElement('div'); layer.id = 'debate-mode-layer';
+    layer.append(this.hud, this.rounds, this.theme, this.banner, this.result);
+    game.insertBefore(layer, document.getElementById('help')?.parentElement === game ? document.getElementById('help') : null);
     this.result.addEventListener('click', event => {
       const action = event.target.closest('[data-debate-action]')?.dataset.debateAction;
       if (action) this.actions[action]?.();

@@ -1,0 +1,16 @@
+{
+  "id": "riches-a-radio-discrete",
+  "x": 28800,
+  "y": 0,
+  "w": 1920,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 2432,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-a-radio-discrete-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-a-radio-discrete-brute.png",
+  "pixelsModifies": 2071509,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 40
+}

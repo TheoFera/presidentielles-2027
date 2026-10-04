@@ -1,0 +1,18 @@
+{
+  "id": "voie-sans-train",
+  "x": 22010,
+  "y": 400,
+  "w": 290,
+  "h": 680,
+  "context": 256,
+  "canvasWidth": 802,
+  "canvasHeight": 680,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\voie-sans-train-guide.png",
+  "replaceTop": 240,
+  "replaceHeight": 60,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\voie-sans-train-brute.png",
+  "pixelsModifies": 17400,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "annuleeLe": "2026-10-04T11:02:24.700Z"
+}

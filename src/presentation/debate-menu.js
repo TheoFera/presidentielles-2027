@@ -6,7 +6,7 @@ const chosenSetup = setup => ({ ...setup, fighters: setup.fighters.slice(0, DEBA
 
 export function defaultDebateSetup(config, profile, faction = 'melenchon') {
   const order = [faction, ...DEBATE_CANDIDATES.map(c => c.id).filter(id => id !== faction)].slice(0, 3);
-  const fighters = order.map((f, i) => ({ faction: f, style: debateStyles(config, f).find(s => i > 0 || debateStyleAvailable(config, profile, f, s.id))?.id }));
+  const fighters = order.map(f => ({ faction: f, style: debateStyles(config, f).find(s => debateStyleAvailable(config, profile, f, s.id))?.id }));
   return { format: '1v1', map: config.balance.debate_mode.default_map, fighters };
 }
 
@@ -18,7 +18,8 @@ export function emptyDebateSetup(config) {
 function freeStyle(config, profile, setup, index, faction, preferred = null) {
   if (!faction) return null;
   const taken = setup.fighters.filter((f, i) => i !== index && i < DEBATE_FORMATS[setup.format] && f.faction === faction).map(f => f.style);
-  const usable = debateStyles(config, faction).filter(s => !taken.includes(s.id) && (index > 0 || debateStyleAvailable(config, profile, faction, s.id)));
+  // Joueur comme IA : seulement les candidats débloqués par ce profil.
+  const usable = debateStyles(config, faction).filter(s => !taken.includes(s.id) && debateStyleAvailable(config, profile, faction, s.id));
   return usable.find(s => s.id === preferred)?.id ?? usable[0]?.id ?? null;
 }
 
@@ -34,7 +35,7 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
     const current = fighters[active];
     menu.page('debate', 'Débat télé', `<div class="debate-setup select-screen">
       <div class="select-topline"><span>Sélection des candidats</span><span class="select-live">● En direct</span></div>
-      <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true, styles: i === active ? stylesContent(config, profile, current, { ai: active > 0, taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
+      <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true, styles: i === active ? stylesContent(config, profile, current, { taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
       <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>${active ? 'Choisissez le candidat de l’IA' : 'Choisissez votre candidat'}</span></div>
       ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>

@@ -1,0 +1,28 @@
+Peindre l’extension à droite de l’image 1, une nouvelle partie de la fresque continue du jeu. C’est un OUTPAINTING du bord déjà peint, pas une nouvelle composition indépendante. L’image 2, panorama world-v2, est la référence obligatoire de style. Les images suivantes sont des références photographiques d’architecture uniquement, sans copier leurs textes, marques ou véhicules.
+Format demandé : 2176 × 1080 px, PNG entièrement opaque.
+L’image 1 contient à gauche exactement 256 px déjà peints : reproduire leur cadrage et continuer leurs lignes et leur perspective au-delà de x=256. Le script conservera ces 256 px originaux. À droite se trouve le gabarit à remplacer par la peinture : AUCUNE annotation, silhouette, ligne, hachure, zone colorée ou estrade du gabarit ne doit apparaître.
+La portion nouvelle appartient à Périurbain B. Son bord gauche dans ce canevas est x=256. 
+CONTENU DU STORYBOARD :
+Périurbain B — zone artisanale et rond-point
+
+*Périurbain / Usine*
+
+Gabarit : [gabarits/tuile-08-periurbain-b.png](gabarits/tuile-08-periurbain-b.png) · tuile 08, fresque maître x = 13440 → 15360 px.
+
+**À retenir :** Le giratoire au premier plan, la zone artisanale, les maisons en briques rouges. Les collines commencent à monter au fond.
+
+**Exigences**
+
+- Rond-point au premier plan, avec sa sculpture ; son centre reste libre pour le meeting.
+- Zone artisanale, sans supermarché (le seul est dans la zone commerciale au loin, en Périurbain A), maisons de briques rouges, garage à scooter.
+- Les collines commencent à monter au fond.
+
+
+POSITIONS ABSOLUES DANS LE CANEVAS :
+Garage à scooter: entrée centrée x=640, rectangle porte x=592..688, y=820..1004; panneau crème vierge x=511..769, y=764..808.
+PLACE DE MEETING : le rectangle x=928..1504 doit être une place ouverte, dégagée et de plain-pied au premier plan. AUCUN bâtiment, étal, fontaine, arbre, kiosque, sculpture, estrade ou mobilier dans cette zone. Fond lointain en perspective permis. Reporter les monuments et étals en dehors de ce rectangle.
+Tous les pieds des portes et façades proches sont à y=1004, sur une rue horizontale continue. Il ne reste que76px de trottoir/chaussée en dessous. Portes184px de haut, étage168px, rez-de-chaussée256px, personnage invisible162px. Ne pas dessiner de personnage. Les arbres et objets du décor ne doivent pas masquer les façades interactives. Les bâtiments lointains rapetissent en perspective.
+Style exactement world-v2 : peinture cartoon détaillée, contours fins foncés, couleurs chaudes, matériaux de France, verdure d’été, profondeur atmosphérique bleutée et perspectives cohérentes. Lumière de milieu de matinée venant de gauche, ombres à droite. Ciel uni#9FCFEE dans les64premières lignes, puis dégradé régulier vers#E4F1F6 à l’horizon. Aucun plan de parallaxe séparé.
+ Le bord droit continue naturellement vers Périurbain C : pas de changement abrupt sur la coupe, éviter portes et panneaux traversant la coupe.
+INTERDITS : aucun texte, lettre, chiffre, marque ou logo ; aucun véhicule ni vélo garé ; aucune personne. Aucun commerce de bouche hors Paris B (l’unique boulangerie, fromagerie et boucherie ont déjà été peintes). Aucun autre supermarché hors la zone commerciale lointaine de Périurbain A. Haussmannien seulement à Paris et aux Quartiers riches, jamais au bord de mer. Ne pas copier les erreurs des anciennes références.
+AUCUN FONDU : aucune transparence, double contour, flou de raccord, mélange de deux images ou superposition. Une seule scène peinte et nette, qui prolonge fidèlement la bande de gauche.

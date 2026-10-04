@@ -1,0 +1,441 @@
+{
+  "id": "riches-b-rdc-dessin",
+  "tileLeft": 30720,
+  "cells": [
+    {
+      "source": [
+        330,
+        0,
+        46,
+        54
+      ],
+      "target": [
+        330,
+        0,
+        93,
+        160
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        330,
+        54,
+        46,
+        4
+      ],
+      "target": [
+        330,
+        160,
+        93,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        330,
+        58,
+        46,
+        45
+      ],
+      "target": [
+        330,
+        164,
+        93,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        330,
+        103,
+        46,
+        4
+      ],
+      "target": [
+        330,
+        208,
+        93,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        330,
+        107,
+        46,
+        12
+      ],
+      "target": [
+        330,
+        212,
+        93,
+        8
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        376,
+        0,
+        4,
+        54
+      ],
+      "target": [
+        423,
+        0,
+        4,
+        160
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        376,
+        54,
+        4,
+        4
+      ],
+      "target": [
+        423,
+        160,
+        4,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        376,
+        58,
+        4,
+        45
+      ],
+      "target": [
+        423,
+        164,
+        4,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        376,
+        103,
+        4,
+        4
+      ],
+      "target": [
+        423,
+        208,
+        4,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        376,
+        107,
+        4,
+        12
+      ],
+      "target": [
+        423,
+        212,
+        4,
+        8
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        380,
+        0,
+        195,
+        54
+      ],
+      "target": [
+        427,
+        0,
+        258,
+        160
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        380,
+        54,
+        195,
+        4
+      ],
+      "target": [
+        427,
+        160,
+        258,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        380,
+        58,
+        195,
+        45
+      ],
+      "target": [
+        427,
+        164,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        380,
+        103,
+        195,
+        4
+      ],
+      "target": [
+        427,
+        208,
+        258,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        380,
+        107,
+        195,
+        12
+      ],
+      "target": [
+        427,
+        212,
+        258,
+        8
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        575,
+        0,
+        4,
+        54
+      ],
+      "target": [
+        685,
+        0,
+        4,
+        160
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        575,
+        54,
+        4,
+        4
+      ],
+      "target": [
+        685,
+        160,
+        4,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        575,
+        58,
+        4,
+        45
+      ],
+      "target": [
+        685,
+        164,
+        4,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        575,
+        103,
+        4,
+        4
+      ],
+      "target": [
+        685,
+        208,
+        4,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        575,
+        107,
+        4,
+        12
+      ],
+      "target": [
+        685,
+        212,
+        4,
+        8
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        579,
+        0,
+        221,
+        54
+      ],
+      "target": [
+        689,
+        0,
+        111,
+        160
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        579,
+        54,
+        221,
+        4
+      ],
+      "target": [
+        689,
+        160,
+        111,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        579,
+        58,
+        221,
+        45
+      ],
+      "target": [
+        689,
+        164,
+        111,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        579,
+        103,
+        221,
+        4
+      ],
+      "target": [
+        689,
+        208,
+        111,
+        4
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        579,
+        107,
+        221,
+        12
+      ],
+      "target": [
+        689,
+        212,
+        111,
+        8
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        330,
+        119,
+        125,
+        273
+      ],
+      "target": [
+        330,
+        220,
+        178,
+        184
+      ],
+      "role": "vitrine"
+    },
+    {
+      "source": [
+        455,
+        119,
+        85,
+        273
+      ],
+      "target": [
+        508,
+        220,
+        96,
+        184
+      ],
+      "role": "porte"
+    },
+    {
+      "source": [
+        540,
+        119,
+        260,
+        273
+      ],
+      "target": [
+        604,
+        220,
+        196,
+        184
+      ],
+      "role": "vitrine"
+    },
+    {
+      "source": [
+        330,
+        392,
+        470,
+        88
+      ],
+      "target": [
+        330,
+        404,
+        470,
+        76
+      ],
+      "role": "trottoir et chaussée"
+    }
+  ]
+}

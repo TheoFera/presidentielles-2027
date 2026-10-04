@@ -111,7 +111,8 @@ export class CampaignStyleSystem {
   }
   static select(sim, c, id, ai = false) {
     const selection = sim.state.campaign_style_selection;
-    if (!ai && (!selection || selection.candidate_id !== c.id || !isCampaignStyleUnlocked(sim.profile, c.faction_id, id))) return false;
+    // Multijoueur : sim.profiles donne le profil de chaque joueur humain ; sinon celui du joueur local.
+    if (!ai && (!selection || selection.candidate_id !== c.id || !isCampaignStyleUnlocked(sim.profiles?.[c.id] ?? sim.profile, c.faction_id, id))) return false;
     if (!campaignStyles(sim.config, c.faction_id).some(s => s.id === id)) return false;
     if (c.current_campaign_style !== id) {
       clearCampaignUltimate(sim, c);

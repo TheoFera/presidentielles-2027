@@ -1,0 +1,18 @@
+{
+  "id": "paris-b-sol-integration",
+  "x": 2220,
+  "y": 650,
+  "w": 288,
+  "h": 430,
+  "context": 256,
+  "canvasWidth": 800,
+  "canvasHeight": 430,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-sol-integration-guide.png",
+  "replaceTop": 354,
+  "replaceHeight": 76,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\paris-b-sol-integration-brute.png",
+  "pixelsModifies": 21878,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

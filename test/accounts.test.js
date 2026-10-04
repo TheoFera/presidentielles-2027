@@ -85,9 +85,13 @@ test('K.-O. : noté pendant la partie, gagné seulement à la fin normale', () =
   recordKnockout(state, player, { role: 'CANDIDAT', minor: true, faction_id: 'roussel' });
   // Abandon : la partie n'est pas terminée → rien.
   assert.deepEqual(earnedUnlocks(state, 'melenchon'), []);
-  state.phase = 'RESULTS';
+  state.phase = 'RESULTS'; state.result = { winner: 'melenchon', second: 'le_pen' };
   assert.deepEqual(earnedUnlocks(state, 'melenchon'), ['roussel', 'le_pen_zemmouriste']);
+  // Pas de victoire, pas de déblocage : le K.-O. d'Attal par Le Pen ne compte pas.
+  assert.deepEqual(earnedUnlocks(state, 'le_pen'), []);
+  state.result = { winner: 'le_pen', second: 'melenchon' };
   assert.deepEqual(earnedUnlocks(state, 'le_pen'), ['attal']);
+  assert.deepEqual(earnedUnlocks(state, 'melenchon'), [], 'élection perdue');
 });
 
 test('Elo : classique à 2, somme nulle à 3, provisoire puis stable', () => {
@@ -491,7 +495,8 @@ test('Simulation : un K.-O. de mineur par le joueur est noté, débloqué seulem
   for (let i = 0; i < 10 && !target.is_ko; i++) hit(sim, attacker, target, { damage: 40, electoral_damage: 0, knockback: 0 }, `test:ko:${i}`);
   assert.deepEqual(sim.state.knockouts.map(k => [k.by_faction, k.candidate_id]), [['melenchon', 'roussel']]);
   assert.deepEqual(earnedUnlocks(sim.state, 'melenchon'), [], 'partie pas terminée');
-  assert.deepEqual(earnedUnlocks({ ...sim.state, phase: 'RESULTS' }, 'melenchon'), ['roussel']);
+  assert.deepEqual(earnedUnlocks({ ...sim.state, phase: 'RESULTS', result: { winner: 'melenchon' } }, 'melenchon'), ['roussel']);
+  assert.deepEqual(earnedUnlocks({ ...sim.state, phase: 'RESULTS', result: { winner: 'philippe' } }, 'melenchon'), [], 'élection perdue');
 });
 
 /** Le client du jeu branché directement sur l'API (sans réseau). */
@@ -554,9 +559,10 @@ test('Multijoueur : déclaration et ordre d’arrivée calculés depuis le salon
   const room = { mode: 'campaign', players: [{ id: 'aaaaaaaaaaaaaaaa', slot: 1, faction: 'melenchon' }, { id: 'bbbbbbbbbbbbbbbb', slot: 2, faction: 'le_pen' }, { id: 'cccccccccccccccc', slot: 3, faction: 'philippe' }] };
   assert.deepEqual(matchDeclaration(room, 'aaaaaaaaaaaaaaaa'), { mode: 'campaign', format: 'trio', host_seat: 'aaaaaaaaaaaaaaaa',
     seats: room.players.map(p => ({ seat: p.id, slot: p.slot, faction: p.faction, style: null })) });
-  const state = { phase: 'RESULTS', result: { winner: 'philippe', second: 'melenchon' }, knockouts: [{ by_faction: 'le_pen', candidate_id: 'arthaud' }] };
+  const state = { phase: 'RESULTS', result: { winner: 'philippe', second: 'melenchon' }, knockouts: [{ by_faction: 'le_pen', candidate_id: 'arthaud' }, { by_faction: 'philippe', candidate_id: 'roussel' }] };
   assert.deepEqual(campaignPlacements(room, state), ['cccccccccccccccc', 'aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb']);
-  assert.deepEqual(campaignKnockouts(room, state), [{ seat: 'bbbbbbbbbbbbbbbb', candidate_id: 'arthaud' }]);
+  // Seul le vainqueur (Philippe) débloque : le K.-O. d'Arthaud par Le Pen ne compte pas.
+  assert.deepEqual(campaignKnockouts(room, state), [{ seat: 'cccccccccccccccc', candidate_id: 'roussel' }]);
   assert.equal(campaignPlacements(room, { ...state, phase: 'CAMPAIGN' }), null, 'pas de résultat avant la fin');
   // Débat 1 contre 1 contre 1 avec une IA : l'IA est ignorée.
   const debate = { mode: 'debate', players: room.players.slice(0, 2), debate: { format: '1v1v1', fighters: [
@@ -568,4 +574,33 @@ test('Multijoueur : déclaration et ordre d’arrivée calculés depuis le salon
   assert.deepEqual(debatePlacements(debate, { phase: 'OVER', winner_id: 'candidate:attal', ko_order: [],
     standings: ['candidate:le_pen', 'candidate:attal', 'candidate:melenchon'] }), ['bbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaa']);
   assert.equal(matchDeclaration(debate, 'aaaaaaaaaaaaaaaa').format, '1v1v1');
+});
+
+test('Profil public : avatar débloqué seulement, meilleur titre gardé, classement avec médaillon', async () => {
+  const api = makeApi();
+  const token = await player(api, 'g-avatar', 'Avatar');
+  // Un candidat pas encore débloqué ne peut pas servir d'avatar.
+  assert.equal((await api.call('PATCH', 'me', { token, body: { avatar: 'roussel' } })).status, 400);
+  assert.equal((await api.call('PATCH', 'me', { token, body: { avatar: 'le_pen_souverainiste' } })).body.user.avatar, 'le_pen_souverainiste');
+  const run = (await api.call('POST', 'runs', { token, body: { mode: 'campaign', faction: 'melenchon' } })).body.run_id;
+  ageRun(api, run, SOLO_CAMPAIGN_MIN_SECONDS + 5);
+  await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['roussel', 'attal'] } });
+  const me = (await api.call('PATCH', 'me', { token, body: { avatar: 'roussel' } })).body;
+  assert.equal(me.user.avatar, 'roussel');
+  assert.equal(me.user.title_rank, 2, '2 candidats gagnés : Militant');
+  assert.equal(api.sql("SELECT title_rank FROM users WHERE username = 'Avatar'")[0].title_rank, 2);
+});
+
+test('Multijoueur : seul le vainqueur débloque les candidats qu’il a mis K.-O.', async () => {
+  const api = makeApi();
+  const players = [await player(api, 'g-w1', 'Premier'), await player(api, 'g-w2', 'Second'), await player(api, 'g-w3', 'Troisieme')];
+  // Le joueur 1 a mis Glucksmann K.-O. mais finit 2e : rien.
+  await campaignMatch(api, players, { order: [1, 0, 2] });
+  assert.equal(api.sql("SELECT COUNT(*) AS n FROM player_candidate_unlocks WHERE candidate_id = 'glucksmann'")[0].n, 0);
+  // Même K.-O., mais il gagne l'élection : débloqué, et son meilleur titre est retenu.
+  await campaignMatch(api, players);
+  assert.equal(api.sql("SELECT COUNT(*) AS n FROM player_candidate_unlocks WHERE candidate_id = 'glucksmann'")[0].n, 1);
+  assert.equal(api.sql("SELECT title_rank FROM users WHERE username = 'Premier'")[0].title_rank, 1);
+  const board = (await api.call('GET', 'leaderboard?ladder=campaign')).body.entries;
+  assert.ok(board.every(e => 'avatar' in e && Number.isInteger(e.title_rank) && Number.isFinite(e.best_rating)));
 });

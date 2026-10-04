@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-04T14:08:47.200Z",
+  "rectangles": [
+    {
+      "id": "paris-a-rdc-calage",
+      "role": "panneau",
+      "xDansFresque": 1165,
+      "y": 764,
+      "w": 258,
+      "h": 44,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "paris-a-rdc-calage",
+      "role": "porte",
+      "xDansFresque": 1246,
+      "y": 820,
+      "w": 96,
+      "h": 184,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "paris-b-atelier-calage",
+      "role": "panneau",
+      "xDansFresque": 2235,
+      "y": 764,
+      "w": 258,
+      "h": 44,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "paris-b-atelier-calage",
+      "role": "porte",
+      "xDansFresque": 2316,
+      "y": 820,
+      "w": 96,
+      "h": 184,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "paris-c-qg-calage",
+      "role": "porte",
+      "xDansFresque": 4250,
+      "y": 820,
+      "w": 96,
+      "h": 184,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "paris-c-institut-calage",
+      "role": "porte",
+      "xDansFresque": 5217,
+      "y": 820,
+      "w": 96,
+      "h": 184,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "banlieue-a-composition-equilibree",
+      "role": "panneau",
+      "xDansFresque": 6352,
+      "y": 764,
+      "w": 258,
+      "h": 44,
+      "pixelsIdentiquesALaSourceCalee": true
+    },
+    {
+      "id": "banlieue-a-composition-equilibree",
+      "role": "porte",
+      "xDansFresque": 6433,
+      "y": 820,
+      "w": 96,
+      "h": 184,
+      "pixelsIdentiquesALaSourceCalee": true
+    }
+  ],
+  "limite": "Vérifie les rectangles des quatre portes du pilote, de la porte de Banlieue A et des trois panneaux recalés. Ne certifie pas toutes les façades, les panneaux de Paris C, ni la carte entière."
+}

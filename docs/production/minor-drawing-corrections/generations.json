@@ -1,5 +1,11 @@
 {
   "tool": "image_gen.imagegen (outil intégré)",
+  "baselineCommit": "18da43cbdb1c7c5ef5e47a4470b31a9bce773233",
+  "previousCorrections": {
+    "roussel": { "movement": { "15": 0.91 }, "actions": { "9": 0.93, "11": 1.1 } },
+    "arthaud": { "actions": { "8": 1.1, "10": 1.1, "11": 1.2 } },
+    "attal": { "combat": { "all": 0.96, "14": 1.07 }, "actions": { "8": 1.06, "10": 1.1, "11": 1.15 } }
+  },
   "generations": [
     {
       "key": "roussel-movement",

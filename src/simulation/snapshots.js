@@ -52,7 +52,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (mind != null && (!MIND_STANCES.includes(mind.stance) || mind.opponent_id !== null && !candidateIds.has(mind.opponent_id)
       || !integer(mind.since_tick) || !integer(mind.review_tick) || !integer(mind.hits))) fail('réflexion de l’IA invalide');
     if (!candidateIds.has(candidate.id) || candidate.id !== `candidate:${candidate.faction_id}` || candidate.role !== 'CANDIDAT') fail('candidat inconnu');
-    if (!!candidate.minor !== isMinorFaction(candidate.faction_id) || candidate.minor && candidate.minor_subzone_id !== config.layout.minor_candidates.find(m => m.faction_id === candidate.faction_id).subzone_id) fail('candidat mineur invalide');
+    if (!!candidate.minor !== isMinorFaction(candidate.faction_id) || candidate.minor && candidate.minor_subzone_id !== config.layout.minor_candidates.find(m => m.faction_id === candidate.faction_id).subzone_id) fail('candidat sans style invalide');
     if (!validPosition(candidate.x) || ![-1, 0, 1].includes(candidate.axis) || ![-1, 1].includes(candidate.facing) || typeof candidate.moving !== 'boolean'
       || typeof candidate.campaign_active !== 'boolean' || typeof candidate.interaction_active !== 'boolean') fail('candidat invalide');
     if (candidate.podium_site_id !== null && !next.buildings.some(b => b.id === candidate.podium_site_id && b.type === 'meeting')) fail('promontoire inconnu');

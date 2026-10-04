@@ -1,0 +1,189 @@
+{
+  "id": "banlieue-a-composition-equilibree",
+  "tileLeft": 5760,
+  "cells": [
+    {
+      "source": [
+        690,
+        740,
+        94,
+        23
+      ],
+      "target": [
+        690,
+        740,
+        158,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        690,
+        763,
+        94,
+        43
+      ],
+      "target": [
+        690,
+        764,
+        158,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        690,
+        806,
+        94,
+        13
+      ],
+      "target": [
+        690,
+        808,
+        158,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        784,
+        740,
+        291,
+        23
+      ],
+      "target": [
+        848,
+        740,
+        258,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        784,
+        763,
+        291,
+        43
+      ],
+      "target": [
+        848,
+        764,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        784,
+        806,
+        291,
+        13
+      ],
+      "target": [
+        848,
+        808,
+        258,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        1075,
+        740,
+        95,
+        23
+      ],
+      "target": [
+        1106,
+        740,
+        64,
+        24
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        1075,
+        763,
+        95,
+        43
+      ],
+      "target": [
+        1106,
+        764,
+        64,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        1075,
+        806,
+        95,
+        13
+      ],
+      "target": [
+        1106,
+        808,
+        64,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        690,
+        819,
+        187,
+        181
+      ],
+      "target": [
+        690,
+        820,
+        239,
+        184
+      ],
+      "role": "vitrine",
+      "fit": "fill"
+    },
+    {
+      "source": [
+        877,
+        819,
+        107,
+        181
+      ],
+      "target": [
+        929,
+        820,
+        96,
+        184
+      ],
+      "role": "porte",
+      "fit": "fill"
+    },
+    {
+      "source": [
+        984,
+        819,
+        186,
+        181
+      ],
+      "target": [
+        1025,
+        820,
+        145,
+        184
+      ],
+      "role": "vitrine",
+      "fit": "fill"
+    }
+  ]
+}

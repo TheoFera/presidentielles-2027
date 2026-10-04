@@ -424,67 +424,67 @@
     },
     {
       "faction": "philippe",
-      "case": "K.O. après 0,6 s",
+      "case": "K.O. après 0,45 s",
       "success": true,
       "pose": {
         "sheet": "actions",
-        "frame": 13,
-        "name": "ko_ground",
+        "frame": 12,
+        "name": "ko_fall",
         "direction": 1,
         "extra": true
       }
     },
     {
       "faction": "le_pen",
-      "case": "K.O. après 0,6 s",
+      "case": "K.O. après 0,45 s",
       "success": true,
       "pose": {
         "sheet": "actions",
-        "frame": 13,
-        "name": "ko_ground",
+        "frame": 12,
+        "name": "ko_fall",
         "direction": 1,
         "extra": true
       }
     },
     {
       "faction": "roussel",
-      "case": "K.O. après 0,6 s",
+      "case": "K.O. après 0,45 s",
       "success": true,
       "pose": {
         "sheet": "actions",
-        "frame": 11,
-        "name": "ko_ground",
+        "frame": 10,
+        "name": "ko_fall",
         "direction": 1,
         "extra": true
       }
     },
     {
       "faction": "attal",
-      "case": "K.O. après 0,6 s",
+      "case": "K.O. après 0,45 s",
       "success": true,
       "pose": {
         "sheet": "actions",
-        "frame": 11,
-        "name": "ko_ground",
+        "frame": 10,
+        "name": "ko_fall",
         "direction": 1,
         "extra": true
       }
     },
     {
       "faction": "arthaud",
-      "case": "K.O. après 0,6 s",
+      "case": "K.O. après 0,45 s",
       "success": true,
       "pose": {
         "sheet": "actions",
-        "frame": 11,
-        "name": "ko_ground",
+        "frame": 10,
+        "name": "ko_fall",
         "direction": 1,
         "extra": true
       }
     },
     {
       "faction": "philippe",
-      "case": "K.O. après 1,2 s",
+      "case": "K.O. après 0,6 s",
       "success": true,
       "pose": {
         "sheet": "actions",
@@ -496,7 +496,7 @@
     },
     {
       "faction": "le_pen",
-      "case": "K.O. après 1,2 s",
+      "case": "K.O. après 0,6 s",
       "success": true,
       "pose": {
         "sheet": "actions",
@@ -508,7 +508,7 @@
     },
     {
       "faction": "roussel",
-      "case": "K.O. après 1,2 s",
+      "case": "K.O. après 0,6 s",
       "success": true,
       "pose": {
         "sheet": "actions",
@@ -520,7 +520,7 @@
     },
     {
       "faction": "attal",
-      "case": "K.O. après 1,2 s",
+      "case": "K.O. après 0,6 s",
       "success": true,
       "pose": {
         "sheet": "actions",
@@ -532,7 +532,7 @@
     },
     {
       "faction": "arthaud",
-      "case": "K.O. après 1,2 s",
+      "case": "K.O. après 0,6 s",
       "success": true,
       "pose": {
         "sheet": "actions",

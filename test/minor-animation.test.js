@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { candidateCombatPose, usesCandidateCombat, combatAtlasFor } from '../src/presentation/melenchon-combat.js';
 import { candidateExtraPose, extraAtlasesFor } from '../src/presentation/candidate-extra-poses.js';
-import { MINOR_ANIMATION_FILES, minorCombatAtlases } from '../src/presentation/minor-animation-sprites.js';
+import { MINOR_ANIMATION_FILES, minorCombatAtlases, minorExtraAtlases } from '../src/presentation/minor-animation-sprites.js';
 import { MINOR_ANIMATION_DATA } from '../src/presentation/minor-animation-data.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
@@ -59,6 +59,16 @@ test('Roussel : échelle constante par rangée, marche à la taille de la garde,
   // Les huit pas de garde ne doivent pas rapetisser Roussel par rapport à la garde de combat.
   const { combat, movement } = MINOR_ANIMATION_DATA.roussel, guard = rendered(combat, 0);
   for (let frame = 0; frame < 8; frame++) assert.ok(Math.abs(rendered(movement, frame) / guard - 1) < .04, `pas ${frame}`);
+});
+
+test('Roussel redessiné : hauteur de garde proche des références et huit pas sans changement de taille', () => {
+  const height = (atlas, frame) => atlas.frames[frame][3] / (atlas.referenceHeight || 340) * (atlas.frameScales?.[frame] ?? 1);
+  const guard = height(minorCombatAtlases.roussel, 0);
+  const reference = (height(additionalCombatAtlases.philippe, 0) + height(additionalCombatAtlases.le_pen, 0)) / 2;
+  assert.ok(Math.abs(guard / reference - 1) < .06, 'La surface seule peut masquer une silhouette trop basse.');
+  for (let frame = 0; frame < 8; frame++) {
+    assert.ok(Math.abs(height(minorExtraAtlases.roussel.movement, frame) / guard - 1) < .04, `pas de garde ${frame}`);
+  }
 });
 
 test('Les six secondaires utilisent les mêmes phases de coups, de charge et de saut que Philippe', () => {

@@ -1,0 +1,149 @@
+[
+  {
+    "tuile": "01",
+    "nom": "Paris A",
+    "entree": 1,
+    "centreX": 1294,
+    "fichier": "production/controle-geometrie/tuile-01-entree-1.png"
+  },
+  {
+    "tuile": "02",
+    "nom": "Paris B",
+    "entree": 1,
+    "centreX": 444,
+    "fichier": "production/controle-geometrie/tuile-02-entree-1.png"
+  },
+  {
+    "tuile": "03",
+    "nom": "Paris C",
+    "entree": 1,
+    "centreX": 458,
+    "fichier": "production/controle-geometrie/tuile-03-entree-1.png"
+  },
+  {
+    "tuile": "03",
+    "nom": "Paris C",
+    "entree": 2,
+    "centreX": 1425,
+    "fichier": "production/controle-geometrie/tuile-03-entree-2.png"
+  },
+  {
+    "tuile": "04",
+    "nom": "Banlieue A",
+    "entree": 1,
+    "centreX": 721,
+    "fichier": "production/controle-geometrie/tuile-04-entree-1.png"
+  },
+  {
+    "tuile": "05",
+    "nom": "Banlieue B",
+    "entree": 1,
+    "centreX": 422,
+    "fichier": "production/controle-geometrie/tuile-05-entree-1.png"
+  },
+  {
+    "tuile": "06",
+    "nom": "Banlieue C",
+    "entree": 1,
+    "centreX": 838,
+    "fichier": "production/controle-geometrie/tuile-06-entree-1.png"
+  },
+  {
+    "tuile": "07",
+    "nom": "Périurbain A",
+    "entree": 1,
+    "centreX": 1101,
+    "fichier": "production/controle-geometrie/tuile-07-entree-1.png"
+  },
+  {
+    "tuile": "08",
+    "nom": "Périurbain B",
+    "entree": 1,
+    "centreX": 384,
+    "fichier": "production/controle-geometrie/tuile-08-entree-1.png"
+  },
+  {
+    "tuile": "09",
+    "nom": "Périurbain C",
+    "entree": 1,
+    "centreX": 937,
+    "fichier": "production/controle-geometrie/tuile-09-entree-1.png"
+  },
+  {
+    "tuile": "10",
+    "nom": "Campagne A",
+    "entree": 1,
+    "centreX": 1474,
+    "fichier": "production/controle-geometrie/tuile-10-entree-1.png"
+  },
+  {
+    "tuile": "11",
+    "nom": "Campagne B",
+    "entree": 1,
+    "centreX": 422,
+    "fichier": "production/controle-geometrie/tuile-11-entree-1.png"
+  },
+  {
+    "tuile": "12",
+    "nom": "Campagne C",
+    "entree": 1,
+    "centreX": 689,
+    "fichier": "production/controle-geometrie/tuile-12-entree-1.png"
+  },
+  {
+    "tuile": "13",
+    "nom": "Retraités A",
+    "entree": 1,
+    "centreX": 1256,
+    "fichier": "production/controle-geometrie/tuile-13-entree-1.png"
+  },
+  {
+    "tuile": "14",
+    "nom": "Retraités B",
+    "entree": 1,
+    "centreX": 375,
+    "fichier": "production/controle-geometrie/tuile-14-entree-1.png"
+  },
+  {
+    "tuile": "14",
+    "nom": "Retraités B",
+    "entree": 2,
+    "centreX": 1536,
+    "fichier": "production/controle-geometrie/tuile-14-entree-2.png"
+  },
+  {
+    "tuile": "15",
+    "nom": "Retraités C",
+    "entree": 1,
+    "centreX": 1273,
+    "fichier": "production/controle-geometrie/tuile-15-entree-1.png"
+  },
+  {
+    "tuile": "16",
+    "nom": "Riches A",
+    "entree": 1,
+    "centreX": 1045,
+    "fichier": "production/controle-geometrie/tuile-16-entree-1.png"
+  },
+  {
+    "tuile": "17",
+    "nom": "Riches B",
+    "entree": 1,
+    "centreX": 422,
+    "fichier": "production/controle-geometrie/tuile-17-entree-1.png"
+  },
+  {
+    "tuile": "18",
+    "nom": "Riches C",
+    "entree": 1,
+    "centreX": 433,
+    "fichier": "production/controle-geometrie/tuile-18-entree-1.png"
+  },
+  {
+    "tuile": "18",
+    "nom": "Riches C",
+    "entree": 2,
+    "centreX": 1087,
+    "fichier": "production/controle-geometrie/tuile-18-entree-2.png"
+  }
+]

@@ -11,7 +11,9 @@ export function applyAccountProgress(profile, accounts) {
   const me = accounts.signedIn ? accounts.me : null;
   if (me?.user) {
     if (!profile.device_unlocks) profile.device_unlocks = profileUnlockIds(profile);
-    Object.assign(profile, unlocksToProfile(me.unlocks || []), { account: { username: me.user.username || null } });
+    // Carte du compte : avatar, meilleur titre et Elo (palier), pour le profil, le lobby et le classement.
+    Object.assign(profile, unlocksToProfile(me.unlocks || []), { account: { username: me.user.username || null, avatar: me.user.avatar ?? profile.avatar ?? null,
+      title_rank: me.user.title_rank ?? 0, stats: me.stats || {} } });
   } else if (profile.account || profile.device_unlocks) {
     Object.assign(profile, unlocksToProfile(profile.device_unlocks || profileUnlockIds(profile)));
     delete profile.account; delete profile.device_unlocks;

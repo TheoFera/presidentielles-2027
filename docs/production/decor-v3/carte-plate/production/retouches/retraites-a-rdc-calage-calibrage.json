@@ -1,0 +1,224 @@
+{
+  "id": "retraites-a-rdc-calage",
+  "auteur": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-a-rdc-calage-generation.png",
+  "sortie": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-a-rdc-calage-calibree.png",
+  "profil": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\retraites-a-rdc-calage-profil.json",
+  "cellules": [
+    {
+      "source": {
+        "x": 346,
+        "y": 90,
+        "w": 63,
+        "h": 21
+      },
+      "cible": {
+        "x": 346,
+        "y": 90,
+        "w": 81,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 346,
+        "y": 111,
+        "w": 63,
+        "h": 41
+      },
+      "cible": {
+        "x": 346,
+        "y": 104,
+        "w": 81,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 346,
+        "y": 152,
+        "w": 63,
+        "h": 9
+      },
+      "cible": {
+        "x": 346,
+        "y": 148,
+        "w": 81,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 409,
+        "y": 90,
+        "w": 262,
+        "h": 21
+      },
+      "cible": {
+        "x": 427,
+        "y": 90,
+        "w": 258,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 409,
+        "y": 111,
+        "w": 262,
+        "h": 41
+      },
+      "cible": {
+        "x": 427,
+        "y": 104,
+        "w": 258,
+        "h": 44
+      },
+      "role": "panneau",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 409,
+        "y": 152,
+        "w": 262,
+        "h": 9
+      },
+      "cible": {
+        "x": 427,
+        "y": 148,
+        "w": 258,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 671,
+        "y": 90,
+        "w": 72,
+        "h": 21
+      },
+      "cible": {
+        "x": 685,
+        "y": 90,
+        "w": 58,
+        "h": 14
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 671,
+        "y": 111,
+        "w": 72,
+        "h": 41
+      },
+      "cible": {
+        "x": 685,
+        "y": 104,
+        "w": 58,
+        "h": 44
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 671,
+        "y": 152,
+        "w": 72,
+        "h": 9
+      },
+      "cible": {
+        "x": 685,
+        "y": 148,
+        "w": 58,
+        "h": 12
+      },
+      "role": "encadrement",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 346,
+        "y": 161,
+        "w": 153,
+        "h": 183
+      },
+      "cible": {
+        "x": 346,
+        "y": 160,
+        "w": 162,
+        "h": 184
+      },
+      "role": "mur latéral",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 499,
+        "y": 161,
+        "w": 91,
+        "h": 183
+      },
+      "cible": {
+        "x": 508,
+        "y": 160,
+        "w": 96,
+        "h": 184
+      },
+      "role": "porte",
+      "fit": "fill"
+    },
+    {
+      "source": {
+        "x": 590,
+        "y": 161,
+        "w": 153,
+        "h": 183
+      },
+      "cible": {
+        "x": 604,
+        "y": 160,
+        "w": 139,
+        "h": 184
+      },
+      "role": "mur latéral",
+      "fit": "fill"
+    }
+  ],
+  "porte": {
+    "x": 508,
+    "y": 160,
+    "w": 96,
+    "h": 184,
+    "xDansTuile": 1208,
+    "yDansFresque": 820,
+    "centreX": 1256,
+    "bas": 1004
+  },
+  "panneau": {
+    "x": 427,
+    "y": 104,
+    "w": 258,
+    "h": 44,
+    "xDansTuile": 1127,
+    "yDansFresque": 764,
+    "centreX": 1256,
+    "bas": 808
+  },
+  "superpositions": 0,
+  "pixelsNonOpaques": 0,
+  "pixelsHorsCellulesConserves": true,
+  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu."
+}

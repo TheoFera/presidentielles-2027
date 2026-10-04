@@ -12,6 +12,8 @@ import { GameAudio, SoundDirector } from './presentation/audio.js';
 import { InterstitialAds } from './presentation/ads.js';
 import { CombatPoseTracker } from './presentation/melenchon-combat.js';
 import { recordMatchResult } from './presentation/player-profile.js';
+import { playerCard, rememberTitle, setCandidateColors } from './presentation/player-card.js';
+import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
@@ -39,7 +41,7 @@ import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/account-screens.js';
 import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/account-progress.js';
-import { earnedUnlocks } from './simulation/unlock-catalog.js';
+import { earnedUnlocks, profileUnlockIds, unlocksToProfile } from './simulation/unlock-catalog.js';
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -85,6 +87,8 @@ async function start() {
   // Même détection que la garde dessinée à l'écran, pour passer à la musique de combat.
   const combatMusic = new CombatPoseTracker();
   let resultRecorded = false;
+  // K.-O. déjà annoncés pendant cette partie (un seul message par candidat).
+  let knockoutsSeen = 0; const announcedKnockouts = new Set();
   let simulation = new GameSimulation(config, config.prototype.seed, 'candidate:melenchon', profile);
   let state = simulation.getState();
   let previous = state;
@@ -185,6 +189,7 @@ async function start() {
     matchDisplay.reset(); moneyCounter.reset(); sounds.reset(); combatMusic.clear();
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
+    knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear();
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
@@ -335,7 +340,12 @@ async function start() {
     // Décor de la carte : « biomes » pour tous ; le profil betatest peut en choisir un autre dans son profil.
     setMapDecor(decorForProfile(profile));
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
-    if (session) simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
+    if (session) {
+      simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
+      // Chaque joueur choisit parmi SES styles débloqués (carte envoyée au salon), pas ceux de l’hôte.
+      simulation.profiles = Object.fromEntries(session.room.players.map(p => [`candidate:${p.faction}`,
+        p.id === session.id ? profile : { ...unlocksToProfile(p.card?.unlocks || []), nickname: '' }]));
+    }
     startSoloRun(candidateId);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
     renderer.artZone = null;
@@ -380,15 +390,37 @@ async function start() {
     accounts.startRun(candidateId.split(':')[1]).then(result => { run.id = result.run_id; }).catch(() => { /* Hors ligne : partie jouable, déblocage non enregistré. */ });
   }
   /** Fin normale de la campagne : les candidats mis K.-O. sont débloqués maintenant (jamais avant). */
+  /** K.-O. d'un candidat pas encore débloqué : félicitations, et rappel qu'il faut gagner l'élection. */
+  function announceKnockouts() {
+    const list = state.knockouts || [];
+    if (list.length < knockoutsSeen) knockoutsSeen = 0;
+    if (list.length === knockoutsSeen) return;
+    const faction = state.local_candidate_id.split(':')[1], owned = profileUnlockIds(profile);
+    for (const k of list.slice(knockoutsSeen)) {
+      if (k.by_faction !== faction || owned.includes(k.candidate_id) || announcedKnockouts.has(k.candidate_id)) continue;
+      announcedKnockouts.add(k.candidate_id);
+      showAccountToast(`${unlockNames([k.candidate_id])} est K.-O. ! Gagne l’élection pour le débloquer.`, 'knockout');
+    }
+    knockoutsSeen = list.length;
+  }
   function finishProgress() {
     const faction = state.local_candidate_id.split(':')[1];
     const won = earnedUnlocks(state, faction);
-    const announce = ids => { if (ids.length) showAccountToast(`Débloqué : ${unlockNames(ids)} !`, 'ok'); };
+    const titleBefore = playerCard(profile).title;
+    const announce = ids => {
+      if (!ids.length) return;
+      showAccountToast(`Débloqué : ${unlockNames(ids)} !`, 'ok');
+      // Nouveau titre gagné grâce à ce déblocage : annoncé juste après.
+      const title = playerCard(profile).title;
+      if (title > titleBefore) setTimeout(() => showAccountToast(`Nouveau titre : ${titleName(title)} !`, 'knockout'), 3500);
+    };
+    // Élection perdue : les candidats mis K.-O. restent verrouillés.
+    if (state.result?.winner !== faction && announcedKnockouts.size) showAccountToast(`Élection perdue : ${unlockNames([...announcedKnockouts])} reste à débloquer.`, 'error');
     if (session?.room?.match) {
       ranked.report(session, { placements: campaignPlacements(session.room, state), knockouts: campaignKnockouts(session.room, state) });
       return;
     }
-    if (!accounts.signedIn) { announce(addDeviceUnlocks(profile, won)); account.save({}); return; }
+    if (!accounts.signedIn) { announce(addDeviceUnlocks(profile, won)); account.save(rememberTitle(profile)); return; }
     const run = soloRun; soloRun = null;
     if (session || !run?.id || run.tainted) {
       if (won.length) showAccountToast(session ? 'Partie non classée : aucun déblocage enregistré sur le compte.' : 'Déblocage non enregistré : partie hors ligne ou accélérée.');
@@ -452,7 +484,6 @@ async function start() {
         if (!session || session.host || menu.active) return;
         const now = performance.now() / 1000;
         if (debateMatch) { snapshots.push({ ...snapshot, local_candidate_id: debateState.local_candidate_id }, now); return; }
-        if (snapshot.multiplayer_profile) stylesDisplay.profile = snapshot.multiplayer_profile;
         const latest = snapshots.latest;
         // Changement de phase : l’ancien état ne doit pas se mélanger au nouveau.
         if (latest && latest.phase !== snapshot.phase) { snapshots.reset(); input.clear(); renderer.resetCamera(); }
@@ -467,16 +498,26 @@ async function start() {
       },
     }, state.config_fingerprint);
     // Le pseudo du compte (ou du profil local) s’affiche dans le salon des autres joueurs.
-    try { await nextSession.connect(action, { ...data, name: accounts.username || profile.nickname || null }); } catch (error) { nextSession.close(); throw error; }
+    try { await nextSession.connect(action, { ...data, name: accounts.username || profile.nickname || null, card: playerCard(profile) }); } catch (error) { nextSession.close(); throw error; }
     if (menu.generation !== generation || data.signal?.aborted) { nextSession.close(); return; }
     session = nextSession; roomChanged(session.room); void keepScreenAwake();
   }
   // Multijoueur : compte obligatoire. Une fois connecté, l'action voulue reprend toute seule.
   const multiplayerGate = (current, mode) => requireAccount(current, accounts, { resume: () => showMultiplayerSetup(current, connectRoom, mode), back: () => current.players(mode), suggestion: profile.nickname });
+  setCandidateColors(config.prototype.presentation.factions);
   menu = new StartMenu({ prepare, play, audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate,
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   menu.onProfile = current => decorateProfile(current, accounts);
+  // Avatar choisi dans la collection : sur le compte si connecté, sinon sur l'appareil.
+  menu.onAvatar = async avatar => {
+    // Gardé aussi sur l'appareil : affiché tout de suite, même hors ligne ou si le serveur ne le connaît pas encore.
+    account.save({ avatar });
+    if (profile.account) profile.account.avatar = avatar;
+    if (!accounts.ready) return;
+    try { await accounts.updateProfile({ avatar }); }
+    catch (error) { showAccountToast(error.offline ? 'Pas de connexion : avatar non enregistré.' : error.message, 'error'); }
+  };
   window.matchMedia('(any-pointer: coarse) and (max-width: 600px) and (orientation: portrait)').addEventListener('change', () => input.clear());
   if (['salon', 'en-ligne'].some(key => new URLSearchParams(location.search).has(key))) {
     void requireAccount(menu, accounts, { resume: () => showMultiplayerSetup(menu, connectRoom), back: () => menu.home(), suggestion: profile.nickname });
@@ -510,7 +551,7 @@ async function start() {
       // Débat : 20 états par seconde (combat rapide, état léger) ; campagne : 15.
       if (networkElapsed < (debateMatch ? 0.05 : 1 / 15)) return;
       networkElapsed = 0;
-      send('snapshot', { state: debateMatch ? debateState : { ...state, multiplayer_profile: profile } });
+      send('snapshot', { state: debateMatch ? debateState : state });
       return;
     }
     if (paused) return;
@@ -664,6 +705,7 @@ async function start() {
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));
         finishProgress();
       }
+      announceKnockouts();
       funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
       if (noticeRemaining <= 0) setText(notice, '');

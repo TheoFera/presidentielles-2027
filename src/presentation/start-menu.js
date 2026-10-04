@@ -1,6 +1,7 @@
 import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialContent } from './arcade-content.js';
 import { enterLandscape, syncOrientation, toggleFullscreen } from './landscape.js';
-import { profileButton, profileContent, cleanNickname } from './player-profile.js';
+import { profileButton, profileContent, cleanNickname, collectionCardContent } from './player-profile.js';
+import { hydrateMedallions, playerCard, rememberTitle } from './player-card.js';
 import { isBetatestProfile } from '../simulation/campaign-styles.js';
 import { showDebateSetup, defaultDebateSetup, emptyDebateSetup } from './debate-menu.js';
 import { APP_BUILD } from '../app-build.js';
@@ -65,6 +66,7 @@ export class StartMenu {
       soundButton.onclick = () => { this.audio.unlock(); this.audio.toggle(); paint(); };
       paint();
     }
+    hydrateMedallions(this.element);
     syncOrientation();
     (this.element.querySelector('h1') || this.element.querySelector('button'))?.focus({ preventScroll: true });
     this.element.scrollTop = 0;
@@ -125,9 +127,41 @@ export class StartMenu {
       button.onclick = () => void this.debateLoading(setup, { multiplayer });
     }
   }
-  profile() {
-    this.page('profile', 'Mon profil', profileContent(this.account.get()));
+  profile(tab = this.profileTab || 'collection') {
+    this.profileTab = tab;
+    // Meilleur titre atteint sur cet appareil : gardé même si de nouveaux candidats arrivent.
+    this.account.save(rememberTitle(this.account.get()));
+    this.page('profile', 'Mon profil', profileContent(this.account.get(), { tab }));
     this.onProfile?.(this);
+    const tabs = [...this.element.querySelectorAll('[data-profile-tab]')];
+    tabs.forEach(button => button.onclick = () => {
+      this.profileTab = button.dataset.profileTab;
+      tabs.forEach(b => b.setAttribute('aria-selected', String(b === button)));
+      this.element.querySelectorAll('.profile-panel').forEach(panel => { panel.hidden = panel.id !== `profile-panel-${this.profileTab}`; });
+    });
+    // Collection : une carte par candidat. Losanges : montrer un autre de ses styles (sur place).
+    // Portrait : un style débloqué devient l'avatar ; un style verrouillé montre comment le gagner.
+    const grid = this.element.querySelector('.collection-groups');
+    grid?.addEventListener('click', event => {
+      const card = event.target.closest('.collection-card');
+      if (!card) return;
+      const pip = event.target.closest('[data-show]');
+      if (pip) {
+        const shown = pip.dataset.show, focus = `[data-show="${shown}"]`;
+        card.outerHTML = collectionCardContent(playerCard(this.account.get()), card.dataset.candidate, shown);
+        const next = grid.querySelector(`[data-candidate="${card.dataset.candidate}"]`);
+        hydrateMedallions(next); next.querySelector(focus)?.focus({ preventScroll: true });
+        return;
+      }
+      if (!event.target.closest('.collection-pick')) return;
+      if (card.hasAttribute('data-locked')) {
+        grid.querySelectorAll('.collection-card.show-hint').forEach(other => other !== card && other.classList.remove('show-hint'));
+        card.classList.toggle('show-hint');
+        return;
+      }
+      if (card.classList.contains('is-avatar')) return;
+      void Promise.resolve(this.onAvatar?.(card.dataset.style)).finally(() => { if (this.screen === 'profile') this.profile(); });
+    });
     const input = this.element.querySelector('#profile-nickname');
     this.element.querySelectorAll('input[name="map-decor"]').forEach(radio => radio.addEventListener('change', () => { if (radio.checked) this.account.save({ map_decor: radio.value }); }));
     // Connecté à un compte : le pseudo se change dans « Mon compte ».

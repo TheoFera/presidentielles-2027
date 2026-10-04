@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Candidats mineurs</title>
+<title>Candidats</title>
 <style>body { margin: 0; background: #efe6d2; font: 14px system-ui, sans-serif; } canvas { display: block; max-width: 100%; height: auto; } h2 { margin: 12px; }</style>
 </head>
 <body>
@@ -45,7 +45,7 @@
   }
   if (new URLSearchParams(location.search).has('export'))
     for (const [name, data] of Object.entries(exported)) await fetch(`/__export?name=${encodeURIComponent(name)}`, { method: 'POST', body: data });
-  document.title = 'Mineurs prêts';
+  document.title = 'Candidats prêts';
 </script>
 </body>
 </html>

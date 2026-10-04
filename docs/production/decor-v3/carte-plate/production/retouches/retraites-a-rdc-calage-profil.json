@@ -1,0 +1,186 @@
+{
+  "id": "retraites-a-rdc-calage",
+  "tileLeft": 23040,
+  "cells": [
+    {
+      "source": [
+        346,
+        90,
+        63,
+        21
+      ],
+      "target": [
+        346,
+        90,
+        81,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        346,
+        111,
+        63,
+        41
+      ],
+      "target": [
+        346,
+        104,
+        81,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        346,
+        152,
+        63,
+        9
+      ],
+      "target": [
+        346,
+        148,
+        81,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        409,
+        90,
+        262,
+        21
+      ],
+      "target": [
+        427,
+        90,
+        258,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        409,
+        111,
+        262,
+        41
+      ],
+      "target": [
+        427,
+        104,
+        258,
+        44
+      ],
+      "role": "panneau"
+    },
+    {
+      "source": [
+        409,
+        152,
+        262,
+        9
+      ],
+      "target": [
+        427,
+        148,
+        258,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        671,
+        90,
+        72,
+        21
+      ],
+      "target": [
+        685,
+        90,
+        58,
+        14
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        671,
+        111,
+        72,
+        41
+      ],
+      "target": [
+        685,
+        104,
+        58,
+        44
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        671,
+        152,
+        72,
+        9
+      ],
+      "target": [
+        685,
+        148,
+        58,
+        12
+      ],
+      "role": "encadrement"
+    },
+    {
+      "source": [
+        346,
+        161,
+        153,
+        183
+      ],
+      "target": [
+        346,
+        160,
+        162,
+        184
+      ],
+      "role": "mur latéral"
+    },
+    {
+      "source": [
+        499,
+        161,
+        91,
+        183
+      ],
+      "target": [
+        508,
+        160,
+        96,
+        184
+      ],
+      "role": "porte"
+    },
+    {
+      "source": [
+        590,
+        161,
+        153,
+        183
+      ],
+      "target": [
+        604,
+        160,
+        139,
+        184
+      ],
+      "role": "mur latéral"
+    }
+  ]
+}

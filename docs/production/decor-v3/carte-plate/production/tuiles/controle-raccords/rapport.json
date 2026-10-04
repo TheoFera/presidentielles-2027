@@ -1,0 +1,187 @@
+{
+  "tuiles": [
+    {
+      "fichier": "tuile-01-paris-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-02-paris-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-03-paris-c.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-04-banlieue-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-05-banlieue-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-06-banlieue-c.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-07-periurbain-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-08-periurbain-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-09-periurbain-c.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-10-campagne-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-11-campagne-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-12-campagne-c.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-13-retraites-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-14-retraites-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-15-retraites-c.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-16-riches-a.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-17-riches-b.png",
+      "transparents": 0
+    },
+    {
+      "fichier": "tuile-18-riches-c.png",
+      "transparents": 0
+    }
+  ],
+  "coupes": [
+    {
+      "coupe": "01 → 02",
+      "ecart": 21.3,
+      "ecart_habituel": 15.5,
+      "visible": false
+    },
+    {
+      "coupe": "02 → 03",
+      "ecart": 23,
+      "ecart_habituel": 11.1,
+      "visible": false
+    },
+    {
+      "coupe": "03 → 04",
+      "ecart": 15.3,
+      "ecart_habituel": 8.5,
+      "visible": false
+    },
+    {
+      "coupe": "04 → 05",
+      "ecart": 25.6,
+      "ecart_habituel": 11.3,
+      "visible": false
+    },
+    {
+      "coupe": "05 → 06",
+      "ecart": 29.2,
+      "ecart_habituel": 16.2,
+      "visible": false
+    },
+    {
+      "coupe": "06 → 07",
+      "ecart": 24.7,
+      "ecart_habituel": 8.4,
+      "visible": false
+    },
+    {
+      "coupe": "07 → 08",
+      "ecart": 8.4,
+      "ecart_habituel": 7.5,
+      "visible": false
+    },
+    {
+      "coupe": "08 → 09",
+      "ecart": 8.8,
+      "ecart_habituel": 8.9,
+      "visible": false
+    },
+    {
+      "coupe": "09 → 10",
+      "ecart": 11.4,
+      "ecart_habituel": 6.7,
+      "visible": false
+    },
+    {
+      "coupe": "10 → 11",
+      "ecart": 10.2,
+      "ecart_habituel": 6,
+      "visible": false
+    },
+    {
+      "coupe": "11 → 12",
+      "ecart": 10.8,
+      "ecart_habituel": 6.4,
+      "visible": false
+    },
+    {
+      "coupe": "12 → 13",
+      "ecart": 7.6,
+      "ecart_habituel": 7,
+      "visible": false
+    },
+    {
+      "coupe": "13 → 14",
+      "ecart": 9.3,
+      "ecart_habituel": 10,
+      "visible": false
+    },
+    {
+      "coupe": "14 → 15",
+      "ecart": 29.3,
+      "ecart_habituel": 11.3,
+      "visible": false
+    },
+    {
+      "coupe": "15 → 16",
+      "ecart": 42,
+      "ecart_habituel": 17.9,
+      "visible": false
+    },
+    {
+      "coupe": "16 → 17",
+      "ecart": 21.6,
+      "ecart_habituel": 16.9,
+      "visible": false
+    },
+    {
+      "coupe": "17 → 18",
+      "ecart": 19.4,
+      "ecart_habituel": 11.7,
+      "visible": false
+    },
+    {
+      "coupe": "18 → 01",
+      "ecart": 13.8,
+      "ecart_habituel": 15.7,
+      "visible": false
+    }
+  ],
+  "erreurs": []
+}

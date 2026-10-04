@@ -1,0 +1,26 @@
+{
+  "id": "riches-c-institut-distinct-finition-droite",
+  "x": 33417,
+  "y": 600,
+  "w": 620,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 1132,
+  "canvasHeight": 480,
+  "guide": "docs/production/decor-v3/carte-plate/production/retouches/riches-c-institut-distinct-maconnerie-guide.png",
+  "appliquee": false,
+  "translationVerticale": 0,
+  "replaceTop": 160,
+  "replaceHeight": 60,
+  "replaceLeft": 439,
+  "replaceWidth": 161,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-c-institut-distinct-finition-droite-generation.png",
+  "integreeDansCandidat": "riches-c-institut-distinct",
+  "pixelsExterieursIdentiques": true,
+  "rectangle": {
+    "x": 695,
+    "y": 160,
+    "w": 161,
+    "h": 60
+  }
+}

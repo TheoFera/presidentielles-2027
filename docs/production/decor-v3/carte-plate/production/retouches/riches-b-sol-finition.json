@@ -1,0 +1,26 @@
+{
+  "id": "riches-b-sol-finition",
+  "x": 30842,
+  "y": 600,
+  "w": 600,
+  "h": 480,
+  "context": 256,
+  "canvasWidth": 1112,
+  "canvasHeight": 480,
+  "guide": "docs/production/decor-v3/carte-plate/production/retouches/riches-b-vitrine-finition-guide.png",
+  "appliquee": false,
+  "translationVerticale": 0,
+  "replaceLeft": 14,
+  "replaceWidth": 586,
+  "replaceTop": 404,
+  "replaceHeight": 76,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-sol-finition-generation.png",
+  "integreeDansCandidat": "riches-b-rdc-dessin",
+  "pixelsExterieursIdentiques": true,
+  "rectangle": {
+    "x": 270,
+    "y": 404,
+    "w": 586,
+    "h": 76
+  }
+}

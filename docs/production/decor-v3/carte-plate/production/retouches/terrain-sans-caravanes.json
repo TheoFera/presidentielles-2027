@@ -1,0 +1,18 @@
+{
+  "id": "terrain-sans-caravanes",
+  "x": 11040,
+  "y": 400,
+  "w": 480,
+  "h": 680,
+  "context": 256,
+  "canvasWidth": 992,
+  "canvasHeight": 680,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\terrain-sans-caravanes-guide.png",
+  "replaceTop": 330,
+  "replaceHeight": 150,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\terrain-sans-caravanes-brute.png",
+  "pixelsModifies": 71975,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": false,
+  "annuleeLe": "2026-10-04T11:02:14.627Z"
+}

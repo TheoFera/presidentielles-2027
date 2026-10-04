@@ -9,6 +9,7 @@
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
 import { ApiError, audit, nowSeconds, randomId } from './util.js';
 import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, isUnlockable } from '../../src/simulation/unlock-catalog.js';
+import { titleRank } from '../../src/simulation/player-titles.js';
 
 // Campagne solo sans accélération de débogage : 365 jours × 2,5 s ≈ 15 min (+ sprint).
 // Le jeu n'envoie pas la fin d'une partie accélérée ; 10 min laissent une marge.
@@ -20,6 +21,12 @@ export async function listUnlocks(db, userId) {
   return [...new Set([...DEFAULT_UNLOCKED, ...rows.map(r => r.candidate_id)])];
 }
 
+/** Après un déblocage : retient le meilleur titre atteint (il n'est jamais perdu). */
+export async function updateTitleRank(db, userId) {
+  const rank = titleRank(await listUnlocks(db, userId));
+  await db.prepare('UPDATE users SET title_rank = MAX(title_rank, ?) WHERE id = ?').bind(rank, userId).run();
+}
+
 /** Début d'une campagne solo d'un joueur connecté. */
 export async function startRun(db, userId, body, now = nowSeconds()) {
   if (body.mode !== 'campaign' || !Object.hasOwn(STYLE_UNLOCKS, body.faction)) throw new ApiError(400, 'invalid_input', 'Partie invalide.');
@@ -28,7 +35,7 @@ export async function startRun(db, userId, body, now = nowSeconds()) {
   return { run_id: id };
 }
 
-/** Fin normale d'une campagne solo : enregistre les candidats mis K.-O. (sans doublon). */
+/** Fin normale d'une campagne solo : enregistre les candidats mis K.-O. (sans doublon). Le jeu n'envoie rien si l'élection est perdue. */
 export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (typeof runId !== 'string' || !/^r_[a-f0-9]{32}$/.test(runId)) throw new ApiError(404, 'run_not_found', 'Partie introuvable.');
   const run = await db.prepare('SELECT * FROM game_runs WHERE id = ? AND user_id = ?').bind(runId, userId).first();
@@ -50,5 +57,6 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   const before = await listUnlocks(db, userId);
   const wanted = [...new Set(knockouts)];
   if (wanted.length) await db.batch(wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_run_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)').bind(userId, id, runId, now)));
+  if (wanted.length) await updateTitleRank(db, userId);
   return { unlocked: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
 }

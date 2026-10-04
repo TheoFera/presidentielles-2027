@@ -7,16 +7,19 @@ import { MINOR_ATLASES } from '../../../src/presentation/minor-sprite-atlases.js
 import { combatAtlasFor } from '../../../src/presentation/melenchon-combat.js';
 import { extraAtlasesFor } from '../../../src/presentation/candidate-extra-poses.js';
 import { visualManifest } from '../../../src/presentation/visual-manifest.js';
-import { correctedFrameScales } from '../../../src/presentation/minor-animation-sprites.js';
 import { isolateMinorFigure } from '../../../src/presentation/minor-sprite-images.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url), sharp = require(process.env.MINOR_SHARP_PATH || 'sharp');
-const originalData = path => JSON.parse(execFileSync('git', ['show', `HEAD:${path}`], { encoding: 'utf8' }).split(' = ')[1].trim().replace(/;$/, ''));
+const { generations, baselineCommit, previousCorrections } = JSON.parse(readFileSync(new URL('./generations.json', import.meta.url)));
+const originalData = path => JSON.parse(execFileSync('git', ['show', `${baselineCommit}:${path}`], { encoding: 'utf8' }).split(' = ')[1].trim().replace(/;$/, ''));
 const previousAnimations = originalData('src/presentation/minor-animation-data.js');
 const previousIdle = originalData('src/presentation/minor-sprite-atlases.js');
-const { generations } = JSON.parse(readFileSync(new URL('./generations.json', import.meta.url)));
+const oldScales = (faction, sheet, atlas) => atlas.frames.map((_, index) => {
+  const fix = previousCorrections[faction]?.[sheet];
+  return (atlas.frameScales?.[index] ?? 1) * (fix?.all ?? 1) * (fix?.[index] ?? 1);
+});
 const HEIGHT = 110, results = [];
 const sheetNames = { combat: 'combat', movement: 'déplacements', actions: 'actions', idle: 'repos' };
 const atlasFor = (faction, sheet) => sheet === 'combat' ? combatAtlasFor({ faction_id: faction }) : extraAtlasesFor({ faction_id: faction })[sheet];
@@ -29,7 +32,7 @@ async function frame(file, atlas, index, sheet, faction, old = false) {
   isolateMinorFigure(cropped, w, h);
   const scale = (atlas.frameScales?.[index] ?? 1) / (atlas.referenceHeight || (sheet === 'combat' ? 340 : 360));
   const actionScale = sheet === 'combat' && [7, 9, 10, 12, 13, 14, 15].includes(index) || sheet === 'actions' && index >= (atlas.minor ? 8 : 10) ? 1.06 : 1;
-  const sy = scale * HEIGHT * (sheet === 'idle' ? (faction === 'roussel' ? .94 : 1) : 1.1236) * (sheet === 'combat' && !atlas.minor && index === 1 ? 1.055 : 1);
+  const sy = scale * HEIGHT * (sheet === 'idle' ? (old && faction === 'roussel' ? .94 : 1) : 1.1236) * (sheet === 'combat' && !atlas.minor && index === 1 ? 1.055 : 1);
   const sx = sy * (sheet === 'idle' ? (161 / 384) * atlas.referenceHeight / atlas.frames[0][2] : (atlas.widthScale || 1) * 1.06 / 1.1236);
   const width = Math.round(w * sx * actionScale), height = Math.round(h * sy * actionScale);
   return { input: await sharp(cropped, { raw: { width: w, height: h, channels: 4 } }).resize(width, height).png().toBuffer(), width, height, pivot: (px - x) * sx * actionScale, size: Math.sqrt(pixels * sx * sy), old };
@@ -39,7 +42,7 @@ for (const job of generations) {
   for (let index = 0; index < job.count; index++) {
     const row = Math.floor(index / 4), col = index % 4, left = col * 600, baseline = row * 180 + 158;
     const atlas = sheet === 'idle' ? MINOR_ATLASES[faction] : atlasFor(faction, sheet);
-    const previous = sheet === 'idle' ? previousIdle[faction] : { ...previousAnimations[faction][sheet], minor: true, frameScales: correctedFrameScales(faction, sheet, previousAnimations[faction][sheet]) };
+    const previous = sheet === 'idle' ? previousIdle[faction] : { ...previousAnimations[faction][sheet], minor: true, frameScales: oldScales(faction, sheet, previousAnimations[faction][sheet]) };
     const old = await frame('assets/generated/minor-candidates/' + job.file, previous, index, sheet, faction, true);
     const current = await frame('assets/generated/minor-candidates/' + job.out, atlas, index, sheet, faction);
     const poses = [];

@@ -1,10 +1,13 @@
 import { CANDIDATES, portrait } from './arcade-content.js';
 import { expressedScores } from './election-results.js';
 import { CAMPAIGN_STYLES, isBetatestProfile } from '../simulation/campaign-styles.js';
+import { nextTier, ratingTier } from '../simulation/player-titles.js';
 import { MAP_DECORS, decorForProfile } from './map-decor.js';
+import { DEBATE_CANDIDATES } from './debate-selection.js';
+import { candidateColor, medallionContent, playerCard, portraitFace, titleContent } from './player-card.js';
 
-/* Profil du joueur, gardé sur cet appareil : pseudo et statistiques de carrière.
-   Il accueillera plus tard les tenues et skins à débloquer. */
+/* Profil du joueur : pseudo, médaillon (avatar + palier), titre, collection de candidats
+   et statistiques (solo sur cet appareil, en ligne sur le compte). */
 export const DEFAULT_NICKNAME = 'Joueur';
 export const NICKNAME_MAX = 16;
 const FACTIONS = CANDIDATES.map(c => c.id);
@@ -63,7 +66,7 @@ function decorPicker(profile) {
 /** Nom affiché : le pseudo du compte PartageTonJeu si le joueur est connecté, sinon celui de l'appareil. */
 export const displayName = profile => profile.account?.username || cleanNickname(profile.nickname);
 export const profileButton = profile => `<button id="menu-profile" aria-label="Mon profil : ${escape(displayName(profile))}" title="Mon profil">
-  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg><span>${escape(displayName(profile))}</span></button>`;
+  ${medallionContent(playerCard(profile), { size: 'sm' })}<span>${escape(displayName(profile))}</span></button>`;
 
 /* Petites icônes au trait (24 × 24) pour les tuiles de statistiques. */
 const ICONS = {
@@ -76,19 +79,42 @@ const ICONS = {
 };
 const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
 
-/** Grade affiché sur la carte du joueur, d'après sa carrière. */
-export function profileRank(stats) {
-  if (stats.wins >= 5) return 'Habitué de l’Élysée';
-  if (stats.wins) return 'Élu à l’Élysée';
-  if (stats.qualified) return 'Finaliste';
-  if (stats.games >= 3) return 'Candidat confirmé';
-  if (stats.games) return 'Militant de terrain';
-  return 'Nouvel inscrit';
+/** Collection : une carte par candidat, ses styles à l'intérieur (un losange par style, à toucher pour l'afficher).
+    Aucun candidat n'est mis à part : ils sont rangés de la gauche à la droite de l'échiquier politique. */
+const COLLECTION_ORDER = ['arthaud', 'roussel', 'melenchon', 'glucksmann', 'attal', 'philippe', 'retailleau', 'dupont_aignan', 'le_pen'];
+const COLLECTION = [...DEBATE_CANDIDATES].sort((a, b) => COLLECTION_ORDER.indexOf(a.id) - COLLECTION_ORDER.indexOf(b.id)).map(c => ({ id: c.id, name: c.short, styles: CAMPAIGN_STYLES[c.id]
+  ? CAMPAIGN_STYLES[c.id].map(s => ({ id: s.id, detail: s.name.split(' · ')[0] }))
+  : [{ id: c.id, detail: '' }] }));
+const LADDER_NAMES = { campaign: '★ Campagne', debate: '⚔ Débat télé' };
+
+/** Une carte de candidat, montrant le style `shown` (par défaut : l'avatar s'il est de ce candidat, sinon son premier style débloqué). */
+export function collectionCardContent(card, candidateId, shown = null) {
+  const candidate = COLLECTION.find(c => c.id === candidateId), owned = new Set(card.unlocks);
+  const index = Math.max(0, candidate.styles.findIndex(s => s.id === (shown ?? (candidate.styles.some(x => x.id === card.avatar) ? card.avatar : candidate.styles.find(x => owned.has(x.id))?.id))));
+  const style = candidate.styles[index], has = owned.has(style.id), current = card.avatar === style.id, several = candidate.styles.length > 1;
+  const ownedCount = candidate.styles.filter(s => owned.has(s.id)).length;
+  const label = `${candidate.name}${style.detail ? ` ${style.detail}` : ''}`;
+  const help = has ? `${label} : ${current ? 'ton avatar' : 'toucher pour en faire ton avatar'}` : `${label} : mets-le K.-O. en campagne et gagne l’élection pour le débloquer.`;
+  return `<div class="collection-card${current ? ' is-avatar' : ''}" data-candidate="${candidate.id}" data-style="${style.id}" ${has ? '' : 'data-locked'} data-hint="${escape(has ? 'Choisir comme avatar' : 'Mettre KO en campagne et gagner l’élection pour débloquer')}" style="--candidate-color:${candidateColor(style.id)}">
+    <button type="button" class="collection-pick" data-collection="${style.id}" aria-label="${escape(help)}">${portraitFace(style.id)}${has ? '' : '<span class="collection-lock" aria-hidden="true">🔒</span>'}
+      <strong>${escape(candidate.name)}</strong><small>${escape(style.detail) || '&nbsp;'}</small></button>
+    <span class="collection-pips" role="group" aria-label="${ownedCount} style${ownedCount > 1 ? 's' : ''} débloqué${ownedCount > 1 ? 's' : ''} sur ${candidate.styles.length}">${candidate.styles.map((s, i) =>
+      `<button type="button" class="collection-pip${owned.has(s.id) ? ' is-owned' : ''}" data-show="${s.id}" aria-label="${escape(s.detail || candidate.name)}${owned.has(s.id) ? '' : ' (verrouillé)'}" aria-pressed="${i === index}" ${several ? '' : 'tabindex="-1"'}></button>`).join('')}</span>
+    ${current ? '<em>Avatar</em>' : ''}</div>`;
+}
+/** Progression de la collection : candidats possédés (au moins un style) et styles possédés. */
+export function collectionCounts(card) {
+  const owned = new Set(card.unlocks), styled = COLLECTION.filter(c => c.styles.length > 1);
+  return { candidates: COLLECTION.filter(c => c.styles.some(s => owned.has(s.id))).length, candidateTotal: COLLECTION.length,
+    styles: styled.reduce((n, c) => n + c.styles.filter(s => owned.has(s.id)).length, 0), styleTotal: styled.reduce((n, c) => n + c.styles.length, 0) };
 }
 
-export function profileContent(profile) {
+function collectionContent(card) {
+  return `<div class="collection-groups">${COLLECTION.map(c => collectionCardContent(card, c.id)).join('')}</div>`;
+}
+
+function soloContent(profile) {
   const stats = normalizeStats(profile.stats), favorite = favoriteCandidate(stats);
-  const hero = CANDIDATES.find(c => c.id === (favorite || 'melenchon'));
   const ratio = stats.games ? stats.wins / stats.games * 100 : null;
   // [icône, libellé, valeur, jauge en % (facultative)]
   const tiles = [
@@ -98,26 +124,58 @@ export function profileContent(profile) {
     ['score', 'Meilleur score au 2nd tour', stats.best_score == null ? '—' : `${format(stats.best_score, 2)} %`, stats.best_score ?? 0],
     ['voters', 'Record d’électeurs', format(stats.best_voters)],
   ];
-  const unlocked = profile.unlocked_campaign_styles || {};
   const candidates = CANDIDATES.map(c => {
-    const s = stats.by_candidate[c.id], total = CAMPAIGN_STYLES[c.id]?.length || 0, owned = Math.min(total, unlocked[c.id]?.length || 1);
+    const s = stats.by_candidate[c.id];
     const star = c.id === favorite ? '<em class="profile-favorite" title="Candidat préféré">★ Préféré</em>' : '';
     return `<article class="profile-candidate${c.id === favorite ? ' is-favorite' : ''}" data-faction="${c.id}"><img src="${portrait(c)}" alt="">
-      <div><strong>${c.short}</strong>${star}<span>${format(s.games)} partie${s.games > 1 ? 's' : ''} · ${format(s.wins)} victoire${s.wins > 1 ? 's' : ''}</span>
-      <span class="profile-styles" aria-label="${owned} style${owned > 1 ? 's' : ''} de campagne débloqué${owned > 1 ? 's' : ''} sur ${total}">${Array.from({ length: total }, (_, i) => `<i class="${i < owned ? 'is-owned' : ''}"></i>`).join('')}<small>${owned}/${total} styles</small></span></div></article>`;
+      <div><strong>${c.short}</strong>${star}<span>${format(s.games)} partie${s.games > 1 ? 's' : ''} · ${format(s.wins)} victoire${s.wins > 1 ? 's' : ''}</span></div></article>`;
   }).join('');
-  return `<div class="profile-screen">
-    <section class="profile-identity" data-faction="${hero.id}">
-      <div class="profile-hero"><span class="profile-rank">★ ${profileRank(stats)}</span><img src="${portrait(hero)}" alt=""></div>
-      ${profile.account?.username ? `<p class="profile-name profile-account-name">Compte PartageTonJeu<strong>${escape(profile.account.username)}</strong></p>`
-        : `<label class="profile-name">Pseudo<input id="profile-nickname" maxlength="${NICKNAME_MAX}" autocomplete="nickname" spellcheck="false" value="${escape(cleanNickname(profile.nickname))}"></label>`}
-      <div class="profile-account-actions"></div>
-      <p class="menu-note">${favorite ? `Candidat préféré : <strong>${hero.short}</strong>` : 'Jouez une partie complète pour lancer vos statistiques.'}</p>
-    </section>
-    <section class="profile-stats" aria-label="Statistiques">${tiles.map(([key, label, value, meter], i) =>
+  return `<section class="profile-stats" aria-label="Statistiques">${tiles.map(([key, label, value, meter], i) =>
       `<p class="profile-stat" data-stat="${key}" style="--delay:${i * 60}ms">${icon(key)}<strong>${value}</strong><span>${label}</span>${meter == null ? '' : `<i class="profile-meter" style="--v:${Math.round(meter)}%" aria-hidden="true"></i>`}</p>`).join('')}</section>
-    <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>
+    <section class="profile-candidates" aria-label="Par candidat">${candidates}</section>`;
+}
+
+/** Un classement en ligne : Elo, bilan, et barre vers la couleur de cadre suivante (jamais nommée). */
+function ladderContent(name, s) {
+  if (!s?.games) return '';
+  const tier = ratingTier(s.rating), next = nextTier(s.rating);
+  // Le palier le plus bas n'a pas de début : la barre part de 150 points sous le suivant.
+  const from = next ? Math.max(next.previous, next.from - 150) : 0;
+  const progress = next ? Math.max(0, Math.min(100, (s.rating - from) / (next.from - from) * 100)) : 100;
+  return `<section class="profile-ladder"><h3>${name}</h3>
+    <p class="profile-elo"><strong>${format(s.rating)}</strong><span>Elo</span></p>
+    <p class="profile-record">${format(s.wins)} V · ${format(s.losses)} D · ${format(s.wins / s.games * 100)} %</p>
+    <div class="tier-track" aria-hidden="true"><span class="tier-swatch" data-tier="${tier}"></span><i style="--v:${Math.round(progress)}%" data-tier="${tier}"></i><span class="tier-swatch" data-tier="${next?.id || tier}"></span></div>
+    <p class="menu-note">${next ? `Encore ${format(next.missing)} points pour la couleur de cadre suivante.` : 'Couleur de cadre la plus haute atteinte !'}</p></section>`;
+}
+function onlineContent(profile) {
+  if (!profile.account) return `<p class="profile-hint">Connecte-toi pour jouer en ligne et être classé.</p>`;
+  const stats = profile.account.stats || {};
+  const ladders = Object.entries(LADDER_NAMES).map(([id, name]) => ladderContent(name, stats[id])).join('');
+  return ladders ? `<div class="profile-ladders">${ladders}</div>` : '<p class="menu-note">Pas encore de partie classée.</p>';
+}
+
+export const PROFILE_TABS = [['collection', 'Collection'], ['solo', 'Solo'], ['online', 'En ligne']];
+export function profileContent(profile, { tab = 'collection' } = {}) {
+  const card = playerCard(profile), counts = collectionCounts(card);
+  const name = profile.account?.username
+    ? `<p class="profile-name profile-account-name"><span class="profile-name-row"><strong>${escape(profile.account.username)}</strong>${titleContent(card)}</span></p>`
+    : `<label class="profile-name">Pseudo<span class="profile-name-row"><input id="profile-nickname" maxlength="${NICKNAME_MAX}" autocomplete="nickname" spellcheck="false" value="${escape(cleanNickname(profile.nickname))}">${titleContent(card)}</span></label>`;
+  return `<div class="profile-screen">
+    <section class="profile-identity">
+      ${medallionContent(card, { size: 'lg', label: 'Ton avatar' })}
+      <div class="profile-identity-main">${name}
+        <div class="collection-progress">
+          <p><span>Candidats</span><strong>${counts.candidates} / ${counts.candidateTotal}</strong></p>
+          <i class="profile-meter" style="--v:${Math.round(counts.candidates / counts.candidateTotal * 100)}%" aria-hidden="true"></i>
+          <p><span>Styles</span><strong>${counts.styles} / ${counts.styleTotal}</strong></p>
+          <i class="profile-meter" style="--v:${Math.round(counts.styles / counts.styleTotal * 100)}%" aria-hidden="true"></i></div>
+      </div>
+      <div class="profile-account-actions"></div>
+    </section>
+    <div class="profile-tabs" role="tablist">${PROFILE_TABS.map(([id, label]) => `<button type="button" role="tab" id="profile-tab-${id}" data-profile-tab="${id}" aria-controls="profile-panel-${id}" aria-selected="${id === tab}">${label}</button>`).join('')}</div>
+    ${PROFILE_TABS.map(([id]) => `<div class="profile-panel profile-${id}" role="tabpanel" id="profile-panel-${id}" aria-labelledby="profile-tab-${id}" ${id === tab ? '' : 'hidden'}>${
+      id === 'collection' ? collectionContent(card) : id === 'solo' ? soloContent(profile) : onlineContent(profile)}</div>`).join('')}
     ${isBetatestProfile(profile) && MAP_DECORS.length > 1 ? decorPicker(profile) : ''}
-    <p class="profile-note menu-note">${profile.account ? 'Candidats débloqués et classement enregistrés sur ton compte PartageTonJeu, sur tous tes appareils.' : 'Profil enregistré sur cet appareil. Mets un candidat K.-O. en campagne puis termine la partie pour le débloquer.'}</p>
   </div>`;
 }

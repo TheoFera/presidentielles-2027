@@ -1,0 +1,16 @@
+{
+  "id": "place-paris-b-continuite",
+  "x": 2592,
+  "y": 0,
+  "w": 576,
+  "h": 1080,
+  "context": 256,
+  "canvasWidth": 1088,
+  "canvasHeight": 1080,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\place-paris-b-continuite-guide.png",
+  "replaceTop": 690,
+  "replaceHeight": 155,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\place-paris-b-continuite-brute.png",
+  "pixelsModifies": 89278,
+  "pixelsExterieursIdentiques": true
+}
