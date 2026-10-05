@@ -40,9 +40,9 @@ Aucun défaut détecté. Regarder quand même chaque vue rapprochée à 100 %.
 
 Les 15 tuiles absentes du contrôle du pilote sont présentes dans l’export complet.
 
-**0 pixel transparent ; 0 pixel incorrect dans les 64 lignes du haut** (#9FCFEE). Maîtres complets de même empreinte SHA-256. 78 retouches avec contrôle des pixels extérieurs au moment de leur application. Aucun fondu, transparence ou mélange de deux images.
+**0 pixel transparent ; 0 pixel incorrect dans les 64 lignes du haut** (#9FCFEE). Maîtres complets de même empreinte SHA-256. 81 retouches avec contrôle des pixels extérieurs au moment de leur application. Aucun fondu, transparence ou mélange de deux images.
 
-38 cellules d’entrée/panneau restent au calage exact ; les quatre cellules de Périurbain B et Campagne A ont des proportions naturelles suivant les précisions utilisateur. Panneaux crème vierges ; silhouettes de 162 px avec pieds à y = 1 004.
+32 cellules d’entrée/panneau restent au calage exact ; 10 ont des proportions naturelles suivant les précisions utilisateur. Vitrines complètes et panneaux de Riches B/C restaurés : le texte du jeu suit ces panneaux. [Sources et contrôle de restauration](production/restauration-vitrines-riches.json). Panneaux crème vierges ; silhouettes de 162 px avec pieds à y = 1 004.
 
 ## Liste de contrôle du chapitre 16
 
@@ -89,8 +89,8 @@ Les 15 tuiles absentes du contrôle du pilote sont présentes dans l’export co
 | 14 | Villa à toit pentu et Art déco à toit plat distincts. Petite promenade, mer, palmiers, pharmacie et bateaux lointains. |
 | 15 | Villa en meulière, maison du gardien, bois de Boulogne ; arbre et grille vers le parc repris. |
 | 16 | Maison de la Radio petite et secondaire parmi les toits ; bâti urbain proche. |
-| 17 | Petite tour Eiffel derrière les façades, vitrines différentes et kiosque ; trace sombre et sol repris. |
-| 18 | Cabinet à porte opaque et grilles, bibliothèque et mobilier en bois ; institut à paillasse blanche. Pierre et brique Art nouveau distinctes. La Défense secondaire ; boucle vers Paris A vérifiée. |
+| 17 | Petite tour Eiffel derrière les façades, vitrines différentes et kiosque. Devanture complète restaurée depuis la source avant calage ; grande vitrine et panneau naturel retrouvés. |
+| 18 | Cabinet à bibliothèque et mobilier en bois ; institut à paillasse blanche. Grandes baies et panneaux naturels restaurés depuis les générations originales. Pierre et brique Art nouveau distinctes. La Défense secondaire ; boucle vers Paris A vérifiée. |
 
 ## Petits défauts et limites restant visibles
 

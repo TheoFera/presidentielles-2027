@@ -1,7 +1,7 @@
 {
   "complete": "18 tuile(s) découpée(s) au pixel près dans docs/production/decor-v3/carte-plate/tuiles.\n18 coupes mesurées. Vues rapprochées et rapport dans docs\\production\\decor-v3\\carte-plate\\tuiles\\controle-raccords.\nAucun défaut détecté. Regarder quand même chaque vue rapprochée à 100 %.\n",
   "pilote": "3 tuile(s) découpée(s) au pixel près dans docs/production/decor-v3/carte-plate/pilote/tuiles (fresque partielle).\n15 tuile(s) pas encore peinte(s) : leurs coupes ne sont pas contrôlées.\n2 coupes mesurées. Vues rapprochées et rapport dans docs\\production\\decor-v3\\carte-plate\\pilote\\tuiles\\controle-raccords.\nAucun défaut détecté. Regarder quand même chaque vue rapprochée à 100 %.\n",
-  "date": "2026-10-05T01:43:31.427Z",
+  "date": "2026-10-05T09:44:32.084Z",
   "steps": [
     {
       "id": "complete",

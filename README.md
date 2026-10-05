@@ -65,7 +65,7 @@ Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni install
 
 Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. En Solo, la partie est locale à chaque onglet : recharger la page la recommence. En multijoueur, recharger la page quitte la session.
 
-`npm run build` prépare le dossier `dist/` avec uniquement la page, le code réellement chargé par le jeu, ses fichiers de réglages et ses images converties en WebP (sans perte pour le web, qualité 90 pour l’application Android). Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
+`npm run build` prépare le dossier `dist/` avec uniquement la page, le code réellement chargé par le jeu, ses fichiers de réglages et ses images converties en WebP sans perte. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
 
 ### Sur ordinateur, en local
 

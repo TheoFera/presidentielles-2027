@@ -17,7 +17,7 @@ import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
 import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
-import { npcEntryProgress, entryLift } from './npc-entry.js';
+import { npcEntryProgress, entryPath } from './npc-entry.js';
 import { drawPersuasionFeedback } from './persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
@@ -164,14 +164,20 @@ export class WorldRenderer {
         this.personMarks.set(entity.id, { x: this.screenX(x), facing: entity.facing < 0 ? -1 : 1 });
         const entry = entering.get(entity.id);
         if (entry === undefined) { this.drawPerson(step ? { ...entity, moving: true, facing: step } : entity, this.screenX(x), state); continue; }
-        // Nouveau PNJ : il monte depuis le bas de l'écran en marchant jusqu'au trottoir.
-        this.metrics = { ...m, groundY: m.groundY + entryRise * entryLift(entry) };
-        this.drawPerson({ ...entity, moving: true }, this.screenX(x), state);
+        // Nouveau PNJ : il monte du bas de l'écran en marchant, puis tourne pour rejoindre sa place.
+        // Il arrive du côté opposé à son regard, pour finir tourné comme dans la simulation.
+        const facing = entity.facing < 0 ? -1 : 1;
+        const path = entryPath(entry, state.tick / tickHz);
+        this.metrics = { ...m, groundY: m.groundY + entryRise * path.lift - entryBob * path.bob };
+        this.drawPerson({ ...entity, moving: true, facing }, this.screenX(x) - facing * entrySide * path.side, state);
         this.metrics = m;
       }
     };
-    const entering = npcEntryProgress(state, this.config.balance.simulation_architecture.fixed_tick_hz, alpha);
-    const entryRise = (this.height - m.groundY) / zoom + m.characterHeight * this.p.npc_height_multiplier * 1.2;
+    const tickHz = this.config.balance.simulation_architecture.fixed_tick_hz;
+    const entering = npcEntryProgress(state, tickHz, alpha);
+    const npcHeight = m.characterHeight * this.p.npc_height_multiplier;
+    const entryRise = (this.height - m.groundY) / zoom + npcHeight * 1.2;
+    const entrySide = npcHeight * 1.6, entryBob = npcHeight * 0.035;
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
     // Ceux qui arrivent passent devant : ils viennent du premier plan.

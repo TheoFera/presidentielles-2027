@@ -23,8 +23,8 @@ const notes=[
  'Villa à toit pentu et Art déco à toit plat distincts. Petite promenade, mer, palmiers, pharmacie et bateaux lointains.',
  'Villa en meulière, maison du gardien, bois de Boulogne ; arbre et grille vers le parc repris.',
  'Maison de la Radio petite et secondaire parmi les toits ; bâti urbain proche.',
- 'Petite tour Eiffel derrière les façades, vitrines différentes et kiosque ; trace sombre et sol repris.',
- 'Cabinet à porte opaque et grilles, bibliothèque et mobilier en bois ; institut à paillasse blanche. Pierre et brique Art nouveau distinctes. La Défense secondaire ; boucle vers Paris A vérifiée.'
+ 'Petite tour Eiffel derrière les façades, vitrines différentes et kiosque. Devanture complète restaurée depuis la source avant calage ; grande vitrine et panneau naturel retrouvés.',
+ 'Cabinet à bibliothèque et mobilier en bois ; institut à paillasse blanche. Grandes baies et panneaux naturels restaurés depuis les générations originales. Pierre et brique Art nouveau distinctes. La Défense secondaire ; boucle vers Paris A vérifiée.'
 ];
 const num=i=>String(i+1).padStart(2,'0');
 const rows=names.map((name,i)=>'| ['+num(i)+' '+name+'](tuiles/tuile-'+num(i)+'-'+slugs[i]+'.png) | ☑ | ☑ | ☑ | ☑ | '+([1,4,7,10,13,16].includes(i)?'☑':'—')+' | ☑ | ☑ | ☑ | ☑ | ☑ |');
@@ -49,7 +49,7 @@ const report=[
  'Pilote Paris :','',fence+'text',logs.pilote.trim(),fence,'',
  'Les 15 tuiles absentes du contrôle du pilote sont présentes dans l’export complet.','',
  '**0 pixel transparent ; 0 pixel incorrect dans les 64 lignes du haut** (#9FCFEE). Maîtres complets de même empreinte SHA-256. '+audit.nombreRetouches+' retouches avec contrôle des pixels extérieurs au moment de leur application. Aucun fondu, transparence ou mélange de deux images.','',
- cal.rectangles.length+' cellules d’entrée/panneau restent au calage exact ; les quatre cellules de Périurbain B et Campagne A ont des proportions naturelles suivant les précisions utilisateur. Panneaux crème vierges ; silhouettes de 162 px avec pieds à y = 1 004.','',
+ cal.rectangles.length+' cellules d’entrée/panneau restent au calage exact ; '+cal.rectanglesNonCales.length+' ont des proportions naturelles suivant les précisions utilisateur. Vitrines complètes et panneaux de Riches B/C restaurés : le texte du jeu suit ces panneaux. [Sources et contrôle de restauration](production/restauration-vitrines-riches.json). Panneaux crème vierges ; silhouettes de 162 px avec pieds à y = 1 004.','',
  '## Liste de contrôle du chapitre 16','',
  '☑ : critère contrôlé et retenu ; — : sans objet. Ouvertures, meeting et véhicules suivent les précisions utilisateur. Les deux côtés de chaque tuile et la boucle sont contrôlés. Cette appréciation ne promet pas une perfection artistique absolue.','',
  '| Tuile | Format opaque | Sol y = 1 004 | Échelle 162 px | Portes/panneaux | Meeting | Raccords sans fondu | Sans texte | Véhicules conformes | Ciel/lumière | Storyboard |',

@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-05T02:11:36.729Z",
+  "date": "2026-10-05T09:48:19.489Z",
   "type": "Inspection visuelle de l’assistant à taille réelle, complémentaire du vérificateur numérique.",
-  "sha256Maitre": "2105cca251082c45d1b59fef65b8b6991d6ef554fc443d20c64d572a4ddc966a",
+  "sha256Maitre": "0cedf9f837940f90be8b8b5d798b67053b7b3f56c266687e1b91e4aa691db7ad",
   "dimensionsMaitre": [
     34560,
     1080
@@ -197,5 +197,6 @@
     "Certains contours de nuages restent irréguliers.",
     "De petites variations de grain, d’ombre ou de joints de pavage restent perceptibles près des devantures de Paris B et du garage de Périurbain B.",
     "Cette inspection artistique ne garantit pas une perfection absolue de chaque pixel."
-  ]
+  ],
+  "restaurationsVitrines": "Raccords 16 → 17 et 17 → 18 inspectés après restauration ; les 16 autres tuiles sont identiques à la livraison précédente."
 }

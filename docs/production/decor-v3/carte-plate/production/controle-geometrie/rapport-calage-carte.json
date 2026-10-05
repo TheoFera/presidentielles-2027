@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-05T01:47:14.420Z",
+  "date": "2026-10-05T09:44:36.709Z",
   "calageStrictObligatoire": false,
   "directives": "DIRECTIVES-UTILISATEUR.md",
   "rectangles": [
@@ -354,72 +354,6 @@
       "h": 184,
       "centreX": 29845,
       "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-b-rdc-dessin",
-      "role": "panneau",
-      "tuile": "17",
-      "xDansFresque": 31013,
-      "y": 764,
-      "w": 258,
-      "h": 44,
-      "centreX": 31142,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-b-rdc-dessin",
-      "role": "porte",
-      "tuile": "17",
-      "xDansFresque": 31094,
-      "y": 820,
-      "w": 96,
-      "h": 184,
-      "centreX": 31142,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-c-cabinet-distinct",
-      "role": "panneau",
-      "tuile": "18",
-      "xDansFresque": 32944,
-      "y": 764,
-      "w": 258,
-      "h": 44,
-      "centreX": 33073,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-c-cabinet-securise",
-      "role": "porte",
-      "tuile": "18",
-      "xDansFresque": 33025,
-      "y": 820,
-      "w": 96,
-      "h": 184,
-      "centreX": 33073,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-c-institut-distinct",
-      "role": "panneau",
-      "tuile": "18",
-      "xDansFresque": 33598,
-      "y": 764,
-      "w": 258,
-      "h": 44,
-      "centreX": 33727,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "riches-c-institut-distinct",
-      "role": "porte",
-      "tuile": "18",
-      "xDansFresque": 33679,
-      "y": 820,
-      "w": 96,
-      "h": 184,
-      "centreX": 33727,
-      "pixelsIdentiquesALaSourceCalee": true
     }
   ],
   "rectanglesAttendus": 42,
@@ -446,6 +380,42 @@
       "tuile": "10",
       "nom": "Campagne A",
       "centre": 18754,
+      "role": "panneau"
+    },
+    {
+      "tuile": "17",
+      "nom": "Riches B",
+      "centre": 31142,
+      "role": "porte"
+    },
+    {
+      "tuile": "17",
+      "nom": "Riches B",
+      "centre": 31142,
+      "role": "panneau"
+    },
+    {
+      "tuile": "18",
+      "nom": "Riches C",
+      "centre": 33073,
+      "role": "porte"
+    },
+    {
+      "tuile": "18",
+      "nom": "Riches C",
+      "centre": 33073,
+      "role": "panneau"
+    },
+    {
+      "tuile": "18",
+      "nom": "Riches C",
+      "centre": 33727,
+      "role": "porte"
+    },
+    {
+      "tuile": "18",
+      "nom": "Riches C",
+      "centre": 33727,
       "role": "panneau"
     }
   ],

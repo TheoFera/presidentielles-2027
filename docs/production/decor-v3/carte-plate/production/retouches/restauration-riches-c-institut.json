@@ -1,0 +1,18 @@
+{
+  "id": "restauration-riches-c-institut",
+  "x": 33477,
+  "y": 660,
+  "w": 540,
+  "h": 420,
+  "context": 256,
+  "canvasWidth": 1052,
+  "canvasHeight": 420,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\restauration-riches-c-institut-guide.png",
+  "replaceTop": 0,
+  "replaceHeight": 344,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\restauration-riches-c-institut-brute.png",
+  "pixelsModifies": 185702,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

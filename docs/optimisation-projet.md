@@ -26,7 +26,7 @@ Version web : les PNG sont convertis en **WebP sans perte** par `ffmpeg` (`scrip
 
 - Les conversions sont gardées dans `.cache/webp/` (ignoré par Git) : la première prend quelques minutes, les suivantes une seconde.
 - Sans `ffmpeg`, l'export reste en PNG (plus lourd) et l'indique. `node scripts/build-pages.mjs --png` force le PNG.
-- Version application : **WebP qualité 90** (`APP_WEBP_QUALITY` dans `scripts/build-pages.mjs`, choix du 5 octobre 2026 après comparaison). La transparence reste identique au pixel près ; l'écart de couleur des pixels visibles est vérifié à chaque conversion (au moins 24 dB, 33,5 dB en médiane), sans différence visible à taille réelle. L'application est environ trois fois plus légère et se charge plus vite.
+- L'application est aussi **sans perte**. Le 5 octobre 2026, une version en WebP qualité 90 (41 Mo au lieu de 130) a été essayée puis abandonnée : sur téléphone, la carte devenait saccadée, alors que l'ordinateur ne montrait aucune différence. Le réglage reste disponible (`APP_WEBP_QUALITY` dans `scripts/build-pages.mjs`, vérification de la transparence et des couleurs dans `scripts/lib/webp.mjs`) ; ne le réactiver qu'après un essai sur téléphone.
 - Une nouvelle image doit être référencée par un chemin littéral `assets/generated/catégorie/fichier.png` dans le manifeste, le HTML ou le CSS. Les PNJ (`npc-v2`, `npc-militants`) sont inclus par dossier car le manifeste construit leurs chemins par une boucle.
 
 ### Version application
@@ -43,10 +43,9 @@ Version web : les PNG sont convertis en **WebP sans perte** par `ffmpeg` (`scrip
 
 | | Avant | Après |
 |---|---:|---:|
-| Application `dist/` | 152 Mo, 639 fichiers | **41 Mo**, 539 fichiers |
-| Chargement d'une partie (ordinateur, Chrome sans écran) | 11,9 s | **6,4 s** |
+| Application `dist/` | 152 Mo, 639 fichiers | **130 Mo**, 539 fichiers |
 
-Gains : images que la carte plate n'affiche jamais (environ 20 Mo), code des décors betatest (environ 430 Ko), WebP qualité 90 (le reste). Une partie ne précharge plus les arbres ni les nuages, peints dans les tuiles. Campagne et débat essayés sur l'application construite : aucune erreur, aucun fichier manquant. À confirmer sur téléphone.
+Gains : images que la carte plate n'affiche jamais (environ 20 Mo) et code des décors betatest (environ 430 Ko). Une partie ne précharge plus les arbres ni les nuages, peints dans les tuiles. Campagne et débat essayés sur l'application construite : aucune erreur, aucun fichier manquant. À confirmer sur téléphone.
 
 ## Mesures du 1er octobre 2026 (ancien décor biomes)
 

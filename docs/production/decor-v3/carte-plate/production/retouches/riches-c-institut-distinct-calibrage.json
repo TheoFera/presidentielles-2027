@@ -492,5 +492,17 @@
   "superpositions": 0,
   "pixelsNonOpaques": 0,
   "pixelsHorsCellulesConserves": true,
-  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu."
+  "limite": "Calage des cellules exact ; contours artistiques et raccords à vérifier sur le rendu.",
+  "cellulesRemplacees": [
+    {
+      "role": "porte",
+      "par": "restauration-riches-c-institut",
+      "motif": "Source naturelle restaurée sur demande utilisateur ; abandon du calage exact."
+    },
+    {
+      "role": "panneau",
+      "par": "restauration-riches-c-institut",
+      "motif": "Source naturelle restaurée sur demande utilisateur ; abandon du calage exact."
+    }
+  ]
 }

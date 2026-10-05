@@ -4,7 +4,7 @@ Ce dossier contient l'application Android de « Présidentielle 2027 : Le Jeu »
 
 - Identifiant Play Store : `fr.presidentielles2027.jeu` (définitif après la première publication).
 - Android 7.0 minimum, cible Android 16 (API 36), exigence actuelle de Google.
-- Poids : environ 41 Mo (carte plate seule, images WebP qualité 90, décors betatest non inclus).
+- Poids : environ 130 Mo (carte plate seule, images WebP sans perte, décors betatest non inclus).
 
 ## 1. Construire et essayer sur ton téléphone
 

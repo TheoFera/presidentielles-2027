@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { npcEntryProgress, entryLift } from '../src/presentation/npc-entry.js';
+import { npcEntryProgress, entryPath } from '../src/presentation/npc-entry.js';
 
 test('un PNJ récemment apparu arrive du bas puis rejoint le sol', () => {
   const state = { tick: 30, events: [
@@ -12,7 +12,10 @@ test('un PNJ récemment apparu arrive du bas puis rejoint le sol', () => {
   assert.equal(progress.get('npc:1'), 0.75);
   assert.equal(progress.get('npc:2'), 0.25);
   assert.equal(npcEntryProgress({ ...state, tick: 40 }, 20, 0, 2).has('npc:1'), false);
-  assert.equal(entryLift(0), 1);
-  assert.equal(entryLift(1), 0);
-  assert.ok(entryLift(0.5) < 0.5 && entryLift(0.5) > 0);
+  const start = entryPath(0, 0), middle = entryPath(0.5, 0), end = entryPath(1, 0.3);
+  assert.deepEqual([start.lift, start.side], [1, 1]);
+  assert.deepEqual([end.lift, end.side, end.bob], [0, 0, 0]);
+  // Courbe : à mi-chemin, il est déjà plus monté qu'il ne s'est rapproché sur le côté.
+  assert.ok(middle.lift < middle.side);
+  assert.ok(entryPath(0.5, 0.12).bob > 0);
 });

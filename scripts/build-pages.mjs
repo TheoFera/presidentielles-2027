@@ -6,9 +6,10 @@ import { cachedWebp, eachLimited, webpAvailable } from './lib/webp.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const defaultTarget = resolve(root, 'dist');
 const webpCache = resolve(root, '.cache/webp');
-// Qualité WebP de l'application : compression « quasi sans perte », environ trois fois plus légère
-// (choix du 05/10/2026, après comparaison). La version web reste sans perte.
-export const APP_WEBP_QUALITY = 90;
+// Qualité WebP de l'application : null = sans perte, comme la version web.
+// La qualité 90 (application trois fois plus légère) a été essayée le 05/10/2026, puis abandonnée :
+// sur téléphone, la carte devenait saccadée (images avec perte, plus coûteuses à dessiner sur Android).
+export const APP_WEBP_QUALITY = null;
 const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
 
 // Images jamais affichées par l'application, qui n'a que la carte plate : décors réservés
@@ -109,7 +110,7 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
   const converted = new Map();
   if (useWebp) {
     const list = [...images];
-    const outputs = await eachLimited(list, image => cachedWebp(resolve(root, image), webpCache, app ? { quality: APP_WEBP_QUALITY } : {}));
+    const outputs = await eachLimited(list, image => cachedWebp(resolve(root, image), webpCache, app && APP_WEBP_QUALITY ? { quality: APP_WEBP_QUALITY } : {}));
     list.forEach((image, index) => converted.set(image, outputs[index]));
   }
   const exportedName = image => useWebp ? image.replace(/\.png$/, '.webp') : image;
@@ -154,7 +155,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const report = await buildPages(defaultTarget, { webp: !process.argv.includes('--png'), app: process.argv.includes('--app') });
   const mib = bytes => (bytes / 1024 ** 2).toFixed(2);
   if (!report.webp) console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
-  const format = !report.webp ? '' : report.app ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)';
+  const format = !report.webp ? '' : report.app && APP_WEBP_QUALITY ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)';
   console.log(`Jeu prêt dans dist/ : ${report.files} fichiers, ${mib(report.bytes)} Mio, dont ${mib(report.imageBytes)} Mio d'images${format}, en ${Math.round((Date.now() - started) / 1000)} s.`);
   console.log(report.app ? 'Version application : carte plate seule, décors betatest exclus.' : 'Version web complète. L\'application Android se construit avec npm run android.');
 }

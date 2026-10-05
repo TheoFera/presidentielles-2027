@@ -23,6 +23,17 @@ const MEETING_DECK_SPLIT = {
   'building-meeting_stage-retraites': 0.76,
   'building-meeting_stage-riches': 0.73,
 };
+// Dernière ligne opaque (ombre comprise) de chaque PNG : elle doit rester derrière la ligne de marche.
+const MEETING_OPAQUE_BOTTOM = {
+  'building-meeting_stage-bobo': 0.874,
+  'building-meeting_stage-banlieue': 0.904,
+  'building-meeting_stage-periurbain': 0.913,
+  'building-meeting_stage-campagne': 0.912,
+  'building-meeting_stage-retraites': 0.930,
+  'building-meeting_stage-riches': 0.936,
+};
+// Recul de l'estrade derrière les pieds, en hauteur de personnage.
+const MEETING_BEHIND_FEET = 0.04;
 
 export function isOnMeetingStage(entity, config, state) {
   if (entity.role !== 'CANDIDAT' || entity.combat.height < config.balance.buildings.meeting.podium_height) return false;
@@ -46,7 +57,9 @@ export function meetingSpriteFrame(renderer, state, building) {
   const deckSplit = MEETING_DECK_SPLIT[id];
   const deckY = renderer.metrics.groundY - baseHeight * (MEETING_SPRITE_GROUND_ANCHOR - deckSplit);
   const upperHeight = baseHeight * deckSplit * MEETING_UPPER_HEIGHT_SCALE;
-  const lowerHeight = baseHeight * (1 - deckSplit);
+  // Le devant de l'estrade est tassé pour que son bas visible s'arrête juste au-dessus des pieds des personnages.
+  const visibleBottom = renderer.metrics.groundY - renderer.metrics.characterHeight * MEETING_BEHIND_FEET;
+  const lowerHeight = Math.max(1, (visibleBottom - deckY) / (MEETING_OPAQUE_BOTTOM[id] - deckSplit) * (1 - deckSplit));
   return { sprite, width, height: upperHeight + lowerHeight, baseHeight, deckSplit, deckY, upperHeight, lowerHeight,
     platformLeft, platformRight,
     left: renderer.screenX(building.x) - halfWidth - platformLeft * width,
