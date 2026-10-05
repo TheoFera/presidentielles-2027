@@ -10,5 +10,6 @@ Ces précisions complètent le cahier de production et priment sur les contraint
 - Aucun gros bâtiment ou monument ne doit dominer la sous-zone. La Maison de la Radio doit rester un repère secondaire.
 - Pas de bâtiments identiques ou symétriques répétés dans la même scène, sauf la rangée de maisons French Dream de Périurbain A.
 - Les objets peints dont le pied dépasse devant la ligne de marche des candidats et PNJ doivent être supprimés ou replacés plus haut dans l’image, derrière cette ligne. Le passage au premier plan reste dégagé ; conserver les arbres, poteaux et équipements déjà en retrait.
+- Le contrôle concerne aussi les massifs, les pots, les kiosques et leurs présentoirs. Leur emprise entière doit paraître en retrait, avec du sol visible devant ; comparer seulement leur pied à y = 1 004 ne suffit pas. Les captures du 5 octobre signalent Périurbain B, Retraités B, la transition Riches A/B et Riches B.
 
 La continuité de la fresque, l’opacité, le style world-v2, les panneaux vierges et l’absence de fondu restent requis. Les anciens relevés de rectangles exacts sont un historique de contrôle, pas un objectif à imposer à la direction artistique actuelle.

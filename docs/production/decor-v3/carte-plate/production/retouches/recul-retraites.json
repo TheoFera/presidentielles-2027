@@ -1,0 +1,11 @@
+{
+  "id": "recul-retraites",
+  "x": 26785,
+  "y": 861,
+  "w": 155,
+  "h": 167,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\recul-retraites-generation.png",
+  "appliquee": true,
+  "pixelsExterieursIdentiques": true,
+  "mode": "Suppression ou recul derrière le passage, remplacement opaque sans fondu"
+}

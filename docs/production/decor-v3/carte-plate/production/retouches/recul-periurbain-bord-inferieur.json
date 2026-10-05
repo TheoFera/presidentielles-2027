@@ -1,0 +1,11 @@
+{
+  "id": "recul-periurbain-bord-inferieur",
+  "x": 15195,
+  "y": 1077,
+  "w": 350,
+  "h": 3,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\recul-periurbain-bord-inferieur-generation.png",
+  "appliquee": true,
+  "pixelsExterieursIdentiques": true,
+  "mode": "Suppression ou recul derrière le passage, remplacement opaque sans fondu"
+}

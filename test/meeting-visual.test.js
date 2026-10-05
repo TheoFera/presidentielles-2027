@@ -21,6 +21,7 @@ test('un meeting avec un sprite distinct est présent dans chaque biome', async 
     for (const meeting of meetings) {
       const id = buildingAssetId(meeting, state.world);
       assert.ok(visualManifest[id], id);
+      assert.ok(visualManifest[id.replace('meeting_stage', 'meeting_micro')], 'micro à part');
       await access(new URL(visualManifest[id].file));
     }
   }
@@ -86,6 +87,8 @@ test('les bords visibles des six estrades correspondent aux limites physiques, m
       assert.ok(Math.abs(frame.width / frame.baseHeight - sprite.naturalWidth / sprite.naturalHeight) < 1e-8, 'le plancher garde ses proportions');
       assert.ok(frame.upperHeight > frame.baseHeight * frame.deckSplit, 'les poteaux et la banderole sont relevés');
       assert.ok(frame.top >= 0, 'la partie haute de la scène reste visible');
+      assert.ok(frame.deckY < frame.feetY, `${id} : les pieds sont sur le dessus du plancher, pas derrière son bord`);
+      assert.ok(Math.abs(frame.feetY - (metrics.groundY - cfg.balance.buildings.meeting.podium_height * metrics.characterHeight)) < 1e-8);
     }
   }
 });

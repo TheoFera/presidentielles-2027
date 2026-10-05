@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const base=path.resolve('docs/production/decor-v3/carte-plate'),p=path.join(base,'production');
+const plan=JSON.parse(fs.readFileSync(path.join(p,'correction-pot-socle.json'))),file=path.join(p,'controle-visuel-raccords/inspection.json');
+const v=JSON.parse(fs.readFileSync(file));
+const changed=plan.verification.raccords.filter(r=>!r.identiqueAvantCorrection).map(r=>r.gauche+'→'+r.droite);
+if(changed.join(',')!=='13→14,16→17')throw new Error('Raccords différents des vues inspectées.');
+v.date=new Date().toISOString();v.sha256Maitre=plan.verification.sha256Maitre;
+v.revisionPotSocle={date:v.date,raccordsReinspectes:changed,autresRaccordsIdentiquesAuMaitrePrecedemmentInspecte:true,controleDesPixels:plan.verification.raccords,observations:['Pot jaune de Retraités B supprimé entièrement.','Socle de Riches B aminci et terminé au sol à y = 1 004 ; rectangle de pavage et ombre du socle repris.','Riches B : vitrine d’origine conservée au-dessus du socle ; les deux vitrines de Riches C restent intégralement d’origine.']};
+fs.writeFileSync(file,JSON.stringify(v,null,2));
+await import('./rapport-revision-v2.mjs');

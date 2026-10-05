@@ -3,36 +3,29 @@ import { ringDelta } from '../simulation/world.js';
 import { meetingWaveRadius } from '../simulation/electoral-buildings.js';
 import { MapWheel } from './map-wheel.js';
 
-const MEETING_SPRITE_GROUND_ANCHOR = 0.88;
 const MEETING_UPPER_HEIGHT_SCALE = 1.45;
-// Bords du plancher dans chaque PNG (les marches et les marges transparentes sont exclues).
-const MEETING_PLATFORM_BOUNDS = {
-  'building-meeting_stage-bobo': [0.006, 0.994],
-  'building-meeting_stage-banlieue': [0.004, 0.996],
-  'building-meeting_stage-periurbain': [0.010, 0.990],
-  'building-meeting_stage-campagne': [0.040, 0.960],
-  'building-meeting_stage-retraites': [0.005, 0.995],
-  'building-meeting_stage-riches': [0.015, 0.985],
+// L'estrade a été agrandie de 40 % (podium_half_width et podium_height aussi) ; le micro garde sa taille d'avant.
+const MEETING_STAGE_SCALE = 1.4;
+// Mesures de chaque PNG (fractions de la largeur ou de la hauteur) :
+// bords du plancher, arrière du plancher (coupe), profondeur du dessus du plancher, dernière ligne opaque.
+const MEETING_STAGE_GEOMETRY = {
+  bobo: { platform: [0.006, 0.994], split: 943 / 1402, surface: 0.031, bottom: 0.874 },
+  banlieue: { platform: [0.004, 0.996], split: 997 / 1402, surface: 0.044, bottom: 0.904 },
+  periurbain: { platform: [0.010, 0.990], split: 979 / 1389, surface: 0.055, bottom: 0.913 },
+  campagne: { platform: [0.040, 0.960], split: 962 / 1323, surface: 0.060, bottom: 0.912 },
+  retraites: { platform: [0.005, 0.995], split: 1069 / 1402, surface: 0.052, bottom: 0.930 },
+  riches: { platform: [0.015, 0.985], split: 1028 / 1402, surface: 0.039, bottom: 0.936 },
 };
-// La coupe suit l'arrière du plancher : les poteaux montent, mais le plateau et ses bords ne bougent pas.
-const MEETING_DECK_SPLIT = {
-  'building-meeting_stage-bobo': 0.67,
-  'building-meeting_stage-banlieue': 0.71,
-  'building-meeting_stage-periurbain': 0.70,
-  'building-meeting_stage-campagne': 0.72,
-  'building-meeting_stage-retraites': 0.76,
-  'building-meeting_stage-riches': 0.73,
+// Place du micro (découpé à part) dans le PNG d'origine de l'estrade, en pixels : gauche, haut, droite, bas.
+const MEETING_MICRO_BOX = {
+  bobo: [687, 556, 797, 983],
+  banlieue: [728, 576, 840, 1034],
+  periurbain: [794, 598, 902, 1039],
+  campagne: [820, 610, 938, 1026],
+  retraites: [730, 694, 830, 1099],
+  riches: [730, 653, 851, 1073],
 };
-// Dernière ligne opaque (ombre comprise) de chaque PNG : elle doit rester derrière la ligne de marche.
-const MEETING_OPAQUE_BOTTOM = {
-  'building-meeting_stage-bobo': 0.874,
-  'building-meeting_stage-banlieue': 0.904,
-  'building-meeting_stage-periurbain': 0.913,
-  'building-meeting_stage-campagne': 0.912,
-  'building-meeting_stage-retraites': 0.930,
-  'building-meeting_stage-riches': 0.936,
-};
-// Recul de l'estrade derrière les pieds, en hauteur de personnage.
+// Recul du bas de l'estrade derrière les pieds des personnages au sol, en hauteur de personnage.
 const MEETING_BEHIND_FEET = 0.04;
 
 export function isOnMeetingStage(entity, config, state) {
@@ -49,21 +42,24 @@ export function meetingSpriteFrame(renderer, state, building) {
   const id = buildingAssetId(building, state.world);
   const sprite = renderer.assets.get(id);
   if (!sprite) return null;
-  const [platformLeft, platformRight] = MEETING_PLATFORM_BOUNDS[id];
-  const halfWidth = renderer.config.balance.buildings.meeting.podium_half_width * renderer.metrics.pixelsPerUnit;
+  const biome = id.replace('building-meeting_stage-', '');
+  const { platform: [platformLeft, platformRight], split: deckSplit, surface, bottom } = MEETING_STAGE_GEOMETRY[biome];
+  const m = renderer.metrics, settings = renderer.config.balance.buildings.meeting;
+  const halfWidth = settings.podium_half_width * m.pixelsPerUnit;
   // La collision définit aussi la largeur dessinée, indépendamment de la résolution et du zoom.
   const width = halfWidth * 2 / (platformRight - platformLeft);
   const baseHeight = width * sprite.naturalHeight / sprite.naturalWidth;
-  const deckSplit = MEETING_DECK_SPLIT[id];
-  const deckY = renderer.metrics.groundY - baseHeight * (MEETING_SPRITE_GROUND_ANCHOR - deckSplit);
+  // Les pieds d'un candidat sur scène sont au milieu du dessus du plancher, et le bas de l'estrade
+  // reste juste derrière les pieds des personnages au sol : le devant est tassé (k) pour tenir entre les deux.
+  const feetY = m.groundY - settings.podium_height * m.characterHeight;
+  const visibleBottom = m.groundY - m.characterHeight * MEETING_BEHIND_FEET;
+  const k = (visibleBottom - feetY) / (baseHeight * (bottom - deckSplit - surface / 2));
+  const deckY = feetY - baseHeight * surface / 2 * k;
   const upperHeight = baseHeight * deckSplit * MEETING_UPPER_HEIGHT_SCALE;
-  // Le devant de l'estrade est tassé pour que son bas visible s'arrête juste au-dessus des pieds des personnages.
-  const visibleBottom = renderer.metrics.groundY - renderer.metrics.characterHeight * MEETING_BEHIND_FEET;
-  const lowerHeight = Math.max(1, (visibleBottom - deckY) / (MEETING_OPAQUE_BOTTOM[id] - deckSplit) * (1 - deckSplit));
-  return { sprite, width, height: upperHeight + lowerHeight, baseHeight, deckSplit, deckY, upperHeight, lowerHeight,
-    platformLeft, platformRight,
-    left: renderer.screenX(building.x) - halfWidth - platformLeft * width,
-    top: deckY - upperHeight };
+  const lowerHeight = baseHeight * (1 - deckSplit) * k;
+  const left = renderer.screenX(building.x) - halfWidth - platformLeft * width;
+  return { sprite, id, biome, width, height: upperHeight + lowerHeight, baseHeight, deckSplit, deckY, feetY, upperHeight, lowerHeight,
+    lowerScale: k, platformLeft, platformRight, left, top: deckY - upperHeight };
 }
 
 export function drawMeetingStageSprite(ctx, frame) {
@@ -72,6 +68,23 @@ export function drawMeetingStageSprite(ctx, frame) {
   ctx.drawImage(sprite, 0, 0, sprite.naturalWidth, cut, left, top, width, upperHeight);
   ctx.drawImage(sprite, 0, cut, sprite.naturalWidth, sprite.naturalHeight - cut,
     left, deckY, width, lowerHeight);
+}
+
+/** Micro posé sur le plancher, à la taille de l'ancienne estrade (avant l'agrandissement). */
+export function drawMeetingMicro(renderer, frame) {
+  const micro = renderer.assets.get(frame.id.replace('meeting_stage', 'meeting_micro'));
+  if (!micro) { void renderer.assets.load?.(frame.id.replace('meeting_stage', 'meeting_micro')); return; }
+  const { sprite, width, left, deckY, baseHeight, lowerScale, deckSplit } = frame;
+  const [x0, y0, x1, y1] = MEETING_MICRO_BOX[frame.biome];
+  const cut = sprite.naturalHeight * deckSplit;
+  const scale = width / MEETING_STAGE_SCALE / sprite.naturalWidth;
+  // Même place relative sur la grande estrade ; le socle reste à la même profondeur sur le plancher.
+  const centerX = left + width / 2 + ((x0 + x1) / 2 - sprite.naturalWidth / 2) * width / sprite.naturalWidth;
+  const baseY = deckY + (y1 - cut) * baseHeight / sprite.naturalHeight * lowerScale;
+  const w = (x1 - x0) * scale;
+  // Comme avant : la partie au-dessus du plancher est étirée comme les poteaux, le socle ne l'est pas.
+  const h = (cut - y0) * scale * MEETING_UPPER_HEIGHT_SCALE + (y1 - cut) * scale;
+  renderer.ctx.drawImage(micro, centerX - w / 2, baseY - h, w, h);
 }
 
 export const territoryColors = { melenchon: '#b94e54', le_pen: '#30496b', philippe: '#e9e9e2', contested: '#9da79e' };
@@ -231,6 +244,7 @@ function drawMeetingPodium(renderer, state, building) {
   let progressY = top - 25;
   if (frame) {
     drawMeetingStageSprite(ctx, frame);
+    drawMeetingMicro(renderer, frame);
     progressY = frame.deckY - m.characterHeight * 1.35;
   } else {
     // Des marches en pierre prolongent la place peinte jusqu'au plan des personnages.
@@ -371,10 +385,12 @@ export function drawMeetingForeground(renderer, state) {
         && Math.abs(ringDelta(candidate.x, building.x, state.world.length)) <= config.balance.buildings.meeting.podium_half_width))) continue;
     const frame = meetingSpriteFrame(renderer, state, building);
     if (!frame) continue;
-    const { left, top, width } = frame;
+    const { left, top, width, deckY, feetY } = frame;
     ctx.save();
-    ctx.beginPath(); ctx.rect(left, top, width, renderer.metrics.groundY - top); ctx.clip();
+    // Le dessus du plancher, entre son arrière et les pieds, reste derrière le candidat : ses pieds restent visibles.
+    ctx.beginPath(); ctx.rect(left, top, width, deckY - top); ctx.rect(left, feetY + 2, width, renderer.metrics.groundY - feetY - 2); ctx.clip();
     drawMeetingStageSprite(ctx, frame);
     ctx.restore();
+    drawMeetingMicro(renderer, frame);
   }
 }

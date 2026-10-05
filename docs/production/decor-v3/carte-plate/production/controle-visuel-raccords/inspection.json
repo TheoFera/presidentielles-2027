@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-05T11:40:58.205Z",
+  "date": "2026-10-05T13:19:39.978Z",
   "type": "Inspection visuelle de l’assistant à taille réelle, complémentaire du vérificateur numérique.",
-  "sha256Maitre": "8eda8a3f9df75a79397c3d06c0a1142abc1c692bac9b2017012d4dfa94956b1a",
+  "sha256Maitre": "0b2b2080070629059c4ffabdf464ff5cc7350b03673189244e60a434c9d998de",
   "dimensionsMaitre": [
     34560,
     1080
@@ -196,7 +196,8 @@
   "limites": [
     "Certains contours de nuages restent irréguliers.",
     "De petites variations de grain, d’ombre ou de joints de pavage restent perceptibles près des devantures de Paris B et du garage de Périurbain B.",
-    "Cette inspection artistique ne garantit pas une perfection absolue de chaque pixel."
+    "Cette inspection artistique ne garantit pas une perfection absolue de chaque pixel.",
+    "De légères différences de texture et de joints de pavage subsistent autour de l’îlot vidé de Périurbain B ; aucun massif ne reste sur cet îlot. Les contrôles numériques ne prouvent pas à eux seuls la qualité artistique."
   ],
   "restaurationsVitrines": "Raccords 16 → 17 et 17 → 18 inspectés après restauration ; les 16 autres tuiles sont identiques à la livraison précédente.",
   "nettoyagePassage": {
@@ -215,5 +216,218 @@
     ],
     "autresRaccordsIdentiquesAuPixelPres": true,
     "retoucheSupplementaire": "Bande de trottoir du raccord Paris B → Paris C redessinée sans fondu."
+  },
+  "revisionReculObstacles": {
+    "date": "2026-10-05T12:46:13.184Z",
+    "raccordsReinspectes": [
+      "08→09",
+      "14→15",
+      "16→17",
+      "17→18"
+    ],
+    "autresRaccordsIdentiquesAuMaitrePrecedemmentInspecte": true,
+    "controleDesPixels": [
+      {
+        "gauche": 1,
+        "droite": 2,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 2,
+        "droite": 3,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 3,
+        "droite": 4,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 4,
+        "droite": 5,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 5,
+        "droite": 6,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 6,
+        "droite": 7,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 7,
+        "droite": 8,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 8,
+        "droite": 9,
+        "identiqueAvantRecul": false
+      },
+      {
+        "gauche": 9,
+        "droite": 10,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 10,
+        "droite": 11,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 11,
+        "droite": 12,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 12,
+        "droite": 13,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 13,
+        "droite": 14,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 14,
+        "droite": 15,
+        "identiqueAvantRecul": false
+      },
+      {
+        "gauche": 15,
+        "droite": 16,
+        "identiqueAvantRecul": true
+      },
+      {
+        "gauche": 16,
+        "droite": 17,
+        "identiqueAvantRecul": false
+      },
+      {
+        "gauche": 17,
+        "droite": 18,
+        "identiqueAvantRecul": false
+      },
+      {
+        "gauche": 18,
+        "droite": 1,
+        "identiqueAvantRecul": true
+      }
+    ],
+    "observations": [
+      "Massif de l’îlot de Périurbain B et pots de Retraités B supprimés.",
+      "Jardinière débordante de Riches A/B remplacée par un jardin derrière la grille.",
+      "Kiosque, deux présentoirs et petit lampadaire de Riches B : pieds vers y = 900 ; bande libre avant la marche à y = 1 004.",
+      "Quatre raccords examinés à 100 % ; trois vitrines restaurées conservées au pixel près."
+    ]
+  },
+  "revisionPotSocle": {
+    "date": "2026-10-05T13:19:39.978Z",
+    "raccordsReinspectes": [
+      "13→14",
+      "16→17"
+    ],
+    "autresRaccordsIdentiquesAuMaitrePrecedemmentInspecte": true,
+    "controleDesPixels": [
+      {
+        "gauche": 1,
+        "droite": 2,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 2,
+        "droite": 3,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 3,
+        "droite": 4,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 4,
+        "droite": 5,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 5,
+        "droite": 6,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 6,
+        "droite": 7,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 7,
+        "droite": 8,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 8,
+        "droite": 9,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 9,
+        "droite": 10,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 10,
+        "droite": 11,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 11,
+        "droite": 12,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 12,
+        "droite": 13,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 13,
+        "droite": 14,
+        "identiqueAvantCorrection": false
+      },
+      {
+        "gauche": 14,
+        "droite": 15,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 15,
+        "droite": 16,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 16,
+        "droite": 17,
+        "identiqueAvantCorrection": false
+      },
+      {
+        "gauche": 17,
+        "droite": 18,
+        "identiqueAvantCorrection": true
+      },
+      {
+        "gauche": 18,
+        "droite": 1,
+        "identiqueAvantCorrection": true
+      }
+    ],
+    "observations": [
+      "Pot jaune de Retraités B supprimé entièrement.",
+      "Socle de Riches B aminci et terminé au sol à y = 1 004 ; rectangle de pavage et ombre du socle repris.",
+      "Riches B : vitrine d’origine conservée au-dessus du socle ; les deux vitrines de Riches C restent intégralement d’origine."
+    ]
   }
 }

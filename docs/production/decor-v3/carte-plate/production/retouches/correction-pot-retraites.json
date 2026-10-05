@@ -1,0 +1,11 @@
+{
+  "id": "correction-pot-retraites",
+  "x": 24965,
+  "y": 919,
+  "w": 100,
+  "h": 111,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\correction-pot-retraites-generation.png",
+  "appliquee": true,
+  "pixelsExterieursIdentiques": true,
+  "mode": "Suppression ou recul derrière le passage, remplacement opaque sans fondu"
+}

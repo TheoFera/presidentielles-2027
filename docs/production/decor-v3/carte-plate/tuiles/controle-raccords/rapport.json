@@ -118,8 +118,8 @@
     },
     {
       "coupe": "08 → 09",
-      "ecart": 10.9,
-      "ecart_habituel": 10,
+      "ecart": 9.6,
+      "ecart_habituel": 8.7,
       "visible": false
     },
     {
@@ -149,13 +149,13 @@
     {
       "coupe": "13 → 14",
       "ecart": 9,
-      "ecart_habituel": 10.1,
+      "ecart_habituel": 9.7,
       "visible": false
     },
     {
       "coupe": "14 → 15",
-      "ecart": 14,
-      "ecart_habituel": 11.6,
+      "ecart": 12,
+      "ecart_habituel": 9.5,
       "visible": false
     },
     {
@@ -166,14 +166,14 @@
     },
     {
       "coupe": "16 → 17",
-      "ecart": 21.5,
-      "ecart_habituel": 17,
+      "ecart": 19.6,
+      "ecart_habituel": 17.3,
       "visible": false
     },
     {
       "coupe": "17 → 18",
-      "ecart": 19.4,
-      "ecart_habituel": 10.9,
+      "ecart": 18.4,
+      "ecart_habituel": 11.6,
       "visible": false
     },
     {
