@@ -1,0 +1,201 @@
+{
+  "date": "2026-10-05T02:11:36.729Z",
+  "type": "Inspection visuelle de l’assistant à taille réelle, complémentaire du vérificateur numérique.",
+  "sha256Maitre": "2105cca251082c45d1b59fef65b8b6991d6ef554fc443d20c64d572a4ddc966a",
+  "dimensionsMaitre": [
+    34560,
+    1080
+  ],
+  "dimensionsVues": [
+    800,
+    1080
+  ],
+  "contexteDeChaqueCote": 400,
+  "raccords": [
+    {
+      "gauche": "01",
+      "droite": "02",
+      "fichier": "raccord-01-02.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "02",
+      "droite": "03",
+      "fichier": "raccord-02-03.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "03",
+      "droite": "04",
+      "fichier": "raccord-03-04.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "04",
+      "droite": "05",
+      "fichier": "raccord-04-05.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "05",
+      "droite": "06",
+      "fichier": "raccord-05-06.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "06",
+      "droite": "07",
+      "fichier": "raccord-06-07.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "07",
+      "droite": "08",
+      "fichier": "raccord-07-08.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "08",
+      "droite": "09",
+      "fichier": "raccord-08-09.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "09",
+      "droite": "10",
+      "fichier": "raccord-09-10.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "10",
+      "droite": "11",
+      "fichier": "raccord-10-11.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "11",
+      "droite": "12",
+      "fichier": "raccord-11-12.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "12",
+      "droite": "13",
+      "fichier": "raccord-12-13.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "13",
+      "droite": "14",
+      "fichier": "raccord-13-14.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "14",
+      "droite": "15",
+      "fichier": "raccord-14-15.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "15",
+      "droite": "16",
+      "fichier": "raccord-15-16.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "16",
+      "droite": "17",
+      "fichier": "raccord-16-17.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "17",
+      "droite": "18",
+      "fichier": "raccord-17-18.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": false
+    },
+    {
+      "gauche": "18",
+      "droite": "01",
+      "fichier": "raccord-18-01.png",
+      "ciel": "Contrôlé",
+      "silhouettesEtFacades": "Contrôlées",
+      "solEtBordure": "Contrôlés",
+      "resultat": "Aucune coupure franche restante repérée",
+      "boucle": true
+    }
+  ],
+  "limites": [
+    "Certains contours de nuages restent irréguliers.",
+    "De petites variations de grain, d’ombre ou de joints de pavage restent perceptibles près des devantures de Paris B et du garage de Périurbain B.",
+    "Cette inspection artistique ne garantit pas une perfection absolue de chaque pixel."
+  ]
+}

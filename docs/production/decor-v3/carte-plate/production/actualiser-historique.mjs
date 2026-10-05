@@ -17,7 +17,10 @@ for(const entry of direction.variantesNonAppliquees)if(!a.variantesNonAppliquees
 a.restaurationsArtistiques=direction.restaurations;
 const finales=JSON.parse(fs.readFileSync(base+'revision-finitions-finales.json'));
 for(const entry of finales.generations)if(!a.revisions.some(v=>v.id===entry.id&&v.source===entry.source))a.revisions.push(entry);
-a.etat='18 tuiles réexportées ; Maison de la Radio secondaire, tours rééquilibrées et intérieurs Riches C différents. Gabarits utilisés comme repères selon les dernières précisions. Petite promenade Retraités B restaurée ; portes naturelles de l’atelier et de la grange restaurées, scooters ajoutés à l’intérieur. Raccords visuels et détails de storyboard encore à finir.';
+const finitionsRaccords=JSON.parse(fs.readFileSync(base+'revision-raccords-finitions.json'));
+for(const entry of finitionsRaccords.generations)if(!a.revisions.some(v=>v.id===entry.id&&v.source===entry.source))a.revisions.push(entry);
+for(const entry of finitionsRaccords.variantesNonAppliquees)if(!a.variantesNonAppliquees.some(v=>v.id===entry.id&&v.source===entry.source))a.variantesNonAppliquees.push(entry);
+a.etat='18 tuiles réexportées ; 18 raccords contrôlés à taille réelle, boucle 18 → 01 comprise. Coupures de silhouettes et de bordures reprises par dessin opaque. Gabarits indicatifs, petites places, ouvertures naturelles, vélo et scooters intérieurs conservés. Supermarché, école et cabinet sécurisé terminés. Quelques irrégularités de nuages et de texture de pavage restent signalées dans le bilan.';
 a.controles.geometrie='production/controle-geometrie/rapport-calage-carte.json';
 a.actualiseLe=new Date().toISOString();
 fs.writeFileSync(file,JSON.stringify(a,null,2));console.log('Historique des révisions et rejets actualisé sans effacer les générations antérieures.');

@@ -9,5 +9,10 @@
   "canvasHeight": 1080,
   "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-11-12-dessin-continu-guide.png",
   "replaceLeft": 0,
-  "replaceWidth": 320
+  "replaceWidth": 320,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-11-12-dessin-continu-brute.png",
+  "pixelsModifies": 345567,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
 }
