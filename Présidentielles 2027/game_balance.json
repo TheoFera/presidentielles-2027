@@ -103,7 +103,7 @@
       "move_speed": 3,
       "home_biome_guard_radius_screens": 3,
       "raid_duration_seconds": 18,
-      "raid_cost": 45,
+      "raid_cost": 2,
       "attack_range": 1.6,
       "attack_cooldown_seconds": 0.9,
       "attack_damage": 9,
@@ -336,7 +336,7 @@
         0.1
       ],
       "equipment_seconds_by_level": [
-        4
+        2
       ],
       "preexisting_in_world": true,
       "required_local_sympathisants_to_use": 1,
@@ -514,7 +514,7 @@
         10
       ],
       "activation_cost": 10,
-      "hold_seconds": 15,
+      "hold_seconds": 10,
       "pause_grace_seconds": 5,
       "cooldown_seconds": 50,
       "gather_speed": 4.8,
@@ -825,7 +825,10 @@
   "ai_economy": {
     "enabled": true,
     "reserve_sympathisants_per_biome": 2,
-    "militant_goal_per_biome": 2,
+    "militant_goal_per_biome": 5,
+    "guard_goal_per_site": 3,
+    "army_detour_units": 30,
+    "investment_reference_k": 20,
     "development_order": [
       "permanence",
       "financement",

@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-05T09:44:36.709Z",
+  "date": "2026-10-05T11:35:22.985Z",
   "calageStrictObligatoire": false,
   "directives": "DIRECTIVES-UTILISATEUR.md",
   "rectangles": [
@@ -11,17 +11,6 @@
       "y": 764,
       "w": 258,
       "h": 44,
-      "centreX": 6481,
-      "pixelsIdentiquesALaSourceCalee": true
-    },
-    {
-      "id": "banlieue-a-composition-equilibree",
-      "role": "porte",
-      "tuile": "04",
-      "xDansFresque": 6433,
-      "y": 820,
-      "w": 96,
-      "h": 184,
       "centreX": 6481,
       "pixelsIdentiquesALaSourceCalee": true
     },
@@ -358,6 +347,12 @@
   ],
   "rectanglesAttendus": 42,
   "rectanglesNonCales": [
+    {
+      "tuile": "04",
+      "nom": "Banlieue A",
+      "centre": 6481,
+      "role": "porte"
+    },
     {
       "tuile": "08",
       "nom": "Périurbain B",

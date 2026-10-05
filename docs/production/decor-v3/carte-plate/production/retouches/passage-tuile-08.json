@@ -1,0 +1,20 @@
+{
+  "id": "passage-tuile-08",
+  "x": 15183,
+  "y": 920,
+  "w": 44,
+  "h": 128,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\passage-tuile-08-generation.png",
+  "appliquee": true,
+  "pixelsExterieursIdentiques": true,
+  "rectangles": [
+    [
+      1743,
+      920,
+      44,
+      128
+    ]
+  ],
+  "pixelsModifies": 5632,
+  "mode": "Effacement ou recul du pied des objets, masque binaire sans fondu"
+}

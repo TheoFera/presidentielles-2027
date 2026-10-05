@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-05T09:44:09.868Z",
+  "date": "2026-10-05T11:39:40.948Z",
   "largeur": 34560,
   "hauteur": 1080,
   "tuiles": 18,
@@ -10,21 +10,21 @@
   "maitres": [
     {
       "fichier": "docs/production/decor-v3/carte-plate/fresque-plate-maitre.png",
-      "sha256": "0cedf9f837940f90be8b8b5d798b67053b7b3f56c266687e1b91e4aa691db7ad"
+      "sha256": "8eda8a3f9df75a79397c3d06c0a1142abc1c692bac9b2017012d4dfa94956b1a"
     },
     {
       "fichier": "assets/generated/masters/fresque-plate-maitre.png",
-      "sha256": "0cedf9f837940f90be8b8b5d798b67053b7b3f56c266687e1b91e4aa691db7ad"
+      "sha256": "8eda8a3f9df75a79397c3d06c0a1142abc1c692bac9b2017012d4dfa94956b1a"
     }
   ],
   "pilote": {
     "fichier": "docs/production/decor-v3/carte-plate/pilote/fresque-plate-maitre.png",
     "largeur": 5760,
     "hauteur": 1080,
-    "sha256": "4840855be0ccd23cf4ea2bc933acb9522fe4398b0ee728f5d17697717245246d"
+    "sha256": "a5a7bf43f795612692161916a5a830ae4ce129a787ff19fbd3633b59ad553803"
   },
   "extensionsConservantLesPixels": true,
   "retouchesConservantLesPixelsExterieurs": true,
-  "nombreRetouches": 81,
+  "nombreRetouches": 92,
   "limite": "Ces mesures valident le format, les pixels conservés et la bande supérieure. Elles ne valident pas la géométrie des portes, le sol, le storyboard ni tous les bords des retouches."
 }

@@ -108,7 +108,7 @@ test('l’onde de fin de meeting convertit chaque PNJ quand le cercle l’attein
   const far = sim.state.npcs.find(npc => npc !== near && npc.role === 'NEUTRE');
   candidate.podium_site_id = podium.id; candidate.combat.height = config.balance.buildings.meeting.podium_height;
   assert.equal(triggerMeeting(sim, podium, 'melenchon', candidate.id), true);
-  advance(sim, sim.secondsToTicks(15) - 1);
+  advance(sim, sim.secondsToTicks(config.balance.buildings.meeting.hold_seconds) - 1);
   // Les PNJ restent en place pendant l’onde pour mesurer l’instant de la conversion.
   const freeze = () => { near.x = podium.x + 0.05; far.x = zone.start + 0.05; near.roam_wait_ticks = far.roam_wait_ticks = 999; };
   freeze(); sim.step(); freeze();

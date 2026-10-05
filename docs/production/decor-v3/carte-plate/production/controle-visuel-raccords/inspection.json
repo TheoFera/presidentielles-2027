@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-05T09:48:19.489Z",
+  "date": "2026-10-05T11:40:58.205Z",
   "type": "Inspection visuelle de l’assistant à taille réelle, complémentaire du vérificateur numérique.",
-  "sha256Maitre": "0cedf9f837940f90be8b8b5d798b67053b7b3f56c266687e1b91e4aa691db7ad",
+  "sha256Maitre": "8eda8a3f9df75a79397c3d06c0a1142abc1c692bac9b2017012d4dfa94956b1a",
   "dimensionsMaitre": [
     34560,
     1080
@@ -198,5 +198,22 @@
     "De petites variations de grain, d’ombre ou de joints de pavage restent perceptibles près des devantures de Paris B et du garage de Périurbain B.",
     "Cette inspection artistique ne garantit pas une perfection absolue de chaque pixel."
   ],
-  "restaurationsVitrines": "Raccords 16 → 17 et 17 → 18 inspectés après restauration ; les 16 autres tuiles sont identiques à la livraison précédente."
+  "restaurationsVitrines": "Raccords 16 → 17 et 17 → 18 inspectés après restauration ; les 16 autres tuiles sont identiques à la livraison précédente.",
+  "nettoyagePassage": {
+    "tuilesControlees": 18,
+    "tuilesRetouchees": 10,
+    "raccordsReinspectes": [
+      "1→2",
+      "2→3",
+      "3→4",
+      "4→5",
+      "8→9",
+      "15→16",
+      "16→17",
+      "17→18",
+      "18→1"
+    ],
+    "autresRaccordsIdentiquesAuPixelPres": true,
+    "retoucheSupplementaire": "Bande de trottoir du raccord Paris B → Paris C redessinée sans fondu."
+  }
 }

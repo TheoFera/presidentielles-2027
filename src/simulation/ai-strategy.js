@@ -34,6 +34,10 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
   const offset = Math.floor(aiNoise(state.seed, `${c.id}:reconsider`) * reconsider);
   if (keep && (state.tick + offset) % reconsider !== 0) return previous;
   const s = adaptationSettings(config), boost = Math.max(0, adaptation.boost);
+  // Un bon joueur s’empare vite d’un local de faction (service d’ordre ou cabinet), puis reprend les sites laissés vacants.
+  const hasFactionSite = state.buildings.some(b => b.type === 'faction' && b.owner_id === c.faction_id && b.state === 'ACTIVE');
+  // Les dons n’arrivent qu’à une permanence du même quartier : en ouvrir une là où il n’y en a pas encore.
+  const fundedBiomes = new Set(state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE').map(b => b.biome_id));
   const choices = state.electorate.map(e => {
     const zone = state.world.subzones.find(z => z.id === e.subzone_id);
     const units = state.npcs.filter(n => zoneAt(state.world, n.x).id === zone.id);
@@ -53,8 +57,12 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
     const pressure = factionPressure(adaptation, e.controller);
     const focusSites = sites.filter(b => factionPressure(adaptation, b.owner_id) > 0).length;
     const threatPressure = threatened ? Math.max(0, ...enemies.map(n => factionPressure(adaptation, n.faction_id))) : 0;
+    const vacant = state.buildings.filter(b => b.subzone_id === zone.id && b.ownership_model === 'capturable'
+      && ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(b.state) && !(b.type === 'faction' && hasFactionSite));
+    const opening = vacant.some(b => b.type === 'faction') ? 20
+      : vacant.some(b => b.type === 'permanence' && !fundedBiomes.has(b.biome_id)) ? 18 : vacant.length ? 6 : 0;
     const score = (enemyOwned ? settings.enemy_priority * (1 + 0.4 * boost) : allied ? -35 : minorFief ? -20 : 12) + (threatened ? 40 + threatPressure * 10 : 0)
-      + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 8 + focusSites * 4 + Math.min(12, enemies.length * 2)
+      + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 8 + focusSites * 4 + Math.min(12, enemies.length * 2) + opening
       + (pressure > 0 ? s.focus_zone_bonus * (1 + boost) : pressure < 0 ? -s.spared_zone_penalty : 0)
       - enemies.filter(n => ['MILITANT', 'SERVICE_D_ORDRE'].includes(n.role)).length * 3
       + e.electoral_weight * 0.2 - Math.max(0, rivalSupport - e.support[c.faction_id]) * 2
@@ -219,6 +227,9 @@ export function strategicAICommands(state, config, c) {
       result.push({ type: 'Jump', candidateId: c.id });
     return finish([...plan, ...result]);
   }
+  // Un coup décisif payable (local de faction, raid, fermeture) passe avant la tournée des dons.
+  const economic = aiEconomicTarget(state, config, c, objective, adaptation);
+  if (economic?.decisive) return finish([...plan, ...go(economic.x, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
   const funding = state.buildings.filter(b => ['permanence', 'financement'].includes(b.type) && b.owner_id === c.faction_id && b.state === 'ACTIVE'
     && b.stored_money_cents >= config.balance.money.donation.ai_funding_collection_threshold_eur * 100)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
@@ -233,7 +244,6 @@ export function strategicAICommands(state, config, c) {
       .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
     if (donor) return finish([...plan, ...go(donor.x, config.balance.money.donation.handoff_radius_units * 0.6)]);
   }
-  const economic = aiEconomicTarget(state, config, c, objective, adaptation);
   if (economic?.type === 'meeting' && !candidateOnMeetingStage(state, config, c, economic)) {
     const approach = go(economic.x, Math.min(0.25, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio));
     if (approach[2].axis === 0 && c.combat.height <= 0 && c.combat.jump_tick == null)

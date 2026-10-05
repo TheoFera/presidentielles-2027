@@ -22,24 +22,27 @@ export class CampaignStylesDisplay {
     const key = JSON.stringify([selection, c.current_campaign_style, this.profile.unlocked_campaign_styles, this.profile.nickname]);
     if (key === this.key) return;
     this.key = key; this.resetInput();
-    const title = document.createElement('h1'); title.id = 'campaign-styles-title'; title.textContent = 'CHOISISSEZ VOTRE STYLE';
-    const subtitle = document.createElement('p'); subtitle.textContent = selection.mandatory ? 'QG établi. Choisissez votre façon de faire campagne : ce choix est définitif.' : 'Un seul style actif. Changer remet la charge de l’ultime à zéro.';
+    const title = document.createElement('h1'); title.id = 'campaign-styles-title'; title.textContent = 'CHOISISSEZ VOTRE STYLE DE CAMPAGNE';
+    const subtitle = document.createElement('p'); subtitle.textContent = selection.mandatory ? 'Ce choix est définitif.' : 'Un seul style actif. Changer remet la charge de l’ultime à zéro.';
     const grid = document.createElement('div'); grid.className = 'campaign-style-grid';
     for (const style of campaignStyles(this.config, c.faction_id)) {
       const unlocked = isCampaignStyleUnlocked(this.profile, c.faction_id, style.id), current = style.id === c.current_campaign_style;
       const card = document.createElement('button'); card.type = 'button'; card.className = 'campaign-style-card'; card.disabled = !unlocked; card.dataset.styleId = style.id;
       card.classList.toggle('current', current); card.style.setProperty('--style-accent', style.skin.accent);
-      const status = document.createElement('span'); status.className = 'campaign-style-status'; status.textContent = current ? 'ACTUEL' : unlocked ? 'SÉLECTIONNABLE' : '🔒 VERROUILLÉ';
+      const status = document.createElement('span'); status.className = 'campaign-style-status'; status.textContent = current ? 'ACTUEL' : '';
       const portrait = document.createElement('canvas'); portrait.width = 420; portrait.height = 500; portrait.setAttribute('role', 'img'); portrait.setAttribute('aria-label', `Portrait : ${style.name}`); paintStylePortrait(portrait, this.config, c.faction_id, style);
       const name = document.createElement('h2'); name.textContent = style.name;
       const biome = document.createElement('strong'); biome.className = 'campaign-style-biome'; biome.textContent = this.config.layout.biomes.find(b => b.id === style.primary_biome).display_name;
-      const summary = document.createElement('p'); summary.textContent = style.summary;
+      card.title = style.summary;
       const ultimate = document.createElement('span'); ultimate.className = 'campaign-style-ultimate'; ultimate.textContent = `✦ ${style.ultimate.name}`;
       const mode = document.createElement('small'); mode.textContent = style.ultimate.kind === 'BARDELLA' ? 'Bouton Ultime : armer la relève au prochain KO' : 'Chargez en touchant · Activez avec Ultime';
-      card.append(status, portrait, name, biome, summary, ultimate, mode);
+      if (status.textContent) card.append(status);
+      if (!unlocked) { const lock = document.createElement('span'); lock.className = 'campaign-style-lock'; lock.setAttribute('aria-label', 'Style verrouillé'); lock.textContent = '🔒'; card.append(lock); }
+      card.append(portrait, name, biome, ultimate);
+      if (style.ultimate.kind === 'BARDELLA') card.append(mode);
       card.addEventListener('click', () => this.dispatch({ type: 'SelectCampaignStyle', candidateId: c.id, styleId: style.id })); grid.append(card);
     }
-    this.dialog.replaceChildren(title, subtitle, grid);
+    this.dialog.replaceChildren(title, ...(selection.mandatory ? [] : [subtitle]), grid);
     if (!selection.mandatory) { const close = document.createElement('button'); close.type = 'button'; close.className = 'campaign-style-cancel'; close.textContent = 'Annuler · Échap'; close.onclick = () => this.cancel(); this.dialog.append(close); }
     if (!this.dialog.open) this.dialog.showModal();
     grid.querySelector('button:not(:disabled)')?.focus();

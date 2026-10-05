@@ -1,0 +1,490 @@
+{
+  "date": "2026-10-05T10:33:08.664Z",
+  "methode": "ImageGen intégré, référence world-v2 pour chaque retouche. Copie opaque uniquement dans les rectangles des obstacles ; aucun fondu. Les arbres et un lampadaire conservés ont leurs pieds replacés derrière la ligne de marche.",
+  "ligneDeMarche": 1004,
+  "tuilesControlees": 18,
+  "tuilesSansObstacleAuPremierPlan": [
+    5,
+    6,
+    7,
+    10,
+    11,
+    12,
+    13,
+    15
+  ],
+  "retouches": [
+    {
+      "tuile": 1,
+      "action": "Remove the three short bollards at x47, x262 and x397; remove the large foreground lamp at x1055; remove the entire big advertising column at x1580 (including its dome and foot); remove the foreground lamp at x1808. Reconstruct the cream walls, garden fence and paving behind these exact objects. The big tree at x1880: retain its upper trunk and canopy exactly but redraw its lowest trunk/root so it ends behind the walkway, with foot at y=510 rather than y=584. Replace the vacated lower roots with garden wall and paving. Preserve cafe chairs/tables, windows, doors and rear streetlights.",
+      "referenceStyle": "reference-style-carte-plate.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove the three short bollards at x47, x262 and x397; remove the large foreground lamp at x1055; remove the entire big advertising column at x1580 (including its dome and foot); remove the foreground lamp at x1808. Reconstruct the cream walls, garden fence and paving behind these exact objects. The big tree at x1880: retain its upper trunk and canopy exactly but redraw its lowest trunk/root so it ends behind the walkway, with foot at y=510 rather than y=584. Replace the vacated lower roots with garden wall and paving. Preserve cafe chairs/tables, windows, doors and rear streetlights. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-55de769f-3141-4f71-a3f9-ed071105fbc2.png",
+      "rectangles": [
+        [
+          26,
+          924,
+          43,
+          107
+        ],
+        [
+          241,
+          923,
+          43,
+          108
+        ],
+        [
+          375,
+          920,
+          45,
+          111
+        ],
+        [
+          1027,
+          650,
+          56,
+          384
+        ],
+        [
+          1500,
+          567,
+          163,
+          466
+        ],
+        [
+          1780,
+          575,
+          62,
+          463
+        ],
+        [
+          1840,
+          902,
+          80,
+          132
+        ]
+      ],
+      "raffinement": {
+        "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-2d17687d-ab49-4359-a132-8d087dbae47c.png",
+        "prompt": "Use case: precise-object-edit. Image1 EDIT TARGET, exact 1920x640 game panorama. Image2 world-v2 STYLE ONLY. Remove ONLY the newly appeared square beige planter with its small plant at x1055, immediately left of the teal office storefront, visible from y475 through y568. Reconstruct the cream facade corner and uninterrupted existing paved sidewalk. No new pot or any other object at that spot. Preserve every other pixel, all earlier object removals, buildings, signs, windows, existing other plants and cafe exactly. No text, people, vehicle, transparency, blur, fade. Same exact composition, dimensions and framing.",
+        "rectangles": [
+          [
+            1027,
+            876,
+            56,
+            158
+          ]
+        ]
+      },
+      "pixelsModifies": 150941,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 2,
+      "action": "Remove ONLY the tall lamp at the extreme right, x1900, including the foot. The nearby tree at x1826: preserve canopy and upper trunk, redraw ONLY its lowest trunk/root so the tree now ends at y=510 rather than y=574, behind the walkway; reconstruct the facade and sidewalk beneath. Preserve every shop, all display windows, meat, cheese, bread and the bicycle INSIDE the repair workshop. Do not change the other lamps deep in the square.",
+      "referenceStyle": "reference-style-carte-plate.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ONLY the tall lamp at the extreme right, x1900, including the foot. The nearby tree at x1826: preserve canopy and upper trunk, redraw ONLY its lowest trunk/root so the tree now ends at y=510 rather than y=574, behind the walkway; reconstruct the facade and sidewalk beneath. Preserve every shop, all display windows, meat, cheese, bread and the bicycle INSIDE the repair workshop. Do not change the other lamps deep in the square. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-c345b22c-50a6-472f-b7f6-033ea9c2f17b.png",
+      "rectangles": [
+        [
+          1865,
+          620,
+          55,
+          417
+        ],
+        [
+          1780,
+          914,
+          102,
+          124
+        ]
+      ],
+      "pixelsModifies": 35581,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 3,
+      "action": "Remove foreground bollards at x162, x1125 and x1805 and the two large foreground lamps at x779 and x1889. Redraw pavement, cream stone walls, plants and iron fencing occluded by those objects. The tree trunk at extreme left x44: keep upper trunk and crown but redraw lowest trunk/root so its foot is at y=510 instead of y=574, behind the walkway. Keep distant lamps, canal, railings on the walls, both entrance buildings, blank signs, doors unchanged.",
+      "referenceStyle": "reference-style-carte-plate.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove foreground bollards at x162, x1125 and x1805 and the two large foreground lamps at x779 and x1889. Redraw pavement, cream stone walls, plants and iron fencing occluded by those objects. The tree trunk at extreme left x44: keep upper trunk and crown but redraw lowest trunk/root so its foot is at y=510 instead of y=574, behind the walkway. Keep distant lamps, canal, railings on the walls, both entrance buildings, blank signs, doors unchanged. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-37777551-1ad8-4754-89fb-500d75eb7707.png",
+      "rectangles": [
+        [
+          6,
+          900,
+          76,
+          129
+        ],
+        [
+          143,
+          900,
+          37,
+          129
+        ],
+        [
+          758,
+          710,
+          48,
+          319
+        ],
+        [
+          1108,
+          900,
+          38,
+          129
+        ],
+        [
+          1789,
+          900,
+          35,
+          129
+        ],
+        [
+          1859,
+          623,
+          61,
+          406
+        ]
+      ],
+      "pixelsModifies": 64018,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 4,
+      "action": "Remove ALL freestanding low green pedestrian barriers and bollards along the closest edge of the sidewalk: short bollard x114, X-cross barrier x295, upright posts x594 and x753, X barrier x975, upright posts x1177 x1314 x1407, X barriers x1524 and x1756. Replace them with continuous original paving. Do NOT remove the fence on top of the garden wall, gates, the office, its blank sign, or the lamp attached beside the wall at x1206: those are behind the walkway already. Preserve everything else exactly.",
+      "referenceStyle": "reference-style-plate-banlieue.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ALL freestanding low green pedestrian barriers and bollards along the closest edge of the sidewalk: short bollard x114, X-cross barrier x295, upright posts x594 and x753, X barrier x975, upright posts x1177 x1314 x1407, X barriers x1524 and x1756. Replace them with continuous original paving. Do NOT remove the fence on top of the garden wall, gates, the office, its blank sign, or the lamp attached beside the wall at x1206: those are behind the walkway already. Preserve everything else exactly. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-2f17410a-e784-4f90-8b79-3868e1501033.png",
+      "rectangles": [
+        [
+          99,
+          919,
+          33,
+          109
+        ],
+        [
+          221,
+          945,
+          149,
+          98
+        ],
+        [
+          579,
+          944,
+          75,
+          95
+        ],
+        [
+          738,
+          944,
+          72,
+          95
+        ],
+        [
+          916,
+          943,
+          130,
+          96
+        ],
+        [
+          1164,
+          943,
+          31,
+          97
+        ],
+        [
+          1297,
+          944,
+          38,
+          96
+        ],
+        [
+          1390,
+          944,
+          35,
+          96
+        ],
+        [
+          1460,
+          944,
+          132,
+          96
+        ],
+        [
+          1691,
+          941,
+          135,
+          99
+        ]
+      ],
+      "pixelsModifies": 80678,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 8,
+      "action": "Remove ONLY the single closest turquoise bollard at x1764 in the bottom-right foreground, top y=485 bottom y=604. Reconstruct its low traffic-island curb, foliage and paving. Keep all other posts farther back, traffic arrow, roundabout sculpture, buildings, sign, doors and scooter INSIDE the workshop exactly unchanged.",
+      "referenceStyle": "reference-style-plate-periurbain.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ONLY the single closest turquoise bollard at x1764 in the bottom-right foreground, top y=485 bottom y=604. Reconstruct its low traffic-island curb, foliage and paving. Keep all other posts farther back, traffic arrow, roundabout sculpture, buildings, sign, doors and scooter INSIDE the workshop exactly unchanged. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-064e2f8f-96f4-4120-8bee-5f0f16abeccc.png",
+      "rectangles": [
+        [
+          1743,
+          920,
+          44,
+          128
+        ]
+      ],
+      "raffinement": {
+        "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-ed90b53f-e50e-4cb0-b904-f817865afa7d.png",
+        "prompt": "Use case: precise-object-edit. Image1 EDIT TARGET, exact 1920x640 game panorama. Image2 world-v2 STYLE ONLY. Remove ONLY the small NEW tuft of tall grass at x1765, from y490 to y605, which replaced the removed closest green bollard at the foreground traffic-island corner. Reconstruct the bare beige paved island lip and low stone curb behind it, with continuous lines matching its neighbors. Keep the original larger shrubs to the right, starting at x1795, unchanged. Do not add a plant or object at x1765. Preserve every other pixel, scooter inside garage, buildings, signs, roads, crossing, arrow, statue and distant posts. No text, people, vehicle, transparency, blur, fade. Same exact composition, dimensions and framing.",
+        "rectangles": [
+          [
+            1743,
+            920,
+            44,
+            128
+          ]
+        ]
+      },
+      "pixelsModifies": 5632,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 9,
+      "action": "Remove ONLY the small green bollard at x113 in the bottom-left foreground, top y=509 bottom y=591. Reconstruct the exact stone garden wall and sidewalk behind it. Preserve building, entrance, sign, fences, cows, vegetation and mountains unchanged.",
+      "referenceStyle": "reference-style-plate-periurbain.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ONLY the small green bollard at x113 in the bottom-left foreground, top y=509 bottom y=591. Reconstruct the exact stone garden wall and sidewalk behind it. Preserve building, entrance, sign, fences, cows, vegetation and mountains unchanged. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-e05190fa-e632-4e86-82ca-96fc39011d6e.png",
+      "rectangles": [
+        [
+          95,
+          947,
+          37,
+          89
+        ]
+      ],
+      "pixelsModifies": 3292,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 14,
+      "action": "Remove ONLY the two closest green bollards at x677 and x1347, feet at y578 on the sidewalk. Reconstruct paving underneath, with the same tile pattern and lighting. Keep palm trees, all taller lamps whose feet are farther back, rear bollards on the seaside path, all shop windows and doors, blank signs, pots, sea unchanged.",
+      "referenceStyle": "reference-style-plate-retraites.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ONLY the two closest green bollards at x677 and x1347, feet at y578 on the sidewalk. Reconstruct paving underneath, with the same tile pattern and lighting. Keep palm trees, all taller lamps whose feet are farther back, rear bollards on the seaside path, all shop windows and doors, blank signs, pots, sea unchanged. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-bf60d187-fb0b-46dd-b72b-b69fc186916c.png",
+      "rectangles": [
+        [
+          657,
+          915,
+          41,
+          119
+        ],
+        [
+          1332,
+          919,
+          40,
+          110
+        ]
+      ],
+      "pixelsModifies": 9277,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 16,
+      "action": "Keep the large lamp at x255, but redraw only its lower stem and ornate foot to end higher up in the picture: the foot must end at y=510 rather than y=593, against the garden wall behind the unobstructed walkway. Preserve its crown and upper stem location and shape. Reconstruct wall and paving under the vacated bottom section. Similarly redraw only the roots of the tree at x1380 so its foot ends at y=510 rather than y=567; keep upper trunk/canopy unchanged. Preserve both buildings, every doorway/window, blank signs, walls and railings exactly.",
+      "referenceStyle": "reference-style-plate-riches.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Keep the large lamp at x255, but redraw only its lower stem and ornate foot to end higher up in the picture: the foot must end at y=510 rather than y=593, against the garden wall behind the unobstructed walkway. Preserve its crown and upper stem location and shape. Reconstruct wall and paving under the vacated bottom section. Similarly redraw only the roots of the tree at x1380 so its foot ends at y=510 rather than y=567; keep upper trunk/canopy unchanged. Preserve both buildings, every doorway/window, blank signs, walls and railings exactly. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-177173d5-06dd-47dc-9bb6-b99101ca5f4c.png",
+      "rectangles": [
+        [
+          219,
+          866,
+          76,
+          168
+        ],
+        [
+          1347,
+          910,
+          69,
+          104
+        ]
+      ],
+      "pixelsModifies": 19860,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 17,
+      "action": "Suppression du grand lampadaire devant la bijouterie ; devanture d’origine conservée.",
+      "referenceStyle": "reference-style-plate-riches.png",
+      "prompt": "Use case: precise-object-edit. Image 1 is the exact EDIT TARGET, 1920x640 horizontal crop of an opaque hand-painted 2D French game panorama. Image 2 is world-v2 STYLE REFERENCE only. Preserve target composition, dimensions, camera, every facade, full jewellery storefront and blank cream panels. Remove ONLY the very large dark green lamp post at x=100 in the far left foreground, from its crown near y=45 through its heavy foot at y=631. Reconstruct the cream stone facade, paving and curb that it occludes, matching original stone courses and paving precisely. No lamp left at that location, no floating parts, remove its specific shadow but retain general foliage shadows. The lamp at x1408 and news kiosk are sufficiently behind the walking line: preserve them. Preserve everything else EXACTLY, especially the complete original shop windows. No text, no vehicle, no people, no blur, no transparency, no fade, no new object. Return the same wide 1920x640 frame; do not crop or rescale its composition.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-45c11728-1ecf-46f9-9481-15e3a7e3c2a8.png",
+      "rectangles": [
+        [
+          58,
+          482,
+          78,
+          598
+        ]
+      ],
+      "pixelsModifies": 46638,
+      "pixelsExterieursIdentiques": true
+    },
+    {
+      "tuile": 18,
+      "action": "Remove ONLY the huge foreground lamp at x55, from crown near y62 down to heavy foot y592, AND the small foreground bollard at x1808 with foot y585. Reconstruct the existing facade, cream garden wall, plants and sidewalk behind those objects. Preserve the other large lamps farther back at x1557 and x1786 and all distant lamps. Preserve the COMPLETE original cabinet/library storefront, brown glass door, tech/white sondage institute storefront, all window dimensions and two large blank cream signs EXACTLY.",
+      "referenceStyle": "reference-style-plate-riches.png",
+      "prompt": "Use case: precise-object-edit. Asset: opaque hand-painted 2D French game panorama. Input 1 is the exact EDIT TARGET, wide 1920x640 image; input 2 is world-v2 STYLE REFERENCE ONLY. Preserve composition, all object coordinates and dimensions, framing and camera, architectural detail and original textures. Make ONLY the following local changes: Remove ONLY the huge foreground lamp at x55, from crown near y62 down to heavy foot y592, AND the small foreground bollard at x1808 with foot y585. Reconstruct the existing facade, cream garden wall, plants and sidewalk behind those objects. Preserve the other large lamps farther back at x1557 and x1786 and all distant lamps. Preserve the COMPLETE original cabinet/library storefront, brown glass door, tech/white sondage institute storefront, all window dimensions and two large blank cream signs EXACTLY. Output the same wide frame, no crop, no stretching of the composition. Preserve all unspecified pixels. No additional objects, no text, no person, no car, no blur, no alpha/transparency, no fade or blend. Summer morning illumination from left. The character walking line is y=564 in this crop, so foreground obstructions must be gone and relocated feet must be above y=520.",
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-12ece1b2-4de1-4c02-81d7-145d32dd4948.png",
+      "rectangles": [
+        [
+          10,
+          491,
+          96,
+          549
+        ],
+        [
+          1789,
+          926,
+          40,
+          116
+        ]
+      ],
+      "pixelsModifies": 57309,
+      "pixelsExterieursIdentiques": true
+    }
+  ],
+  "raccords": [
+    {
+      "id": "passage-raccord-02-03",
+      "x": 3672,
+      "y": 900,
+      "w": 310,
+      "h": 180,
+      "canvasLeft": 3072,
+      "canvasTop": 440,
+      "canvasWidth": 1536,
+      "canvasHeight": 640,
+      "sourceGeneree": "C:\\Users\\ferat\\.codex\\generated_images\\01a10491-aba6-7552-aceb-eff4507e4596\\exec-1e272db8-d9ba-46d4-a109-2db29a96df91.png",
+      "referenceStyle": "reference-style-carte-plate.png",
+      "prompt": "Use case: precise-object-edit. Input1 is exact EDIT TARGET: 1536x640 horizontal crop spanning an existing Paris B/C game panorama join. Input2 is world-v2 STYLE REFERENCE ONLY. Repair ONLY the small lower-middle strip between x600 and x910, y460..640: unify the paving pattern, sidewalk shadow, small garden-wall base and curb into one continuous hand-painted surface across x768. Remove the visible rectangular patch edges in the paving at that spot. Keep the two tree trunks and canopies in their EXACT locations; roots remain behind the walking line y564, do not let a new tree base extend into foreground. Keep the scene, composition and dimensions exactly: shops, all windows, meat and cheese, facades, doors, blank cream sign, fences, flowers and every pixel above y460 unchanged. Match paving rows and curb height with the fixed left and right context. Do not add a bollard, lamp, planter, tree, fence or any object on the pedestrian lane. No person, car, text, blur, transparent pixel, fade or blend. Return exact same frame without crop or composition rescaling. Repaint the narrow join; keep both sides fixed.",
+      "pixelsExterieursIdentiques": true,
+      "pixelsModifies": 55761
+    }
+  ],
+  "dateApplication": "2026-10-05T11:25:14.164Z",
+  "pixelsModifies": 498739,
+  "pixelsExterieursIdentiques": true,
+  "pixelsTransparents": 0,
+  "verification": {
+    "date": "2026-10-05T11:38:09.194Z",
+    "tuilesModifiees": [
+      1,
+      2,
+      3,
+      4,
+      8,
+      9,
+      14,
+      16,
+      17,
+      18
+    ],
+    "tuilesInchangees": 8,
+    "copiesDuJeuIdentiquesAuMaitre": true,
+    "troisVitrinesOriginalesConserveesAuPixelPres": true,
+    "raccords": [
+      {
+        "gauche": 1,
+        "droite": 2,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 2,
+        "droite": 3,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 3,
+        "droite": 4,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 4,
+        "droite": 5,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 5,
+        "droite": 6,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 6,
+        "droite": 7,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 7,
+        "droite": 8,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 8,
+        "droite": 9,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 9,
+        "droite": 10,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 10,
+        "droite": 11,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 11,
+        "droite": 12,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 12,
+        "droite": 13,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 13,
+        "droite": 14,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 14,
+        "droite": 15,
+        "identiqueAvantNettoyage": true
+      },
+      {
+        "gauche": 15,
+        "droite": 16,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 16,
+        "droite": 17,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 17,
+        "droite": 18,
+        "identiqueAvantNettoyage": false
+      },
+      {
+        "gauche": 18,
+        "droite": 1,
+        "identiqueAvantNettoyage": false
+      }
+    ],
+    "sha256Maitre": "8eda8a3f9df75a79397c3d06c0a1142abc1c692bac9b2017012d4dfa94956b1a",
+    "limite": "Les contrôles de pixels ne détectent pas un objet ou un défaut artistique ; les vues ont été inspectées séparément."
+  }
+}

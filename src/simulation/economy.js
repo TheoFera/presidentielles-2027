@@ -208,19 +208,37 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
   const boost = Math.max(0, adaptation?.boost ?? 0);
   const spared = adaptation?.spared ?? new Set();
   const zone = zoneAt(state.world, candidate.x);
+  // Comme un bon joueur, l’IA ne garde pas son argent : plus elle en a, plus elle fait de détours pour le dépenser.
+  const wealth = Math.min(1, Math.max(0, candidate.money / (settings.investment_reference_k ?? 20)));
+  // Militants, service d’ordre, raids, fermetures et nouvelles permanences valent un vrai trajet.
+  const armyDetour = (settings.army_detour_units ?? 0) * (1 + boost);
+  const hasFactionSite = state.buildings.some(b => b.type === 'faction' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
+  // Tant qu’elle n’a pas de local de faction, l’IA met de côté de quoi en prendre un, au lieu de tout disperser.
+  const freeSlot = !hasFactionSite && candidate.headquarters_site_id && state.phase === 'CAMPAIGN'
+    && state.buildings.find(b => b.type === 'faction' && ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(b.state));
+  const savings = freeSlot ? buildingSettings(config, freeSlot, candidate.faction_id).capture_cost : 0;
   const options = [];
   for (const building of state.buildings) {
     if (building.id === candidate.purchase_latch_target_id) continue;
     const local = building.subzone_id === (objective?.subzone_id ?? zone.id);
-    // Les investissements hors objectif restent de courts détours sur le trajet.
-    const detour = (building.owner_id === candidate.faction_id ? 10 : 4) * (1 + boost);
-    if (!local && (objective?.purpose === 'SETUP' || distance(state, candidate.x, building.x) > detour)) continue;
+    // Les autres investissements hors objectif restent des détours sur le trajet.
+    const detour = (building.owner_id === candidate.faction_id ? 10 : 4) * (1 + boost) * (1 + 2 * wealth);
+    const far = distance(state, candidate.x, building.x);
+    if (!local && (objective?.purpose === 'SETUP' || far > Math.max(detour, armyDetour))) continue;
     for (const offer of buildingOffers(state, config, candidate, building)) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
       const firstFunding = building.type === 'financement' && offer.kind === 'CAPTURE'
         && !state.buildings.some(b => b.type === 'financement' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
+      // Une permanence dans un nouveau quartier y fait remonter les dons : c’est un placement, pas une dépense.
+      const newBranch = building.type === 'permanence' && offer.kind === 'CAPTURE' && !firstHQ
+        && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && b.biome_id === building.biome_id);
+      const army = ['PRINT', 'EQUIP', 'RAID', 'CLOSE'].includes(offer.kind) || newBranch
+        || building.type === 'faction' && offer.kind === 'CAPTURE' && !hasFactionSite;
+      if (!local && far > (army ? Math.max(detour, armyDetour) : detour)) continue;
       if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')) continue;
       if (offer.kind === 'POLL') continue;
+      // Les petites dépenses (tracts, équipement) restent permises pendant l’épargne.
+      if (savings && building.type !== 'faction' && !firstHQ && !newBranch && offer.cost > 1 && candidate.money - offer.cost < savings) continue;
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {
         const supporters = biomeSympathisants(state, building.biome_id, candidate.faction_id, true);
@@ -232,6 +250,9 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
         if (supporters.some(n => state.buildings.some(b => b.subzone_id === zoneAt(state.world, n.x).id && b.owner_id === candidate.faction_id
           && b.state === 'ACTIVE' && localSympathisants(state, b.subzone_id, candidate.faction_id).length - queued <= (buildingSettings(config, b).required_presence_N1 ?? 0)))) continue;
       }
+      // Un service d’ordre de quelques gardes suffit pour lancer des raids.
+      if (offer.kind === 'EQUIP' && state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.source_site_id === building.id).length
+        + building.queue.length >= (settings.guard_goal_per_site ?? Infinity)) continue;
       // Laisser respirer un humain distancé : pas de fermeture administrative contre lui.
       if (offer.kind === 'CLOSE' && spared.has(state.buildings.find(b => b.id === offer.victim_id)?.owner_id)) continue;
       if (offer.kind === 'RAID') {
@@ -240,13 +261,15 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
           && wrap((b.x - building.x) * direction, state.world.length) < state.world.length / 2);
         if (!enemy) continue;
       }
-      const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : firstFunding ? 2
+      // Le local de faction, ses gardes, puis ses raids et fermetures, sont les coups décisifs : ils valent un long trajet.
+      const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['EQUIP', 'RAID', 'CLOSE'].includes(offer.kind));
+      const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : decisive ? 0.5 : newBranch ? 1.5 : firstFunding ? 2
         : building.type === 'tour_communication' ? 3 : building.type === 'financement' ? 4 : 5)
         : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
-        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 5 : offer.kind === 'EQUIP' ? 6
+        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 3 : offer.kind === 'EQUIP' ? 2
         : offer.kind === 'MEETING' ? 7 - 4 * boost : 8;
-      options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer,
-        rank: priority + distance(state, candidate.x, offer.x) * 0.35 });
+      options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer, decisive,
+        rank: priority + distance(state, candidate.x, offer.x) * (decisive ? 0.1 : 0.35) });
     }
   }
   return options.sort((a, b) => a.rank - b.rank || a.offer.key.localeCompare(b.offer.key))[0] || null;

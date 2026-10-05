@@ -178,6 +178,35 @@ test('L’IA déclenche un raid disponible dans la direction des bâtiments enne
   assert.equal(aiEconomicTarget(sim.state, config, c, { subzone_id: site.subzone_id, purpose: 'CONQUER' }).offer.kind, 'RAID');
 });
 
+test('L’IA imprime assez de tracts pour que ses militants partent en groupe', () => {
+  const { config } = make();
+  assert.ok(config.balance.ai_economy.militant_goal_per_biome > config.balance.physical_units.militant.expedition_min_group_size);
+  const { sim } = make(); const c = isolate(sim); c.money = 10;
+  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c); c.x = hq.x;
+  for (let i = 0; i < 6; i++) supporter(sim, c.faction_id, hq.x + 0.3 * i);
+  // Trois militants déjà là : l’ancienne limite de deux est dépassée, l’IA continue pourtant.
+  for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, hq.x - 0.3 * i).role = 'MILITANT';
+  assert.equal(aiEconomicTarget(sim.state, config, c, { subzone_id: hq.subzone_id, purpose: 'CONQUER' }).offer.kind, 'PRINT');
+});
+
+test('L’IA épargne pour son local de faction puis fait le trajet pour le prendre', () => {
+  const { sim, config } = make(); const c = isolate(sim);
+  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c);
+  const slot = sim.state.buildings.find(b => b.type === 'faction' && !b.owner_id);
+  for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, slot.x + 0.3 * i);
+  c.x = slot.x - 20; c.money = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.capture_cost;
+  const target = aiEconomicTarget(sim.state, config, c, { subzone_id: hq.subzone_id, purpose: 'CONQUER' });
+  assert.equal(target.id, slot.id); assert.equal(target.offer.kind, 'CAPTURE'); assert.equal(target.decisive, true);
+  // Sans local, une rédaction à 15 k€ qui entamerait l’épargne est écartée ; une fois le local pris, elle redevient un achat.
+  const tower = sim.state.buildings.find(b => b.type === 'tour_communication');
+  for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, tower.x + 0.3 * i);
+  c.x = tower.x; c.money = 20;
+  const towerObjective = { subzone_id: tower.subzone_id, purpose: 'CONQUER' };
+  assert.notEqual(aiEconomicTarget(sim.state, config, c, towerObjective)?.id, tower.id);
+  captureSite(sim, slot, c);
+  assert.equal(aiEconomicTarget(sim.state, config, c, towerObjective)?.id, tower.id);
+});
+
 test('Difficulté : cadence de combat distincte, dash offensif et repli après blessure', () => {
   const counts = Object.keys(AI_DIFFICULTIES).map(level => {
     const { sim, config } = make(level); const c = isolate(sim); const n = supporter(sim, 'melenchon', c.x + 1);

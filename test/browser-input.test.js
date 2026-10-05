@@ -31,10 +31,10 @@ test('Neuf cartes, trois par candidat : choix obligatoire et deux cadenas', t =>
     const display = new CampaignStylesDisplay(config, normalizeCampaignProfile(), command => sim.applyCommand(command), () => {});
     display.update(sim.state);
     assert.equal(display.dialog.open, true);
-    assert.equal(display.dialog.children.length, 3, 'Aucun bouton Annuler au premier choix');
-    const choices = display.dialog.children[2].children;
+    assert.equal(display.dialog.children.length, 2, 'Aucun bouton Annuler au premier choix');
+    const choices = display.dialog.children[1].children;
     assert.equal(choices.length, 3); assert.equal(choices.filter(c => c.disabled).length, 2);
-    for (const choice of choices) { assert.ok(choice.children[2].textContent); assert.ok(choice.children[5].textContent); ids.add(faction + ':' + choice.children[2].textContent); }
+    for (const choice of choices) { const [name, , ultimate] = choice.children.filter(e => typeof e.textContent === 'string' && e.textContent).slice(-3); assert.ok(name.textContent); assert.ok(ultimate.textContent); ids.add(faction + ':' + name.textContent); }
     choices[0].dispatchEvent(new Event('click')); display.update(sim.state); assert.equal(display.dialog.open, false);
     assert.ok(c.current_campaign_style);
   }

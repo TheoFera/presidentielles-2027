@@ -76,14 +76,14 @@
   "coupes": [
     {
       "coupe": "01 → 02",
-      "ecart": 21.3,
-      "ecart_habituel": 15.5,
+      "ecart": 22.7,
+      "ecart_habituel": 15.2,
       "visible": false
     },
     {
       "coupe": "02 → 03",
-      "ecart": 14.7,
-      "ecart_habituel": 14.6,
+      "ecart": 17.5,
+      "ecart_habituel": 12,
       "visible": false
     }
   ],

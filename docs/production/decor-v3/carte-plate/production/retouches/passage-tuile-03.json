@@ -1,0 +1,50 @@
+{
+  "id": "passage-tuile-03",
+  "x": 3846,
+  "y": 623,
+  "w": 1914,
+  "h": 406,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\passage-tuile-03-generation.png",
+  "appliquee": true,
+  "pixelsExterieursIdentiques": true,
+  "rectangles": [
+    [
+      6,
+      900,
+      76,
+      129
+    ],
+    [
+      143,
+      900,
+      37,
+      129
+    ],
+    [
+      758,
+      710,
+      48,
+      319
+    ],
+    [
+      1108,
+      900,
+      38,
+      129
+    ],
+    [
+      1789,
+      900,
+      35,
+      129
+    ],
+    [
+      1859,
+      623,
+      61,
+      406
+    ]
+  ],
+  "pixelsModifies": 64018,
+  "mode": "Effacement ou recul du pied des objets, masque binaire sans fondu"
+}
