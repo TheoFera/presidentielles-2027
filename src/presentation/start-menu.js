@@ -76,14 +76,6 @@ export class StartMenu {
     this.page('home', '', homeContent());
     this.element.querySelector('#campaign').onclick = () => { mobileLandscape(); this.players('campaign'); };
     this.element.querySelector('#debate').onclick = () => { mobileLandscape(); this.players('debate'); };
-    // Appli en Europe : le joueur peut revoir ses choix de consentement aux pubs (obligation RGPD).
-    if (this.ads?.privacyRequired()) {
-      const privacy = document.createElement('button');
-      privacy.id = 'menu-ad-privacy'; privacy.textContent = 'Pubs';
-      privacy.title = privacy.ariaLabel = 'Choix de confidentialité des publicités';
-      privacy.onclick = () => this.ads.openPrivacy();
-      this.element.querySelector('.menu-tools')?.prepend(privacy);
-    }
   }
   /** « Avec qui ? » : seul contre l’IA, ou entre amis, pour la campagne comme pour le débat. */
   players(mode) {
@@ -133,6 +125,15 @@ export class StartMenu {
     this.account.save(rememberTitle(this.account.get()));
     this.page('profile', 'Mon profil', profileContent(this.account.get(), { tab }));
     this.onProfile?.(this);
+    // Appli en Europe : le joueur peut revoir ses choix de consentement aux pubs (obligation RGPD),
+    // même sans compte : le bouton est donc dans Mon profil, à côté de « Mon compte ».
+    if (this.ads?.privacyRequired()) {
+      const privacy = document.createElement('button');
+      privacy.type = 'button'; privacy.id = 'profile-ad-privacy'; privacy.textContent = 'Choix des pubs';
+      privacy.title = 'Choix de confidentialité des publicités';
+      privacy.onclick = () => this.ads.openPrivacy();
+      this.element.querySelector('.profile-account-actions')?.append(privacy);
+    }
     const tabs = [...this.element.querySelectorAll('[data-profile-tab]')];
     tabs.forEach(button => button.onclick = () => {
       this.profileTab = button.dataset.profileTab;

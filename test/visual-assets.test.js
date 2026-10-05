@@ -119,7 +119,7 @@ function coloredTractRegions(png) {
 
 test('Chaque biome possède ses sept façades, ses vingt habitants et ses trois décors', async () => {
   for (const biome of ['bobo','banlieue','periurbain','campagne','retraites','riches']) {
-    for (const family of ['campaign_local','financement','communication','security_admin_slot','imprimerie','meeting_hall','meeting_stage','polling_institute']) {
+    for (const family of ['campaign_local','financement','communication','security_admin_slot','imprimerie','meeting_stage','polling_institute']) {
       const id = `building-${family}-${biome}`;
       assert.ok(visualManifest[id], id); await access(new URL(visualManifest[id].file));
     }

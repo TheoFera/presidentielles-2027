@@ -1,9 +1,7 @@
 import { ringDelta } from '../simulation/world.js';
 import { seasonAt } from '../simulation/campaign-events.js';
 import { currentMapDecor } from './map-decor.js';
-import { paintedAssetIds } from './france-peinte-data.js';
-import { completePaintedAssetIds } from './france-peinte-complete-data.js';
-import { expandedWorldAssetIds } from './world-v2-expanded-data.js';
+import { paintedAssetIds, completePaintedAssetIds, expandedWorldAssetIds } from './decors-betatest.js';
 import { plateAssetIds } from './carte-plate.js';
 
 const masked = new WeakMap();
@@ -57,8 +55,11 @@ export function seasonalImage(image, filter) {
 
 export function worldAssetIds(manifest, state) {
   const decor = currentMapDecor();
-  const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds']);
+  const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
   for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`);
+  // La carte plate peint déjà ciel, nuages et arbres : ni nuages ni feuillages à charger.
+  const painted = decor === 'carte_plate';
+  if (!painted) wanted.add('distant-clouds');
   if (decor === 'france_peinte') {
     for (const id of paintedAssetIds()) wanted.add(id);
     for (const id of completePaintedAssetIds()) wanted.add(id);
@@ -68,7 +69,7 @@ export function worldAssetIds(manifest, state) {
     for (const id of expandedWorldAssetIds()) wanted.add(id);
   }
   for (const id of Object.keys(manifest)) {
-    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|vegetation-|fx-|ui-|minor-)/.test(id)) wanted.add(id);
+    if (/^(character-|ultimate-|npc-|security-|crs-|journalist-|fx-|ui-|minor-)/.test(id) || !painted && id.startsWith('vegetation-')) wanted.add(id);
   }
   return [...wanted];
 }

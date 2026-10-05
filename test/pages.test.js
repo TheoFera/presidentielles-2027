@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, rm, writeFile, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve, relative as pathRelative } from 'node:path';
-import { APP_EXCLUDED_IMAGES, buildPages, useWebpPaths } from '../scripts/build-pages.mjs';
-import { cachedWebp, samePixels, webpAvailable } from '../scripts/lib/webp.mjs';
+import { APP_EXCLUDED_IMAGES, APP_REPLACED_FILES, buildPages, useWebpPaths } from '../scripts/build-pages.mjs';
+import { cachedWebp, samePixels, similarPixels, visiblePsnr, webpAvailable } from '../scripts/lib/webp.mjs';
 import { validateConfig } from '../src/config.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { worldAssetIds } from '../src/presentation/illustrated-world.js';
-import { buildingAssetId } from '../src/presentation/illustrated-buildings.js';
+import { setMapDecor } from '../src/presentation/map-decor.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { fileURLToPath } from 'node:url';
@@ -30,7 +30,10 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   assert.deepEqual((await readdir(output)).sort(), ['Présidentielles 2027', 'assets', 'conditions.html', 'confidentialite.html', 'index.html', 'src'].sort());
   assert.ok((await readFile(join(output, image('assets/generated/characters/melenchon.png')))).length > 0);
   assert.ok(!(await readdir(join(output, 'assets/generated'))).includes('masters'));
-  for (const absent of ['src/presentation/world-v3/storyboard.html', 'src/presentation/minor-preview.html', 'src/presentation/world-v3/prompts.js', 'src/vendor/README.md', 'src/AGENTS.md']) {
+  // Ni pages d'outils, ni code des décors betatest (remplacé par une version vide).
+  for (const absent of ['src/presentation/world-v3/storyboard.html', 'src/presentation/minor-preview.html', 'src/presentation/world-v3/prompts.js', 'src/vendor/README.md', 'src/AGENTS.md',
+    'src/presentation/world-v3', 'src/presentation/france-peinte.js', 'src/presentation/france-peinte-data.js', 'src/presentation/world-v2-expanded.js', 'src/presentation/decors-betatest-appli.js',
+    image('assets/generated/npc-v2/npc-banlieue-9.png'), image('assets/generated/buildings/building-financement-bobo.png'), image('assets/generated/vegetation/vegetation-0.png')]) {
     await assert.rejects(stat(join(output, absent)), { code: 'ENOENT' }, absent);
   }
   for (const included of ['src/vendor/qrcode-LICENSE.txt', 'src/vendor/jsqr-LICENSE.txt', image('assets/generated/menus/accueil.png'), image('assets/generated/menus/candidats.png')]) {
@@ -38,6 +41,7 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   }
   // L'application ne propose que le décor par défaut.
   assert.match(await readFile(join(output, 'src/app-build.js'), 'utf8'), /APP_BUILD = true/);
+  assert.equal(await readFile(join(output, 'src/presentation/decors-betatest.js'), 'utf8'), await readFile(join(root, 'src/presentation/decors-betatest-appli.js'), 'utf8'));
   // Toute image du manifeste est exportée, sauf les décors réservés au profil betatest.
   for (const id of Object.keys(visualManifest)) {
     const path = assetPath(id);
@@ -45,9 +49,10 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
     else assert.ok((await stat(join(output, image(path)))).size > 0, path);
   }
   // Aucune image utile au décor par défaut, aux personnages ou au débat n'est exclue.
+  // Les façades des bâtiments sont peintes dans la carte plate : seule l'estrade du meeting est une image à part.
   const state = new GameSimulation(campaignConfig()).getState();
-  const needed = new Set([...worldAssetIds(visualManifest, state), 'background-debate']);
-  for (const building of state.buildings) needed.add(buildingAssetId(building, state.world));
+  setMapDecor('carte_plate');
+  const needed = new Set([...worldAssetIds(visualManifest, state), 'background-debate', 'debate-elysee', 'character-style-philippe-notable']);
   for (const id of needed) assert.ok(visualManifest[id] && !excluded(assetPath(id)), id);
   const exported = await readdir(output, { recursive: true, withFileTypes: true });
   let bytes = 0;
@@ -84,6 +89,14 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   assert.equal(validateConfig(config), config);
 });
 
+test('La version vide des décors betatest a les mêmes noms que la vraie', async () => {
+  for (const [file, replacement] of Object.entries(APP_REPLACED_FILES)) {
+    const real = await import(new URL(`../${file}`, import.meta.url));
+    const empty = await import(new URL(`../${replacement}`, import.meta.url));
+    assert.deepEqual(Object.keys(empty).sort(), Object.keys(real).sort(), file);
+  }
+});
+
 test('La version web garde les décors du profil betatest', async t => {
   const output = await mkdtemp(join(tmpdir(), 'presidentielles-pages-'));
   t.after(async () => {
@@ -110,6 +123,20 @@ test('La conversion WebP est vérifiée pixel par pixel', async t => {
   const converted = await cachedWebp(source, cache);
   assert.ok(await samePixels(source, converted));
   assert.ok((await stat(converted)).size < (await stat(source)).size);
+});
+
+test('La compression de l’application garde la transparence exacte et des couleurs proches', async t => {
+  if (!await webpAvailable()) { t.skip('ffmpeg avec libwebp absent'); return; }
+  const cache = await mkdtemp(join(tmpdir(), 'presidentielles-webp-'));
+  t.after(() => rm(cache, { recursive: true }));
+  for (const name of ['npc-v2/npc-bobo-3.png', 'carte-plate/tuile-01-paris-a.png']) {
+    const source = join(root, 'assets/generated', name);
+    const lossless = await cachedWebp(source, cache);
+    const converted = await cachedWebp(source, cache, { quality: 90 });
+    assert.ok(await similarPixels(source, converted), name);
+    assert.ok((await visiblePsnr(source, converted)) > 30, name);
+    assert.ok((await stat(converted)).size < (await stat(lossless)).size / 2, name);
+  }
 });
 
 test('Une destination personnalisée non vide est préservée', async t => {

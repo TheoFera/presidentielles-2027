@@ -22,8 +22,7 @@ import { drawPersuasionFeedback } from './persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
 import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
-import { preparePaintedAtlas } from './france-peinte.js';
-import { prepareExpandedAtlas } from './world-v2-expanded.js';
+import { preparePaintedAtlas, prepareExpandedAtlas } from './decors-betatest.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
