@@ -222,6 +222,8 @@ export class GameAudio {
       case 'ready': ['G5', 'B5', 'D6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.16, 'sine', 0.16, bus)); break;
       // Jingle « flash info » : arpège montant puis double accord, façon générique de journal télévisé.
       case 'news': ['G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.07, 0.09, 'square', 0.07, bus, 4000)); this.kick(t + 0.22, bus, 0.35); [0.22, 0.42].forEach(delay => ['C5', 'G5', 'C6'].forEach(note => this.tone(f(n(note)), t + delay, 0.16, 'square', 0.045, bus, 3200))); break;
+      // Carte d'un candidat à débloquer qui surgit : arpège montant joyeux et petite clameur.
+      case 'reveal': ['C5', 'E5', 'G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.14, 'square', 0.065, bus, 4200)); this.burst(t + 0.28, 0.5, 0.08, bus, 'bandpass', 1400, 0.12); break;
       case 'tick': this.tone(1000, t, 0.05, 'sine', 0.16, bus); break;
       case 'tick-final': this.tone(1500, t, 0.08, 'sine', 0.2, bus); break;
       default: break;

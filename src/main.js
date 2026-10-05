@@ -13,6 +13,7 @@ import { InterstitialAds } from './presentation/ads.js';
 import { CombatPoseTracker } from './presentation/melenchon-combat.js';
 import { recordMatchResult } from './presentation/player-profile.js';
 import { playerCard, rememberTitle, setCandidateColors } from './presentation/player-card.js';
+import { showKnockoutReveal } from './presentation/knockout-reveal.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
@@ -36,6 +37,7 @@ import { SnapshotBuffer } from './network/snapshot-buffer.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
 import { APP_BUILD } from './app-build.js';
+import { FramePacer } from './presentation/frame-pacing.js';
 import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
@@ -156,6 +158,7 @@ async function start() {
   let wasHidden = false;
   let noticeRemaining = 0;
   let previousTime = performance.now();
+  const framePacer = APP_BUILD ? new FramePacer() : null;
   let debugElapsed = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
   let currentDay = state.days_remaining;
@@ -399,7 +402,7 @@ async function start() {
     for (const k of list.slice(knockoutsSeen)) {
       if (k.by_faction !== faction || owned.includes(k.candidate_id) || announcedKnockouts.has(k.candidate_id)) continue;
       announcedKnockouts.add(k.candidate_id);
-      showAccountToast(`${unlockNames([k.candidate_id])} est K.-O. ! Gagne l’élection pour le débloquer.`, 'knockout');
+      showKnockoutReveal(k.candidate_id, { sound: () => audio.play('reveal') });
     }
     knockoutsSeen = list.length;
   }
@@ -647,6 +650,8 @@ async function start() {
 
   function frame(now) {
     try {
+      // Appli Android : une image sur deux sur un écran à 120 Hz, à intervalles égaux (voir frame-pacing.js).
+      if (framePacer && !framePacer.shouldDraw(now)) { requestAnimationFrame(frame); return; }
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }

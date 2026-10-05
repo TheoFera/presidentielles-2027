@@ -7,3 +7,8 @@
 -keep class androidx.credentials.playservices.** {
   *;
 }
+# Bases Room (WorkManager, utilisé par le SDK des pubs) : la bibliothèque crée « WorkDatabase_Impl »
+# par son nom, à l'exécution. Sans ces règles, R8 (plugin Android 9) retire son constructeur et
+# la version Play Store plante au démarrage (« Failed to create an instance of WorkDatabase », 05/10/2026).
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }

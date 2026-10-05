@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
+import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -88,6 +89,7 @@ public class MainActivity extends Activity {
         webView.loadUrl(START_URL);
         ads.start();
         hideSystemBars();
+        preferSixtyHertz();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
         }
@@ -268,6 +270,30 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         handleBack();
+    }
+
+    /**
+     * Écran calé sur 60 Hz pendant le jeu, comme Chrome le fait pour le même jeu. Le jeu affiche
+     * environ 60 images par seconde : sur un écran laissé à 120 Hz, elles tombaient tantôt après
+     * 16 ms, tantôt après 25 ms, et ce rythme irrégulier se voyait comme des saccades
+     * (mesuré le 05/10/2026 : 61 % d'images saccadées dans l'appli, aucune dans Chrome).
+     * Deux fois moins d'images à composer : le téléphone chauffe aussi moins vite.
+     */
+    @SuppressWarnings("deprecation")
+    private void preferSixtyHertz() {
+        Display display = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? getDisplay() : getWindowManager().getDefaultDisplay();
+        if (display == null) return;
+        Display.Mode current = display.getMode();
+        for (Display.Mode mode : display.getSupportedModes()) {
+            if (mode.getPhysicalWidth() == current.getPhysicalWidth() && mode.getPhysicalHeight() == current.getPhysicalHeight()
+                    && Math.abs(mode.getRefreshRate() - 60f) < 1f) {
+                WindowManager.LayoutParams attributes = getWindow().getAttributes();
+                attributes.preferredDisplayModeId = mode.getModeId();
+                attributes.preferredRefreshRate = mode.getRefreshRate();
+                getWindow().setAttributes(attributes);
+                return;
+            }
+        }
     }
 
     private void hideSystemBars() {

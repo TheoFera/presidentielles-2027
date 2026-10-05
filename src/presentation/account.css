@@ -118,3 +118,22 @@
   .account-gate, .leaderboard { grid-template-columns: minmax(0, 1fr); }
   .leaderboard-list { grid-column: 1; grid-row: auto; }
 }
+
+/* Campagne : carte du candidat mis K.-O. qui surgit du bas (rayons dorés, confettis). Ne capte aucun clic. */
+.ko-reveal { position: fixed; z-index: 60; inset: 0; pointer-events: none; overflow: hidden; }
+.ko-reveal-rays { position: absolute; left: 50%; bottom: -18vmin; width: 90vmin; height: 90vmin; margin-left: -45vmin; border-radius: 50%; background: repeating-conic-gradient(#ffd75e40 0 10deg, transparent 10deg 20deg); -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%); mask: radial-gradient(circle, #000 25%, transparent 70%); animation: ko-reveal-rays 2.8s linear both; }
+.ko-reveal-card { --medallion-size: clamp(76px, 20vmin, 140px); position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); display: grid; justify-items: center; gap: 3px; width: max-content; max-width: 90vw; padding: 8px 14px 10px; color: #fff; text-align: center; border: 3px solid #ffd75e; border-radius: 4px; background: linear-gradient(170deg, #1f3159, #0b1226); box-shadow: 5px 5px 0 #0009, 0 0 26px #ffd75e66; animation: ko-reveal-card 2.8s cubic-bezier(.2, 1.4, .4, 1) both; }
+.ko-reveal-card .medallion-face { width: var(--medallion-size); height: var(--medallion-size); border-radius: 3px; }
+.ko-reveal-title { font: 900 clamp(18px, 4.4vmin, 32px)/1.05 Impact, 'Arial Black', sans-serif; letter-spacing: .03em; text-transform: uppercase; color: #ffd75e; text-shadow: 3px 3px 0 #483057; }
+.ko-reveal-style { font: 800 clamp(11px, 2.4vmin, 15px)/1.1 system-ui, sans-serif; color: #b4c4e7; }
+.ko-reveal-hint { font: 800 clamp(12px, 2.6vmin, 17px)/1.2 system-ui, sans-serif; color: #fff; }
+.ko-reveal-confetti { position: absolute; top: -14px; width: 8px; height: 13px; opacity: 0; animation: ko-reveal-confetti 1.8s ease-in both; }
+@keyframes ko-reveal-card { 0% { transform: translate(-50%, 130%); opacity: 1; } 18%, 82% { transform: translate(-50%, 0); opacity: 1; } 100% { transform: translate(-50%, 0) scale(.92); opacity: 0; } }
+@keyframes ko-reveal-rays { 0% { opacity: 0; transform: rotate(0); } 18%, 80% { opacity: 1; } 100% { opacity: 0; transform: rotate(50deg); } }
+@keyframes ko-reveal-confetti { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--drift, 0), 105vh) rotate(600deg); } }
+/* Animations réduites (réglage du système) : apparition simple, sans mouvement ni confettis. */
+@media (prefers-reduced-motion: reduce) {
+  .ko-reveal-card { animation: ko-reveal-fade 2.8s both; transform: translateX(-50%); }
+  .ko-reveal-rays, .ko-reveal-confetti { display: none; }
+  @keyframes ko-reveal-fade { 0%, 100% { opacity: 0; } 10%, 85% { opacity: 1; } }
+}

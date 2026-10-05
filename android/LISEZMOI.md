@@ -73,3 +73,13 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 - Le mode multijoueur « Avec un serveur local » n'existe pas dans l'application ; le mode « Entre téléphones » fonctionne.
 - Le jeu met en scène des personnalités politiques réelles de façon parodique. Google peut refuser une application qui laisse croire à un lien officiel : la description précise qu'il s'agit d'une parodie non affiliée. Ce n'est pas un avis juridique.
 - Connexion au compte PartageTonJeu : l'appli utilise la connexion Google native (Credential Manager), car Google refuse les connexions dans une WebView. Il faut créer un client OAuth « Android » avec l'empreinte SHA-1 de chaque clé de signature (test et Play Store) : voir `docs/comptes-partagetonjeu.md`, « Ce qu'il reste à configurer ».
+
+## Fluidité : ce qu'il faut savoir (mesures du 5 octobre 2026)
+
+Mesuré sur un Redmi Note 13 Pro 5G (écran 120 Hz), en comparant le même jeu dans Chrome et dans l'appli :
+
+- **Juger la fluidité sur la version finale, pas sur la version de test.** La version installée par Android Studio (debug) contient les outils de débogage et charge des pubs de test : elle est nettement moins fluide que la version Play Store.
+- **Tester débranché et téléphone froid.** En charge USB et après quelques minutes de jeu, le téléphone chauffe (vers 38-39 °C) et bride son processeur à environ la moitié de sa puissance : le jeu ralentit, dans l'appli comme dans Chrome.
+- **Rythme de 60 images par seconde.** Sur un écran à 120 Hz, le jeu dessine une image sur deux (`src/presentation/frame-pacing.js`) : des images à intervalles égaux paraissent plus fluides que 90 à 120 images irrégulières. L'appli demande aussi 60 Hz à l'écran (`MainActivity.preferSixtyHertz`) ; Xiaomi ignore cette demande, d'autres marques la respectent.
+- **Ne pas déclarer l'appli comme jeu** (`android:isGame`, `appCategory="game"`) : Android 15 et plus limite alors l'appli à 60 images par seconde, avec un rythme irrégulier. La catégorie « Jeu » se choisit dans la Play Console.
+- **Version finale et optimisation du code (R8)** : `app/proguard-rules.pro` garde la base de données de WorkManager (utilisée par les pubs). Sans cette règle, la version Play Store plantait au démarrage. Après une mise à jour des bibliothèques ou du plugin Android, installer la version finale sur un téléphone et vérifier qu'elle s'ouvre.
