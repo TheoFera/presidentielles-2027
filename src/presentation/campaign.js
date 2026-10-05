@@ -26,21 +26,20 @@ export class CampaignDisplay {
  const displaySeconds=this.config.balance.campaign_events.notification_display_seconds,arrivalSeconds=this.config.balance.campaign_events.notification_arrival_seconds;
  for(const e of state.campaign_events){if(!this.seen.has(e.id))this.seen.set(e.id,e.status==='ACTIVE'||e.start_tick>=previousTick?now:-Infinity);const age=(now-this.seen.get(e.id))/1000,visible=state.phase==='CAMPAIGN'&&(e.status==='ACTIVE'||age<displaySeconds);
  if(!visible){this.cards.get(e.id)?.remove();this.cards.delete(e.id);continue;}
- let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.dataset.family=e.family;card.style.order=e.start_tick;card.append(...[['span','news-tag'],['strong','news-title'],['span','news-time'],['span','news-order'],['span','news-ticker'],['i','news-bar']].map(([tag,name])=>{const node=document.createElement(tag);node.className=name;return node;}));this.root.append(card);this.cards.set(e.id,card);}
- // Bandeau télévisé : titre + lieu, une consigne courte, le temps restant. Le contexte défile une seule fois.
+ let card=this.cards.get(e.id);if(!card){card=document.createElement('article');card.className='campaign-card';card.dataset.family=e.family;card.style.order=e.start_tick;card.append(...[['span','news-tag'],['strong','news-title'],['span','news-time'],['span','news-order'],['i','news-bar']].map(([tag,name])=>{const node=document.createElement(tag);node.className=name;return node;}));this.root.append(card);this.cards.set(e.id,card);}
+ // Bandeau télévisé sur deux lignes : titre + lieu + temps restant, puis une consigne courte.
  const live=e.status==='ACTIVE',zone=state.world.subzones.find(z=>z.id===e.target_subzone_id);
  const tag=!live?'TERMINÉ':e.category==='INSTANT'?'FLASH INFO':'EN DIRECT';
  const title=`${e.title} · ${zone.biome_name}`;
  const time=live&&e.category!=='INSTANT'&&e.end_tick!==null?Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s':'';
- const order=eventOrder(e,state,this.config,hz),ticker=e.description||'';
- const texts=[tag,title,time,order,ticker,''],contentKey=texts.join('\n');
+ const order=eventOrder(e,state,this.config,hz);
+ const texts=[tag,title,time,order,''],contentKey=texts.join('\n');
  if(card.dataset.contentKey!==contentKey){
    texts.forEach((text,index)=>{if(card.children[index].textContent!==text)card.children[index].textContent=text;});
    card.setAttribute('aria-label',`${title} : ${order}`);card.dataset.contentKey=contentKey;
  }
- const tickerSeconds=4+ticker.length*0.08;card.style.setProperty('--ticker-seconds',tickerSeconds.toFixed(1)+'s');
- const left=live&&e.end_tick!==null&&e.end_tick>e.start_tick?Math.max(0,Math.min(1,(e.end_tick-state.tick)/(e.end_tick-e.start_tick))):0;card.children[5].style.setProperty('--news-left',(left*100).toFixed(1)+'%');
- card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('ended',!live);card.classList.toggle('ticker-done',age>1+tickerSeconds);
+ const left=live&&e.end_tick!==null&&e.end_tick>e.start_tick?Math.max(0,Math.min(1,(e.end_tick-state.tick)/(e.end_tick-e.start_tick))):0;card.children[4].style.setProperty('--news-left',(left*100).toFixed(1)+'%');
+ card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('ended',!live);
  }
  }
 }

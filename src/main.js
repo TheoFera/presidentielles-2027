@@ -13,7 +13,7 @@ import { InterstitialAds } from './presentation/ads.js';
 import { CombatPoseTracker } from './presentation/melenchon-combat.js';
 import { recordMatchResult } from './presentation/player-profile.js';
 import { playerCard, rememberTitle, setCandidateColors } from './presentation/player-card.js';
-import { showKnockoutReveal } from './presentation/knockout-reveal.js';
+import { clearKnockoutReveals, showKnockoutReveal } from './presentation/knockout-reveal.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
@@ -192,7 +192,7 @@ async function start() {
     matchDisplay.reset(); moneyCounter.reset(); sounds.reset(); combatMusic.clear();
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
-    knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear();
+    knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear(); clearKnockoutReveals();
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
