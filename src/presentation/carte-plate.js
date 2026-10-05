@@ -45,6 +45,29 @@ export const plateAssetIds = () => Object.keys(plateAssets);
 /** Échelle écran : une tuile couvre exactement la largeur de sa sous-zone. */
 const tileScale = (renderer, zone) => zone.width * renderer.metrics.pixelsPerUnit / TILE_W;
 
+// Tuiles décodées à l'avance autour du joueur. Le navigateur peut jeter de sa mémoire une image déjà
+// décodée et la décoder de nouveau au moment de la dessiner : plus de 100 ms pour une tuile, un gel visible.
+// Cela arrive surtout dans l'application Android (WebView), qui garde beaucoup moins d'images décodées que Chrome.
+// Les tuiles visibles et leurs voisines sont donc décodées hors du fil du jeu (createImageBitmap), gardées
+// telles quelles, puis libérées quand le joueur s'éloigne. Les 18 tuiles décodées pèseraient environ 150 Mo.
+const decodedTiles = new Map();
+const NEIGHBOR_TILES = 2; // de chaque côté des tuiles visibles
+function keepNearbyTilesDecoded(visibleIndexes) {
+  if (typeof createImageBitmap !== 'function' || typeof fetch !== 'function') return;
+  const wanted = new Set();
+  for (const index of visibleIndexes) for (let d = -NEIGHBOR_TILES; d <= NEIGHBOR_TILES; d++) wanted.add((index + d + TILE_COUNT) % TILE_COUNT);
+  for (const [index, entry] of decodedTiles) if (!wanted.has(index)) { entry.dropped = true; entry.bitmap?.close(); decodedTiles.delete(index); }
+  for (const index of wanted) {
+    if (decodedTiles.has(index)) continue;
+    const entry = { bitmap: null, dropped: false };
+    decodedTiles.set(index, entry);
+    fetch(plateAssets[tileId(index)].file).then(response => response.blob()).then(blob => createImageBitmap(blob))
+      .then(bitmap => { if (entry.dropped) bitmap.close(); else entry.bitmap = bitmap; })
+      // En cas d'échec, la tuile reste dessinée depuis l'image chargée par le jeu.
+      .catch(() => { if (decodedTiles.get(index) === entry) decodedTiles.delete(index); });
+  }
+}
+
 // Teinte de saison préparée à l'avance : un filtre posé sur ctx.filter est recalculé à chaque dessin,
 // très coûteux sur téléphone. Chaque tuile visible est donc teintée une seule fois, à sa taille à l'écran,
 // puis redessinée sans filtre. La copie n'est refaite que si la teinte (par petits paliers) ou la taille change.
@@ -52,13 +75,13 @@ const tintedTiles = new Map();
 const MAX_TINTED_TILES = 4; // au plus trois tuiles visibles à la fois, plus celle qui arrive
 function tintedTile(index, image, filter, width, height, smoothing) {
   let entry = tintedTiles.get(index);
-  if (!entry || entry.image !== image || entry.filter !== filter || entry.canvas.width !== width || entry.canvas.height !== height) {
+  if (!entry || entry.source !== image || entry.filter !== filter || entry.canvas.width !== width || entry.canvas.height !== height) {
     const canvas = entry?.canvas || document.createElement('canvas');
     canvas.width = width; canvas.height = height; // efface aussi l'ancienne copie
     const c = canvas.getContext('2d');
     c.imageSmoothingEnabled = smoothing; c.filter = filter;
-    c.drawImage(image, 0, 0, TILE_W, TILE_H, 0, 0, width, height);
-    entry = { image, filter, canvas };
+    c.drawImage(image, 0, 0, image.width, image.height, 0, 0, width, height);
+    entry = { source: image, filter, canvas };
   }
   // Les copies les plus anciennes sont oubliées pour limiter la mémoire.
   tintedTiles.delete(index); tintedTiles.set(index, entry);
@@ -79,15 +102,17 @@ export function drawPlateWorld(renderer, state, { seasonFilter } = {}) {
     if (!image) return false;
     visible.push({ index, image, x0, x1, k });
   }
+  keepNearbyTilesDecoded(visible.map(tile => tile.index));
   const tint = seasonFilter && seasonFilter !== 'none';
   // Taille de la tuile en pixels réels du canevas (densité de l'écran et cadrage compris).
   const scale = tint ? ctx.getTransform() : null;
   ctx.save();
-  for (const { index, image, x0, x1, k } of visible) {
+  for (const { index, image: loaded, x0, x1, k } of visible) {
+    const image = decodedTiles.get(index)?.bitmap || loaded;
     const top = Math.round(m.groundY - GROUND_Y * k), bottom = Math.round(m.groundY + (TILE_H - GROUND_Y) * k);
     const source = tint ? tintedTile(index, image, seasonFilter, Math.max(1, Math.round(TILE_W * k * scale.a)),
       Math.max(1, Math.round(TILE_H * k * scale.d)), ctx.imageSmoothingEnabled) : image;
-    const sw = tint ? source.width : TILE_W, sh = tint ? source.height : TILE_H;
+    const sw = source.width, sh = source.height;
     ctx.drawImage(source, 0, 0, sw, sh, x0, top, x1 - x0, bottom - top);
     // Au-dessus et en dessous de la tuile : on prolonge sa première et sa dernière ligne (ciel, chaussée).
     if (top > 0) ctx.drawImage(source, 0, 0, sw, 1, x0, 0, x1 - x0, top);

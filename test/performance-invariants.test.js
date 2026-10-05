@@ -49,3 +49,26 @@ test('Le cadrage conserve les décors qui touchent le bord et rejette seulement 
   assert.equal(sceneryVisible(renderer, 866, 20), false);
   assert.equal(sceneryVisible({ width: 960 }, 0, 960), true);
 });
+
+test('L’affichage lit l’état vivant et ne garde que les positions du pas précédent', () => {
+  const sim = new GameSimulation(campaignConfig());
+  completePopulation(sim);
+  for (let i = 0; i < 90; i++) sim.step([]);
+  const before = sim.motionSnapshot();
+  const xs = new Map([...sim.state.npcs, ...sim.state.candidates].map(entity => [entity.id, entity.x]));
+  assert.equal(before.tick, sim.state.tick);
+  assert.equal(before.npcs.length, sim.state.npcs.length);
+  for (const entity of [...before.npcs, ...before.candidates]) assert.deepEqual(Object.keys(entity), ['id', 'x']);
+  for (let i = 0; i < 30; i++) sim.step([]);
+  // La copie des positions ne bouge plus quand la simulation avance.
+  for (const entity of [...before.npcs, ...before.candidates]) assert.equal(entity.x, xs.get(entity.id));
+  assert.ok(sim.state.tick > before.tick);
+  const view = sim.presentationView();
+  // Vue sans copie : mêmes objets que l'état vivant, haut de l'état et événements figés.
+  assert.equal(view.npcs, sim.state.npcs);
+  assert.equal(view.tick, sim.state.tick);
+  assert.notEqual(view.events, sim.state.events);
+  assert.deepEqual(view.events, sim.state.events);
+  assert.equal(view.campaign_snapshot, null);
+  assert.ok(Object.isFrozen(view.world));
+});

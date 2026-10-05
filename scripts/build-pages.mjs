@@ -23,8 +23,8 @@ export const APP_EXCLUDED_IMAGES = [
   /^assets\/generated\/world-v2\/(panorama-|expanded-|banlieue-b-(?:rue|fond)-v3)/,
   /^assets\/generated\/biomes\/background-(\d+|strip-[a-z]+)\.png$/,
   /^assets\/generated\/biomes\/distant-(rural|suburb|urban|clouds)\.png$/,
-  // Seule l'estrade du meeting reste dessinée par-dessus la carte plate.
-  /^assets\/generated\/buildings\/building-(?!meeting_stage-)/,
+  // Seules l'estrade du meeting et son micro restent dessinés par-dessus la carte plate.
+  /^assets\/generated\/buildings\/building-(?!meeting_(?:stage|micro)-)/,
   /^assets\/generated\/vegetation\//,
 ];
 // Fichiers remplacés dans l'application : la version de droite est copiée sous le nom de gauche.

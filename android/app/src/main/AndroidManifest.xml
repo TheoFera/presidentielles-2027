@@ -10,13 +10,15 @@
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
+    <!-- Pas d'android:isGame ni d'appCategory="game" : depuis Android 15, le système limite par défaut
+         les applis déclarées comme jeux à 60 images par seconde (game_default_frame_rate_override).
+         Mesuré le 05/10/2026 sur un Redmi Note 13 Pro 5G : jeu saccadé dans l'appli, fluide dans Chrome.
+         La catégorie « Jeu » du Play Store se règle dans la Play Console. -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_v2"
         android:roundIcon="@mipmap/ic_launcher_round_v2"
         android:label="@string/app_name"
-        android:appCategory="game"
-        android:isGame="true"
         android:hardwareAccelerated="true"
         android:supportsRtl="false"
         android:enableOnBackInvokedCallback="true"

@@ -320,8 +320,32 @@ export function integratedBuildingGeometry(renderer, building) {
   return sign && { w: sign.w, h: renderer.metrics.groundY - sign.y + sign.h / 2, top: sign.y - sign.h / 2 };
 }
 
+// Texte des enseignes gardé en petite image, à la netteté de l'écran : régler ctx.font et dessiner
+// du texte à chaque image coûte cher sur téléphone. Refait seulement si le texte ou la taille change.
+const signLabels = new Map();
+const MAX_SIGN_LABELS = 64;
+function signLabel(text, size, maxWidth, scale) {
+  const key = `${text}|${size}|${Math.round(maxWidth)}|${scale}`;
+  let label = signLabels.get(key);
+  if (!label) {
+    const canvas = document.createElement('canvas'), c = canvas.getContext('2d'), font = `800 ${size}px system-ui`;
+    c.font = font;
+    const width = Math.min(c.measureText(text).width, maxWidth) + 4, height = Math.ceil(size * 1.6);
+    canvas.width = Math.max(1, Math.ceil(width * scale)); canvas.height = Math.max(1, Math.ceil(height * scale));
+    c.scale(scale, scale); c.font = font; c.fillStyle = '#303c40'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(text, width / 2, height / 2, maxWidth);
+    label = { canvas, width: canvas.width / scale, height: canvas.height / scale };
+    signLabels.set(key, label);
+    if (signLabels.size > MAX_SIGN_LABELS) signLabels.delete(signLabels.keys().next().value);
+  }
+  return label;
+}
+
 /** La façade est peinte dans le décor. Seuls l'enseigne et le fanion sont dynamiques. */
 export function drawIntegratedBuilding(renderer, state, building) {
+  // Bâtiment loin de l'écran : rien à calculer (son enseigne reste dans sa tuile, à moins d'une tuile de lui).
+  const screen = renderer.screenX(building.x);
+  if (renderer.fixedWorldActive && (screen < -renderer.width || screen > 2 * renderer.width)) return true;
   const sign = buildingSignFrame(renderer, building);
   if (!sign) return false;
   const { ctx } = renderer, { x, y, w, h } = sign;
@@ -334,8 +358,11 @@ export function drawIntegratedBuilding(renderer, state, building) {
     ctx.fillStyle = '#f3e4c5'; ctx.fillRect(x - w / 2, y - h / 2, w, h);
     ctx.strokeStyle = '#3a3a33'; ctx.lineWidth = 1.5; ctx.strokeRect(x - w / 2, y - h / 2, w, h);
   }
-  ctx.fillStyle = '#303c40'; ctx.font = `800 ${Math.max(8, Math.min(13, h * 0.5))}px system-ui`;
-  ctx.fillText(label, x, y, w - 8);
+  // Image du texte calée sur les pixels de l'écran, pour rester aussi nette qu'un texte dessiné directement.
+  const transform = ctx.getTransform(), scale = transform.a;
+  const text = signLabel(label, Math.round(Math.max(8, Math.min(13, h * 0.5)) * 10) / 10, w - 8, scale);
+  const snap = (value, offset) => (Math.round(value * scale + offset) - offset) / scale;
+  ctx.drawImage(text.canvas, snap(x - text.width / 2, transform.e), snap(y - text.height / 2, transform.f), text.width, text.height);
   if (faction) {
     ctx.fillStyle = faction.color; ctx.fillRect(x - w / 2, y + h / 2 - 3, w, 3);
     if (building.controls_zone) {

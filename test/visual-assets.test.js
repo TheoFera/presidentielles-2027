@@ -242,8 +242,8 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
   setMapDecor('carte_plate');
   for (const biome of ['paris', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches', 'landscapes', 'nature']) assert.ok(panoramaIds.includes(`world2-${biome}`), biome);
   assert.ok(!panoramaIds.some(id => id.startsWith('panorama-')), 'Les originaux world-v2 restent des références, sans agrandissement');
-  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !id.startsWith('building-meeting_stage-')), 'Les locaux sont intégrés aux nouveaux éléments ; les estrades restent provisoires');
-  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) assert.ok(ids.includes(`building-meeting_stage-${biome}`), 'estrade ' + biome);
+  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !/^building-meeting_(stage|micro)-/.test(id)), 'Les locaux sont intégrés aux nouveaux éléments ; les estrades (et leur micro) restent provisoires');
+  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) for (const part of ['stage', 'micro']) assert.ok(ids.includes(`building-meeting_${part}-${biome}`), `estrade ${part} ${biome}`);
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');
   preloadWorld(renderer, state, state.world.subzones[0]);

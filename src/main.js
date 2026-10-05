@@ -659,15 +659,16 @@ async function start() {
         // Après un ralentissement, on rattrape au plus max_presentation_frame_seconds :
         // un appareil lent ne s’enfonce pas dans une avalanche de ticks.
         clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds) * simulationSpeed, () => {
-          // Plusieurs ticks dans la même image : seuls les deux derniers états sont copiés
-          // pour l’affichage. Entre-temps, les contrôleurs lisent l’état vivant sans le modifier.
+          // Rien n’est recopié : avant le dernier pas de l’image, on retient seulement les positions
+          // (lissage des mouvements) ; l’image lit ensuite l’état vivant, sans le modifier.
           const lastTick = clock.accumulator + 1e-10 < 2 * clock.dt;
           const commands = [...matchCommands(), ...pending];
           changedCamera ||= pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
-          if (lastTick) previous = state === simulation.state ? simulation.getState({ presentation: true }) : state;
+          if (lastTick) previous = simulation.motionSnapshot();
           simulation.step(commands);
-          state = lastTick ? simulation.getState({ presentation: true }) : simulation.state;
+          // Vue à jour après chaque pas : l’IA du pas suivant lit le bon numéro de pas et la bonne phase.
+          state = simulation.presentationView();
         });
         if (state !== frameStart) {
           const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= frameStart.tick);

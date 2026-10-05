@@ -30,6 +30,9 @@ import { updateCandidateResistance } from './candidate-resistance.js';
 import { initializeMoney, prepareDonations, scheduleNextDonation, settleMoney, updateDonationCourier } from './money.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
+// Positions seules (voir motionSnapshot) : identifiant et abscisse.
+const positions = list => list?.map(entity => ({ id: entity.id, x: entity.x }));
+const debatePositions = debate => debate && { candidates: positions(debate.candidates), temporary_units: positions(debate.temporary_units) };
 const presentationWorlds = new WeakMap();
 function presentationWorld(world) {
   if (!presentationWorlds.has(world)) {
@@ -119,6 +122,26 @@ export class GameSimulation {
     // Les branches inchangées depuis la copie précédente sont partagées (lecture seule).
     this.presentationCopy = copyStateSharing({ ...dynamic, campaign_snapshot: null }, this.presentationCopy);
     return { ...this.presentationCopy, world: presentationWorld(world) };
+  }
+  /**
+   * Affichage local (solo ou hôte), sans copie : l'état vivant, présenté en lecture seule.
+   * getState({ presentation: true }) recopiait tout l'état à chaque pas : 5 à 30 ms par pas sur
+   * téléphone, et autant d'objets à libérer. L'affichage ne modifie jamais l'état ; il ne lit que
+   * l'état courant, une fois tous les pas de l'image calculés. Seuls le haut de l'état et la liste
+   * des événements sont figés, pour comparer d'une image à l'autre (phase, nouveaux événements).
+   */
+  presentationView() {
+    const state = this.state;
+    return { ...state, events: [...state.events], campaign_snapshot: null, world: presentationWorld(state.world) };
+  }
+  /** Ce que l'affichage lit dans l'état précédent pour lisser les mouvements : positions et repères. */
+  motionSnapshot() {
+    const state = this.state;
+    return { tick: state.tick, seed: state.seed, phase: state.phase, world: presentationWorld(state.world),
+      events: state.events.map(event => ({ id: event.id })),
+      candidates: positions(state.candidates), npcs: positions(state.npcs), temporary_units: positions(state.temporary_units),
+      debate: debatePositions(state.debate),
+      campaign_events: state.campaign_events.filter(event => event.debate).map(event => ({ id: event.id, debate: debatePositions(event.debate) })) };
   }
   exportSnapshot() {
     // Un outil de test ou une commande peut avoir changé un PNJ depuis le dernier tick.

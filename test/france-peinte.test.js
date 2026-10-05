@@ -61,7 +61,7 @@ test('France peinte : sélection du profil et préchargement sans anciens bâtim
     for(const id of paintedAssetIds()) assert.ok(ids.includes(id));
     for(const id of completePaintedAssetIds()) assert.ok(ids.includes(id));
     assert.ok(!ids.some(id=>id.startsWith('panorama-') || id.startsWith('street-')));
-    assert.ok(!ids.some(id=>id.startsWith('building-') && !id.startsWith('building-meeting_stage-')));
+    assert.ok(!ids.some(id=>id.startsWith('building-') && !/^building-meeting_(stage|micro)-/.test(id)));
   } finally { setMapDecor('carte_plate'); }
 });
 

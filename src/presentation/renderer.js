@@ -145,7 +145,14 @@ export class WorldRenderer {
     ctx.fillRect(0, m.groundY + m.groundThickness, this.width, this.height);
     }
     if (illustrated) drawIllustratedGround(this);
-    const oldNpcs = new Map(previous.npcs.map(n => [n.id, n]));
+    // Anciennes positions par identifiant : refaites seulement quand l'état précédent change (à chaque pas).
+    if (this.oldPositionsOf !== previous) {
+      this.oldPositionsOf = previous;
+      this.oldPositions = new Map();
+      for (const n of previous.npcs) this.oldPositions.set(n.id, n);
+      for (const c of previous.candidates) if (!this.oldPositions.has(c.id)) this.oldPositions.set(c.id, c);
+    }
+    const oldPositions = this.oldPositions;
     // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
     const rows = new Map(state.npcs.map(npc => [npc, meetingCrowdRow(npc, state)]));
     const npcs = [...state.npcs].sort((a, b) => rows.get(a) - rows.get(b));
@@ -157,7 +164,7 @@ export class WorldRenderer {
     const drawEntities = group => {
       for (const entity of group) {
         if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
-        const old = oldNpcs.get(entity.id) || previous.candidates.find(c => c.id === entity.id) || entity;
+        const old = oldPositions.get(entity.id) || entity;
         const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha + this.crowd.offset(entity.id), state.world.length);
         // Un PNJ qui s'écarte d'un voisin fait un vrai pas : animation de marche dans le sens du décalage.
         const step = this.crowd.stepping(entity.id);

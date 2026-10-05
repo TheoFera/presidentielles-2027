@@ -56,7 +56,7 @@ export function seasonalImage(image, filter) {
 export function worldAssetIds(manifest, state) {
   const decor = currentMapDecor();
   const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
-  for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`);
+  for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`).add(`building-meeting_micro-${biome}`);
   // La carte plate peint déjà ciel, nuages et arbres : ni nuages ni feuillages à charger.
   const painted = decor === 'carte_plate';
   if (!painted) wanted.add('distant-clouds');
