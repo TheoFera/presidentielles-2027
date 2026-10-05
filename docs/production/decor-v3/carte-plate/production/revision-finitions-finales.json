@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-04T17:35:36.798Z",
+  "generations": [
+    {
+      "id": "periurbain-a-zone-commerciale",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-476d3ff9-187b-45b1-bd05-724774918c2b.png",
+      "prompt": "Retouche précise d'une illustration de jeu. Image 1 : détail du lotissement et des bâtiments commerciaux au loin. Image 2 : photo, architecture seulement, ne reprendre ni voitures ni marques. Image 3 : style obligatoire world-v2. Conserve le cadrage 962 × 360 et tous les éléments proches. Modifie seulement le fond de la bande x=256..706, y=130..240. Rends la zone commerciale plus lisible : UN petit supermarché bas avec toit plat clair, portes vitrées coulissantes, marquise rouge sombre et petit pictogramme de panier générique sans lettres. Un abri à chariots discret et parking vide à l'entrée. Deux volumes commerciaux différents et un entrepôt distinct derrière, sans second supermarché. Façades lointaines de 50 à 65 pixels de haut, légèrement bleutées, jamais dominantes. Conserve exactement les maisons et leurs toits en ardoise, les cheminées et les arbres proches qui masquent ce fond. Horizon plat, été, soleil du matin à gauche, mêmes traits et couleurs. Les 256 pixels de chaque bord sont le contexte à respecter. Aucun personnage, aucun véhicule, aucun texte ou logo. Image opaque. Aucun fondu, aucune transparence. Ne retouche rien ailleurs.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/09-periurbain-a/arriere-plan-1.jpg",
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/09-periurbain-a/deja-dans-le-jeu-1.jpg"
+      ],
+      "but": "Supermarché unique, petit et identifiable au fond."
+    },
+    {
+      "id": "campagne-b-ecole-cour",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-000e1760-cdba-48f8-b86d-4e19815434a1.png",
+      "prompt": "Retouche précise d'une illustration de jeu. Image 1 : détail 852 × 360 du village. Image 2 : école réelle, référence d'architecture seulement, ne copier aucun mot. Image 3 : style world-v2 obligatoire. Refais seulement la partie centrale x=256..596, entre la maison proche à gauche et la mairie à droite. Garde une PETITE école communale en pierre, toiture de tuiles, située en retrait derrière sa grille ; même hauteur, mêmes proportions discrètes, pas de second grand bâtiment public. Le préau existant reste à gauche, toit de tuiles, charpente et poteaux de bois ; dessous, un banc et un petit tableau noir totalement vierge. La cour se voit entre l'école et le portail : sol sable clair, petite marelle colorée sans chiffres, un petit ballon contre le mur. Grille fine et portail ouvert de quelques degrés pour voir la cour, piliers modestes en pierre et arbustes. Préserve exactement la maison et son panneau crème à gauche, la mairie et les drapeaux à droite, les collines derrière et la petite place de village devant. Les 256 pixels de chaque bord sont le contexte à respecter. Soleil du matin à gauche, été, même palette et dessin que world-v2. Aucun texte ni marque, aucun personnage ni voiture. Pas de préau ou bâtiment dupliqué. Image opaque, aucune transparence ni fondu.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/14-campagne-b/premier-plan-4.jpg",
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/14-campagne-b/deja-dans-le-jeu-1.jpg"
+      ],
+      "but": "École, préau et cour lisibles."
+    },
+    {
+      "id": "riches-b-trace-vitrine",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-86ba149d-a2c3-4a1c-bb1b-bcedbf4a1833.png",
+      "prompt": "Retouche précise, image opaque. Image 1 est le détail d'une devanture de boutique, 572 × 220. Image 2 est la référence world-v2 obligatoire. Dans la très étroite bande x=256..316, efface le fragment noir vertical et la petite forme brune rectangulaire au milieu du mur. Remplace-les par des pierres de taille beige identiques au mur voisin, avec les mêmes joints horizontaux, lumière et patine. Fais une maçonnerie continue du haut jusqu'au-dessus de la vitrine du bas. Aucun reste de fenêtre, aucun nouveau trou. Préserve le poteau de réverbère à gauche, les pierres extérieures à cette bande, le panneau crème à droite et les montants de vitrine en bas. Aucun texte, aucun ajout, aucune transparence, aucun fondu. Cette bande doit se raccorder par le dessin des joints, pas par un flou.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/22-riches-b/deja-dans-le-jeu-1.jpg"
+      ],
+      "but": "Suppression du fragment de fenêtre orphelin."
+    },
+    {
+      "id": "riches-c-cabinet-securise",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-813bc9e1-04fc-4a35-a3a5-5197a8739f8f.png",
+      "prompt": "Retouche précise d'une façade peinte de jeu. Image 1 est le cabinet avec bibliothèque et mobilier en bois, format 1012 × 260. Image 2 est le style world-v2 obligatoire. Garde le même cadrage et toute l'architecture. Dans la bande x=256..756, y=40..224 seulement, rends la sécurité du cabinet lisible : remplace la porte vitrée centrale par une porte blindée opaque, métal peint brun foncé assorti aux boiseries, panneaux solides, serrure et poignée en laiton. Même ouverture étroite, même hauteur et même seuil. Ajoute devant les deux vitrines une grille de protection très fine, en fer sombre, quelques barreaux verticaux reliés par deux traverses, élégante et discrète ; on voit encore clairement la bibliothèque, la table, les fauteuils et la lampe verte à travers. Préserve le mobilier actuel : il distingue ce cabinet de l'institut voisin. Aucun changement de porte ou de largeur de baie, ni du panneau crème vierge en haut, ni du sol, des pierres, arbres et boutique dans les 256 pixels de chaque bord. Lumière d'été venant de gauche, illustration identique à world-v2. Aucun mot, logo, personnage ou véhicule. Opaque, sans fondu ni transparence. Les lignes se raccordent exactement aux cadres existants.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/23-riches-c/deja-dans-le-jeu-1.jpg"
+      ],
+      "but": "Porte blindée et grilles fines, bibliothèque conservée."
+    }
+  ],
+  "methode": "Copies opaques limitées aux rectangles ; conservation mesurée de tous les pixels extérieurs. Référence world-v2 jointe à chaque génération."
+}

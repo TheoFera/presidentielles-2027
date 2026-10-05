@@ -1,11 +1,13 @@
 import { fixedWorldAssets } from './fixed-world-assets.js';
 import { paintedAssets } from './france-peinte-data.js';
 import { completePaintedAssets } from './france-peinte-complete-data.js';
+import { plateAssets } from './carte-plate.js';
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
   ...fixedWorldAssets,
   ...paintedAssets,
   ...completePaintedAssets,
+  ...plateAssets,
   "building-meeting_stage-bobo": { file: new URL("../../assets/generated/buildings/building-meeting_stage-bobo.png", import.meta.url).href },
   "building-meeting_stage-banlieue": { file: new URL("../../assets/generated/buildings/building-meeting_stage-banlieue.png", import.meta.url).href },
   "building-meeting_stage-periurbain": { file: new URL("../../assets/generated/buildings/building-meeting_stage-periurbain.png", import.meta.url).href },

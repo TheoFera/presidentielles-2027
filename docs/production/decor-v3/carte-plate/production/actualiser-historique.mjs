@@ -15,6 +15,8 @@ const direction=JSON.parse(fs.readFileSync(base+'revision-direction-artistique.j
 for(const entry of direction.generations)if(!a.revisions.some(v=>v.id===entry.id&&v.source===entry.source))a.revisions.push(entry);
 for(const entry of direction.variantesNonAppliquees)if(!a.variantesNonAppliquees.some(v=>v.id===entry.id&&v.source===entry.source))a.variantesNonAppliquees.push(entry);
 a.restaurationsArtistiques=direction.restaurations;
+const finales=JSON.parse(fs.readFileSync(base+'revision-finitions-finales.json'));
+for(const entry of finales.generations)if(!a.revisions.some(v=>v.id===entry.id&&v.source===entry.source))a.revisions.push(entry);
 a.etat='18 tuiles réexportées ; Maison de la Radio secondaire, tours rééquilibrées et intérieurs Riches C différents. Gabarits utilisés comme repères selon les dernières précisions. Petite promenade Retraités B restaurée ; portes naturelles de l’atelier et de la grange restaurées, scooters ajoutés à l’intérieur. Raccords visuels et détails de storyboard encore à finir.';
 a.controles.geometrie='production/controle-geometrie/rapport-calage-carte.json';
 a.actualiseLe=new Date().toISOString();

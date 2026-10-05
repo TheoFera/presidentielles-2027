@@ -9,5 +9,10 @@
   "canvasHeight": 360,
   "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-a-zone-commerciale-guide.png",
   "replaceTop": 130,
-  "replaceHeight": 110
+  "replaceHeight": 110,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\periurbain-a-zone-commerciale-brute.png",
+  "pixelsModifies": 49500,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
 }

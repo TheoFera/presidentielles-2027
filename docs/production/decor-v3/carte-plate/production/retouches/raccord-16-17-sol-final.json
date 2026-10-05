@@ -1,0 +1,18 @@
+{
+  "id": "raccord-16-17-sol-final",
+  "x": 30696,
+  "y": 984,
+  "w": 820,
+  "h": 96,
+  "context": 256,
+  "canvasWidth": 1332,
+  "canvasHeight": 96,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-16-17-sol-final-guide.png",
+  "replaceTop": 20,
+  "replaceHeight": 76,
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-16-17-sol-final-brute.png",
+  "pixelsModifies": 62252,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

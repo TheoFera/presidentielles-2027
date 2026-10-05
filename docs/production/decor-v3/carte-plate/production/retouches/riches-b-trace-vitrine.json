@@ -1,0 +1,16 @@
+{
+  "id": "riches-b-trace-vitrine",
+  "x": 30856,
+  "y": 600,
+  "w": 60,
+  "h": 220,
+  "context": 256,
+  "canvasWidth": 572,
+  "canvasHeight": 220,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-trace-vitrine-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\riches-b-trace-vitrine-brute.png",
+  "pixelsModifies": 13171,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

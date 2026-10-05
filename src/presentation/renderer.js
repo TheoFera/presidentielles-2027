@@ -17,6 +17,7 @@ import { prepareVegetationImage } from './illustrated-vegetation.js';
 import { prepareBuildingImage } from './illustrated-buildings.js';
 import { drawMoneyPickups, drawMoneyFeedback } from './money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
+import { npcEntryProgress, entryLift } from './npc-entry.js';
 import { drawPersuasionFeedback } from './persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
@@ -162,12 +163,21 @@ export class WorldRenderer {
         // Un PNJ qui s'écarte d'un voisin fait un vrai pas : animation de marche dans le sens du décalage.
         const step = this.crowd.stepping(entity.id);
         this.personMarks.set(entity.id, { x: this.screenX(x), facing: entity.facing < 0 ? -1 : 1 });
-        this.drawPerson(step ? { ...entity, moving: true, facing: step } : entity, this.screenX(x), state);
+        const entry = entering.get(entity.id);
+        if (entry === undefined) { this.drawPerson(step ? { ...entity, moving: true, facing: step } : entity, this.screenX(x), state); continue; }
+        // Nouveau PNJ : il monte depuis le bas de l'écran en marchant jusqu'au trottoir.
+        this.metrics = { ...m, groundY: m.groundY + entryRise * entryLift(entry) };
+        this.drawPerson({ ...entity, moving: true }, this.screenX(x), state);
+        this.metrics = m;
       }
     };
+    const entering = npcEntryProgress(state, this.config.balance.simulation_architecture.fixed_tick_hz, alpha);
+    const entryRise = (this.height - m.groundY) / zoom + m.characterHeight * this.p.npc_height_multiplier * 1.2;
     drawEntities(entities.filter(onMeeting));
     drawMeetingForeground(this, state);
-    drawEntities(entities.filter(entity => !onMeeting(entity)));
+    // Ceux qui arrivent passent devant : ils viennent du premier plan.
+    drawEntities(entities.filter(entity => !onMeeting(entity) && !entering.has(entity.id)));
+    drawEntities(entities.filter(entity => !onMeeting(entity) && entering.has(entity.id)));
     drawFixedWorldFront(this, state);
     drawPersuasionFeedback(this, state);
     drawMeetingWaves(this, state, alpha);

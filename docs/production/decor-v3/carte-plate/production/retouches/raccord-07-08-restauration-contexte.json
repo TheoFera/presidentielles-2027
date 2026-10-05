@@ -1,0 +1,214 @@
+{
+  "id": "raccord-07-08",
+  "x": 13120,
+  "y": 0,
+  "w": 640,
+  "h": 1080,
+  "source": "raccord-07-08-avant.png",
+  "methode": "Restauration native du dessin antérieur et de son contexte ; ouvertures et dernières retouches protégées.",
+  "pixelsRestaures": 295668,
+  "pixelsProteges": 23660,
+  "protections": [
+    {
+      "id": "banlieue-a-composition-equilibree",
+      "x": 5760,
+      "y": 0,
+      "w": 1920,
+      "h": 1080
+    },
+    {
+      "id": "banlieue-b-rdc-calage",
+      "x": 7802,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "banlieue-c-rdc-calage",
+      "x": 10138,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "campagne-a-scooter-interieur",
+      "x": 18658,
+      "y": 779,
+      "w": 322,
+      "h": 231
+    },
+    {
+      "id": "campagne-b-ecole-cour",
+      "x": 19800,
+      "y": 560,
+      "w": 340,
+      "h": 360
+    },
+    {
+      "id": "campagne-b-rdc-calage",
+      "x": 19322,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "campagne-c-rdc-calage",
+      "x": 21509,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "paris-a-rdc-calage",
+      "x": 1084,
+      "y": 600,
+      "w": 400,
+      "h": 480
+    },
+    {
+      "id": "paris-b-atelier-calage",
+      "x": 2220,
+      "y": 600,
+      "w": 320,
+      "h": 480
+    },
+    {
+      "id": "paris-b-frise-integration",
+      "x": 2220,
+      "y": 690,
+      "w": 288,
+      "h": 74
+    },
+    {
+      "id": "paris-c-cabinet-panneau-calage",
+      "x": 4132,
+      "y": 750,
+      "w": 330,
+      "h": 70
+    },
+    {
+      "id": "paris-c-institut-calage",
+      "x": 5117,
+      "y": 740,
+      "w": 310,
+      "h": 340
+    },
+    {
+      "id": "paris-c-institut-panneau-calage",
+      "x": 5099,
+      "y": 750,
+      "w": 330,
+      "h": 70
+    },
+    {
+      "id": "paris-c-qg-calage",
+      "x": 4150,
+      "y": 740,
+      "w": 310,
+      "h": 340
+    },
+    {
+      "id": "periurbain-a-rdc-calage",
+      "x": 12321,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "periurbain-a-zone-commerciale",
+      "x": 11860,
+      "y": 440,
+      "w": 450,
+      "h": 110
+    },
+    {
+      "id": "periurbain-b-scooter-interieur",
+      "x": 13620,
+      "y": 830,
+      "w": 198,
+      "h": 169
+    },
+    {
+      "id": "periurbain-c-rdc-calage",
+      "x": 15997,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "retraites-a-rdc-calage",
+      "x": 23996,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "retraites-b-institut-calage",
+      "x": 26196,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "retraites-b-redaction-calage",
+      "x": 25035,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "retraites-c-entree-calage",
+      "x": 27703,
+      "y": 460,
+      "w": 900,
+      "h": 544
+    },
+    {
+      "id": "riches-a-rdc-calage",
+      "x": 29545,
+      "y": 660,
+      "w": 600,
+      "h": 420
+    },
+    {
+      "id": "riches-b-rdc-dessin",
+      "x": 30856,
+      "y": 600,
+      "w": 586,
+      "h": 480
+    },
+    {
+      "id": "riches-b-trace-vitrine",
+      "x": 30856,
+      "y": 600,
+      "w": 60,
+      "h": 220
+    },
+    {
+      "id": "riches-c-cabinet-distinct",
+      "x": 32823,
+      "y": 660,
+      "w": 500,
+      "h": 420
+    },
+    {
+      "id": "riches-c-cabinet-securise",
+      "x": 32823,
+      "y": 820,
+      "w": 500,
+      "h": 184
+    },
+    {
+      "id": "riches-c-institut-distinct",
+      "x": 33477,
+      "y": 660,
+      "w": 540,
+      "h": 420
+    }
+  ],
+  "fondu": false,
+  "superposition": false,
+  "date": "2026-10-04T21:16:12.217Z",
+  "appliquee": false,
+  "motifRejet": "Restauration insuffisante, état livré antérieur conservé."
+}

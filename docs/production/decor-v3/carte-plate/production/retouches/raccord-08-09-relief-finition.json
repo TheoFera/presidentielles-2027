@@ -1,0 +1,16 @@
+{
+  "id": "raccord-08-09-relief-finition",
+  "x": 15152,
+  "y": 300,
+  "w": 416,
+  "h": 270,
+  "context": 256,
+  "canvasWidth": 928,
+  "canvasHeight": 270,
+  "guide": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-08-09-relief-finition-guide.png",
+  "source": "C:\\Users\\ferat\\Documents\\Programmation\\Presidentielles 2027\\docs\\production\\decor-v3\\carte-plate\\production\\retouches\\raccord-08-09-relief-finition-brute.png",
+  "pixelsModifies": 112304,
+  "pixelsExterieursIdentiques": true,
+  "appliquee": true,
+  "translationVerticale": 0
+}

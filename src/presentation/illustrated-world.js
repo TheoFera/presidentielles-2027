@@ -5,6 +5,7 @@ import { currentMapDecor } from './map-decor.js';
 import { paintedAssetIds } from './france-peinte-data.js';
 import { completePaintedAssetIds } from './france-peinte-complete-data.js';
 import { expandedWorldAssetIds } from './world-v2-expanded-data.js';
+import { plateAssetIds } from './carte-plate.js';
 
 const masked = new WeakMap();
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
@@ -70,6 +71,8 @@ export function worldAssetIds(manifest, state) {
   } else if (decor === 'france_peinte') {
     for (const id of paintedAssetIds()) wanted.add(id);
     for (const id of completePaintedAssetIds()) wanted.add(id);
+  } else if (decor === 'carte_plate') {
+    for (const id of plateAssetIds()) wanted.add(id);
   } else if (decor === 'panoramas') {
     for (const id of expandedWorldAssetIds()) wanted.add(id);
   }

@@ -155,7 +155,7 @@ function onlineContent(profile) {
   return ladders ? `<div class="profile-ladders">${ladders}</div>` : '<p class="menu-note">Pas encore de partie classée.</p>';
 }
 
-export const PROFILE_TABS = [['collection', 'Collection'], ['solo', 'Solo'], ['online', 'En ligne']];
+export const PROFILE_TABS = [['collection', 'Candidats'], ['solo', 'Solo'], ['online', 'Multijoueur']];
 export function profileContent(profile, { tab = 'collection' } = {}) {
   const card = playerCard(profile), counts = collectionCounts(card);
   const name = profile.account?.username

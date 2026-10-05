@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-04T22:53:17.854Z",
+  "generations": [
+    {
+      "id": "raccord-03-04-dessin-continu",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-90f369ca-fee3-450e-8fd8-4de2d7c6145e.png",
+      "prompt": "Réparation d'un raccord d'illustration existante. Image 1, cible 928 × 1080, contient deux défauts verticaux aux x=336 et x=592. Image 2 est une référence de style world-v2 obligatoire, ne pas copier ses bâtiments. Conserve la cible, sans changement de cadrage, perspective ou échelle. Redessine uniquement x=256..672 pour que tout se raccorde aux côtés : les nuages forment un nuage naturel continu, le bâtiment de brique de gauche garde ses bandeaux horizontaux et fenêtres à la même hauteur, les arbres et le petit escalier de droite sont continus. Élimine le morceau de poteau sans tête à x=326 : garde UN seul lampadaire complet vers x=430, même hauteur que celui actuel. Le muret, la grille et les buissons passent naturellement entre gauche et droite. Le trottoir et sa bordure suivent une ligne continue, rejoignant exactement leurs extrémités à x=256 et x=672, aucune marche ni rectangle de couleur. Route et ombres continues. Ne rajoute aucun bâtiment, aucune porte ou enseigne, aucun arbre principal, aucune voiture, personne, texte ou marque. Été, lumière du matin venant de gauche. Palette et pinceau de la cible. Ciel bleu uni #9FCFEE en haut, #E4F1F6 vers l'horizon. Les 256 pixels de chaque bord servent de contexte et doivent rester visuellement identiques. Un seul dessin opaque, aucun fondu, aucune transparence, aucune double image. Les lignes existantes doivent se rejoindre, pas seulement avoir des couleurs similaires.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/05-banlieue-a/deja-dans-le-jeu-1.jpg"
+      ],
+      "appliquee": true
+    },
+    {
+      "id": "raccord-04-05-dessin-continu",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-c5d4b82a-1913-4426-a0ad-4b848d970338.png",
+      "prompt": "Retouche de raccord d'une fresque de jeu, image opaque. Image 1 est la cible 928 × 1080 ; image 2 est le style world-v2, ne pas reprendre ses bâtiments. Conserve exactement le cadrage, l'échelle, l'architecture et les objets existants. Dans x=256..672, corrige les deux coutures x=336 et x=592 : forme continue de l'arbre, branches et feuillage, nuages naturels sans bords rectangulaires, grille et muret continus. La barrière et le petit chemin restent présents, les grandes tours de gauche restent secondaires et ne changent pas de hauteur. N'ajoute aucune nouvelle tour, maison, porte, panneau ou lampadaire. Surtout le pavage, la bordure et la route du bas doivent joindre leurs extrémités à x=256 et x=672 avec des lignes continues ; très légère pente si nécessaire, aucune marche verticale. Maintiens la maison de droite et son entrée et panneau vierge exactement tels quels. Soleil du matin à gauche, été, palette de la cible, ciel #9FCFEE en haut et #E4F1F6 vers l'horizon. Les 256 pixels de contexte à gauche et à droite guident la continuité : aucun déplacement des traits, ne redessine pas ces côtés. Aucun texte, véhicule, personnage, logo. Aucun fondu, aucune transparence ou superposition ; un seul dessin continu.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/05-banlieue-a/deja-dans-le-jeu-1.jpg"
+      ],
+      "appliquee": true
+    },
+    {
+      "id": "raccord-07-08-dessin-continu",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-fe8058a7-cbd8-45d8-bc4c-1c14f252b18b.png",
+      "prompt": "Réparation précise de raccord de fresque, format cible 928 × 1080. Image 1 est la cible, image 2 la référence world-v2 obligatoire. Ne modifie ni le garage à droite, ni son scooter bleu intérieur, ni ses outils, ni sa façade. Répare seulement x=256..560 : à x=400 un arbre a une coupure rectangulaire, à x=528 le trottoir descend par une marche artificielle. Rends le feuillage, les branches, les petits toits de maisons derrière, la haie et les nuages continus, sans inventer de bâtiment. Conserve les maisons proches avec les mêmes toits, fenêtres et clôtures ; aucune maison supplémentaire ou dupliquée. Relie les niveaux de trottoir et la bordure par une très légère pente naturelle entre x=256 et x=560, pas de marche verticale ni morceau d'asphalte rectangulaire. Le garage commence vers x=565 et reste strictement identique. La lumière et les ombres viennent de gauche, été, mêmes contours et textures que la cible. Horizon de collines modestes au loin. Ciel #9FCFEE en haut, #E4F1F6 à l'horizon. Les 256 pixels de chaque bord sont le contexte à garder ; aucun déplacement de cadrage ou des objets. Aucun texte, logo, personnage, voiture. Aucun fondu, aucune transparence ou superposition. Un seul dessin opaque continu.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/10-periurbain-b/deja-dans-le-jeu-1.jpg"
+      ],
+      "appliquee": true,
+      "limite": "Seul le haut jusqu'à y=1004 ; bordure reprise séparément."
+    },
+    {
+      "id": "raccord-07-08-bordure-finition",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-4b34e27f-7a40-4158-b510-6701bf755dae.png",
+      "prompt": "Retouche très étroite du SOL d'une illustration de jeu. Image 1 est une bande panoramique 832 × 96 pixels ; respecte STRICTEMENT ce cadrage très large et très bas, ne rajoute rien au-dessus ou en dessous. Image 2 est une référence world-v2 pour le dessin des pavés seulement. Dans x=256..576 de l'image 1, une bordure de trottoir se coupe brutalement vers x=416. Dessine la continuité entre la bordure existante à GAUCHE, dont le haut est vers y=54 et le bas vers y=69, et la bordure de DROITE dont le haut est vers y=80 et le bas vers y=94. Elle descend donc doucement de gauche à droite, par une ligne oblique régulière : ce n'est PAS une ligne horizontale, c'est indispensable. Aucun ressaut vertical. Les pavés clairs du trottoir, leurs joints et l'asphalte gris sous la bordure rejoignent les textures et ombres de chaque côté. Les zones x=0..255 et x=576..831 restent telles quelles, ainsi que la végétation et les bas de pots en haut. Tu ne peins que le sol central. Pas de nouveaux objets, texte, chiffres, véhicule ou personnage. Même lumière d'été de gauche. Dessin entièrement opaque, aucun flou, fondu, transparence ou superposition. Conserve l'orientation et la taille des pavés et dessine la pente nécessaire pour rejoindre les deux bouts existants.",
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/docs/production/decor-v3/carte-plate/photos/10-periurbain-b/deja-dans-le-jeu-1.jpg"
+      ],
+      "appliquee": true
+    }
+  ],
+  "variantesNonAppliquees": [
+    {
+      "id": "raccord-08-09-dessin-continu",
+      "source": "C:/Users/ferat/.codex/generated_images/01a10491-aba6-7552-aceb-eff4507e4596/exec-7011ab8e-d453-47db-87ab-cf27cafc2570.png",
+      "prompt": "Retouche précise de raccord dans une fresque de jeu. Image 1 cible 928 × 1080, image 2 style world-v2 obligatoire. Garde exactement le cadrage et tous les objets. Redessine seulement x=256..672 pour supprimer les coupures rectangulaires aux x=400 et x=528. Le relief alpin commence progressivement : une petite épaule montagneuse plus basse à gauche monte naturellement vers la grande montagne existante à droite, aucune montagne coupée net par une verticale. Le pied des montagnes, les collines, la végétation et les petites maisons de vallée continuent sans rectangle. Ne change pas la hauteur des grands sommets à droite, garde leur distance et l'effet de paysage rural. Garde le lampadaire simple, une seule tige, même emplacement et hauteur ; la statue de rond-point et le panneau flèche à gauche restent identiques. Les toitures artisanales, le muret et la clôture suivent leurs lignes existantes. Corrige le pavage et la bordure du bas : lignes continues avec la légère courbe du rond-point, raccordées exactement aux extrémités de x=256 et x=672, aucune marche de trottoir. Aucun nouveau bâtiment, porte, enseigne, véhicule, texte, logo ou personnage. Les 256 pixels de chaque côté sont contexte fixe, aucun déplacement d'échelle. Été, matin lumière de gauche ; ciel #9FCFEE en haut vers #E4F1F6 à l'horizon. Un seul dessin opaque, sans transparence, fondu ou superposition.",
+      "motif": "Déplace les toitures et le relief ; essais non appliqués."
+    }
+  ],
+  "restaurationsRejetees": [
+    "raccord-tours-03-04",
+    "raccord-tours-04-05",
+    "raccord-03-04",
+    "raccord-04-05",
+    "raccord-05-06",
+    "raccord-07-08",
+    "raccord-08-09",
+    "raccord-12-13",
+    "raccord-15-16",
+    "revision-raccord-14-15"
+  ],
+  "methode": "ImageGen avec référence world-v2 ; copies rectangulaires opaques, contexte extérieur conservé. Les essais ne sont appliqués qu'après inspection."
+}

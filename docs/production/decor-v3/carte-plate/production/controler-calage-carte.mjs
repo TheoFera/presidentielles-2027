@@ -13,7 +13,7 @@ for(const file of fs.readdirSync(r).filter(f=>f.endsWith('-calibrage.json'))){
  const m=JSON.parse(fs.readFileSync(metaFile));if(m.appliquee!==true)continue;
  const im=readPng(path.join(r,cal.id+'-calibree.png'));
  const left=m.context+(m.replaceLeft||0),right=left+(m.replaceWidth||m.w),top=m.replaceTop||0,bottom=top+(m.replaceHeight||m.h);
- for(const c of cal.cellules.filter(c=>['porte','panneau'].includes(c.role))){
+ for(const c of cal.cellules.filter(c=>['porte','panneau'].includes(c.role)&&!(cal.cellulesRemplacees||[]).some(r=>r.role===c.role))){
   const v=c.cible;if(v.x<left||v.x+v.w>right||v.y<top||v.y+v.h>bottom)continue;
   const x=m.x+v.x-m.context,y=m.y+v.y,centre=x+v.w/2,slot=slots.find(s=>s.centre===centre);
   if(!slot)throw new Error('Centre hors gabarit : '+cal.id+' '+centre);

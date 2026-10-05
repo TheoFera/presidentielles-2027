@@ -6,7 +6,8 @@ import { APP_BUILD } from '../app-build.js';
  * - biomes : l'ancien décor en couches peintes (assets/generated/biomes), par défaut pour tout le monde ;
  * - panoramas : les panoramas peints world-v2 (assets/generated/world-v2) ;
  * - fresque : la fresque dessinée par le code (world-v3/fresque).
- * - france_peinte : nouvelles façades peintes, composées en cinq plans (france-peinte.js).
+ * - france_peinte : nouvelles façades peintes, composées en cinq plans (france-peinte.js) ;
+ * - carte_plate : la fresque peinte d'un seul plan, en 18 tuiles (carte-plate.js), encore en finition.
  * Seul le profil « betatest » peut choisir un autre décor que « biomes ».
  * L'application mobile n'embarque que le décor par défaut (APP_BUILD).
  */
@@ -16,6 +17,7 @@ const ALL_MAP_DECORS = [
   { id: 'panoramas', label: 'Panoramas world-v2', note: 'Décor étendu, bâtiments à l’échelle et transitions peintes.' },
   { id: 'fresque', label: 'Fresque dessinée', note: 'Décor entièrement dessiné par le code.' },
   { id: 'france_peinte', label: 'France peinte', note: '18 quartiers peints, du café parisien au bord de mer.' },
+  { id: 'carte_plate', label: 'Carte plate', note: 'Fresque peinte d’un seul plan, en cours de finition.' },
 ];
 export const MAP_DECORS = Object.freeze(APP_BUILD ? ALL_MAP_DECORS.filter(d => d.id === DEFAULT_MAP_DECOR) : ALL_MAP_DECORS);
 const known = id => MAP_DECORS.some(d => d.id === id);
@@ -25,7 +27,7 @@ export function decorForProfile(profile) {
   return isBetatestProfile(profile) && known(profile?.map_decor) ? profile.map_decor : DEFAULT_MAP_DECOR;
 }
 
-// Pages d'outils : ?decor=france_peinte|fresque|panoramas|biomes ; « maquette » reste l'ancien nom de la fresque.
+// Pages d'outils : ?decor=carte_plate|france_peinte|fresque|panoramas|biomes ; « maquette » reste l'ancien nom de la fresque.
 const urlDecor = (() => {
   if (typeof location === 'undefined') return null;
   const value = new URLSearchParams(location.search).get('decor');

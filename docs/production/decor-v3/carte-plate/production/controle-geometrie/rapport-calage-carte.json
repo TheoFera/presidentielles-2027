@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-04T16:59:20.147Z",
+  "date": "2026-10-04T21:19:46.703Z",
   "calageStrictObligatoire": false,
   "directives": "DIRECTIVES-UTILISATEUR.md",
   "rectangles": [
@@ -389,7 +389,7 @@
       "pixelsIdentiquesALaSourceCalee": true
     },
     {
-      "id": "riches-c-cabinet-distinct",
+      "id": "riches-c-cabinet-securise",
       "role": "porte",
       "tuile": "18",
       "xDansFresque": 33025,

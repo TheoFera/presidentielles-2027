@@ -1,0 +1,15 @@
+{
+  "id": "riches-c-cabinet-securise",
+  "methode": "Mesure de la porte repeinte ; aucun redimensionnement de cellule.",
+  "cellules": [
+    {
+      "role": "porte",
+      "cible": {
+        "x": 458,
+        "y": 40,
+        "w": 96,
+        "h": 184
+      }
+    }
+  ]
+}
