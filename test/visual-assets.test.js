@@ -9,6 +9,7 @@ import { currentMapDecor, setMapDecor } from '../src/presentation/map-decor.js';
 import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
+import { plateAssetIds } from '../src/presentation/carte-plate.js';
 import { visualManifest } from '../src/presentation/visual-manifest.js';
 import { access, readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
@@ -226,17 +227,19 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
     const image = { set src(value) { queueMicrotask(() => image.onload()); } };
     return image;
   } });
-  // Décor par défaut « biomes » : couches peintes et bâtiments dessinés à part.
-  assert.equal(currentMapDecor(), 'biomes');
+  // Décor par défaut « carte plate » : 18 tuiles peintes, bâtiments intégrés, estrades de meeting à part.
+  assert.equal(currentMapDecor(), 'carte_plate');
   const renderer = { assets }, ids = worldAssetIds(visualManifest, state);
-  for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) for (const layer of ['distant', 'landscape', 'street']) assert.ok(ids.includes(`${layer}-${biome}`), `${layer}-${biome}`);
-  for (const building of state.buildings) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
+  for (const id of plateAssetIds()) assert.ok(ids.includes(id) && visualManifest[id], id);
+  assert.equal(plateAssetIds().length, 18);
+  assert.ok(!ids.some(id => /^(distant|landscape|street)-(bobo|banlieue|periurbain|campagne|retraites|riches)$/.test(id)), 'L’ancien décor « biomes » n’est plus chargé');
+  for (const building of state.buildings.filter(b => b.type === 'meeting')) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
   for (const id of ['riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => id.startsWith('panorama-')), 'Les panoramas world-v2 ne sont chargés que si ce décor est choisi');
   // Décor « panoramas » (betatest) : compléments world-v2 calés sur les sites, sans anciens panoramas agrandis.
   setMapDecor('panoramas');
   const panoramaIds = worldAssetIds(visualManifest, state);
-  setMapDecor('biomes');
+  setMapDecor('carte_plate');
   for (const biome of ['paris', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches', 'landscapes', 'nature']) assert.ok(panoramaIds.includes(`world2-${biome}`), biome);
   assert.ok(!panoramaIds.some(id => id.startsWith('panorama-')), 'Les originaux world-v2 restent des références, sans agrandissement');
   assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !id.startsWith('building-meeting_stage-')), 'Les locaux sont intégrés aux nouveaux éléments ; les estrades restent provisoires');

@@ -1,5 +1,4 @@
 import { ringDelta } from '../simulation/world.js';
-import { buildingAssetId } from './illustrated-buildings.js';
 import { seasonAt } from '../simulation/campaign-events.js';
 import { currentMapDecor } from './map-decor.js';
 import { paintedAssetIds } from './france-peinte-data.js';
@@ -60,15 +59,7 @@ export function worldAssetIds(manifest, state) {
   const decor = currentMapDecor();
   const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'distant-clouds']);
   for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`);
-  if (decor === 'biomes') {
-    // Ancien décor en couches : lointain, plan intermédiaire, rue, et les bâtiments dessinés à part.
-    const separated = biomeNames.every(biome => manifest[`landscape-${biome}`]);
-    for (const biome of biomeNames) {
-      wanted.add(`distant-${biome}`); wanted.add(`street-${biome}`);
-      wanted.add(`${separated ? 'landscape' : 'background-strip'}-${biome}`);
-    }
-    for (const building of state.buildings) wanted.add(buildingAssetId(building, state.world));
-  } else if (decor === 'france_peinte') {
+  if (decor === 'france_peinte') {
     for (const id of paintedAssetIds()) wanted.add(id);
     for (const id of completePaintedAssetIds()) wanted.add(id);
   } else if (decor === 'carte_plate') {

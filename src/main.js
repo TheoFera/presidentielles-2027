@@ -337,7 +337,7 @@ async function start() {
     stopDebate();
     paused = true; help.hidden = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
-    // Décor de la carte : « biomes » pour tous ; le profil betatest peut en choisir un autre dans son profil.
+    // Décor de la carte : « carte plate » pour tous ; le profil betatest peut en choisir un autre dans son profil.
     setMapDecor(decorForProfile(profile));
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) {

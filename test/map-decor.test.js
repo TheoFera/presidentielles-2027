@@ -6,17 +6,18 @@ import { DEFAULT_MAP_DECOR, MAP_DECORS, decorForProfile, setMapDecor, currentMap
 import { profileContent } from '../src/presentation/player-profile.js';
 import { normalizeCampaignProfile } from '../src/simulation/campaign-styles.js';
 
-test('Décor de la carte : « biomes » par défaut, seul le profil betatest peut en choisir un autre', () => {
-  assert.equal(DEFAULT_MAP_DECOR, 'biomes');
-  assert.deepEqual(MAP_DECORS.map(d => d.id), ['biomes', 'panoramas', 'fresque', 'france_peinte', 'carte_plate']);
-  assert.equal(decorForProfile({}), 'biomes');
-  assert.equal(decorForProfile({ nickname: 'Joueur', map_decor: 'fresque' }), 'biomes', 'un profil ordinaire ignore un choix enregistré');
-  assert.equal(decorForProfile({ nickname: 'betatest' }), 'biomes');
+test('Décor de la carte : « carte plate » par défaut, seul le profil betatest peut en choisir un autre', () => {
+  assert.equal(DEFAULT_MAP_DECOR, 'carte_plate');
+  assert.deepEqual(MAP_DECORS.map(d => d.id), ['carte_plate', 'panoramas', 'fresque', 'france_peinte']);
+  assert.equal(decorForProfile({}), 'carte_plate');
+  assert.equal(decorForProfile({ nickname: 'Joueur', map_decor: 'fresque' }), 'carte_plate', 'un profil ordinaire ignore un choix enregistré');
+  assert.equal(decorForProfile({ nickname: 'betatest' }), 'carte_plate');
   assert.equal(decorForProfile({ nickname: ' BetaTest ', map_decor: 'panoramas' }), 'panoramas');
-  assert.equal(decorForProfile({ nickname: 'betatest', map_decor: 'inconnu' }), 'biomes');
+  assert.equal(decorForProfile({ nickname: 'betatest', map_decor: 'inconnu' }), 'carte_plate');
+  assert.equal(decorForProfile({ nickname: 'betatest', map_decor: 'biomes' }), 'carte_plate', 'l’ancien décor retiré revient à la carte plate');
   assert.equal(normalizeCampaignProfile({ nickname: 'betatest', map_decor: 'fresque' }).map_decor, 'fresque', 'le choix est conservé dans le profil');
   assert.equal(setMapDecor('fresque'), 'fresque'); assert.equal(currentMapDecor(), 'fresque');
-  assert.equal(setMapDecor('nimporte'), 'biomes');
+  assert.equal(setMapDecor('nimporte'), 'carte_plate');
 });
 
 test('Décor de la carte : le sélecteur n’apparaît que dans le profil betatest', () => {

@@ -17,10 +17,10 @@ import { drawPlateWorld, plateSignFrame } from './carte-plate.js';
 
 /**
  * Décor de la carte fixe, selon le décor choisi (map-decor.js) :
- * - « biomes » (par défaut) : rien ici, le moteur dessine l'ancien décor en couches peintes (illustrated-world.js) ;
  * - « fresque » : la fresque continue dessinée par le code (world-v3/fresque/) ;
  * - « panoramas » : compléments world-v2 étendus en cinq plans, calés sur les portes du jeu ;
- * - « carte_plate » : la fresque peinte d'un seul plan, en 18 tuiles (carte-plate.js).
+ * - « carte_plate » (par défaut) : la fresque peinte d'un seul plan, en 18 tuiles (carte-plate.js).
+ * Tant qu'une image manque, le moteur garde son rendu de secours (illustrated-world.js).
  */
 const fresqueActive = () => currentMapDecor() === 'fresque';
 export const fixedPanoramaId = biome => `panorama-${fixedWorldArt[biome].art}`;
@@ -250,7 +250,6 @@ function drawV2Panoramas(renderer, state, biomes) {
 export function drawFixedWorld(renderer, state) {
   const world = state.world, biomes = worldBiomes(world), decor = currentMapDecor();
   renderer.worldV2Sites = null;
-  if (decor === 'biomes') return false; // l'ancien décor en couches est dessiné par le moteur
   if (decor === 'panoramas') {
     renderer.fixedWorldLayered = new Set(); renderer.fixedWorldState = state;
     const strength={horizon:1,far:1,mid:.9,back:.75,street:.45}, progress=state.campaign_progress_01;

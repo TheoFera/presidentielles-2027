@@ -40,7 +40,7 @@ test('World-v2 : les nouveaux compléments sont tous préchargés, sans anciens 
   const state=new GameSimulation(structuredClone(config),42).state;
   setMapDecor('panoramas');
   try{const ids=worldAssetIds(visualManifest,state);for(const id of expandedWorldAssetIds())assert.ok(ids.includes(id)&&visualManifest[id],id);assert.ok(!ids.some(id=>id.startsWith('panorama-')));}
-  finally{setMapDecor('biomes');}
+  finally{setMapDecor('carte_plate');}
 });
 
 test('Marché de Saint-Denis : le fond conserve sa vitesse au centre, aux bords et au bouclage',()=>{

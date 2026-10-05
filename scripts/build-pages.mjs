@@ -13,8 +13,8 @@ const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog
 // couches séparées des biomes. Elles restent dans le projet pour npm start.
 export const APP_EXCLUDED_IMAGES = [
   /^assets\/generated\/(france-peinte|france-peinte-complete|world-v3)\//,
-  // Carte plate : tuiles encore lues dans le dossier de production pendant la finition.
-  /^docs\/production\/decor-v3\/carte-plate\//,
+  // Ancien décor « biomes », remplacé par la carte plate (le fond du débat reste).
+  /^assets\/generated\/biomes\/(distant-(bobo|banlieue|periurbain|campagne|retraites|riches)|landscape-[a-z]+|street-[a-z]+)\.png$/,
   /^assets\/generated\/world-v2\/(panorama-|expanded-|banlieue-b-(?:rue|fond)-v3)/,
   /^assets\/generated\/biomes\/background-(\d+|strip-[a-z]+)\.png$/,
   /^assets\/generated\/biomes\/distant-(rural|suburb|urban)\.png$/,

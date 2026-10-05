@@ -1,25 +1,38 @@
 import { ringDelta } from '../simulation/world.js';
 
 /**
- * Décor « Carte plate » (profil betatest) : la fresque peinte d'un seul plan, découpée en 18 tuiles.
+ * Décor « Carte plate », décor par défaut du jeu : la fresque peinte d'un seul plan, découpée en 18 tuiles.
  * Une tuile = une sous-zone, 1 920 × 1 080 px pour 24 unités (80 px par unité).
  * Les pieds des personnages et le pied des façades sont à y = 1 004 px dans chaque tuile.
- * Les tuiles sont lues directement dans le dossier de production : chaque retouche y apparaît sans autre étape.
- * Ce décor n'est pas embarqué dans les exports (voir map-decor.js).
+ * Les tuiles sont des copies de docs/production/decor-v3/carte-plate/tuiles/ : après une retouche, les recopier ici.
  */
-const TILE_NAMES = [
-  'paris-a', 'paris-b', 'paris-c', 'banlieue-a', 'banlieue-b', 'banlieue-c',
-  'periurbain-a', 'periurbain-b', 'periurbain-c', 'campagne-a', 'campagne-b', 'campagne-c',
-  'retraites-a', 'retraites-b', 'retraites-c', 'riches-a', 'riches-b', 'riches-c',
-];
 const TILE_W = 1920, TILE_H = 1080, GROUND_Y = 1004;
 // Panneau crème peint au-dessus de chaque porte (cahier des charges, chapitre 16).
 const SIGN = { top: 764, bottom: 808, width: 220 };
 
+const TILE_COUNT = 18;
 const tileId = index => `plate-${String(index + 1).padStart(2, '0')}`;
-export const plateAssets = Object.fromEntries(TILE_NAMES.map((name, index) => [tileId(index), {
-  file: new URL(`../../docs/production/decor-v3/carte-plate/tuiles/tuile-${String(index + 1).padStart(2, '0')}-${name}.png`, import.meta.url).href,
-}]));
+// Chemins écrits en entier : scripts/build-pages.mjs les repère pour l'export.
+export const plateAssets = {
+  'plate-01': { file: new URL('../../assets/generated/carte-plate/tuile-01-paris-a.png', import.meta.url).href },
+  'plate-02': { file: new URL('../../assets/generated/carte-plate/tuile-02-paris-b.png', import.meta.url).href },
+  'plate-03': { file: new URL('../../assets/generated/carte-plate/tuile-03-paris-c.png', import.meta.url).href },
+  'plate-04': { file: new URL('../../assets/generated/carte-plate/tuile-04-banlieue-a.png', import.meta.url).href },
+  'plate-05': { file: new URL('../../assets/generated/carte-plate/tuile-05-banlieue-b.png', import.meta.url).href },
+  'plate-06': { file: new URL('../../assets/generated/carte-plate/tuile-06-banlieue-c.png', import.meta.url).href },
+  'plate-07': { file: new URL('../../assets/generated/carte-plate/tuile-07-periurbain-a.png', import.meta.url).href },
+  'plate-08': { file: new URL('../../assets/generated/carte-plate/tuile-08-periurbain-b.png', import.meta.url).href },
+  'plate-09': { file: new URL('../../assets/generated/carte-plate/tuile-09-periurbain-c.png', import.meta.url).href },
+  'plate-10': { file: new URL('../../assets/generated/carte-plate/tuile-10-campagne-a.png', import.meta.url).href },
+  'plate-11': { file: new URL('../../assets/generated/carte-plate/tuile-11-campagne-b.png', import.meta.url).href },
+  'plate-12': { file: new URL('../../assets/generated/carte-plate/tuile-12-campagne-c.png', import.meta.url).href },
+  'plate-13': { file: new URL('../../assets/generated/carte-plate/tuile-13-retraites-a.png', import.meta.url).href },
+  'plate-14': { file: new URL('../../assets/generated/carte-plate/tuile-14-retraites-b.png', import.meta.url).href },
+  'plate-15': { file: new URL('../../assets/generated/carte-plate/tuile-15-retraites-c.png', import.meta.url).href },
+  'plate-16': { file: new URL('../../assets/generated/carte-plate/tuile-16-riches-a.png', import.meta.url).href },
+  'plate-17': { file: new URL('../../assets/generated/carte-plate/tuile-17-riches-b.png', import.meta.url).href },
+  'plate-18': { file: new URL('../../assets/generated/carte-plate/tuile-18-riches-c.png', import.meta.url).href },
+};
 export const plateAssetIds = () => Object.keys(plateAssets);
 
 /** Échelle écran : une tuile couvre exactement la largeur de sa sous-zone. */
@@ -34,7 +47,7 @@ export function drawPlateWorld(renderer, state, { seasonFilter } = {}) {
     const left = m.anchorX + (ringDelta(renderer.cameraX, zone.center, world.length) - zone.width / 2) * m.pixelsPerUnit;
     const x0 = Math.round(left), x1 = Math.round(left + zone.width * m.pixelsPerUnit);
     if (x1 < 0 || x0 > width) continue;
-    const image = renderer.assets.get(tileId(zone.index % TILE_NAMES.length));
+    const image = renderer.assets.get(tileId(zone.index % TILE_COUNT));
     if (!image) return false;
     visible.push({ image, x0, x1, k });
   }

@@ -62,7 +62,7 @@ test('France peinte : sélection du profil et préchargement sans anciens bâtim
     for(const id of completePaintedAssetIds()) assert.ok(ids.includes(id));
     assert.ok(!ids.some(id=>id.startsWith('panorama-') || id.startsWith('street-')));
     assert.ok(!ids.some(id=>id.startsWith('building-') && !id.startsWith('building-meeting_stage-')));
-  } finally { setMapDecor('biomes'); }
+  } finally { setMapDecor('carte_plate'); }
 });
 
 test('Quartiers peints : les panneaux suivent les sites du jeu, sans déformation',()=>{
