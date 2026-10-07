@@ -337,8 +337,29 @@ Toutes les commandes Wrangler se lancent dans le dossier `serveur-en-ligne`.
    - Play Store : Play Console → votre appli → *Test et publication → Configuration → Intégrité de l'application*
      (signature d'application) → SHA-1 de la **clé de signature d'application** (et un 2ᵉ client pour la clé d'importation si besoin).
    Ces clients Android ne se recopient nulle part : ils autorisent l'appli à demander un jeton pour le client Web.
+   Le client Android doit appartenir au **même projet Google Cloud** que le client Web configuré dans le jeu.
 5. Plus tard pour iOS : client **iOS** (Bundle ID) ; ajouter son ID à `GOOGLE_CLIENT_IDS` seulement si l'appli iOS demande
    des jetons sans `serverClientID`.
+
+#### Le site fonctionne, mais « Continuer avec Google » ne fonctionne pas depuis le Play Store
+
+Le site et l'application utilisent deux autorisations différentes. La connexion sur le site ne valide pas
+la configuration Android. Commencer par vérifier le client Android dans Google Auth Platform → Clients :
+
+1. Dans la Play Console, ouvrir l'application → **Test et publication → Configuration → Intégrité de l'application**
+   → signature d'application. Copier le **SHA-1 du certificat de la clé de signature d'application**.
+   La clé d'importation sert à envoyer le paquet ; la clé de signature d'application signe la version installée depuis le Store.
+2. Dans le même projet Google Cloud que le client Web du jeu, créer ou vérifier un client OAuth de type **Android** :
+   nom de paquet `fr.presidentielles2027.jeu`, empreinte SHA-1 copiée à l'étape précédente.
+3. Réessayer depuis l'application. Si seule cette autorisation manquait, aucun changement du code ni nouvel envoi
+   au Play Store n'est nécessaire. Garder `GOOGLE_WEB_CLIENT_ID` dans le jeu : ne pas le remplacer par l'ID du client Android.
+
+Google peut renvoyer une annulation même si la connexion a été bloquée pour une raison technique. Le bouton natif
+affiche donc aussi ces interruptions au lieu de les ignorer. Ce message ne permet pas, à lui seul, de déterminer la cause.
+
+Références : [authentification du client Android](https://developers.google.com/android/guides/client-auth),
+[signature des applications Play](https://support.google.com/googleplay/android-developer/answer/9842756),
+[erreurs de Credential Manager](https://developer.android.com/identity/sign-in/credential-manager-troubleshooting-guide).
 
 ### Apple Developer (Sign in with Apple, quand la version iOS sera prête)
 1. Compte Apple Developer Program.

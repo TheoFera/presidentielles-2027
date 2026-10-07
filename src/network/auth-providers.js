@@ -7,7 +7,7 @@
 import { APP_BUILD } from '../app-build.js';
 import { GOOGLE_WEB_CLIENT_ID, APPLE_SERVICES_ID, APPLE_REDIRECT_URI } from './account-config.js';
 
-export class AuthCancelled extends Error { constructor() { super('Connexion annulée.'); } }
+export class AuthCancelled extends Error { constructor() { super('Connexion annulée ou interrompue. Vous pouvez réessayer.'); } }
 
 // ---- Pont natif (Android aujourd'hui, iOS demain) --------------------------------
 // Contrat : PTJNativeAuth.providers() → '["google"]' ;
@@ -63,11 +63,16 @@ function ownButton(provider, label) {
 function nativeMount(provider, label, clientId) {
   return (container, { nonce, done, fail }) => {
     const button = ownButton(provider, label);
+    const content = button.innerHTML;
     button.onclick = async () => {
+      if (button.disabled) return;
       button.disabled = true;
-      try { const n = await nonce(); const result = await nativeSignIn(provider, n, clientId); done({ id_token: result.id_token, authorization_code: result.authorization_code, nonce: n }); }
-      catch (error) { if (!(error instanceof AuthCancelled)) fail(error); }
-      finally { button.disabled = false; }
+      button.setAttribute('aria-busy', 'true');
+      button.textContent = 'Connexion en cours…';
+      try { const n = await nonce(); const result = await nativeSignIn(provider, n, clientId); await done({ id_token: result.id_token, authorization_code: result.authorization_code, nonce: n }); }
+      // Google peut aussi signaler une « annulation » quand sa configuration bloque la connexion.
+      catch (error) { fail(error); }
+      finally { button.innerHTML = content; button.removeAttribute('aria-busy'); button.disabled = false; }
     };
     container.append(button);
   };

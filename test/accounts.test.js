@@ -13,6 +13,66 @@ import { CAMPAIGN_STYLES, DEFAULT_UNLOCKS } from '../src/simulation/campaign-sty
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { ACCOUNT_NEWSLETTER_VERSION } from '../src/network/account-config.js';
 import worker from '../serveur-en-ligne/worker.js';
+import { AUTH_PROVIDERS, AuthCancelled } from '../src/network/auth-providers.js';
+
+test('Connexion Google native : interruption visible, nouvelle tentative et état de chargement', async t => {
+  const previous = { document: globalThis.document, PTJNativeAuth: globalThis.PTJNativeAuth };
+  t.after(() => {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete globalThis[key]; else globalThis[key] = value;
+    }
+  });
+  const attributes = new Map();
+  const button = {
+    dataset: {}, disabled: false, innerHTML: '', textContent: '',
+    setAttribute: (key, value) => attributes.set(key, value),
+    removeAttribute: key => attributes.delete(key),
+  };
+  const requests = [], failures = [], proofs = [];
+  globalThis.document = { createElement: () => button };
+  globalThis.PTJNativeAuth = {
+    providers: () => '["google"]',
+    signIn: (...args) => requests.push(args),
+  };
+  let nonceCount = 0, finish;
+  const provider = AUTH_PROVIDERS.find(p => p.id === 'google');
+  await provider.mount({ append: element => assert.equal(element, button) }, {
+    nonce: async () => `nonce-${++nonceCount}`,
+    done: async proof => { proofs.push(proof); await new Promise(resolve => { finish = resolve; }); },
+    fail: error => failures.push(error),
+  });
+  const content = button.innerHTML;
+  const first = button.onclick();
+  assert.equal(button.disabled, true);
+  assert.equal(button.textContent, 'Connexion en cours…');
+  assert.equal(attributes.get('aria-busy'), 'true');
+  await button.onclick();
+  assert.equal(requests.length, 1, 'Un deuxième clic ne lance pas une deuxième connexion');
+  globalThis.PTJNativeAuthResult(requests[0][3], '{"cancelled":true}');
+  await first;
+  assert.ok(failures[0] instanceof AuthCancelled, 'Une interruption doit être affichée par l’écran');
+  assert.match(failures[0].message, /interrompue/);
+  assert.equal(proofs.length, 0);
+  assert.equal(button.disabled, false);
+  assert.equal(button.innerHTML, content);
+  assert.equal(attributes.has('aria-busy'), false);
+
+  const second = button.onclick();
+  await Promise.resolve();
+  assert.equal(requests[1][1], 'nonce-2', 'La nouvelle tentative utilise une nouvelle autorisation du serveur');
+  assert.notEqual(requests[1][3], requests[0][3]);
+  globalThis.PTJNativeAuthResult(requests[0][3], '{"id_token":"ancienne-réponse"}');
+  globalThis.PTJNativeAuthResult(requests[1][3], '{"id_token":"preuve-de-test"}');
+  await Promise.resolve();
+  assert.equal(proofs.length, 1);
+  assert.equal(proofs[0].id_token, 'preuve-de-test');
+  assert.equal(proofs[0].nonce, 'nonce-2');
+  assert.equal(button.disabled, true, 'Le bouton attend aussi la connexion au serveur du jeu');
+  finish();
+  await second;
+  assert.equal(button.disabled, false);
+  assert.equal(failures.length, 1);
+});
 
 // ---- Faux Google / Apple : vraies signatures RS256 avec une clé de test ----------
 const GOOGLE = 'web-client.apps.googleusercontent.com', APPLE = 'fr.presidentielles2027.jeu';
