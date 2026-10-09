@@ -121,12 +121,14 @@ function updateCrowd(renderer, state, elapsed) {
   if (crowd.match !== state.seed + state.map_id + state.candidates.map(c => c.id).join()) {
     Object.assign(crowd, { excitement: 0.2, shouts: [], match: state.seed + state.map_id + state.candidates.map(c => c.id).join(), lastHit: state.hit_results.at(-1)?.id ?? null, lastEvent: state.events.at(-1)?.id ?? null });
   }
-  const newHits = crowd.lastHit == null ? state.hit_results : state.hit_results.slice(state.hit_results.findIndex(h => h.id === crowd.lastHit) + 1);
+  // Par numéro, pas par position : chez un invité, un coup prédit peut disparaître de la liste.
+  const hitNumber = id => Number(String(id).split(':')[1]) || 0;
+  const newHits = crowd.lastHit == null ? state.hit_results : state.hit_results.filter(h => hitNumber(h.id) > hitNumber(crowd.lastHit));
   for (const hit of newHits) {
     crowd.excitement = Math.min(1, crowd.excitement + (hit.strong ? 0.3 : 0.08));
     if (hit.strong && hit.score_damage && Math.random() < 0.4) crowd.shouts.push({ text: Math.random() < 0.5 ? 'OH !' : 'AÏE !', x: 0.15 + Math.random() * 0.7, age: 0 });
   }
-  if (newHits.length) crowd.lastHit = state.hit_results.at(-1).id;
+  if (newHits.length) crowd.lastHit = newHits.at(-1).id;
   const newEvents = crowd.lastEvent == null ? state.events : state.events.slice(state.events.findIndex(e => e.id === crowd.lastEvent) + 1);
   for (const event of newEvents) {
     if (event.type === 'DebateKnockout') { crowd.excitement = 1; crowd.shouts.push({ text: 'OUUUH !', x: 0.3, age: 0 }, { text: 'BRAVO !', x: 0.7, age: 0.1 }); }

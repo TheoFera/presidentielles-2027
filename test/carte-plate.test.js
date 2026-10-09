@@ -11,11 +11,12 @@ test('Les textes des devantures restaurées restent dans leurs panneaux peints, 
   const tiles = new Map([
     ['paris_b', readPng(new URL('../assets/images/carte/tuile-02-paris-b.png', import.meta.url))],
     ['banlieue_b', readPng(new URL('../assets/images/carte/tuile-05-banlieue-b.png', import.meta.url))],
+    ['retraites_c', readPng(new URL('../assets/images/carte/tuile-15-retraites-c.png', import.meta.url))],
     ['riches_a', readPng(new URL('../assets/images/carte/tuile-16-riches-a.png', import.meta.url))],
     ['riches_b', readPng(new URL('../assets/images/carte/tuile-17-riches-b.png', import.meta.url))],
     ['riches_c', readPng(new URL('../assets/images/carte/tuile-18-riches-c.png', import.meta.url))],
   ]);
-  for (const id of ['site:paris_b', 'site:banlieue_b', 'site:riches_a', 'site:riches_b', 'site:riches_c', 'site:riches_c:institut_sondage']) {
+  for (const id of ['site:paris_b', 'site:banlieue_b', 'site:retraites_c', 'site:riches_a', 'site:riches_b', 'site:riches_c', 'site:riches_c:institut_sondage']) {
     const building = state.buildings.find(b => b.site_id === id);
     const zone = state.world.subzones.find(z => z.id === building.subzone_id);
     const image = tiles.get(zone.id), position = building.x;

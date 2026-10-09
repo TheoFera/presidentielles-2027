@@ -94,7 +94,9 @@ Lien **« Pas d'Internet ? Jouez sur le même Wi-Fi avec des QR codes »** dans 
 
 - Chaque joueur a sa caméra et ses commandes. La pause est partagée ; masquer l'onglet demande une pause.
 - Chaque joueur choisit parmi **ses** styles débloqués.
-- Seuls les champs modifiés de l'état sont envoyés ; les déplacements des autres joueurs sont lissés entre deux mises à jour.
+- Seuls les champs modifiés de l'état sont envoyés ; les déplacements des autres joueurs sont lissés entre deux mises à jour. L'hôte envoie 15 états par seconde en Campagne, 30 en Débat (un par pas de simulation).
+- Chez un invité, les états passent par un tampon qui garde un léger retard constant pour rester fluide malgré un réseau irrégulier (`src/network/snapshot-buffer.js`). Après une pause ou un arrêt de l'hôte, il se recale en moins de 2 s.
+- **Débat : prédiction chez l'invité** (`src/network/debate-prediction.js`). Pendant le combat, le téléphone de l'invité fait avancer lui-même le combat : ses gestes s'affichent tout de suite, sans attendre l'aller-retour jusqu'à l'hôte. Chaque pas de l'invité est numéroté ; l'hôte en applique un par pas de simulation et renvoie le dernier appliqué. L'invité repart de chaque état de l'hôte, rejoue ses pas pas encore appliqués, et efface les petits écarts en douceur. L'hôte reste l'arbitre : un coup prédit qui n'a pas eu lieu chez lui disparaît. Les autres combattants sont prédits en gardant leur dernière direction ; les sons arrivent avec l'état de l'hôte.
 - Une déconnexion termine la session avec un message : recharger, puis recréer un salon.
 
 ## Vérifier

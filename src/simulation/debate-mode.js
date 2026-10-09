@@ -7,6 +7,7 @@ import { combatState } from './combat-state.js';
 import { initializeMobileCombat } from './mobile-combat.js';
 import { ALL_FACTIONS, isMinorFaction } from './world.js';
 import { arenaNavigationCommands, edgeEscapeCommands, fallSafeCommands } from './debate-navigation.js';
+import { copyStateSharing } from '../network/state-stream.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -170,7 +171,9 @@ export class DebateMatch {
     this.state.events.push({ ...data, type, id: `event:${this.state.next_event_id++}`, tick: this.state.tick });
     if (this.state.events.length > this.config.prototype.debug.event_history_limit) this.state.events.shift();
   }
-  getState() { return clone(this.state); }
+  // Copie pour l'affichage et le réseau : seules les parties modifiées depuis la copie précédente
+  // sont recopiées (le reste est partagé avec elle). Ces copies ne doivent jamais être modifiées.
+  getState() { return this.copy = copyStateSharing(this.state, this.copy ?? null); }
   applyCommand(command, debate = new DebateSimulation(this.config, this.state)) {
     const s = this.state;
     if (s.phase !== 'FIGHT') return;

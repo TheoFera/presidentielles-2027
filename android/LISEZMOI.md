@@ -62,7 +62,7 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## 5. Publier une mise à jour
 
-1. Dans `android/app/build.gradle`, augmente `versionCode` de 1 (2, 3, 4…) et change `versionName` (par exemple `1.0.1`).
+1. Dans `android/app/build.gradle`, augmente `versionCode` de 1 (2, 3, 4…). Change le numéro lisible (par exemple `1.0.2`) dans `src/version.js` : c'est le seul endroit où il est écrit, l'appli le reprend pour le Play Store et le menu principal l'affiche en bas à droite.
 2. Relance `npm run android`.
 3. Dans la Play Console, crée une nouvelle version et envoie le nouveau `.aab`.
 

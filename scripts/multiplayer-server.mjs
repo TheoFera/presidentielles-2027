@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { chooseCandidate, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from '../src/network/lobby.js';
 
-import { sanitizeCommands } from '../src/network/shared-commands.js';
+import { sanitizeCommands, cleanSeq } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
 
 // Rooms live only in memory; no accounts or personal information are stored.
@@ -100,7 +100,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
         room.paused = data.paused === true; changed(room);
       } else if (action === 'commands') {
         if (room.phase !== 'playing') throw new Error('La partie n’a pas commencé.');
-        send(room.players.find(p => p.host), 'commands', { playerId: player.id, commands: sanitizeCommands(data.commands, player.faction) });
+        send(room.players.find(p => p.host), 'commands', { playerId: player.id, commands: sanitizeCommands(data.commands, player.faction), ...(cleanSeq(data.seq) ? { seq: data.seq } : {}) });
       } else if (action === 'snapshot') {
         if (!player.host || room.phase !== 'playing') throw new Error('Seul l’hôte peut mettre à jour la partie.');
         if (!data.state || !Number.isInteger(data.state.tick) || !Array.isArray(data.state.candidates)) throw new Error('État invalide.');

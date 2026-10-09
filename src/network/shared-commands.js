@@ -17,3 +17,5 @@ export function outgoingCommands(commands) {
   return commands.filter(command => !['SetCampaignActive', 'InteractionPresence'].includes(command.type))
     .map(({ candidateId, ...command }) => command);
 }
+// Numéro du pas de l'invité (prédiction du débat) : entier positif, sinon absent.
+export const cleanSeq = seq => Number.isInteger(seq) && seq > 0 && seq < 2 ** 31 ? seq : null;

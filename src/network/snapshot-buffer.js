@@ -6,6 +6,8 @@
  * (l'horloge de l'hôte) et on affiche avec un léger retard constant : il y a presque
  * toujours deux états encadrant l'instant affiché, et le mouvement reste fluide.
  */
+const RECENT_SECONDS = 1.5;
+
 export class SnapshotBuffer {
   constructor(tickSeconds, { minDelay = 0.06, maxDelay = 0.35 } = {}) {
     this.dt = tickSeconds; this.minDelay = minDelay; this.maxDelay = maxDelay;
@@ -13,7 +15,7 @@ export class SnapshotBuffer {
   }
   reset() {
     this.items = []; this.offset = null; this.jitter = 0; this.spacing = 0.1; this.lastArrival = null;
-    this.cursors = new Map();
+    this.cursors = new Map(); this.recent = [];
   }
   /** Range un état reçu. `now` en secondes (horloge locale). */
   push(state, now) {
@@ -33,6 +35,19 @@ export class SnapshotBuffer {
       // Pire retard récent d'un paquet par rapport au plus rapide (gigue du réseau) :
       // il s'oublie lentement, 20 ms par seconde, quand la connexion se calme.
       this.jitter = Math.max(sample - this.offset, this.jitter - since * 0.02);
+    }
+    // L'hôte s'est arrêté (pause, appli en arrière-plan, image très lente) : ses ticks ont pris
+    // du retard sur l'horloge pour de bon. Si aucun paquet de la dernière seconde et demie n'est
+    // aussi rapide qu'avant, on se recale d'un coup ; sinon l'affichage resterait saccadé
+    // longtemps (le recalage lent ne rattrape que 20 ms par seconde).
+    this.recent.push({ now, sample });
+    while (now - this.recent[0].now > RECENT_SECONDS) this.recent.shift();
+    if (now - this.recent[0].now >= RECENT_SECONDS * 0.7) {
+      const fastest = Math.min(...this.recent.map(r => r.sample));
+      if (fastest - this.offset > 0.1) {
+        this.offset = fastest;
+        this.jitter = Math.max(...this.recent.map(r => r.sample)) - fastest;
+      }
     }
     if (last) this.spacing += ((tick - last.tick) * this.dt - this.spacing) * 0.1;
     this.lastArrival = now;
@@ -63,6 +78,10 @@ export class SnapshotBuffer {
       const speed = 1 + Math.max(-0.1, Math.min(0.1, (target - cursor.tick) * 0.05));
       cursor.tick += Math.max(0, now - cursor.at) / this.dt * speed;
     }
+    // Les autres personnages ne sont jamais montrés en avance sur le dernier état reçu :
+    // à l'arrivée du suivant, ils repartent de là au lieu de sauter. Son propre personnage
+    // n'est pas retenu ainsi : il garde sa réactivité.
+    if (!fresh) cursor.tick = Math.min(cursor.tick, items.at(-1).tick);
     cursor.at = now; this.cursors.set(fresh, cursor);
     const renderTick = cursor.tick;
     if (renderTick >= items.at(-1).tick) { const state = items.at(-1).state; return { previous: state, state, alpha: 1 }; }

@@ -1,0 +1,31 @@
+[
+  {
+    "key": "periurbain-b-bordure-gauche",
+    "file": "exec-e85820f5-79c9-4fd6-928c-4872099be37a.png"
+  },
+  {
+    "key": "periurbain-bc-bordure",
+    "file": "exec-bef7bd3f-3ef2-41bb-b376-88cec9929867.png"
+  },
+  {
+    "key": "retraites-a-bordure",
+    "file": "exec-61f22f86-85ff-458a-bb99-e999e0e0fbdb.png"
+  },
+  {
+    "key": "retraites-bc-bordure",
+    "file": "exec-18ff6f1f-b3f5-44f6-aafa-65bea82a8da8.png",
+    "premiere_source": "exec-14cd1e2a-e869-40a0-8663-8b720b71bcf3.png"
+  },
+  {
+    "key": "retraites-c-panneau",
+    "file": "exec-e6bdfe05-0239-4e67-b257-799cc1dfe762.png"
+  },
+  {
+    "key": "riches-b-vitrine",
+    "file": "exec-449ebc92-155f-47cb-820c-139709d46ebc.png"
+  },
+  {
+    "key": "retraites-bc-bordure-raccord-fin",
+    "file": "exec-2e10e822-81ec-40d6-b20f-5cdff4821e59.png"
+  }
+]

@@ -32,6 +32,7 @@ import { PeerSession } from './network/peer-session.js';
 import { OnlineSession } from './network/online-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
 import { SnapshotBuffer } from './network/snapshot-buffer.js';
+import { DebatePrediction, RemoteInputQueue } from './network/debate-prediction.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debat/debate-mode.js';
 import { APP_BUILD } from './app-build.js';
@@ -147,7 +148,7 @@ async function start() {
   let remote = new Map();
   let networkElapsed = 0;
   let networkBusy = false;
-  let sentAxis = 0;
+  let sentAxis = 0, sentTick = null;
   // Invité : les états de l’hôte passent par un tampon pour un affichage fluide malgré la 4G.
   const snapshots = new SnapshotBuffer(1 / config.balance.simulation_architecture.fixed_tick_hz);
   let guestAlpha = 1;
@@ -161,6 +162,8 @@ async function start() {
   let currentDay = state.days_remaining;
   // Mode Débat : combat autonome, sans monde de campagne.
   let debateMatch = null, debateState = null, debatePrevious = null, debatePending = [], debateSetup = null;
+  // Invité en débat : son téléphone fait avancer le combat sans attendre l’hôte (voir debate-prediction.js).
+  let prediction = null;
   // Débat multijoueur : combattants pilotés par un autre appareil (l’hôte simule, les invités affichent).
   let debateRemoteIds = new Set();
   const debateFighterOf = (setup, playerId) => debateFighterIds(setup.fighters)[setup.fighters.findIndex(f => f.player === playerId)];
@@ -295,7 +298,7 @@ async function start() {
     void keepScreenAwake();
   }
   function stopDebate() {
-    debateMatch = null; debateState = null; debatePrevious = null; debatePending = []; debateRemoteIds = new Set();
+    debateMatch = null; debateState = null; debatePrevious = null; debatePending = []; debateRemoteIds = new Set(); prediction = null;
     debateDisplay.hide(); document.body.classList.remove('debate-mode'); renderer.resetCamera(); sounds.reset();
   }
   /** Prépare un combat de débat : simulation, puis images des combattants choisis.
@@ -309,6 +312,9 @@ async function start() {
     if (multiplayer) {
       debateMatch.state.local_candidate_id = multiplayer.localId;
       debateRemoteIds = new Set(debateFighterIds(setup.fighters).filter((id, i) => setup.fighters[i].player && id !== multiplayer.localId));
+      if (session && !session.host) prediction = new DebatePrediction(debateMatch, multiplayer.localId);
+      // Revanche : les pas numérotés repartent de 1, les files de l’hôte aussi.
+      remote.clear();
     }
     debateState = debateMatch.getState(); debatePrevious = debateState; debateDisplay.reset(); debateDisplay.multiplayer = !!multiplayer;
     const wanted = debateAssetIds(renderer.assets.manifest, setup);
@@ -427,7 +433,7 @@ async function start() {
     accounts.completeRun(run.id, won).then(result => announce(result.unlocked))
       .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
   }
-  function play() { snapshots.reset(); paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
+  function play() { snapshots.reset(); sentTick = null; paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;
     if (room.phase === 'pairing') {
@@ -472,6 +478,11 @@ async function start() {
         const id = debateMatch ? debateFighterOf(session.room.debate, player.id) : `candidate:${player.faction}`;
         const controller = remote.get(id) || { axis: 0, actions: [], seen: 0 };
         controller.seen = performance.now();
+        // Débat : pas numérotés de l’invité, appliqués un par pas comme il les a prédits.
+        if (debateMatch && packet.seq != null) {
+          (controller.queue ??= new RemoteInputQueue()).push(packet.seq, packet.commands.map(command => ({ ...command, candidateId: id })));
+          remote.set(id, controller); return;
+        }
         for (const command of packet.commands) {
           if (command.type === 'Move') controller.axis = command.axis;
           else if (!['SetCampaignActive', 'InteractionPresence'].includes(command.type)) controller.actions.push({ ...command, candidateId: id });
@@ -481,7 +492,11 @@ async function start() {
       snapshot: snapshot => {
         if (!session || session.host || menu.active) return;
         const now = performance.now() / 1000;
-        if (debateMatch) { snapshots.push({ ...snapshot, local_candidate_id: debateState.local_candidate_id }, now); return; }
+        if (debateMatch) {
+          snapshots.push({ ...snapshot, local_candidate_id: debateState.local_candidate_id }, now);
+          prediction?.authoritative(snapshot);
+          return;
+        }
         const latest = snapshots.latest;
         // Changement de phase : l’ancien état ne doit pas se mélanger au nouveau.
         if (latest && latest.phase !== snapshot.phase) { snapshots.reset(); input.clear(); renderer.resetCamera(); }
@@ -546,13 +561,25 @@ async function start() {
       session.request(action, data).catch(error => { if (!error.transient) activeSession.fail(error.message); }).finally(() => { networkBusy = false; });
     };
     if (session.host) {
-      // Débat : 20 états par seconde (combat rapide, état léger) ; campagne : 15.
-      if (networkElapsed < (debateMatch ? 0.05 : 1 / 15)) return;
+      // Débat : un état à chaque pas de simulation (30 par seconde, environ 3 Ko/s) :
+      // combat rapide et état léger, chaque pas compte. Campagne : 15 par seconde.
+      if (debateMatch) {
+        if (debateState.tick === sentTick) return;
+        sentTick = debateState.tick;
+        // Dernier pas appliqué de chaque invité : sa prédiction repart de là.
+        const acks = {};
+        for (const [id, controller] of remote) if (controller.queue?.ack != null) acks[id] = controller.queue.ack;
+        // `ai_seed` : graine du hasard de l'ordinateur, pour que l'invité prédise ses décisions à l'identique.
+        send('snapshot', { state: { ...debateState, input_acks: acks, ai_seed: debateState.rng_state } });
+        return;
+      }
+      if (networkElapsed < 1 / 15) return;
       networkElapsed = 0;
-      send('snapshot', { state: debateMatch ? debateState : state });
+      send('snapshot', { state });
       return;
     }
-    if (paused) return;
+    // Débat : l’invité envoie ses pas numérotés depuis la boucle du combat (debateFrame).
+    if (paused || prediction) return;
     // Invité : les commandes partent dès qu’une touche change (moins de délai), et seulement
     // un signe de vie 4 fois par seconde quand rien ne bouge (moins de données).
     const commands = outgoingCommands(debateMatch ? [...human.commands(debateState, debateState.local_candidate_id), ...debatePending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]);
@@ -583,6 +610,8 @@ async function start() {
   function remoteDebateCommands(id) {
     const controller = remote.get(id);
     const recent = controller && performance.now() - controller.seen < 1000;
+    // Pas numérotés : un par tick ; sans nouveau pas, la direction en cours continue.
+    if (recent && controller.queue) return [{ type: 'SetCampaignActive', candidateId: id, active: true }, ...controller.queue.next()];
     return [{ type: 'SetCampaignActive', candidateId: id, active: true }, { type: 'Move', candidateId: id, axis: recent ? controller.axis : 0 },
       ...(recent ? controller.actions.splice(0) : [{ type: 'CancelAttack', candidateId: id }])];
   }
@@ -615,9 +644,22 @@ async function start() {
   /** Une image du mode Débat : simulation à pas fixe, puis affichage. */
   function debateFrame(elapsed, now) {
     const halted = paused || !help.hidden || document.hidden;
-    // Un invité ne simule pas : il affiche les états envoyés par l’hôte.
+    // Un invité ne décide de rien : l’hôte arbitre. Mais pendant le combat, son téléphone
+    // joue ses gestes tout de suite (prédiction), puis se recale sur chaque état de l’hôte.
     const guest = session && !session.host;
-    if (guest) guestView();
+    if (guest && prediction) {
+      if (!halted) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
+        const commands = human.commands(prediction.state, prediction.localId);
+        const seq = prediction.step(commands);
+        const activeSession = session;
+        activeSession.request('commands', { commands: outgoingCommands(commands), seq }).catch(error => { if (!error.transient) activeSession.fail(error.message); });
+      });
+      prediction.decay(halted ? 0 : elapsed);
+    }
+    if (guest && prediction?.active) {
+      const view = prediction.view();
+      debateState = view.state; debatePrevious = view.previous; guestAlpha = clock.alpha;
+    } else if (guest) guestView();
     if (!halted && !guest) {
       clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
         debatePrevious = debateState;

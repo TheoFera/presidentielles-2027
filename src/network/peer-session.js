@@ -1,4 +1,4 @@
-import { sanitizeCommands } from './shared-commands.js';
+import { sanitizeCommands, cleanSeq } from './shared-commands.js';
 import { encodePresentationState, encodeStateDelta, applyStateDelta, cullDistantNpcs } from './state-stream.js';
 
 // Compression des messages (deflate, intégrée aux navigateurs récents) : les états,
@@ -314,7 +314,7 @@ export class PeerSession {
         catch (error) { this.send(peer, 'selectionError', { message: error.message }); }
         return;
       }
-      if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction) });
+      if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction), seq: cleanSeq(packet.data.seq) });
       else if (packet.type === 'ready' && this.room.phase === 'loading') this.setReady(player);
       else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
       else if (packet.type === 'rematch' && this.room.phase === 'playing') { try { voteRematch(this.room, player.id); this.publishRoom(); } catch { /* Vote hors d’un débat : ignoré. */ } }

@@ -5,6 +5,11 @@ plugins {
 // Le jeu web optimisé, produit par « npm run build » à la racine du projet.
 def webDir = rootProject.file('../dist')
 
+// Numéro de version affiché sur le Play Store et dans le menu du jeu : écrit une seule fois, dans src/version.js.
+def gameVersionMatch = rootProject.file('../src/version.js').text =~ /GAME_VERSION = '([^']+)'/
+if (!gameVersionMatch.find()) throw new GradleException('Numéro de version introuvable dans src/version.js (GAME_VERSION).')
+def gameVersion = gameVersionMatch.group(1)
+
 // Publicités AdMob : identifiants à renseigner dans android/gradle.properties (voir docs/publicites.md).
 // En version de test (debug), ce sont toujours les identifiants de test publics de Google : aucune vraie pub.
 def admobTestAppId = 'ca-app-pub-3940256099942544~3347511713'
@@ -31,8 +36,9 @@ android {
         minSdk = 24
         targetSdk = 36
         // À augmenter de 1 à chaque nouvelle version envoyée sur le Play Store.
-        versionCode = 2
-        versionName = '1.0.1'
+        versionCode = 3
+        // Le numéro lisible (ex. 1.0.1) se change dans src/version.js.
+        versionName = gameVersion
         // Mesure de fluidité sur une version finale : « -PwebDebug=true » rend la page du jeu inspectable
         // depuis l'ordinateur (chrome://inspect). Désactivé par défaut : la version Play Store n'est pas concernée.
         buildConfigField 'boolean', 'WEB_DEBUG', (findProperty('webDebug') == 'true').toString()

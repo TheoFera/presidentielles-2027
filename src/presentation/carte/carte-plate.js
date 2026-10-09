@@ -15,6 +15,7 @@ const SIGN = { top: 764, bottom: 808, width: 220 };
 const NATURAL_SIGNS = {
   'site:paris_b': { x: 450, y: 710, w: 306, h: 39 },
   'site:banlieue_b': { x: 284, y: 715, w: 267, h: 32 },
+  'site:retraites_c': { x: 1195, y: 758, w: 188, h: 30 },
   'site:riches_a': { x: 904, y: 683, w: 222, h: 42 },
   'site:riches_b': { x: 151, y: 614, w: 355, h: 52 },
   'site:riches_c': { x: 237, y: 686, w: 386, h: 42 },

@@ -5,6 +5,7 @@ import { hydrateMedallions, playerCard, rememberTitle } from './player-card.js';
 import { isBetatestProfile } from '../../simulation/campaign-styles.js';
 import { showDebateSetup, defaultDebateSetup, emptyDebateSetup } from '../debat/debate-menu.js';
 import { APP_BUILD } from '../../app-build.js';
+import { GAME_VERSION } from '../../version.js';
 const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
 export { CANDIDATES } from './arcade-content.js';
@@ -43,7 +44,7 @@ export class StartMenu {
     this.element.hidden = false; this.game.inert = true;
     const left = screen !== 'home' ? '<button id="menu-back">← Retour</button>' : this.account ? profileButton(this.account.get()) : '<span></span>';
     const sound = this.audio ? '<button id="menu-sound" aria-pressed="false"></button>' : '';
-    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}${APP_BUILD ? '' : '<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button>'}</span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>`;
+    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}${APP_BUILD ? '' : '<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button>'}</span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>${screen === 'home' ? `<p class="menu-version">v${GAME_VERSION}</p>` : ''}`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
     this.element.querySelector('#menu-profile')?.addEventListener('click', () => this.profile());
     const fullscreenButton = this.element.querySelector('#menu-fullscreen');
