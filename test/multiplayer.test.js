@@ -620,6 +620,15 @@ test('Connexion directe : les gros messages partent compressés quand l’autre 
   host.send(peer, 'snapshot', { tick: 3, text: 'débat télé '.repeat(500) });
   for (let i = 0; i < 100 && snapshots.length < 3; i++) await new Promise(resolve => setTimeout(resolve, 5));
   assert.deepEqual(snapshots.map(s => s.tick), [1, 2, 3]);
+  // Premier état d’une partie : plus de 8 Ko même compressé, il part quand même d’un seul bloc.
+  let seed = 1;
+  const positions = Array.from({ length: 3500 }, () => (seed = seed * 48271 % 2147483647) % 100000);
+  const count = sent.length;
+  host.send(peer, 'snapshot', { tick: 4, positions });
+  for (let i = 0; i < 200 && snapshots.length < 4; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(sent.length, count + 1, 'un seul envoi, sans découpage');
+  assert.ok(sent.at(-1) instanceof Uint8Array && sent.at(-1).byteLength > 8000, `${sent.at(-1).byteLength} octets`);
+  assert.deepEqual(snapshots[3].positions, positions);
   assert.deepEqual(errors, []);
 });
 

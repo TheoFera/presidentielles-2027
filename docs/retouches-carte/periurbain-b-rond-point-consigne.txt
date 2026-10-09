@@ -1,0 +1,7 @@
+Retouche ImageGen intégrée avec un masque opaque local.
+Cible : extrait (480, 360, 1920, 1080) de tuile-08-periurbain-b.png.
+Référence de style : archive assets/generated/world-v2/reference-style-carte-plate.png.
+Corriger l'îlot qui se confond avec le trottoir à droite : ellipse fermée, chaussée tout autour, conserver sculpture, plantations et panneau bleu. Faire déboucher le rond-point sur la rue du premier plan et peindre un passage piéton horizontal qui relie les deux trottoirs dans l'axe de marche y = 1 004. Les bandes blanches sont à plat sur la chaussée et orientées vers le fond. Conserver bâtiments, relief, éclairage, échelle, graphisme peint et contours dessinés. Aucun ajout de texte, véhicule, personnage ou bâtiment. Rétablir explicitement tous les pixels originaux hors du masque, sans fondu ni transparence. Conserver les extrémités de B pour les raccords avec A et C.
+Source sélectionnée : sources/periurbain-b-rond-point-source.png.
+Sauvegarde avant : sources/periurbain-b-avant.png.
+Masque et intégration : sources/periurbain-b-rond-point-masque.png et sources/periurbain-b-integrer.py.

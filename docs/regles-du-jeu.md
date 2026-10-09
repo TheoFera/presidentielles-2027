@@ -19,10 +19,10 @@ Le « local du camp » devient le local du service d'ordre ou le cabinet adminis
 
 ## Électeurs et persuasion
 
-- Les **Neutres** apparaissent autour des points de vie de chaque sous-zone, jusqu'à un plafond par sous-zone (`world_layout.json`, `max_npcs_by_origin`). Un habitant garde toujours son quartier d'origine.
+- Les **Neutres** apparaissent dans chaque sous-zone, jusqu'à un plafond par sous-zone (`world_layout.json`, `max_npcs_by_origin`). Chaque habitant reçoit sa propre place, choisie loin de celles des autres (`prototype_config.json`, `home_margin_units`, `home_candidate_draws`) : il y apparaît, flâne autour (`roam_radius_units`) et y revient. Un habitant garde toujours son quartier d'origine.
 - S'arrêter près d'un Neutre le **convainc** : il devient Sympathisant du camp. La persuasion ne marche qu'immobile.
 - Les Sympathisants peuvent devenir **Militants** (ils convainquent et se battent pour le camp) ou membres du **service d'ordre**.
-- Un Militant seul reste près de sa permanence et agit dans sa sous-zone et les voisines. À partir de 3 Militants sans cible, ils partent ensemble en expédition.
+- Un Militant seul reste près de sa permanence (sans cible, chacun attend à sa propre place autour, `idle_spread_units`) et agit dans sa sous-zone et les voisines. À partir de 3 Militants sans cible, ils partent ensemble en expédition.
 
 ## Bâtiments et contrôle des sous-zones
 

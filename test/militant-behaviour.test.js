@@ -11,6 +11,8 @@ const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json'].map(async f => JSON.parse(await readFile(new URL(f, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype });
 const advance = (sim, n) => { for (let i = 0; i < n; i++) sim.step(); };
+// Désœuvrés, les militants attendent chacun à leur place autour de la permanence.
+const NEAR_HOME = config.balance.physical_units.militant.idle_spread_units + 0.1;
 const HOME = 'site:campagne_b'; // sous-zone 10 : le territoire couvre campagne_a, campagne_b et campagne_c.
 
 function setup() {
@@ -38,7 +40,7 @@ test('Seul, un militant attend près de sa permanence et ignore les neutres hors
   const militant = unit(sim, 'MILITANT', 280);
   const far = unit(sim, 'NEUTRE', 330); // retraites_b : deux sous-zones plus loin
   advance(sim, 900);
-  assert.ok(Math.abs(militant.x - home.x) < 1, 'le militant revient à sa permanence');
+  assert.ok(Math.abs(militant.x - home.x) <= NEAR_HOME, 'le militant revient à sa permanence');
   assert.equal(militant.task.target_id, null);
   assert.equal(far.role, 'NEUTRE');
 });
@@ -51,7 +53,7 @@ test('Un neutre dans une sous-zone voisine attire le militant, qui rentre ensuit
   assert.equal(militant.task.target_id, near.id);
   advance(sim, 800);
   assert.equal(near.role, 'SYMPATHISANT');
-  assert.ok(Math.abs(militant.x - home.x) < 1, 'retour à la permanence après la conversion');
+  assert.ok(Math.abs(militant.x - home.x) <= NEAR_HOME, 'retour à la permanence après la conversion');
 });
 
 test('Trois militants désœuvrés forment un groupe et partent sans faire demi-tour', () => {
@@ -77,7 +79,7 @@ test('Deux militants seulement ne partent pas en expédition', () => {
   const militants = [0, 1].map(i => unit(sim, 'MILITANT', home.x + i * 0.2));
   unit(sim, 'NEUTRE', 330);
   advance(sim, 200);
-  assert.ok(militants.every(m => !m.expedition && Math.abs(m.x - home.x) < 1));
+  assert.ok(militants.every(m => !m.expedition && Math.abs(m.x - home.x) <= NEAR_HOME));
 });
 
 test('Le groupe se dissout quand il perd un membre et les survivants rentrent', () => {
@@ -90,7 +92,7 @@ test('Le groupe se dissout quand il perd un membre et les survivants rentrent', 
   advance(sim, 2);
   assert.ok(militants.slice(1).every(m => !m.expedition));
   advance(sim, 1500);
-  assert.ok(militants.slice(1).every(m => m.role !== 'MILITANT' || Math.abs(m.x - home.x) < 1));
+  assert.ok(militants.slice(1).every(m => m.role !== 'MILITANT' || Math.abs(m.x - home.x) <= NEAR_HOME));
 });
 
 test('Un sympathisant ne va chercher un tract que dans la sous-zone du point d’impression ou une voisine', () => {

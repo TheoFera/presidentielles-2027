@@ -6,6 +6,9 @@ import { encodePresentationState, encodeStateDelta, applyStateDelta, cullDistant
 // appareil a annoncé savoir décompresser ; sinon, le texte part tel quel.
 const DEFLATE = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
 const COMPRESS_FROM = 200; // En dessous, le gain ne vaut pas l’effort.
+// Un message compressé part d’un seul bloc : 16 Ko, taille acceptée par tous les navigateurs.
+// Le premier état d’une partie (environ 100 Ko de texte) y tient une fois compressé.
+const BINARY_MAX = 16000;
 async function deflate(text) {
   const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'));
   return new Uint8Array(await new Response(stream).arrayBuffer());
@@ -252,7 +255,7 @@ export class PeerSession {
     if (peer.deflate && json.length >= COMPRESS_FROM) {
       // La compression est asynchrone : le message garde sa place dans la file.
       item.pending = true;
-      deflate(json).then(bytes => { if (bytes.byteLength <= 8000) { item.binary = bytes; item.total = 1; } })
+      deflate(json).then(bytes => { if (bytes.byteLength <= BINARY_MAX) { item.binary = bytes; item.total = 1; } })
         .catch(() => { /* Le texte part tel quel. */ })
         .finally(() => { item.pending = false; this.pump(peer); });
       return true;
