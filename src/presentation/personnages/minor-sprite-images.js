@@ -25,10 +25,18 @@ export function isolateMinorFigure(data, width, height) {
   for (let pixel = 0; pixel < keep.length; pixel++) if (!keep[pixel]) data[pixel * 4 + 3] = 0;
 }
 
+// Découpes déjà préparées (pendant l'écran de chargement) par candidat : les portraits les réutilisent.
+const preparedByFaction = new Map();
+
 /** Prépare les douze découpes une seule fois ; les PNG sources restent intacts. */
 export function prepareMinorFrames(image, faction) {
-  return prepareAtlasFrames(image, MINOR_ATLASES[faction]);
+  const frames = prepareAtlasFrames(image, MINOR_ATLASES[faction]);
+  if (frames) preparedByFaction.set(faction, frames);
+  return frames;
 }
+
+/** Découpes d'un candidat si le jeu les a déjà préparées, sinon null. */
+export const preparedMinorFrames = faction => preparedByFaction.get(faction) || null;
 
 export function prepareAtlasFrames(image, atlas) {
   if (cache.has(image)) return cache.get(image);

@@ -66,7 +66,6 @@ export const visualManifest = {
   "journalist-2": { file: new URL("../../../assets/images/secondaires/journalist-2.png", import.meta.url).href },
   "security-0": { file: new URL("../../../assets/images/secondaires/security-0.png", import.meta.url).href },
   "security-1": { file: new URL("../../../assets/images/secondaires/security-1.png", import.meta.url).href },
-  "background-debate": { file: new URL("../../../assets/images/debat/background-debate.png", import.meta.url).href },
   "debate-elysee": { file: new URL("../../../assets/images/debat/elysee-illustre-v3.png", import.meta.url).href },
   "debate-face-a-face": { file: new URL("../../../assets/images/debat/face-a-face-cadrage-v3.png", import.meta.url).href },
   "debate-remue-menage": { file: new URL("../../../assets/images/debat/remue-menage-balcons-v3.png", import.meta.url).href },

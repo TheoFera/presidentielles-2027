@@ -26,9 +26,6 @@ export function drawDebate(renderer, state, previous, alpha) {
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
   ctx.strokeStyle = '#778496'; ctx.lineWidth = 2; ctx.strokeRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
-  const backdrop = renderer.assets.get('background-debate');
-  if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
-  else void renderer.assets.load('background-debate');
   ctx.textAlign = 'center'; ctx.fillStyle = '#fff2d6'; ctx.font = '700 17px system-ui';
   ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.32, width * 0.28);
   ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText(state.campaign_event_family ? 'Le monde continue. Remportez la confrontation pour revenir en campagne.' : 'Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);

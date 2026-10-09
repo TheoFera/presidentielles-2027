@@ -27,9 +27,6 @@ function supportHeight(state, x, height) {
 function drawPlateau(renderer, state) {
   const { ctx, width, height, metrics: m } = renderer;
   ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
-  const backdrop = renderer.assets.get('background-debate');
-  if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
-  else void renderer.assets.load('background-debate');
   ctx.fillStyle = '#c9ab7f'; ctx.fillRect(0, m.groundY, width, 5);
   ctx.fillStyle = '#4c3b30'; ctx.fillRect(0, m.groundY + 5, width, height - m.groundY);
   for (const edge of [state.debate_bounds.min, state.debate_bounds.max]) { ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20); }
@@ -260,7 +257,6 @@ export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
 export function debateAssetIds(manifest, setup) {
   return Object.keys(manifest).filter(id => id.startsWith('ultimate-') || id.startsWith('character-ultimate-') || id.startsWith('crs-')
     || id === DEBATE_ARENAS[setup.map]?.asset
-    || setup.map === 'plateau' && id === 'background-debate'
     || setup.fighters.some(f => {
       const faction = f.faction.replace(/_/g, '-');
       return id === `minor-${f.faction}` || id.startsWith(`character-minor-${f.faction}-`)

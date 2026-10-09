@@ -2,7 +2,7 @@ import { plateAssetIds } from './carte-plate.js';
 
 const biomeNames = ['bobo','banlieue','periurbain','campagne','retraites','riches'];
 export function worldAssetIds(manifest, state) {
-  const wanted = new Set(['background-debate', 'vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
+  const wanted = new Set(['vehicles', 'riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella']);
   for (const biome of biomeNames) wanted.add(`building-meeting_stage-${biome}`).add(`building-meeting_micro-${biome}`);
   // La carte plate peint déjà ciel, nuages, arbres et façades.
   for (const id of plateAssetIds()) wanted.add(id);

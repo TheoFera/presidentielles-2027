@@ -5,17 +5,16 @@ export const NPC_ENTRY_SECONDS = 1.6;
 
 /**
  * Avancement de l'arrivée (0 = tout en bas, 1 = arrivé) pour chaque PNJ récemment apparu.
- * Les évènements `NeutralSpawned` sont rangés par ordre chronologique : on lit depuis la fin.
+ * On lit l'instant d'apparition sur le PNJ lui-même : le journal d'évènements est trop court
+ * (quelques entrées) et n'est pas transmis aux invités en multijoueur.
  */
 export function npcEntryProgress(state, tickHz, alpha = 0, seconds = NPC_ENTRY_SECONDS) {
   const progress = new Map();
   const duration = Math.max(1, seconds * tickHz);
-  const events = state.events || [];
-  for (let i = events.length - 1; i >= 0; i--) {
-    const event = events[i];
-    const elapsed = state.tick + alpha - event.tick;
-    if (elapsed >= duration) break;
-    if (event.type === 'NeutralSpawned' && !progress.has(event.npc_id)) progress.set(event.npc_id, Math.max(0, elapsed / duration));
+  for (const npc of state.npcs || []) {
+    if (npc.entry_tick == null) continue;
+    const elapsed = state.tick + alpha - npc.entry_tick;
+    if (elapsed < duration) progress.set(npc.id, Math.max(0, elapsed / duration));
   }
   return progress;
 }

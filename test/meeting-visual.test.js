@@ -118,6 +118,12 @@ test('le candidat peut atterrir et marcher aux deux extrémités de chaque estra
       candidate.x = meeting.x + side * (halfWidth + 0.05);
       sim.step();
       assert.equal(candidate.podium_site_id, null, 'chute seulement au-delà du bord');
+      // La chute est visible : la hauteur diminue progressivement jusqu’au sol.
+      assert.ok(candidate.combat.jump_tick != null && candidate.combat.height > 0, 'pas de téléportation au sol');
+      const heights = [candidate.combat.height];
+      while (candidate.combat.jump_tick != null && heights.length < 60) { sim.step(); heights.push(candidate.combat.height); }
+      assert.ok(heights.length > 3, 'la chute dure plusieurs images');
+      assert.ok(heights.every((h, i) => i === 0 || h <= heights[i - 1]), 'la chute ne remonte jamais');
       assert.equal(candidate.combat.height, 0);
     }
   }

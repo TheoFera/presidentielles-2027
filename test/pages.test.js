@@ -40,7 +40,7 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   // Les images de la carte plate, des personnages et du débat sont toutes dans le manifeste.
   // Les façades des bâtiments sont peintes dans la carte plate : seule l'estrade du meeting est une image à part.
   const state = new GameSimulation(campaignConfig()).getState();
-  const needed = new Set([...worldAssetIds(visualManifest, state), 'background-debate', 'debate-elysee', 'character-style-philippe-notable']);
+  const needed = new Set([...worldAssetIds(visualManifest, state), 'debate-elysee', 'character-style-philippe-notable']);
   for (const id of needed) assert.ok(visualManifest[id], id);
   const exported = await readdir(output, { recursive: true, withFileTypes: true });
   let bytes = 0;
@@ -85,7 +85,7 @@ test('La version web a les mêmes images que l’application', async t => {
   });
   await buildPages(output, { webp: false });
   assert.match(await readFile(join(output, 'src/app-build.js'), 'utf8'), /APP_BUILD = false/);
-  for (const id of ['plate-01', 'background-debate']) assert.ok((await stat(join(output, assetPath(id)))).size > 0, id);
+  for (const id of ['plate-01', 'debate-elysee']) assert.ok((await stat(join(output, assetPath(id)))).size > 0, id);
 });
 
 test('Les chemins d\'images passent en WebP, y compris dans les gabarits', () => {

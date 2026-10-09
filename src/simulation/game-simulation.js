@@ -19,6 +19,7 @@ import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
+import { startPodiumFall } from './combat-actions.js';
 import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
@@ -193,6 +194,8 @@ export class GameSimulation {
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
       combat: combatState(), raid: null, guard_biome_id: null, guard_anchor_x: null, demobilized_tick: -1, meeting_target_id: null, meeting_wave_id: null,
       donation_cents: 0, next_donation_tick: null, handoff_until_tick: -1, home_site_id: null, expedition: null,
+      // Instant d'apparition, pour l'arrivée à pied à l'écran (null : déjà là au début de la partie).
+      entry_tick: announce ? this.state.tick : null,
     };
     this.state.npcs.push(npc);
     if (announce) this.emit('NeutralSpawned', { npc_id: npc.id, subzone_id: zone.id });
@@ -376,7 +379,7 @@ export class GameSimulation {
         const podium = state.buildings.find(b => b.id === candidate.podium_site_id);
         if (!podium || Math.abs(ringDelta(candidate.x, podium.x, state.world.length)) > this.config.balance.buildings.meeting.podium_half_width) {
           candidate.podium_site_id = null;
-          candidate.combat.height = 0;
+          startPodiumFall(this, candidate);
         }
       }
     }

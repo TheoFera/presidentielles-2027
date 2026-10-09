@@ -2,7 +2,7 @@ import { CANDIDATES, portrait } from '../menus/arcade-content.js';
 import { MINOR_FACTIONS } from '../../simulation/world.js';
 import { debateStyles, debateStyleAvailable } from '../../simulation/debate-mode.js';
 import { MINOR_SPRITES } from '../personnages/minor-sprites.js';
-import { prepareMinorFrames } from '../personnages/minor-sprite-images.js';
+import { prepareMinorFrames, preparedMinorFrames } from '../personnages/minor-sprite-images.js';
 
 const MINOR_NAMES = [
   ['Raphaël Glucksmann', 'Glucksmann'], ['Fabien Roussel', 'Roussel'], ['Nathalie Arthaud', 'Arthaud'],
@@ -15,15 +15,22 @@ const portraits = new Map();
 /** Réutilise les silhouettes du jeu ; une seule découpe est conservée par candidat. */
 export function selectionPortrait(faction) {
   if (!MINOR_FACTIONS.includes(faction)) return Promise.resolve(portrait({ id: faction }));
-  if (!portraits.has(faction)) portraits.set(faction, new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => {
-      try { resolve(prepareMinorFrames(image, faction)[0].toDataURL()); } catch (error) { reject(error); }
-    };
-    image.onerror = reject;
-    image.src = new URL(`../../../${MINOR_SPRITES[faction]}`, import.meta.url).href;
-  }));
+  if (!portraits.has(faction)) portraits.set(faction, (async () => {
+    // En partie, la découpe est déjà prête (chargement) : sinon, une seule découpe pour ce portrait.
+    // L'encodage en image se fait hors du fil du jeu (toBlob) : pas de gel quand un portrait apparaît.
+    const frame = (preparedMinorFrames(faction) || prepareMinorFrames(await loadImage(new URL(`../../../${MINOR_SPRITES[faction]}`, import.meta.url).href), faction))[0];
+    const blob = await new Promise((resolve, reject) => frame.toBlob(result => result ? resolve(result) : reject(new Error('Portrait indisponible.')), 'image/png'));
+    return URL.createObjectURL(blob);
+  })());
   return portraits.get(faction);
+}
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
 }
 export function portraitContent(faction) {
   const candidate = DEBATE_CANDIDATES.find(c => c.id === faction);

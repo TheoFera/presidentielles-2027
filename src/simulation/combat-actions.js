@@ -25,10 +25,17 @@ export function updateActions(sim, actor) {
   if (airborne(actor)) {
     const previousHeight = c.height;
     const t = (sim.state.tick - c.jump_tick) / sim.secondsToTicks(b.jump_duration_seconds);
-    c.height = b.jump_height_ratio * 4 * t * (1 - t);
+    c.height = (c.jump_base || 0) + b.jump_height_ratio * 4 * t * (1 - t);
     if (t >= 0.5 && podiumLanding(sim, actor, previousHeight, c.height)) return;
-    if (t >= 1) { c.jump_tick = null; c.height = 0; }
+    if (t >= 1 || t >= 0.5 && c.height <= 0) { c.jump_tick = null; c.height = 0; c.jump_base = 0; }
   }
+}
+/** Campagne : en quittant le promontoire à pied, on tombe jusqu’au sol.
+ * La chute reprend la descente du saut, à partir de la hauteur du promontoire. */
+export function startPodiumFall(sim, actor) {
+  const c = actor.combat, b = sim.config.balance.candidate_combat;
+  c.jump_tick = sim.state.tick - Math.round(sim.secondsToTicks(b.jump_duration_seconds) / 2);
+  c.jump_base = c.height - b.jump_height_ratio;
 }
 /** Campagne : on se pose sur le promontoire d’un meeting actif en redescendant. */
 function podiumLanding(sim, actor, previousHeight, height) {

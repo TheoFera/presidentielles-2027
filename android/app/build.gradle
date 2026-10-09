@@ -90,7 +90,14 @@ android {
 tasks.named('preBuild') {
     doFirst {
         if (!new File(webDir, 'index.html').exists()) {
-            throw new GradleException('Le dossier dist/ est absent : lancez d\'abord « npm run build » à la racine du projet.')
+            throw new GradleException('Le dossier dist/ est absent : lancez d\'abord « node scripts/build-pages.mjs --app » à la racine du projet.')
+        }
+        // dist/ doit être la version application du jeu (APP_BUILD = true). Après « npm run build » (version web),
+        // l'appli embarquerait le site : sans les réglages ni les optimisations de l'appli, et la page se fige
+        // dès qu'elle demande le plein écran (constaté le 09/10/2026).
+        def flag = new File(webDir, 'src/app-build.js')
+        if (!flag.exists() || !flag.getText('UTF-8').contains('export const APP_BUILD = true')) {
+            throw new GradleException('dist/ contient la version web du jeu, pas celle de l\'application : lancez « node scripts/build-pages.mjs --app » à la racine du projet, puis reconstruisez l\'appli.')
         }
     }
 }

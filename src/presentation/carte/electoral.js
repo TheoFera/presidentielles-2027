@@ -240,7 +240,8 @@ function drawMeetingPodium(renderer, state, building) {
   const spriteId = buildingAssetId(building, state.world);
   const frame = meetingSpriteFrame(renderer, state, building);
   if (!frame) void renderer.assets.load(spriteId);
-  ctx.save(); ctx.textAlign = 'center';
+  // Le grand PNG est fortement réduit : sans lissage, il scintille au moindre déplacement de la caméra.
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.textAlign = 'center';
   let progressY = top - 25;
   if (frame) {
     drawMeetingStageSprite(ctx, frame);
