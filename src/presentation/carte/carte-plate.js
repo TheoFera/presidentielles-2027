@@ -72,13 +72,29 @@ function keepNearbyTilesDecoded(visibleIndexes) {
   }
 }
 
+/** Bord gauche d'une tuile à l'écran, avant l'arrondi au pixel entier. */
+function tileLeft(renderer, world, zone) {
+  return renderer.metrics.anchorX + (ringDelta(renderer.cameraX, zone.center, world.length) - zone.width / 2) * renderer.metrics.pixelsPerUnit;
+}
+
+/**
+ * Décalage (moins d'un pixel) que l'arrondi applique à la tuile d'une sous-zone.
+ * En l'ajoutant à sa position, un objet posé sur la tuile avance exactement avec elle.
+ */
+export function plateSnapOffset(renderer, world, zoneId) {
+  const zone = world.subzones.find(z => z.id === zoneId);
+  if (!renderer.fixedWorldActive || !zone) return 0;
+  const left = tileLeft(renderer, world, zone);
+  return Math.round(left) - left;
+}
+
 /** Dessine les tuiles visibles, bord à bord à des positions entières. Renvoie false si une tuile visible manque encore. */
 export function drawPlateWorld(renderer, state) {
   const { ctx, metrics: m, width, height } = renderer, world = state.world;
   const visible = [];
   for (const zone of world.subzones) {
     const k = tileScale(renderer, zone);
-    const left = m.anchorX + (ringDelta(renderer.cameraX, zone.center, world.length) - zone.width / 2) * m.pixelsPerUnit;
+    const left = tileLeft(renderer, world, zone);
     const x0 = Math.round(left), x1 = Math.round(left + zone.width * m.pixelsPerUnit);
     if (x1 < 0 || x0 > width) continue;
     const index = zone.index % TILE_COUNT, image = renderer.assets.get(tileId(index));

@@ -1,4 +1,5 @@
 import { buildingAssetId } from './illustrated-buildings.js';
+import { plateSnapOffset } from './carte-plate.js';
 import { ringDelta } from '../../simulation/world.js';
 import { meetingWaveRadius } from '../../simulation/electoral-buildings.js';
 import { MapWheel } from '../interface/map-wheel.js';
@@ -57,9 +58,14 @@ export function meetingSpriteFrame(renderer, state, building) {
   const deckY = feetY - baseHeight * surface / 2 * k;
   const upperHeight = baseHeight * deckSplit * MEETING_UPPER_HEIGHT_SCALE;
   const lowerHeight = baseHeight * (1 - deckSplit) * k;
-  const left = renderer.screenX(building.x) - halfWidth - platformLeft * width;
+  const left = meetingScreenX(renderer, state, building) - halfWidth - platformLeft * width;
   return { sprite, id, biome, width, height: upperHeight + lowerHeight, baseHeight, deckSplit, deckY, feetY, upperHeight, lowerHeight,
     lowerScale: k, platformLeft, platformRight, left, top: deckY - upperHeight };
+}
+
+/** Position de l'estrade calée sur l'arrondi de la tuile de carte : elle avance au même pixel que le décor. */
+function meetingScreenX(renderer, state, building) {
+  return renderer.screenX(building.x) + plateSnapOffset(renderer, state.world, building.subzone_id);
 }
 
 export function drawMeetingStageSprite(ctx, frame) {
@@ -231,7 +237,7 @@ export function drawElectoralBuilding(renderer, state, building) {
 
 function drawMeetingPodium(renderer, state, building) {
   const { ctx, metrics: m, config, width } = renderer;
-  const x = renderer.screenX(building.x);
+  const x = meetingScreenX(renderer, state, building);
   if (x < -m.characterHeight || x > width + m.characterHeight) return;
   const settings = config.balance.buildings.meeting;
   const color = config.prototype.presentation.factions[building.meeting_faction_id]?.color || '#7d8a78';
@@ -387,7 +393,7 @@ export function drawMeetingForeground(renderer, state) {
     const frame = meetingSpriteFrame(renderer, state, building);
     if (!frame) continue;
     const { left, top, width, deckY, feetY } = frame;
-    ctx.save();
+    ctx.save(); ctx.imageSmoothingEnabled = true;
     // Le dessus du plancher, entre son arrière et les pieds, reste derrière le candidat : ses pieds restent visibles.
     ctx.beginPath(); ctx.rect(left, top, width, deckY - top); ctx.rect(left, feetY + 2, width, renderer.metrics.groundY - feetY - 2); ctx.clip();
     drawMeetingStageSprite(ctx, frame);

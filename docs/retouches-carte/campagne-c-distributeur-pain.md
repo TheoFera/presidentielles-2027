@@ -4,6 +4,8 @@ Retouche du 9 octobre 2026 avec l’outil ImageGen intégré. La seconde stèle,
 
 Fichier utilisé par le jeu : `assets/images/carte/tuile-12-campagne-c.png` (1 920 × 1 080, opaque).
 
+La fresque maître `carte-plate/fresque-plate-maitre.png` et les copies `tuiles/` reçoivent aussi le raccord restauré B → C : maison avec mur latéral devant l’arbre et les blés, petit distributeur de pain et pavés corrigés. Ce report, déjà présent dans `production/fresque-en-cours.png`, est effectué par `sources/campagne-bc-synchroniser-maitre.py` uniquement sur les pixels différents de cette retouche. Les parties correspondantes du maître et des tuiles archivées sont comparées pixel par pixel aux tuiles utilisées par le jeu.
+
 Sources générées normalisées : `sources/campagne-c-distributeur-pain.png`, puis `sources/campagne-c-distributeur-pain-v2.png`. Aperçu final intégré : `campagne-c-distributeur-pain-apercu.png`.
 
 Première passe : zone x = 0…439, y = 640…1 003 de Campagne C, remplacée par des pixels opaques, sans fondu. Seconde passe : sur un extrait de 952 × 800 commençant à x = 20 864, y = 280 dans la fresque, remplacement local des rectangles x = 220…384, y = 180…479 (maison devant l’arbre), et x = 380…509, y = 460…709 (distributeur). La première zone touche les 36 derniers pixels en largeur de Campagne B et le début de Campagne C. Les pixels extérieurs sont conservés exactement. La ligne de marche, la stèle conservée et le raccord droit ne sont pas modifiés. Le raccord B → C a été contrôlé sur l’aperçu intégré. Les deux tuiles du jeu et la fresque source archivée sont synchronisées.
