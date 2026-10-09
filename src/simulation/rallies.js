@@ -1,6 +1,6 @@
 import { canCampaign, interrupted } from './combat-state.js';
 import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
-import { random, ringDelta, wrap, zoneAt } from './world.js';
+import { npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { stableIdOrder } from './territory.js';
 
 const position = (sim, npc, target, speed) => {
@@ -56,10 +56,9 @@ export function finishRally(sim, event) {
   if (!event.march) return;
   event.march.phase = 'DISPERSING';
   for (const npc of sim.state.npcs.filter(n => n.rally_event_id === event.id)) {
-    const origin = sim.state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
     const zone = sim.state.world.subzones.find(z => z.id === npc.origin_subzone_id);
     npc.rally_event_id = null; npc.rally_conversion = null; npc.task = null;
-    npc.rally_return_x = Math.max(zone.start + 1, Math.min(zone.end - 1, origin.x + Math.sin(npc.rally_index * 2.4) * 3));
+    npc.rally_return_x = Math.max(zone.start + 1, Math.min(zone.end - 1, npcHomeX(sim.state, npc) + Math.sin(npc.rally_index * 2.4)));
     npc.roam_target_x = npc.rally_return_x;
   }
 }

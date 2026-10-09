@@ -1,5 +1,5 @@
 import { combatDelta, combatPosition } from './combat-geometry.js';
-import { ringDelta, subzoneGap, wrap, zoneAt } from './world.js';
+import { npcHomeX, ringDelta, subzoneGap, wrap, zoneAt } from './world.js';
 import { distance, stableIdOrder } from './territory.js';
 import { releaseDonation } from './money.js';
 
@@ -79,7 +79,14 @@ function chooseLocalTask(simulation, npc, home) {
   const target = state.npcs.filter(freeNeutral(npc, reservedTargets(state, npc)))
     .filter(n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) <= config.balance.physical_units.militant.nearby_zone_radius)
     .sort((a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b))[0];
-  return expandTask(simulation, target, target?.x ?? anchorX);
+  return expandTask(simulation, target, target?.x ?? (home ? anchorX + idleOffset(simulation, npc) : anchorX));
+}
+
+/** Sans rien à faire, chaque militant attend à sa propre place autour de la permanence, pas tous au même point. */
+function idleOffset(simulation, npc) {
+  const { state } = simulation;
+  const zone = state.world.subzones.find(z => z.id === npc.origin_subzone_id);
+  return (npcHomeX(state, npc) - zone.center) / (zone.width / 2) * simulation.config.balance.physical_units.militant.idle_spread_units;
 }
 
 /** Au moins trois militants qui patientent sans rien à faire chez eux partent ensemble en expédition. */

@@ -128,6 +128,8 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!/^npc:\d+$/.test(npc.id) || Number(npc.id.slice(4)) >= next.next_npc_id) fail('compteur PNJ invalide');
     const origin = next.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
     if (!origin || origin.biome_id !== npc.origin_biome_id || origin.subzone_id !== npc.origin_subzone_id) fail('origine PNJ invalide');
+    const homeZone = next.world.subzones.find(z => z.id === npc.origin_subzone_id);
+    if (npc.home_x !== undefined && !(Number.isFinite(npc.home_x) && npc.home_x >= homeZone.start && npc.home_x <= homeZone.end)) fail('place PNJ invalide');
     if (!validPosition(npc.x) || !validPosition(npc.roam_target_x) || ![-1, 1].includes(npc.facing) || !integer(npc.roam_wait_ticks) || typeof npc.moving !== 'boolean') fail('déplacement PNJ invalide');
     if (!['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE', 'DEMOBILISE'].includes(npc.role)) fail('rôle PNJ inconnu');
     if (['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) ? !ALL_FACTIONS.includes(npc.faction_id) : npc.faction_id !== null) fail('faction PNJ invalide');

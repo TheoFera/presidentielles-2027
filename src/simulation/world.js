@@ -26,6 +26,11 @@ export function buildWorld(config) {
   return { length: subzones.length * width, subzones, socialPoints, scenery };
 }
 
+/** Place personnelle d'un PNJ dans sa sous-zone (ancien état sans place : le point d'origine). */
+export function npcHomeX(state, npc) {
+  return npc.home_x ?? state.world.socialPoints.find(p => p.id === npc.origin_social_point_id).x;
+}
+
 export function zoneAt(world, x) {
   return world.subzones[Math.floor(wrap(x, world.length) / world.subzones[0].width)];
 }

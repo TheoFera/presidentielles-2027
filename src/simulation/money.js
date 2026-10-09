@@ -1,4 +1,4 @@
-import { isMinorFaction, random, ringDelta, wrap, zoneAt } from './world.js';
+import { isMinorFaction, npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { moveNpcTowards } from './tasks.js';
 
 const cents = moneyInThousands => Math.round(moneyInThousands * 100000);
@@ -120,9 +120,9 @@ export function prepareDonations(sim) {
 export function updateDonationCourier(sim, npc) {
   const task = npc.task;
   if (task.kind === 'RETURN_DONATION') {
-    const point = sim.state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
-    if (moveNpcTowards(sim, npc, point.x, sim.config.balance.physical_units.sympathisant.task_move_speed)) {
-      npc.task = null; npc.roam_target_x = point.x; npc.roam_wait_ticks = sim.waitTicks(); npc.moving = false;
+    const homeX = npcHomeX(sim.state, npc);
+    if (moveNpcTowards(sim, npc, homeX, sim.config.balance.physical_units.sympathisant.task_move_speed)) {
+      npc.task = null; npc.roam_target_x = homeX; npc.roam_wait_ticks = sim.waitTicks(); npc.moving = false;
     }
     return;
   }

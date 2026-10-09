@@ -6,7 +6,7 @@ import { stableIdOrder } from './territory.js';
 import { leadership, refreshElectoralState } from './electoral-state.js';
 import { applyOpinionDelta } from './npc-votes.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
-import { random } from './world.js';
+import { npcHomeX, random } from './world.js';
 import { releaseDonation, dropCandidateMoney } from './money.js';
 import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
@@ -44,11 +44,11 @@ export function demobilizeUnit(sim, npc) {
   npc.task = null; npc.raid = null; npc.persuasion_target_ids = []; npc.combat = combatState();
   npc.combat.knockback_velocity = velocity; npc.demobilized_tick = sim.state.tick;
   // Sample once, using the saved RNG, and keep the destination throughout the return.
-  const point = sim.state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
+  const homeX = npcHomeX(sim.state, npc);
   const zone = sim.state.world.subzones.find(z => z.id === npc.origin_subzone_id);
   const margin = sim.config.prototype.world.arrival_epsilon_units;
   const spread = sim.config.prototype.world.respawn_spread_units;
-  const min = Math.max(zone.start + margin, point.x - spread), max = Math.min(zone.end - margin, point.x + spread);
+  const min = Math.max(zone.start + margin, homeX - spread), max = Math.min(zone.end - margin, homeX + spread);
   npc.roam_target_x = min + random(sim.state) * (max - min);
   for (const building of sim.state.buildings) for (const order of building.queue) if (order.assigned_npc_id === npc.id) order.assigned_npc_id = null;
   for (const neutral of sim.state.npcs) if (neutral.persuasion?.actor_id === npc.id) neutral.persuasion = null;

@@ -8,9 +8,9 @@ import { aiPersuasionMultiplier } from './ai-balance.js';
 import { MIND_STANCES } from './ai-mind.js';
 import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector, resolveCampaignEvent } from './campaign-events.js';
-import { FACTIONS, buildWorld, fingerprint, random, ringDelta, wrap, zoneAt } from './world.js';
+import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
-import { createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
+import { chooseHomeX, createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
 import { createElectorate, localPersuasionMultiplier, populationByOrigin } from './territory.js';
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
@@ -185,10 +185,12 @@ export class GameSimulation {
     if (populationByOrigin(this.state, zone.id) >= zone.max_npcs_by_origin) return null;
     const points = this.state.world.socialPoints.filter(p => p.subzone_id === zone.id);
     const point = originPoint || points[Math.floor(random(this.state) * points.length)];
-    if (x === undefined) x = point.x + (random(this.state) * 2 - 1) * this.config.prototype.world.respawn_spread_units;
+    // Sans position imposée, le PNJ apparaît directement à sa place, choisie loin des autres.
+    const homeX = x !== undefined && zoneAt(this.state.world, x).id === zone.id ? wrap(x, this.state.world.length) : chooseHomeX(this, zone);
+    if (x === undefined) x = homeX;
     const npc = {
       id: `npc:${this.state.next_npc_id++}`, role: 'NEUTRE', faction_id: null,
-      origin_biome_id: zone.biome_id, origin_subzone_id: zone.id, origin_social_point_id: point.id,
+      origin_biome_id: zone.biome_id, origin_subzone_id: zone.id, origin_social_point_id: point.id, home_x: homeX,
       x: wrap(x, this.state.world.length), facing: random(this.state) < 0.5 ? -1 : 1,
       moving: false, roam_target_x: wrap(x, this.state.world.length), roam_wait_ticks: this.waitTicks(),
       persuasion: null, persuasion_target_ids: [], hidden_durability: 0, converted_tick: -1, promoted_tick: -1, task: null,
@@ -505,7 +507,7 @@ export class GameSimulation {
       const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
       if (Math.abs(delta) <= settings.arrival_epsilon_units) {
         const zone = state.world.subzones.find(z => z.id === npc.origin_subzone_id);
-        npc.roam_target_x = Math.max(zone.start + settings.arrival_epsilon_units, Math.min(zone.end - settings.arrival_epsilon_units, origin.x + (random(state) * 2 - 1) * settings.roam_radius_units));
+        npc.roam_target_x = Math.max(zone.start + settings.arrival_epsilon_units, Math.min(zone.end - settings.arrival_epsilon_units, npcHomeX(state, npc) + (random(state) * 2 - 1) * settings.roam_radius_units));
         npc.roam_wait_ticks = this.waitTicks();
       } else {
         npc.facing = Math.sign(delta); npc.moving = true;

@@ -1,4 +1,23 @@
-import { random } from './world.js';
+import { npcHomeX, random } from './world.js';
+
+/**
+ * Chaque PNJ reçoit sa propre place dans la sous-zone, loin de celles des autres :
+ * il y apparaît, y flâne et y revient, au lieu que tous se regroupent au même endroit.
+ * On tire quelques positions au hasard et on garde la plus éloignée des places déjà prises.
+ */
+export function chooseHomeX(simulation, zone) {
+  const { state } = simulation;
+  const settings = simulation.config.prototype.world;
+  const min = zone.start + settings.home_margin_units, span = zone.width - 2 * settings.home_margin_units;
+  const taken = state.npcs.filter(n => n.origin_subzone_id === zone.id).map(n => npcHomeX(state, n));
+  let best = min + span / 2, bestGap = -1;
+  for (let draw = 0; draw < settings.home_candidate_draws; draw++) {
+    const x = min + random(state) * span;
+    const gap = Math.min(Infinity, ...taken.map(t => Math.abs(t - x)));
+    if (gap > bestGap) { best = x; bestGap = gap; }
+  }
+  return best;
+}
 
 export function spawnIntervalBoundsTicks(simulation, zone, socialPoint = null) {
   const growth = simulation.config.layout.neutral_population_growth;
