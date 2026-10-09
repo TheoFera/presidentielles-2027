@@ -9,7 +9,6 @@ import { updateVehicles, candidateTravelSpeed } from '../src/simulation/vehicles
 import { prepareDonations, updateDonationCourier, settleMoney } from '../src/simulation/money.js';
 import { buildingOffers } from '../src/simulation/economy.js';
 import { completePopulation } from '../src/simulation/spawns.js';
-import { panoramaFrame } from '../src/presentation/fixed-world.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { startDebate } from '../src/simulation/match-lifecycle.js';
 
@@ -81,15 +80,6 @@ test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et aban
     }
   }
 });
-test('Proportions conservées et projection périodique au raccord de la carte', () => {
-  const sim=make(),world=sim.state.world;
-  for(const ppu of [15,35,70])for(const biome of base.layout.biomes){
-    const renderer={cameraX:0,metrics:{groundY:600,anchorX:500,pixelsPerUnit:ppu}};
-    const image={naturalWidth:2172,naturalHeight:724}; const a=panoramaFrame(renderer,world,biome.id,image);renderer.cameraX=world.length;
-    const b=panoramaFrame(renderer,world,biome.id,image); assert.ok(Math.abs(a.width/a.height-3)<1e-12);assert.deepEqual(a,b);
-  }
-});
-
 test('Une attente de garage et un véhicule reprennent à l’identique après sauvegarde', () => {
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_scooter'), c = own(sim, site);
   c.x = site.x;

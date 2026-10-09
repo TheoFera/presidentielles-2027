@@ -1,16 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { VisualAssets, neighboringSubzones } from '../src/presentation/visual-assets.js';
-import { characterAssetId, characterAnimation, drawIllustratedCharacter, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../src/presentation/illustrated-characters.js';
-import { recolorTractPixels } from '../src/presentation/militant-sprites.js';
-import { opaqueSpriteFrame } from '../src/presentation/npc-sprite-geometry.js';
-import { sceneryProjection, sceneryParallax, sceneryImageHeight, worldAssetIds, preloadWorld } from '../src/presentation/illustrated-world.js';
-import { currentMapDecor, setMapDecor } from '../src/presentation/map-decor.js';
-import { buildingGeometry, buildingAssetId } from '../src/presentation/illustrated-buildings.js';
+import { VisualAssets, neighboringSubzones } from '../src/presentation/rendu/visual-assets.js';
+import { characterAssetId, characterAnimation, drawIllustratedCharacter, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../src/presentation/personnages/illustrated-characters.js';
+import { recolorTractPixels } from '../src/presentation/personnages/militant-sprites.js';
+import { opaqueSpriteFrame } from '../src/presentation/personnages/npc-sprite-geometry.js';
+import { worldAssetIds, preloadWorld } from '../src/presentation/carte/illustrated-world.js';
+import { buildingGeometry, buildingAssetId } from '../src/presentation/carte/illustrated-buildings.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
-import { plateAssetIds } from '../src/presentation/carte-plate.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { plateAssetIds } from '../src/presentation/carte/carte-plate.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
 import { access, readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
 
@@ -33,7 +32,7 @@ test('Les marges transparentes du militant ne réduisent ni sa taille ni son anc
   assert.deepEqual(militant, { x: 15, y: 20, width: 70, height: 220 });
   assert.deepEqual(opaqueSpriteFrame(new Uint8Array(16), 2, 2), { x: 0, y: 0, width: 2, height: 2 });
 });
-import { isolateMinorFigure } from '../src/presentation/minor-sprite-images.js';
+import { isolateMinorFigure } from '../src/presentation/personnages/minor-sprite-images.js';
 
 test('La découpe des mineurs conserve la silhouette et retire un fragment de la pose voisine', () => {
   const width = 8, height = 6, data = new Uint8ClampedArray(width * height * 4);
@@ -117,16 +116,15 @@ function coloredTractRegions(png) {
   return merged;
 }
 
-test('Chaque biome possède ses sept façades, ses vingt habitants et ses trois décors', async () => {
+test('Chaque biome possède son estrade de meeting et ses vingt habitants ; les façades sont peintes dans la carte plate', async () => {
   for (const biome of ['bobo','banlieue','periurbain','campagne','retraites','riches']) {
-    for (const family of ['campaign_local','financement','communication','security_admin_slot','imprimerie','meeting_stage','polling_institute']) {
+    for (const family of ['meeting_stage','meeting_micro']) {
       const id = `building-${family}-${biome}`;
       assert.ok(visualManifest[id], id); await access(new URL(visualManifest[id].file));
     }
     for (let i = 0; i < npcVariantCounts[biome]; i++) assert.ok(visualManifest[`npc-${biome}-${i}`]);
-    for (const id of [`background-strip-${biome}`,`distant-${biome}`,`street-${biome}`,`landscape-${biome}`]) { assert.ok(visualManifest[id],id); await access(new URL(visualManifest[id].file)); }
   }
-  for (let i = 0; i < 18; i++) { assert.ok(visualManifest[`background-${i}`]); await access(new URL(visualManifest[`background-${i}`].file)); }
+  for (const id of Object.keys(visualManifest)) await access(new URL(visualManifest[id].file.split('?')[0]));
   for (const id of ['character-melenchon','character-le_pen','character-philippe','security-0','security-1','crs-0','crs-1','journalist-0','journalist-1','journalist-2']) assert.ok(visualManifest[id], id);
 });
 
@@ -149,21 +147,9 @@ test('Les 120 portraits militants ont une variante transparente à la taille du 
   assert.match(visualManifest['npc-riches-18'].file, /npc-riches-18-fixed\.png/);
 });
 
-test('Les plans défilent à des vitesses distinctes et bouclent sans saut de coordonnées', () => {
-  const project=(camera,speed)=>sceneryProjection(camera,36,432,40,480,speed);
-  assert.ok(sceneryParallax.distant < sceneryParallax.middle);
-  assert.ok(sceneryParallax.middle < sceneryParallax.street);
-  for (const speed of Object.values(sceneryParallax)) {
-    assert.ok(Math.abs(project(11,speed)-project(10,speed)+40*speed)<1e-9);
-    assert.equal(project(0,speed),project(432,speed));
-    assert.ok(Math.abs(project(431.99,speed)-project(0,speed))<1);
-  }
-});
-
-test('Les décors et les façades conservent leurs proportions natives', () => {
+test('Les façades conservent leurs proportions natives', () => {
   for(const [naturalWidth,naturalHeight] of [[1536,512],[730,640],[380,640]]) {
     const image={naturalWidth,naturalHeight};
-    assert.equal(750/sceneryImageHeight(image,750),naturalWidth/naturalHeight);
     const box=buildingGeometry({metrics:{characterHeight:81,groundY:502},width:960},{type:'imprimerie'},image);
     assert.ok(Math.abs(box.w/box.h-naturalWidth/naturalHeight)<1e-12);
     assert.equal(box.top+box.h,502);
@@ -227,22 +213,13 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
     const image = { set src(value) { queueMicrotask(() => image.onload()); } };
     return image;
   } });
-  // Décor par défaut « carte plate » : 18 tuiles peintes, bâtiments intégrés, estrades de meeting à part.
-  assert.equal(currentMapDecor(), 'carte_plate');
+  // Carte plate : 18 tuiles peintes, bâtiments intégrés, estrades de meeting à part.
   const renderer = { assets }, ids = worldAssetIds(visualManifest, state);
   for (const id of plateAssetIds()) assert.ok(ids.includes(id) && visualManifest[id], id);
   assert.equal(plateAssetIds().length, 18);
   assert.ok(!ids.some(id => /^(distant|landscape|street)-(bobo|banlieue|periurbain|campagne|retraites|riches)$/.test(id)), 'L’ancien décor « biomes » n’est plus chargé');
   for (const building of state.buildings.filter(b => b.type === 'meeting')) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
   for (const id of ['riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
-  assert.ok(!ids.some(id => id.startsWith('panorama-')), 'Les panoramas world-v2 ne sont chargés que si ce décor est choisi');
-  // Décor « panoramas » (betatest) : compléments world-v2 calés sur les sites, sans anciens panoramas agrandis.
-  setMapDecor('panoramas');
-  const panoramaIds = worldAssetIds(visualManifest, state);
-  setMapDecor('carte_plate');
-  for (const biome of ['paris', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches', 'landscapes', 'nature']) assert.ok(panoramaIds.includes(`world2-${biome}`), biome);
-  assert.ok(!panoramaIds.some(id => id.startsWith('panorama-')), 'Les originaux world-v2 restent des références, sans agrandissement');
-  assert.ok(!panoramaIds.some(id => id.startsWith('building-') && !/^building-meeting_(stage|micro)-/.test(id)), 'Les locaux sont intégrés aux nouveaux éléments ; les estrades (et leur micro) restent provisoires');
   for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) for (const part of ['stage', 'micro']) assert.ok(ids.includes(`building-meeting_${part}-${biome}`), `estrade ${part} ${biome}`);
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');

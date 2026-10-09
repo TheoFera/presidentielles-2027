@@ -8,11 +8,11 @@ import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes
 import { hit } from '../src/simulation/combat-state.js';
 import { updateCollector } from '../src/simulation/tasks.js';
 import { chooseAIObjective, strategicAICommands } from '../src/simulation/ai-strategy.js';
-import { formatCarriedMoney, moneyTier } from '../src/presentation/money.js';
+import { formatCarriedMoney, moneyTier } from '../src/presentation/carte/money.js';
 import { zoneAt } from '../src/simulation/world.js';
 import { addMoneyPickup } from '../src/simulation/money.js';
 
-const root = new URL('../Présidentielles 2027/', import.meta.url);
+const root = new URL('../donnees-jeu/', import.meta.url);
 const load = async name => JSON.parse(await readFile(new URL(`${name}.json`, root), 'utf8'));
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(
   ['game_balance', 'world_layout', 'building_catalog', 'prototype_config', 'campaign_events'].map(load));

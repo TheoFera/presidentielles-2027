@@ -23,6 +23,9 @@ artifacts/
 # Cache des images WebP converties par npm run build
 .cache/
 
+# Brouillons de travail (générations d’images en cours)
+tmp/
+
 # Fichiers temporaires de Wrangler (serveur de salons en ligne)
 serveur-en-ligne/.wrangler/
 serveur-en-ligne/.dev.vars

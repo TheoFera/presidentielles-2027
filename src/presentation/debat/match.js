@@ -1,0 +1,134 @@
+import { ElectionResults, electionModel } from '../menus/election-results.js';
+import { MatchSummary } from '../menus/match-summary.js';
+import { GamePhase } from '../../simulation/phases.js';
+import { drawCombatEffects } from '../effets/combat-effects.js';
+import { formatNumber } from '../interface/number-format.js';
+
+const DEBATE_CHARACTER_SCALE = 1.45;
+
+export function debateScreenX(x, width, debateWidthUnits) {
+  return x * width / debateWidthUnits;
+}
+
+export function drawDebate(renderer, state, previous, alpha) {
+  const { ctx, canvas, width, height } = renderer;
+  const original = renderer.metrics;
+  const debateWidth = renderer.config.balance.first_round_debate.width_units;
+  renderer.metrics = {
+    ...original,
+    groundY: height * 0.79,
+    characterHeight: original.characterHeight * DEBATE_CHARACTER_SCALE,
+    pixelsPerUnit: width / debateWidth,
+  };
+  const m = renderer.metrics;
+  renderer.screenX = x => debateScreenX(x, width, debateWidth);
+  ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.imageSmoothingEnabled = true;
+  ctx.fillStyle = '#242d3c'; ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#364354'; ctx.fillRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
+  ctx.strokeStyle = '#778496'; ctx.lineWidth = 2; ctx.strokeRect(width * 0.08, height * 0.28, width * 0.84, height * 0.47);
+  const backdrop = renderer.assets.get('background-debate');
+  if (backdrop) ctx.drawImage(backdrop, 0, 0, width, m.groundY / 0.95);
+  else void renderer.assets.load('background-debate');
+  ctx.textAlign = 'center'; ctx.fillStyle = '#fff2d6'; ctx.font = '700 17px system-ui';
+  ctx.fillText(state.campaign_event_family === 'PIEGE_MEDIATIQUE' ? 'INTERVIEW · PLATEAU MÉDIATIQUE' : state.campaign_event_family ? 'DÉBAT THÉMATIQUE' : 'PREMIER TOUR · PLATEAU MÉDIATIQUE', width / 2, height * 0.32, width * 0.28);
+  ctx.font = '14px system-ui'; ctx.fillStyle = '#bdc9cf'; ctx.fillText(state.campaign_event_family ? 'Le monde continue. Remportez la confrontation pour revenir en campagne.' : 'Le premier candidat à 0 est éliminé.', width / 2, height * 0.43);
+  ctx.fillStyle = '#c9ab7f'; ctx.fillRect(0, m.groundY, width, 5);
+  ctx.fillStyle = '#4c3b30'; ctx.fillRect(0, m.groundY + 5, width, height - m.groundY);
+  ctx.strokeStyle = '#2c2d2b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, m.groundY); ctx.lineTo(width, m.groundY); ctx.stroke();
+  for (const edge of [state.debate_bounds.min, state.debate_bounds.max]) {
+    ctx.fillStyle = '#d3d8c8'; ctx.fillRect(renderer.screenX(edge) - 3, m.groundY - 20, 6, 20);
+  }
+  for (const entity of [...state.temporary_units, ...state.candidates]) {
+    const old = [...(previous?.candidates || []), ...(previous?.temporary_units || [])].find(c => c.id === entity.id) || entity;
+    const x = renderer.screenX(old.x + (entity.x - old.x) * alpha);
+    renderer.drawPerson(entity, x, state);
+    if (entity.role === 'CANDIDAT') {
+      ctx.fillStyle = '#eef0df'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(entity.presentation_name || renderer.p.factions[entity.faction_id].name, x, m.groundY - m.characterHeight - 20);
+      if (state.campaign_event_family) { ctx.fillStyle = '#182434'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70, 5); ctx.fillStyle = '#9bdbca'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70 * entity.debate_hp / entity.debate_initial_hp, 5); }
+    }
+  }
+  drawCombatEffects(renderer, state, false);
+  ctx.fillStyle = '#bdc9cf'; ctx.font = '13px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('← → / Q D : marcher     Espace / J : léger → léger → fort     Yeux étoilés : pouvoir prêt', width / 2, height * 0.94);
+  renderer.metrics = original;
+}
+
+export class MatchDisplay {
+  constructor(config, callbacks) {
+    this.config = config; this.callbacks = callbacks;
+    this.hud = document.getElementById('debate-hud'); this.results = document.getElementById('results');
+    this.banner = document.getElementById('phase-banner'); this.spectator = document.getElementById('spectator');
+    this.cards = new Map(); this.phase = null; this.extensions = 0; this.followId = null;
+    const select = document.getElementById('spectator-follow');
+    select.addEventListener('change', () => { this.followId = select.value; callbacks.follow(); });
+    this.election = new ElectionResults(this.results);
+    this.summary = new MatchSummary(this.results);
+  }
+  openSummary() {
+    const stage = this.results.querySelector('.election-stage');
+    if (!stage || !this.latest) return;
+    this.summary.host = stage;
+    this.summary.open(this.latest, () => this.results.querySelector('[data-action="summary"]')?.focus({ preventScroll: true }));
+  }
+  viewedCandidate(state) {
+    const local = state.candidates.find(c => c.id === state.local_candidate_id);
+    const followable = state.candidates.filter(c => !c.eliminated && !c.minor);
+    return local.eliminated ? followable.find(c => c.id === this.followId) || followable[0] : local;
+  }
+  reset() { this.summary.close(); this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
+  update(state) {
+    const names = this.config.prototype.presentation.factions;
+    const debate = state.phase === GamePhase.FIRST_ROUND_DEBATE; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
+    const finished = state.phase === GamePhase.RESULTS;
+    this.hud.hidden = !debate; this.results.hidden = !finished && state.phase !== GamePhase.FIRST_ROUND_RESULTS;
+    const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+    this.spectator.hidden = !sprint || !eliminated;
+    if (this.phase !== state.phase || this.extensions !== state.extensions) {
+      this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
+      if (this.phase !== state.phase) {
+        const fade = document.getElementById('phase-fade');
+        fade.getAnimations().forEach(a => a.cancel());
+        if (this.phase !== null) fade.animate([{ opacity: 1 }, { opacity: 0 }], { duration: this.config.balance.first_round_debate.transition_seconds * 1000 });
+      }
+      this.phase = state.phase; this.extensions = state.extensions;
+      if (debate) {
+        this.hud.replaceChildren(); this.cards.clear();
+        for (const c of state.debate.candidates) {
+          const card = document.createElement('div'); card.className = 'debate-card'; card.style.setProperty('--camp-color', names[c.faction_id].color);
+          const name = document.createElement('span'); const value = document.createElement('output'); const bar = document.createElement('div'); const fill = document.createElement('i');
+          bar.className = 'debate-bar'; bar.append(fill); card.append(name, value, bar); this.hud.append(card);
+          this.cards.set(c.id, { name, value, fill });
+        }
+      }
+      if (sprint && eliminated) {
+        const select = document.getElementById('spectator-follow'); select.replaceChildren();
+        for (const c of state.candidates.filter(c => !c.eliminated && !c.minor)) select.add(new Option(names[c.faction_id].name, c.id));
+        this.followId = select.value;
+        document.getElementById('spectator-label').textContent = `Élimination de ${names[state.eliminated_faction].name} · Spectateur`;
+      }
+    }
+    this.banner.hidden = !this.banner.textContent || state.match_tick - state.phase_started_match_tick > this.config.balance.simulation_architecture.fixed_tick_hz * 4;
+    if (debate) for (const c of state.debate.candidates) {
+      const card = this.cards.get(c.id);
+      const name = `${names[c.faction_id].symbol} · ${names[c.faction_id].name}${c.id === state.local_candidate_id ? ' · Vous' : ''}`;
+      const value = c.debate_hp > 0 && c.debate_hp < 0.1 ? '< 0,1 %' : `${formatNumber(c.debate_hp, 1, 1)} %`;
+      if (card.name.textContent !== name) card.name.textContent = name;
+      if (card.value.textContent !== value) card.value.textContent = value;
+      card.fill.style.width = `${c.debate_initial_hp ? c.debate_hp / c.debate_initial_hp * 100 : 0}%`;
+      card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
+    }
+    this.latest = state;
+    const announced = finished || state.phase === GamePhase.FIRST_ROUND_RESULTS;
+    const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;
+    if (signature !== this.resultSignature) {
+      this.resultSignature = signature;
+      this.summary.close();
+      if (!announced) this.election.clear();
+      else this.election.render(electionModel(state), { host: this.callbacks.isHost?.() ?? true,
+        multiplayer: this.callbacks.isMultiplayer?.() ?? false, onContinue: this.callbacks.continue,
+        onReplay: this.callbacks.replay, onReturn: this.callbacks.return,
+        onSummary: finished ? () => this.openSummary() : null });
+    }
+  }
+}

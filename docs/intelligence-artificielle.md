@@ -6,7 +6,7 @@ Elle commence par chercher un QG, puis arbitre entre conquête et défense. La v
 
 Au début de partie, l’IA ramasse les billets de départ de son quartier en sautant : d’abord pour payer son QG, puis ceux qui restent à portée. Elle ramasse aussi les billets tombés au sol près d’elle, sauf si un rival l’attend dessus.
 
-Les achats utilisent les mêmes devis, délais, exigences de présence et plafonds de dépenses que le joueur. L’IA sait capturer, financer une collecte, former des militants, équiper le service d’ordre, déclencher un raid ou utiliser le cabinet administratif de Philippe. Les services neutres sont utilisés comme tels. Elle préserve les soutiens nécessaires aux bâtiments avant de les envoyer à l’imprimerie.
+Les achats utilisent les mêmes devis, délais, exigences de présence et plafonds de dépenses que le joueur. L’IA sait capturer, former des militants, équiper le service d’ordre, déclencher un raid ou utiliser le cabinet administratif. Les services neutres (meeting, institut de sondage) sont utilisés comme tels. Elle cherche à jouer comme un bon joueur : groupes de militants, prise de son local de camp, raids et fermetures, conquête des bâtiments adverses, sans bonus caché. Ses réglages économiques sont dans la section `ai_economy` de `donnees-jeu/game_balance.json`.
 
 ## Partie à trois : contenir le plus fort
 
@@ -17,7 +17,9 @@ L’IA s’adapte aussi au niveau des joueurs humains (en solo comme en multijou
 - **Un humain domine** : les IA réagissent plus vite, hésitent moins, font de plus longs détours pour capturer un bâtiment, lancent plus volontiers leurs meetings, frappent plus souvent et convainquent jusqu’à 25 % plus vite.
 - **Un humain est distancé** : les IA le laissent respirer. Elles évitent ses territoires, ne ferment pas ses bâtiments, retiennent leurs coups contre lui, convainquent un peu moins vite (jusqu’à 15 %) et s’affrontent entre elles.
 
-Ces seuils sont réglables dans la section `ai_adaptation` de `Présidentielles 2027/game_balance.json` (`enabled: false` désactive l’adaptation).
+L’IA ne cherche pas à conquérir la sous-zone d’un candidat sans style de campagne (Glucksmann, Roussel…), mais s’y défend si elle y passe.
+
+Ces seuils sont réglables dans la section `ai_adaptation` de `donnees-jeu/game_balance.json` (`enabled: false` désactive l’adaptation).
 
 ## Réflexion : observer, combattre ou fuir
 
@@ -31,7 +33,7 @@ L’avis peut changer : frappée, l’IA riposte ; acculée, elle se retourne ; 
 
 ## Difficulté
 
-Le niveau par défaut est **normal**. Les trois profils sont centralisés dans `src/simulation/ai-settings.js` :
+Le jeu utilise toujours le niveau **normal** : aucun choix de difficulté n’est proposé dans les menus. Trois profils existent dans le code, centralisés dans `src/simulation/ai-settings.js` :
 
 | Niveau | Comportement |
 | --- | --- |
@@ -49,7 +51,7 @@ const simulation = new GameSimulation(config, 42, 'candidate:melenchon', profile
 });
 ```
 
-Il est aussi possible de définir `config.balance.ai = { difficulty: 'normal' }` avant de créer la simulation. L’option du constructeur est prioritaire. Le sélecteur de difficulté dans les menus pourra appeler cette option ; aucun menu supplémentaire n’est nécessaire à la configuration actuelle.
+Il est aussi possible de définir `config.balance.ai = { difficulty: 'normal' }` avant de créer la simulation. L’option du constructeur est prioritaire.
 
 ## Styles et sauvegardes
 

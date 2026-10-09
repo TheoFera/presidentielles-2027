@@ -11,7 +11,7 @@ import { aiEconomicTarget, buildingOffers, nearestOffer } from '../src/simulatio
 import { strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { zoneAt } from '../src/simulation/world.js';
 
-const base = new URL('../Présidentielles 2027/', import.meta.url);
+const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(
   ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json']
     .map(async name => JSON.parse(await readFile(new URL(name, base), 'utf8'))),

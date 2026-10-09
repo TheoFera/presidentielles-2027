@@ -11,7 +11,7 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { startDebate, finishDebate } from '../src/simulation/match-lifecycle.js';
 import { minorTerritory, minorSympathisantCount } from '../src/simulation/minor-candidates.js';
 import { MINOR_FACTIONS, zoneAt } from '../src/simulation/world.js';
-import { electionModel } from '../src/presentation/election-results.js';
+import { electionModel } from '../src/presentation/menus/election-results.js';
 
 const make = (seed = 42) => { const config = campaignConfig(); config.balance.campaign_events.event_enabled = false; return new GameSimulation(config, seed); };
 const minor = (sim, faction) => sim.state.candidates.find(c => c.faction_id === faction);

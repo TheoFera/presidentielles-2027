@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { ElectoralDisplay, territoryColors } from '../src/presentation/electoral.js';
-import { MapWheel, mapNeutralColor } from '../src/presentation/map-wheel.js';
-import { mapWheelIcons } from '../src/presentation/map-wheel-icons.js';
-import { interpolatedPlayerX } from '../src/presentation/player-position.js';
+import { ElectoralDisplay, territoryColors } from '../src/presentation/carte/electoral.js';
+import { MapWheel, mapNeutralColor } from '../src/presentation/interface/map-wheel.js';
+import { mapWheelIcons } from '../src/presentation/interface/map-wheel-icons.js';
+import { interpolatedPlayerX } from '../src/presentation/rendu/player-position.js';
 
 const config = campaignConfig();
 function documentFor(t) {

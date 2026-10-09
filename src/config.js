@@ -195,7 +195,7 @@ export function validateConfig(config) {
 }
 
 export async function loadConfig() {
-  const base = new URL('../Présidentielles 2027/', import.meta.url);
+  const base = new URL('../donnees-jeu/', import.meta.url);
   const files = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
   const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(files.map(async file => {
     const response = await fetch(new URL(file, base));

@@ -22,7 +22,7 @@ Ces chiffres se règlent dans `src/network/ads-config.js` (`AD_RULES`).
 |---|---|---|
 | Appli Android | **AdMob** (SDK natif, plus fiable et mieux payé dans une appli) | `android/app/src/main/java/…/AdsManager.java`, `android/app/build.gradle`, `android/gradle.properties` |
 | Site web | **AdSense**, API « H5 Games Ads » (faite pour les jeux web) | `src/network/ads-config.js` |
-| Les deux | Règles de fréquence, son, simulation | `src/presentation/ads.js`, tests `test/ads.test.js` (`npm run test:pubs`) |
+| Les deux | Règles de fréquence, son, simulation | `src/presentation/menus/ads.js`, tests `test/ads.test.js` (`npm run test:pubs`) |
 
 Le **consentement RGPD** (obligatoire en Europe) est affiché par Google : par le SDK « UMP » dans l'appli (déjà codé), et par AdSense sur le site (à activer dans AdSense, sans code).
 

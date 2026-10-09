@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { adBlocker, adProvider, countFinishedGame, InterstitialAds, ADS_STATS_KEY } from '../src/presentation/ads.js';
+import { adBlocker, adProvider, countFinishedGame, InterstitialAds, ADS_STATS_KEY } from '../src/presentation/menus/ads.js';
 import { AD_RULES } from '../src/network/ads-config.js';
 
 const MIN = 60_000;

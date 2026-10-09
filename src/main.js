@@ -1,48 +1,46 @@
-import { DamageFeedbackDisplay } from './presentation/damage-feedback.js';
-import { CampaignStylesDisplay } from './presentation/campaign-styles.js';
+import { DamageFeedbackDisplay } from './presentation/effets/damage-feedback.js';
+import { CampaignStylesDisplay } from './presentation/interface/campaign-styles.js';
 import { ultimateBlockedReason } from './simulation/combat.js';
-import { loadCampaignProfile, saveCampaignProfile } from './presentation/campaign-profile.js';
-import { CampaignDisplay } from './presentation/campaign.js';
+import { loadCampaignProfile, saveCampaignProfile } from './presentation/menus/campaign-profile.js';
+import { CampaignDisplay } from './presentation/interface/campaign.js';
 import { loadConfig } from './config.js';
-import { applyDecorPreview } from './presentation/fixed-world.js';
-import { decorForProfile, setMapDecor } from './presentation/map-decor.js';
-import { formatCarriedMoney } from './presentation/money.js';
-import { MoneyCounter } from './presentation/money-counter.js';
-import { GameAudio, SoundDirector } from './presentation/audio.js';
-import { InterstitialAds } from './presentation/ads.js';
-import { CombatPoseTracker } from './presentation/melenchon-combat.js';
-import { recordMatchResult } from './presentation/player-profile.js';
-import { playerCard, rememberTitle, setCandidateColors } from './presentation/player-card.js';
-import { clearKnockoutReveals, showKnockoutReveal } from './presentation/knockout-reveal.js';
+import { formatCarriedMoney } from './presentation/carte/money.js';
+import { MoneyCounter } from './presentation/interface/money-counter.js';
+import { GameAudio, SoundDirector } from './presentation/interface/audio.js';
+import { InterstitialAds } from './presentation/menus/ads.js';
+import { CombatPoseTracker } from './presentation/personnages/melenchon-combat.js';
+import { recordMatchResult } from './presentation/menus/player-profile.js';
+import { playerCard, rememberTitle, setCandidateColors } from './presentation/menus/player-card.js';
+import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interface/knockout-reveal.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
-import { WorldRenderer } from './presentation/renderer.js';
-import { BrowserInput } from './presentation/input.js';
-import { DebugPanel } from './presentation/debug.js';
-import { ElectoralDisplay } from './presentation/electoral.js';
-import { interpolatedPlayerX } from './presentation/player-position.js';
-import { MatchDisplay } from './presentation/match.js';
-import { StartMenu } from './presentation/start-menu.js';
-import { showLegalNotice, warmUpBehindNotice } from './presentation/legal-notice.js';
-import { worldAssetIds } from './presentation/illustrated-world.js';
-import { installLandscape } from './presentation/landscape.js';
-import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multiplayer.js';
+import { WorldRenderer } from './presentation/rendu/renderer.js';
+import { BrowserInput } from './presentation/interface/input.js';
+import { DebugPanel } from './presentation/debogage/debug.js';
+import { ElectoralDisplay } from './presentation/carte/electoral.js';
+import { interpolatedPlayerX } from './presentation/rendu/player-position.js';
+import { MatchDisplay } from './presentation/debat/match.js';
+import { StartMenu } from './presentation/menus/start-menu.js';
+import { showLegalNotice, warmUpBehindNotice } from './presentation/menus/legal-notice.js';
+import { worldAssetIds } from './presentation/carte/illustrated-world.js';
+import { installLandscape } from './presentation/interface/landscape.js';
+import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multijoueur/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { OnlineSession } from './network/online-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
 import { SnapshotBuffer } from './network/snapshot-buffer.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
-import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debate-mode.js';
+import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debat/debate-mode.js';
 import { APP_BUILD } from './app-build.js';
-import { FramePacer } from './presentation/frame-pacing.js';
+import { FramePacer } from './presentation/rendu/frame-pacing.js';
 import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
-import { requireAccount, showAccountToast, decorateProfile } from './presentation/account-screens.js';
-import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/account-progress.js';
+import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
+import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
 import { earnedUnlocks, profileUnlockIds, unlocksToProfile } from './simulation/unlock-catalog.js';
 
 function setText(element, text) {
@@ -60,7 +58,7 @@ function showError(error, duringGame = false) {
 
 async function start() {
   showLegalNotice();
-  const config = applyDecorPreview(await loadConfig());
+  const config = await loadConfig();
   const chargeDuration = `${config.balance.candidate_combat.charge_ready_seconds.toLocaleString('fr-FR')} s`;
   document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
   const profile = loadCampaignProfile();
@@ -100,7 +98,6 @@ async function start() {
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
   // Pendant l'avertissement, les images de la campagne se chargent déjà en arrière-plan.
-  setMapDecor(decorForProfile(profile));
   warmUpBehindNotice(renderer.assets, worldAssetIds(renderer.assets.manifest, { buildings: [] }));
   const damageFeedback = new DamageFeedbackDisplay(config);
   const campaignDisplay = new CampaignDisplay(config);
@@ -340,8 +337,6 @@ async function start() {
     stopDebate();
     paused = true; help.hidden = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
-    // Décor de la carte : « carte plate » pour tous ; le profil betatest peut en choisir un autre dans son profil.
-    setMapDecor(decorForProfile(profile));
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) {
       simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);

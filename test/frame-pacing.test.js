@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FramePacer } from '../src/presentation/frame-pacing.js';
+import { FramePacer } from '../src/presentation/rendu/frame-pacing.js';
 
 const drawn = (hz, frames = 240, jitter = 0) => {
   const pacer = new FramePacer(), times = [];

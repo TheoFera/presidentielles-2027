@@ -61,7 +61,7 @@ test('Campagne en multijoueur : chaque joueur choisit parmi SES styles débloqu�
 });
 
 test('Titre affiché : jamais hérité de « betatest » ni de l’appareil quand on est connecté', async () => {
-  const { playerCard, rememberTitle } = await import('../src/presentation/player-card.js');
+  const { playerCard, rememberTitle } = await import('../src/presentation/menus/player-card.js');
   assert.deepEqual(rememberTitle({ nickname: 'betatest' }), {}, 'betatest ne laisse aucun titre');
   assert.equal(playerCard({ best_title: { rank: 7, gained: 12 } }).title, 0, 'titre noté avec plus de candidats que l’appareil : ignoré');
   assert.equal(playerCard({ best_title: { rank: 7 }, account: { title_rank: 0 } }).title, 0, 'connecté : seul le compte compte');
@@ -70,8 +70,8 @@ test('Titre affiché : jamais hérité de « betatest » ni de l’appareil quan
 });
 
 test('Collection : une carte par candidat, styles à l’intérieur, compteurs candidats et styles', async () => {
-  const { profileContent, collectionCardContent, collectionCounts } = await import('../src/presentation/player-profile.js');
-  const { playerCard } = await import('../src/presentation/player-card.js');
+  const { profileContent, collectionCardContent, collectionCounts } = await import('../src/presentation/menus/player-profile.js');
+  const { playerCard } = await import('../src/presentation/menus/player-card.js');
   const profile = { unlocked_minor_candidates: ['roussel'], unlocked_campaign_styles: { le_pen: ['le_pen_souverainiste', 'le_pen_zemmouriste'] } };
   const html = profileContent(profile);
   assert.equal(html.match(/class="collection-card/g).length, 9, 'une carte par candidat');

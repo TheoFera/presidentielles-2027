@@ -171,7 +171,7 @@ test('Bulles des militants : dégâts réels, aucun recul ajouté ni retournemen
 });
 
 test('Bords rouges : dégâts cumulés, impact local, récupération et faible résistance', async () => {
-  const { damageFeedbackState } = await import('../src/presentation/damage-feedback.js');
+  const { damageFeedbackState } = await import('../src/presentation/effets/damage-feedback.js');
   const {sim,c,enemy}=setup(); const feedback=()=>damageFeedbackState(sim.state,c,sim.config);
   assert.equal(feedback().opacity,0);
   c.resistance=80;const light=feedback().opacity;c.resistance=35;const heavy=feedback().opacity;assert.ok(heavy>light);
@@ -185,7 +185,7 @@ test('Bords rouges : dégâts cumulés, impact local, récupération et faible r
 });
 
 test('Bords rouges en débat : utilisent les points de débat, pas la résistance de campagne', async () => {
-  const {damageFeedbackState}=await import('../src/presentation/damage-feedback.js');const {sim,c}=setup();
+  const {damageFeedbackState}=await import('../src/presentation/effets/damage-feedback.js');const {sim,c}=setup();
   const debate=DebateSimulation.create(sim.config,sim.state);const fighter=debate.candidates.find(a=>a.id===c.id);
   fighter.resistance=0;assert.equal(damageFeedbackState(debate,fighter,sim.config).opacity,0);
   fighter.debate_hp=fighter.debate_initial_hp*.5;assert.ok(damageFeedbackState(debate,fighter,sim.config).opacity>0);

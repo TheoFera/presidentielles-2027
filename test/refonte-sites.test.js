@@ -9,7 +9,7 @@ import { hit } from '../src/simulation/combat-state.js';
 import { zoneAt } from '../src/simulation/world.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 
-const base = new URL('../Présidentielles 2027/', import.meta.url);
+const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json']
   .map(async file => JSON.parse(await readFile(new URL(file, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype });

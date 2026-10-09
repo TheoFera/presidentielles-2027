@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { config } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { ringDelta } from '../src/simulation/world.js';
-import { plateSignFrame } from '../src/presentation/carte-plate.js';
+import { plateSignFrame } from '../src/presentation/carte/carte-plate.js';
 import { readPng } from '../scripts/lib/png.mjs';
 
 test('Les textes des trois devantures restaurées restent dans leurs panneaux peints, au zoom et sur la boucle', () => {
   const { state } = new GameSimulation(structuredClone(config), 42);
   const tiles = new Map([
-    ['riches_b', readPng(new URL('../assets/generated/carte-plate/tuile-17-riches-b.png', import.meta.url))],
-    ['riches_c', readPng(new URL('../assets/generated/carte-plate/tuile-18-riches-c.png', import.meta.url))],
+    ['riches_b', readPng(new URL('../assets/images/carte/tuile-17-riches-b.png', import.meta.url))],
+    ['riches_c', readPng(new URL('../assets/images/carte/tuile-18-riches-c.png', import.meta.url))],
   ]);
   for (const id of ['site:riches_b', 'site:riches_c', 'site:riches_c:institut_sondage']) {
     const building = state.buildings.find(b => b.site_id === id);

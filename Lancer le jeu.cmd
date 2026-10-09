@@ -3,7 +3,7 @@ chcp 65001 >nul
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (
-  echo Node.js 20 ou plus récent est nécessaire pour lancer le prototype.
+  echo Node.js 24 ou plus récent est nécessaire pour lancer le jeu.
   pause
   exit /b 1
 )

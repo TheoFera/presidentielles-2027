@@ -6,8 +6,7 @@ import { ALL_FACTIONS, FACTIONS } from '../src/simulation/world.js';
 import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
-import { formatNumber } from '../src/presentation/number-format.js';
-import { sceneryVisible } from '../src/presentation/illustrated-world.js';
+import { formatNumber } from '../src/presentation/interface/number-format.js';
 
 test('Les voix restent celles des PNJ après mutations au même tick', () => {
   const config = campaignConfig(), sim = new GameSimulation(config);
@@ -39,15 +38,6 @@ test('Les formatages réutilisés conservent tous les nombres français affiché
     for (const minimum of [0, precision]) assert.equal(formatNumber(value, precision, minimum),
       value.toLocaleString('fr-FR', { maximumFractionDigits: precision, minimumFractionDigits: minimum }));
   }
-});
-
-test('Le cadrage conserve les décors qui touchent le bord et rejette seulement ceux entièrement hors écran', () => {
-  const renderer = { width: 960, visibleWorld: { left: 95, right: 865 } };
-  assert.equal(sceneryVisible(renderer, 0, 95), true);
-  assert.equal(sceneryVisible(renderer, 865, 20), true);
-  assert.equal(sceneryVisible(renderer, 0, 94), false);
-  assert.equal(sceneryVisible(renderer, 866, 20), false);
-  assert.equal(sceneryVisible({ width: 960 }, 0, 960), true);
 });
 
 test('L’affichage lit l’état vivant et ne garde que les positions du pas précédent', () => {

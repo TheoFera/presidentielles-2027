@@ -7,7 +7,7 @@ import { updateProduction } from '../src/simulation/economy.js';
 import { demobilizeUnit } from '../src/simulation/combat-state.js';
 import { zoneAt } from '../src/simulation/world.js';
 
-const base = new URL('../Présidentielles 2027/', import.meta.url);
+const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json'].map(async f => JSON.parse(await readFile(new URL(f, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype });
 const advance = (sim, n) => { for (let i = 0; i < n; i++) sim.step(); };
@@ -107,7 +107,7 @@ test('Un sympathisant ne va chercher un tract que dans la sous-zone du point d�
 });
 
 test('Affichage : deux PNJ immobiles superposés sont écartés, ceux qui marchent non', async () => {
-  const { crowdTargets } = await import('../src/presentation/crowd-spacing.js');
+  const { crowdTargets } = await import('../src/presentation/rendu/crowd-spacing.js');
   const state = { npcs: [
     { id: 'npc:1', x: 10, moving: false }, { id: 'npc:2', x: 10, moving: false },
     { id: 'npc:3', x: 20, moving: true }, { id: 'npc:4', x: 20, moving: true },

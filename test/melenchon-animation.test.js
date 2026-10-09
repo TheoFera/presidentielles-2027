@@ -4,12 +4,12 @@ import { readFile } from 'node:fs/promises';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { combatState } from '../src/simulation/combat-state.js';
-import { CombatPoseTracker, melenchonPose, usesMelenchonCombat, drawMelenchonCombat, MELENCHON_SPRITE, MELENCHON_FRAMES } from '../src/presentation/melenchon-combat.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
-import { combatAtlases, combatAtlasFor, usesCandidateCombat } from '../src/presentation/melenchon-combat.js';
-import { skinAnimationAtlases, skinAnimationFor } from '../src/presentation/skin-animation-atlases.js';
-import {additionalExtraAtlases} from '../src/presentation/candidate-extra-atlases.js';
-import {candidateExtraPose} from '../src/presentation/candidate-extra-poses.js';
+import { CombatPoseTracker, melenchonPose, usesMelenchonCombat, drawMelenchonCombat, MELENCHON_SPRITE, MELENCHON_FRAMES } from '../src/presentation/personnages/melenchon-combat.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
+import { combatAtlases, combatAtlasFor, usesCandidateCombat } from '../src/presentation/personnages/melenchon-combat.js';
+import { skinAnimationAtlases, skinAnimationFor } from '../src/presentation/personnages/skin-animation-atlases.js';
+import {additionalExtraAtlases} from '../src/presentation/personnages/candidate-extra-atlases.js';
+import {candidateExtraPose} from '../src/presentation/personnages/candidate-extra-poses.js';
 
 test('Les nouvelles planches de Marine et Philippe contiennent 16 poses RGBA cadrées', async () => {
   for (const faction of ['le_pen','philippe']) {
@@ -198,7 +198,7 @@ for (const faction of ['le_pen','philippe']) test(faction+' : atlas, poses, cost
 
 // Additional Mélenchon actions use simulation states, without changing their timing.
 test('Animations supplémentaires : découpes transparentes valides', async () => {
-  const {melenchonExtraAtlases}=await import('../src/presentation/melenchon-extra-atlases.js');
+  const {melenchonExtraAtlases}=await import('../src/presentation/personnages/melenchon-extra-atlases.js');
   for(const atlas of Object.values(melenchonExtraAtlases)) {
     const bytes=await readFile(new URL(visualManifest[atlas.sprite].file));assert.equal(bytes[25],6);
     assert.equal(atlas.frames.length,atlas.referenceHeight?8:16);
@@ -209,7 +209,7 @@ test('Animations supplémentaires : découpes transparentes valides', async () =
   }
 });
 test('Mélenchon : déplacements, vrais impacts reçus, KO, interactions et priorités', async () => {
-  const {melenchonExtraPose:pose}=await import('../src/presentation/melenchon-extra-poses.js');
+  const {melenchonExtraPose:pose}=await import('../src/presentation/personnages/melenchon-extra-poses.js');
   const {config,state,c}=setup();state.tick=10;
   const select=(guard=false,landing=null)=>pose(c,state,config,guard,landing);
   assert.equal(select(),null);
@@ -229,7 +229,7 @@ test('Mélenchon : déplacements, vrais impacts reçus, KO, interactions et prio
   state.attacks[0].kind='SPECIAL';assert.equal(select().name,'ultimate');
 });
 test('Atterrissage : durée visuelle, remise à zéro et absence de mutation des sauvegardes', async () => {
-  const {MelenchonMotionTracker}=await import('../src/presentation/melenchon-extra-poses.js');
+  const {MelenchonMotionTracker}=await import('../src/presentation/personnages/melenchon-extra-poses.js');
   const {config,state,c}=setup(),tracker=new MelenchonMotionTracker();
   c.combat.jump_tick=0;state.tick=1;assert.equal(tracker.landing(c,state,config),null);
   c.combat.jump_tick=null;state.tick=Math.ceil(config.balance.candidate_combat.jump_duration_seconds*30);
@@ -240,7 +240,7 @@ test('Atterrissage : durée visuelle, remise à zéro et absence de mutation des
 });
 
 test('Cycle de garde : distance réelle, arrêts, demi-tour, téléportation et aucun état sauvegardé modifié',async()=>{
-  const {MelenchonMotionTracker}=await import('../src/presentation/melenchon-extra-poses.js');
+  const {MelenchonMotionTracker}=await import('../src/presentation/personnages/melenchon-extra-poses.js');
   const {config,state,c}=setup(),tracker=new MelenchonMotionTracker();c.axis=1;
   const select=active=>{const before=JSON.stringify(state);const f=tracker.walk(c,state,config,active);assert.equal(JSON.stringify(state),before);return f;};
   state.tick=47;assert.equal(select(true),0);
@@ -254,7 +254,7 @@ test('Cycle de garde : distance réelle, arrêts, demi-tour, téléportation et 
 });
 
 test('Marche en garde : appuis fournis par la distance ; réaction légère sans blocage', async()=>{
-  const {melenchonExtraPose:pose}=await import('../src/presentation/melenchon-extra-poses.js');
+  const {melenchonExtraPose:pose}=await import('../src/presentation/personnages/melenchon-extra-poses.js');
   const {config,state,c}=setup();c.moving=true;
   const frames=[];for(let f=0;f<8;f++){state.tick=f;const p=pose(c,state,config,true,null,f);frames.push(p.frame);assert.equal(p.sheet,'guardStep');}
   assert.deepEqual(frames,Array.from({length:8},(_,i)=>i));
@@ -270,7 +270,7 @@ test('Marche en garde : appuis fournis par la distance ; réaction légère sans
 });
 
 test('Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol conservé',async()=>{
-  const {melenchonExtraAtlases:atlases}=await import('../src/presentation/melenchon-extra-atlases.js');
+  const {melenchonExtraAtlases:atlases}=await import('../src/presentation/personnages/melenchon-extra-atlases.js');
   for(const action of ['finisher','ultimate','persuade','interaction','ko']){
     const {config,state,c}=setup();state.tick=0;
     if(action==='finisher')attack(state,c,3).elapsed_ticks=3;

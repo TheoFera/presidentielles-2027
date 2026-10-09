@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache/webp
-          key: webp-${{ hashFiles('assets/generated/**/*.png') }}
+          key: webp-${{ hashFiles('assets/images/**/*.png') }}
           restore-keys: webp-
       - name: Préparer les fichiers publics
         run: npm run build

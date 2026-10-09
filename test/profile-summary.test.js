@@ -4,13 +4,13 @@ import { readFile } from 'node:fs/promises';
 import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
-import { summaryModel, summaryMarkup, niceMax } from '../src/presentation/match-summary.js';
-import { recordMatchResult, normalizeStats, cleanNickname, favoriteCandidate, profileContent } from '../src/presentation/player-profile.js';
-import { MoneyCounter } from '../src/presentation/money-counter.js';
-import { soundCues, parseMelody, midi } from '../src/presentation/audio.js';
-import { formatCarriedMoney } from '../src/presentation/money.js';
+import { summaryModel, summaryMarkup, niceMax } from '../src/presentation/menus/match-summary.js';
+import { recordMatchResult, normalizeStats, cleanNickname, favoriteCandidate, profileContent } from '../src/presentation/menus/player-profile.js';
+import { MoneyCounter } from '../src/presentation/interface/money-counter.js';
+import { soundCues, parseMelody, midi } from '../src/presentation/interface/audio.js';
+import { formatCarriedMoney } from '../src/presentation/carte/money.js';
 
-const root = new URL('../Présidentielles 2027/', import.meta.url);
+const root = new URL('../donnees-jeu/', import.meta.url);
 const load = async name => JSON.parse(await readFile(new URL(`${name}.json`, root), 'utf8'));
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(
   ['game_balance', 'world_layout', 'building_catalog', 'prototype_config', 'campaign_events'].map(load));

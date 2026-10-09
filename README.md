@@ -1,185 +1,147 @@
-# Présidentielle 2027 : Le Jeu — cinquième jalon jouable
+# Présidentielle 2027 : Le Jeu
 
-Application Android et publication sur le Play Store : [guide pas à pas](android/LISEZMOI.md), `npm run android`. Optimisation de l'export et organisation du projet : [guide d'optimisation](docs/optimisation-projet.md).
+Jeu d'arcade parodique en 2D : trois candidats font campagne sur une carte de France en boucle, convainquent des électeurs, prennent des bâtiments et se battent, jusqu'au second tour. Il se joue dans le navigateur (ordinateur ou téléphone) et existe en application Android.
 
-Publicités plein écran de fin de partie (AdMob, AdSense) et démarches à faire : [guide des publicités](docs/publicites.md).
+Le jeu est une **parodie** : personnalités caricaturées, aucune consigne de vote.
 
-Une partie complète : **campagne → débat à trois → élimination → sprint à deux → résultat → rejouer**. Les systèmes des quatre premiers jalons sont conservés.
+## Jouer
 
-L’IA mène des offensives contre les implantations adverses et utilise les trois styles de chaque candidat. Les niveaux **facile, normal et difficile** sont configurables dans le code : voir [le fonctionnement et les réglages de l’IA](docs/intelligence-artificielle.md).
-
-## Lancer et jouer
-
-### Menus arcade
-
-Accueil, choix du candidat, tutoriel, salon, invitation, pause, résultats et styles de campagne tiennent chacun sur un écran, en portrait comme en paysage. Les commandes tactiles sont présentées sur téléphone. L’aide en pause propose trois onglets : Commandes, Terrain et Élection. La partie attend que vous appuyiez sur **C’est parti !** ou **Je suis prêt**.
-
-### Multijoueur entre téléphones, sans ordinateur
-
-Deux ou trois téléphones peuvent utiliser le mode **Entre téléphones · Wi-Fi**. Tous ouvrent la même version du jeu dans leur navigateur depuis le site publié, puis se connectent au même Wi-Fi. Le téléphone qui crée le salon calcule la partie ; les autres échangent leurs actions directement avec lui.
-
-1. Sur le téléphone hôte : **Multijoueur → Créer un salon → Inviter mes amis**.
-2. L’hôte affiche **deux QR codes simultanément**, pour les places joueur 2 et joueur 3 (l’hôte est le joueur 1). Chaque invité utilise une place différente ; aucun candidat n’est encore attribué.
-3. L’ami ouvre **Multijoueur → Scanner un QR**, autorise la caméra et vise l’une des places. Il reste dans le jeu.
-4. L’ami affiche sa réponse sous forme de QR. L’hôte touche **Scanner une réponse** et vise son écran. Les QR défilent : gardez le cadre quelques secondes, jusqu’à lecture complète. **Agrandir** facilite la lecture d’une invitation sur un petit écran.
-5. Les deux invités peuvent lire leurs invitations en même temps. L’hôte scanne ensuite leurs réponses **dans l’ordre de son choix** ; chaque place indique **Connecté**. À deux joueurs, ignorez l’autre QR : le candidat libre reste piloté par l’ordinateur.
-6. Une fois connectés, tous les joueurs **choisissent leur candidat dans le salon**. Un candidat choisi devient indisponible pour les autres. L’hôte touche **Voir le salon**, choisit aussi son candidat, puis **Préparer la partie**. Le lancement attend que tous les joueurs connectés aient choisi. Chacun lit ensuite le tutoriel puis touche **Je suis prêt**.
-
-Sans caméra : **Copier l’invitation** sous chaque QR copie le code de cette place sans l’afficher. L’invité utilise **Mode texte** pour le coller, puis **Copier la réponse**. L’hôte ouvre **Mode texte** et colle la réponse de l’un ou l’autre invité. Les invitations déjà copiées restent valides lorsqu’on change d’écran. Le choix des candidats se fait également après connexion en mode serveur local.
-
-Le scan fonctionne depuis le site **HTTPS** (ou `localhost` pour les tests sur ordinateur). Une adresse locale en `http://192.168…` ne permet pas d’utiliser la caméra sur téléphone. Aucun service de mise en relation n’est utilisé ; génération et lecture des QR sont intégrées au jeu, sans CDN. Les images de caméra restent sur l’appareil. La caméra s’arrête après le scan, à l’annulation, au changement d’écran ou lorsque la page est masquée. Si la caméra est refusée ou absente, les boutons **Mode texte** conservent l’échange manuel d’invitation et de réponse.
-
-Le code court affiché identifie le salon ; en connexion directe, il ne suffit pas pour le rejoindre. En mode texte, il faut copier les textes complets commençant par `P27:` ; les QR transportent ces mêmes informations automatiquement. L’invitation et la réponse remplacent le service de mise en relation : aucun serveur de parties, compte, application à installer ni fichier `.cmd` n’est nécessaire sur les téléphones. La page du jeu doit d’abord être publiée et accessible, notamment sur GitHub Pages.
-
-Les liens utilisent les canaux de données WebRTC, sans caméra, microphone ni relais de parties. Le service STUN public de Google aide à trouver un chemin réseau lorsque la découverte locale ne suffit pas ; il ne reçoit pas l’état du jeu. Les connexions locales restent utilisables s’il ne répond pas. Voir le [principe de l’échange de connexion](https://webrtc.org/getting-started/peer-connections). Autorisez l’accès au réseau local si le navigateur le demande. Un réseau invité qui isole ses appareils, un VPN ou un blocage des échanges locaux peut empêcher la liaison ; utilisez alors un réseau qui autorise les communications entre appareils.
-
-Gardez le jeu et l’écran de l’hôte ouverts pendant la partie. Chaque joueur possède sa caméra et ses commandes. La pause est partagée ; masquer l’onglet pendant la partie demande une pause. Le choix du style suspend également la campagne. Les styles débloqués de l’hôte sont utilisés pour tous. Une déconnexion termine la session avec un message ; rechargez puis recréez le salon pour rejouer.
-
-Les mises à jour directes transmettent uniquement les champs modifiés. La sauvegarde de campagne nécessaire après le duel reste chez l’hôte. Les fragments sont envoyés progressivement, selon la place disponible dans le navigateur ; une image devenue ancienne est ignorée si l’envoi précédent attend encore. Les déplacements des invités sont interpolés entre deux mises à jour pour atténuer les saccades. Après cette mise à jour, **rechargez le jeu sur tous les appareils et créez de nouvelles invitations** : les anciennes invitations ne sont plus compatibles.
-
-### Option : serveur sur un ordinateur du Wi-Fi
-
-**Lancer le jeu.cmd** ouvre désormais aussi le jeu au réseau local. Il n’est plus nécessaire de lancer un second fichier. L’ancien **Lancer le multijoueur.cmd** appelle le même lanceur. Dans le menu Multijoueur, sélectionnez **Avec un serveur local**.
-
-L’hôte crée un salon et copie l’adresse affichée. Les autres appareils ouvrent cette adresse : le code est prérempli. La fenêtre du serveur doit rester ouverte ; Windows peut demander d’autoriser Node.js sur le réseau privé. Le port par défaut est 2027 ; `HOST=127.0.0.1` permet de limiter volontairement le serveur à l’ordinateur.
-
-Le mode serveur fonctionne aussi si ce serveur Node.js est hébergé sur Internet avec HTTPS et prise en charge de SSE. Aucun hébergement de serveur n’est déployé par ce changement.
-
-### Vérifications des menus et du réseau
-
-- `npm test` inclut les règles de salon, les invitations directes, les commandes autorisées et les adresses réseau.
-- `scripts/validate-arcade-browser.mjs` vérifie les menus à partir de 320 × 568 et en paysage, ainsi qu’une partie directe à deux puis trois navigateurs avec toutes les API HTTP multijoueurs bloquées.
-- Playwright est fourni via `CAMPAIGN_TEST_NODE_MODULES`. Le mode `ARCADE_LOOPBACK_ICE=1` désactive uniquement la dissimulation mDNS **dans le navigateur de test**, pour les machines incapables de résoudre leurs propres noms locaux. Le jeu n’utilise aucun réglage spécial du navigateur.
-- Ces tests émulent les écrans et les gestes tactiles sur ordinateur. Ils ne remplacent pas un essai sur des téléphones physiques et leur Wi-Fi.
-- Le parcours réseau vérifie aussi, à trois navigateurs, la fin du décompte, le duel du premier tour, l’élimination et le résultat final. Un test automatisé simule la saturation de la file d’envoi et vérifie la reprise sans perte de fragments ni désynchronisation.
-- `scripts/validate-qr-browser.mjs` transmet les images des QR à des caméras simulées : le décodeur lit réellement les QR animés. Il vérifie deux invitations simultanées, des réponses dans l’ordre inverse, le lancement à trois, le refus de caméra, l’arrêt des pistes vidéo et les petits écrans. La connexion WebRTC de ce test utilise le réglage mDNS de test décrit ci-dessus ; les caméras physiques restent à vérifier sur téléphone.
-
-### Sur téléphone et GitHub Pages
-
-Le jeu est prêt pour un hébergement statique : aucun serveur de jeu ni installation sur le téléphone n’est nécessaire. La publication doit d’abord être activée sur GitHub.
-
-1. Dans le dépôt GitHub, ouvre **Settings → Pages** et choisis **GitHub Actions** comme source.
-2. GitHub Pages doit être disponible pour le dépôt : un dépôt privé nécessite une offre compatible. Sinon, il faut décider de rendre le dépôt public (cela expose aussi son code et son historique).
-3. Envoie les modifications sur `main`, ou lance **Actions → Publier le jeu sur GitHub Pages → Run workflow**. Les tests passent avant la publication.
-4. Après la réussite du déploiement, ouvre l’adresse affichée dans **Settings → Pages** depuis Safari ou Chrome sur ton téléphone. L’adresse attendue est https://theofera.github.io/presidentielles-2027/ ; elle n’est utilisable qu’après activation et publication.
-
-Sur téléphone, le **mode paysage** est conseillé. Maintiens **← / →** pour marcher et touche **Frapper** avec l’autre pouce. Relâche la flèche pour t’arrêter et convaincre. **Pause** ouvre l’aide ; **Plein écran** fonctionne si le navigateur le permet. Le portrait conserve le monde sans le déformer et place les commandes sous le jeu. En Solo, la partie est locale à chaque onglet : recharger la page la recommence. En multijoueur, recharger la page quitte la session.
-
-`npm run build` prépare le dossier `dist/` avec uniquement la page, le code réellement chargé par le jeu, ses fichiers de réglages et ses images converties en WebP sans perte. Le déploiement ne publie ni les documents de travail ni les sauvegardes de test. Les chemins relatifs fonctionnent sous `/presidentielles-2027/`.
-
-### Sur ordinateur, en local
-
-Double-clique sur **Lancer le jeu.cmd**, puis ouvre [le jeu](http://localhost:2027/). Garde le terminal ouvert. Recharge la page si elle était déjà ouverte.
-
-- Flèches, Q/D ou A/D : marcher.
-- Espace ou J : léger → léger → fort. Quand les yeux brillent, l’attaque suivante déclenche le pouvoir.
-- Rester près d’un Neutre : convaincre automatiquement.
-- Rester devant un billet : payer après 2 secondes de présence, avec les fonds et l’implantation nécessaires.
-- Après un achat de bâtiment : s’éloigner, puis revenir. L’Imprimerie permet plusieurs commandes séparément payées en restant sur place.
-- H, Échap ou P : aide et pause. F : plein écran. F3 : débogage.
-
-Les Militants marchent toujours à **2,4 unités/s**, contre **4,0** pour le candidat ; leur plafond reste à deux fois la vitesse du joueur.
-
-## Déroulement
-
-La campagne commence à **J-30**, avec **20 secondes par jour**, soit 10 minutes. Le J-XX reste discret. L’onglet masqué met la session locale en pause.
-
-À **J0**, le monde est intégralement sauvegardé et figé. Sur le plateau télévisé, le **score national réel devient la jauge visible** de chaque candidat. Les coups et pouvoirs retirent directement des points de cette jauge, sans modifier le soutien sauvegardé. Le combat s’arrête au **premier candidat à 0**.
-
-Les finalistes reviennent immédiatement à leurs anciennes positions, avec leur argent, leur charge et leurs délais du monde conservés. Les anciens S/M/SO du troisième deviennent gris et rentrent à pied à leur origine ; ils redeviennent alors Neutres et peuvent être convaincus normalement. Ses bâtiments perdent leurs effets et leur propriétaire ; leurs emplacements sont à nouveau constructibles en remplissant les conditions et en payant. Les Imprimeries restent neutres ; seules les commandes du camp éliminé sont annulées. Toutes ses voix deviennent **Neutres**, sans transfert aux finalistes.
-
-Le J-XX est remplacé par **60 secondes**. L’influence est multipliée par **10**, une seule fois, avant la résistance électorale. Les combats, pouvoirs, raids, constructions et Meetings restent actifs. Les IA recherchent notamment la réserve humaine du troisième, les Meetings accessibles et le rival proche.
-
-Un Institut actif publie un sondage toutes les **2,5 secondes**. Fermé, il conserve sa dernière mesure. La Tour bénéficie du ×10 avec un facteur propre de **0,35**, pour limiter son influence sans présence sur le terrain. Le Meeting reste payant et exige la présence du candidat ; son délai passe à **22 secondes**, sans raccourcir un événement actif.
-
-À zéro, les **scores réels des finalistes** décident du vainqueur, même si le sondage est ancien. Les Neutres restent possibles. Une égalité déclenche **15 secondes supplémentaires**, renouvelées si nécessaire.
-
-Si ton candidat est éliminé, tu passes en **spectateur** et choisis quel finaliste suivre, sans contrôler son camp. En Solo, **Rejouer** prépare une partie neuve avec le même candidat ; **Retour à l’accueil** ouvre le menu Solo / Multijoueur. En multijoueur, reviens à l’accueil pour créer un nouveau salon.
-
-## Tester la fin rapidement
-
-**F3 → « Partie complète : J0, débat et sprint »** donne accès à :
-
-| Commande | Effet |
+| Où | Comment |
 |---|---|
-| Forcer J0 / Démarrer le débat | Figer le monde courant et lancer le premier tour |
-| Candidat à éliminer + Terminer le débat | Choisir le troisième et revenir au monde |
-| Démarrer le sprint | Passer directement au sprint en neutralisant le camp sélectionné |
-| Chrono à 10 s | Rapprocher le résultat |
-| Forcer une égalité à l’échéance | Déclencher immédiatement la prolongation |
-| 50 % de Neutres partout | Tester la reconquête sur les 18 sous-zones |
-| Afficher le score réel | Consulter l’état autoritaire, distinct du sondage |
-| Vitesse ×5 | Accélérer toute la simulation ; F6 permet de revenir à ×1 |
-| Exporter le résumé DEBUG | Télécharger la télémétrie JSON |
+| Sur ordinateur | Double-cliquer sur **Lancer le jeu.cmd** (ou `npm start`), puis ouvrir <http://localhost:2027/>. Garder la fenêtre du serveur ouverte. |
+| Sur téléphone | Ouvrir le site publié : <https://theofera.github.io/presidentielles-2027/>, de préférence en paysage. |
+| Application Android | Voir [android/LISEZMOI.md](android/LISEZMOI.md). |
 
-**F4** met en pause quand le debug est ouvert. **K** charge le pouvoir, y compris dans le débat. Les anciens outils restent présents. Les commandes incompatibles avec la phase sont refusées. Après le résultat, seule une nouvelle partie relance la simulation.
+Node.js 24 ou plus suffit : aucune installation de paquet n'est nécessaire.
 
-Un état exporté par le debug est importable dans **F3 → Déplacements, fonds de test et sauvegardes → Importer un état JSON**.
+### Les modes
 
-Les sauvegardes utilisent le **format 5**, lié aux réglages courants. Les anciens JSON des jalons précédents sont incompatibles. Un import invalide est refusé sans modifier la partie ouverte.
+L'accueil propose deux modes, chacun **Solo** (contre l'ordinateur) ou **Multijoueur** :
 
-## Réglages dans game_balance.json
+- **Campagne** : la partie complète, décrite ci-dessous.
+- **Débat télé** : un combat sur un plateau de télévision, en 1 contre 1 ou à trois, en **3 manches à thème** (Économie, Immigration, Écologie…). Le même candidat peut être choisi deux fois avec des styles différents.
 
-Le bloc `money.supporter_income_per_second_by_origin_biome` règle le revenu ajouté **par partisan et par seconde de simulation à vitesse ×1**, selon son biome de naissance :
+### Les commandes
 
-| Biome d’origine | Clé à modifier | Revenu par partisan |
+| Action | Clavier | Écran tactile |
 |---|---|---|
-| Paris 19e / Bobo | `paris_19e` | 0,05 k €/s |
-| Banlieue | `banlieue` | 0,02 k €/s |
-| Périurbain / Usine | `periurbain_usine` | 0,04 k €/s |
-| Campagne | `campagne` | 0,03 k €/s |
-| Retraités | `retraites` | 0,06 k €/s |
-| Quartiers riches | `quartiers_riches` | 0,1 k €/s |
+| Marcher | ← → (ou Q/D, A/D) | flèches |
+| Esquiver (dash) | double appui sur ← ou → | double appui |
+| Sauter | ↑ ou Z | Sauter |
+| Frapper / coup chargé | Espace ou J ; maintenir 1 s pour charger ; en l'air, coup plongeant | Frapper |
+| Ultime (jauge pleine) | R | Ultime |
+| Convaincre un électeur | s'arrêter près de lui | idem |
+| Acheter un bâtiment, un service | rester devant le panneau de prix | idem |
+| Aide et pause | H ou Échap | Pause |
+| Plein écran | F | bouton des menus |
 
-Un partisan est un **Sympathisant, un Militant ou un Service d’ordre** de ton camp. Son revenu commence dès son recrutement, reste identique après une promotion ou un déplacement, et cesse à sa démobilisation. S’il est ensuite recruté par un autre camp, sa contribution revient à ce camp avec le même biome d’origine. Les Neutres, candidats, unités temporaires et pourcentages de soutien électoral ne produisent pas ce revenu.
+En Débat, ↓ fait redescendre d'un pupitre. F3 ouvre le panneau de débogage (voir [docs/verifications.md](docs/verifications.md)).
 
-Le gain total est : **(revenu de base + contributions des partisans + revenus des bâtiments de financement) × bonus du candidat**. Les contributions des partisans ont été divisées par **20**. Le bonus de Philippe reste ×1,3 et s’applique à l’ensemble. Par exemple, cinq partisans de Banlieue donnent **0,22 k €/s** avec le revenu de base, sans bâtiment ni bonus, contre 0,12 sans partisan. Le monde étant figé dans le débat et en pause, aucun revenu n’y est versé ; un camp éliminé ne gagne plus rien.
+## Une partie de Campagne
 
-Le gain total apparaît sous l’argent en jeu. **F3** affiche le détail par biome et les contributions avant bonus. Pour changer un montant, modifie le nombre dans `Présidentielles 2027/game_balance.json` (avec un point pour les décimales, par exemple `0.8`), enregistre puis **recharge la page**. `0` désactive la contribution d’un biome. Les changements s’appliquent aussi aux IA et demandent une nouvelle partie ; les sauvegardes liées aux anciens réglages sont incompatibles.
+1. **Campagne** : un compte à rebours de jours mène au premier tour. Chaque candidat choisit son **style de campagne** en prenant son premier QG. Il convainc les Neutres, recrute des militants, prend les bâtiments qui contrôlent les sous-zones et se bat contre les rivaux. Des **événements** (rassemblements) apparaissent dans un bandeau télé « EN DIRECT ».
+2. **Soirée électorale** : les scores du premier tour s'affichent. Les deux premiers candidats principaux se qualifient.
+3. **Second tour** : un sprint de 60 secondes entre les deux finalistes. Le troisième est éliminé et ses électeurs redeviennent Neutres.
+4. **Résultats**, puis **Rejouer**.
 
-Le réglage `money.campaign_spending_limit` vaut **16800 k€**, soit **16,8 millions d’euros par candidat pour toute la partie**, premier et second tours compris. Il limite les dépenses cumulées, pas l’argent détenu : constructions, améliorations, reconstructions, tracts, équipements, raids, fermetures et Meetings sont tous comptés. Un achat dépassant le reliquat est bloqué avant le paiement, même avec assez d’argent. Une dépense qui atteint exactement le plafond est autorisée. Les revenus, fonds de test et remboursements n’augmentent pas le plafond restant ; les remboursements restent ajoutés à la trésorerie. Le compteur est conservé dans les sauvegardes et entre les tours, et revient à zéro avec une nouvelle partie.
+Les règles détaillées sont dans [docs/regles-du-jeu.md](docs/regles-du-jeu.md).
 
-## Population maximale par sous-zone
-
-Dans `Présidentielles 2027/world_layout.json`, chaque sous-zone possède `max_npcs_by_origin`. Ce plafond remplace `max_neutrals_waiting` : il compte **tous les PNJ existants nés dans la sous-zone**, tous camps et rôles confondus (Neutres, Sympathisants, Militants, Services d’ordre et démobilisés), même s’ils sont maintenant ailleurs. Les candidats et unités temporaires des pouvoirs n’entrent pas dans ce compte.
-
-| Biome | Sous-zone A | Sous-zone B | Sous-zone C |
-|---|---|---|---|
-| Paris 19e / Bobo | Canal, cafés : **14** | Place, commerces : **16** | Quartier mixte : **14** |
-| Banlieue | Cité dortoir : **14** | Marché central : **14** | Pavillons modestes : **11** |
-| Périurbain / Usine | Zone artisanale : **11** | Usine, entrepôts : **13** | Sortie vers les champs : **10** |
-| Campagne | Entrée du village : **10** | Cœur de village : **11** | Champs : **8** |
-| Retraités | Pavillons : **10** | Square, associations : **11** | Secteur aisé : **8** |
-| Quartiers riches | Résidentiel : **8** | Avenue commerçante : **10** | Haussmannien : **8** |
-
-Soit **201 PNJ permanents au maximum dans le monde** avec ces réglages. La fréquence est calculée avec la durée totale de la campagne et le nombre de places à remplir dans chaque sous-zone. Le plafond est ainsi atteint au premier tour, même si la durée d’une journée ou le nombre de jours de campagne change. Tous les points sociaux d’une même sous-zone partagent sa capacité. À saturation, les tentatives sont ignorées puis reprogrammées, sans accumuler de PNJ à faire apparaître plus tard. Recruter, promouvoir, déplacer, changer de camp ou démobiliser un PNJ ne libère aucune place : il garde son identité et son origine, puis revient au même point social lorsqu’il est démobilisé. Seule sa suppression effective libérerait une place ; le jeu ordinaire ne tue pas les PNJ.
-
-F3 distingue la population présente de la population d’origine et indique quand le plafond est atteint. Même les apparitions de débogage respectent cette limite. Après modification des plafonds, recharge la page pour démarrer une nouvelle partie ; les anciennes sauvegardes ne sont plus compatibles.
-
-## Autres réglages de partie
-
-| Chemin | Valeur par défaut |
-|---|---|
-| `time.starting_days_before_first_round` / `real_seconds_per_game_day` | 30 / 20 s |
-| `time.second_round_sprint_seconds` / `second_round_influence_multiplier` | 60 s / ×10 |
-| `first_round_debate.damage.light_1` / `light_2` / `heavy` | 0,45 / 0,55 / 1,1 point |
-| `first_round_debate.damage.hologram` / `wave` / `crs` | 0,12 / 6 / 0,22 point par impact |
-| `first_round_debate.ai_retarget_seconds` / `ai_variation_units` | 2,2 s / 7 |
-| `second_round.poll_refresh_seconds` | 2,5 s |
-| `second_round.tower_influence_multiplier` | 0,35 avant le ×10 global |
-| `second_round.meeting_cooldown_seconds` | 22 s, au moins la durée du Meeting |
-| `second_round.extension_seconds` / `tie_rule` | 15 s / `REPEAT_OVERTIME` |
-
-La règle alternative `J0_THEN_SEED` départage une égalité par le score à J0, puis par la graine si nécessaire. Les dégâts de débat des candidats sont séparés de ceux du monde ; les hologrammes et CRS conservent leur durabilité normale. La persuasion physique garde sa durée : le ×10 accélère les transferts électoraux abstraits, pas la marche ou la conversation.
-
-## Vérification et architecture
+## Organisation du projet
 
 ```text
-npm test
-npm run test:campagne
+Presidentielles 2027/
+├─ index.html, conditions.html, confidentialite.html   pages du jeu publiées
+├─ Lancer le jeu.cmd                    lance le serveur local (jeu + multijoueur Wi-Fi)
+├─ src/                                 code du jeu
+│  ├─ main.js                           démarrage et boucle du jeu
+│  ├─ config.js                         chargement des données de jeu
+│  ├─ simulation/                       règles, IA, combat, économie, élections
+│  ├─ presentation/                     tout ce qui s'affiche, rangé par rôle :
+│  │  ├─ rendu/                         moteur de dessin, chargement et liste des images
+│  │  ├─ carte/                         carte plate, bâtiments, meetings, véhicules, billets
+│  │  ├─ personnages/                   candidats et habitants : sprites, poses, animations
+│  │  ├─ effets/                        coups, ultimes, dégâts, persuasion
+│  │  ├─ interface/                     HUD en partie, commandes, son, orientation
+│  │  ├─ menus/                         accueil, profil, résultats, publicités
+│  │  ├─ debat/                         mode Débat télé
+│  │  ├─ multijoueur/                   salons, QR codes
+│  │  ├─ comptes/                       écrans des comptes PartageTonJeu
+│  │  └─ debogage/                      panneau F3
+│  ├─ network/                          multijoueur, comptes, publicités
+│  └─ vendor/                           bibliothèques tierces (QR codes) et leurs licences
+├─ donnees-jeu/                         les 5 fichiers JSON d'équilibrage et de carte
+├─ assets/images/                       toutes les images du jeu (détail ci-dessous)
+├─ scripts/                             serveur local, export web, application Android
+│  ├─ verifications/                    contrôles dans un vrai navigateur et mesures
+│  ├─ outils-images/                    mesures et retouches des planches de sprites
+│  └─ lib/                              PNG et conversion WebP
+├─ test/                                tests automatiques (npm test)
+├─ serveur-en-ligne/                    serveur Cloudflare : salons en ligne et comptes
+├─ android/                             projet de l'application Android
+└─ docs/                                documentation (liste ci-dessous)
 ```
 
-`GamePhase` valide les commandes. `DebateSimulation` possède sa propre horloge et son propre combat ; `GameSimulation` conserve le monde complet jusqu’au retour. Impacts, jauges, élimination et résultats sont autoritaires, indépendants du rendu. Aucun réseau n’est implémenté.
+Les dossiers `dist/` (export), `.cache/` (conversions WebP) et `tmp/` sont des dossiers de travail recréés au besoin. Les anciens décors, les originaux des images et les anciens documents sont rangés hors du projet, dans le dossier voisin **Presidentielles 2027 - fichiers retirés**.
 
-Le résumé DEBUG enregistre les scores à J0, l’éliminé, la durée et les coups du débat, les scores du sprint, les zones ayant changé de contrôle, les anciens PNJ reconvertis, les Meetings et le vainqueur.
+### Les images
 
+```text
+assets/images/
+├─ carte/                 les 18 tuiles peintes de la carte (une par sous-zone)
+├─ menus/                 fonds de l'accueil et du choix des candidats
+├─ debat/                 plateaux du Débat télé et fond du débat
+├─ meeting/               estrades et micros de meeting (un par quartier)
+├─ vehicules/             vélos, scooters et candidats montés
+├─ candidats/<nom>/       sprites et animations de chaque candidat
+│  └─ styles/             costumes et animations des styles de campagne
+├─ pouvoirs/              ultimes : effets, invocations, transformations
+├─ habitants/
+│  ├─ neutres/            les 120 électeurs (20 par quartier)
+│  └─ militants/          les mêmes électeurs en militants
+└─ secondaires/           CRS, service de sécurité, journalistes
+```
+
+Comment ajouter ou remplacer une image : [docs/images-et-animations.md](docs/images-et-animations.md).
+
+## Régler le jeu
+
+Les valeurs d'équilibrage sont dans `donnees-jeu/` : modifier un nombre, enregistrer, puis recharger la page. Une sauvegarde faite avec d'autres réglages est refusée : commencer une nouvelle partie.
+
+| Fichier | Contenu |
+|---|---|
+| `game_balance.json` | durée de la campagne, argent, combat, ultimes, IA, élections, Débat télé |
+| `world_layout.json` | quartiers, sous-zones, population maximale, positions de départ |
+| `building_catalog.json` | bâtiments, prix et effets |
+| `campaign_events.json` | événements de campagne |
+| `prototype_config.json` | monde, déplacements, affichage |
+
+## Vérifier et publier
+
+```bash
+npm test
+```
+
+| Commande | Rôle |
+|---|---|
+| `npm test` | tous les tests automatiques |
+| `npm run test:campagne` | campagnes complètes jouées par l'ordinateur |
+| `npm run build` | export web dans `dist/` (images WebP sans perte) |
+| `npm run android` / `npm run android:test` | application Android (`.aab` pour le Play Store / `.apk` d'essai) |
+| `npm run start:appli` | essayer le contenu de `dist/` sur <http://localhost:2028> |
+
+Envoyer sur la branche `main` publie automatiquement le site sur GitHub Pages, après les tests.
+
+## Documentation
+
+| Document | Sujet |
+|---|---|
+| [docs/regles-du-jeu.md](docs/regles-du-jeu.md) | carte, bâtiments, combat, styles, candidats, élection, Débat télé |
+| [docs/intelligence-artificielle.md](docs/intelligence-artificielle.md) | comportement et réglages de l'ordinateur |
+| [docs/multijoueur.md](docs/multijoueur.md) | jouer à plusieurs : en ligne, Wi-Fi par QR, serveur local |
+| [docs/comptes-partagetonjeu.md](docs/comptes-partagetonjeu.md) | comptes, déblocages, classement, serveur |
+| [docs/publicites.md](docs/publicites.md) | publicités AdMob et AdSense |
+| [docs/images-et-animations.md](docs/images-et-animations.md) | images, planches de sprites, tuiles de la carte |
+| [docs/export-et-performances.md](docs/export-et-performances.md) | export web et Android, poids, fluidité |
+| [docs/verifications.md](docs/verifications.md) | tests, contrôles navigateur, débogage |
+| [android/LISEZMOI.md](android/LISEZMOI.md) | construire et publier l'application Android |
+| [AGENTS.md](AGENTS.md) | consignes pour les assistants de code |

@@ -8,8 +8,8 @@ import { combatState, hit } from '../src/simulation/combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, updateCombat } from '../src/simulation/combat.js';
 import { updateCandidateResistance } from '../src/simulation/candidate-resistance.js';
 import { CampaignEventDirector, resolveCampaignEvent } from '../src/simulation/campaign-events.js';
-import { characterAssetId } from '../src/presentation/illustrated-characters.js';
-import { saveCampaignProfile, loadCampaignProfile } from '../src/presentation/campaign-profile.js';
+import { characterAssetId } from '../src/presentation/personnages/illustrated-characters.js';
+import { saveCampaignProfile, loadCampaignProfile } from '../src/presentation/menus/campaign-profile.js';
 
 const allUnlocked = () => ({ unlocked_campaign_styles: Object.fromEntries(Object.entries(CAMPAIGN_STYLES).map(([f, styles]) => [f, styles.map(s => s.id)])) });
 const make = (profile = allUnlocked()) => new GameSimulation(campaignConfig(), 42, 'candidate:melenchon', profile);

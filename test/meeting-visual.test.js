@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { buildingAssetId } from '../src/presentation/illustrated-buildings.js';
-import { drawMeetingForeground, isOnMeetingStage, meetingSpriteFrame } from '../src/presentation/electoral.js';
-import { compositionMetrics } from '../src/presentation/renderer.js';
+import { buildingAssetId } from '../src/presentation/carte/illustrated-buildings.js';
+import { drawMeetingForeground, isOnMeetingStage, meetingSpriteFrame } from '../src/presentation/carte/electoral.js';
+import { compositionMetrics } from '../src/presentation/rendu/renderer.js';
 import { ringDelta } from '../src/simulation/world.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
 
 const config = campaignConfig();
 

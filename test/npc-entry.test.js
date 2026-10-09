@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { npcEntryProgress, entryPath } from '../src/presentation/npc-entry.js';
+import { npcEntryProgress, entryPath } from '../src/presentation/personnages/npc-entry.js';
 
 test('un PNJ récemment apparu arrive du bas puis rejoint le sol', () => {
   const state = { tick: 30, events: [

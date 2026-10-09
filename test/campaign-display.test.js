@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignEventDirector, resolveCampaignEvent } from '../src/simulation/campaign-events.js';
 import { captureSite } from '../src/simulation/strategic-sites.js';
-import { CampaignDisplay } from '../src/presentation/campaign.js';
+import { CampaignDisplay } from '../src/presentation/interface/campaign.js';
 
 function installDocument(t) {
   class Element {

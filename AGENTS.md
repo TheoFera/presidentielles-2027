@@ -12,17 +12,20 @@
 | Besoin | Point d'entrée |
 |---|---|
 | Démarrage, boucle du jeu | `src/main.js` |
-| Menus, affichage, tactile, styles | `src/presentation/`, `src/style.css`, `index.html` |
+| Affichage | `src/presentation/` par rôle : `rendu/` (renderer, visual-manifest), `carte/`, `personnages/`, `effets/`, `interface/` (HUD, `input.js`), `menus/`, `debat/`, `multijoueur/`, `comptes/`, `debogage/` ; `src/style.css`, `index.html` |
 | Règles, IA, combat, économie, élections | `src/simulation/` |
-| Multijoueur, QR | `src/network/`, `src/presentation/multiplayer.js`, `src/presentation/qr-pairing.js`, `scripts/multiplayer-server.mjs` |
-| Équilibrage, carte, bâtiments, événements | les cinq JSON chargés par `src/config.js` dans `Présidentielles 2027/` |
-| Visuels | `src/presentation/visual-manifest.js` ; originaux dans `assets/generated/masters/` |
+| Multijoueur, QR | `src/network/`, `src/presentation/multijoueur/multiplayer.js`, `src/presentation/multijoueur/qr-pairing.js`, `scripts/multiplayer-server.mjs` |
+| Équilibrage, carte, bâtiments, événements | les cinq JSON chargés par `src/config.js` dans `donnees-jeu/` (données de jeu) |
+| Images | `assets/images/` rangées par usage (carte, candidats, habitants…), déclarées dans `src/presentation/rendu/visual-manifest.js` ; guide : `docs/images-et-animations.md`. Originaux et anciens décors : `../Presidentielles 2027 - fichiers retirés/` |
+| Règles du jeu, documentation | `docs/regles-du-jeu.md` et la liste du `README.md` |
+| Contrôles navigateur, outils d'images | `scripts/verifications/`, `scripts/outils-images/` |
 | Export web, application Android | `scripts/build-pages.mjs` (WebP sans perte), `scripts/android.mjs`, `android/LISEZMOI.md`, `test/pages.test.js` |
 
 ## Vérifier et livrer
 
 - Node >= 24, modules JavaScript natifs, sans installation nécessaire actuellement. `npm start` lance le jeu.
 - Lancer d'abord le test concerné : `node --test test/<nom>.test.js`. Pour une modification transversale : `npm test`. Les validations de parcours sont dans `package.json`.
-- Pour l'export : `npm run build` (web) ou `npm run android` (application). Seul `dist/` est embarqué ; ne jamais y corriger les sources. Conserver les licences tierces. Une nouvelle image doit être référencée par un chemin littéral `assets/generated/…png`.
+- Pour l'export : `npm run build` (web) ou `npm run android` (application). Seul `dist/` est embarqué ; ne jamais y corriger les sources. Conserver les licences tierces. Une nouvelle image doit être référencée par un chemin littéral `assets/images/…png`.
 - Résumer le résultat, les vérifications et les limites en quelques phrases. Ne pas recopier les logs réussis ni les fichiers entiers.
-- Détails sur le contexte et le paquet mobile : `docs/optimisation-projet.md`, seulement pour ce sujet.
+- Détails sur l'export et le paquet mobile : `docs/export-et-performances.md`, seulement pour ce sujet.
+- Après une évolution du jeu, mettre à jour le document de `docs/` concerné plutôt que d'en créer un nouveau (pas de compte rendu daté).

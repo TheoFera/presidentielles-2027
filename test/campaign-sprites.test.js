@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { inflateSync } from 'node:zlib';
 import { CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
-import { characterAssetId } from '../src/presentation/illustrated-characters.js';
-import { styleSpriteId } from '../src/presentation/campaign-style-art.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
+import { characterAssetId } from '../src/presentation/personnages/illustrated-characters.js';
+import { styleSpriteId } from '../src/presentation/personnages/campaign-style-art.js';
 
 function alphaStats(png) {
   const width = png.readUInt32BE(16), height = png.readUInt32BE(20), type = png[25];

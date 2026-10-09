@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
         // Connexion au compte PartageTonJeu : Google refuse les connexions dans une WebView,
         // le jeu passe donc par ce pont natif (window.PTJNativeAuth, voir src/network/auth-providers.js).
         webView.addJavascriptInterface(new NativeAuthBridge(), "PTJNativeAuth");
-        // Pubs de fin de partie (AdMob) : le jeu décide du moment, voir src/presentation/ads.js.
+        // Pubs de fin de partie (AdMob) : le jeu décide du moment, voir src/presentation/menus/ads.js.
         webView.addJavascriptInterface(ads.bridge(), "PTJNativeAds");
 
         WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()

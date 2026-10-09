@@ -1,6 +1,6 @@
 // Réglages du multijoueur en ligne. Seules ces deux lignes sont à remplir.
 
-/** Adresse du serveur de salons déployé sur Cloudflare (voir docs/multijoueur-en-ligne.md). Vide = mode en ligne désactivé. */
+/** Adresse du serveur de salons déployé sur Cloudflare (voir docs/multijoueur.md). Vide = mode en ligne désactivé. */
 export const ONLINE_SERVER = 'https://presidentielles-2027-salons.partagetonjeu.workers.dev';
 
 /** Adresse publique du jeu (GitHub Pages) : sert à fabriquer le lien d’invitation, y compris depuis l’application Android. */

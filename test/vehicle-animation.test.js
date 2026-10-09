@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { vehicleWheelTravel } from '../src/presentation/vehicles.js';
+import { vehicleWheelTravel } from '../src/presentation/carte/vehicles.js';
 
 test('Les roues suivent le déplacement, les arrêts et le passage autour de la carte', () => {
   const renderer = { cameraX: 98, metrics: { anchorX: 100, pixelsPerUnit: 10 } };

@@ -9,9 +9,9 @@ import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { debateStyles } from '../src/simulation/debate-mode.js';
 import { chooseCandidate, candidatesReady, startRoom, closeRoom } from '../src/network/lobby.js';
-import { debateAssetIds } from '../src/presentation/debate-mode.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
-import { DEBATE_ARENAS, arenaSupportHeight } from '../src/presentation/debate-arenas.js';
+import { debateAssetIds } from '../src/presentation/debat/debate-mode.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
+import { DEBATE_ARENAS, arenaSupportHeight } from '../src/presentation/debat/debate-arenas.js';
 import { validateConfig } from '../src/config.js';
 import { fallSafeCommands, predictLanding } from '../src/simulation/debate-navigation.js';
 

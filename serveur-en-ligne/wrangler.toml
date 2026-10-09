@@ -1,5 +1,5 @@
 # Configuration du serveur de salons et des comptes PartageTonJeu (Cloudflare Workers).
-# Déploiement : voir docs/multijoueur-en-ligne.md et docs/comptes-partagetonjeu.md
+# Déploiement : voir docs/multijoueur.md et docs/comptes-partagetonjeu.md
 #   Déployer : npx wrangler deploy
 # Un seul Worker et une seule base D1 (production), utilisés aussi par le jeu lancé sur localhost.
 name = "presidentielles-2027-salons"

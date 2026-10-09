@@ -9,7 +9,7 @@ import {updateStyleTemporary} from '../src/simulation/style-ultimates.js';
 import {aiCombatCommands} from '../src/simulation/ai-combat.js';
 import {captureSite} from '../src/simulation/strategic-sites.js';
 import {aiEconomicTarget} from '../src/simulation/economy.js';
-import {drawCandidateCombat,usesCandidateCombat,candidateCombatPose} from '../src/presentation/melenchon-combat.js';
+import {drawCandidateCombat,usesCandidateCombat,candidateCombatPose} from '../src/presentation/personnages/melenchon-combat.js';
 function setup(){const sim=new GameSimulation((() => { const config = campaignConfig(); config.balance.minor_candidates.enabled = false; return config; })(),42);sim.state.npcs=[];sim.state.ai_enabled=false;sim.state.candidates.forEach((c,i)=>{c.x=100+i*100;c.axis=0;});return {sim,c:sim.state.candidates[0]};}
 
 test('Persuasion : rester immobile ; marcher annule immédiatement les deux côtés',()=>{

@@ -5,12 +5,12 @@ import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { startDebate, finishSprint, rankFirstRound } from '../src/simulation/match-lifecycle.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
-import { expressedScores, electionModel } from '../src/presentation/election-results.js';
-import { homeContent } from '../src/presentation/arcade-content.js';
+import { expressedScores, electionModel } from '../src/presentation/menus/election-results.js';
+import { homeContent } from '../src/presentation/menus/arcade-content.js';
 import { demoElectionState, DEMO_SCENARIOS } from './election-demo.js';
 import { sanitizeCommands } from '../src/network/shared-commands.js';
 import { encodePresentationState, encodeStateDelta, applyStateDelta } from '../src/network/state-stream.js';
-const base = new URL('../Présidentielles 2027/', import.meta.url);
+const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'].map(async f => JSON.parse(await readFile(new URL(f, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype, campaignCatalog });
 function firstRound() {

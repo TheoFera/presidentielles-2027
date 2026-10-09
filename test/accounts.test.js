@@ -544,7 +544,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { AccountClient } from '../src/network/account-api.js';
 import { matchDeclaration, campaignPlacements, campaignKnockouts, debatePlacements } from '../src/network/ranked-match.js';
-import { applyAccountProgress, addDeviceUnlocks } from '../src/presentation/account-progress.js';
+import { applyAccountProgress, addDeviceUnlocks } from '../src/presentation/comptes/account-progress.js';
 import { isCampaignStyleUnlocked, isMinorCandidateUnlocked, isBetatestProfile } from '../src/simulation/campaign-styles.js';
 
 test('Simulation : un K.-O. de mineur par le joueur est noté, débloqué seulement aux résultats', () => {

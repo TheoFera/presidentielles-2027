@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { debateScreenX } from '../src/presentation/match.js';
+import { debateScreenX } from '../src/presentation/debat/match.js';
 
 test('le plateau conserve une projection fixe, indépendante de la position de l’adversaire', () => {
   const playerX = debateScreenX(7, 1120, 28);

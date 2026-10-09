@@ -47,8 +47,8 @@ Worker Cloudflare « presidentielles-2027-salons » (déjà utilisé pour les sa
 | `src/network/account-config.js` | **Identifiants publics à renseigner** (Google, Apple) |
 | `src/network/account-api.js`, `auth-providers.js` | Client de l'API ; boutons Google/Apple ; pont natif |
 | `src/network/ranked-match.js` | Lien salon WebRTC ↔ partie classée |
-| `src/presentation/account-screens.js`, `account.css` | Écrans (invitation, connexion, pseudo, compte, classement, suppression) |
-| `src/presentation/account-progress.js` | Progression du compte ↔ progression de l'appareil |
+| `src/presentation/comptes/account-screens.js`, `account.css` | Écrans (invitation, connexion, pseudo, compte, classement, suppression) |
+| `src/presentation/comptes/account-progress.js` | Progression du compte ↔ progression de l'appareil |
 | `android/app/src/main/java/…/MainActivity.java` | Pont natif « Continuer avec Google » (Credential Manager) |
 | `test/accounts.test.js`, `test/d1-memory.js` | Tests (vraies migrations sur SQLite intégré à Node) |
 

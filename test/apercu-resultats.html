@@ -6,10 +6,10 @@
   <title>Aperçu des résultats (développement)</title>
   <!-- Outil de développement : absent du jeu et de l’export. Mêmes styles que index.html. -->
   <link rel="stylesheet" href="../src/style.css">
-  <link rel="stylesheet" href="../src/presentation/illustrated-ui.css">
-  <link rel="stylesheet" href="../src/presentation/start-menu.css">
-  <link rel="stylesheet" href="../src/presentation/game-menu.css">
-  <link rel="stylesheet" href="../src/presentation/election-results.css">
+  <link rel="stylesheet" href="../src/presentation/interface/illustrated-ui.css">
+  <link rel="stylesheet" href="../src/presentation/menus/start-menu.css">
+  <link rel="stylesheet" href="../src/presentation/menus/game-menu.css">
+  <link rel="stylesheet" href="../src/presentation/menus/election-results.css">
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
     .dev-bar { position: fixed; z-index: 100; top: 50%; left: 8px; display: flex; flex-direction: column; gap: 6px; padding: 8px; font: 12px system-ui; color: #fff; background: #000c; border-radius: 6px; translate: 0 -50%; }
@@ -23,7 +23,7 @@
     <button type="submit">Rejouer l’animation</button>
   </form>
   <script type="module">
-    import { ElectionResults, electionModel } from '../src/presentation/election-results.js';
+    import { ElectionResults, electionModel } from '../src/presentation/menus/election-results.js';
     import { demoElectionState } from './election-demo.js';
     // ?candidat=le_pen&situation=victoire&fige=1&barre=0 : capture directe de l’état final.
     const params = new URLSearchParams(location.search), form = document.querySelector('.dev-bar');

@@ -2,18 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { candidateCombatPose, usesCandidateCombat, combatAtlasFor } from '../src/presentation/melenchon-combat.js';
-import { candidateExtraPose, extraAtlasesFor } from '../src/presentation/candidate-extra-poses.js';
-import { MINOR_ANIMATION_FILES, minorCombatAtlases, minorExtraAtlases } from '../src/presentation/minor-animation-sprites.js';
-import { MINOR_ANIMATION_DATA } from '../src/presentation/minor-animation-data.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
+import { candidateCombatPose, usesCandidateCombat, combatAtlasFor } from '../src/presentation/personnages/melenchon-combat.js';
+import { candidateExtraPose, extraAtlasesFor } from '../src/presentation/personnages/candidate-extra-poses.js';
+import { MINOR_ANIMATION_FILES, minorCombatAtlases, minorExtraAtlases } from '../src/presentation/personnages/minor-animation-sprites.js';
+import { MINOR_ANIMATION_DATA } from '../src/presentation/personnages/minor-animation-data.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
-import { standingSpriteMotion, drawStandingSprite } from '../src/presentation/standing-sprite-motion.js';
-import { additionalCombatAtlases } from '../src/presentation/candidate-combat-atlases.js';
-import { additionalExtraAtlases } from '../src/presentation/candidate-extra-atlases.js';
-import { MINOR_SPRITES } from '../src/presentation/minor-sprites.js';
-import { MINOR_ATLASES } from '../src/presentation/minor-sprite-atlases.js';
-import { measureMinorSprites } from '../scripts/measure-minor-sprites.mjs';
+import { standingSpriteMotion, drawStandingSprite } from '../src/presentation/personnages/standing-sprite-motion.js';
+import { additionalCombatAtlases } from '../src/presentation/personnages/candidate-combat-atlases.js';
+import { additionalExtraAtlases } from '../src/presentation/personnages/candidate-extra-atlases.js';
+import { MINOR_SPRITES } from '../src/presentation/personnages/minor-sprites.js';
+import { MINOR_ATLASES } from '../src/presentation/personnages/minor-sprite-atlases.js';
+import { measureMinorSprites } from '../scripts/outils-images/measure-minor-sprites.mjs';
 
 test('Les six mineurs gardent une échelle proche de Philippe après correction des têtes', () => {
   for (const [faction, sheets] of Object.entries(MINOR_ANIMATION_DATA)) for (const [sheet, atlas] of Object.entries(sheets)) {

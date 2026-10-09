@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BrowserInput } from '../src/presentation/input.js';
-import { CampaignStylesDisplay } from '../src/presentation/campaign-styles.js';
+import { BrowserInput } from '../src/presentation/interface/input.js';
+import { CampaignStylesDisplay } from '../src/presentation/interface/campaign-styles.js';
 import { normalizeCampaignProfile } from '../src/simulation/campaign-styles.js';
 import { config } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';

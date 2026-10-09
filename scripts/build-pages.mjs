@@ -12,35 +12,16 @@ const webpCache = resolve(root, '.cache/webp');
 export const APP_WEBP_QUALITY = null;
 const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
 
-// Images jamais affichées par l'application, qui n'a que la carte plate : décors réservés
-// au profil betatest (panoramas world-v2, France peinte, décor v3), anciens fonds, et ce que
-// les tuiles de la carte plate peignent déjà (façades des bâtiments, arbres, nuages).
-// Elles restent dans le projet pour npm start et la version web.
-export const APP_EXCLUDED_IMAGES = [
-  /^assets\/generated\/(france-peinte|france-peinte-complete|world-v3)\//,
-  // Ancien décor « biomes », remplacé par la carte plate (le fond du débat reste).
-  /^assets\/generated\/biomes\/(distant-(bobo|banlieue|periurbain|campagne|retraites|riches)|landscape-[a-z]+|street-[a-z]+)\.png$/,
-  /^assets\/generated\/world-v2\/(panorama-|expanded-|banlieue-b-(?:rue|fond)-v3)/,
-  /^assets\/generated\/biomes\/background-(\d+|strip-[a-z]+)\.png$/,
-  /^assets\/generated\/biomes\/distant-(rural|suburb|urban|clouds)\.png$/,
-  // Seules l'estrade du meeting et son micro restent dessinés par-dessus la carte plate.
-  /^assets\/generated\/buildings\/building-(?!meeting_(?:stage|micro)-)/,
-  /^assets\/generated\/vegetation\//,
-];
-// Fichiers remplacés dans l'application : la version de droite est copiée sous le nom de gauche.
-export const APP_REPLACED_FILES = { 'src/presentation/decors-betatest.js': 'src/presentation/decors-betatest-appli.js' };
-const excludedImage = path => APP_EXCLUDED_IMAGES.some(pattern => pattern.test(path));
-
 // Fichiers réellement chargés par le jeu : on suit les <script>, <link>, import et @import
 // depuis index.html. Les pages et modules d'outils (aperçus, maquettes) ne sont pas exportés.
 const dependencyPatterns = [/\bfrom\s*['"]([^'"\n]+)['"]/g, /\bimport\s*\(?\s*['"]([^'"\n]+)['"]/g, /<script[^>\n]*\bsrc="([^"]+)"/g,
   /<link[^>\n]*rel="stylesheet"[^>\n]*href="([^"]+)"/g, /@import\s+(?:url\()?['"]([^'"\n]+)['"]/g];
-async function reachableFiles(entry = 'index.html', replaced = {}) {
+async function reachableFiles(entry = 'index.html') {
   const seen = new Set();
   async function visit(path) {
     if (seen.has(path)) return;
     seen.add(path);
-    const source = await readFile(resolve(root, replaced[path] || path), 'utf8');
+    const source = await readFile(resolve(root, path), 'utf8');
     for (const pattern of dependencyPatterns) for (const [, specifier] of source.matchAll(pattern)) {
       if (!specifier.startsWith('.') && !specifier.startsWith('src/')) continue;
       const base = path.includes('/') ? dirname(path) : '.';
@@ -63,12 +44,12 @@ async function generatedPngFiles(directory) {
   return names.filter(name => !names.includes(name.replace(/\.png$/, '-fixed.png'))).map(name => `${directory}/${name}`);
 }
 
-const pngReference = /(assets\/generated\/[^'"`\s)?]*?)\.png/g;
+const pngReference = /(assets\/images\/[^'"`\s)?]*?)\.png/g;
 /** Remplace les chemins d'images PNG du jeu par leur version WebP (littéraux et gabarits). */
 export const useWebpPaths = source => source.replace(pngReference, '$1.webp');
 
 // Prévisualisations, archives, documents et originaux restent dans le projet.
-// app = true : version de l'application Android, sans les décors du profil betatest.
+// app = true : version de l'application Android (APP_BUILD = true).
 export async function buildPages(output = defaultTarget, { webp = true, app = false } = {}) {
   const target = resolve(output instanceof URL ? fileURLToPath(output) : output);
   const entries = await readdir(target).catch(error => {
@@ -83,25 +64,23 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
   });
   if (targetInfo?.isSymbolicLink()) throw new Error('La destination ne doit pas être un lien symbolique.');
 
-  const replaced = app ? APP_REPLACED_FILES : {};
-  const code = await reachableFiles('index.html', replaced);
+  const code = await reachableFiles('index.html');
   // La politique de confidentialité est publiée avec le jeu (adresse demandée par le Play Store).
   // ads.txt / app-ads.txt (régies publicitaires, voir docs/publicites.md) : publiés s'ils existent.
   const adsFiles = (await readdir(root)).filter(name => ['ads.txt', 'app-ads.txt'].includes(name));
   const files = [...code, 'confidentialite.html', 'conditions.html', ...adsFiles, ...await licenseFiles()];
   const images = new Set();
   for (const file of code) {
-    const source = await readFile(resolve(root, replaced[file] || file), 'utf8');
+    const source = await readFile(resolve(root, file), 'utf8');
     // URL du manifeste, url() CSS et attributs HTML : chemins PNG littéraux.
-    for (const [asset] of source.matchAll(/assets\/generated\/(?:[a-z0-9_-]+\/)+[a-z0-9_-]+\.png/g)) {
-      if (asset.startsWith('assets/generated/masters/')) throw new Error('Un original ne doit pas être référencé par le jeu.');
-      if (!app || !excludedImage(asset)) images.add(asset);
+    for (const [asset] of source.matchAll(/assets\/images\/(?:[a-z0-9_-]+\/)+[a-z0-9_-]+\.png/g)) {
+      images.add(asset);
     }
   }
   // Les 120 PNJ sont déclarés par une boucle dans le manifeste afin d'éviter
   // 120 lignes répétitives ; l'export doit donc inclure explicitement ce dossier.
-  for (const asset of await generatedPngFiles('assets/generated/npc-v2')) images.add(asset);
-  for (const asset of await generatedPngFiles('assets/generated/npc-militants')) images.add(asset);
+  for (const asset of await generatedPngFiles('assets/images/habitants/neutres')) images.add(asset);
+  for (const asset of await generatedPngFiles('assets/images/habitants/militants')) images.add(asset);
   // Vérifier les entrées avant de remplacer le dernier export.
   for (const file of [...files, ...images]) {
     if (!(await stat(resolve(root, file))).isFile()) throw new Error(`Fichier absent : ${file}`);
@@ -115,7 +94,7 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
   }
   const exportedName = image => useWebp ? image.replace(/\.png$/, '.webp') : image;
   const configs = new Map(await Promise.all(configNames.map(async name => {
-    const file = `Présidentielles 2027/${name}`;
+    const file = `donnees-jeu/${name}`;
     return [file, JSON.stringify(JSON.parse(await readFile(resolve(root, file), 'utf8'))) + '\n'];
   })));
   if (target === defaultTarget && targetInfo) {
@@ -141,7 +120,7 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
     if (app && file === 'src/app-build.js') {
       await write(file, '// Généré par scripts/build-pages.mjs pour l\'application.\nexport const APP_BUILD = true;\n');
     } else if (/\.(html|js|css)$/.test(file)) {
-      const source = await readFile(resolve(root, replaced[file] || file), 'utf8');
+      const source = await readFile(resolve(root, file), 'utf8');
       await write(file, useWebp ? useWebpPaths(source) : source);
     } else await write(file, { from: resolve(root, file) });
   }
@@ -157,5 +136,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (!report.webp) console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
   const format = !report.webp ? '' : report.app && APP_WEBP_QUALITY ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)';
   console.log(`Jeu prêt dans dist/ : ${report.files} fichiers, ${mib(report.bytes)} Mio, dont ${mib(report.imageBytes)} Mio d'images${format}, en ${Math.round((Date.now() - started) / 1000)} s.`);
-  console.log(report.app ? 'Version application : carte plate seule, décors betatest exclus.' : 'Version web complète. L\'application Android se construit avec npm run android.');
+  if (!report.app) console.log("Version web. L'application Android se construit avec npm run android.");
 }

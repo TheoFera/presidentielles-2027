@@ -1,4 +1,0 @@
-3 tuile(s) découpée(s) au pixel près dans docs/production/decor-v3/carte-plate/pilote/tuiles (fresque partielle).
-15 tuile(s) pas encore peinte(s) : leurs coupes ne sont pas contrôlées.
-2 coupes mesurées. Vues rapprochées et rapport dans docs\production\decor-v3\carte-plate\pilote\tuiles\controle-raccords.
-Aucun défaut détecté. Regarder quand même chaque vue rapprochée à 100 %.

@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Publicités interstitielles AdMob. Le jeu choisit le moment (src/presentation/ads.js, fin de partie) ;
+ * Publicités interstitielles AdMob. Le jeu choisit le moment (src/presentation/menus/ads.js, fin de partie) ;
  * ici on demande le consentement (RGPD), on précharge une pub et on l'affiche sur demande.
  * Pont JavaScript : window.PTJNativeAds. Sans identifiant de bloc d'annonces, rien n'est chargé.
  */

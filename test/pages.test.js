@@ -3,19 +3,17 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, readdir, rm, writeFile, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve, relative as pathRelative } from 'node:path';
-import { APP_EXCLUDED_IMAGES, APP_REPLACED_FILES, buildPages, useWebpPaths } from '../scripts/build-pages.mjs';
+import { buildPages, useWebpPaths } from '../scripts/build-pages.mjs';
 import { cachedWebp, samePixels, similarPixels, visiblePsnr, webpAvailable } from '../scripts/lib/webp.mjs';
 import { validateConfig } from '../src/config.js';
-import { visualManifest } from '../src/presentation/visual-manifest.js';
-import { worldAssetIds } from '../src/presentation/illustrated-world.js';
-import { setMapDecor } from '../src/presentation/map-decor.js';
+import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
+import { worldAssetIds } from '../src/presentation/carte/illustrated-world.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const assetPath = id => pathRelative(root, fileURLToPath(visualManifest[id].file)).split(/[\\/]/).join('/');
-const excluded = path => APP_EXCLUDED_IMAGES.some(pattern => pattern.test(path));
 
 test('Le paquet de l\'application contient uniquement le jeu et charge ses réglages depuis un sous-chemin', async t => {
   const output = await mkdtemp(join(tmpdir(), 'presidentielles-pages-'));
@@ -27,33 +25,23 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   // La conversion WebP (lente la première fois) est vérifiée à part ci-dessous.
   const report = await buildPages(output, { webp: false, app: true });
   const image = path => report.webp ? path.replace(/\.png$/, '.webp') : path;
-  assert.deepEqual((await readdir(output)).sort(), ['Présidentielles 2027', 'assets', 'conditions.html', 'confidentialite.html', 'index.html', 'src'].sort());
-  assert.ok((await readFile(join(output, image('assets/generated/characters/melenchon.png')))).length > 0);
-  assert.ok(!(await readdir(join(output, 'assets/generated'))).includes('masters'));
-  // Ni pages d'outils, ni code des décors betatest (remplacé par une version vide).
-  for (const absent of ['src/presentation/world-v3/storyboard.html', 'src/presentation/minor-preview.html', 'src/presentation/world-v3/prompts.js', 'src/vendor/README.md', 'src/AGENTS.md',
-    'src/presentation/world-v3', 'src/presentation/france-peinte.js', 'src/presentation/france-peinte-data.js', 'src/presentation/world-v2-expanded.js', 'src/presentation/decors-betatest-appli.js',
-    image('assets/generated/npc-v2/npc-banlieue-9.png'), image('assets/generated/buildings/building-financement-bobo.png'), image('assets/generated/vegetation/vegetation-0.png')]) {
+  assert.deepEqual((await readdir(output)).sort(), ['donnees-jeu', 'assets', 'conditions.html', 'confidentialite.html', 'index.html', 'src'].sort());
+  assert.ok((await readFile(join(output, image('assets/images/candidats/melenchon/melenchon.png')))).length > 0);
+  // Ni notes, ni silhouette remplacée par sa version corrigée « -fixed ».
+  for (const absent of ['src/vendor/README.md', 'src/AGENTS.md', image('assets/images/habitants/neutres/npc-banlieue-9.png')]) {
     await assert.rejects(stat(join(output, absent)), { code: 'ENOENT' }, absent);
   }
-  for (const included of ['src/vendor/qrcode-LICENSE.txt', 'src/vendor/jsqr-LICENSE.txt', image('assets/generated/menus/accueil.png'), image('assets/generated/menus/candidats.png')]) {
+  for (const included of ['src/vendor/qrcode-LICENSE.txt', 'src/vendor/jsqr-LICENSE.txt', image('assets/images/menus/accueil.png'), image('assets/images/menus/candidats.png')]) {
     assert.ok((await stat(join(output, included))).size > 0, included);
   }
-  // L'application ne propose que le décor par défaut.
   assert.match(await readFile(join(output, 'src/app-build.js'), 'utf8'), /APP_BUILD = true/);
-  assert.equal(await readFile(join(output, 'src/presentation/decors-betatest.js'), 'utf8'), await readFile(join(root, 'src/presentation/decors-betatest-appli.js'), 'utf8'));
-  // Toute image du manifeste est exportée, sauf les décors réservés au profil betatest.
-  for (const id of Object.keys(visualManifest)) {
-    const path = assetPath(id);
-    if (excluded(path)) await assert.rejects(stat(join(output, image(path))), { code: 'ENOENT' }, path);
-    else assert.ok((await stat(join(output, image(path)))).size > 0, path);
-  }
-  // Aucune image utile au décor par défaut, aux personnages ou au débat n'est exclue.
+  // Toute image du manifeste est exportée.
+  for (const id of Object.keys(visualManifest)) assert.ok((await stat(join(output, image(assetPath(id))))).size > 0, id);
+  // Les images de la carte plate, des personnages et du débat sont toutes dans le manifeste.
   // Les façades des bâtiments sont peintes dans la carte plate : seule l'estrade du meeting est une image à part.
   const state = new GameSimulation(campaignConfig()).getState();
-  setMapDecor('carte_plate');
   const needed = new Set([...worldAssetIds(visualManifest, state), 'background-debate', 'debate-elysee', 'character-style-philippe-notable']);
-  for (const id of needed) assert.ok(visualManifest[id] && !excluded(assetPath(id)), id);
+  for (const id of needed) assert.ok(visualManifest[id], id);
   const exported = await readdir(output, { recursive: true, withFileTypes: true });
   let bytes = 0;
   let count = 0;
@@ -63,7 +51,7 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
     bytes += (await stat(file)).size;
     if (!/\.(js|css|html)$/.test(file)) continue;
     const source = await readFile(file, 'utf8');
-    if (report.webp) assert.doesNotMatch(source, /assets\/generated\/[^'"`\s)]*\.png/, entry.name);
+    if (report.webp) assert.doesNotMatch(source, /assets\/images\/[^'"`\s)]*\.png/, entry.name);
     if (!file.endsWith('.js')) continue;
     for (const [, dependency] of source.matchAll(/(?:from\s*|import\s*\(?\s*)['"](\.[^'"]+\.js)['"]/g)) {
       assert.ok((await stat(resolve(dirname(file), dependency))).isFile(), `${entry.name} → ${dependency}`);
@@ -81,23 +69,15 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   const configSource = await readFile(join(output, 'src/config.js'), 'utf8');
   const relative = configSource.match(/const base = new URL\('([^']+)', import.meta.url\)/)[1];
   const dataBase = new URL(relative, new URL('src/config.js', base));
-  assert.equal(decodeURIComponent(dataBase.pathname), '/presidentielles-2027/Présidentielles 2027/');
+  assert.equal(decodeURIComponent(dataBase.pathname), '/presidentielles-2027/donnees-jeu/');
   const config = {};
   for (const [key, file] of Object.entries({ balance: 'game_balance.json', layout: 'world_layout.json', buildings: 'building_catalog.json', prototype: 'prototype_config.json', campaignCatalog: 'campaign_events.json' })) {
-    config[key] = JSON.parse(await readFile(join(output, 'Présidentielles 2027', file), 'utf8'));
+    config[key] = JSON.parse(await readFile(join(output, 'donnees-jeu', file), 'utf8'));
   }
   assert.equal(validateConfig(config), config);
 });
 
-test('La version vide des décors betatest a les mêmes noms que la vraie', async () => {
-  for (const [file, replacement] of Object.entries(APP_REPLACED_FILES)) {
-    const real = await import(new URL(`../${file}`, import.meta.url));
-    const empty = await import(new URL(`../${replacement}`, import.meta.url));
-    assert.deepEqual(Object.keys(empty).sort(), Object.keys(real).sort(), file);
-  }
-});
-
-test('La version web garde les décors du profil betatest', async t => {
+test('La version web a les mêmes images que l’application', async t => {
   const output = await mkdtemp(join(tmpdir(), 'presidentielles-pages-'));
   t.after(async () => {
     assert.ok(output.split(/[\\/]/).at(-1).startsWith('presidentielles-pages-'));
@@ -105,13 +85,13 @@ test('La version web garde les décors du profil betatest', async t => {
   });
   await buildPages(output, { webp: false });
   assert.match(await readFile(join(output, 'src/app-build.js'), 'utf8'), /APP_BUILD = false/);
-  for (const id of ['panorama-bobo', 'background-debate']) assert.ok((await stat(join(output, assetPath(id)))).size > 0, id);
+  for (const id of ['plate-01', 'background-debate']) assert.ok((await stat(join(output, assetPath(id)))).size > 0, id);
 });
 
 test('Les chemins d\'images passent en WebP, y compris dans les gabarits', () => {
-  assert.equal(useWebpPaths("new URL('../../assets/generated/menus/accueil.png', import.meta.url)"), "new URL('../../assets/generated/menus/accueil.webp', import.meta.url)");
-  assert.equal(useWebpPaths('`../../assets/generated/npc-v2/npc-${biome}-${variant}.png?v=5`'), '`../../assets/generated/npc-v2/npc-${biome}-${variant}.webp?v=5`');
-  assert.equal(useWebpPaths("url('../../assets/generated/menus/candidats.png')"), "url('../../assets/generated/menus/candidats.webp')");
+  assert.equal(useWebpPaths("new URL('../../assets/images/menus/accueil.png', import.meta.url)"), "new URL('../../assets/images/menus/accueil.webp', import.meta.url)");
+  assert.equal(useWebpPaths('`../../assets/images/habitants/neutres/npc-${biome}-${variant}.png?v=5`'), '`../../assets/images/habitants/neutres/npc-${biome}-${variant}.webp?v=5`');
+  assert.equal(useWebpPaths("url('../../assets/images/menus/candidats.png')"), "url('../../assets/images/menus/candidats.webp')");
   assert.equal(useWebpPaths('docs/production/decor-v3/maquettes/rue.png'), 'docs/production/decor-v3/maquettes/rue.png');
 });
 
@@ -119,7 +99,7 @@ test('La conversion WebP est vérifiée pixel par pixel', async t => {
   if (!await webpAvailable()) { t.skip('ffmpeg avec libwebp absent'); return; }
   const cache = await mkdtemp(join(tmpdir(), 'presidentielles-webp-'));
   t.after(() => rm(cache, { recursive: true }));
-  const source = join(root, 'assets/generated/npc-v2/npc-bobo-3.png');
+  const source = join(root, 'assets/images/habitants/neutres/npc-bobo-3.png');
   const converted = await cachedWebp(source, cache);
   assert.ok(await samePixels(source, converted));
   assert.ok((await stat(converted)).size < (await stat(source)).size);
@@ -129,8 +109,8 @@ test('La compression de l’application garde la transparence exacte et des coul
   if (!await webpAvailable()) { t.skip('ffmpeg avec libwebp absent'); return; }
   const cache = await mkdtemp(join(tmpdir(), 'presidentielles-webp-'));
   t.after(() => rm(cache, { recursive: true }));
-  for (const name of ['npc-v2/npc-bobo-3.png', 'carte-plate/tuile-01-paris-a.png']) {
-    const source = join(root, 'assets/generated', name);
+  for (const name of ['habitants/neutres/npc-bobo-3.png', 'carte/tuile-01-paris-a.png']) {
+    const source = join(root, 'assets/images', name);
     const lossless = await cachedWebp(source, cache);
     const converted = await cachedWebp(source, cache, { quality: 90 });
     assert.ok(await similarPixels(source, converted), name);
