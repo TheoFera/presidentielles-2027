@@ -125,9 +125,9 @@ export class StartMenu {
     this.account.save(rememberTitle(this.account.get()));
     this.page('profile', 'Mon profil', profileContent(this.account.get(), { tab }));
     this.onProfile?.(this);
-    // Appli en Europe : le joueur peut revoir ses choix de consentement aux pubs (obligation RGPD),
-    // même sans compte : le bouton est donc dans Mon profil, à côté de « Mon compte ».
-    if (this.ads?.privacyRequired()) {
+    // Appli en Europe : le joueur peut revoir ses choix de consentement aux pubs (obligation RGPD).
+    // Connecté, le bouton est dans « Mon compte » ; sans compte, il reste ici pour rester accessible.
+    if (this.ads?.privacyRequired() && !this.element.querySelector('#profile-account')) {
       const privacy = document.createElement('button');
       privacy.type = 'button'; privacy.id = 'profile-ad-privacy'; privacy.textContent = 'Choix des pubs';
       privacy.title = 'Choix de confidentialité des publicités';

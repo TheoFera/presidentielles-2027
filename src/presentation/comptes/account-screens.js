@@ -175,6 +175,7 @@ export function showAccountSettings(menu, accounts, { back, signedOut = back } =
         ${emails.map(i => `<option value="${esc(i.provider)}" ${i.provider === me.newsletter.provider ? 'selected' : ''}>✉ ${esc(shownEmail(i))}</option>`).join('')}</select>` : ''}
       <p id="newsletter-status" class="menu-status" role="status"></p>
       <footer class="account-foot"><button type="button" id="account-logout" class="menu-primary">Se déconnecter</button>
+        ${menu.ads?.privacyRequired() ? '<button type="button" id="account-ad-privacy" class="account-foot-link" title="Choix de confidentialité des publicités">Choix des pubs</button>' : ''}
         <button type="button" id="account-delete" class="account-delete-link">Supprimer le compte</button></footer>
     </section>
   </div>`, back);
@@ -217,7 +218,8 @@ export function showAccountSettings(menu, accounts, { back, signedOut = back } =
     try { await accounts.unlink(button.dataset.unlink); reopen(); }
     catch (failure) { say('#link-status', failText(failure), 'error'); }
   });
-  root.querySelector('#account-logout').onclick = async () => { await accounts.logout(); showAccountToast('Vous êtes déconnecté. Le solo reste disponible.'); signedOut(); };
+  root.querySelector('#account-ad-privacy')?.addEventListener('click', () => menu.ads.openPrivacy());
+  root.querySelector('#account-logout').onclick =async () => { await accounts.logout(); showAccountToast('Vous êtes déconnecté. Le solo reste disponible.'); signedOut(); };
   root.querySelector('#account-delete').onclick = () => showDeleteAccount(menu, accounts, { back: () => showAccountSettings(menu, accounts, { back, signedOut }), deleted: signedOut });
 }
 

@@ -65,8 +65,9 @@
 .account-link { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 #start-menu .account-email { min-height: 40px; padding: 0 10px; font: 600 14px system-ui, sans-serif; color: #fff; background: #060b1c; border: 1px solid var(--arcade-gold); }
 .account-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding-top: 10px; border-top: 1px solid #3c4e78; }
-/* Suppression : un simple lien discret, obligatoire mais pas mis en avant. */
-#start-menu .account-delete-link { padding: 6px 4px; font: 600 13px system-ui, sans-serif; text-transform: none; letter-spacing: 0; color: var(--arcade-muted); text-decoration: underline; background: none; border: 0; box-shadow: none; }
+/* Choix des pubs et suppression : de simples liens discrets, obligatoires mais pas mis en avant. */
+#start-menu .account-foot-link:hover { color: #fff; }
+#start-menu :is(.account-delete-link, .account-foot-link) {padding: 6px 4px; font: 600 13px system-ui, sans-serif; text-transform: none; letter-spacing: 0; color: var(--arcade-muted); text-decoration: underline; background: none; border: 0; box-shadow: none; }
 #start-menu .account-delete-link:hover { color: #ff97b9; }
 #start-menu .account-delete { color: #fff; border-color: #ff8fb3; background: linear-gradient(#b3264f, #6d0f2c); box-shadow: inset 0 2px 0 #ffffff66, 0 4px 0 #2c0512; }
 .account-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
