@@ -13,9 +13,12 @@ const SIGN = { top: 764, bottom: 808, width: 220 };
 // Panneaux des devantures restaurées : le texte suit l'image et ses proportions naturelles.
 // Coordonnées en pixels dans leur tuile, sans modifier la position de gameplay des sites.
 const NATURAL_SIGNS = {
-  'site:riches_b': { x: 146, y: 610, w: 360, h: 68 },
-  'site:riches_c': { x: 203, y: 675, w: 433, h: 64 },
-  'site:riches_c:institut_sondage': { x: 871, y: 681, w: 497, h: 68 },
+  'site:paris_b': { x: 450, y: 710, w: 306, h: 39 },
+  'site:banlieue_b': { x: 284, y: 715, w: 267, h: 32 },
+  'site:riches_a': { x: 904, y: 683, w: 222, h: 42 },
+  'site:riches_b': { x: 151, y: 614, w: 355, h: 52 },
+  'site:riches_c': { x: 237, y: 686, w: 386, h: 42 },
+  'site:riches_c:institut_sondage': { x: 825, y: 686, w: 441, h: 49 },
 };
 
 const TILE_COUNT = 18;
