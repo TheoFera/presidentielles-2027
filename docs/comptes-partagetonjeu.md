@@ -170,7 +170,7 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
   (`melenchon_universaliste`, `le_pen_souverainiste`, `philippe_gestionnaire`).
 - **Verrouillés** : les 6 autres styles et les 6 candidats mineurs (en Débat télé). Nouveau style ou nouveau mineur :
   l'ajouter à `src/simulation/unlock-catalog.js` (un test le rappelle s'il manque).
-- **Règle** : mettre K.-O. (soi-même ou son camp) un candidat mineur, ou un candidat principal portant un style non débloqué,
+- **Règle** : mettre K.-O. **soi-même** (son propre candidat, ses projectiles et son ultime, y compris les unités qu’elle invoque ; pas ses militants ni ses gardes) un candidat sans style, ou un candidat principal portant un style non débloqué,
   le **note** dans la partie (`state.knockouts`). Il n'est **débloqué qu'à la fin normale** de la campagne, et **seulement
   si ce joueur a gagné l'élection** (solo comme multijoueur ; le serveur ne retient que le vainqueur). Quitter, abandonner
   ou perdre : rien. Un bandeau félicite le joueur au K.-O. et rappelle qu'il doit gagner l'élection.

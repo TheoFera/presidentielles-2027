@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
             attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             getWindow().setAttributes(attributes);
         }
-        WebView.setWebContentsDebuggingEnabled((getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.WEB_DEBUG || (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
         ads = new AdsManager(this, script -> { if (webView != null) webView.evaluateJavascript(script, null); });
         createWebView();
         webView.loadUrl(START_URL);

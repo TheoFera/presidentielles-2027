@@ -33,11 +33,13 @@ export function knockoutUnlockId(target) {
 /**
  * Note un K.-O. dans l'état de la partie. Rien n'est débloqué ici : le déblocage
  * n'est validé qu'à la fin de la partie, et seulement pour le vainqueur, voir earnedUnlocks().
- * `source` peut être le candidat ou une unité de son camp (militant, garde…).
+ * Seul un K.-O. porté par le candidat lui-même compte, ultimes comprises (hologrammes, CRS,
+ * encapuchonnés, Zemmour : unités temporaires de son pouvoir). Ses militants et gardes ne débloquent rien.
  */
+const ownKnockout = source => source?.role === 'CANDIDAT' || source?.temporary === true && !!source.power_id;
 export function recordKnockout(state, source, target) {
   const candidate_id = knockoutUnlockId(target);
-  if (!candidate_id || !source?.faction_id || source.faction_id === target.faction_id) return;
+  if (!candidate_id || !ownKnockout(source) || !source.faction_id || source.faction_id === target.faction_id) return;
   if (!Array.isArray(state.knockouts)) state.knockouts = [];
   if (state.knockouts.length >= 200) return;
   state.knockouts.push({ tick: state.tick, by_faction: source.faction_id, candidate_id });

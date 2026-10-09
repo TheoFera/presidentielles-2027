@@ -137,16 +137,20 @@ test('Catalogue : suit les styles et les candidats mineurs du jeu', () => {
 
 test('K.-O. : noté pendant la partie, gagné seulement à la fin normale', () => {
   const state = { tick: 10, phase: 'CAMPAIGN' };
-  const player = { faction_id: 'melenchon' };
+  const player = { role: 'CANDIDAT', faction_id: 'melenchon' };
   recordKnockout(state, player, { role: 'CANDIDAT', minor: true, faction_id: 'roussel' });
-  recordKnockout(state, { faction_id: 'melenchon' }, { role: 'CANDIDAT', minor: false, faction_id: 'le_pen', current_campaign_style: 'le_pen_zemmouriste' });
+  recordKnockout(state, player, { role: 'CANDIDAT', minor: false, faction_id: 'le_pen', current_campaign_style: 'le_pen_zemmouriste' });
   recordKnockout(state, player, { role: 'CANDIDAT', minor: false, faction_id: 'philippe', current_campaign_style: 'philippe_gestionnaire' }); // style de départ
-  recordKnockout(state, { faction_id: 'le_pen' }, { role: 'CANDIDAT', minor: true, faction_id: 'attal' });
+  // K.-O. porté par un militant du joueur : ne compte pas, il faut le faire soi-même.
+  recordKnockout(state, { role: 'MILITANT', faction_id: 'melenchon' }, { role: 'CANDIDAT', minor: true, faction_id: 'arthaud' });
+  // Les ultimes font partie du candidat : un hologramme qui met K.-O. compte.
+  recordKnockout(state, { role: 'HOLOGRAMME', temporary: true, power_id: 'power:1', faction_id: 'melenchon' }, { role: 'CANDIDAT', minor: true, faction_id: 'glucksmann' });
+  recordKnockout(state, { role: 'CANDIDAT', faction_id: 'le_pen' }, { role: 'CANDIDAT', minor: true, faction_id: 'attal' });
   recordKnockout(state, player, { role: 'CANDIDAT', minor: true, faction_id: 'roussel' });
   // Abandon : la partie n'est pas terminée → rien.
   assert.deepEqual(earnedUnlocks(state, 'melenchon'), []);
   state.phase = 'RESULTS'; state.result = { winner: 'melenchon', second: 'le_pen' };
-  assert.deepEqual(earnedUnlocks(state, 'melenchon'), ['roussel', 'le_pen_zemmouriste']);
+  assert.deepEqual(earnedUnlocks(state, 'melenchon'), ['roussel', 'le_pen_zemmouriste', 'glucksmann']);
   // Pas de victoire, pas de déblocage : le K.-O. d'Attal par Le Pen ne compte pas.
   assert.deepEqual(earnedUnlocks(state, 'le_pen'), []);
   state.result = { winner: 'le_pen', second: 'melenchon' };

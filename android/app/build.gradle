@@ -33,6 +33,9 @@ android {
         // À augmenter de 1 à chaque nouvelle version envoyée sur le Play Store.
         versionCode = 2
         versionName = '1.0.1'
+        // Mesure de fluidité sur une version finale : « -PwebDebug=true » rend la page du jeu inspectable
+        // depuis l'ordinateur (chrome://inspect). Désactivé par défaut : la version Play Store n'est pas concernée.
+        buildConfigField 'boolean', 'WEB_DEBUG', (findProperty('webDebug') == 'true').toString()
     }
 
     buildFeatures {
