@@ -92,7 +92,9 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 
 #debate-mode-banner { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none; white-space: nowrap;
   font: 900 clamp(40px, 11cqw, 150px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .02em; color: #ffe36e;
-  text-shadow: 0 .5cqw 0 #c43b5c, 0 1cqw 0 #3b1450, 0 0 3cqw #ffb13b99; -webkit-text-stroke: .25cqw #10163a; }
+  text-shadow: 0 .5cqw 0 #c43b5c, 0 1cqw 0 #3b1450, 0 0 3cqw #ffb13b99;
+  /* Contour peint sous le remplissage : sans Impact (Android), la police de secours a des formes qui se chevauchent. */
+  paint-order: stroke fill; -webkit-text-stroke: .5cqw #10163a; }
 #debate-mode-banner[data-kind='fight'] { color: #ffffff; font-size: clamp(34px, 8.5cqw, 120px); }
 #debate-mode-banner[data-kind='ko'] { color: #ff4d6d; }
 #debate-mode-banner[hidden] { display: none; }
