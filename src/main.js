@@ -35,7 +35,6 @@ import { SnapshotBuffer } from './network/snapshot-buffer.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debat/debate-mode.js';
 import { APP_BUILD } from './app-build.js';
-import { FramePacer } from './presentation/rendu/frame-pacing.js';
 import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
@@ -155,7 +154,6 @@ async function start() {
   let wasHidden = false;
   let noticeRemaining = 0;
   let previousTime = performance.now();
-  const framePacer = APP_BUILD ? new FramePacer() : null;
   let debugElapsed = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
   let currentDay = state.days_remaining;
@@ -645,8 +643,6 @@ async function start() {
 
   function frame(now) {
     try {
-      // Appli Android : une image sur deux sur un écran à 120 Hz, à intervalles égaux (voir frame-pacing.js).
-      if (framePacer && !framePacer.shouldDraw(now)) { requestAnimationFrame(frame); return; }
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }

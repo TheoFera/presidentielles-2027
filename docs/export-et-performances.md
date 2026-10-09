@@ -30,7 +30,7 @@ Le jeu garde la même qualité d'image partout ; la fluidité repose sur ces cho
 - **Chargement complet avant de jouer** : toutes les images de la partie sont chargées, décodées et envoyées une fois à la carte graphique derrière l'écran de chargement. Une image en erreur propose « Réessayer ».
 - **Tuiles de la carte** : les tuiles visibles et leurs voisines sont décodées à l'avance hors du fil du jeu (`createImageBitmap`) ; la teinte de saison est préparée une fois par tuile visible, au lieu d'un filtre recalculé à chaque image.
 - **Rendu** : les images hors du cadre sont ignorées, les textes des enseignes sont gardés en petites images, l'affichage lit l'état vivant de la simulation sans le recopier.
-- **Téléphones à 120 Hz** : dans l'application, `src/presentation/rendu/frame-pacing.js` affiche une image sur deux au-delà de 100 Hz, pour une cadence régulière à 60 images par seconde.
+- **Même rythme que le navigateur** : l'application dessine à chaque rafraîchissement de l'écran, comme Chrome. Le régulateur « une image sur deux » (FramePacer) a été retiré : il provoquait des chutes à 30 images par seconde quand le téléphone changeait de fréquence d'écran.
 - **Multijoueur** : seuls les champs modifiés de l'état sont envoyés, encodés une seule fois pour tous les invités.
 
 Mesures et réglages propres à l'application : [android/LISEZMOI.md](../android/LISEZMOI.md#fluidité--ce-quil-faut-savoir-mesures-du-5-octobre-2026). Pour juger la fluidité, utiliser la version **release** de l'application, débranchée du câble.
