@@ -8,6 +8,8 @@ import { drawCombatEffects } from '../effets/combat-effects.js';
 import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from '../carte/electoral.js';
 import { drawDebate } from '../debat/match.js';
 import { VisualAssets } from './visual-assets.js';
+import { installSpriteDrawing, spriteBitmapLoader, spriteBitmapsSupported, spriteScaleFor } from './sprite-bitmaps.js';
+import { APP_BUILD } from '../../app-build.js';
 import { visualManifest } from './visual-manifest.js';
 import { drawIllustratedCharacter, meetingCrowdRow } from '../personnages/illustrated-characters.js';
 import { preloadWorld } from '../carte/illustrated-world.js';
@@ -51,8 +53,15 @@ export class WorldRenderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.config = config;
-    this.assets = new VisualAssets(visualManifest, {limit: 80, prepareImage});
     this.p = config.prototype.presentation;
+    // Application : images décompressées une fois, gardées, planches réduites à la taille utile (sprite-bitmaps.js).
+    let loadImage = null;
+    if (APP_BUILD && spriteBitmapsSupported()) {
+      const screenHeight = Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio);
+      installSpriteDrawing();
+      loadImage = spriteBitmapLoader(spriteScaleFor(screenHeight));
+    }
+    this.assets = new VisualAssets(visualManifest, {limit: 80, prepareImage, loadImage});
     this.width = this.p.reference_width;
     this.height = this.p.reference_height;
     this.metrics = compositionMetrics(config, this.width, this.height);

@@ -1,7 +1,6 @@
 import { ringDelta } from '../../simulation/world.js';
 import { buildingLabel } from '../../simulation/building-rules.js';
 import { formatEuros } from './money.js';
-import { scenerySeasonFilter } from './illustrated-world.js';
 import { drawPlateWorld, plateSignFrame } from './carte-plate.js';
 
 /**
@@ -32,18 +31,10 @@ export function prepareGeneratedImage(image, id = '') {
 
 /* ---------- Dessin ---------- */
 
-function seasonFilter(progress, strength) {
-  const full = scenerySeasonFilter(progress);
-  if (strength >= 1) return full;
-  // Filtre atténué pour la rue : même saison, couleurs moins altérées.
-  return full.replace(/(saturate|sepia|brightness)\(([\d.]+)\)/g, (_, name, value) => {
-    const neutral = name === 'sepia' ? 0 : 1; return `${name}(${(neutral + (Number(value) - neutral) * strength).toFixed(3)})`;
-  });
-}
-
+// Pas d'effet de saison à l'écran pour l'instant (choix du 09/10/2026) : les tuiles gardent leurs couleurs d'origine.
 export function drawFixedWorld(renderer, state) {
   renderer.fixedWorldState = state;
-  return drawPlateWorld(renderer, state, { seasonFilter: seasonFilter(state.campaign_progress_01, 0.45) });
+  return drawPlateWorld(renderer, state);
 }
 
 /* ---------- Enseignes des bâtiments intégrés ---------- */

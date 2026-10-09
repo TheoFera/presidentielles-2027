@@ -1,8 +1,10 @@
 // Presentation-only image cache. Missing images always leave the existing renderer usable.
 export class VisualAssets {
-  constructor(manifest = {}, { createImage = () => new Image(), limit = 64, concurrency = 8, prepareImage = null } = {}) {
+  // loadImage (facultatif) : chargeur qui remplace les images ordinaires (application : rendu/sprite-bitmaps.js).
+  constructor(manifest = {}, { createImage = () => new Image(), limit = 64, concurrency = 8, prepareImage = null, loadImage = null } = {}) {
     this.manifest = manifest;
     this.createImage = createImage;
+    this.loadImage = loadImage;
     this.limit = limit;
     this.cache = new Map();
     this.failures = new Set();
@@ -93,6 +95,17 @@ export class VisualAssets {
         this.trim();
         this.pump();
       };
+      if (this.loadImage) {
+        this.loadImage(id, source.file).then(async image => {
+          entry.image = image;
+          if (this.prepareImage) {
+            try { await this.prepareImage(id, image); }
+            catch { /* Drawing still has its original lazy preparation path. */ }
+          }
+          finish(false);
+        }, () => finish(true));
+        continue;
+      }
       try {
         const image = entry.image = this.createImage();
         image.decoding = 'async';

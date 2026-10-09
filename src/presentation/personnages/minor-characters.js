@@ -154,9 +154,11 @@ export function drawMinorCandidate(renderer, entity, x, state) {
         drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height, sw * k, motion);
       } else ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
     } else {
-      const cw = image.width / MINOR_SHEET.columns, ch = image.height / MINOR_SHEET.rows;
-      const k = height / MINOR_SHEET.figure * MINOR_SHEET.width / image.width;
-      ctx.drawImage(image, (cell % MINOR_SHEET.columns) * cw, Math.floor(cell / MINOR_SHEET.columns) * ch, cw, ch, -cw * k / 2, -MINOR_SHEET.feet * image.width / MINOR_SHEET.width * k, cw * k, ch * k);
+      // Taille d'origine (une planche réduite de l'application garde naturalWidth, voir sprite-bitmaps.js).
+      const imageWidth = image.naturalWidth || image.width, imageHeight = image.naturalHeight || image.height;
+      const cw = imageWidth / MINOR_SHEET.columns, ch = imageHeight / MINOR_SHEET.rows;
+      const k = height / MINOR_SHEET.figure * MINOR_SHEET.width / imageWidth;
+      ctx.drawImage(image, (cell % MINOR_SHEET.columns) * cw, Math.floor(cell / MINOR_SHEET.columns) * ch, cw, ch, -cw * k / 2, -MINOR_SHEET.feet * imageWidth / MINOR_SHEET.width * k, cw * k, ch * k);
     }
   } else {
     if (animation === 'ko') { ctx.translate(-height * 0.1, -height * 0.12); ctx.rotate(-Math.PI / 2); }
