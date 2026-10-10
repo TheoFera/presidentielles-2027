@@ -6,6 +6,9 @@ body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: cent
 #funds { position: absolute; top: 3.4%; left: 2.4%; pointer-events: none; font-variant-numeric: tabular-nums; }
 #money { display: block; font-size: clamp(14px, 2.1cqw, 25px); font-weight: 650; letter-spacing: -0.04em; white-space: nowrap; }
 #notice { position: absolute; top: 23%; left: 20%; right: 20%; text-align: center; font-size: clamp(12px, 1.6cqw, 21px); letter-spacing: 0.05em; white-space: pre-line; pointer-events: none; }
+/* Multijoueur : ping discret en coin d'écran (vert, orange ou rouge selon sa valeur). */
+#network-ping { position: absolute; top: 0.6%; right: 1%; z-index: 2; padding: 1px 6px; border-radius: 6px; font-size: clamp(9px, 1cqw, 12px); font-variant-numeric: tabular-nums; color: #fff; background: #0008; pointer-events: none; }
+#network-ping[data-quality="bon"] { color: #9be59b; } #network-ping[data-quality="moyen"] { color: #f2c46b; } #network-ping[data-quality="mauvais"] { color: #ff8a7a; }
 #electoral-display { position: absolute; left: 50%; top: 1.8%; width: 8cqw; height: 8cqw; transform: translateX(-50%); pointer-events: none; }
 #electoral-circle { position: absolute; inset: 0; }
 #electoral-circle svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 0 1px #59685855); }

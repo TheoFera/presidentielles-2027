@@ -9,6 +9,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
@@ -118,6 +119,8 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new NativeAuthBridge(), "PTJNativeAuth");
         // Pubs de fin de partie (AdMob) : le jeu décide du moment, voir src/presentation/menus/ads.js.
         webView.addJavascriptInterface(ads.bridge(), "PTJNativeAds");
+        // Multijoueur : Wi-Fi gardé éveillé pendant une partie (window.PTJNativeNetwork, voir src/main.js).
+        webView.addJavascriptInterface(new NativeNetworkBridge(), "PTJNativeNetwork");
 
         WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
                 .setDomain(HOST)
@@ -320,6 +323,41 @@ public class MainActivity extends Activity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
     }
 
+    /**
+     * Multijoueur : pendant une partie, le Wi-Fi ne se met pas en veille entre deux messages.
+     * Sans cela, l'économie d'énergie du Wi-Fi retient les paquets et ajoute des pointes de 100 à
+     * 200 ms au ping. Mode « faible latence » (Android 10 et plus), sinon « haute performance ».
+     * Android ne l'applique que lorsque l'appli est au premier plan, écran allumé.
+     */
+    private final class NativeNetworkBridge {
+        @JavascriptInterface
+        public void setLowLatency(boolean active) {
+            runOnUiThread(() -> { wifiLockWanted = active; updateWifiLock(active); });
+        }
+    }
+
+    private WifiManager.WifiLock wifiLock;
+    private boolean wifiLockWanted;
+
+    @SuppressWarnings("deprecation")
+    private void updateWifiLock(boolean active) {
+        if (active && wifiLock == null) {
+            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (wifi == null) return;
+            int mode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                ? WifiManager.WIFI_MODE_FULL_LOW_LATENCY : WifiManager.WIFI_MODE_FULL_HIGH_PERF;
+            wifiLock = wifi.createWifiLock(mode, "presidentielles:multijoueur");
+            wifiLock.setReferenceCounted(false);
+        }
+        if (wifiLock == null) return;
+        try {
+            if (active && !wifiLock.isHeld()) wifiLock.acquire();
+            else if (!active && wifiLock.isHeld()) wifiLock.release();
+        } catch (RuntimeException ignored) {
+            // Wi-Fi coupé ou indisponible : le jeu continue sans ce réglage.
+        }
+    }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -330,17 +368,20 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         if (webView != null) webView.onPause();
+        updateWifiLock(false);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         if (webView != null) webView.onResume();
+        if (wifiLockWanted) updateWifiLock(true);
     }
 
     @Override
     protected void onDestroy() {
         if (pendingPermission != null) pendingPermission.deny();
+        updateWifiLock(false);
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();

@@ -95,6 +95,15 @@ export function sameNetwork(a, b) {
   const prefix = address => address.split('.').slice(0, 3).join('.');
   return a.local.some(x => b.local.some(y => prefix(x) === prefix(y)));
 }
+ // Ping : médiane des 10 dernières mesures, irrégularité = écart entre la plus rapide et la 9e.
+function recordPing(peer, rtt) {
+  if (!(rtt >= 0 && rtt < 10000)) return;
+  (peer.pings ??= []).push(rtt);
+  if (peer.pings.length > 10) peer.pings.shift();
+  const sorted = [...peer.pings].sort((a, b) => a - b);
+  peer.ping = sorted[sorted.length >> 1];
+  peer.jitter = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.9))] - sorted[0];
+}
 const ADVICE = 'Connexion impossible entre les téléphones. Mettez-les sur le même Wi-Fi : une box, ou un 3e appareil qui partage sa connexion. Le téléphone qui fait lui-même le partage de connexion est souvent injoignable pour le jeu. Évitez aussi les réseaux invités qui isolent les appareils.';
 // Before the first link, a guest's checks may give up while the host is still
 // scanning its answer; the host's own checks can then still revive the connection.
@@ -143,9 +152,15 @@ export class PeerSession {
       for (const peer of this.peers.values()) if (peer.connected) {
         // Phones throttle hidden tabs: the lobby waits longer than a running match.
         if (now - peer.seen > (this.room.phase === 'playing' ? 45000 : 120000)) { this.peerLost(peer, 'Un téléphone ne répond plus. Gardez le jeu ouvert et reconnectez les joueurs.'); if (this.closed) return; continue; }
-        try { this.send(peer, 'ping', {}); } catch (error) { this.peerLost(peer, error.message); if (this.closed) return; }
+        // Signe de vie horodaté : l'autre appareil le renvoie aussitôt, l'aller-retour donne le ping.
+        try { this.send(peer, 'ping', { t: Math.round(performance.now()) }); } catch (error) { this.peerLost(peer, error.message); if (this.closed) return; }
       }
-    }, 3000);
+    }, 1000);
+  }
+  /** Ping de chaque autre appareil (ms) et irrégularité du réseau (écart entre mesures récentes). */
+  networkStats() {
+    return [...this.peers.values()].filter(peer => peer.connected && peer.ping != null)
+      .map(peer => ({ id: this.host ? peer.id : 'host', ping: peer.ping, jitter: peer.jitter }));
   }
   checkFingerprint(data) { if (data.fingerprint !== this.fingerprint) throw new Error('Les versions du jeu diffèrent. Rechargez la page sur tous les appareils.'); }
   makePeer(peerId) {
@@ -299,7 +314,8 @@ export class PeerSession {
   }
   publishRoom() { this.broadcast('room', this.room); this.callbacks.room(this.room); }
   receive(peer, packet) {
-    if (packet.type === 'ping') return;
+    if (packet.type === 'ping') { if (Number.isFinite(packet.data?.t)) try { this.send(peer, 'pong', { t: packet.data.t }); } catch { /* Le signe de vie suivant mesurera. */ } return; }
+    if (packet.type === 'pong') { recordPing(peer, performance.now() - packet.data?.t); return; }
     if (packet.type === 'caps') { peer.deflate = DEFLATE && packet.data?.deflate === true; return; }
     if (packet.type === 'leave') { this.peerLost(peer, 'Un joueur a quitté le salon.'); return; }
     if (this.host) {

@@ -4,6 +4,8 @@
     <!-- Multijoueur entre téléphones (WebRTC sur le Wi-Fi local). -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Wi-Fi gardé éveillé pendant une partie multijoueur (moins de pointes de ping). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Scan des QR codes d'invitation, seulement si le joueur l'accepte. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />

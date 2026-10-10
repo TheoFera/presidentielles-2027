@@ -13,15 +13,16 @@ export class Controller {
 
 export class LocalHumanController extends Controller {
   constructor() { super(); this.axis = 0; this.pendingTap = 0; this.attackEvents = []; }
-  setAxis(axis) { this.axis = Math.sign(axis); if (this.axis) this.pendingTap = this.axis; }
-  dash(direction) { this.dashPending = direction; }
-  ultimate() { this.ultimatePending = true; this.attackEvents = []; this.attackPending = false; this.dashPending = 0; this.jumpPending = false; }
-  pressAttack() { this.attackEvents.push('PressAttack'); }
-  releaseAttack() { this.attackEvents.push('ReleaseAttack'); }
-  cancelAttack() { this.attackEvents = ['CancelAttack']; }
-  jump() { this.jumpPending = true; }
-  reset() { this.cancelAttack(); this.jumpPending = false; this.dashPending = 0; this.ultimatePending = false; this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
-  attack() { this.attackPending = true; }
+  // `onInput` : appelé à chaque nouvelle action du joueur (en multijoueur, le pas part aussitôt).
+  setAxis(axis) { const old = this.axis; this.axis = Math.sign(axis); if (this.axis) this.pendingTap = this.axis; if (this.axis !== old) this.onInput?.(); }
+  dash(direction) { this.dashPending = direction; this.onInput?.(); }
+  ultimate() { this.ultimatePending = true; this.attackEvents = []; this.attackPending = false; this.dashPending = 0; this.jumpPending = false; this.onInput?.(); }
+  pressAttack() { this.attackEvents.push('PressAttack'); this.onInput?.(); }
+  releaseAttack() { this.attackEvents.push('ReleaseAttack'); this.onInput?.(); }
+  cancelAttack() { this.attackEvents = ['CancelAttack']; this.onInput?.(); }
+  jump() { this.jumpPending = true; this.onInput?.(); }
+  reset() { this.attackEvents = ['CancelAttack']; this.jumpPending = false; this.dashPending = 0; this.ultimatePending = false; this.axis = 0; this.pendingTap = 0; this.attackPending = false; }
+  attack() { this.attackPending = true; this.onInput?.(); }
   commands(_state, candidateId) {
     // Preserve a key press released between two simulation ticks.
     const axis = this.axis || this.pendingTap;

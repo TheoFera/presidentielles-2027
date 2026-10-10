@@ -32,7 +32,9 @@ import { PeerSession } from './network/peer-session.js';
 import { OnlineSession } from './network/online-session.js';
 import { outgoingCommands } from './network/shared-commands.js';
 import { SnapshotBuffer } from './network/snapshot-buffer.js';
-import { DebatePrediction, RemoteInputQueue } from './network/debate-prediction.js';
+import { DebatePrediction, DebateHost } from './network/debate-prediction.js';
+import { InputSender, InputTimeline } from './network/input-timeline.js';
+import { CampaignPrediction } from './network/campaign-prediction.js';
 import { DebateMatch, debateModeAICommands, debateFighterIds } from './simulation/debate-mode.js';
 import { DebateModeDisplay, debateAssetIds, drawDebateMode } from './presentation/debat/debate-mode.js';
 import { APP_BUILD } from './app-build.js';
@@ -95,6 +97,7 @@ async function start() {
   let previous = state;
   const clock = new FixedClock(config.balance.simulation_architecture.fixed_tick_hz);
   const human = new LocalHumanController();
+  human.onInput = () => pullTick();
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
@@ -145,10 +148,11 @@ async function start() {
   let menu;
   let session = null;
   let roomPhase = null;
-  let remote = new Map();
+  // Hôte en campagne : ligne du temps des pas de chaque invité (voir input-timeline.js).
+  let remote = new Map(), campaignFrame = 0;
   let networkElapsed = 0;
   let networkBusy = false;
-  let sentAxis = 0, sentTick = null;
+  let sentTick = null;
   // Invité : les états de l’hôte passent par un tampon pour un affichage fluide malgré la 4G.
   const snapshots = new SnapshotBuffer(1 / config.balance.simulation_architecture.fixed_tick_hz);
   let guestAlpha = 1;
@@ -164,6 +168,12 @@ async function start() {
   let debateMatch = null, debateState = null, debatePrevious = null, debatePending = [], debateSetup = null;
   // Invité en débat : son téléphone fait avancer le combat sans attendre l’hôte (voir debate-prediction.js).
   let prediction = null;
+  // Hôte d'un débat multijoueur : pas numérotés des invités et retours en arrière.
+  let debateHost = null;
+  // Invité : n'envoie ses pas que s'ils changent, plus un signe de vie 5 fois par seconde.
+  const inputSender = new InputSender();
+  // Invité en campagne : son candidat se déplace dès l'appui (voir campaign-prediction.js).
+  let campaignPrediction = null;
   // Débat multijoueur : combattants pilotés par un autre appareil (l’hôte simule, les invités affichent).
   let debateRemoteIds = new Set();
   const debateFighterOf = (setup, playerId) => debateFighterIds(setup.fighters)[setup.fighters.findIndex(f => f.player === playerId)];
@@ -294,11 +304,11 @@ async function start() {
   document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
   durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Financement : ${format(config.balance.buildings.financement.capture_cost)} k€. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   function stopSession() {
-    const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset();
+    const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset(); campaignPrediction = null;
     void keepScreenAwake();
   }
   function stopDebate() {
-    debateMatch = null; debateState = null; debatePrevious = null; debatePending = []; debateRemoteIds = new Set(); prediction = null;
+    debateMatch = null; debateState = null; debatePrevious = null; debatePending = []; debateRemoteIds = new Set(); prediction = null; debateHost = null;
     debateDisplay.hide(); document.body.classList.remove('debate-mode'); renderer.resetCamera(); sounds.reset();
   }
   /** Prépare un combat de débat : simulation, puis images des combattants choisis.
@@ -313,6 +323,8 @@ async function start() {
       debateMatch.state.local_candidate_id = multiplayer.localId;
       debateRemoteIds = new Set(debateFighterIds(setup.fighters).filter((id, i) => setup.fighters[i].player && id !== multiplayer.localId));
       if (session && !session.host) prediction = new DebatePrediction(debateMatch, multiplayer.localId);
+      else debateHost = new DebateHost(debateMatch, { localId: multiplayer.localId, remoteIds: debateRemoteIds });
+      inputSender.reset(); campaignPrediction = null;
       // Revanche : les pas numérotés repartent de 1, les files de l’hôte aussi.
       remote.clear();
     }
@@ -346,6 +358,8 @@ async function start() {
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) {
       simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
+      campaignPrediction = session.host ? null : new CampaignPrediction(config, session.candidateId);
+      remote.clear(); campaignFrame = 0; inputSender.reset();
       // Chaque joueur choisit parmi SES styles débloqués (carte envoyée au salon), pas ceux de l’hôte.
       simulation.profiles = Object.fromEntries(session.room.players.map(p => [`candidate:${p.faction}`,
         p.id === session.id ? profile : { ...unlocksToProfile(p.card?.unlocks || []), nickname: '' }]));
@@ -476,18 +490,12 @@ async function start() {
         const player = session.room.players.find(p => p.id === packet.playerId);
         if (!player) return;
         const id = debateMatch ? debateFighterOf(session.room.debate, player.id) : `candidate:${player.faction}`;
-        const controller = remote.get(id) || { axis: 0, actions: [], seen: 0 };
-        controller.seen = performance.now();
-        // Débat : pas numérotés de l’invité, appliqués un par pas comme il les a prédits.
-        if (debateMatch && packet.seq != null) {
-          (controller.queue ??= new RemoteInputQueue()).push(packet.seq, packet.commands.map(command => ({ ...command, candidateId: id })));
-          remote.set(id, controller); return;
-        }
-        for (const command of packet.commands) {
-          if (command.type === 'Move') controller.axis = command.axis;
-          else if (!['SetCampaignActive', 'InteractionPresence'].includes(command.type)) controller.actions.push({ ...command, candidateId: id });
-        }
-        controller.actions = controller.actions.slice(-30); remote.set(id, controller);
+        if (packet.seq == null) return;
+        // Pas numérotés de l’invité : rangés sur la ligne du temps de l’hôte (Débat : avec retours en arrière).
+        if (debateHost) { debateHost.receive(id, packet.seq, packet.commands); return; }
+        if (debateMatch) return;
+        if (!remote.has(id)) remote.set(id, new InputTimeline());
+        remote.get(id).receive(packet.seq, packet.commands, campaignFrame);
       },
       snapshot: snapshot => {
         if (!session || session.host || menu.active) return;
@@ -501,6 +509,7 @@ async function start() {
         // Changement de phase : l’ancien état ne doit pas se mélanger au nouveau.
         if (latest && latest.phase !== snapshot.phase) { snapshots.reset(); input.clear(); renderer.resetCamera(); }
         snapshots.push({ ...snapshot, local_candidate_id: session.candidateId }, now);
+        campaignPrediction?.authoritative(snapshot);
       },
       ended: message => {
         // Combat de débat terminé : on garde l’écran des résultats, la connexion n’est plus utile.
@@ -539,14 +548,16 @@ async function start() {
   function matchCommands() {
     if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
     if (!session) return collectCommands(state, human, ai);
+    const frame = ++campaignFrame;
     return state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
       if (candidate.id === state.local_candidate_id) return human.commands(state, candidate.id);
       if (!state.human_candidate_ids.includes(candidate.id)) return ai.commands(state, candidate.id);
-      const controller = remote.get(candidate.id);
-      const recent = controller && performance.now() - controller.seen < 1000;
-      const commands = [{ type: 'Move', candidateId: candidate.id, axis: recent ? controller.axis : 0 }, { type: 'InteractionPresence', candidateId: candidate.id, active: true }, { type: 'SetCampaignActive', candidateId: candidate.id, active: true }, ...(recent ? controller.actions.splice(0) : [])];
-      if (!recent) commands.push({ type: 'CancelAttack', candidateId: candidate.id }, { type: 'HoldCampaignStyle', candidateId: candidate.id, active: false });
-      return commands;
+      const id = candidate.id, presence = [{ type: 'InteractionPresence', candidateId: id, active: true }, { type: 'SetCampaignActive', candidateId: id, active: true }];
+      const commands = remote.get(id)?.commandsFor(frame);
+      // Sans nouvelles depuis 1 s : son candidat s’arrête.
+      if (!commands) return [{ type: 'Move', candidateId: id, axis: 0 }, ...presence, { type: 'CancelAttack', candidateId: id }, { type: 'HoldCampaignStyle', candidateId: id, active: false }];
+      const [move, ...actions] = commands.map(command => ({ ...command, candidateId: id }));
+      return [move, ...presence, ...actions];
     });
   }
 
@@ -564,29 +575,21 @@ async function start() {
       // Débat : un état à chaque pas de simulation (30 par seconde, environ 3 Ko/s) :
       // combat rapide et état léger, chaque pas compte. Campagne : 15 par seconde.
       if (debateMatch) {
-        if (debateState.tick === sentTick) return;
-        sentTick = debateState.tick;
-        // Dernier pas appliqué de chaque invité : sa prédiction repart de là.
-        const acks = {};
-        for (const [id, controller] of remote) if (controller.queue?.ack != null) acks[id] = controller.queue.ack;
-        // `ai_seed` : graine du hasard de l'ordinateur, pour que l'invité prédise ses décisions à l'identique.
-        send('snapshot', { state: { ...debateState, input_acks: acks, ai_seed: debateState.rng_state } });
+        // Un état par pas de l'hôte, ou après un retour en arrière.
+        if (debateHost.version === sentTick) return;
+        sentTick = debateHost.version;
+        // Dernier pas appliqué de chaque invité : sa prédiction repart de là. `ai_seed` : graine du
+        // hasard de l'ordinateur, pour que l'invité prédise ses décisions à l'identique.
+        send('snapshot', { state: { ...debateState, input_acks: debateHost.acks(), ai_seed: debateState.rng_state } });
         return;
       }
       if (networkElapsed < 1 / 15) return;
       networkElapsed = 0;
-      send('snapshot', { state });
-      return;
+      const acks = {};
+      for (const [id, timeline] of remote) if (timeline.ack != null) acks[id] = timeline.ack;
+      send('snapshot', { state: { ...state, input_acks: acks } });
     }
-    // Débat : l’invité envoie ses pas numérotés depuis la boucle du combat (debateFrame).
-    if (paused || prediction) return;
-    // Invité : les commandes partent dès qu’une touche change (moins de délai), et seulement
-    // un signe de vie 4 fois par seconde quand rien ne bouge (moins de données).
-    const commands = outgoingCommands(debateMatch ? [...human.commands(debateState, debateState.local_candidate_id), ...debatePending.splice(0)] : [...human.commands(state, session.candidateId), ...pending.splice(0)]);
-    const axis = commands.find(c => c.type === 'Move')?.axis ?? 0;
-    if (axis === sentAxis && networkElapsed < 0.25 && !commands.some(c => c.type !== 'Move')) return;
-    networkElapsed = 0; sentAxis = axis;
-    send('commands', { commands });
+    // Invité : ses pas numérotés partent depuis la boucle de jeu (voir sendGuestFrame).
   }
 
   /** Boutons tactiles de combat : jauge d’ultime et charge du coup. */
@@ -604,16 +607,6 @@ async function start() {
     ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
     ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
     document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
-  }
-
-  /** Commandes d’un joueur distant en débat ; sans nouvelles depuis 1 s, son combattant s’arrête. */
-  function remoteDebateCommands(id) {
-    const controller = remote.get(id);
-    const recent = controller && performance.now() - controller.seen < 1000;
-    // Pas numérotés : un par tick ; sans nouveau pas, la direction en cours continue.
-    if (recent && controller.queue) return [{ type: 'SetCampaignActive', candidateId: id, active: true }, ...controller.queue.next()];
-    return [{ type: 'SetCampaignActive', candidateId: id, active: true }, { type: 'Move', candidateId: id, axis: recent ? controller.axis : 0 },
-      ...(recent ? controller.actions.splice(0) : [{ type: 'CancelAttack', candidateId: id }])];
   }
 
   /** Invité : l’état affiché est pris dans le tampon, avec un léger retard constant. */
@@ -637,6 +630,8 @@ async function start() {
       shown = { ...shown, candidates: swap(shown.candidates) };
       before = { ...before, candidates: swap(before.candidates) };
     }
+    // Campagne : notre candidat vient de la prédiction (présent), le reste du tampon (léger retard).
+    if (!debateMatch && campaignPrediction?.active) ({ shown, previous: before } = campaignPrediction.apply(shown, before, clock.alpha));
     if (debateMatch) { debateState = shown; debatePrevious = before; } else { state = shown; previous = before; }
     guestAlpha = alpha;
   }
@@ -648,26 +643,18 @@ async function start() {
     // joue ses gestes tout de suite (prédiction), puis se recale sur chaque état de l’hôte.
     const guest = session && !session.host;
     if (guest && prediction) {
-      if (!halted) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
-        const commands = human.commands(prediction.state, prediction.localId);
-        const seq = prediction.step(commands);
-        const activeSession = session;
-        activeSession.request('commands', { commands: outgoingCommands(commands), seq }).catch(error => { if (!error.transient) activeSession.fail(error.message); });
-      });
+      if (!halted) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), guestDebateTick);
       prediction.decay(halted ? 0 : elapsed);
     }
     if (guest && prediction?.active) {
       const view = prediction.view();
       debateState = view.state; debatePrevious = view.previous; guestAlpha = clock.alpha;
     } else if (guest) guestView();
-    if (!halted && !guest) {
-      clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), () => {
-        debatePrevious = debateState;
-        const localId = debateState.local_candidate_id;
-        const commands = debateState.candidates.flatMap(c => c.id === localId ? human.commands(debateState, c.id) : debateRemoteIds.has(c.id) ? remoteDebateCommands(c.id) : debateModeAICommands(debateState, config, c.id));
-        debateMatch.step([...commands, ...debatePending.splice(0)]);
-        debateState = debateMatch.getState();
-      });
+    if (!halted && !guest) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), hostDebateTick);
+    if (debateHost) {
+      // Un pas d'invité arrivé en retard a été rejoué : l'affichage relit l'état recalculé.
+      if (debateHost.consumeRollback()) { debateState = debateMatch.getState(); debatePrevious = debateHost.history.get(debateHost.frame - 1) ?? debateState; }
+      debateHost.decay(halted ? 0 : elapsed);
     }
     networkFrame(elapsed);
     const fighter = debateState.candidates.find(c => c.id === debateState.local_candidate_id);
@@ -682,7 +669,68 @@ async function start() {
     controls.hidden = halted || debateState.phase === 'OVER' || fighter.is_ko;
     sounds.update(debateState, { paused: halted });
     setText(notice, ''); notice.hidden = true;
-    drawDebateMode(renderer, debateState, halted ? debateState : debatePrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
+    // Hôte : les combattants recalés par un retour en arrière glissent au lieu de sauter.
+    const shown = debateHost ? debateHost.display(debateState) : debateState, shownPrevious = debateHost ? debateHost.display(debatePrevious) : debatePrevious;
+    drawDebateMode(renderer, shown, halted ? shown : shownPrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
+  }
+
+  let pingElapsed = 0, lowLatency = false;
+  /** Multijoueur : ping en coin d'écran, et lissage des corrections adapté à la régularité du réseau. */
+  function updateNetworkPing(elapsed) {
+    // Appli Android : Wi-Fi gardé éveillé pendant une partie multijoueur (moins de pointes de ping).
+    const playing = elapsed !== null && session?.room?.phase === 'playing';
+    if (playing !== lowLatency) { lowLatency = playing; try { globalThis.PTJNativeNetwork?.setLowLatency(playing); } catch { /* Pont absent : navigateur. */ } }
+    const badge = document.getElementById('network-ping');
+    const stats = elapsed !== null && session?.room?.phase === 'playing' ? session.networkStats?.() || [] : [];
+    if (!stats.length) { badge.hidden = true; return; }
+    if ((pingElapsed += elapsed) < 0.5 && !badge.hidden) return;
+    pingElapsed = 0;
+    const worst = stats.reduce((a, b) => b.ping > a.ping ? b : a), ping = Math.round(worst.ping);
+    badge.hidden = false;
+    setText(badge, `Ping ${ping} ms${worst.jitter > 40 ? ' · irrégulier' : ''}`);
+    badge.dataset.quality = ping < 60 ? 'bon' : ping < 150 ? 'moyen' : 'mauvais';
+    // Réseau irrégulier : corrections plus douces (moins de petits sauts) ; stable : plus vives.
+    const smooth = Math.max(0.06, Math.min(0.2, 0.06 + worst.jitter / 1000 * 0.5));
+    for (const target of [prediction, campaignPrediction, debateHost]) if (target) target.smooth = smooth;
+  }
+
+  /** Un pas du débat chez l'invité : joué tout de suite (prédiction) et envoyé à l'hôte. */
+  function guestDebateTick() {
+    const commands = human.commands(prediction.state, prediction.localId);
+    sendGuestFrame(prediction.step(commands), commands);
+    if (prediction.active) sounds.predicted(prediction.newEvents, { local_candidate_id: prediction.localId, candidates: prediction.state.candidates });
+  }
+  /** Un pas du débat chez l'hôte (ou en solo). */
+  function hostDebateTick() {
+    debatePrevious = debateState;
+    const localId = debateState.local_candidate_id;
+    if (debateHost) debateHost.step(human.commands(debateState, localId));
+    else debateMatch.step([...debateState.candidates.flatMap(c => c.id === localId ? human.commands(debateState, c.id) : debateModeAICommands(debateState, config, c.id)), ...debatePending.splice(0)]);
+    debateState = debateMatch.getState();
+  }
+  /** Un pas de la campagne chez l'invité : son candidat avance tout de suite, le pas part vers l'hôte. */
+  function guestCampaignTick() {
+    const commands = [...human.commands(state, session.candidateId), ...pending.splice(0)];
+    sendGuestFrame(campaignPrediction.step(commands), commands);
+  }
+  /**
+   * Multijoueur : une touche pressée joue le pas suivant aussitôt, au lieu d'attendre jusqu'à
+   * 33 ms. L'hôte en campagne n'est pas concerné (ses gestes sont déjà locaux, et son pas complet
+   * de campagne est plus lourd).
+   */
+  function pullTick() {
+    if (!session || paused || document.hidden || !help.hidden || menu.active || session.room?.phase !== 'playing') return;
+    if (debateMatch) clock.pull(session.host ? hostDebateTick : prediction ? guestDebateTick : () => {});
+    else if (!session.host && campaignPrediction) clock.pull(guestCampaignTick);
+  }
+
+  /** Invité : un pas numéroté part vers l'hôte s'il apporte du neuf (ou comme signe de vie). */
+  function sendGuestFrame(seq, commands) {
+    const outgoing = outgoingCommands(commands);
+    if (!inputSender.shouldSend(seq, outgoing)) return;
+    const activeSession = session;
+    // Message non parti (connexion pas prête) : le pas suivant renverra tout.
+    activeSession.request('commands', { commands: outgoing, seq }).catch(error => { inputSender.reset(); if (!error.transient) activeSession.fail(error.message); });
   }
 
   function frame(now) {
@@ -695,9 +743,15 @@ async function start() {
       let elapsed = Math.max(0, (now - previousTime) / 1000);
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
+      updateNetworkPing(menu.active ? null : elapsed);
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
       if (debateMatch) { debateFrame(elapsed, now); requestAnimationFrame(frame); return; }
-      if (session && !session.host) guestView();
+      if (session && !session.host) {
+        // Invité : ses pas sont comptés et envoyés ; son candidat se déplace tout de suite.
+        if (campaignPrediction && !paused && !document.hidden) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), guestCampaignTick);
+        campaignPrediction?.decay(paused ? 0 : elapsed);
+        guestView();
+      }
       if (!paused && !document.hidden && (!session || session.host)) {
         const frameStart = state;
         let changedCamera = false;

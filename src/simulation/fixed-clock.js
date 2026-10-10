@@ -11,6 +11,16 @@ export class FixedClock {
     }
     return ticks;
   }
+  /**
+   * Joue le pas suivant tout de suite (une touche vient d'être pressée) au lieu d'attendre jusqu'à
+   * un pas entier. L'horloge prend un pas d'avance, qu'elle rattrape ensuite ; jamais plus d'un.
+   */
+  pull(tick) {
+    if (this.accumulator < 0) return false;
+    tick();
+    this.accumulator -= this.dt;
+    return true;
+  }
   reset() { this.accumulator = 0; }
-  get alpha() { return this.accumulator / this.dt; }
+  get alpha() { return Math.max(0, this.accumulator / this.dt); }
 }

@@ -231,10 +231,24 @@ export class GameAudio {
   }
 }
 
+// Sons de nos propres gestes, joués dès la prédiction chez un invité.
+const EARLY_CUES = new Set(['hit', 'ultimate', 'dash-empty']);
+
 /* Choisit la musique selon l'écran et la phase, et déclenche bruitages et jingles. */
 export class SoundDirector {
   constructor(audio, hz) { this.audio = audio; this.hz = hz; this.reset(); }
-  reset() { this.lastEvent = null; this.phase = null; this.second = null; this.combatUntil = -1; }
+  reset() { this.lastEvent = null; this.phase = null; this.second = null; this.combatUntil = -1; this.early = []; }
+  /**
+   * Invité en débat : les sons de nos propres gestes (coup porté, ultime, saut rapide indisponible)
+   * partent dès la prédiction, sans attendre l'hôte. Le même son confirmé par l'hôte dans les
+   * 0,8 s qui suivent n'est pas rejoué.
+   */
+  predicted(events, state, { now = performance.now() } = {}) {
+    if (!events?.length) return;
+    const faction = state.candidates.find(c => c.id === state.local_candidate_id)?.faction_id;
+    const { cues } = soundCues(events, -1, state.local_candidate_id, faction);
+    for (const cue of cues) if (EARLY_CUES.has(cue)) { this.audio.play(cue); this.early.push({ cue, at: now }); }
+  }
   /** combat : notre candidat est en position de combat (même détection que l'animation de garde). */
   update(state, { menu = false, paused = false, combat = false } = {}) {
     const audio = this.audio;
@@ -266,7 +280,14 @@ export class SoundDirector {
     if (this.lastEvent === null || newest < this.lastEvent) this.lastEvent = newest;
     const { cues, last } = soundCues(state.events, this.lastEvent, state.local_candidate_id, faction);
     this.lastEvent = last;
-    if (!paused) for (const cue of cues) audio.play(cue);
+    const now = performance.now();
+    this.early = this.early.filter(e => now - e.at < 800);
+    if (!paused) for (const cue of cues) {
+      // Déjà joué par la prédiction : pas de doublon.
+      const early = this.early.findIndex(e => e.cue === cue);
+      if (early >= 0) { this.early.splice(early, 1); continue; }
+      audio.play(cue);
+    }
     if (state.mode === 'DEBATE' && state.phase === 'COUNTDOWN' && !paused) {
       // Pendant l’annonce du thème, pas de tic : seulement sur 3, 2, 1.
       const second = Math.ceil(state.countdown_ticks / this.hz);
