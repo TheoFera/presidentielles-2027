@@ -30,13 +30,14 @@ export function validateCombatSnapshot(state, sim, fail) {
     if (actor.raid) {
       const raid = actor.raid;
       if (actor.role !== 'SERVICE_D_ORDRE' || !counterId(raid.id, 'raid', 'next_raid_id') || ![-1, 1].includes(raid.direction)
-        || !integer(raid.started_tick) || !integer(raid.expires_tick) || raid.expires_tick < raid.started_tick || !['OUTBOUND', 'RETURN'].includes(raid.phase)
-        || !state.buildings.some(b => b.id === raid.building_id && b.variant === 'service_ordre' && b.owner_id === actor.faction_id)) fail('raid invalide');
+        || !integer(raid.started_tick) || raid.started_tick > state.tick || !['GATHER', 'OUTBOUND'].includes(raid.phase)
+        // Le local d'origine peut avoir été perdu depuis : le raid, lui, continue.
+        || raid.building_id !== null && !state.buildings.some(b => b.id === raid.building_id && b.type === 'faction')) fail('raid invalide');
     }
   }
   for (const unit of state.temporary_units) {
     if (!counterId(unit.id, 'temporary', 'next_temporary_id') || !['HOLOGRAMME', 'CRS', 'ENCAPUCHONNE', 'ZEMMOUR'].includes(unit.role) || unit.temporary !== true || unit.expired !== false
-      || !position(unit.x) || ![-1, 1].includes(unit.facing) || !finite(unit.hidden_durability) || !Number.isFinite(unit.follow_offset)
+      || !(unit.role === 'HOLOGRAMME' ? Number.isFinite(unit.x) : position(unit.x)) || ![-1, 1].includes(unit.facing) || !finite(unit.hidden_durability) || !Number.isFinite(unit.follow_offset)
       || !integer(unit.expires_tick) || unit.expires_tick <= state.tick || !state.powers.some(p => p.id === unit.power_id && p.owner_id === unit.owner_id)
       || unit.faction_id !== (unit.role === 'CRS' ? 'philippe' : unit.role === 'ZEMMOUR' ? 'le_pen' : 'melenchon')) fail('unité temporaire invalide');
   }

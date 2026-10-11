@@ -1,7 +1,7 @@
 // Classement Elo multijoueur.
 //
-// Modes du jeu : campagne (exactement 3 joueurs humains : élu, finaliste, éliminé
-// au 1er tour) et débat télé (1 contre 1, ou 1 contre 1 contre 1, avec parfois une IA).
+// Modes du jeu : campagne (2 ou 3 joueurs humains, l’IA complète : élu, finaliste,
+// éliminé au 1er tour) et débat télé (1 contre 1, ou 1 contre 1 contre 1, avec parfois une IA).
 // Une partie donne donc un ORDRE d'arrivée entre 2 ou 3 humains (l'IA est ignorée).
 //
 // Formule (Elo « multijoueur » par paires) :

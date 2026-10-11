@@ -5,7 +5,10 @@ import { MINOR_LOOKS } from '../personnages/minor-characters.js';
 /* Soirée électorale façon « 20 h » : compte à rebours, portraits en studio, scores qui défilent. */
 const FEMININE = new Set(['le_pen']);
 // Moments clés de l’annonce, en millisecondes (les délais CSS suivent les mêmes valeurs).
-const TIMELINE = { count: 1900, countDuration: 1300, stamp: 3200, end: 3700, confettiLife: 6500 };
+// `hold` : temps pendant lequel le résultat complet reste affiché avant que les boutons répondent.
+const TIMELINE = { count: 1900, countDuration: 1300, stamp: 3200, end: 3700, confettiLife: 6500, hold: 3000 };
+// Boutons qui quittent l’écran : verrouillés tant que le résultat n’a pas été vu quelques secondes.
+const LEAVING = ['continue', 'replay', 'return'];
 const CONFETTI_COUNT = 90;
 const CONFETTI_COLORS = ['#2457d6', '#ffffff', '#e5333b', '#ffd35a'];
 const format = n => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -155,6 +158,7 @@ export class ElectionResults {
   clear() { this.stop(); this.stage = null; this.element.replaceChildren(); }
   later(ms, callback) { this.timers.push(setTimeout(callback, ms)); }
   values() { return [...this.stage.querySelectorAll('[data-value]:not([data-value=""])')]; }
+  leavingButtons() { return LEAVING.map(action => this.stage.querySelector(`[data-action="${action}"]`)).filter(Boolean); }
   render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onReplay, onReturn, onSummary } = {}) {
     this.clear(); this.model = model; this.celebrated = false;
     this.element.innerHTML = markup(model, { preview, host, multiplayer });
@@ -163,6 +167,10 @@ export class ElectionResults {
       const button = this.element.querySelector(`[data-action="${action}"]`);
       if (button) { button.hidden = !callback; button.onclick = callback; }
     }
+    // Les boutons existent dès l’ouverture (même invisibles pendant l’animation) : un clic ou un appui
+    // hérité de la campagne pourrait sinon quitter la partie avant que le joueur ait lu son résultat.
+    for (const button of this.leavingButtons()) button.disabled = true;
+    this.element.querySelector('.election-actions').classList.add('is-locked');
     // Le titre reçoit le focus : une touche tenue pendant la campagne ne valide pas un bouton par erreur.
     this.element.querySelector('h1').focus({ preventScroll: true });
     if (!animate || reducedMotion()) { this.finish(); this.celebrate(); return; }
@@ -191,6 +199,14 @@ export class ElectionResults {
     cancelAnimationFrame(this.frame); this.frame = 0;
     for (const el of this.values()) el.textContent = format(Number(el.dataset.value));
     this.stage.classList.remove('is-playing');
+    // Le résultat complet est visible : le compte à rebours de déverrouillage commence maintenant.
+    const actions = this.stage.querySelector('.election-actions');
+    actions.style.setProperty('--hold', `${TIMELINE.hold}ms`);
+    actions.classList.add('is-holding');
+    this.later(TIMELINE.hold, () => {
+      for (const button of this.leavingButtons()) button.disabled = false;
+      actions.classList.remove('is-locked', 'is-holding');
+    });
   }
   skip() { this.stop(); this.finish(); this.celebrate(); }
   celebrate() {

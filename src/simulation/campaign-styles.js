@@ -72,6 +72,18 @@ export function styleInfluenceMultiplier(config, candidate, biome) {
   const s = activeCampaignStyle(config, candidate);
   return (s?.biome_multipliers?.[biome] ?? 1) * (s?.penalized_biomes?.[biome] ?? 1);
 }
+/** Biome situé à l’opposé sur la carte en anneau (Bobos ↔ Campagne, Riches ↔ Périurbain, Banlieues ↔ Retraités). */
+export function oppositeBiome(config, biomeId) {
+  const biomes = config.layout.biomes, index = biomes.findIndex(b => b.id === biomeId);
+  return index < 0 || biomes.length % 2 ? null : biomes[(index + biomes.length / 2) % biomes.length].id;
+}
+/** Persuasion du candidat et de ses militants : très rapide dans le biome du style, lente dans le biome opposé. */
+export function stylePersuasionTimeMultiplier(config, candidate, biome) {
+  const style = activeCampaignStyle(config, candidate), settings = config.balance.persuasion;
+  if (!style) return 1;
+  if (biome === style.primary_biome) return 1 / settings.style_biome_time_divisor;
+  return biome === oppositeBiome(config, style.primary_biome) ? settings.opposite_biome_time_multiplier : 1;
+}
 export const styleTagWeight = (config, candidate, tags) => tags.reduce((n, tag) => n * (activeCampaignStyle(config, candidate)?.event_tag_weights?.[tag] ?? 1), 1);
 export const styleSettings = config => ({ hold_seconds: 3, radius_units: 1.2, ...config.balance.campaign_styles });
 export function nearCampaignHQ(state, config, c) {

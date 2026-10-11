@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { DebateSimulation } from '../src/simulation/debate-simulation.js';
 import { CAMPAIGN_STYLES, CampaignStyleSystem } from '../src/simulation/campaign-styles.js';
-import { beginCombatTick, requestAttack, activateUltimate, updateCombat, ultimateBlockedReason } from '../src/simulation/combat.js';
+import { attackInput, beginCombatTick, requestAttack, activateUltimate, updateCombat, ultimateBlockedReason } from '../src/simulation/combat.js';
 import { hit, combatState } from '../src/simulation/combat-state.js';
 import { requestDash, successfulNormalHit } from '../src/simulation/mobile-combat.js';
 
@@ -189,4 +189,30 @@ test('Bords rouges en débat : utilisent les points de débat, pas la résistanc
   const debate=DebateSimulation.create(sim.config,sim.state);const fighter=debate.candidates.find(a=>a.id===c.id);
   fighter.resistance=0;assert.equal(damageFeedbackState(debate,fighter,sim.config).opacity,0);
   fighter.debate_hp=fighter.debate_initial_hp*.5;assert.ok(damageFeedbackState(debate,fighter,sim.config).opacity>0);
+});
+
+test('Hologrammes : copies intouchables qui imitent Mélenchon (position, saut, coups)', () => {
+  const { sim, c, enemy } = setup('melenchon', 0); c.special_charge = 10; activateUltimate(sim, c); ticks(sim, 40, true);
+  const holograms = sim.state.temporary_units.filter(u => u.role === 'HOLOGRAMME');
+  const s = sim.config.balance.specials.melenchon_holograms;
+  assert.deepEqual(holograms.map(h => h.follow_offset).sort((a, b) => a - b), [-(s.spawn_distance + s.spawn_spacing), -s.spawn_distance, s.spawn_distance, s.spawn_distance + s.spawn_spacing]);
+  // Ils suivent Mélenchon et regardent du même côté.
+  c.x += 3; c.facing = -1; ticks(sim, 1, true);
+  for (const h of holograms) { assert.ok(Math.abs(h.x - c.x - h.follow_offset) < 1e-9); assert.equal(h.facing, -1); }
+  // Un adversaire ne peut ni les viser ni les toucher : ils n’ont pas de points de vie.
+  assert.equal(hit(sim, enemy, holograms[0], { damage: 99, knockback: 4 }, 'test:holo'), null);
+  assert.equal(holograms[0].expired, false);
+  // Ils sautent avec lui, à la même hauteur.
+  attackInput(sim, c, 'Jump'); ticks(sim, 6, true);
+  for (const h of holograms) { assert.equal(h.combat.jump_tick, c.combat.jump_tick); assert.equal(h.combat.height, c.combat.height); }
+  ticks(sim, 80, true);
+  // Ils frappent en même temps que lui, avec le même coup.
+  requestAttack(sim, c); ticks(sim, 2, true);
+  const source = sim.state.attacks.find(a => a.id === c.combat.attack_id);
+  for (const h of holograms) {
+    const copy = sim.state.attacks.find(a => a.id === h.combat.attack_id);
+    assert.equal(copy.mirror_kind, source.kind); assert.equal(copy.step, source.step); assert.equal(copy.elapsed_ticks, source.elapsed_ticks);
+  }
+  const restored = setup('melenchon', 0).sim; restored.importSnapshot(sim.exportSnapshot());
+  ticks(sim, 20, true); ticks(restored, 20, true); assert.deepEqual(restored.state, sim.state);
 });

@@ -25,6 +25,9 @@ export function validateConfig(config) {
   positive(config.prototype.persuasion.radius_units, 'rayon de persuasion');
   positive(config.balance.persuasion.candidate_base_seconds, 'temps de persuasion');
   positive(config.balance.persuasion.melenchon_personal_time_multiplier, 'bonus Mélenchon');
+  positive(config.balance.persuasion.style_biome_time_divisor, 'persuasion dans le biome du style');
+  positive(config.balance.persuasion.opposite_biome_time_multiplier, 'persuasion dans le biome opposé');
+  positive(config.balance.candidate_combat.le_pen_sympathisant_damage_multiplier, 'dégâts de Le Pen aux sympathisants');
   positive(config.balance.time.real_seconds_per_game_day, 'durée du jour');
   positive(config.balance.money.campaign_spending_limit, 'plafond de dépenses de campagne');
   const money = config.balance.money;
@@ -142,7 +145,7 @@ export function validateConfig(config) {
     const building = config.balance.buildings[type];
     for (const cap of ['global_max', 'max_per_candidate', 'max_per_biome', 'max_per_subzone']) if (!Number.isInteger(building[cap]) || building[cap] < 0) throw new Error(`Configuration : cap invalide (${type}.${cap}).`);
     if (building.max_level !== 1 || building.upgrade_costs.length !== 0) throw new Error(`Niveau unique attendu : ${type}.`);
-    for (const key of ['required_presence_N1', 'required_presence_N2', 'required_presence_N3', 'maintain_presence_N1', 'maintain_presence_N2', 'maintain_presence_N3']) if (!Number.isFinite(building[key]) || building[key] < 0) throw new Error(`Seuil invalide : ${type}.${key}.`);
+    for (const key of ['required_presence_N1', 'required_presence_N2', 'required_presence_N3']) if (!Number.isFinite(building[key]) || building[key] < 0) throw new Error(`Seuil invalide : ${type}.${key}.`);
     if (capturableConfigs.includes(type)) { positive(building.capture_cost, `capture ${type}`); positive(building.capture_seconds, `capture ${type}`); positive(building.closure_delay_seconds, `fermeture ${type}`); }
     for (const cost of building.upgrade_costs) positive(cost, `amélioration ${type}`);
   }
@@ -158,15 +161,15 @@ export function validateConfig(config) {
   for (const [section, fields] of [
     [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_partial_max_ratio', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second', 'combo_cancel_seconds', 'body_width', 'knockdown_fall_seconds', 'knockdown_ground_seconds', 'knockdown_rise_seconds', 'wakeup_invulnerability_seconds', 'dive_min_height', 'dive_vertical_speed', 'dive_horizontal_speed', 'dive_range', 'dive_damage', 'dive_knockback', 'dive_landing_recovery_seconds']],
     [config.balance.physical_units.militant, ['verbal_range', 'verbal_cooldown_seconds', 'verbal_damage', 'projectile_speed', 'projectile_range']],
-    [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_duration_seconds', 'raid_cooldown_seconds']],
+    [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_cooldown_seconds', 'spacing_units', 'engage_range', 'candidate_focus_range']],
     [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit', 'points_per_hit_taken', 'points_per_strong_hit_taken']],
   ]) for (const field of fields) positive(section[field], field);
   if (!Number.isFinite(config.balance.candidate_combat.light_knockback) || config.balance.candidate_combat.light_knockback < 0) throw new Error('Le recul léger doit être positif ou nul.');
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
-  if (so.baton_cost_by_level.length !== so.max_level || so.equipment_seconds_by_level.length !== so.max_level) throw new Error('Configuration : équipement SO invalide.');
-  for (const value of [...so.baton_cost_by_level, ...so.equipment_seconds_by_level, so.pickup_seconds]) positive(value, 'équipement SO');
+  if (!Number.isInteger(config.balance.physical_units.service_ordre.raid_recruits) || config.balance.physical_units.service_ordre.raid_recruits < 1) throw new Error('Configuration : nombre de recrues du raid invalide.');
+  positive(so.pickup_seconds, 'entrée au local SO');
   for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') {
     if(key==='knockback'){if(!Number.isFinite(value)||value<0)throw new Error('Configuration : recul du pouvoir invalide.');}
     else positive(value, `pouvoir.${key}`);
@@ -189,7 +192,7 @@ export function validateConfig(config) {
   positive(meeting.interaction_radius, 'portée Meeting');
   if (meeting.meeting_max_level !== 1 || meeting.activation_cost_by_level.length !== 1) throw new Error('Configuration : un seul meeting est attendu.');
   for (const key of ['activation_cost', 'hold_seconds', 'pause_grace_seconds', 'cooldown_seconds', 'gather_speed', 'gather_spacing', 'podium_height', 'podium_half_width', 'wave_visual_seconds']) positive(meeting[key], `meeting.${key}`);
-  for (const key of ['militant_goal_per_biome', 'guard_goal_per_site', 'army_detour_units', 'investment_reference_k']) positive(config.balance.ai_economy[key], `ai_economy.${key}`);
+  for (const key of ['militant_goal_per_biome', 'army_detour_units', 'investment_reference_k']) positive(config.balance.ai_economy[key], `ai_economy.${key}`);
   if (!Array.isArray(config.balance.ai_economy.development_order) || config.balance.ai_economy.development_order.some(type => !config.balance.buildings[type])) throw new Error('Configuration : ordre de développement IA invalide.');
   return config;
 }

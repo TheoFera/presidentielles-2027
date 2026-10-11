@@ -1,17 +1,10 @@
-import { wrap, zoneAt } from './world.js';
+import { wrap } from './world.js';
 import { distance, stableIdOrder } from './territory.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
 import { cancelMeeting } from './electoral-buildings.js';
-
-export function availableMilitants(state, biome, faction) {
-  return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === faction && zoneAt(state.world, n.x).biome_id === biome
-    && !n.rally_event_id && n.rally_return_x == null && (!n.task || n.task.kind === 'EXPAND') && !n.expedition && !n.combat?.engaged && !n.combat?.attack_id && !n.combat?.stun_ticks);
-}
-export const availableGuards = (state, biome, faction) => state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.faction_id === faction
-  && n.guard_biome_id === biome && zoneAt(state.world, n.x).biome_id === biome && !n.raid && !n.combat?.engaged
-  && !n.rally_event_id && n.rally_return_x == null);
+import { raidRecruits, startRaid } from './military.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
@@ -47,12 +40,11 @@ export function factionOffers(state, config, candidate, building) {
       chained ? p.center_radius : p.upgrade_radius, reason, { label: 'AMÉLIORER' }));
   }
   if (building.variant === 'service_ordre') {
-    const maximum = s.max_active_SO_by_level[building.level - 1];
-    const linked = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.source_site_id === building.id).length + building.queue.length;
-    const reason = maximum !== null && linked >= maximum ? 'SO_LIMIT' : null;
-    offers.push(quote(state, config, candidate, building, 'EQUIP', s.baton_cost_by_level[building.level - 1], building.x, p.center_radius, reason, { label: 'ÉQUIPEMENT' }));
+    // Pas d'équipement à acheter : un raid recrute lui-même ses gardes parmi les sympathisants libres.
+    const recruits = config.balance.physical_units.service_ordre.raid_recruits;
     for (const direction of [-1, 1]) {
-      const blocked = building.level < s.raid_unlock_level ? 'LEVEL_REQUIRED' : state.tick < building.raid_ready_tick ? 'COOLDOWN' : !availableGuards(state, building.biome_id, candidate.faction_id).length ? 'NO_GUARD' : null;
+      const blocked = building.level < s.raid_unlock_level ? 'LEVEL_REQUIRED' : state.tick < building.raid_ready_tick ? 'COOLDOWN'
+        : raidRecruits(state, building, candidate.faction_id).length < recruits ? 'NO_SUPPORTER' : null;
       offers.push(quote(state, config, candidate, building, 'RAID', config.balance.physical_units.service_ordre.raid_cost, building.x + direction * p.side_offset, p.side_radius, blocked, { direction, label: direction < 0 ? '← RAID' : 'RAID →' }));
     }
   } else {
@@ -69,21 +61,9 @@ export function factionOffers(state, config, candidate, building) {
 export function commitFactionAction(sim, candidate, building, offer) {
   const { state, config } = sim;
   if (offer.kind === 'CAPTURE' && building.type === 'faction') { captureSite(sim, building, candidate); return true; }
-  if (offer.kind === 'EQUIP') {
-    const settings = buildingSettings(config, building);
-    const order = { id: `order:${state.next_order_id++}`, service_id: building.id, faction_id: candidate.faction_id, purchased_tick: state.tick,
-      cost: offer.cost, assigned_npc_id: null, state: 'QUEUED', production_elapsed_ticks: 0, production_required_ticks: sim.secondsToTicks(settings.equipment_seconds_by_level[building.level - 1]) };
-    building.queue.push(order);
-    sim.emit('EquipmentOrdered', { order_id: order.id, target_id: building.id });
-    return true;
-  }
   if (offer.kind === 'RAID') {
-    const id = `raid:${state.next_raid_id++}`;
-    const guards = availableGuards(state, building.biome_id, candidate.faction_id);
-    for (const guard of guards) guard.raid = { id, building_id: building.id, direction: offer.direction, started_tick: state.tick,
-      expires_tick: state.tick + sim.secondsToTicks(config.balance.physical_units.service_ordre.raid_duration_seconds), phase: 'OUTBOUND' };
+    startRaid(sim, building, candidate.faction_id, offer.direction);
     building.raid_ready_tick = state.tick + sim.secondsToTicks(config.balance.physical_units.service_ordre.raid_cooldown_seconds);
-    sim.emit('RaidStarted', { raid_id: id, target_id: building.id, direction: offer.direction, npc_ids: guards.map(n => n.id) });
     return true;
   }
   if (offer.kind === 'CLOSE') {

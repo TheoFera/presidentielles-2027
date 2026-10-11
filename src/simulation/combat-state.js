@@ -19,7 +19,9 @@ export const combatActors = state => [...state.candidates.filter(c => !c.elimina
 export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_debate_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 // En mode Débat, deux copies d’un même candidat s’affrontent : chacune a sa propre équipe.
 const team = actor => actor.team_id ?? actor.faction_id;
-export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && canBeHit(b) && team(a) !== team(b);
+// Les hologrammes de Mélenchon ne sont que des images : personne ne peut les viser ni les toucher.
+export const targetable = actor => canBeHit(actor) && actor.role !== 'HOLOGRAMME';
+export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && targetable(b) && team(a) !== team(b);
 export const interrupted = actor => actor.combat && (charging(actor) || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const movementBlocked = actor => actor.combat && (actor.combat.charge_active || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id && actor.combat.jump_tick == null || actor.combat.dive_tick != null);
 export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_debate_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
@@ -111,7 +113,10 @@ export function hit(sim, source, target, spec, attackId) {
       sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss, dropped_cents });
     }
   } else {
-    const multiplier = localUnitDamageMultiplier(state, config, target);
+    // Avantage de départ de Le Pen : ses propres coups démobilisent plus vite les sympathisants.
+    const lePen = source.role === 'CANDIDAT' && source.faction_id === 'le_pen' && target.role === 'SYMPATHISANT'
+      ? config.balance.candidate_combat.le_pen_sympathisant_damage_multiplier : 1;
+    const multiplier = localUnitDamageMultiplier(state, config, target) * lePen;
     result.damage = Math.min(target.hidden_durability, spec.damage * multiplier);
     target.hidden_durability = Math.max(0, target.hidden_durability - result.damage);
   }

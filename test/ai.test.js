@@ -172,7 +172,8 @@ test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
 test('L’IA déclenche un raid disponible dans la direction des bâtiments ennemis', () => {
   const { sim, config } = make(); const c = isolate(sim); c.money = 1000;
   const site = sim.state.buildings.find(b => b.type === 'faction'); captureSite(sim, site, c); site.level = 3; c.x = site.x;
-  const guard = supporter(sim, c.faction_id, c.x); guard.role = 'SERVICE_D_ORDRE'; guard.guard_biome_id = site.biome_id;
+  // Trois recrues pour le raid, plus la réserve que l'IA garde pour ses tracts.
+  for (let i = 0; i < 5; i++) supporter(sim, c.faction_id, c.x + i * 0.5);
   const rival = sim.state.candidates.find(c => c.faction_id === 'philippe');
   captureSite(sim, sim.state.buildings.find(b => b.type === 'tour_communication'), rival);
   assert.equal(aiEconomicTarget(sim.state, config, c, { subzone_id: site.subzone_id, purpose: 'CONQUER' }).offer.kind, 'RAID');

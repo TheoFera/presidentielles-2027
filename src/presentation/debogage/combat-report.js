@@ -2,7 +2,7 @@ import { controlledZones } from '../../simulation/combat-state.js';
 import { buildingSettings } from '../../simulation/building-rules.js';
 import { cabinetTarget } from '../../simulation/faction-buildings.js';
 export const attackNames = { CANDIDATE: 'Coup du candidat', VERBAL: 'Attaque verbale', GUARD: 'Coup de SO', HOLOGRAM: 'Coup d’hologramme', CRS: 'Coup de CRS', SPECIAL: 'Pouvoir spécial' };
-export const transactionNames = { BUILD: 'Construction', UPGRADE: 'Amélioration', PRINT: 'Impression', REBUILD: 'Reconstruction', EQUIP: 'Équipement SO', RAID: 'Raid', CLOSE: 'Fermeture', MEETING: 'Meeting' };
+export const transactionNames = { BUILD: 'Construction', UPGRADE: 'Amélioration', PRINT: 'Impression', REBUILD: 'Reconstruction', RAID: 'Raid', CLOSE: 'Fermeture', MEETING: 'Meeting' };
 
 export function combatReport(state, config, candidate, npc, building) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
@@ -30,13 +30,13 @@ export function combatReport(state, config, candidate, npc, building) {
     `Cible de combat : ${npc.combat.target_id || 'Aucune'}`,
     `État : ${npc.role === 'DEMOBILISE' ? 'Démobilisé, retour à l’origine' : npc.combat.stun_ticks ? 'Étourdi' : npc.combat.attack_id ? 'Attaque' : npc.combat.engaged ? 'Affrontement' : 'Hors combat'}`,
     `Biome défendu : ${npc.guard_biome_id || 'Aucun'}`,
-    `Raid : ${npc.raid ? `${npc.raid.id} · ${npc.raid.direction < 0 ? 'gauche' : 'droite'} · ${npc.raid.phase === 'RETURN' ? 'retour' : 'offensive'} · ${f(Math.max(0, npc.raid.expires_tick - state.tick) / hz)} s` : 'Aucun'}`);
+    `Raid : ${npc.raid ? `${npc.raid.id} · ${npc.raid.direction < 0 ? 'gauche' : 'droite'} · ${npc.raid.phase === 'GATHER' ? 'rassemblement' : 'offensive'} · depuis ${f((state.tick - npc.raid.started_tick) / hz)} s` : 'Aucun'}`);
   if (building && building.type !== 'imprimerie') {
     const s = buildingSettings(config, building, candidate.faction_id);
     lines.push('', `Reconstruction : ${f(s.build_cost)} k € · ${building.state === 'CLOSED' ? 'Nécessaire' : 'Non nécessaire'}`);
     if (building.variant === 'cabinet_administratif') for (const d of [-1, 1]) lines.push(`Cible Cabinet ${d < 0 ? 'gauche' : 'droite'} : ${cabinetTarget(state, config, building, d)?.id || 'Aucune'}`);
     if (building.type === 'faction') lines.push(`Prochain raid : ${f(Math.max(0, building.raid_ready_tick - state.tick) / hz)} s · prochaine fermeture : ${f(Math.max(0, building.closure_ready_tick - state.tick) / hz)} s`);
   }
-  lines.push(`Équipement : ${f(candidate.spending.EQUIP || 0)} · raids : ${f(candidate.spending.RAID || 0)} · fermetures : ${f(candidate.spending.CLOSE || 0)} · reconstructions : ${f(candidate.spending.REBUILD || 0)} k €`, `Équipements remboursés : ${f(candidate.refunds_received)} k €`);
+  lines.push(`Raids : ${f(candidate.spending.RAID || 0)} · fermetures : ${f(candidate.spending.CLOSE || 0)} · reconstructions : ${f(candidate.spending.REBUILD || 0)} k €`, `Équipements remboursés : ${f(candidate.refunds_received)} k €`);
   return lines.join('\n');
 }

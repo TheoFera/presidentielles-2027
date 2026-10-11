@@ -78,7 +78,7 @@ export function soundCues(events = [], since, localId, faction) {
     else if (event.type === 'DebateFightStarted') cues.push('tick-final');
     else if (event.type === 'DebateRoundStarted') cues.push('news');
     else if (event.type === 'UltimateActivated' && mine) cues.push('ultimate');
-    else if (event.type === 'UltimateReady' && mine) cues.push('ready');
+    else if (event.type === 'UltimateReady' && mine) cues.push('ultimate-ready');
     else if (event.type === 'StartCampaignEvent') cues.push('news');
     else if (event.type === 'DayChanged' && event.days_remaining > 0 && event.days_remaining <= 5) cues.push('tick');
   }
@@ -219,7 +219,12 @@ export class GameAudio {
       case 'dash-empty': this.tone(160, t, 0.09, 'square', 0.06, bus, 900, 90); break;
       case 'ko': this.tone(440, t, 0.7, 'sawtooth', 0.09, bus, 1800, 55); break;
       case 'ultimate': this.tone(200, t, 0.4, 'sawtooth', 0.08, bus, 2500, 1200); this.burst(t + 0.1, 0.4, 0.12, bus, 'highpass', 3000, 0.1); break;
-      case 'ready': ['G5', 'B5', 'D6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.16, 'sine', 0.16, bus)); break;
+      // Ultime débloqué : montée d'énergie, arpège éclatant puis accord scintillant, pour ne pas passer à côté.
+      case 'ultimate-ready':
+        this.tone(180, t, 0.32, 'sawtooth', 0.07, bus, 2200, 900);
+        ['C6', 'E6', 'G6', 'C7'].forEach((note, i) => this.tone(f(n(note)), t + 0.26 + i * 0.055, 0.12, 'square', 0.08, bus, 5000));
+        ['C6', 'E6', 'G6'].forEach(note => this.tone(f(n(note)), t + 0.5, 0.55, 'triangle', 0.13, bus));
+        this.burst(t + 0.48, 0.45, 0.07, bus, 'highpass', 6000, 0.03); break;
       // Jingle « flash info » : arpège montant puis double accord, façon générique de journal télévisé.
       case 'news': ['G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.07, 0.09, 'square', 0.07, bus, 4000)); this.kick(t + 0.22, bus, 0.35); [0.22, 0.42].forEach(delay => ['C5', 'G5', 'C6'].forEach(note => this.tone(f(n(note)), t + delay, 0.16, 'square', 0.045, bus, 3200))); break;
       // Carte d'un candidat à débloquer qui surgit : arpège montant joyeux et petite clameur.

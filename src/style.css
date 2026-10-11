@@ -1,6 +1,10 @@
 :root { color-scheme: light; font-family: system-ui, sans-serif; color: #293632; background: #222a2c; }
 * { box-sizing: border-box; }
 body { margin: 0; width: 100vw; height: 100dvh; display: grid; place-items: center; overflow: hidden; }
+/* Safari (iPhone, iPad) : un double appui sélectionnait le texte ou toute la page et zoomait.
+   On l'empêche partout, sauf dans les champs de saisie (pseudo, code de partie…). */
+body { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+input, textarea, select { user-select: text; -webkit-user-select: text; -webkit-touch-callout: default; }
 #game { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #e3e6e3; container-type: inline-size; }
 #world { display: block; width: 100%; height: 100%; outline: none; touch-action: none; image-rendering: auto; }
 #funds { position: absolute; top: 3.4%; left: 2.4%; pointer-events: none; font-variant-numeric: tabular-nums; }

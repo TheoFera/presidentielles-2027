@@ -153,11 +153,11 @@ const reasonTexts = {
   CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de dépenses de campagne atteint', CANDIDATE_LIMIT: 'Vous en possédez déjà le maximum',
   GLOBAL_LIMIT: 'Vous avez déjà le maximum de tours', QUEUE_FULL: 'Imprimerie occupée : revenez plus tard',
   NO_SYMPATHISANT: 'Il faut un de vos sympathisants dans ce biome', NO_MILITANT: 'Aucun de vos militants dans ce biome',
-  NO_GUARD: 'Aucun service d’ordre disponible', SO_LIMIT: 'Plus de place pour un service d’ordre ici',
+  NO_SUPPORTER: 'Il faut 3 sympathisants libres',
   COOLDOWN: 'Pas encore prêt : patientez un peu', ADMINISTRATIVE_BAN: 'Meeting interdit pour vous (temporaire)',
   NOT_ON_STAGE: 'Sautez sur la scène pour lancer le meeting', NO_BUILDING: 'Aucune cible à portée',
 };
-const kindTitles = { PRINT: 'IMPRIMER DES TRACTS', POLL: 'PUBLIER UN SONDAGE', EQUIP: 'ÉQUIPER VOS MILITANTS', REBUILD: 'RECONSTRUIRE' };
+const kindTitles = { PRINT: 'IMPRIMER DES TRACTS', POLL: 'PUBLIER UN SONDAGE', REBUILD: 'RECONSTRUIRE' };
 
 function offerTitle(offer, building, candidate) {
   if (offer.kind === 'CAPTURE') return building.type === 'permanence' && !candidate.headquarters_site_id

@@ -169,7 +169,7 @@ async function start() {
   // Invité en débat : son téléphone fait avancer le combat sans attendre l’hôte (voir debate-prediction.js).
   let prediction = null;
   // Hôte d'un débat multijoueur : pas numérotés des invités et retours en arrière.
-  let debateHost = null;
+  let debateHost = null, hostFrameSeen = 0;
   // Invité : n'envoie ses pas que s'ils changent, plus un signe de vie 5 fois par seconde.
   const inputSender = new InputSender();
   // Invité en campagne : son candidat se déplace dès l'appui (voir campaign-prediction.js).
@@ -325,7 +325,7 @@ async function start() {
       debateRemoteIds = new Set(debateFighterIds(setup.fighters).filter((id, i) => setup.fighters[i].player && id !== multiplayer.localId));
       if (session && !session.host) prediction = new DebatePrediction(debateMatch, multiplayer.localId);
       else debateHost = new DebateHost(debateMatch, { localId: multiplayer.localId, remoteIds: debateRemoteIds });
-      inputSender.reset(); campaignPrediction = null;
+      inputSender.reset(); campaignPrediction = null; hostFrameSeen = 0;
       // Revanche : les pas numérotés repartent de 1, les files de l’hôte aussi.
       remote.clear();
     }
@@ -493,7 +493,7 @@ async function start() {
         const id = debateMatch ? debateFighterOf(session.room.debate, player.id) : `candidate:${player.faction}`;
         if (packet.seq == null) return;
         // Pas numérotés de l’invité : rangés sur la ligne du temps de l’hôte (Débat : avec retours en arrière).
-        if (debateHost) { debateHost.receive(id, packet.seq, packet.commands); return; }
+        if (debateHost) { debateHost.receive(id, packet.seq, packet.commands, packet.seen); return; }
         if (debateMatch) return;
         if (!remote.has(id)) remote.set(id, new InputTimeline());
         remote.get(id).receive(packet.seq, packet.commands, campaignFrame);
@@ -503,6 +503,8 @@ async function start() {
         const now = performance.now() / 1000;
         if (debateMatch) {
           snapshots.push({ ...snapshot, local_candidate_id: debateState.local_candidate_id }, now);
+          // Dernier pas de l'hôte reçu : renvoyé avec nos messages, l'hôte attend les joueurs en retard.
+          if (Number.isInteger(snapshot.host_frame)) hostFrameSeen = snapshot.host_frame;
           prediction?.authoritative(snapshot);
           return;
         }
@@ -581,7 +583,8 @@ async function start() {
         sentTick = debateHost.version;
         // Dernier pas appliqué de chaque invité : sa prédiction repart de là. `ai_seed` : graine du
         // hasard de l'ordinateur, pour que l'invité prédise ses décisions à l'identique.
-        send('snapshot', { state: { ...debateState, input_acks: debateHost.acks(), ai_seed: debateState.rng_state } });
+        // `host_frame` : numéro du pas de l'hôte, renvoyé par les invités ; `sync_wait` : combat en attente d'un joueur.
+        send('snapshot', { state: { ...debateState, input_acks: debateHost.acks(), ai_seed: debateState.rng_state, host_frame: debateHost.frame, sync_wait: debateHost.waiting } });
         return;
       }
       if (networkElapsed < 1 / 15) return;
@@ -660,7 +663,8 @@ async function start() {
     networkFrame(elapsed);
     const fighter = debateState.candidates.find(c => c.id === debateState.local_candidate_id);
     const alpha = halted ? 1 : guest ? guestAlpha : clock.alpha;
-    debateDisplay.update(debateState, halted ? 0 : elapsed);
+    // Hôte : le bandeau annonce aussi l'attente d'un joueur (les invités la reçoivent avec l'état).
+    debateDisplay.update(debateHost?.waiting ? { ...debateState, sync_wait: true } : debateState, halted ? 0 : elapsed);
     // Débat en ligne terminé : chaque joueur envoie l'ordre d'arrivée qu'il a vu.
     const match = debateState.phase === 'OVER' && session?.room?.match;
     if (match && !ranked.reported.has(match.id)) ranked.report(session, { placements: debatePlacements(session.room, debateState), knockouts: [] });
@@ -731,7 +735,7 @@ async function start() {
     if (!inputSender.shouldSend(seq, outgoing)) return;
     const activeSession = session;
     // Message non parti (connexion pas prête) : le pas suivant renverra tout.
-    activeSession.request('commands', { commands: outgoing, seq }).catch(error => { inputSender.reset(); if (!error.transient) activeSession.fail(error.message); });
+    activeSession.request('commands', { commands: outgoing, seq, ...(debateMatch && hostFrameSeen ? { seen: hostFrameSeen } : {}) }).catch(error => { inputSender.reset(); if (!error.transient) activeSession.fail(error.message); });
   }
 
   function frame(now) {

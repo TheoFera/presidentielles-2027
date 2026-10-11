@@ -87,8 +87,9 @@ test('seul un sympathisant donne ; il se tourne, lance le billet puis va à la p
   assert.ok(candidate.money >= stored / 100000);
 });
 
-test('KO : 30 % au sol, cagnotte intacte et attente de 3 à 15 secondes', () => {
-  for (const [progress, seconds] of [[0, 3], [1, 15]]) {
+test('KO : 30 % au sol, cagnotte intacte et attente minimale puis maximale', () => {
+  const combat = make().config.balance.candidate_combat;
+  for (const [progress, seconds] of [[0, combat.ko_respawn_min_seconds], [1, combat.ko_respawn_max_seconds]]) {
     const sim = make(), candidate = sim.state.candidates[0], attacker = sim.state.candidates[1];
     const building = sim.state.buildings.find(b => b.type === 'permanence' && !b.owner_id);
     captureSite(sim, building, candidate); building.stored_money_cents = 12300;

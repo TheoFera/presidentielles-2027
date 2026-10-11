@@ -183,7 +183,7 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
 - **Aucune route « débloquer »**. Enregistrement seulement par :
   - une **partie multijoueur confirmée** par les joueurs (K.-O. inclus dans le résultat) ;
   - une **campagne solo déclarée** au lancement (`POST /runs`) puis terminée (`POST /runs/{id}/complete`) : une seule fois,
-    après au moins 10 min (une campagne dure environ 15 min), identifiants vérifiés. Une partie où le panneau de débogage
+    après au moins 7 min (une campagne dure environ 9 min 30), identifiants vérifiés. Une partie où le panneau de débogage
     (F3) a été ouvert n'est pas envoyée.
   - Limite honnête : en solo, le serveur ne voit pas la partie ; un jeu entièrement modifié pourrait encore tricher sur ses
     propres déblocages (pas sur ceux des autres, ni sur le classement).
@@ -201,7 +201,7 @@ Le jeu reste en pair-à-pair (l'hôte simule). Compromis retenu, sans ralentir l
 3. Chaque invité rejoint **sa** place (`POST /matches/{id}/join`). Place déjà prise → partie non classée + journal.
    Un candidat de Débat verrouillé pour ce compte (jeu modifié) → partie non classée.
 4. **Fin** : chaque joueur envoie l'ordre d'arrivée qu'il a vu (+ K.-O.) — **une seule fois** (`POST /matches/{id}/result`).
-   Refusé si la partie est trop courte (campagne < 10 min, débat < 8 s), si le joueur n'est pas dans la partie, ou s'il a déjà envoyé.
+   Refusé si la partie est trop courte (campagne < 7 min, débat < 8 s), si le joueur n'est pas dans la partie, ou s'il a déjà envoyé.
 5. **Officiel** quand tous les rapports concordent. Désaccord → `disputed`, rien n'est appliqué. Après 15 min (tâche
    planifiée toutes les 10 min) : 2 rapports concordants suffisent ; un rapport seul n'est retenu que s'il ne désigne pas
    son auteur vainqueur ; sinon `void`.

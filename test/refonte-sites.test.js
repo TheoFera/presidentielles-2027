@@ -76,13 +76,15 @@ test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présenc
   assert.equal(allies.length, 2);
 });
 
-test('Local SO : effectif libre et Raid disponible dès le niveau unique', () => {
+test('Local SO : pas d’équipement, un raid demande 3 sympathisants libres', () => {
   const sim = new GameSimulation(config); const actor = candidate(sim); actor.money = 1000; const site = sim.state.buildings.find(s => s.type === 'faction'); captureSite(sim, site, actor);
+  for (let i = 0; i < 2; i++) unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + i);
   unit(sim, 'MILITANT', actor.faction_id, site.x);
-  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').reason, 'NO_GUARD');
-  for (let i = 0; i < 2; i++) { const guard = unit(sim, 'SERVICE_D_ORDRE', actor.faction_id, site.x); guard.source_site_id = site.id; }
-  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'EQUIP').enabled, true);
-  assert.equal(buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID').enabled, true);
+  const offers = () => buildingOffers(sim.state, sim.config, actor, site);
+  assert.ok(!offers().some(o => o.kind === 'EQUIP'));
+  assert.equal(offers().find(o => o.kind === 'RAID').reason, 'NO_SUPPORTER');
+  unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + 2);
+  assert.equal(offers().find(o => o.kind === 'RAID').enabled, true);
 });
 
 test('Permanence : aucun lancement payant et cagnotte reçue au passage', () => {

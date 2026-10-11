@@ -343,6 +343,8 @@ export class DebateModeDisplay {
     if (state.round_index !== this.koRound) { this.koRound = state.round_index; this.koSeen = state.ko_order.length; }
     if (state.ko_order.length > this.koSeen) { this.koSeen = state.ko_order.length; this.koUntil = state.tick + hz * 1.1; }
     if (!text && state.tick < this.koUntil) { text = state.candidates.find(c => c.id === state.ko_order.at(-1))?.ko_reason === 'FALL' ? 'CHUTE ! K.O. !' : 'K.O. !'; kind = 'ko'; }
+    // Multijoueur : un joueur n'est plus à jour, le combat attend qu'il rattrape.
+    if (state.sync_wait) { text = 'CONNEXION…'; kind = 'sync'; }
     if (text !== this.bannerText) {
       this.bannerText = text; this.banner.hidden = !text;
       if (text) { this.banner.textContent = text; this.banner.dataset.kind = kind; this.banner.getAnimations().forEach(a => a.cancel()); this.banner.animate([{ transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0 }, { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.2,1.4,.4,1)' }); }

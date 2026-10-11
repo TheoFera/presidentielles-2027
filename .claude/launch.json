@@ -7,7 +7,8 @@
       "runtimeArgs": [
         "scripts/serve.mjs"
       ],
-      "port": 2027
+      "port": 2027,
+      "autoPort": true
     },
     {
       "name": "appli",

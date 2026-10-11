@@ -6,7 +6,7 @@ import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { validAIDifficulty } from './ai-settings.js';
 import { aiPersuasionMultiplier } from './ai-balance.js';
 import { MIND_STANCES } from './ai-mind.js';
-import { CampaignStyleSystem, styleInfluenceMultiplier } from './campaign-styles.js';
+import { CampaignStyleSystem, stylePersuasionTimeMultiplier } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector, resolveCampaignEvent } from './campaign-events.js';
 import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
@@ -20,7 +20,7 @@ import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { startPodiumFall } from './combat-actions.js';
-import { updateEquipmentCollector, updateEquipmentProduction, updateGuard } from './military.js';
+import { updateGuard, updateRaidRecruit } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
 import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
@@ -398,7 +398,6 @@ export class GameSimulation {
     this.updatePersuasion();
     updateEconomy(this);
     updateProduction(this);
-    updateEquipmentProduction(this);
     prepareDonations(this);
     this.updateNpcs();
     updateElectoralBuildings(this);
@@ -434,9 +433,9 @@ export class GameSimulation {
       : settings.candidate_base_seconds * (actor.faction_id === 'melenchon' ? settings.melenchon_personal_time_multiplier : 1);
     const candidate = this.state.candidates.find(item => item.faction_id === actor.faction_id);
     const biome = zoneAt(this.state.world, actor.x).biome_id;
-    const style = Math.max(0.1, styleInfluenceMultiplier(this.config, candidate, biome));
+    const style = stylePersuasionTimeMultiplier(this.config, candidate, biome);
     return this.secondsToTicks(base * localPersuasionMultiplier(this.state, this.config, actor) * hostilePersuasionMultiplier(this.state, this.config, actor, target)
-      * aiPersuasionMultiplier(this.state, this.config, actor) / style);
+      * aiPersuasionMultiplier(this.state, this.config, actor) * style);
   }
 
   updatePersuasion() {
@@ -489,7 +488,7 @@ export class GameSimulation {
       if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
       if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
       if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }
-      if (npc.role === 'MILITANT' && npc.task?.kind === 'COLLECT_EQUIPMENT') { updateEquipmentCollector(this, npc); continue; }
+      if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'JOIN_RAID') { updateRaidRecruit(this, npc); continue; }
       if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
       if (npc.role === 'DEMOBILISE') {
         const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);

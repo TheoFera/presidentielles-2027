@@ -19,7 +19,7 @@ import { updateTitleRank } from './progression.js';
 
 export const MATCH_RULES = {
   // Campagne : 365 jours de jeu × 2,5 s ≈ 15 min (game_balance.json), sans accélération en multijoueur.
-  campaign: { formats: { trio: [3, 3] }, minSeconds: 600, maxSeconds: 3 * 3600, ladder: 'campaign' },
+  campaign: { formats: { trio: [2, 3] }, minSeconds: 420, maxSeconds: 3 * 3600, ladder: 'campaign' },
   // Débat : un combat en une manche (compte à rebours compris).
   debate: { formats: { '1v1': [2, 2], '1v1v1': [2, 3] }, minSeconds: 8, maxSeconds: 3600, ladder: 'debate' },
 };

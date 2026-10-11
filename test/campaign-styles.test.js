@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { CampaignStyleSystem, CAMPAIGN_STYLES, normalizeCampaignProfile, isCampaignStyleUnlocked, unlockCampaignStyle, styleInfluenceMultiplier, styleTagWeight } from '../src/simulation/campaign-styles.js';
+import { CampaignStyleSystem, CAMPAIGN_STYLES, normalizeCampaignProfile, isCampaignStyleUnlocked, unlockCampaignStyle, styleInfluenceMultiplier, styleTagWeight, oppositeBiome } from '../src/simulation/campaign-styles.js';
 import { captureSite } from '../src/simulation/strategic-sites.js';
 import { combatState, hit } from '../src/simulation/combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, updateCombat } from '../src/simulation/combat.js';
@@ -198,4 +198,37 @@ test('Le maintien et les styles se sauvegardent ; une sauvegarde invalide est at
   const b = make(); b.importSnapshot(a.exportSnapshot()); assert.deepEqual(a.state, b.state);
   const bad = JSON.parse(a.exportSnapshot()); bad.candidates[0].current_campaign_style = 'le_pen_souverainiste';
   assert.throws(() => a.importSnapshot(bad)); assert.deepEqual(a.state, b.state);
+});
+
+test('Le style divise par 4 la persuasion dans son biome et la double dans le biome opposé, militants compris', () => {
+  const sim = make(), c = sim.state.candidates[0]; establish(sim); choose(sim, c, 'melenchon_universaliste');
+  sim.state.buildings = [];
+  const persuasion = sim.config.balance.persuasion, base = persuasion.candidate_base_seconds * persuasion.melenchon_personal_time_multiplier;
+  const centre = biome => sim.state.world.subzones.find(z => z.biome_id === biome).center;
+  const ticks = (actor, biome) => sim.persuasionTicks({ ...actor, x: centre(biome) });
+  assert.equal(ticks(c, 'paris_19e'), sim.secondsToTicks(base / 4));
+  assert.equal(ticks(c, 'campagne'), sim.secondsToTicks(base * 2));
+  assert.equal(ticks(c, 'banlieue'), sim.secondsToTicks(base));
+  const militant = { id: 'test:militant', role: 'MILITANT', faction_id: 'melenchon' };
+  assert.equal(ticks(militant, 'paris_19e'), sim.secondsToTicks(persuasion.militant_base_seconds / 4));
+  assert.equal(ticks(militant, 'campagne'), sim.secondsToTicks(persuasion.militant_base_seconds * 2));
+});
+
+test('Biomes opposés sur la carte', () => {
+  const config = campaignConfig();
+  assert.deepEqual(['paris_19e', 'quartiers_riches', 'banlieue'].map(b => oppositeBiome(config, b)), ['campagne', 'periurbain_usine', 'retraites']);
+  assert.equal(oppositeBiome(config, 'campagne'), 'paris_19e');
+});
+
+test('Les coups de Le Pen font plus de dégâts aux sympathisants', () => {
+  const sim = make(); sim.state.buildings = [];
+  const damage = sim.config.balance.candidate_combat.light_hit_hidden_damage;
+  const strike = faction => {
+    const source = sim.state.candidates.find(c => c.faction_id === faction);
+    const target = sim.state.npcs.find(n => n.role === 'NEUTRE');
+    Object.assign(target, { role: 'SYMPATHISANT', faction_id: 'melenchon', x: source.x, hidden_durability: 30, combat: combatState() });
+    return hit(sim, source, target, { damage, knockback: 0 }, `test:${faction}`).damage;
+  };
+  assert.equal(strike('le_pen'), damage * sim.config.balance.candidate_combat.le_pen_sympathisant_damage_multiplier);
+  assert.equal(strike('philippe'), damage);
 });

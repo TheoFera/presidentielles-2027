@@ -3,14 +3,27 @@ import { candidatesReady, playerName } from '../../network/lobby.js';
 import { escape, rosterContent, fighterCardContent, stylesContent, hydrateSelectionPortraits, bindRosterKeyboard } from './debate-selection.js';
 import { titleName } from '../../simulation/player-titles.js';
 
+const defaultOptions = config => ({ format: '1v1', map: config.balance.debate_mode.default_map });
 function hostOptions(config, session) {
-  const options = session.debateOptions ||= { format: '1v1', map: config.balance.debate_mode.default_map };
+  const options = session.debateOptions ||= { ...(session.room.debateOptions || defaultOptions(config)) };
   if (session.room.players.length === 3) options.format = '1v1v1';
+  return options;
+}
+/** Réglages affichés : ceux de l’hôte, reçus par les invités avec le salon. */
+function sharedOptions(config, session) {
+  if (session.host) return hostOptions(config, session);
+  const options = { ...defaultOptions(config), ...session.room.debateOptions };
+  if (session.room.players.length === 3) options.format = '1v1v1';
+  if (!config.balance.debate_mode.maps[options.map]) options.map = defaultOptions(config).map;
   return options;
 }
 function optionsContent(config, session) {
   const count = session.room.players.length;
-  if (!session.host) return '<div class="debate-options"><span class="menu-note">Plateau choisi par l’hôte</span></div>';
+  if (!session.host) {
+    const { format, map } = sharedOptions(config, session);
+    const formatName = format === '1v1' ? 'Duel' : count === 3 ? 'À trois' : 'À trois · + IA';
+    return `<div class="debate-options"><span class="menu-note">Choisi par l’hôte : ${formatName} · ${escape(config.balance.debate_mode.maps[map].name)}</span></div>`;
+  }
   const { format, map } = hostOptions(config, session);
   const formats = count === 3 ? [['1v1v1', 'À trois']] : [['1v1', 'Duel'], ['1v1v1', 'À trois · + IA']];
   return `<div class="debate-options"><fieldset><legend>Format</legend>${formats.map(([id, name]) => `<button class="debate-option" data-format="${id}" aria-pressed="${id === format}">${name}</button>`).join('')}</fieldset>
@@ -33,6 +46,10 @@ export function showDebateLobby(menu, session, leave) {
       && !session.room.players.some(p => p.id !== session.id && p.faction === faction && p.style === s.id));
     return usable.find(s => s.id === preferred)?.id ?? usable[0]?.id ?? null;
   };
+  // L’hôte envoie le format et le plateau aux invités, qui affichent alors la même sélection.
+  const shareOptions = () => session.request('options', { options: { ...hostOptions(config, session) } }).catch(error => {
+    session.selectionError = error.message; if (menu.screen === 'debate-lobby') render();
+  });
   const choose = async (faction, style) => {
     if (session.choosing || !style) return;
     session.choosing = true; session.selectionError = ''; render();
@@ -47,8 +64,8 @@ export function showDebateLobby(menu, session, leave) {
     const active = players.findIndex(p => p.id === session.id), me = players[active];
     // Pseudo de chaque joueur sur sa carte ; le marqueur de la grille reste court (J1, J2…).
     const fighters = players.map(p => ({ ...p, badge: `J${p.slot}`, label: `J${p.slot} · ${playerName(p)}${titleName(p.card?.title) ? ` · ${titleName(p.card.title)}` : ''}${p.id === session.id ? ' (vous)' : ''}` }));
-    if (session.host && hostOptions(config, session).format === '1v1v1' && players.length === 2 && candidatesReady(session.room)) {
-      fighters.push({ ...multiplayerDebateSetup(config, session.room, hostOptions(config, session)).fighters[2], badge: 'IA' });
+    if (sharedOptions(config, session).format === '1v1v1' && players.length === 2 && candidatesReady(session.room)) {
+      fighters.push({ ...multiplayerDebateSetup(config, session.room, sharedOptions(config, session)).fighters[2], badge: 'IA' });
     }
     root.innerHTML = `<div class="select-topline"><span>Sélection des candidats · Multijoueur</span><span class="select-live">● En direct</span></div>
       <div class="select-stage" data-count="${fighters.length}">${fighters.map((p, i) => fighterCardContent(config, p, i, { active: p.id === session.id, styles: p.id === session.id ? stylesContent(config, profile, me, { disabled: session.choosing, taken: style => players.some(q => q.id !== session.id && q.faction === me.faction && q.style === style) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
@@ -57,8 +74,8 @@ export function showDebateLobby(menu, session, leave) {
       ${optionsContent(config, session)}<footer class="menu-footer select-footer"><p class="menu-note" id="room-message" role="status"></p>${session.host ? `<button id="debate-fight" class="menu-primary arcade-button" ${candidatesReady(session.room) ? '' : 'disabled'}>Combattre <span aria-hidden="true">➜</span></button>` : ''}</footer>`;
     root.querySelector('#room-message').textContent = statusText(session);
     hydrateSelectionPortraits(root); bindRosterKeyboard(root);
-    root.querySelectorAll('[data-format]').forEach(b => b.onclick = () => { hostOptions(config, session).format = b.dataset.format; render(); });
-    root.querySelectorAll('[data-map]').forEach(b => b.onclick = () => { hostOptions(config, session).map = b.dataset.map; render(); });
+    root.querySelectorAll('[data-format]').forEach(b => b.onclick = () => { hostOptions(config, session).format = b.dataset.format; shareOptions(); render(); });
+    root.querySelectorAll('[data-map]').forEach(b => b.onclick = () => { hostOptions(config, session).map = b.dataset.map; shareOptions(); render(); });
     root.querySelectorAll('[data-faction]').forEach(b => b.onclick = () => void choose(b.dataset.faction, freeStyle(b.dataset.faction, me?.faction === b.dataset.faction ? me.style : null)));
     root.querySelectorAll('[data-style]').forEach(b => b.onclick = () => void choose(me.faction, b.dataset.style));
     const fight = root.querySelector('#debate-fight');

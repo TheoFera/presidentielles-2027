@@ -15,7 +15,6 @@ export const buildingLabel = (building, faction = building.owner_id) => building
 export const isNeutralService = building => building.ownership_model === 'neutral_service';
 export const isCapturable = building => !isNeutralService(building);
 export const isNeutral = building => isCapturable(building) && building.owner_id === null;
-export const presenceForLevel = (settings, prefix, level) => settings[`${prefix}_N${Math.max(1, Math.min(3, level || 1))}`];
 
 export function siteTypeForLimits(building, faction = building.owner_id) {
   return building.type === 'faction' ? siteVariant(building, faction) : building.type;

@@ -6,7 +6,7 @@ Elle commence par chercher un QG, puis arbitre entre conquête et défense. La v
 
 Au début de partie, l’IA ramasse les billets de départ de son quartier en sautant : d’abord pour payer son QG, puis ceux qui restent à portée. Elle ramasse aussi les billets tombés au sol près d’elle, sauf si un rival l’attend dessus.
 
-Les achats utilisent les mêmes devis, délais, exigences de présence et plafonds de dépenses que le joueur. L’IA sait capturer, former des militants, équiper le service d’ordre, déclencher un raid ou utiliser le cabinet administratif. Les services neutres (meeting, institut de sondage) sont utilisés comme tels. Elle cherche à jouer comme un bon joueur : groupes de militants, prise de son local de camp, raids et fermetures, conquête des bâtiments adverses, sans bonus caché. Ses réglages économiques sont dans la section `ai_economy` de `donnees-jeu/game_balance.json`.
+Les achats utilisent les mêmes devis, délais, exigences de présence et plafonds de dépenses que le joueur. L’IA sait capturer, former des militants, déclencher un raid (en gardant quelques sympathisants en réserve) ou utiliser le cabinet administratif. Les services neutres (meeting, institut de sondage) sont utilisés comme tels. Elle cherche à jouer comme un bon joueur : groupes de militants, prise de son local de camp, raids et fermetures, conquête des bâtiments adverses, sans bonus caché. Ses réglages économiques sont dans la section `ai_economy` de `donnees-jeu/game_balance.json`.
 
 ## Partie à trois : contenir le plus fort
 

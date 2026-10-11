@@ -8,8 +8,10 @@ import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes
 import { triggerMeeting, updateElectoralBuildings } from '../src/simulation/electoral-buildings.js';
 import { startDebate, finishDebate } from '../src/simulation/match-lifecycle.js';
 import { aiEconomicTarget, buildingOffers, nearestOffer } from '../src/simulation/economy.js';
+import { commitFactionAction } from '../src/simulation/faction-buildings.js';
 import { strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { zoneAt } from '../src/simulation/world.js';
+import { captureSite, updateStrategicSites } from '../src/simulation/strategic-sites.js';
 
 const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(
@@ -58,16 +60,16 @@ test('une conversion vaut exactement une voix, une promotion ne crée pas de voi
   assert.equal(sim.state.actualGameState.national_counts.neutral, 25);
 });
 
-test('la tour change un seul PNJ admissible toutes les quinze secondes', () => {
+test('la tour change un seul PNJ admissible à chaque diffusion', () => {
   const sim = make();
+  const interval = sim.secondsToTicks(sim.config.balance.buildings.tour_communication.broadcast_interval_seconds);
   const tower = sim.state.buildings.find(building => building.type === 'tour_communication');
   Object.assign(tower, { owner_id: 'melenchon', state: 'ACTIVE', active: true, neutral: false, level: 1 });
-  // La diffusion est testée seule : la fermeture pour manque de présence est une autre règle.
-  for (let tick = 1; tick <= 450; tick++) { sim.state.tick = tick; updateElectoralBuildings(sim); }
+  for (let tick = 1; tick <= interval; tick++) { sim.state.tick = tick; updateElectoralBuildings(sim); }
   assert.equal(sim.state.actualGameState.national_counts.melenchon, 0);
   sim.state.tick++; updateElectoralBuildings(sim); refreshElectoralState(sim.state);
   assert.equal(sim.state.actualGameState.national_counts.melenchon, 1);
-  for (let tick = 0; tick < 449; tick++) { sim.state.tick++; updateElectoralBuildings(sim); }
+  for (let tick = 0; tick < interval - 1; tick++) { sim.state.tick++; updateElectoralBuildings(sim); }
   refreshElectoralState(sim.state);
   assert.equal(sim.state.actualGameState.national_counts.melenchon, 1);
   sim.state.tick++; updateElectoralBuildings(sim); refreshElectoralState(sim.state);
@@ -229,4 +231,63 @@ test('les bâtiments n’offrent plus d’amélioration', () => {
     if (building.type === 'faction') building.variant = building.fixed_variant;
     assert.ok(buildingOffers(sim.state, config, candidate, building).every(offer => offer.kind !== 'UPGRADE'));
   }
+});
+
+test('raid : 3 sympathisants entrent au local, ressortent en SO côte à côte, puis partent sans jamais revenir', () => {
+  const sim = make();
+  const site = sim.state.buildings.find(building => building.type === 'faction');
+  const actor = sim.state.candidates.find(candidate => candidate.faction_id === 'melenchon');
+  captureSite(sim, site, actor); actor.money = 1000;
+  const recruits = sim.state.npcs.slice(0, 4);
+  recruits.forEach((npc, index) => Object.assign(npc, { role: 'SYMPATHISANT', faction_id: 'melenchon', task: null, x: site.x + 1 + index }));
+  const offer = buildingOffers(sim.state, sim.config, actor, site).find(o => o.kind === 'RAID' && o.direction === 1);
+  assert.equal(offer.enabled, true);
+  assert.ok(commitFactionAction(sim, actor, site, offer));
+  const joining = recruits.filter(npc => npc.task?.kind === 'JOIN_RAID');
+  assert.equal(joining.length, 3, 'les 3 plus proches seulement');
+  let seenInside = false, gaps = [];
+  for (let tick = 0; tick < sim.secondsToTicks(8); tick++) {
+    sim.step();
+    seenInside ||= joining.some(npc => npc.task?.phase === 'INSIDE');
+    if (joining.every(npc => npc.raid?.phase === 'GATHER')) {
+      const xs = joining.map(npc => npc.x).sort((a, b) => a - b);
+      gaps = xs.slice(1).map((x, index) => x - xs[index]);
+    }
+  }
+  assert.ok(seenInside, 'chaque recrue passe par le local');
+  assert.ok(gaps.length && Math.min(...gaps) >= 0.7, `écarts trop faibles : ${gaps.map(gap => gap.toFixed(2)).join(', ')}`);
+  assert.ok(joining.every(npc => npc.role === 'SERVICE_D_ORDRE' && npc.raid.phase === 'OUTBOUND'));
+  advance(sim, sim.secondsToTicks(60));
+  assert.ok(joining.every(npc => npc.role === 'SERVICE_D_ORDRE' && npc.raid), 'le raid ne s’arrête pas de lui-même');
+});
+
+test('un bâtiment sans partisans reste à son propriétaire ; seul un raid plus nombreux le ferme', () => {
+  const sim = make();
+  const site = sim.state.buildings.find(building => building.type === 'tour_communication');
+  captureSite(sim, site, sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen'));
+  for (const npc of sim.state.npcs) if (npc.faction_id === 'le_pen') npc.role = 'NEUTRE', npc.faction_id = null;
+  advance(sim, sim.secondsToTicks(20));
+  assert.equal(site.owner_id, 'le_pen');
+  // Un garde adverse en raid fait pression sur le bâtiment, plus fort que la présence locale (nulle).
+  Object.assign(sim.state.npcs[0], { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', pressure_target_id: site.id });
+  for (let tick = 0; tick <= sim.secondsToTicks(sim.config.balance.buildings.tour_communication.closure_delay_seconds); tick++) updateStrategicSites(sim);
+  assert.equal(site.owner_id, null);
+});
+
+test('raid : les gardes prennent en chasse un candidat adverse à environ un tiers de sous-zone', () => {
+  const sim = make();
+  const s = sim.config.balance.physical_units.service_ordre;
+  const guard = sim.state.npcs[0];
+  Object.assign(guard, { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', guard_biome_id: sim.state.world.subzones[0].biome_id,
+    guard_anchor_x: guard.x, task: null, facing: 1, hidden_durability: s.hidden_durability, next_donation_tick: null, donation_cents: 0 });
+  const rival = sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen');
+  for (const candidate of sim.state.candidates) if (candidate !== rival) candidate.x = (guard.x + sim.state.world.length / 2) % sim.state.world.length;
+  rival.x = (guard.x + s.candidate_focus_range + 4) % sim.state.world.length;
+  sim.step();
+  assert.notEqual(guard.combat.target_id, rival.id, 'trop loin : le garde continue son raid');
+  rival.x = (guard.x - (s.candidate_focus_range - 2) + sim.state.world.length) % sim.state.world.length;
+  const before = guard.x;
+  sim.step();
+  assert.equal(guard.combat.target_id, rival.id);
+  assert.ok(Math.abs(guard.x - before) > 0 && guard.task.phase === 'DEFEND', 'il marche vers le candidat');
 });

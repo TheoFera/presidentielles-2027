@@ -100,14 +100,12 @@ export function validateSnapshot(next, simulation, nested = false) {
         || building.owner_id === null && building.stored_money_cents !== 0) fail('cagnotte de financement invalide');
     }
     if (building.type === 'faction' && building.variant !== (building.owner_id ? siteVariant(building, building.owner_id) : null)) fail('bâtiment factionnel invalide');
-    if (!printsTracts(building) && building.variant !== 'service_ordre' && building.queue.length) fail('file sur site incompatible');
+    if (!printsTracts(building) && building.queue.length) fail('file sur site incompatible');
     let unfinishedFound = false;
     for (const order of building.queue) {
       if (!/^order:\d+$/.test(order.id) || Number(order.id.slice(6)) >= next.next_order_id || orderIds.has(order.id) || order.service_id !== building.id) fail('ordre de production invalide');
       orderIds.add(order.id);
-      const equipment = building.variant === 'service_ordre';
-      const duration = equipment ? order.production_required_ticks : simulation.secondsToTicks(config.balance.buildings.imprimerie.equipment_seconds_by_level[0]);
-      if (equipment && (!buildingSettings(config, building).equipment_seconds_by_level.map(s => simulation.secondsToTicks(s)).includes(duration) || order.faction_id !== building.owner_id)) fail('équipement invalide');
+      const duration = simulation.secondsToTicks(config.balance.buildings.imprimerie.equipment_seconds_by_level[0]);
       if (!FACTIONS.includes(order.faction_id) || !finite(order.cost) || !integer(order.purchased_tick) || order.purchased_tick > next.tick || !integer(order.production_elapsed_ticks)) fail('commande d’impression invalide');
       if (order.state === 'READY') { if (order.production_elapsed_ticks !== duration || unfinishedFound) fail('production incohérente'); }
       else if (order.state === 'PRINTING') {
@@ -117,7 +115,7 @@ export function validateSnapshot(next, simulation, nested = false) {
       else fail('état de production inconnu');
       if (order.assigned_npc_id !== null) {
         const npc = next.npcs.find(n => n.id === order.assigned_npc_id);
-        if (!npc || npc.role !== (equipment ? 'MILITANT' : 'SYMPATHISANT') || npc.faction_id !== order.faction_id || npc.task?.order_id !== order.id || assigned.has(npc.id)) fail('affectation incohérente');
+        if (!npc || npc.role !== 'SYMPATHISANT' || npc.faction_id !== order.faction_id || npc.task?.order_id !== order.id || assigned.has(npc.id)) fail('affectation incohérente');
         assigned.add(npc.id);
       }
     }
@@ -145,8 +143,8 @@ export function validateSnapshot(next, simulation, nested = false) {
     const task = npc.task;
     if (!task) continue;
     if (!validPosition(task.destination_x) || !next.world.subzones.some(z => z.id === task.destination_subzone_id)) fail('destination invalide');
-    if (['COLLECT_TRACT', 'COLLECT_EQUIPMENT'].includes(task.kind)) {
-      if (npc.role !== (task.kind === 'COLLECT_TRACT' ? 'SYMPATHISANT' : 'MILITANT') || !assigned.has(npc.id) || !orderIds.has(task.order_id) || task.target_id !== task.service_id
+    if (task.kind === 'COLLECT_TRACT') {
+      if (npc.role !== 'SYMPATHISANT' || !assigned.has(npc.id) || !orderIds.has(task.order_id) || task.target_id !== task.service_id
         || !next.buildings.some(b => b.id === task.service_id && b.queue.some(o => o.id === task.order_id && o.assigned_npc_id === npc.id))
         || !['TRAVEL', 'WAIT_PRINT', 'PICKUP'].includes(task.phase) || !integer(task.elapsed_ticks)) fail('tâche de collecte invalide');
     } else if (task.kind === 'EXPAND') {
@@ -156,8 +154,12 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (npc.role !== 'SYMPATHISANT' || !['TRAVEL'].includes(task.phase)
         || task.kind === 'DELIVER_DONATION' && (!npc.donation_cents || !next.buildings.some(b => b.id === task.service_id && b.type === 'permanence'))
         || task.kind === 'RETURN_DONATION' && npc.donation_cents) fail('trajet de don invalide');
+    } else if (task.kind === 'JOIN_RAID') {
+      if (npc.role !== 'SYMPATHISANT' || !/^raid:\d+$/.test(task.raid_id) || Number(task.raid_id.slice(5)) >= next.next_raid_id || ![-1, 1].includes(task.direction)
+        || task.target_id !== task.service_id || !next.buildings.some(b => b.id === task.service_id && b.type === 'faction')
+        || !['TRAVEL', 'INSIDE'].includes(task.phase) || !integer(task.elapsed_ticks)) fail('recrue de raid invalide');
     } else if (task.kind === 'GUARD') {
-      if (npc.role !== 'SERVICE_D_ORDRE' || !['PATROL', 'DEFEND', 'RAID', 'PRESSURE', 'RETURN'].includes(task.phase)) fail('garde invalide');
+      if (npc.role !== 'SERVICE_D_ORDRE' || !['GATHER', 'DEFEND', 'RAID', 'PRESSURE'].includes(task.phase)) fail('garde invalide');
     } else fail('tâche inconnue');
   }
   if (next.electorate.length !== next.world.subzones.length) fail('électorat incomplet');

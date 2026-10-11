@@ -86,7 +86,7 @@ export function characterAnimation(entity, state) {
   if (entity.role === 'SYMPATHISANT' && entity.handoff_until_tick > state.tick) return 'interact_hold';
   if (entity.purchase_hold || entity.task?.phase === 'PICKUP') return 'interact_hold';
   if (entity.role === 'DEMOBILISE') return 'demobilised_return';
-  if (entity.moving) return entity.combat?.engaged || entity.task?.kind === 'RAID' ? 'run' : 'walk';
+  if (entity.moving) return entity.combat?.engaged || entity.task?.phase === 'RAID' ? 'run' : 'walk';
   if (entity.meeting_target_id) return 'meeting';
   return 'idle';
 }

@@ -65,7 +65,7 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
     for (const key of ['attacks', 'projectiles', 'temporary_units', 'powers', 'hit_results', 'events']) if (!Array.isArray(a[key])) fail('collection de débat absente');
     for (const entity of [...a.attacks, ...a.projectiles, ...a.temporary_units, ...a.powers]) { if (ids.has(entity.id)) fail('ID de débat dupliqué'); ids.add(entity.id); }
     validateCombatSnapshot(a, sim, fail);
-    if (a.temporary_units.some(c => c.x < a.debate_bounds.min || c.x > a.debate_bounds.max)) fail('temporaire hors plateau');
+    if (a.temporary_units.some(c => c.role !== 'HOLOGRAMME' && (c.x < a.debate_bounds.min || c.x > a.debate_bounds.max))) fail('temporaire hors plateau');
   } else if (s.debate !== null || s.campaign_snapshot !== null) fail('débat hors phase');
   if (s.phase === GamePhase.RESULTS) {
     const r = s.result;

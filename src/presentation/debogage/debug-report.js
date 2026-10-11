@@ -7,7 +7,7 @@ import { combatReport, transactionNames } from './combat-report.js';
 
 export const roleNames = { NEUTRE: 'Neutre', SYMPATHISANT: 'Sympathisant', MILITANT: 'Militant', SERVICE_D_ORDRE: 'Service d’ordre', DEMOBILISE: 'Retour à l’origine' };
 export const buildingNames = { garage_velo: 'Garage à vélo', garage_scooter: 'Garage à scooter', permanence: 'Permanence', financement: 'Financement', imprimerie: 'Imprimerie', faction: 'Local SO / Cabinet', tour_communication: 'Tour de communication', institut_sondage: 'Institut de sondage', meeting: 'Meeting' };
-export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine', SO_LIMIT: 'Cap de SO atteint pour ce Local', ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_GUARD: 'Aucun SO disponible', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
+export const reasonNames = { CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de campagne insuffisant', GLOBAL_LIMIT: 'Limite de Tours actives atteinte', CANDIDATE_LIMIT: 'Limite par candidat atteinte', INSUFFICIENT_PRESENCE: 'Présence politique locale insuffisante', QUEUE_FULL: 'File pleine',  ADMINISTRATIVE_BAN: 'Meeting temporairement interdit à ce candidat', NO_SYMPATHISANT: 'Aucun Sympathisant allié dans le biome', INSUFFICIENT_FUNDS: 'Fonds insuffisants', NO_MILITANT: 'Aucun Militant disponible dans le biome', NO_SUPPORTER: 'Pas assez de sympathisants libres', COOLDOWN: 'Délai de réutilisation', NO_BUILDING: 'Aucune cible éligible' };
 
 export function managementReport(state, config, candidate, npc, building) {
   const f = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 3 });
@@ -41,9 +41,9 @@ export function managementReport(state, config, candidate, npc, building) {
   ];
   if (npc) {
     const task = npc.task;
-    const phases = { TRAVEL: 'En déplacement', WAIT_PRINT: 'Attend la préparation', PICKUP: 'Récupère son équipement', WAIT: 'Attend dans le secteur', RECRUIT: 'Recrute par proximité', PATROL: 'Patrouille', DEFEND: 'Défend', RAID: 'Raid', RETURN: 'Retour au biome' };
+    const phases = { TRAVEL: 'En déplacement', WAIT_PRINT: 'Attend la préparation', PICKUP: 'Récupère son équipement', WAIT: 'Attend dans le secteur', RECRUIT: 'Recrute par proximité', INSIDE: 'Entre dans le local', GATHER: 'Attend son groupe', DEFEND: 'Se bat', RAID: 'Raid', PRESSURE: 'Fait fermer un bâtiment' };
     lines.push('', '— TÂCHE DU PNJ INSPECTÉ —', `Camp : ${npc.faction_id ? names[npc.faction_id].name : 'Aucun'}`,
-      `Tâche : ${npc.role === 'DEMOBILISE' ? 'Retour au point d’origine' : task?.kind === 'COLLECT_EQUIPMENT' ? 'Chercher un équipement SO' : task?.kind === 'GUARD' ? 'Garde territoriale' : task?.kind === 'COLLECT_TRACT' ? 'Chercher un tract' : task?.kind === 'EXPAND' ? (npc.expedition ? 'Expédition en groupe' : 'Tenir le territoire de la permanence') : 'Vie locale'}`,
+      `Tâche : ${npc.role === 'DEMOBILISE' ? 'Retour au point d’origine' : task?.kind === 'JOIN_RAID' ? 'Rejoindre un raid' : task?.kind === 'GUARD' ? 'Raid du service d’ordre' : task?.kind === 'COLLECT_TRACT' ? 'Chercher un tract' : task?.kind === 'EXPAND' ? (npc.expedition ? 'Expédition en groupe' : 'Tenir le territoire de la permanence') : 'Vie locale'}`,
       `État : ${phases[task?.phase] || (npc.persuasion ? 'Écoute un recruteur' : npc.moving ? 'Marche' : 'Attend')}`,
       `Cible : ${task?.target_id || npc.persuasion?.actor_id || 'Aucune'}`,
       `Destination : ${task ? `${task.destination_subzone_id} · x=${f(task.destination_x)}` : npc.role === 'DEMOBILISE' ? npc.origin_social_point_id : `x=${f(npc.roam_target_x)}`}`);

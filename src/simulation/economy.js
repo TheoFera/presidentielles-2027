@@ -7,6 +7,7 @@ import { candidateOnMeetingStage, meetingOffers, triggerMeeting } from './electo
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, createInfrastructure, localPoliticalPresence } from './strategic-sites.js';
 import { publishPoll } from './electoral-state.js';
+import { raidRecruits } from './military.js';
 
 export { createInfrastructure } from './strategic-sites.js';
 
@@ -97,7 +98,7 @@ function transact(simulation, candidate, offer) {
     : fresh.kind === 'POLL' ? (publishPoll(simulation, candidate.faction_id, building), true)
     : commitFactionAction(simulation, candidate, building, fresh);
   if (handled) {
-    // Raid, equipment and closure are committed through the same transaction path.
+    // Raid and closure are committed through the same transaction path.
   } else if (fresh.kind === 'PRINT') {
     const order = { id: `order:${state.next_order_id++}`, service_id: building.id, faction_id: candidate.faction_id,
       purchased_tick: state.tick, cost: fresh.cost, assigned_npc_id: null, state: 'QUEUED', production_elapsed_ticks: 0 };
@@ -110,7 +111,7 @@ function transact(simulation, candidate, offer) {
     simulation.emit('BuildingUpgraded', { ...transaction, level: building.level });
   }
   building.last_action_tick = state.tick;
-  if (['EQUIP', 'POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
+  if (['POLL', 'RAID', 'CLOSE'].includes(fresh.kind)) {
     candidate.purchase_latch_target_id = building.id;
   }
   // Les tracts s'enchaînent tant qu'on reste devant : courte pause, sans devoir repartir.
@@ -232,12 +233,12 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
       // Une permanence dans un nouveau quartier y fait remonter les dons : c’est un placement, pas une dépense.
       const newBranch = building.type === 'permanence' && offer.kind === 'CAPTURE' && !firstHQ
         && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && b.biome_id === building.biome_id);
-      const army = ['PRINT', 'EQUIP', 'RAID', 'CLOSE'].includes(offer.kind) || newBranch
+      const army = ['PRINT', 'RAID', 'CLOSE'].includes(offer.kind) || newBranch
         || building.type === 'faction' && offer.kind === 'CAPTURE' && !hasFactionSite;
       if (!local && far > (army ? Math.max(detour, armyDetour) : detour)) continue;
       if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')) continue;
       if (offer.kind === 'POLL') continue;
-      // Les petites dépenses (tracts, équipement) restent permises pendant l’épargne.
+      // Les petites dépenses (tracts) restent permises pendant l’épargne.
       if (savings && building.type !== 'faction' && !firstHQ && !newBranch && offer.cost > 1 && candidate.money - offer.cost < savings) continue;
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {
@@ -250,9 +251,6 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
         if (supporters.some(n => state.buildings.some(b => b.subzone_id === zoneAt(state.world, n.x).id && b.owner_id === candidate.faction_id
           && b.state === 'ACTIVE' && localSympathisants(state, b.subzone_id, candidate.faction_id).length - queued <= (buildingSettings(config, b).required_presence_N1 ?? 0)))) continue;
       }
-      // Un service d’ordre de quelques gardes suffit pour lancer des raids.
-      if (offer.kind === 'EQUIP' && state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.source_site_id === building.id).length
-        + building.queue.length >= (settings.guard_goal_per_site ?? Infinity)) continue;
       // Laisser respirer un humain distancé : pas de fermeture administrative contre lui.
       if (offer.kind === 'CLOSE' && spared.has(state.buildings.find(b => b.id === offer.victim_id)?.owner_id)) continue;
       if (offer.kind === 'RAID') {
@@ -260,13 +258,16 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
         const enemy = state.buildings.some(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== candidate.faction_id
           && wrap((b.x - building.x) * direction, state.world.length) < state.world.length / 2);
         if (!enemy) continue;
+        // Un raid consomme des sympathisants : en garder quelques-uns pour les tracts et les dons.
+        if (raidRecruits(state, building, candidate.faction_id).length - config.balance.physical_units.service_ordre.raid_recruits
+          < settings.reserve_sympathisants_per_biome) continue;
       }
-      // Le local de faction, ses gardes, puis ses raids et fermetures, sont les coups décisifs : ils valent un long trajet.
-      const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['EQUIP', 'RAID', 'CLOSE'].includes(offer.kind));
+      // Le local de faction, puis ses raids et fermetures, sont les coups décisifs : ils valent un long trajet.
+      const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['RAID', 'CLOSE'].includes(offer.kind));
       const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : decisive ? 0.5 : newBranch ? 1.5 : firstFunding ? 2
         : building.type === 'tour_communication' ? 3 : building.type === 'financement' ? 4 : 5)
         : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
-        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 3 : offer.kind === 'EQUIP' ? 2
+        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 3
         : offer.kind === 'MEETING' ? 7 - 4 * boost : 8;
       options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer, decisive,
         rank: priority + distance(state, candidate.x, offer.x) * (decisive ? 0.1 : 0.35) });

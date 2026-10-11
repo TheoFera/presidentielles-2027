@@ -109,15 +109,17 @@ function updatePlatformHeight(sim, actor) {
 }
 export function verticalHit(config, source, target, spec) {
   if (spec.kind === 'BURN' || spec.retaliation) return true;
+  // La copie d’un hologramme frappe à la même hauteur que le coup de Mélenchon qu’elle imite.
+  const kind = spec.mirror_kind || spec.kind;
   const height = actor => actor.role === 'CANDIDAT' ? 1 : config.prototype.presentation.npc_height_multiplier ?? 0.8;
   const bottom = target.combat?.height || 0, top = bottom + height(target);
   let low, high;
-  if (spec.kind === 'WAVE') { low = 0; high = 1.65; }
-  else if (spec.kind === 'BUBBLE') { low = config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
-  else if (spec.kind === 'VERBAL') { low = 0.65; high = 0.9; }
-  else if (spec.kind === 'SURGE') { low = 0; high = 1; }
+  if (kind === 'WAVE') { low = 0; high = 1.65; }
+  else if (kind === 'BUBBLE') { low = config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
+  else if (kind === 'VERBAL') { low = 0.65; high = 0.9; }
+  else if (kind === 'SURGE') { low = 0; high = 1; }
   // Le plongeon frappe sous les pieds et à leur niveau : jamais un adversaire resté plus haut (pupitre non atteint).
-  else if (spec.kind === 'DIVE') { low = Math.max(0, (source.combat?.height || 0) - 0.4); high = (source.combat?.height || 0) + 0.15; }
+  else if (kind === 'DIVE') { low = Math.max(0, (source.combat?.height || 0) - 0.4); high = (source.combat?.height || 0) + 0.15; }
   else { low = (source.combat?.height || 0) + height(source) * 0.3; high = low + height(source) * 0.65; }
   return bottom <= high && top >= low;
 }

@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { chooseCandidate, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from '../src/network/lobby.js';
+import { chooseCandidate, setDebateOptions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from '../src/network/lobby.js';
 
 import { sanitizeCommands, cleanSeq } from '../src/network/shared-commands.js';
 export { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -7,7 +7,7 @@ export { sanitizeCommands } from '../src/network/shared-commands.js';
 // Rooms live only in memory; no accounts or personal information are stored.
 export function createMultiplayerHandler({ status = () => ({ available: true }) } = {}) {
   const rooms = new Map();
-  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, closed: room.closed === true, debate: room.debate, rematch: room.rematch || [], players: room.players.map(p => ({ id: p.id, slot: p.slot, name: p.name, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
+  const view = room => ({ code: room.code, mode: room.mode, phase: room.phase, paused: room.paused, closed: room.closed === true, debate: room.debate, debateOptions: room.debateOptions, rematch: room.rematch || [], players: room.players.map(p => ({ id: p.id, slot: p.slot, name: p.name, faction: p.faction, style: p.style, host: p.host, ready: p.ready })) });
   const writable = player => player.stream && !player.stream.destroyed && player.stream.writableLength < 2_000_000;
   const encodeEvent = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
   const send = (player, type, data) => { if (writable(player)) player.stream.write(encodeEvent(type, data)); };
@@ -80,8 +80,11 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
       if (action === 'heartbeat') { /* Presence survives a paused or hidden tab. */ }
       else if (action === 'leave') remove(room, player, 'Un joueur a quitté la partie.'); else if (action === 'choose') {
         chooseCandidate(room, player.id, data.faction, data.style); changed(room);
+      } else if (action === 'options') {
+        if (!player.host) throw new Error('Seul l’hôte choisit le format et le plateau.');
+        setDebateOptions(room, data.options); changed(room);
       } else if (action === 'close') {
-        if (!player.host) throw new Error('Seul l’hôte peut lancer le débat à deux.');
+        if (!player.host) throw new Error('Seul l’hôte peut lancer la partie à deux.');
         closeRoom(room); changed(room);
       } else if (action === 'start') {
         if (!player.host) throw new Error('Seul l’hôte peut lancer la partie.');
@@ -100,7 +103,7 @@ export function createMultiplayerHandler({ status = () => ({ available: true }) 
         room.paused = data.paused === true; changed(room);
       } else if (action === 'commands') {
         if (room.phase !== 'playing') throw new Error('La partie n’a pas commencé.');
-        send(room.players.find(p => p.host), 'commands', { playerId: player.id, commands: sanitizeCommands(data.commands, player.faction), ...(cleanSeq(data.seq) ? { seq: data.seq } : {}) });
+        send(room.players.find(p => p.host), 'commands', { playerId: player.id, commands: sanitizeCommands(data.commands, player.faction), ...(cleanSeq(data.seq) ? { seq: data.seq } : {}), ...(cleanSeq(data.seen) ? { seen: data.seen } : {}) });
       } else if (action === 'snapshot') {
         if (!player.host || room.phase !== 'playing') throw new Error('Seul l’hôte peut mettre à jour la partie.');
         if (!data.state || !Number.isInteger(data.state.tick) || !Array.isArray(data.state.candidates)) throw new Error('État invalide.');

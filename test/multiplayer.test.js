@@ -12,6 +12,7 @@ import { outgoingCommands } from '../src/network/shared-commands.js';
 import { LocalHumanController, AIController } from '../src/simulation/controllers.js';
 import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
+import { chooseCandidate, candidatesReady, closeRoom, startRoom, joinable, setDebateOptions } from '../src/network/lobby.js';
 
 test('Les vues partagent uniquement une géométrie immuable et restent isolées de la simulation', () => {
   const sim = new GameSimulation(campaignConfig(), 2027);
@@ -311,6 +312,26 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   assert.equal((await request('heartbeat', auth)).status, 400);
 });
 
+test('Campagne à deux : l’hôte ferme le salon et l’IA joue le 3e candidat', () => {
+  const room = { mode: 'campaign', phase: 'lobby', players: [{ id: 'a', slot: 1 }] };
+  assert.throws(() => closeRoom(room), /autre joueur/);
+  room.players.push({ id: 'b', slot: 2 });
+  assert.throws(() => chooseCandidate(room, 'a', 'melenchon'), /troisième joueur/);
+  closeRoom(room);
+  assert.equal(joinable(room), false, 'salon fermé : plus personne n’entre');
+  chooseCandidate(room, 'a', 'melenchon');
+  chooseCandidate(room, 'b', 'philippe');
+  assert.equal(candidatesReady(room), true);
+  startRoom(room);
+  assert.equal(room.phase, 'loading');
+  // Le jeu laisse à l’IA le candidat qu’aucun joueur n’a pris.
+  const sim = new GameSimulation(campaignConfig(), 7, 'candidate:melenchon');
+  sim.state.human_candidate_ids = room.players.map(p => `candidate:${p.faction}`);
+  const bots = sim.state.candidates.filter(c => !c.minor && !sim.state.human_candidate_ids.includes(c.id)).map(c => c.id);
+  assert.deepEqual(bots, ['candidate:le_pen']);
+  assert.ok(Array.isArray(new AIController(sim.config).commands(sim.state, 'candidate:le_pen')));
+});
+
 test('Le serveur local transmet les mêmes états aux deux invités et restitue les commandes allégées', { timeout: 10000 }, async t => {
   const handler = createMultiplayerHandler(), server = http.createServer(handler), streams = [];
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -476,12 +497,24 @@ test('Salon de débat : à deux sur décision de l’hôte, pseudos, même candi
   const fighters = [{ faction: 'melenchon', style: 'melenchon_populiste', player: host.id }, { faction: 'melenchon', style: 'melenchon_universaliste', player: guest.id }];
   assert.equal((await request('start', { ...guestAuth, setup: { format: '1v1', map: 'remue_menage', fighters } })).status, 400);
   assert.equal((await request('start', { ...auth, setup: { format: '1v1', map: 'remue_menage', fighters: [fighters[0], { ...fighters[1], style: 'melenchon_communautariste' }] } })).status, 400, 'le combattant doit être celui choisi');
+  assert.equal((await request('options', { ...guestAuth, options: { format: '1v1v1', map: 'elysee' } })).status, 400, 'seul l’hôte règle le format');
+  assert.equal((await request('options', { ...auth, options: { format: '2v2', map: 'elysee' } })).status, 400);
+  assert.equal((await request('options', { ...auth, options: { format: '1v1v1', map: 'elysee' } })).status, 200);
   const ai = { faction: 'le_pen', style: 'le_pen_souverainiste', player: null };
   assert.equal((await request('start', { ...auth, setup: { format: '1v1v1', map: 'elysee', fighters: [...fighters, ai] } })).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [] })).status, 400);
   assert.equal((await request('ready', auth)).status, 200);
   assert.equal((await request('ready', guestAuth)).status, 200);
   assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'Jump' }] })).status, 200);
+});
+
+test('Débat : le format et le plateau de l’hôte sont gardés dans le salon partagé avec les invités', () => {
+  const room = { mode: 'debate', phase: 'lobby', players: [] };
+  setDebateOptions(room, { format: '1v1v1', map: 'elysee', extra: true });
+  assert.deepEqual(room.debateOptions, { format: '1v1v1', map: 'elysee' });
+  assert.throws(() => setDebateOptions(room, { format: '1v1', map: '<b>' }), /invalides/);
+  assert.throws(() => setDebateOptions({ ...room, phase: 'playing' }, { format: '1v1', map: 'elysee' }));
+  assert.throws(() => setDebateOptions({ ...room, mode: 'campaign' }, { format: '1v1', map: 'elysee' }));
 });
 
 test('Diagnostic réseau : adresses visibles, masquées et réseau commun', () => {

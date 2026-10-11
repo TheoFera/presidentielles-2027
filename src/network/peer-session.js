@@ -25,7 +25,7 @@ async function inflate(bytes, limit = 2_000_000) {
   }
   return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
 }
-import { chooseCandidate, factions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
+import { chooseCandidate, setDebateOptions, factions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
 import { cleanPlayerCard } from '../simulation/player-titles.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
@@ -330,7 +330,7 @@ export class PeerSession {
         catch (error) { this.send(peer, 'selectionError', { message: error.message }); }
         return;
       }
-      if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction), seq: cleanSeq(packet.data.seq) });
+      if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction), seq: cleanSeq(packet.data.seq), seen: cleanSeq(packet.data.seen) });
       else if (packet.type === 'ready' && this.room.phase === 'loading') this.setReady(player);
       else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
       else if (packet.type === 'rematch' && this.room.phase === 'playing') { try { voteRematch(this.room, player.id); this.publishRoom(); } catch { /* Vote hors d’un débat : ignoré. */ } }
@@ -413,8 +413,10 @@ export class PeerSession {
       }
     } else if (action === 'choose') {
       chooseCandidate(this.room, this.id, data.faction, data.style); this.publishRoom();
+    } else if (action === 'options') {
+      setDebateOptions(this.room, data.options); this.publishRoom();
     } else if (action === 'close') {
-      // Débat à deux : plus d’invitation en attente, la sélection s’ouvre.
+      // Partie à deux : plus d’invitation en attente, la sélection s’ouvre.
       closeRoom(this.room); this.cancelInvite(); this.publishRoom();
     } else if (action === 'start') {
       startRoom(this.room, data.setup);

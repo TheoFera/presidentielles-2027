@@ -5,6 +5,7 @@ import { FACTIONS, ringDelta, zoneAt } from '../../simulation/world.js';
 import { managementReport, roleNames, buildingNames } from './debug-report.js';
 import { electoralReport } from './electoral-report.js';
 import { populationByOrigin } from '../../simulation/territory.js';
+import { stylePersuasionTimeMultiplier } from '../../simulation/campaign-styles.js';
 
 export class DebugPanel {
   constructor(config, callbacks) {
@@ -201,7 +202,7 @@ export class DebugPanel {
       `Biome actuel : ${zone.biome_name}`,
       `Vitesse : ${f(cfg.prototype.movement.candidate_speed_units_per_second)} u/s`,
       `Portée persuasion : ${f(cfg.prototype.persuasion.radius_units)} u`,
-      `Durée : ${f(cfg.balance.persuasion.candidate_base_seconds * (candidate.faction_id === 'melenchon' ? cfg.balance.persuasion.melenchon_personal_time_multiplier : 1))} s (arrondie au tick supérieur)`,
+      `Durée : ${f(cfg.balance.persuasion.candidate_base_seconds * (candidate.faction_id === 'melenchon' ? cfg.balance.persuasion.melenchon_personal_time_multiplier : 1) * stylePersuasionTimeMultiplier(cfg, candidate, zone.biome_id))} s (arrondie au tick supérieur)`,
       `Conversation(s) : ${candidate.persuasion_target_ids.map(id => {
         const target = state.npcs.find(n => n.id === id);
         return `${id} · ${f(target.persuasion.elapsed_ticks / hz)} / ${f(target.persuasion.required_ticks / hz)} s`;

@@ -4,6 +4,7 @@ import { ringDelta } from '../../simulation/world.js';
 
 const atlasFrames = new WeakMap();
 const wheelMotion = new WeakMap();
+const wheelSpins = new WeakMap();
 
 // Centres horizontaux et rayons dans les images d'origine (rapportés à leur largeur).
 // La hauteur se mesure depuis le bas de chaque pose, quelle que soit sa tenue.
@@ -26,16 +27,32 @@ export function vehicleWheelTravel(renderer, entity, x, state) {
   return distance;
 }
 
+// Angle affiché d'une roue. À grande vitesse, les rayons avanceraient presque
+// d'un écart entre deux rayons à chaque image et sembleraient tourner à
+// l'envers : on limite donc le pas à un tiers de cet écart.
+export function vehicleWheelSpin(spin, distance, pixelsPerUnit, radius, spokes) {
+  const step = spin ? (distance - spin.distance) * pixelsPerUnit / radius : 0;
+  const limit = Math.PI * 2 / spokes / 3;
+  return { distance, angle: (spin?.angle || 0) + Math.max(-limit, Math.min(limit, step)) };
+}
+
 function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
   const layout = wheelLayouts[entity.bardella_form ? 'bardella' : entity.faction_id]?.[entity.vehicle.type];
   if (!layout) return;
   const { ctx, metrics: m } = renderer;
+  let spins = wheelSpins.get(renderer);
+  if (!spins) { spins = new Map(); wheelSpins.set(renderer, spins); }
   const scale = h / frame.height;
-  for (const [centre, size] of layout) {
+  const spokes = entity.vehicle.type === 'velo' ? 12 : 5;
+  layout.forEach(([centre, size], index) => {
     const radius = size * sprite.naturalWidth * scale;
     const cx = (centre * sprite.naturalWidth - frame.x) * scale - w / 2;
     const cy = -radius;
-    const angle = distance * m.pixelsPerUnit / radius * (entity.facing < 0 ? -1 : 1);
+    const key = `${entity.id}:${index}`;
+    const spin = vehicleWheelSpin(spins.get(key), distance, m.pixelsPerUnit, radius, spokes);
+    spins.set(key, spin);
+    // Le dessin est retourné quand le candidat regarde à gauche : on compense.
+    const angle = spin.angle * (entity.facing < 0 ? -1 : 1);
     ctx.save(); ctx.translate(cx, cy);
     // Seule la partie dégagée tourne : cadre, fourche, carter et garde-boue
     // restent devant la roue, comme dans l'illustration d'origine.
@@ -46,14 +63,13 @@ function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
     ctx.rotate(angle);
     ctx.strokeStyle = entity.vehicle.type === 'velo' ? '#bac0b5' : '#dfe3df';
     ctx.lineWidth = Math.max(.65, radius * .045);
-    const spokes = entity.vehicle.type === 'velo' ? 12 : 5;
     for (let i = 0; i < spokes; i++) {
       const a = i * Math.PI * 2 / spokes;
       ctx.beginPath(); ctx.moveTo(Math.cos(a) * radius * .2, Math.sin(a) * radius * .2);
       ctx.lineTo(Math.cos(a) * radius * .77, Math.sin(a) * radius * .77); ctx.stroke();
     }
     ctx.restore();
-  }
+  });
 }
 export function prepareVehicleAtlas(id, image) {
   if (atlasFrames.has(image)) return atlasFrames.get(image);

@@ -63,16 +63,18 @@ export function melenchonPose(entity, state, config, guard = false) {
     || entity.combat?.stun_ticks > 0 || entity.dash_active || knockdownPose(entity, state, config)) return null;
   const c = entity.combat, hz = config.balance.simulation_architecture.fixed_tick_hz;
   const attack = state.attacks.find(a => a.id === c.attack_id);
+  // Un hologramme imite le coup de Mélenchon : même pose que le coup copié.
+  const kind = attack?.mirror_kind || attack?.kind;
   const inAir = c.jump_tick != null;
   const result = (frame, name, phase = null) => ({ frame, name, phase, direction: attack?.direction || entity.facing });
   if (attack) {
-    if (!['CANDIDATE', 'CHARGED', 'HOLOGRAM', 'DIVE'].includes(attack.kind)) return null;
+    if (!['CANDIDATE', 'CHARGED', 'HOLOGRAM', 'DIVE'].includes(kind)) return null;
     const phase = attack.elapsed_ticks < attack.windup_ticks ? 'windup'
       : attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 'active' : 'recovery';
     const earlyRecovery = attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks + Math.ceil(attack.recovery_ticks * .35);
     if (inAir) return result(phase === 'recovery' && !earlyRecovery ? 14 : 15, 'jump_attack', phase);
-    if (attack.kind === 'CHARGED') return result(phase === 'windup' ? 9 : phase === 'active' || earlyRecovery ? 10 : 11, 'charged_kick', phase);
-    if (attack.kind === 'HOLOGRAM') {
+    if (kind === 'CHARGED') return result(phase === 'windup' ? 9 : phase === 'active' || earlyRecovery ? 10 : 11, 'charged_kick', phase);
+    if (kind === 'HOLOGRAM') {
       const second=Number(attack.id.split(':').at(-1))%2===0;
       return result(phase==='windup'?(second?4:2):phase==='active'||earlyRecovery?(second?5:3):0,second?'attack_2':'attack_1',phase);
     }
@@ -98,7 +100,9 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   if (!usesCandidateCombat(entity, state)) return false;
   if(entity.role==='HOLOGRAMME' && state.tick < (entity.ready_tick || 0)) return false;
   renderer.combatPoseTracker ??= new CombatPoseTracker();
-  const guard = renderer.combatPoseTracker.active(entity, state, renderer.config);
+  // Un hologramme se met en garde en même temps que Mélenchon.
+  const owner = entity.role === 'HOLOGRAMME' && state.candidates.find(c => c.id === entity.owner_id);
+  const guard = renderer.combatPoseTracker.active(owner || entity, state, renderer.config);
   let extra=null;
   if(extraAtlasesFor(entity)) {
     renderer.melenchonMotionTracker ??= new MelenchonMotionTracker();

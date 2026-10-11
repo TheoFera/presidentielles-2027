@@ -64,6 +64,8 @@ export function beginCombatTick(sim) {
   const { state, config, hz } = sim;
   updateMobileCombat(sim);
   for (const actor of combatActors(state)) {
+    // Les hologrammes recopient Mélenchon plus loin : ils ne bougent, ne sautent ni ne reculent seuls.
+    if (actor.role === 'HOLOGRAMME') continue;
     actor.moving = !!actor.dash_active;
     updateActions(sim, actor);
     const c = actor.combat;
@@ -228,13 +230,42 @@ function triggerSpecial(sim, actor) {
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
     for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, ...(actor.team_id ? { team_id: actor.team_id } : {}), temporary: true, expired: false,
-      x: combatPosition(state, actor.x + offset), follow_offset: offset, facing: Math.sign(offset) || actor.facing,
-      moving: false, spawn_tick: state.tick, ready_tick: state.tick + sim.secondsToTicks(hologram ? s.appearance_seconds : 0), expires_tick: power.expires_tick, hidden_durability: hologram ? s.hidden_durability : s.guard_hidden_durability,
+      x: hologram ? hologramX(state, actor, offset) : combatPosition(state, actor.x + offset), follow_offset: offset, facing: hologram ? actor.facing : Math.sign(offset) || actor.facing,
+      // Un hologramme n’a pas de points de vie : il disparaît seulement à la fin du pouvoir.
+      moving: false, spawn_tick: state.tick, ready_tick: state.tick + sim.secondsToTicks(hologram ? s.appearance_seconds : 0), expires_tick: power.expires_tick, hidden_durability: hologram ? 0 : s.guard_hidden_durability,
       combat: combatState(), persuasion_target_ids: [] });
   }
   // The same button consumes the power; a short recovery prevents double activation.
   makeAttack(sim, actor, 'SPECIAL', { strong: true, range: 0, damage: 0, knockback: 0, electoral_damage: 0 });
   sim.emit('SpecialTriggered', { power_id: power.id, candidate_id: actor.id, kind: power.kind });
+}
+
+// Hors du débat, la rue fait le tour du monde ; sur un plateau, la copie peut dépasser le bord.
+const hologramX = (state, owner, offset) => state.debate_bounds ? owner.x + offset : combatPosition(state, owner.x + offset);
+const MIRRORED_ATTACKS = ['CANDIDATE', 'CHARGED', 'SCARF', 'DIVE'];
+const MIRRORED_POSE = ['press_tick', 'charge_active', 'press_airborne', 'jump_tick', 'height', 'jump_base', 'dive_tick', 'drop_through_id',
+  'stun_ticks', 'hitstop_ticks', 'knockdown_tick', 'combo_step', 'combo_expires_tick', 'knockback_velocity'];
+
+/** Hologramme de Mélenchon : copie exacte du candidat, décalée sur le côté.
+ * Il marche, saute, charge et frappe en même temps que lui, toujours à sa hauteur
+ * (pas de chute au-dessus du vide), et traverse tout. Ses coups sont ceux de Mélenchon,
+ * avec les dégâts réduits des hologrammes. */
+function mirrorHologram(sim, unit, owner) {
+  const { state } = sim, s = sim.config.balance.specials.melenchon_holograms;
+  unit.x = hologramX(state, owner, unit.follow_offset);
+  unit.facing = owner.facing; unit.moving = !!owner.moving; unit.axis = owner.axis || 0;
+  unit.dash_active = !!owner.dash_active; unit.turn_tick = owner.turn_tick;
+  const from = owner.combat, to = unit.combat;
+  for (const key of MIRRORED_POSE) { if (from[key] === undefined) delete to[key]; else to[key] = from[key]; }
+  const source = state.attacks.find(a => a.id === from.attack_id && MIRRORED_ATTACKS.includes(a.kind));
+  let copy = state.attacks.find(a => a.id === to.attack_id);
+  if (copy && (!source || copy.mirror_of !== source.id)) { state.attacks = state.attacks.filter(a => a !== copy); copy = null; to.attack_id = null; }
+  if (!source || state.tick < (unit.ready_tick || 0)) return;
+  copy ??= makeAttack(sim, unit, 'HOLOGRAM', { mirror_of: source.id, mirror_kind: source.kind, step: source.step || 0, strong: !!source.strong,
+    partial: !!source.partial, range: source.range, stun_seconds: source.stun_seconds,
+    damage: s.hidden_damage_per_hit, knockback: s.knockback, electoral_damage: s.electoral_damage });
+  Object.assign(copy, { direction: source.direction, elapsed_ticks: source.elapsed_ticks, windup_ticks: source.windup_ticks,
+    active_ticks: source.active_ticks, recovery_ticks: source.recovery_ticks });
 }
 
 function meleeTargets(sim, owner, attack) {
@@ -259,9 +290,9 @@ function updateAttacks(sim) {
           kind: 'VERBAL', x: actor.x, direction: attack.direction, speed: s.projectile_speed, remaining_range: s.projectile_range,
           hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
         attack.launched = true;
-      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (['CANDIDATE','CHARGED','SCARF','DIVE'].includes(attack.kind) || attack.hit_ids.length === 0)) {
+      } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) || attack.hit_ids.length === 0)) {
         const targets = meleeTargets(sim, actor, attack);
-        for (const target of (['CANDIDATE','CHARGED','SCARF','DIVE'].includes(attack.kind) ? targets : targets.slice(0, 1))) {
+        for (const target of (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
           if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
@@ -329,19 +360,19 @@ function updateTemporaryUnits(sim) {
     if (state.tick >= unit.expires_tick) unit.expired = true;
     const owner = state.candidates.find(c => c.id === unit.owner_id);
     if (!owner || owner.is_ko || owner.eliminated) { unit.expired = true; continue; }
-    if (unit.expired || interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;
+    if (unit.expired) continue;
+    if (unit.role === 'HOLOGRAMME') { mirrorHologram(sim, unit, owner); continue; }
+    if (interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;
     if (updateStyleTemporary(sim, unit)) continue;
-    const hologram = unit.role === 'HOLOGRAMME';
-    const s = hologram ? config.balance.specials.melenchon_holograms : config.balance.specials.philippe_crs_wall;
-    if (!hologram) moveNpcTowards(sim, unit, combatPosition(state, owner.x + unit.follow_offset), s.follow_speed);
-    const target = nearestEnemy(state, unit, hologram ? s.detection_range : s.attack_range + config.balance.candidate_combat.target_radius);
+    const s = config.balance.specials.philippe_crs_wall;
+    moveNpcTowards(sim, unit, combatPosition(state, owner.x + unit.follow_offset), s.follow_speed);
+    const target = nearestEnemy(state, unit, s.attack_range + config.balance.candidate_combat.target_radius);
     unit.combat.target_id = target?.id || null;
     if (!target) continue;
     const d = combatDelta(state, unit.x, target.x);
     unit.facing = Math.sign(d) || unit.facing;
-    if (hologram && Math.abs(d) > s.attack_range) moveNpcTowards(sim, unit, target.x, s.move_speed);
-    else if (Math.abs(d) <= s.attack_range + config.balance.candidate_combat.target_radius) startNpcAttack(sim, unit, hologram ? 'HOLOGRAM' : 'CRS', {
-      range: s.attack_range, damage: hologram ? s.hidden_damage_per_hit : s.guard_hit_hidden_damage, knockback: hologram ? s.knockback : s.guard_knockback,
+    if (Math.abs(d) <= s.attack_range + config.balance.candidate_combat.target_radius) startNpcAttack(sim, unit, 'CRS', {
+      range: s.attack_range, damage: s.guard_hit_hidden_damage, knockback: s.guard_knockback,
       electoral_damage: s.electoral_damage, cooldown_seconds: s.attack_cooldown_seconds });
   }
   const expiredOwners = new Set(state.temporary_units.filter(t => t.expired).map(t => t.id));
@@ -351,7 +382,6 @@ function updateTemporaryUnits(sim) {
 }
 
 export function updateMilitantCombat(sim, npc) {
-  if (npc.task?.kind === 'COLLECT_EQUIPMENT') return false;
   const s = sim.config.balance.physical_units.militant;
   const target = nearestEnemy(sim.state, npc, s.detection_range, t => t.role !== 'SYMPATHISANT');
   npc.combat.target_id = target?.id || null;

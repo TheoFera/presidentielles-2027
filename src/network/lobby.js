@@ -1,23 +1,22 @@
 import { ALL_FACTIONS } from '../simulation/world.js';
 export const factions = ['melenchon', 'le_pen', 'philippe'];
 const availableFactions = room => room.mode === 'debate' ? ALL_FACTIONS : factions;
-/** Mode du salon, choisi par l’hôte à la création : campagne (3 joueurs) ou débat (2 ou 3). */
+/** Mode du salon, choisi par l’hôte à la création : campagne ou débat, à 2 ou 3 joueurs. */
 export const roomMode = mode => mode === 'debate' ? 'debate' : 'campaign';
-export const minimumPlayers = room => room.mode === 'debate' ? 2 : 3;
 /**
- * La sélection s’ouvre quand le salon est complet (3 joueurs), ou en débat
- * quand l’hôte décide de jouer à deux (room.closed). Sinon tout le monde attend.
+ * La sélection s’ouvre quand le salon est complet (3 joueurs), ou quand l’hôte
+ * décide de jouer à deux (room.closed) : en campagne, l’IA prend le 3e candidat.
  */
-export const selectionOpen = room => room.players.length >= 3 || room.mode === 'debate' && room.closed === true && room.players.length >= 2;
+export const selectionOpen = room => room.players.length >= 3 || room.closed === true && room.players.length >= 2;
 /** Un nouveau joueur peut encore entrer : salon pas complet ni fermé par l’hôte. */
 export const joinable = room => room.phase === 'lobby' && room.players.length < 3 && !selectionOpen(room);
 /** Pseudo affiché dans le salon : court, sans balise ni caractère de contrôle. */
 export const cleanName = name => typeof name === 'string' ? name.replace(/[^\p{L}\p{N} ._'-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 16) || null : null;
 /** Nom montré aux autres : le pseudo, sinon le numéro de place. */
 export const playerName = player => player?.name || `Joueur ${player?.slot ?? ''}`.trim();
-/** Débat : l’hôte arrête d’attendre le 3e joueur et ouvre la sélection à deux. */
+/** L’hôte arrête d’attendre le 3e joueur et ouvre la sélection à deux. */
 export function closeRoom(room) {
-  if (room.mode !== 'debate' || room.phase !== 'lobby') throw new Error('Ce salon attend trois joueurs.');
+  if (room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
   if (room.players.length < 2) throw new Error('Attendez qu’un autre joueur rejoigne le salon.');
   room.closed = true;
 }
@@ -31,7 +30,7 @@ const validStyle = style => typeof style === 'string' && /^[\w:-]{1,80}$/.test(s
 
 export function chooseCandidate(room, playerId, faction, style = null) {
   const debate = room.mode === 'debate';
-  if (room.phase !== 'lobby' || !selectionOpen(room)) throw new Error(debate ? 'Attendez le troisième joueur, ou que l’hôte lance le débat à deux.' : 'Connectez les trois joueurs avant de choisir les candidats.');
+  if (room.phase !== 'lobby' || !selectionOpen(room)) throw new Error(`Attendez le troisième joueur, ou que l’hôte lance ${debate ? 'le débat' : 'la partie'} à deux.`);
   if (!availableFactions(room).includes(faction)) throw new Error('Choisissez un candidat disponible.');
   if (debate && !validStyle(style)) throw new Error('Choisissez un style.');
   const player = room.players.find(p => p.id === playerId);
@@ -40,6 +39,13 @@ export function chooseCandidate(room, playerId, faction, style = null) {
   if (room.players.some(p => p.id !== playerId && p.faction === faction && (!debate || p.style === style))) throw new Error(debate ? 'Ce candidat avec ce style vient d’être choisi par un autre joueur.' : 'Ce candidat vient d’être choisi par un autre joueur.');
   player.faction = faction;
   if (debate) player.style = style;
+}
+/** Format et plateau choisis par l’hôte pendant la sélection, partagés pour que chacun voie le même nombre de candidats. */
+export function setDebateOptions(room, options) {
+  if (room.mode !== 'debate' || room.phase !== 'lobby') throw new Error('Les réglages du débat ne sont plus modifiables.');
+  const format = options?.format, map = options?.map;
+  if (!DEBATE_FIGHTERS[format] || typeof map !== 'string' || !/^[\w-]{1,40}$/.test(map)) throw new Error('Réglages du combat invalides.');
+  room.debateOptions = { format, map };
 }
 export const candidatesReady = room => selectionOpen(room) && room.players.length <= 3
   && room.players.every(p => availableFactions(room).includes(p.faction) && (room.mode !== 'debate' || validStyle(p.style)));
@@ -58,7 +64,7 @@ function debateStart(room, setup) {
 /** L’hôte lance la préparation : tous les appareils chargent, puis confirment. */
 export function startRoom(room, setup = null) {
   if (room.phase !== 'lobby') throw new Error('La partie a déjà commencé.');
-  if (!selectionOpen(room)) throw new Error(room.mode === 'debate' ? 'Attendez le troisième joueur, ou lancez le débat à deux.' : 'Il faut trois joueurs connectés.');
+  if (!selectionOpen(room)) throw new Error(`Attendez le troisième joueur, ou lancez ${room.mode === 'debate' ? 'le débat' : 'la partie'} à deux.`);
   if (!candidatesReady(room)) throw new Error(room.mode === 'debate' ? 'Chaque joueur doit choisir son candidat et son style.' : 'Chaque joueur doit choisir son candidat.');
   if (room.mode === 'debate') room.debate = debateStart(room, setup);
   room.phase = 'loading'; room.players.forEach(p => { p.ready = false; });

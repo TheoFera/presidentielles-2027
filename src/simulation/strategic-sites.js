@@ -1,7 +1,7 @@
 import { CampaignStyleSystem } from './campaign-styles.js';
 import { scatterMoney } from './money.js';
 import { random, ringDelta, zoneAt } from './world.js';
-import { buildingSettings, siteVariant, acceptsDonations, isCapturable, presenceForLevel } from './building-rules.js';
+import { buildingSettings, siteVariant, acceptsDonations, isCapturable } from './building-rules.js';
 import { stableIdOrder } from './territory.js';
 
 const neutralTypes = new Set(['imprimerie', 'meeting', 'institut_sondage']);
@@ -46,17 +46,6 @@ export function captureLimitReason(state, config, building, faction) {
   const s = buildingSettings(config, building, faction);
   if (Number.isFinite(s.max_per_candidate) && activeOwnedSites(state, building.type, faction).length >= s.max_per_candidate) return 'CANDIDATE_LIMIT';
   return null;
-}
-
-export function currentMaintainThreshold(state, config, building) {
-  if (!building.owner_id || !isCapturable(building)) return 0;
-  if (building.controls_zone) return 0;
-  const s = buildingSettings(config, building);
-  let required = presenceForLevel(s, 'maintain_presence', building.level);
-  const anchor = state.buildings.find(b => b.type === 'permanence' && b.owner_id === building.owner_id && b.state === 'ACTIVE'
-    && b.biome_id === building.biome_id);
-  if (anchor) required -= config.balance.buildings.permanence.biome_maintain_presence_reduction_by_level[anchor.level - 1];
-  return Math.max(0, required);
 }
 
 export function plannedHeadquartersSuccessor(state, faction, fromX = null) {
@@ -113,11 +102,12 @@ export function updateStrategicSites(sim) {
     building.current_political_presence = localPoliticalPresence(state, building.subzone_id, building.owner_id);
     building.hostile_pressure = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.faction_id !== building.owner_id
       && n.pressure_target_id === building.id).reduce((sum, n) => sum + config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.hostile_pressure_per_SO, 0);
-    building.required_presence = currentMaintainThreshold(state, config, building);
+    // Un bâtiment ne se perd plus faute de partisans : seul un raid plus nombreux que la présence locale le ferme.
+    building.required_presence = building.hostile_pressure > 0 ? Math.floor(building.hostile_pressure) + 1 : 0;
     building.current_effective_presence = Math.max(0, building.current_political_presence - building.hostile_pressure);
     if (building.headquarters) { building.closure_progress = 0; continue; }
     const s = buildingSettings(config, building);
-    if (building.controls_zone ? building.hostile_pressure > building.current_political_presence : building.current_effective_presence < building.required_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
+    if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
     if (building.closure_progress >= 1 - 1e-9) neutralizeSite(sim, building);
   }

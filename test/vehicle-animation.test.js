@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { vehicleWheelTravel } from '../src/presentation/carte/vehicles.js';
+import { vehicleWheelSpin, vehicleWheelTravel } from '../src/presentation/carte/vehicles.js';
 
 test('Les roues suivent le déplacement, les arrêts et le passage autour de la carte', () => {
   const renderer = { cameraX: 98, metrics: { anchorX: 100, pixelsPerUnit: 10 } };
@@ -23,4 +23,16 @@ test('Les roues suivent le déplacement, les arrêts et le passage autour de la 
   assert.equal(travel(90), 0);
   entity.vehicle = { type: 'scooter', site_id: 'autre-garage' };
   assert.equal(travel(120), 0);
+});
+
+test('À grande vitesse, les rayons tournent toujours dans le sens du déplacement', () => {
+  const limit = Math.PI * 2 / 12 / 3;
+  // 10 pixels par image pour une roue de 21 pixels : presque un écart entre deux rayons.
+  let spin = vehicleWheelSpin(null, 0, 50, 21, 12);
+  spin = vehicleWheelSpin(spin, 0.2, 50, 21, 12);
+  assert.equal(spin.angle, limit);
+  spin = vehicleWheelSpin(spin, 0.25, 50, 21, 12);
+  assert.ok(spin.angle > limit && spin.angle < limit * 2);
+  spin = vehicleWheelSpin(spin, -5, 50, 21, 12);
+  assert.ok(spin.angle < limit);
 });

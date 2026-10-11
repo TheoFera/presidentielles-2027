@@ -57,8 +57,8 @@ export class DebatePrediction {
     this.base = state;
     const ack = state?.input_acks?.[this.localId];
     if (Number.isInteger(ack)) this.history = this.history.filter(h => h.seq > ack);
-    // Hors combat (compte à rebours, fin de round), rien à prédire : l'affichage suit l'hôte.
-    if (state?.phase !== 'FIGHT' || !Number.isInteger(ack)) { this.state = this.previous = null; this.offsets.clear(); return; }
+    // Hors combat (compte à rebours, fin de round) ou combat en attente d'un joueur : rien à prédire.
+    if (state?.phase !== 'FIGHT' || state.sync_wait || !Number.isInteger(ack)) { this.state = this.previous = null; this.offsets.clear(); return; }
     const shown = this.state ? this.view().state : null;
     // Une seule copie de travail ; l'état d'avant le dernier pas est gardé pour le lissage.
     let current = clone(state), previous = current;
@@ -112,7 +112,20 @@ export class DebatePrediction {
  * jusqu'au présent (« retour en arrière ») : pas de file d'attente qui s'allonge, pas de pas
  * fusionnés, et la prédiction de l'invité reste juste. Recalculer quelques pas de débat ne coûte
  * qu'une fraction de milliseconde.
+ *
+ * Attente des joueurs : chaque invité indique le dernier pas de l'hôte qu'il a reçu (`seen`). Si un
+ * invité ne donne plus de nouvelles ou prend trop de retard, l'hôte met le combat en attente pour
+ * tout le monde (`waiting`, envoyé comme `sync_wait`) et reprend quand chacun est de nouveau à jour.
+ * Un nouveau round ne démarre pas tant que chaque invité n'a pas reçu son compte à rebours.
  */
+// Mise en attente : plus de nouvelles depuis 0,7 s (l'invité en envoie au moins 5 par seconde), ou un
+// aller-retour (envoi d'un état par l'hôte → message de l'invité qui en accuse réception) au-delà de
+// 0,8 s ET 0,5 s plus long que d'habitude pour ce joueur : on attend la fin d'un à-coup, mais une
+// connexion lente en permanence ne bloque pas le combat.
+const WAIT_SILENCE_MS = 700, WAIT_LAG_FRAMES = 24, WAIT_EXTRA_FRAMES = 15;
+// Reprise : nouvelles depuis moins de 0,4 s et aller-retour revenu près de l'habitude, pendant 10 pas.
+const RESUME_SILENCE_MS = 400, RESUME_LAG_FRAMES = 12, RESUME_EXTRA_FRAMES = 6, RESUME_FRAMES = 10;
+
 export class DebateHost {
   constructor(match, { localId, remoteIds, keep = 12, now } = {}) {
     this.match = match; this.localId = localId; this.keep = keep;
@@ -121,20 +134,61 @@ export class DebateHost {
     this.frame = 0; this.version = 0; this.rolledBack = false;
     this.history = new Map([[0, match.getState()]]); this.localLog = new Map();
     this.offsets = new Map(); this.smooth = SMOOTH_SECONDS;
+    this.seen = new Map(); this.lag = new Map(); this.lags = new Map(); this.waiting = false; this.syncedFor = 0; this.roundFrame = 0; this.lastPhase = match.state.phase;
   }
   /** Un pas : `localCommands`, les commandes du joueur de l'hôte. */
   step(localCommands) {
     const frame = ++this.frame;
-    this.localLog.set(frame, localCommands);
-    this.match.step(this.commandsAt(frame, localCommands, false));
-    this.history.set(frame, this.match.getState());
+    if (this.updateWaiting()) {
+      // En attente : le combat ne bouge pas, mais les pas des invités sont consommés (pas de retard à la reprise).
+      for (const timeline of this.timelines.values()) timeline.commandsFor(frame);
+      this.localLog.set(frame, null);
+    } else {
+      this.localLog.set(frame, localCommands);
+      this.match.step(this.commandsAt(frame, localCommands, false));
+    }
+    this.afterStep(frame);
     this.version++;
-    this.history.delete(frame - this.keep - 1); this.localLog.delete(frame - this.keep - 1);
+    const old = frame - this.keep - 5;
+    this.history.delete(old); this.localLog.delete(old);
   }
-  /** Un message d'invité (`id` : son combattant). Recalcule si son pas arrive en retard. */
-  receive(id, seq, commands) {
-    const from = this.timelines.get(id)?.receive(seq, commands, this.frame);
+  afterStep(frame) {
+    this.history.set(frame, this.match.getState());
+    const phase = this.match.state.phase;
+    if (phase === 'COUNTDOWN' && this.lastPhase !== 'COUNTDOWN') this.roundFrame = frame;
+    this.lastPhase = phase;
+  }
+  /** Un message d'invité (`id` : son combattant ; `seen` : dernier pas de l'hôte qu'il a reçu). */
+  receive(id, seq, commands, seen = null) {
+    if (!this.timelines.has(id)) return;
+    // Aller-retour en pas de l'hôte : de l'envoi de l'état `seen` à ce message qui en accuse réception.
+    if (Number.isInteger(seen) && seen >= (this.seen.get(id) ?? 0)) {
+      const lag = this.frame - seen;
+      this.seen.set(id, seen); this.lag.set(id, lag);
+      // Mesures récentes (8 s environ) pour connaître l'aller-retour habituel de ce joueur.
+      const list = this.lags.get(id) || []; list.push(lag); if (list.length > 40) list.shift(); this.lags.set(id, list);
+    }
+    const from = this.timelines.get(id).receive(seq, commands, this.frame);
     if (from != null) this.rollback(from);
+  }
+  /** Un invité est-il à jour ? `strict` : seuils de reprise, plus exigeants que ceux de mise en attente. */
+  inSync(id, strict) {
+    const timeline = this.timelines.get(id), silence = timeline.now() - timeline.lastHeard, lag = this.lag.get(id) ?? Infinity;
+    // Habituel : le quart le plus rapide des mesures récentes. Un à-coup ne le change pas, une lenteur durable si.
+    const list = [...(this.lags.get(id) || [])].sort((a, b) => a - b), usual = list.length ? list[list.length >> 2] : 0;
+    return strict ? silence < RESUME_SILENCE_MS && lag < Math.max(RESUME_LAG_FRAMES, usual + RESUME_EXTRA_FRAMES)
+      : silence < WAIT_SILENCE_MS && lag < Math.max(WAIT_LAG_FRAMES, usual + WAIT_EXTRA_FRAMES);
+  }
+  updateWaiting() {
+    const ids = [...this.timelines.keys()];
+    if (!ids.length) return false;
+    // Nouveau round : chaque invité doit avoir reçu le début du compte à rebours.
+    const roundGate = this.match.state.phase === 'COUNTDOWN' && ids.some(id => (this.seen.get(id) ?? -1) < this.roundFrame);
+    if (this.waiting) {
+      this.syncedFor = !roundGate && ids.every(id => this.inSync(id, true)) ? this.syncedFor + 1 : 0;
+      if (this.syncedFor >= RESUME_FRAMES) this.waiting = false;
+    } else if (roundGate || ids.some(id => !this.inSync(id, false))) { this.waiting = true; this.syncedFor = 0; }
+    return this.waiting;
   }
   rollback(from) {
     const base = this.history.get(from - 1);
@@ -142,7 +196,9 @@ export class DebateHost {
     const before = new Map(this.match.state.candidates.map(c => [c.id, c]));
     this.match.state = clone(base); this.match.copy = base;
     for (let frame = from; frame <= this.frame; frame++) {
-      this.match.step(this.commandsAt(frame, this.localLog.get(frame) || [], true));
+      // Pas joués pendant une attente : le combat n'avait pas bougé.
+      const local = this.localLog.get(frame);
+      if (local !== null) this.match.step(this.commandsAt(frame, local || [], true));
       this.history.set(frame, this.match.getState());
     }
     // Les combattants déplacés par le recalcul glissent jusqu'à leur nouvelle place.

@@ -13,7 +13,7 @@ import { titleRank } from '../../src/simulation/player-titles.js';
 
 // Campagne solo sans accélération de débogage : 365 jours × 2,5 s ≈ 15 min (+ sprint).
 // Le jeu n'envoie pas la fin d'une partie accélérée ; 10 min laissent une marge.
-export const SOLO_CAMPAIGN_MIN_SECONDS = 600;
+export const SOLO_CAMPAIGN_MIN_SECONDS = 420;
 export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 
 export async function listUnlocks(db, userId) {

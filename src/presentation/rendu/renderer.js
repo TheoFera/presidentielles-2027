@@ -152,7 +152,8 @@ export class WorldRenderer {
     const oldPositions = this.oldPositions;
     // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
     const rows = new Map(state.npcs.map(npc => [npc, meetingCrowdRow(npc, state)]));
-    const npcs = [...state.npcs].sort((a, b) => rows.get(a) - rows.get(b));
+    // Une recrue de raid entrée dans le local n'est plus visible jusqu'à sa sortie en service d'ordre.
+    const npcs = state.npcs.filter(npc => !(npc.task?.kind === 'JOIN_RAID' && npc.task.phase === 'INSIDE')).sort((a, b) => rows.get(a) - rows.get(b));
     const entities = [...npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
     const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
     // Deux PNJ immobiles ne restent pas l'un sur l'autre : écart d'environ une demi-silhouette.
@@ -348,7 +349,7 @@ export class WorldRenderer {
       rect(7, -16, 4, 6, this.p.infrastructure.paper_tone);
       rect(8, -15, 2, 1, tone); rect(8, -13, 2, 1, tone);
     }
-    if (entity.role === 'SERVICE_D_ORDRE' || entity.task?.kind === 'COLLECT_EQUIPMENT' && entity.task.phase === 'PICKUP') {
+    if (entity.role === 'SERVICE_D_ORDRE') {
       rect(entity.facing > 0 ? 10 : -11, -24, 2, 16, '#595143');
       rect(-4, -27, 9, 3, tone);
     }

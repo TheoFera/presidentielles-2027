@@ -95,7 +95,7 @@ export async function showMultiplayerSetup(menu, connect, mode = 'campaign') {
 // Secours sans Internet : connexion directe par QR (même Wi-Fi) ou serveur de l’ordinateur.
 async function showLocalSetup(menu, connect, mode = 'campaign') {
   const debate = mode === 'debate';
-  menu.page('multiplayer-local', 'Sans Internet · même Wi-Fi', `<p class="menu-intro">${debate ? '2 ou 3 appareils' : '3 appareils'} sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
+  menu.page('multiplayer-local', 'Sans Internet · même Wi-Fi', `<p class="menu-intro">2 ou 3 appareils sur le même Wi-Fi. L’un crée la partie.</p><form id="room-form" class="multiplayer-form"><div class="setup-fields"><label>Connexion<select id="network-method"><option value="direct">Entre téléphones · Wi-Fi</option><option value="server">Avec un serveur local</option></select></label></div><p id="server-status" class="menu-status" role="status"></p><div class="mode-grid network-modes"><div class="tutorial-card"><h2>Héberger</h2><p>Affichez les deux QR pour vos amis.</p><button type="button" class="menu-primary" id="create-room">Créer un salon</button></div><div class="tutorial-card"><h2>Rejoindre</h2><label id="room-code-label" for="room-code">Invitation reçue</label><input id="room-code" placeholder="Collez l’invitation P27:…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" required><button class="menu-primary" type="submit">Rejoindre</button></div></div><p id="room-error" class="menu-status" role="alert"></p></form><p class="menu-note">Gardez le jeu ouvert. Autorisez le réseau local si le navigateur le demande.</p>`);
   menu.back = () => onlineServer() ? showMultiplayerSetup(menu, connect, mode) : menu.players(mode);
   const generation = menu.generation;
   const joinCard = menu.element.querySelector('#room-code').closest('.tutorial-card');
@@ -172,7 +172,7 @@ function signalOutput(label) {
   return `<label for="outgoing-code">${label}</label><div class="copy-row"><input id="outgoing-code" readonly spellcheck="false"><button id="copy-signal" type="button">Copier</button></div>`;
 }
 export function showPeerInvite(menu, session) {
-  // Débat à deux : « Jouer à deux » ferme le salon, et la sélection s’ouvre pour tout le monde.
+  // Partie à deux : « Jouer à deux » ferme le salon, et la sélection s’ouvre pour tout le monde.
   const playTwo = () => session.request('close').catch(error => { session.notice = error.message; menu.roomUpdate?.(); });
   const back = () => { if (selectionOpen(session.room)) showLobby(menu, session); else menu.home(); };
   showQrInvitations(menu, session, back, () => showTextInvite(menu, session), playTwo);
@@ -246,12 +246,13 @@ function invitationLink(menu, session) {
 }
 /**
  * Salle d’attente : le code à partager (en ligne) et les trois places, avec le pseudo
- * de chaque joueur. En débat, l’hôte peut commencer à deux sans attendre le 3e.
+ * de chaque joueur. L’hôte peut commencer à deux sans attendre le 3e (en campagne,
+ * l’IA joue alors le candidat restant).
  */
 function showWaitingRoom(menu, session, leave) {
   const code = !session.direct;
   const debate = session.room.mode === 'debate';
-  menu.page('waiting', code ? 'Invitez vos amis' : 'Salon', `<div class="waiting-room" data-code="${code}">${code ? `<section class="tutorial-card waiting-code"><span class="eyebrow">Code de la partie</span><strong class="room-code"></strong><p>${debate ? '1 ou 2 amis' : 'Vos 2 amis'} touchent « Rejoindre » et tapent ce code, ou ouvrent le lien.</p><div class="waiting-actions"><button id="share-room" class="menu-primary waiting-button"><span aria-hidden="true">✉</span> Envoyer l’invitation</button><button id="copy-link" class="waiting-button"><span aria-hidden="true">⧉</span> Copier le lien</button></div></section>` : ''}<section class="tutorial-card waiting-players"><header><h2>Joueurs</h2><span class="waiting-count"></span></header><ol class="lobby-slots" aria-label="Joueurs"></ol><button id="play-two" class="menu-primary waiting-button" hidden>Commencer à deux <span aria-hidden="true">➜</span></button></section></div><p id="room-message" class="menu-status" role="status"></p>`, leave);
+  menu.page('waiting', code ? 'Invitez vos amis' : 'Salon', `<div class="waiting-room" data-code="${code}">${code ? `<section class="tutorial-card waiting-code"><span class="eyebrow">Code de la partie</span><strong class="room-code"></strong><p>1 ou 2 amis touchent « Rejoindre » et tapent ce code, ou ouvrent le lien.</p><div class="waiting-actions"><button id="share-room" class="menu-primary waiting-button"><span aria-hidden="true">✉</span> Envoyer l’invitation</button><button id="copy-link" class="waiting-button"><span aria-hidden="true">⧉</span> Copier le lien</button></div></section>` : ''}<section class="tutorial-card waiting-players"><header><h2>Joueurs</h2><span class="waiting-count"></span></header><ol class="lobby-slots" aria-label="Joueurs"></ol><button id="play-two" class="menu-primary waiting-button" hidden>Commencer à deux <span aria-hidden="true">➜</span></button></section></div><p id="room-message" class="menu-status" role="status"></p>`, leave);
   const root = menu.element, status = root.querySelector('#room-message');
   root.querySelector('#play-two').onclick = event => {
     event.currentTarget.disabled = true;
@@ -271,7 +272,7 @@ function showWaitingRoom(menu, session, leave) {
 function slotContent(session, slot) {
   const player = session.room.players.find(p => p.slot === slot);
   if (!player) {
-    const optional = slot === 3 && session.room.mode === 'debate';
+    const optional = slot === 3;
     return `<li data-ready="false"><span class="slot-number">J${slot}</span><span class="slot-avatar" aria-hidden="true">?</span><span class="slot-name">En attente…</span>${optional ? '<span class="slot-tags"><em>Facultatif</em></span>' : ''}</li>`;
   }
   const name = playerName(player), self = player.id === session.id;
@@ -288,10 +289,11 @@ function updateWaitingRoom(menu, session) {
   root.querySelector('.waiting-count').textContent = `${count}/3`;
   const debate = room.mode === 'debate';
   const playTwo = root.querySelector('#play-two');
-  playTwo.hidden = !(debate && count === 2 && session.host); playTwo.disabled = false;
-  const next = !debate ? 'La sélection s’ouvrira quand les trois joueurs seront connectés.'
-    : count < 2 ? 'Envoyez le code à 1 ou 2 amis.'
-    : session.host ? 'Attendez un 3e joueur, ou commencez à deux.' : 'L’hôte attend un 3e joueur ou lance le débat à deux.';
+  playTwo.hidden = !(count === 2 && session.host); playTwo.disabled = false;
+  playTwo.firstChild.textContent = debate ? 'Commencer à deux ' : 'Commencer à deux contre l’IA ';
+  const next = count < 2 ? 'Envoyez le code à 1 ou 2 amis.'
+    : session.host ? `Attendez un 3e joueur, ou commencez à deux${debate ? '' : ' (l’IA joue le 3e candidat)'}.`
+    : `L’hôte attend un 3e joueur ou lance ${debate ? 'le débat' : 'la partie'} à deux.`;
   root.querySelector('#room-message').textContent = (session.notice ? `${session.notice} ` : '') + next;
 }
 export function updateLobby(menu, session, leave = () => menu.home()) {

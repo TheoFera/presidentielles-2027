@@ -18,7 +18,7 @@ export function startRally(sim, event) {
   const direction = random(state.campaign_director) < 0.5 ? 1 : -1;
   const start = zones[direction > 0 ? 0 : 2].center, end = zones[direction > 0 ? 2 : 0].center;
   const eligible = state.npcs.filter(n => zoneAt(state.world, n.x).biome_id === event.target_biome_id
-    && n.role !== 'DEMOBILISE' && !n.rally_event_id).sort(stableIdOrder);
+    && !['DEMOBILISE', 'SERVICE_D_ORDRE'].includes(n.role) && n.task?.kind !== 'JOIN_RAID' && !n.rally_event_id).sort(stableIdOrder);
   // Un mélange déterministe évite de choisir toujours les mêmes identités.
   for (let i = eligible.length - 1; i > 0; i--) {
     const j = Math.floor(random(state.campaign_director) * (i + 1));
@@ -28,8 +28,8 @@ export function startRally(sim, event) {
   const participantIds = new Set(participants.map(n => n.id));
   event.march = { phase: 'GATHERING', direction, start_x: start, end_x: end, center_x: start,
     phase_tick: state.tick, participant_ids: participants.map(n => n.id) };
-  const maxDistance = participants.reduce((max, n) => Math.max(max, Math.abs(ringDelta(n.x, start, state.world.length))), 0);
-  event.march.gather_until_tick = state.tick + sim.secondsToTicks(Math.max(event.parameters.gather_seconds, maxDistance / event.parameters.gather_speed + 2));
+  // Regroupement de durée fixe : les retardataires ne sont pas attendus, ils rattrapent le cortège en route.
+  event.march.gather_until_tick = state.tick + sim.secondsToTicks(event.parameters.gather_seconds);
   event.end_tick = event.march.gather_until_tick + sim.secondsToTicks(Math.abs(end - start) / event.parameters.march_speed + 3);
   participants.forEach((npc, index) => {
     for (const b of state.buildings) for (const order of b.queue) if (order.assigned_npc_id === npc.id) order.assigned_npc_id = null;
@@ -102,7 +102,8 @@ export function rallyNpcStep(sim, npc) {
     const settings = event.parameters;
     const target = crowdTarget(event, npc);
     const lag = Math.abs(ringDelta(npc.x, target, sim.state.world.length));
-    const speed = event.march.phase === 'GATHERING' ? settings.gather_speed : settings.march_speed * (lag > 0.7 ? 1.35 : 1.05);
+    // Loin du cortège, on marche au pas du regroupement jusqu'à le rejoindre, sans se téléporter.
+    const speed = event.march.phase === 'GATHERING' || lag > 2 ? settings.gather_speed : settings.march_speed * (lag > 0.7 ? 1.35 : 1.05);
     position(sim, npc, target, speed * (0.96 + (npc.rally_index % 5) * 0.02));
     return true;
   }

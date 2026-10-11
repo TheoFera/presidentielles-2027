@@ -2,7 +2,7 @@
   "prototype_version": "0.3",
   "time": {
     "starting_days_before_first_round": 365,
-    "real_seconds_per_game_day": 2.5,
+    "real_seconds_per_game_day": 1.4,
     "second_round_sprint_seconds": 60
   },
   "camera": {
@@ -38,8 +38,8 @@
         "retraites": 1.2,
         "quartiers_riches": 2
       },
-      "cooldown_min_seconds": 20,
-      "cooldown_max_seconds": 40,
+      "cooldown_min_seconds": 12,
+      "cooldown_max_seconds": 24,
       "handoff_radius_units": 2.5,
       "handoff_toss_distance_units": 0.9,
       "handoff_toss_seconds": 0.45,
@@ -66,9 +66,11 @@
     ]
   },
   "persuasion": {
-    "candidate_base_seconds": 3,
-    "militant_base_seconds": 5,
+    "candidate_base_seconds": 2.2,
+    "militant_base_seconds": 3.5,
     "melenchon_personal_time_multiplier": 0.55,
+    "style_biome_time_divisor": 4,
+    "opposite_biome_time_multiplier": 2,
     "max_simultaneous_targets_per_actor": 1
   },
   "physical_units": {
@@ -102,15 +104,16 @@
     "service_ordre": {
       "hidden_durability": 90,
       "move_speed": 3,
-      "home_biome_guard_radius_screens": 3,
-      "raid_duration_seconds": 18,
+      "raid_recruits": 3,
+      "engage_range": 3,
+      "candidate_focus_range": 8,
       "raid_cost": 2,
       "attack_range": 1.6,
       "attack_cooldown_seconds": 0.9,
       "attack_damage": 9,
       "electoral_damage": 0.06,
       "knockback": 2.8,
-      "patrol_radius": 2,
+      "spacing_units": 0.8,
       "raid_cooldown_seconds": 35
     },
     "demobilized": {
@@ -126,10 +129,11 @@
     "ko_fall_seconds": 0.7,
     "ko_ground_seconds": 0.5,
     "ko_respawn_min_seconds": 3,
-    "ko_respawn_max_seconds": 15,
+    "ko_respawn_max_seconds": 9,
     "ko_respawn_progress_exponent": 1,
     "ko_money_drop_ratio": 0.3,
     "light_hit_hidden_damage": 8,
+    "le_pen_sympathisant_damage_multiplier": 1.5,
     "finisher_hidden_damage": 14,
     "light_knockback": 0,
     "finisher_knockback": 18,
@@ -192,16 +196,11 @@
     "melenchon_holograms": {
       "count": 4,
       "duration_seconds": 7,
-      "move_speed": 5.5,
       "hidden_damage_per_hit": 3.5,
       "knockback": 2.5,
-      "detection_range": 10,
-      "attack_range": 1.6,
-      "attack_cooldown_seconds": 0.55,
       "electoral_damage": 0.012,
-      "spawn_distance": 3,
-      "spawn_spacing": 2.5,
-      "hidden_durability": 15,
+      "spawn_distance": 2.4,
+      "spawn_spacing": 2,
       "appearance_seconds": 0.5
     },
     "le_pen_navy_wave": {
@@ -220,12 +219,12 @@
       "guards_right": 1,
       "duration_seconds": 9,
       "guard_hidden_durability": 120,
-      "guard_hit_hidden_damage": 12,
-      "guard_knockback": 4.5,
+      "guard_hit_hidden_damage": 9,
+      "guard_knockback": 6.5,
       "follow_offset": 1.1,
       "follow_speed": 8,
       "attack_range": 1.5,
-      "attack_cooldown_seconds": 0.7,
+      "attack_cooldown_seconds": 0.95,
       "electoral_damage": 0.04,
       "interception_radius": 0.6
     },
@@ -291,9 +290,6 @@
       "required_presence_N1": 2,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 2,
-      "maintain_presence_N2": 3,
-      "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
@@ -306,9 +302,6 @@
       ],
       "militant_damage_multiplier_by_level": [
         0.65
-      ],
-      "biome_maintain_presence_reduction_by_level": [
-        1
       ],
       "hq_resistance_multiplier": 0.85,
       "purchase_hold_seconds": 2,
@@ -325,9 +318,6 @@
       "required_presence_N1": 1,
       "required_presence_N2": 1,
       "required_presence_N3": 1,
-      "maintain_presence_N1": 0,
-      "maintain_presence_N2": 0,
-      "maintain_presence_N3": 0,
       "closure_delay_seconds": 0,
       "required_local_sympathisants": 0,
       "build_cost": null,
@@ -358,24 +348,12 @@
       "required_presence_N1": 3,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 3,
-      "maintain_presence_N2": 4,
-      "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
       "upgrade_costs": [],
-      "baton_cost_by_level": [
-        0.5
-      ],
-      "equipment_seconds_by_level": [
-        4
-      ],
       "purchase_hold_seconds": 2,
       "pickup_seconds": 1,
-      "max_active_SO_by_level": [
-        null
-      ],
       "raid_unlock_level": 1,
       "hostile_pressure_per_SO": 1.25,
       "reaction_speed_multiplier_by_level": [
@@ -394,9 +372,6 @@
       "required_presence_N1": 3,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 3,
-      "maintain_presence_N2": 4,
-      "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
@@ -404,7 +379,7 @@
       "close_enemy_building_cost_by_level": [
         5
       ],
-      "meeting_ban_seconds": 35,
+      "meeting_ban_seconds": 20,
       "allowed_targets_by_level": [
         [
           "financement",
@@ -417,7 +392,7 @@
       "target_loses_all_upgrades": true,
       "target_requires_rebuild": true,
       "purchase_hold_seconds": 2,
-      "closure_cooldown_seconds": 20
+      "closure_cooldown_seconds": 12
     },
     "financement": {
       "ownership_model": "capturable",
@@ -431,9 +406,6 @@
       "required_presence_N1": 2,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 2,
-      "maintain_presence_N2": 3,
-      "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
@@ -456,14 +428,11 @@
       "required_presence_N1": 3,
       "required_presence_N2": 5,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 2,
-      "maintain_presence_N2": 4,
-      "maintain_presence_N3": 5,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
       "upgrade_costs": [],
-      "broadcast_interval_seconds": 15,
+      "broadcast_interval_seconds": 9,
       "purchase_hold_seconds": 2,
       "global_limit": 3,
       "upgrade_pause_seconds": 0.4
@@ -480,9 +449,6 @@
       "required_presence_N1": 0,
       "required_presence_N2": 0,
       "required_presence_N3": 0,
-      "maintain_presence_N1": 0,
-      "maintain_presence_N2": 0,
-      "maintain_presence_N3": 0,
       "closure_delay_seconds": 0,
       "max_level": 1,
       "upgrade_costs": [],
@@ -504,9 +470,6 @@
       "required_presence_N1": 1,
       "required_presence_N2": 1,
       "required_presence_N3": 1,
-      "maintain_presence_N1": 0,
-      "maintain_presence_N2": 0,
-      "maintain_presence_N3": 0,
       "closure_delay_seconds": 0,
       "max_level": 1,
       "meeting_max_level": 1,
@@ -515,9 +478,9 @@
         10
       ],
       "activation_cost": 10,
-      "hold_seconds": 10,
+      "hold_seconds": 7,
       "pause_grace_seconds": 5,
-      "cooldown_seconds": 50,
+      "cooldown_seconds": 30,
       "gather_speed": 4.8,
       "gather_spacing": 0.6,
       "podium_height": 0.42,
@@ -540,9 +503,6 @@
       "required_presence_N1": 1,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 0,
-      "maintain_presence_N2": 3,
-      "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
@@ -565,9 +525,6 @@
       "required_presence_N1": 1,
       "required_presence_N2": 4,
       "required_presence_N3": 6,
-      "maintain_presence_N1": 0,
-      "maintain_presence_N2": 3,
-      "maintain_presence_N3": 4,
       "closure_delay_seconds": 8,
       "closure_recovery_per_second": 2,
       "max_level": 1,
@@ -593,7 +550,7 @@
       "heavy": 1.1,
       "hologram": 0.12,
       "wave": 6,
-      "crs": 0.22,
+      "crs": 0.16,
       "charged": 1.65
     },
     "ai_retarget_seconds": 2.2,
@@ -827,7 +784,6 @@
     "enabled": true,
     "reserve_sympathisants_per_biome": 2,
     "militant_goal_per_biome": 5,
-    "guard_goal_per_site": 3,
     "army_detour_units": 30,
     "investment_reference_k": 20,
     "development_order": [
@@ -886,7 +842,7 @@
   "campaign_events": {
     "event_enabled": true,
     "initial_event_delay_days": 15,
-    "notification_display_seconds": 15,
+    "notification_display_seconds": 6,
     "notification_arrival_seconds": 6,
     "max_simultaneous_events": 3,
     "leader_target_multiplier": 1.6,
@@ -1059,7 +1015,7 @@
       },
       "RASSEMBLEMENT": {
         "base_weight": 1,
-        "duration": 100,
+        "duration": 60,
         "max_simultaneous": 1,
         "leader_weight": 1,
         "second_weight": 1,
@@ -1075,7 +1031,7 @@
           "CRISIS": 1
         },
         "participation_ratio": 0.94,
-        "gather_seconds": 12,
+        "gather_seconds": 6,
         "march_speed": 1.8,
         "gather_speed": 5.5,
         "conversion_seconds": 0.12,
@@ -1119,8 +1075,8 @@
   "vehicles": {
     "mount_seconds": 1,
     "garage_radius_units": 0.7,
-    "velo_speed_multiplier": 2.2,
-    "scooter_speed_multiplier": 2.9
+    "velo_speed_multiplier": 2.8,
+    "scooter_speed_multiplier": 3.3
   },
   "minor_candidates": {
     "enabled": true,
