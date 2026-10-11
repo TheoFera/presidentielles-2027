@@ -274,7 +274,8 @@ async function start() {
         else await document.documentElement.requestFullscreen();
       } catch { notify('Le plein écran est indisponible dans ce navigateur.'); }
     } else if (!session && !debateMatch) debug.action(key);
-  }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, config.balance.dash.double_tap_window_ms);
+  }, config.layout.visual_layout.camera_anchor_x_ratio, config.prototype.presentation.touch_pause_radius_ratio, { keyboard: config.balance.dash.double_tap_window_ms,
+    touch: config.balance.dash.touch_double_tap_window_ms, maxHold: config.balance.dash.double_tap_max_hold_ms });
   const stylesDisplay = new CampaignStylesDisplay(config, profile, command => {
     if (menu?.active) return;
     if (paused && command.type === 'HoldCampaignStyle' && command.active) return;

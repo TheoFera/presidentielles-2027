@@ -14,7 +14,7 @@ export function validateConfig(config) {
   if (combat.charge_activation_seconds >= combat.charge_ready_seconds) throw new Error('Configuration : la préparation doit commencer avant que la charge soit prête.');
   positive(config.balance.first_round_debate.damage.charged, 'dégâts chargés en débat');
   const dash = config.balance.dash, charge = config.balance.special_charge;
-  for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms', 'input_buffer_seconds']) positive(dash?.[key], `dash : ${key}`);
+  for (const key of ['max_charges', 'recharge_seconds', 'duration_seconds', 'distance', 'invulnerability_seconds', 'double_tap_window_ms', 'touch_double_tap_window_ms', 'double_tap_max_hold_ms', 'input_buffer_seconds']) positive(dash?.[key], `dash : ${key}`);
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   if (!Number.isInteger(dash.max_charges) || Math.ceil(dash.invulnerability_seconds * hz) >= Math.ceil(dash.duration_seconds * hz)) throw new Error('Configuration : le dash doit avoir des charges entières et une invulnérabilité plus courte que sa durée.');
   for (const key of ['required_points', 'points_per_light_hit', 'points_per_second_hit', 'points_per_finisher_hit', 'decay_delay_seconds', 'decay_duration_seconds']) positive(charge?.[key], `ultime : ${key}`);

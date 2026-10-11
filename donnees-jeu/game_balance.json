@@ -1098,7 +1098,9 @@
     "duration_seconds": 0.24,
     "distance": 2.3,
     "invulnerability_seconds": 0.12,
-    "double_tap_window_ms": 350,
+    "double_tap_window_ms": 250,
+    "touch_double_tap_window_ms": 350,
+    "double_tap_max_hold_ms": 300,
     "input_buffer_seconds": 0.2,
     "allowed_in_debate": true
   },

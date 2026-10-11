@@ -1,6 +1,8 @@
 export class BrowserInput {
-  constructor(canvas, human, onAction, anchorRatio, touchPauseRadius, doubleTapWindow = 300) {
-    this.doubleTapWindow = doubleTapWindow; this.lastTap = null; this.lastHeld = {};
+  /** `dashTiming` : pause maximale entre deux appuis (clavier, tactile) et durée maximale du premier appui, en ms. */
+  constructor(canvas, human, onAction, anchorRatio, touchPauseRadius, dashTiming = {}) {
+    this.dashTiming = { keyboard: 250, touch: 350, maxHold: 300, ...dashTiming }; this.lastTap = null; this.lastHeld = {};
+    this.now = () => performance.now();
     this.attackSources = new Set(); this.keys = new Set(); this.pointerAxis = 0; this.pointers = new Map();
     this.human = human; this.onAction = onAction; this.canvas = canvas; this.anchorRatio = anchorRatio;
     window.addEventListener('keydown', event => {
@@ -69,8 +71,11 @@ export class BrowserInput {
   nearestArrow(x, y) {
     const arrows = [['move-left', -1], ['move-right', 1]].map(([id, axis]) => [document.getElementById(id)?.getBoundingClientRect(), axis]).filter(([rect]) => rect?.width);
     let best = null;
+    // Juste après un appui sur une flèche, le second appui d’un double appui rapide est souvent moins précis :
+    // cette flèche-là attrape les appuis de plus loin.
+    const pending = this.lastTap?.released != null && this.now() - this.lastTap.released <= this.dashTiming.touch ? this.lastTap.axis : 0;
     for (const [rect, axis] of arrows) {
-      const margin = Math.max(rect.width, rect.height) * 0.75;
+      const margin = Math.max(rect.width, rect.height) * (axis === pending ? 1.5 : 0.75);
       const dx = Math.max(rect.left - x, 0, x - rect.right), dy = Math.max(rect.top - y, 0, y - rect.bottom);
       const distance = Math.hypot(dx, dy);
       if (distance <= margin && (!best || distance < best.distance)) best = { axis, distance };
@@ -87,11 +92,18 @@ export class BrowserInput {
     // Un appui compte seulement quand une direction vient d’être enfoncée :
     // relâcher la direction opposée ne doit pas passer pour un nouvel appui.
     const pointing = [...this.pointers.values()];
+    const keyboard = { [-1]: left, [1]: right };
     const held = { [-1]: left || pointing.includes(-1), [1]: right || pointing.includes(1) };
-    for (const axis of [-1, 1]) if (held[axis] && !this.lastHeld[axis]) {
-      const now = performance.now();
-      if (this.lastTap?.axis === axis && now - this.lastTap.time <= this.doubleTapWindow) { this.onAction(axis < 0 ? 'dash-left' : 'dash-right'); this.lastTap = null; }
-      else this.lastTap = { axis, time: now };
+    const now = this.now(), { maxHold } = this.dashTiming;
+    for (const axis of [-1, 1]) {
+      if (held[axis] && !this.lastHeld[axis]) {
+        // Le délai se compte depuis le relâchement du premier appui : un double appui très rapide
+        // comme un peu plus lent fonctionne. Le premier appui doit rester bref (pas une marche).
+        const tap = this.lastTap, limit = keyboard[axis] ? this.dashTiming.keyboard : this.dashTiming.touch;
+        if (tap?.axis === axis && tap.released != null && tap.released - tap.pressed <= maxHold && now - tap.released <= limit) {
+          this.onAction(axis < 0 ? 'dash-left' : 'dash-right'); this.lastTap = null;
+        } else this.lastTap = { axis, pressed: now, released: null };
+      } else if (!held[axis] && this.lastHeld[axis] && this.lastTap?.axis === axis && this.lastTap.released == null) this.lastTap.released = now;
     }
     this.lastHeld = held;
     if (left && right && !this.pointerAxis) this.human.setAxis(0);

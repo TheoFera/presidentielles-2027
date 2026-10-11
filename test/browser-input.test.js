@@ -195,3 +195,33 @@ test('Deux directions différentes ou annulation tactile ne déclenchent pas de 
   get('move-right').send('pointerdown'); get('move-right').send('pointercancel'); get('move-right').send('pointerdown');
   assert.deepEqual(actions, []);
 });
+test('Double appui : délai compté depuis le relâchement, premier appui bref, tactile plus tolérant', t => {
+  const { get, actions, win, input } = setup(t);
+  let now = 0; input.now = () => now;
+  const tapKey = (key, hold) => { win.send('keydown', { key, repeat: false }); now += hold; win.send('keyup', { key }); };
+  // Clavier : premier appui tenu 280 ms puis rappui 200 ms après le relâchement → dash.
+  tapKey('d', 280); now += 200; win.send('keydown', { key: 'd', repeat: false });
+  assert.deepEqual(actions, ['dash-right']); win.send('keyup', { key: 'd' });
+  // Très rapide : 30 ms d’appui, 20 ms de pause.
+  now += 1000; tapKey('q', 30); now += 20; win.send('keydown', { key: 'q', repeat: false });
+  assert.deepEqual(actions, ['dash-right', 'dash-left']); win.send('keyup', { key: 'q' });
+  // Une vraie marche (premier appui long) ne déclenche rien.
+  now += 1000; tapKey('d', 600); now += 100; win.send('keydown', { key: 'd', repeat: false });
+  assert.equal(actions.length, 2); win.send('keyup', { key: 'd' });
+  // Pause trop longue au clavier, mais acceptée au doigt.
+  now += 1000; tapKey('d', 50); now += 320; win.send('keydown', { key: 'd', repeat: false });
+  assert.equal(actions.length, 2); win.send('keyup', { key: 'd' });
+  now += 1000; get('move-left').send('pointerdown', { pointerId: 1 }); now += 50; get('move-left').send('pointerup', { pointerId: 1 });
+  now += 320; get('move-left').send('pointerdown', { pointerId: 2 });
+  assert.deepEqual(actions, ['dash-right', 'dash-left', 'dash-left']);
+});
+test('Tactile : le second appui rapide qui rate davantage la flèche compte encore pour elle', t => {
+  const { get, canvas, actions, input } = setup(t);
+  let now = 0; input.now = () => now;
+  const rect = (left, top) => ({ left, top, right: left + 50, bottom: top + 50, width: 50, height: 50 });
+  get('move-left').getBoundingClientRect = () => rect(20, 400);
+  get('move-right').getBoundingClientRect = () => rect(80, 400);
+  get('move-right').send('pointerdown', { pointerId: 1 }); now += 40; get('move-right').send('pointerup', { pointerId: 1 });
+  now += 80; canvas.send('pointerdown', { pointerId: 2, clientX: 190, clientY: 410 });
+  assert.deepEqual(actions, ['dash-right']);
+});
