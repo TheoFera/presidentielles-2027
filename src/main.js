@@ -44,7 +44,8 @@ import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
 import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
-import { earnedUnlocks, profileUnlockIds, unlocksToProfile } from './simulation/unlock-catalog.js';
+import { earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
+import { openUnlockChoice } from './presentation/menus/unlock-choice.js';
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -80,10 +81,12 @@ async function start() {
   const ranked = new RankedMatches(accounts, { notify: showAccountToast });
   // Campagne solo d'un joueur connecté, déclarée au serveur pour valider les déblocages en fin de partie.
   let soloRun = null;
+  // Écran « Choisis ton candidat » de la fin de campagne solo, tant qu'il n'est pas refermé.
+  let unlockChoice = null;
   const audio = new GameAudio();
   // Le navigateur n'autorise le son qu'après un geste de l'utilisateur.
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
-  document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button')) audio.play('ui'); }, true);
+  document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button, .unlock-choice button')) audio.play('ui'); }, true);
   const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
   // Pub plein écran au clic de fin de partie, en solo seulement (voir docs/publicites.md).
   const ads = new InterstitialAds({ audio });
@@ -117,10 +120,16 @@ async function start() {
     follow: () => { renderer.resetCamera(); canvas.focus(); },
     replay: () => {
       if (session) { returnHome(); return; }
+      // Le choix du candidat à débloquer passe avant : il apparaît tout de suite.
+      if (unlockChoice) { unlockChoice.reveal(); return; }
       void ads.afterGame('campaign', () => { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); });
     },
     // Quitter après le 1er tour est un abandon : pas de pub.
-    return: () => { if (session || state.phase !== 'RESULTS') returnHome(); else void ads.afterGame('campaign', returnHome); },
+    return: () => {
+      if (session || state.phase !== 'RESULTS') returnHome();
+      else if (unlockChoice) unlockChoice.reveal();
+      else void ads.afterGame('campaign', returnHome);
+    },
   });
   const help = document.getElementById('help');
   const money = document.getElementById('money');
@@ -408,7 +417,6 @@ async function start() {
     const run = soloRun = { id: null, tainted: false };
     accounts.startRun(candidateId.split(':')[1]).then(result => { run.id = result.run_id; }).catch(() => { /* Hors ligne : partie jouable, déblocage non enregistré. */ });
   }
-  /** Fin normale de la campagne : les candidats mis K.-O. sont débloqués maintenant (jamais avant). */
   /** K.-O. d'un candidat pas encore débloqué : félicitations, et rappel qu'il faut gagner l'élection. */
   function announceKnockouts() {
     const list = state.knockouts || [];
@@ -422,9 +430,13 @@ async function start() {
     }
     knockoutsSeen = list.length;
   }
+  /**
+   * Fin normale de la campagne : les candidats mis K.-O. se débloquent maintenant (jamais avant).
+   * Solo : le joueur en CHOISIT un s'il a gagné, un de plus avec une pub récompensée, ou un seul
+   * avec une pub s'il a perdu (« seconde chance »). Multijoueur : le vainqueur garde tous ses K.-O.
+   */
   function finishProgress() {
     const faction = state.local_candidate_id.split(':')[1];
-    const won = earnedUnlocks(state, faction);
     const titleBefore = playerCard(profile).title;
     const announce = ids => {
       if (!ids.length) return;
@@ -433,21 +445,44 @@ async function start() {
       const title = playerCard(profile).title;
       if (title > titleBefore) setTimeout(() => showAccountToast(`Nouveau titre : ${titleName(title)} !`, 'knockout'), 3500);
     };
-    // Élection perdue : les candidats mis K.-O. restent verrouillés.
-    if (state.result?.winner !== faction && announcedKnockouts.size) showAccountToast(`Élection perdue : ${unlockNames([...announcedKnockouts])} reste à débloquer.`, 'error');
-    if (session?.room?.match) {
-      ranked.report(session, { placements: campaignPlacements(session.room, state), knockouts: campaignKnockouts(session.room, state) });
+    const offer = unlockOffer(state, faction, profileUnlockIds(profile));
+    const lost = () => { if (offer && !offer.won) showAccountToast(`Élection perdue : ${unlockNames(offer.choices)} ${offer.choices.length > 1 ? 'restent' : 'reste'} à débloquer.`, 'error'); };
+    if (session) {
+      lost();
+      if (session.room?.match) { ranked.report(session, { placements: campaignPlacements(session.room, state), knockouts: campaignKnockouts(session.room, state) }); return; }
+      const won = earnedUnlocks(state, faction);
+      if (!accounts.signedIn) { announce(addDeviceUnlocks(profile, won)); account.save(rememberTitle(profile)); }
+      else if (won.length) showAccountToast('Partie non classée : aucun déblocage enregistré sur le compte.');
       return;
     }
-    if (!accounts.signedIn) { announce(addDeviceUnlocks(profile, won)); account.save(rememberTitle(profile)); return; }
     const run = soloRun; soloRun = null;
-    if (session || !run?.id || run.tainted) {
-      if (won.length) showAccountToast(session ? 'Partie non classée : aucun déblocage enregistré sur le compte.' : 'Déblocage non enregistré : partie hors ligne ou accélérée.');
+    const signedIn = accounts.signedIn;
+    if (signedIn && (!run?.id || run.tainted)) {
+      if (offer?.won) showAccountToast('Déblocage non enregistré : partie hors ligne ou accélérée.'); else lost();
       return;
     }
-    accounts.completeRun(run.id, won).then(result => announce(result.unlocked))
-      .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
+    const record = ids => {
+      if (!signedIn) { announce(addDeviceUnlocks(profile, ids)); account.save(rememberTitle(profile)); return; }
+      accounts.completeRun(run.id, ids).then(result => announce(result.unlocked))
+        .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
+    };
+    // Rien à choisir (aucun K.-O. nouveau, ou un seul candidat gagné sans bonus possible) : comme avant.
+    if (!offer || (offer.free === offer.choices.length && !offer.rewarded)) { record(offer?.choices ?? []); return; }
+    const game = simulation;
+    const getAd = () => ads.rewarded('campaign');
+    const open = ad => {
+      // Pas d'ouverture automatique : le joueur regarde les résultats, puis ouvre le choix par le bouton ajouté à côté de « Rejouer ».
+      const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, launcher: document.querySelector('#results .election-actions') });
+      void choice.done.then(ids => { if (unlockChoice === choice) unlockChoice = null; record(ids); });
+    };
+    if (offer.won) { open(null); return; }
+    // Seconde chance : proposée seulement si une pub récompensée est prête, et si le joueur est encore sur les résultats.
+    void getAd().catch(() => null).then(ad => {
+      if (ad?.available && simulation === game && state.phase === 'RESULTS') open(ad);
+      else { lost(); record([]); }
+    });
   }
+
   function play() { snapshots.reset(); sentTick = null; paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
   function roomChanged(room) {
     if (!session) return;

@@ -72,7 +72,7 @@ En prenant son premier QG, chaque candidat choisit **un style**, définitif pour
 - **Hologrammes** : quatre copies transparentes apparaissent de part et d'autre de Mélenchon. Ce sont des copies exactes : elles marchent, sautent, chargent et frappent en même temps que lui, toujours à sa hauteur (elles ne tombent pas au-dessus du vide). On ne peut ni les viser ni les toucher, elles n'ont pas de points de vie, traversent tout et peuvent sortir du plateau si Mélenchon est au bord. Leurs coups font les dégâts réduits des hologrammes (`melenchon_holograms`).
 - **Protection CRS** : deux CRS encadrent Philippe, bloquent les adversaires et les repoussent loin, avec des coups assez lents et peu puissants (`philippe_crs_wall`).
 
-Le catalogue est dans `src/simulation/campaign-styles.js` ; les réglages fins dans `game_balance.json` (`campaign_styles`, `specials`). Au départ, seul le premier style de chaque candidat est débloqué. Les autres se débloquent en jouant (voir [comptes-partagetonjeu.md](comptes-partagetonjeu.md)). Le pseudo **betatest** (sans compte) débloque tout, pour les essais.
+Le catalogue est dans `src/simulation/campaign-styles.js` ; les réglages fins dans `game_balance.json` (`campaign_styles`, `specials`). Au départ, seul le premier style de chaque candidat est débloqué. Les autres se débloquent en jouant : mets K.-O. un candidat pendant la campagne, puis gagne l'élection pour le choisir parmi tes candidats vaincus (un 2ᵉ avec une pub, ou un en « seconde chance » après une défaite ; voir [comptes-partagetonjeu.md](comptes-partagetonjeu.md) et [publicites.md](publicites.md)). Le pseudo **betatest** (sans compte) débloque tout, pour les essais.
 
 ## Candidats sans style de campagne
 

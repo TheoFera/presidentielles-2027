@@ -14,10 +14,15 @@ def gameVersion = gameVersionMatch.group(1)
 // En version de test (debug), ce sont toujours les identifiants de test publics de Google : aucune vraie pub.
 def admobTestAppId = 'ca-app-pub-3940256099942544~3347511713'
 def admobTestInterstitialId = 'ca-app-pub-3940256099942544/1033173712'
+def admobTestRewardedId = 'ca-app-pub-3940256099942544/5224354917'
 def admobAppId = (findProperty('admobAppId') ?: '').trim()
 def admobInterstitialId = (findProperty('admobInterstitialId') ?: '').trim()
+def admobRewardedId = (findProperty('admobRewardedId') ?: '').trim()
 if (!admobAppId || !admobInterstitialId) {
     logger.warn('AdMob non configuré (android/gradle.properties) : la version Play Store sera sans publicité.')
+}
+if (admobAppId && !admobRewardedId) {
+    logger.warn('Pub récompensée AdMob non configurée (admobRewardedId) : pas de bouton « Regarder une pub » dans la version Play Store.')
 }
 
 // Clé de signature pour le Play Store : voir android/LISEZMOI.md.
@@ -63,11 +68,13 @@ android {
         debug {
             manifestPlaceholders = [admobAppId: admobTestAppId]
             buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', "\"${admobTestInterstitialId}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', "\"${admobTestRewardedId}\""
         }
         release {
             // Sans identifiants : le SDK exige quand même un identifiant d'appli, mais aucune pub n'est demandée.
             manifestPlaceholders = [admobAppId: admobAppId ?: admobTestAppId]
             buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', "\"${admobAppId ? admobInterstitialId : ''}\""
+            buildConfigField 'String', 'ADMOB_REWARDED_ID', "\"${admobAppId ? admobRewardedId : ''}\""
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

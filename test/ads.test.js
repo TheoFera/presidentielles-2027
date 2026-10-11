@@ -95,3 +95,65 @@ test('sans régie, aucune pub mais la partie continue', async () => {
   await ads.afterGame('debate', () => { continued = true; });
   assert.ok(continued);
 });
+
+// ---- Pubs récompensées (débloquer un candidat de plus) ---------------------------
+function rewardedNative({ loaded = true, outcome = 'rewarded' } = {}) {
+  const calls = [];
+  const native = {
+    show: () => false,
+    rewardedReady: () => loaded,
+    showRewarded: id => { calls.push(id); if (loaded) queueMicrotask(() => globalThis.PTJNativeAdsResult(id, outcome)); return loaded; },
+  };
+  const audio = { holds: [], hold(on) { this.holds.push(on); } };
+  const storage = memory();
+  storage.setItem(ADS_STATS_KEY, JSON.stringify(stats(5)));
+  const ads = new InterstitialAds({ audio, storage, native, provider: 'android', now: () => 100 * MIN });
+  return { ads, calls, audio, storage };
+}
+
+test('récompensée (appli) : récompense seulement si la vidéo est vue en entier, son coupé, pas d’interstitielle juste après', async () => {
+  const { ads, calls, audio, storage } = rewardedNative();
+  const offer = await ads.rewarded('campaign');
+  assert.equal(offer.available, true);
+  assert.equal(await offer.show(), true);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(audio.holds, [true, false]);
+  assert.equal(JSON.parse(storage.getItem(ADS_STATS_KEY)).lastAdAt, 100 * MIN);
+  // La pub de « Rejouer » juste après ne passe pas (moins de 3 min).
+  let continued = false;
+  await ads.afterGame('campaign', () => { continued = true; });
+  assert.ok(continued);
+  assert.equal(calls.length, 1);
+});
+
+test('récompensée fermée avant la fin ou non chargée : pas de récompense', async () => {
+  const dismissed = rewardedNative({ outcome: 'dismissed' });
+  assert.equal(await (await dismissed.ads.rewarded('campaign')).show(), false);
+  assert.equal(JSON.parse(dismissed.storage.getItem(ADS_STATS_KEY)).lastAdAt, 0);
+  const missing = rewardedNative({ loaded: false });
+  assert.equal((await missing.ads.rewarded('campaign')).available, false);
+  // Ancienne appli sans pub récompensée, ou aucune régie : jamais de bouton.
+  const old = new InterstitialAds({ storage: memory(), provider: 'android', native: { show: () => false } });
+  assert.equal((await old.rewarded('campaign')).available, false);
+  assert.equal((await new InterstitialAds({ storage: memory(), provider: null, native: undefined }).rewarded('campaign')).available, false);
+});
+
+test('récompensée (site) : AdSense prévient par beforeReward, la récompense arrive par adViewed', async () => {
+  const pushed = [];
+  globalThis.adsbygoogle = { push: options => pushed.push(options) };
+  try {
+    const ads = new InterstitialAds({ storage: memory(), provider: null, native: undefined, now: () => 100 * MIN });
+    ads.provider = 'adsense'; ads.webReady = true;
+    // Pub prête : beforeReward donne la fonction qui la lance.
+    const pending = ads.rewarded('campaign');
+    pushed[0].beforeReward(() => queueMicrotask(() => pushed[0].adViewed()));
+    const offer = await pending;
+    assert.equal(pushed[0].type, 'reward');
+    assert.equal(offer.available, true);
+    assert.equal(await offer.show(), true);
+    // Pas de pub : adBreakDone arrive sans beforeReward.
+    const none = ads.rewarded('campaign');
+    pushed[1].adBreakDone({ breakStatus: 'frequencyCapped' });
+    assert.equal((await none).available, false);
+  } finally { delete globalThis.adsbygoogle; }
+});

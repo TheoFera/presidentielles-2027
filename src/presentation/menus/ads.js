@@ -1,5 +1,7 @@
 // Publicités interstitielles : une pub plein écran passe APRÈS un clic de fin de partie,
 // jamais pendant le jeu ni en multijoueur. Le jeu décide du moment ; la régie affiche la pub :
+// Pubs récompensées : le joueur CHOISIT d'en regarder une pour débloquer un candidat de plus
+// (voir rewarded() et src/presentation/menus/unlock-choice.js).
 // - appli Android : AdMob, par le pont natif window.PTJNativeAds (android/…/AdsManager.java) ;
 // - site web : Google AdSense, API « H5 Games Ads » (adBreak) ;
 // - test sans compte Google : ajouter ?pub=simulation à l'adresse du jeu.
@@ -59,6 +61,9 @@ export class InterstitialAds {
     if (provider === 'adsense') this.loadAdSense();
   }
 
+  /** Après une pub réellement vue (interstitielle ou récompensée) : délai avant la prochaine interstitielle. */
+  rememberAd() { this.save({ ...this.stats(), lastAdAt: this.now(), debatesSinceAd: 0 }); }
+
   stats() {
     try {
       const saved = JSON.parse(this.storage?.getItem(ADS_STATS_KEY) || '{}');
@@ -85,7 +90,7 @@ export class InterstitialAds {
     try { status = await this.show(placement); } catch { status = 'error'; }
     finally { this.audio?.hold?.(false); this.busy = false; }
     console.info(`[pub] ${placement} : ${status}.`);
-    if (SHOWN.has(status)) this.save({ ...this.stats(), lastAdAt: this.now(), debatesSinceAd: 0 });
+    if (SHOWN.has(status)) this.rememberAd();
     next();
   }
 
@@ -138,6 +143,71 @@ export class InterstitialAds {
     });
   }
 
+  /**
+   * Pub récompensée (seulement si le joueur la demande). Renvoie une offre :
+   * { available, show() } ; show() doit être appelé dans le clic du joueur et renvoie true
+   * seulement si la pub a été regardée jusqu'au bout (la récompense est alors due).
+   * Jamais de pub récompensée qui ne rapporte rien : sans pub prête, available vaut false.
+   */
+  async rewarded(placement) {
+    const none = { available: false, show: async () => false };
+    if (this.provider === 'android') return typeof this.native.showRewarded === 'function' && this.nativeRewardedReady() ? this.rewardedOffer(() => this.showNativeRewarded()) : none;
+    if (this.provider === 'simulation') return this.rewardedOffer(() => showSimulatedAd({ rewarded: true }).then(status => status === 'rewarded'));
+    if (this.provider === 'adsense') {
+      const show = await this.prepareAdSenseRewarded(placement);
+      return show ? this.rewardedOffer(show) : none;
+    }
+    return none;
+  }
+  nativeRewardedReady() {
+    try { return !!this.native.rewardedReady?.(); } catch { return false; }
+  }
+  /** Son coupé pendant la pub, une seule pub à la fois, délai avant la prochaine interstitielle. */
+  rewardedOffer(play) {
+    return { available: true, show: async () => {
+      if (this.busy) return false;
+      this.busy = true;
+      this.audio?.hold?.(true);
+      let earned = false;
+      try { earned = await play(); } catch { earned = false; }
+      finally { this.audio?.hold?.(false); this.busy = false; }
+      console.info(`[pub] récompensée : ${earned ? 'récompense gagnée' : 'pas de récompense'}.`);
+      if (earned) this.rememberAd();
+      return earned;
+    } };
+  }
+  showNativeRewarded() {
+    return new Promise(resolve => {
+      const id = `pub-${++this.requests}`;
+      let accepted = false;
+      const timer = setTimeout(() => { this.waiting.delete(id); resolve(false); }, AD_MAX_MS);
+      this.waiting.set(id, status => { clearTimeout(timer); resolve(status === 'rewarded'); });
+      try { accepted = !!this.native.showRewarded(id); } catch { accepted = false; }
+      if (!accepted) { clearTimeout(timer); this.waiting.delete(id); resolve(false); }
+    });
+  }
+  /**
+   * Site : AdSense ne dit qu'une pub récompensée est prête qu'en appelant beforeReward(showAdFn).
+   * On la demande donc à l'avance ; showAdFn() la lance au clic du joueur. Résout null sans pub.
+   */
+  prepareAdSenseRewarded(placement) {
+    if (!this.webReady) return Promise.resolve(null);
+    return new Promise(resolve => {
+      let ready = null, outcome = null;
+      const prepared = setTimeout(() => resolve(null), AD_START_MS);
+      globalThis.adsbygoogle.push({
+        type: 'reward', name: `recompense-${placement}`,
+        beforeReward: showAdFn => {
+          clearTimeout(prepared);
+          resolve(() => new Promise(done => { outcome = done; ready = setTimeout(() => done(false), AD_MAX_MS); showAdFn(); }));
+        },
+        adViewed: () => { clearTimeout(ready); outcome?.(true); },
+        adDismissed: () => { clearTimeout(ready); outcome?.(false); },
+        adBreakDone: () => { clearTimeout(prepared); resolve(null); clearTimeout(ready); outcome?.(false); },
+      });
+    });
+  }
+
   /** Appli Android en Europe : le joueur doit pouvoir modifier ses choix de consentement. */
   privacyRequired() {
     try { return this.provider === 'android' && !!this.native.privacyOptionsRequired?.(); } catch { return false; }
@@ -147,22 +217,30 @@ export class InterstitialAds {
   }
 }
 
-/** Fausse pub de 3 secondes, pour vérifier les placements sans compte Google. */
-function showSimulatedAd() {
+/**
+ * Fausse pub de 3 secondes, pour vérifier les placements sans compte Google.
+ * rewarded : fausse pub récompensée de 5 secondes, que l'on peut aussi fermer avant la fin (sans récompense).
+ */
+function showSimulatedAd({ rewarded = false } = {}) {
   const doc = globalThis.document;
   if (!doc) return Promise.resolve('notReady');
   return new Promise(resolve => {
     const overlay = doc.createElement('div');
     overlay.id = 'ad-simulation'; overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', 'Publicité (simulation)');
-    overlay.innerHTML = '<p class="ad-simulation-label">Publicité · simulation</p><p class="ad-simulation-text">Ici s’afficherait une pub plein écran Google.</p><button disabled>Fermer dans 3</button>';
+    overlay.innerHTML = rewarded
+      ? '<p class="ad-simulation-label">Pub récompensée · simulation</p><p class="ad-simulation-text">Ici s’afficherait une vidéo Google. Regarde-la jusqu’au bout pour gagner la récompense.</p><button disabled>Récompense dans 5</button><button class="ad-simulation-skip">Fermer sans récompense</button>'
+      : '<p class="ad-simulation-label">Publicité · simulation</p><p class="ad-simulation-text">Ici s’afficherait une pub plein écran Google.</p><button disabled>Fermer dans 3</button>';
     const button = overlay.querySelector('button');
+    const close = status => { clearInterval(tick); overlay.remove(); resolve(status); };
     doc.body.append(overlay);
-    let left = 3;
+    let left = rewarded ? 5 : 3;
     const tick = setInterval(() => {
       left--;
-      if (left > 0) { button.textContent = `Fermer dans ${left}`; return; }
-      clearInterval(tick); button.disabled = false; button.textContent = 'Fermer ✕'; button.focus();
+      if (left > 0) { button.textContent = `${rewarded ? 'Récompense' : 'Fermer'} dans ${left}`; return; }
+      clearInterval(tick); button.disabled = false; button.textContent = rewarded ? 'Récupérer la récompense ✓' : 'Fermer ✕'; button.focus();
     }, 1000);
-    button.onclick = () => { overlay.remove(); resolve('viewed'); };
+    button.onclick = () => close(rewarded ? 'rewarded' : 'viewed');
+    const skip = overlay.querySelector('.ad-simulation-skip');
+    if (skip) skip.onclick = () => close('dismissed');
   });
 }

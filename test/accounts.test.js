@@ -8,7 +8,8 @@ import { SOLO_CAMPAIGN_MIN_SECONDS } from '../serveur-en-ligne/api/progression.j
 import { NEWSLETTER_CONSENT_VERSION } from '../serveur-en-ligne/api/accounts.js';
 import { unsubscribeLink } from '../serveur-en-ligne/api/newsletter.js';
 import { appleClientSecret, revokeAppleAuthorization } from '../serveur-en-ligne/api/apple.js';
-import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, earnedUnlocks, recordKnockout } from '../src/simulation/unlock-catalog.js';
+import { choiceStep } from '../src/presentation/menus/unlock-choice.js';
+import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, MAX_RUN_UNLOCKS, earnedUnlocks, recordKnockout, unlockOffer } from '../src/simulation/unlock-catalog.js';
 import { CAMPAIGN_STYLES, DEFAULT_UNLOCKS } from '../src/simulation/campaign-styles.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { ACCOUNT_NEWSLETTER_VERSION } from '../src/network/account-config.js';
@@ -156,6 +157,35 @@ test('K.-O. : noté pendant la partie, gagné seulement à la fin normale', () =
   state.result = { winner: 'le_pen', second: 'melenchon' };
   assert.deepEqual(earnedUnlocks(state, 'le_pen'), ['attal']);
   assert.deepEqual(earnedUnlocks(state, 'melenchon'), [], 'élection perdue');
+});
+
+test('Fin de campagne solo : 1 candidat au choix, +1 avec une pub, seconde chance après une défaite', () => {
+  const player = { role: 'CANDIDAT', faction_id: 'melenchon' };
+  const state = { tick: 1, phase: 'CAMPAIGN' };
+  for (const f of ['roussel', 'attal', 'arthaud']) recordKnockout(state, player, { role: 'CANDIDAT', minor: true, faction_id: f });
+  assert.equal(unlockOffer(state, 'melenchon'), null, 'partie pas terminée');
+  state.phase = 'RESULTS'; state.result = { winner: 'melenchon', second: 'le_pen' };
+  assert.deepEqual(unlockOffer(state, 'melenchon'), { won: true, choices: ['roussel', 'attal', 'arthaud'], free: 1, rewarded: 1 });
+  // Déjà débloqué : pas proposé à nouveau ; un seul candidat restant : gratuit, sans pub possible.
+  assert.deepEqual(unlockOffer(state, 'melenchon', ['roussel', 'attal']), { won: true, choices: ['arthaud'], free: 1, rewarded: 0 });
+  assert.equal(unlockOffer(state, 'melenchon', ['roussel', 'attal', 'arthaud']), null);
+  // Défaite : rien de gratuit, un seul candidat contre une pub.
+  state.result = { winner: 'le_pen', second: 'melenchon' };
+  assert.deepEqual(unlockOffer(state, 'melenchon'), { won: false, choices: ['roussel', 'attal', 'arthaud'], free: 0, rewarded: 1 });
+  assert.equal(unlockOffer(state, 'le_pen'), null, 'Le Pen n’a mis personne K.-O.');
+  assert.equal(MAX_RUN_UNLOCKS, 2);
+});
+
+test('Écran de choix : gratuit d’abord, puis pub seulement si elle est prête', () => {
+  const win = { won: true, choices: ['roussel', 'attal', 'arthaud'], free: 1, rewarded: 1 };
+  assert.equal(choiceStep(win, {}, true), 'free');
+  assert.equal(choiceStep(win, { free: 1 }, null), 'ad', 'la régie répond encore : on attend');
+  assert.equal(choiceStep(win, { free: 1 }, true), 'ad');
+  assert.equal(choiceStep(win, { free: 1 }, false), 'done', 'pas de pub : l’écran se ferme');
+  assert.equal(choiceStep(win, { free: 1, rewarded: 1 }, true), 'done');
+  const loss = { won: false, choices: ['roussel'], free: 0, rewarded: 1 };
+  assert.equal(choiceStep(loss, {}, true), 'ad');
+  assert.equal(choiceStep(loss, { rewarded: 1 }, true), 'done');
 });
 
 test('Elo : classique à 2, somme nulle à 3, provisoire puis stable', () => {
@@ -386,6 +416,11 @@ test('Progression solo : abandon, fin normale, durée, rejeu et requête forgée
   ageRun(api, run, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   const done = await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['roussel', 'le_pen_zemmouriste', 'roussel'] } });
   assert.equal(done.status, 200); assert.deepEqual(done.body.unlocked, ['roussel', 'le_pen_zemmouriste']);
+  // Plus de 2 candidats choisis (requête forgée ou ancienne version du jeu) : seuls les 2 premiers sont gardés.
+  const greedy = await start(); ageRun(api, greedy, SOLO_CAMPAIGN_MIN_SECONDS + 5);
+  const capped = await api.call('POST', `runs/${greedy}/complete`, { token, body: { knockouts: ['glucksmann', 'arthaud', 'attal'] } });
+  assert.deepEqual(capped.body.unlocked, ['glucksmann', 'arthaud']);
+  assert.ok(!capped.body.unlocks.includes('attal'));
   // Rejeu de la même fin : refusé, pas de doublon.
   assert.equal((await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['attal'] } })).body.error.code, 'run_closed');
   // Déjà débloqué : pas d'erreur, pas de doublon.

@@ -84,8 +84,9 @@ export class AccountClient {
   myRank(ladder) { return this.request('GET', `leaderboard/me?ladder=${ladder}`); }
 
   startRun(faction) { return this.request('POST', 'runs', { mode: 'campaign', faction }); }
-  async completeRun(runId, knockouts) {
-    const result = await this.request('POST', `runs/${runId}/complete`, { knockouts });
+  /** Fin de campagne solo : `unlocks` = candidats choisis par le joueur (champ « knockouts » pour le serveur). */
+  async completeRun(runId, unlocks) {
+    const result = await this.request('POST', `runs/${runId}/complete`, { knockouts: unlocks });
     if (this.me) this.setMe({ ...this.me, unlocks: result.unlocks });
     return result;
   }

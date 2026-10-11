@@ -1,6 +1,13 @@
-# Publicités interstitielles (Google)
+# Publicités (Google)
 
-Une **pub interstitielle** est une pub plein écran. Dans le jeu, elle passe seulement **après un clic de fin de partie, en solo** :
+Le jeu utilise deux sortes de pubs :
+
+- la **pub interstitielle** : une pub plein écran imposée, après un clic de fin de partie ;
+- la **pub récompensée** : une vidéo que le joueur **choisit** de regarder pour débloquer un candidat de plus (voir plus bas).
+
+## Pub interstitielle
+
+Elle passe seulement **après un clic de fin de partie, en solo** :
 
 | Moment | Boutons concernés | Règle |
 |---|---|---|
@@ -16,20 +23,40 @@ Pour tous les cas :
 
 Ces chiffres se règlent dans `src/network/ads-config.js` (`AD_RULES`).
 
+## Pub récompensée : débloquer un candidat de plus
+
+À la fin d'une campagne solo, le joueur ne débloque plus **tous** les candidats qu'il a mis K.-O. : il **en choisit** parmi eux.
+
+| Résultat | Gratuit | Avec une pub récompensée |
+|---|---|---|
+| Victoire | 1 candidat au choix | 1 candidat de plus (le 2ᵉ) |
+| Défaite (« seconde chance ») | rien | 1 candidat au choix |
+
+- Les résultats restent affichés aussi longtemps que le joueur le veut. Un bouton doré « 🎁 Choisir mon candidat » (ou « 🎬 Seconde chance » après une défaite) s'ajoute à côté de « Rejouer » et ouvre l'écran de choix. « Revoir les résultats » le referme sans rien perdre.
+- Si le joueur clique sur « Rejouer » ou « Retour au menu » sans avoir choisi, l'écran de choix s'ouvre d'abord : impossible d'oublier son déblocage.
+- Un seul candidat nouveau mis K.-O. et une victoire : il est débloqué directement, sans écran (aucun bonus possible).
+- Le bouton « 🎬 Regarder une pub » ne s'affiche **que si une pub est prête**. Sans pub prête (hors ligne, bloqueur de pubs…), la victoire donne son candidat gratuit, et la défaite affiche seulement « Élection perdue : … reste à débloquer ».
+- La récompense n'est donnée que si **Google confirme que la vidéo a été regardée jusqu'au bout**. Pub fermée avant la fin : rien, le joueur peut réessayer.
+- Après une pub récompensée, l'interstitielle de « Rejouer » ou « Menu » ne passe pas (même délai de 3 min qu'après une interstitielle).
+- Jamais en multijoueur : là, le vainqueur garde tous les candidats qu'il a mis K.-O., comme avant.
+- Le serveur des comptes refuse plus de 2 candidats par campagne solo (`MAX_RUN_UNLOCKS`).
+
+Les nombres (1 gratuit, +1 avec pub, 1 en seconde chance) se règlent dans `src/simulation/unlock-catalog.js` (`UNLOCK_PICKS`). L'écran est dans `src/presentation/menus/unlock-choice.js`, la pub dans `src/presentation/menus/ads.js` (`rewarded()`).
+
 ## Comment c'est construit
 
 | Où | Régie Google | Fichiers |
 |---|---|---|
-| Appli Android | **AdMob** (SDK natif, plus fiable et mieux payé dans une appli) | `android/app/src/main/java/…/AdsManager.java`, `android/app/build.gradle`, `android/gradle.properties` |
-| Site web | **AdSense**, API « H5 Games Ads » (faite pour les jeux web) | `src/network/ads-config.js` |
+| Appli Android | **AdMob** (SDK natif, plus fiable et mieux payé dans une appli) : un bloc « Interstitiel » et un bloc « Avec récompense » | `android/app/src/main/java/…/AdsManager.java`, `android/app/build.gradle`, `android/gradle.properties` |
+| Site web | **AdSense**, API « H5 Games Ads » (faite pour les jeux web ; `adBreak` de type `next` et `reward`) | `src/network/ads-config.js` |
 | Les deux | Règles de fréquence, son, simulation | `src/presentation/menus/ads.js`, tests `test/ads.test.js` (`npm run test:pubs`) |
 
 Le **consentement RGPD** (obligatoire en Europe) est affiché par Google : par le SDK « UMP » dans l'appli (déjà codé), et par AdSense sur le site (à activer dans AdSense, sans code).
 
 ## Tester sans compte Google
 
-- **Sur ordinateur** : `npm start`, puis ouvrir `http://localhost:2027/?pub=simulation`. Une fausse pub de 3 secondes s'affiche à **chaque** fin de campagne et de débat, sans délai ni plafond, pour voir chaque placement. La console du navigateur (F12) affiche des lignes `[pub] …` qui expliquent chaque décision.
-- **Sur téléphone Android** : `npm run android:test` produit une appli de test qui affiche les **pubs de test officielles de Google** (marquées « Test Ad »). Elles ne rapportent rien et ne risquent rien.
+- **Sur ordinateur** : `npm start`, puis ouvrir `http://localhost:2027/?pub=simulation`. Une fausse pub de 3 secondes s'affiche à **chaque** fin de campagne et de débat, sans délai ni plafond, pour voir chaque placement. La fausse pub récompensée dure 5 secondes ; son bouton « Fermer sans récompense » permet de tester l'abandon. La console du navigateur (F12) affiche des lignes `[pub] …` qui expliquent chaque décision.
+- **Sur téléphone Android** : `npm run android:test` produit une appli de test qui affiche les **pubs de test officielles de Google** (marquées « Test Ad »), interstitielles et récompensées. Elles ne rapportent rien et ne risquent rien.
 
 ---
 
@@ -55,6 +82,34 @@ Le **consentement RGPD** (obligatoire en Europe) est affiché par Google : par l
 
 > ⚠️ **Ne clique jamais sur tes propres vraies pubs**, et ne demande pas à tes amis de le faire : Google ferme les comptes pour ça. Pour tester sur ton téléphone avec les vrais identifiants, ajoute-le comme « appareil de test » dans AdMob (Paramètres → Appareils de test).
 
+### Étape 1 bis : la pub récompensée dans AdMob
+
+L'appli est déjà reliée à AdMob (étape 1). Il reste à créer un **deuxième bloc d'annonces**, de type « Avec récompense ». Un bloc d'annonces, c'est un « emplacement » de pub : chaque emplacement a son propre identifiant, et AdMob compte ses revenus à part.
+
+1. Va sur <https://admob.google.com>, menu de gauche **Applications**, puis clique sur ton appli « Présidentielle 2027 ».
+2. Menu de gauche **Blocs d'annonces** → bouton **Ajouter un bloc d'annonces**.
+3. Choisis le format **Avec récompense** (en anglais « Rewarded »). Attention : pas « Interstitiel avec récompense », qui est un autre format (une pub imposée sans bouton).
+4. **Nom du bloc** : « Candidat bonus ». Ce nom ne sert qu'à toi, pour t'y retrouver dans les rapports.
+5. **Paramètres de la récompense** : quantité `1`, article `candidat`. Le jeu ne lit pas ces valeurs (c'est lui qui décide de la récompense), mais AdMob les demande.
+6. **Paramètres avancés** :
+   - laisse la **validation côté serveur** vide (le jeu ne l'utilise pas) ;
+   - laisse le **plafonnement de la fréquence** désactivé : le joueur décide lui-même de regarder la pub ;
+   - laisse le **prix plancher** (eCPM minimal) sur « Optimisé par Google ».
+7. Clique sur **Créer un bloc d'annonces**. AdMob affiche l'**identifiant du bloc** : `ca-app-pub-3153125128772927/1234567890` (avec un **/**). Copie-le. Tu le retrouves plus tard dans la liste des blocs d'annonces.
+8. Ouvre `android/gradle.properties`. Sur la ligne `#admobRewardedId=…`, **enlève le `#`** et remplace la fin par ton identifiant :
+   ```
+   admobRewardedId=ca-app-pub-3153125128772927/1234567890
+   ```
+   Sans cette ligne, l'appli Play Store fonctionne quand même, mais sans bouton « Regarder une pub » (et `npm run android` l'annonce par un avertissement).
+9. **Blocage des catégories sensibles** : celui de l'étape 1.10 s'applique déjà à tous les blocs de l'appli. Vérifie seulement dans **Contrôle des annonces → Catégories sensibles** que « Politique » est toujours bloquée.
+10. Augmente `versionCode` de 1 dans `android/app/build.gradle`, lance `npm run android` et envoie le nouveau fichier `.aab` sur la Play Console. Rien de nouveau à déclarer sur la Play Console : l'appli contient déjà des annonces.
+
+Pour vérifier avant d'envoyer l'appli : `npm run android:test`, finis une campagne en ayant mis au moins un candidat K.-O. Le bouton « Regarder une pub » lance une vidéo de test Google. Regarde-la jusqu'au bout : le candidat est débloqué. Ferme-la avant la fin : rien n'est débloqué.
+
+> Un nouveau bloc d'annonces peut mettre **jusqu'à une heure** avant de recevoir des pubs. Pendant ce temps, le bouton ne s'affiche pas : c'est normal.
+
+> ⚠️ Règles Google pour les pubs récompensées : la récompense doit être annoncée **avant** la pub (le bouton dit « Regarder une pub et débloquer … »), et donnée **seulement** si la vidéo a été vue jusqu'au bout. Le jeu respecte déjà les deux. Ne promets jamais de récompense pour un **clic** sur la pub.
+
 ### Étape 2 : la Play Console (déclarations obligatoires)
 
 Dans la Play Console, menu **Règles et programmes → Contenu de l'application** :
@@ -77,7 +132,7 @@ AdMob demande un petit fichier `app-ads.txt` posé à la racine du **site web du
 3. Note ton **identifiant d'éditeur** : `ca-pub-1234567890123456`.
 4. Crée un fichier `ads.txt` à la racine du projet (à côté de `index.html`) et colle dedans la ligne qu’AdSense te donne. `npm run build` le publie automatiquement (pareil pour `app-ads.txt` de l’étape 3). Vérifie ensuite qu’il s’ouvre à l’adresse `https://ton-domaine/ads.txt`.
 5. Attends la **validation du site** par Google (quelques jours à quelques semaines).
-6. Demande l'accès aux **« H5 Games Ads »** (pubs pour les jeux web) : <https://adsense.google.com/start/h5-games-ads/>. Cette autorisation est accordée séparément.
+6. Demande l'accès aux **« H5 Games Ads »** (pubs pour les jeux web) : <https://adsense.google.com/start/h5-games-ads/>. Cette autorisation est accordée séparément. Elle couvre aussi les pubs récompensées : pas de bloc d'annonces à créer sur le site.
 7. Dans AdSense : **Confidentialité et messages → RGPD** → crée et publie un message pour ton site (même principe que l'étape 1.9).
 8. Dans AdSense : **Contrôle des annonces → Catégories sensibles** → bloque « Politique ».
 9. Dans `src/network/ads-config.js` : mets ton identifiant dans `ADSENSE_CLIENT`. Laisse d'abord `ADSENSE_TEST = true` (pubs de test), vérifie sur ton site, puis passe-le à `false`.
