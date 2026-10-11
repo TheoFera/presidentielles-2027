@@ -1,8 +1,9 @@
 // Fin de campagne solo : le joueur CHOISIT le candidat qu'il débloque parmi ceux qu'il a mis K.-O.
 // - victoire : 1 au choix gratuitement, puis 1 de plus s'il regarde une pub récompensée ;
 // - défaite (« seconde chance ») : 1 au choix, s'il regarde une pub récompensée.
-// Les nombres viennent de unlockOffer() (src/simulation/unlock-catalog.js). L'écran attend la fin
-// de l'annonce des résultats pour apparaître ; « Rejouer » ou « Retour au menu » le montrent tout de suite.
+// Les nombres viennent de unlockOffer() (src/simulation/unlock-catalog.js). Les résultats restent visibles
+// aussi longtemps que le joueur le veut : l'écran s'ouvre par le bouton ajouté aux résultats (« 🎁 Choisir
+// mon candidat »), ou au clic sur « Rejouer » / « Retour au menu », pour ne pas oublier le déblocage.
 import { hydrateMedallions, portraitFace } from './player-card.js';
 import { unlockLabel } from '../interface/knockout-reveal.js';
 
@@ -40,28 +41,32 @@ function card(id) {
 }
 
 /**
- * Ouvre l'écran de choix. Renvoie { done, reveal } :
- * done : promesse des identifiants choisis (dans l'ordre) ; reveal() : affiche l'écran sans attendre.
+ * Prépare l'écran de choix, caché au départ. Renvoie { done, reveal } :
+ * done : promesse des identifiants choisis (dans l'ordre) ; reveal() : affiche l'écran.
  * getAd() : renvoie (ou promet) une offre de pub récompensée { available, show() } (voir ads.js).
- * ad : première offre déjà obtenue (facultatif). delayMs : attente avant l'apparition.
+ * ad : première offre déjà obtenue (facultatif). launcher : conteneur où poser le bouton d'ouverture
+ * (barre des résultats) ; sans lui, l'écran s'ouvre tout de suite.
  */
-export function openUnlockChoice({ offer, getAd, ad: firstAd = null, delayMs = 0, parent = document.body }) {
+export function openUnlockChoice({ offer, getAd, ad: firstAd = null, launcher = null, parent = document.body }) {
   const picks = { free: [], rewarded: [] };
   // Pub récompensée : 'waiting' (la régie répond), 'ready' (show() disponible) ou 'none'.
   let ad = { state: 'none' }, asks = 0, failed = false, playing = false, selected = null, closed = false, finish;
   const done = new Promise(resolve => { finish = resolve; });
   const root = document.createElement('div');
   root.className = 'unlock-choice';
-  root.style.setProperty('--unlock-delay', `${Math.max(0, delayMs)}ms`);
+  root.hidden = !!launcher;
   root.innerHTML = `<div class="unlock-choice-panel" role="dialog" aria-modal="true" aria-labelledby="unlock-choice-title" aria-describedby="unlock-choice-text">
       <p class="unlock-choice-kicker"></p><h2 id="unlock-choice-title"></h2><p class="unlock-choice-text" id="unlock-choice-text"></p>
       <div class="unlock-choice-cards" role="radiogroup" aria-labelledby="unlock-choice-title">${offer.choices.map(card).join('')}</div>
       <p class="unlock-choice-status" role="status"></p>
       <div class="unlock-choice-actions"><button type="button" class="unlock-choice-primary"></button><button type="button" class="unlock-choice-secondary"></button></div>
+      <button type="button" class="unlock-choice-later">Revoir les résultats</button>
     </div>`;
   const $ = selector => root.querySelector(selector);
   const cards = [...root.querySelectorAll('.unlock-card')];
   const primary = $('.unlock-choice-primary'), secondary = $('.unlock-choice-secondary'), status = $('.unlock-choice-status');
+  // Bouton des résultats qui ouvre l'écran : il reste tant que le choix n'est pas terminé.
+  const opener = launcher ? Object.assign(document.createElement('button'), { type: 'button', className: 'unlock-choice-launcher' }) : null;
   const all = () => [...picks.free, ...picks.rewarded];
   // Une pub ratée garde l'étape « pub » ouverte (message, nouvel essai) au lieu de fermer l'écran.
   const step = () => choiceStep(offer, { free: picks.free.length, rewarded: picks.rewarded.length },
@@ -98,6 +103,7 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, delayMs = 0
       el.setAttribute('aria-checked', String(el.dataset.id === selected));
       el.querySelector('.unlock-card-badge').hidden = !picked;
     }
+    if (opener) opener.textContent = now === 'free' ? '🎁 Choisir mon candidat' : offer.won ? '🎬 Un 2ᵉ candidat ?' : '🎬 Seconde chance';
     const name = selected ? unlockLabel(selected).name : '';
     secondary.hidden = now !== 'ad';
     secondary.disabled = playing;
@@ -119,6 +125,7 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, delayMs = 0
     closed = true;
     clearTimeout(timer);
     root.remove();
+    opener?.remove();
     finish(all());
   }
 
@@ -139,16 +146,26 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, delayMs = 0
   secondary.onclick = () => { if (!playing) close(); };
 
   let timer = 0;
+  function focus() { if (!closed) (cards.find(el => !el.disabled) || primary).focus({ preventScroll: true }); }
+  function reveal() {
+    if (closed) return;
+    root.hidden = false;
+    clearTimeout(timer); timer = setTimeout(focus, 0);
+  }
+  // « Revoir les résultats » : l'écran se cache sans rien perdre ; le bouton des résultats le rouvre.
+  function hide() {
+    if (closed || playing || !opener?.isConnected) return;
+    root.hidden = true;
+    opener.focus({ preventScroll: true });
+  }
+  $('.unlock-choice-later').hidden = !opener;
+  $('.unlock-choice-later').onclick = hide;
   if (offer.rewarded) askAd(firstAd);
   render();
   if (!closed) {
     parent.append(root);
     hydrateMedallions(root);
-    timer = setTimeout(focus, Math.max(0, delayMs));
+    if (opener) { opener.onclick = reveal; launcher.prepend(opener); } else reveal();
   }
-  function focus() { if (!closed) (cards.find(el => !el.disabled) || primary).focus({ preventScroll: true }); }
-  return {
-    done,
-    reveal() { if (closed) return; root.classList.add('is-now'); clearTimeout(timer); timer = setTimeout(focus, 0); },
-  };
+  return { done, reveal };
 }

@@ -12,7 +12,7 @@ const CONFETTI_COLORS = ['#ffd75e', '#e5333b', '#2b55c9', '#f2f5ff', '#5dcaa5'];
 const queue = [];
 let showing = false;
 /** Une autre pop-up occupe déjà l'écran : la carte attend son tour. */
-const otherPopupVisible = () => !!document.querySelector('#campaign-events .campaign-card, .account-toast, dialog[open], .unlock-choice');
+const otherPopupVisible = () => !!document.querySelector('#campaign-events .campaign-card, .account-toast, dialog[open], .unlock-choice:not([hidden])');
 
 /** Nom court du candidat et, pour un style, son nom (« Zemmouriste »). Sert aussi à l'écran de choix de fin de partie. */
 export function unlockLabel(id) {

@@ -141,10 +141,14 @@
 }
 
 /* Fin de campagne : choix du candidat à débloquer (src/presentation/menus/unlock-choice.js).
-   Invisible (et sans capter les clics) jusqu'à la fin de l'annonce des résultats : --unlock-delay. */
-.unlock-choice { position: fixed; z-index: 55; inset: 0; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom)); background: #050a18c9; animation: unlock-choice-in .35s ease var(--unlock-delay, 0ms) both; }
-.unlock-choice.is-now { animation-delay: 0ms; }
-@keyframes unlock-choice-in { from { opacity: 0; visibility: hidden; } to { opacity: 1; visibility: visible; } }
+   Caché tant que le joueur regarde les résultats ; ouvert par le bouton doré de la barre des résultats. */
+.unlock-choice { position: fixed; z-index: 55; inset: 0; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom)); background: #050a18c9; animation: unlock-choice-in .25s ease both; }
+.unlock-choice[hidden] { display: none; }
+@keyframes unlock-choice-in { from { opacity: 0; } to { opacity: 1; } }
+#results .election-actions .unlock-choice-launcher { color: #2b1c00; border-color: #fff4c9; background: linear-gradient(#fff1a8, #ffd75e 50%, #e9b52c 51%, #ffd75e 90%); box-shadow: inset 0 2px 0 #fff, 0 5px 0 #5a3c00, 0 0 15px #ffd75e88; animation: unlock-launcher 1.6s ease-in-out infinite; }
+@keyframes unlock-launcher { 50% { box-shadow: inset 0 2px 0 #fff, 0 5px 0 #5a3c00, 0 0 26px #ffd75ecc; } }
+.unlock-choice-later { margin-top: -2px; padding: 4px 8px; color: #b4c4e7; font: 700 clamp(12px, 2vmin, 14px)/1.2 system-ui, sans-serif; text-decoration: underline; background: none; border: 0; cursor: pointer; }
+.unlock-choice-later:focus-visible { outline: 3px solid #63edff; outline-offset: 2px; }
 .unlock-choice-panel { box-sizing: border-box; width: min(640px, 100%); max-height: 100%; overflow: auto; display: grid; justify-items: center; gap: 8px; padding: 14px 16px 16px; color: #fff; text-align: center; border: 3px solid #ffd75e; border-radius: 4px; background: linear-gradient(170deg, #1f3159, #0b1226); box-shadow: 6px 6px 0 #0009, 0 0 30px #ffd75e55; }
 .unlock-choice-kicker { margin: 0; font: 800 clamp(11px, 2vmin, 14px)/1.1 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #b4c4e7; }
 .unlock-choice h2 { margin: 0; font: 900 clamp(22px, 5vmin, 34px)/1.05 Impact, 'Arial Black', sans-serif; letter-spacing: .03em; text-transform: uppercase; color: #ffd75e; text-shadow: 3px 3px 0 #483057; }
@@ -167,7 +171,7 @@
 .unlock-choice-secondary { color: #fff; background: transparent; border: 2px solid #ffffff66; }
 .unlock-choice-actions button:focus-visible { outline: 3px solid #63edff; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .unlock-choice { animation-duration: 1ms; }
+  .unlock-choice, #results .election-actions .unlock-choice-launcher { animation: none; }
   .unlock-card { transition: none; }
   .unlock-card[aria-checked='true'] { transform: none; }
 }

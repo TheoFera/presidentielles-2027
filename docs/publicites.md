@@ -32,7 +32,8 @@ Ces chiffres se règlent dans `src/network/ads-config.js` (`AD_RULES`).
 | Victoire | 1 candidat au choix | 1 candidat de plus (le 2ᵉ) |
 | Défaite (« seconde chance ») | rien | 1 candidat au choix |
 
-- L'écran « Choisis ton candidat » apparaît juste après l'annonce des résultats (environ 4 s). « Rejouer » ou « Retour au menu » le font apparaître tout de suite : il faut d'abord choisir.
+- Les résultats restent affichés aussi longtemps que le joueur le veut. Un bouton doré « 🎁 Choisir mon candidat » (ou « 🎬 Seconde chance » après une défaite) s'ajoute à côté de « Rejouer » et ouvre l'écran de choix. « Revoir les résultats » le referme sans rien perdre.
+- Si le joueur clique sur « Rejouer » ou « Retour au menu » sans avoir choisi, l'écran de choix s'ouvre d'abord : impossible d'oublier son déblocage.
 - Un seul candidat nouveau mis K.-O. et une victoire : il est débloqué directement, sans écran (aucun bonus possible).
 - Le bouton « 🎬 Regarder une pub » ne s'affiche **que si une pub est prête**. Sans pub prête (hors ligne, bloqueur de pubs…), la victoire donne son candidat gratuit, et la défaite affiche seulement « Élection perdue : … reste à débloquer ».
 - La récompense n'est donnée que si **Google confirme que la vidéo a été regardée jusqu'au bout**. Pub fermée avant la fin : rien, le joueur peut réessayer.

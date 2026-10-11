@@ -471,8 +471,8 @@ async function start() {
     const game = simulation;
     const getAd = () => ads.rewarded('campaign');
     const open = ad => {
-      // L'écran attend la fin de l'annonce des résultats (environ 4 s) pour apparaître.
-      const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, delayMs: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 4000 });
+      // Pas d'ouverture automatique : le joueur regarde les résultats, puis ouvre le choix par le bouton ajouté à côté de « Rejouer ».
+      const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, launcher: document.querySelector('#results .election-actions') });
       void choice.done.then(ids => { if (unlockChoice === choice) unlockChoice = null; record(ids); });
     };
     if (offer.won) { open(null); return; }
