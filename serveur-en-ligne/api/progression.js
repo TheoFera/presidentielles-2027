@@ -8,7 +8,7 @@
 // forgées (identifiant inconnu, partie inexistante, trop courte, rejouée), pas un jeu
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
 import { ApiError, audit, nowSeconds, randomId } from './util.js';
-import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, isUnlockable } from '../../src/simulation/unlock-catalog.js';
+import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, STYLE_UNLOCKS, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { titleRank } from '../../src/simulation/player-titles.js';
 
 // Campagne solo sans accélération de débogage : 365 jours × 2,5 s ≈ 15 min (+ sprint).
@@ -35,7 +35,11 @@ export async function startRun(db, userId, body, now = nowSeconds()) {
   return { run_id: id };
 }
 
-/** Fin normale d'une campagne solo : enregistre les candidats mis K.-O. (sans doublon). Le jeu n'envoie rien si l'élection est perdue. */
+/**
+ * Fin normale d'une campagne solo : enregistre les candidats CHOISIS par le joueur parmi ceux qu'il a mis K.-O.
+ * (1 gratuit en cas de victoire, +1 avec une pub récompensée ; 1 avec une pub en cas de défaite).
+ * Au plus MAX_RUN_UNLOCKS par partie : une ancienne version du jeu, qui envoyait tous les K.-O., n'en garde que les premiers.
+ */
 export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (typeof runId !== 'string' || !/^r_[a-f0-9]{32}$/.test(runId)) throw new ApiError(404, 'run_not_found', 'Partie introuvable.');
   const run = await db.prepare('SELECT * FROM game_runs WHERE id = ? AND user_id = ?').bind(runId, userId).first();
@@ -55,7 +59,9 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   const closed = await db.prepare('UPDATE game_runs SET status = \'completed\', completed_at = ? WHERE id = ? AND status = \'playing\'').bind(now, runId).run();
   if (!closed.meta.changes) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   const before = await listUnlocks(db, userId);
-  const wanted = [...new Set(knockouts)];
+  const chosen = [...new Set(knockouts)];
+  const wanted = chosen.slice(0, MAX_RUN_UNLOCKS);
+  if (chosen.length > wanted.length) await audit(db, userId, 'run_too_many_unlocks', runId, `${chosen.length}`).run();
   if (wanted.length) await db.batch(wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_run_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)').bind(userId, id, runId, now)));
   if (wanted.length) await updateTitleRank(db, userId);
   return { unlocked: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };

@@ -31,8 +31,8 @@ export function knockoutUnlockId(target) {
 }
 
 /**
- * Note un K.-O. dans l'état de la partie. Rien n'est débloqué ici : le déblocage
- * n'est validé qu'à la fin de la partie, et seulement pour le vainqueur, voir earnedUnlocks().
+ * Note un K.-O. dans l'état de la partie. Rien n'est débloqué ici : le joueur choisit
+ * ses candidats à la fin normale de la partie, voir unlockOffer().
  * Seul un K.-O. porté par le candidat lui-même compte, ultimes comprises (hologrammes, CRS,
  * encapuchonnés, Zemmour : unités temporaires de son pouvoir). Ses militants et gardes ne débloquent rien.
  */
@@ -59,8 +59,38 @@ export function profileUnlockIds(profile = {}) {
   return ALL_CANDIDATE_IDS.filter(id => DEFAULT_UNLOCKED.includes(id) || styles.includes(id) || (profile.unlocked_minor_candidates || []).includes(id));
 }
 
-/** Candidats gagnés par ce camp : seulement s'il a remporté l'élection (pas de victoire, pas de déblocage). */
-export function earnedUnlocks(state, faction) {
-  if (state?.phase !== 'RESULTS' || state.result?.winner !== faction || !Array.isArray(state.knockouts)) return [];
+/**
+ * Fin de campagne : le joueur ne débloque pas tous les candidats qu'il a mis K.-O., il en CHOISIT.
+ * - victoire : 1 au choix gratuitement, +1 en regardant une pub récompensée ;
+ * - défaite (« seconde chance ») : 1 au choix, seulement en regardant une pub récompensée.
+ * Le serveur des comptes refuse plus de MAX_RUN_UNLOCKS candidats pour une même partie.
+ */
+export const UNLOCK_PICKS = Object.freeze({ free: 1, rewarded: 1, secondChance: 1 });
+export const MAX_RUN_UNLOCKS = Math.max(UNLOCK_PICKS.free + UNLOCK_PICKS.rewarded, UNLOCK_PICKS.secondChance);
+
+/** Candidats que ce camp a lui-même mis K.-O. pendant la partie (sans doublon, dans l'ordre). */
+export function knockedOutBy(state, faction) {
+  if (!Array.isArray(state?.knockouts)) return [];
   return [...new Set(state.knockouts.filter(k => k?.by_faction === faction && isUnlockable(k.candidate_id)).map(k => k.candidate_id))];
+}
+
+/**
+ * Ce que la fin normale de la campagne propose à ce camp, ou null (partie pas terminée, rien de nouveau).
+ * `owned` : identifiants déjà débloqués (ils ne sont pas proposés une seconde fois).
+ * free : choix gratuits ; rewarded : choix de plus contre une pub récompensée.
+ */
+export function unlockOffer(state, faction, owned = []) {
+  if (state?.phase !== 'RESULTS') return null;
+  const choices = knockedOutBy(state, faction).filter(id => !owned.includes(id));
+  if (!choices.length) return null;
+  const won = state.result?.winner === faction;
+  const free = won ? Math.min(UNLOCK_PICKS.free, choices.length) : 0;
+  const rewarded = Math.min(won ? UNLOCK_PICKS.rewarded : UNLOCK_PICKS.secondChance, choices.length - free);
+  return { won, choices, free, rewarded };
+}
+
+/** Multijoueur (sans pub) : le vainqueur de l'élection garde tous les candidats qu'il a mis K.-O. */
+export function earnedUnlocks(state, faction) {
+  if (state?.phase !== 'RESULTS' || state.result?.winner !== faction) return [];
+  return knockedOutBy(state, faction);
 }

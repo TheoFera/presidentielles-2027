@@ -171,9 +171,12 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
 - **Verrouillés** : les 6 autres styles et les 6 candidats mineurs (en Débat télé). Nouveau style ou nouveau mineur :
   l'ajouter à `src/simulation/unlock-catalog.js` (un test le rappelle s'il manque).
 - **Règle** : mettre K.-O. **soi-même** (son propre candidat, ses projectiles et son ultime, y compris les unités qu’elle invoque ; pas ses militants ni ses gardes) un candidat sans style, ou un candidat principal portant un style non débloqué,
-  le **note** dans la partie (`state.knockouts`). Il n'est **débloqué qu'à la fin normale** de la campagne, et **seulement
-  si ce joueur a gagné l'élection** (solo comme multijoueur ; le serveur ne retient que le vainqueur). Quitter, abandonner
-  ou perdre : rien. Un bandeau félicite le joueur au K.-O. et rappelle qu'il doit gagner l'élection.
+  le **note** dans la partie (`state.knockouts`). Rien n'est débloqué avant la **fin normale** de la campagne. Quitter
+  ou abandonner : rien. Un bandeau félicite le joueur au K.-O. et rappelle qu'il doit gagner l'élection.
+  - **Solo** : le joueur **choisit** parmi les candidats qu'il a mis K.-O. Victoire : 1 au choix, +1 en regardant une pub
+    récompensée. Défaite : 1 au choix, seulement avec une pub (« seconde chance »). Voir [publicites.md](publicites.md).
+    Le serveur garde au plus 2 candidats par partie (`MAX_RUN_UNLOCKS`) ; il ne peut pas vérifier qu'une pub a été vue.
+  - **Multijoueur** (sans pub) : le vainqueur de l'élection garde tous les candidats qu'il a mis K.-O. ; le serveur ne retient que lui.
 - **Profil public** (migration `0003_profil_avatar_titre.sql`) : `users.avatar` (candidat débloqué choisi, `PATCH /me`)
   et `users.title_rank` (meilleur titre atteint, jamais perdu). Titres et paliers : `src/simulation/player-titles.js`.
   Le classement renvoie avatar, titre et meilleur Elo de chaque joueur. **Appliquer la migration avant de déployer.**

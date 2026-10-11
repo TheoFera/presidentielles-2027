@@ -13,6 +13,8 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
@@ -22,8 +24,10 @@ import org.json.JSONObject;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Publicités interstitielles AdMob. Le jeu choisit le moment (src/presentation/menus/ads.js, fin de partie) ;
- * ici on demande le consentement (RGPD), on précharge une pub et on l'affiche sur demande.
+ * Publicités AdMob. Le jeu choisit le moment (src/presentation/menus/ads.js, fin de partie) ;
+ * ici on demande le consentement (RGPD), on précharge les pubs et on les affiche sur demande :
+ * - interstitielle : plein écran après un clic de fin de partie ;
+ * - récompensée : vidéo que le joueur choisit de regarder pour débloquer un candidat de plus.
  * Pont JavaScript : window.PTJNativeAds. Sans identifiant de bloc d'annonces, rien n'est chargé.
  */
 final class AdsManager {
@@ -41,11 +45,15 @@ final class AdsManager {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final String unitId = BuildConfig.ADMOB_INTERSTITIAL_ID;
+    private final String rewardedUnitId = BuildConfig.ADMOB_REWARDED_ID;
     private volatile ConsentInformation consent;
     private volatile InterstitialAd interstitial;
     private volatile long loadedAt;
+    private volatile RewardedAd rewarded;
+    private volatile long rewardedLoadedAt;
     private volatile boolean showing;
     private boolean loading;
+    private boolean rewardedLoading;
 
     AdsManager(Activity activity, ScriptRunner script) {
         this.activity = activity;
@@ -58,7 +66,7 @@ final class AdsManager {
 
     /** Au lancement : formulaire de consentement si la loi l'exige (Europe), puis préchargement. */
     void start() {
-        if (unitId.isEmpty()) return;
+        if (unitId.isEmpty() && rewardedUnitId.isEmpty()) return;
         consent = UserMessagingPlatform.getConsentInformation(activity);
         ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
         consent.requestConsentInfoUpdate(activity, parameters,
@@ -70,7 +78,10 @@ final class AdsManager {
 
     private void initialize() {
         if (consent == null || !consent.canRequestAds() || !started.compareAndSet(false, true)) return;
-        new Thread(() -> MobileAds.initialize(activity, status -> handler.post(this::load))).start();
+        new Thread(() -> MobileAds.initialize(activity, status -> handler.post(() -> {
+            load();
+            loadRewarded();
+        }))).start();
     }
 
     private boolean ready() {
@@ -78,7 +89,7 @@ final class AdsManager {
     }
 
     private void load() {
-        if (loading || showing || ready() || activity.isFinishing() || activity.isDestroyed()) return;
+        if (unitId.isEmpty() || loading || showing || ready() || activity.isFinishing() || activity.isDestroyed()) return;
         interstitial = null;
         loading = true;
         InterstitialAd.load(activity, unitId, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
@@ -119,11 +130,60 @@ final class AdsManager {
         ad.show(activity);
     }
 
+    private boolean rewardedReady() {
+        return rewarded != null && SystemClock.elapsedRealtime() - rewardedLoadedAt < MAX_AGE_MS;
+    }
+
+    private void loadRewarded() {
+        if (rewardedUnitId.isEmpty() || !started.get() || rewardedLoading || showing || rewardedReady()
+                || consent == null || !consent.canRequestAds() || activity.isFinishing() || activity.isDestroyed()) return;
+        rewarded = null;
+        rewardedLoading = true;
+        RewardedAd.load(activity, rewardedUnitId, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+            @Override
+            public void onAdLoaded(RewardedAd ad) {
+                rewardedLoading = false;
+                rewarded = ad;
+                rewardedLoadedAt = SystemClock.elapsedRealtime();
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError error) {
+                rewardedLoading = false;
+                handler.postDelayed(AdsManager.this::loadRewarded, RETRY_MS);
+            }
+        });
+    }
+
+    /** Statut renvoyé au jeu : « rewarded » seulement si Google confirme que la vidéo a été regardée jusqu'au bout. */
+    private void presentRewarded(String requestId) {
+        RewardedAd ad = rewarded;
+        rewarded = null;
+        if (ad == null || activity.isFinishing()) {
+            finish(requestId, "notReady");
+            return;
+        }
+        AtomicBoolean earned = new AtomicBoolean(false);
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdDismissedFullScreenContent() {
+                finish(requestId, earned.get() ? "rewarded" : "dismissed");
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(AdError error) {
+                finish(requestId, "error");
+            }
+        });
+        ad.show(activity, reward -> earned.set(true));
+    }
+
     private void finish(String requestId, String status) {
         showing = false;
         script.run("window.PTJNativeAdsResult && window.PTJNativeAdsResult("
                 + JSONObject.quote(requestId) + "," + JSONObject.quote(status) + ")");
         load();
+        loadRewarded();
     }
 
     /** Méthodes appelées par le JavaScript du jeu (sur un fil secondaire). */
@@ -137,6 +197,26 @@ final class AdsManager {
             }
             showing = true;
             handler.post(() -> present(requestId));
+            return true;
+        }
+
+        /** true si une pub récompensée est chargée : le jeu propose alors le bouton « Regarder une pub ». */
+        @JavascriptInterface
+        public boolean rewardedReady() {
+            if (AdsManager.this.rewardedReady()) return true;
+            handler.post(AdsManager.this::loadRewarded);
+            return false;
+        }
+
+        /** Lance la pub récompensée ; le résultat arrive par window.PTJNativeAdsResult (« rewarded », « dismissed »…). */
+        @JavascriptInterface
+        public boolean showRewarded(String requestId) {
+            if (showing || !AdsManager.this.rewardedReady()) {
+                handler.post(AdsManager.this::loadRewarded);
+                return false;
+            }
+            showing = true;
+            handler.post(() -> presentRewarded(requestId));
             return true;
         }
 

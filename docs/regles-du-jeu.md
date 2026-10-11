@@ -66,7 +66,7 @@ En prenant son premier QG, chaque candidat choisit **un style**, définitif pour
 | Philippe | Notable local | Retraités | Écharpe du maire |
 | Philippe | Européiste | Paris | Super Européiste |
 
-Le catalogue est dans `src/simulation/campaign-styles.js` ; les réglages fins dans `game_balance.json` (`campaign_styles`, `specials`). Au départ, seul le premier style de chaque candidat est débloqué. Les autres se débloquent en jouant (voir [comptes-partagetonjeu.md](comptes-partagetonjeu.md)). Le pseudo **betatest** (sans compte) débloque tout, pour les essais.
+Le catalogue est dans `src/simulation/campaign-styles.js` ; les réglages fins dans `game_balance.json` (`campaign_styles`, `specials`). Au départ, seul le premier style de chaque candidat est débloqué. Les autres se débloquent en jouant : mets K.-O. un candidat pendant la campagne, puis gagne l'élection pour le choisir parmi tes candidats vaincus (un 2ᵉ avec une pub, ou un en « seconde chance » après une défaite ; voir [comptes-partagetonjeu.md](comptes-partagetonjeu.md) et [publicites.md](publicites.md)). Le pseudo **betatest** (sans compte) débloque tout, pour les essais.
 
 ## Candidats sans style de campagne
 

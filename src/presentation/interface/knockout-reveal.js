@@ -12,10 +12,10 @@ const CONFETTI_COLORS = ['#ffd75e', '#e5333b', '#2b55c9', '#f2f5ff', '#5dcaa5'];
 const queue = [];
 let showing = false;
 /** Une autre pop-up occupe déjà l'écran : la carte attend son tour. */
-const otherPopupVisible = () => !!document.querySelector('#campaign-events .campaign-card, .account-toast, dialog[open]');
+const otherPopupVisible = () => !!document.querySelector('#campaign-events .campaign-card, .account-toast, dialog[open], .unlock-choice');
 
-/** Nom court du candidat et, pour un style, son nom (« Zemmouriste »). */
-function names(id) {
+/** Nom court du candidat et, pour un style, son nom (« Zemmouriste »). Sert aussi à l'écran de choix de fin de partie. */
+export function unlockLabel(id) {
   const faction = avatarFaction(id);
   const candidate = DEBATE_CANDIDATES.find(c => c.id === faction);
   const style = CAMPAIGN_STYLES[faction]?.find(s => s.id === id);
@@ -35,14 +35,14 @@ function next() {
   showing = true;
   if (otherPopupVisible()) { setTimeout(next, 300); return; }
   const item = queue.shift();
-  const { name, style } = names(item.id);
+  const { name, style } = unlockLabel(item.id);
   const root = document.createElement('div');
   root.className = 'ko-reveal';
   root.setAttribute('role', 'status');
   root.innerHTML = `<span class="ko-reveal-rays" aria-hidden="true"></span>
     <div class="ko-reveal-card">${portraitFace(item.id)}
       <strong class="ko-reveal-title"></strong>${style ? '<small class="ko-reveal-style"></small>' : ''}
-      <span class="ko-reveal-hint">Gagne l’élection pour le débloquer</span></div>`;
+      <span class="ko-reveal-hint">Gagne l’élection pour pouvoir le choisir</span></div>`;
   // Textes posés sans HTML (noms venant du catalogue).
   root.querySelector('.ko-reveal-title').textContent = `${name} K.-O. !`;
   if (style) root.querySelector('.ko-reveal-style').textContent = style;
