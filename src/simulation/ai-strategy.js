@@ -73,9 +73,12 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
   const previous = c.ai_objective;
   // Se sentir faible : des troupes adverses plus nombreuses que les siennes dans son cœur.
   // Reculer à sa permanence, transformer ses sympathisants en militants (tracts), puis contre-attaquer.
-  const core = coreZones(state, c), threat = territoryThreat(state, c, core);
+  // Le rapport de force est réévalué deux fois par seconde (calcul sur toute la carte), et à chaque image pendant un repli.
+  const glance = ticks(config, 0.5), regrouping = previous?.purpose === 'REGROUP' && previous.expires_tick > state.tick;
+  const look = regrouping || (state.tick + Math.floor(aiNoise(state.seed, `${c.id}:threat`) * glance)) % glance === 0;
+  const core = look ? coreZones(state, c) : null, threat = look ? territoryThreat(state, c, core) : { weak: false };
   // Un repli engagé dure jusqu’à avoir au moins autant de troupes que l’adversaire (pas de va-et-vient).
-  if (threat.weak || previous?.purpose === 'REGROUP' && previous.expires_tick > state.tick && threat.ours < threat.theirs) {
+  if (look && (threat.weak || regrouping && threat.ours < threat.theirs)) {
     const rally = state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE')
       .map(b => ({ b, ready: biomeSympathisants(state, b.biome_id, c.faction_id, true).length }))
       .filter(r => r.ready >= 2).sort((a, b) => b.ready - a.ready || distance(state, c.x, a.b.x) - distance(state, c.x, b.b.x))[0]?.b;
@@ -99,6 +102,7 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
   const hasFactionSite = state.buildings.some(b => b.type === 'faction' && b.owner_id === c.faction_id && b.state === 'ACTIVE');
   // Les dons n’arrivent qu’à une permanence du même quartier : en ouvrir une là où il n’y en a pas encore.
   const fundedBiomes = new Set(state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE').map(b => b.biome_id));
+  const heart = core ?? coreZones(state, c);
   const choices = state.electorate.map(e => {
     const zone = state.world.subzones.find(z => z.id === e.subzone_id);
     const units = state.npcs.filter(n => zoneAt(state.world, n.x).id === zone.id);
@@ -119,7 +123,7 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
       .reduce((sum, n) => sum + 1 + 0.6 * factionPressure(adaptation, n.faction_id), 0);
     const guards = enemies.filter(n => FIGHTERS.includes(n.role)).length;
     // Son cœur envahi : y revenir chasser l’intrus (le repli gère le cas où il est trop fort).
-    const invaded = core.has(zone.id) && [...state.candidates, ...state.npcs].some(n => hostile(c, n) && !isMinorFaction(n.faction_id)
+    const invaded = heart.has(zone.id) && [...state.candidates, ...state.npcs].some(n => hostile(c, n) && !isMinorFaction(n.faction_id)
       && (FIGHTERS.includes(n.role) || n.role === 'CANDIDAT') && zoneAt(state.world, n.x).id === zone.id);
     // Partie à trois : on grignote en priorité le camp qui domine, on épargne un humain distancé.
     const pressure = factionPressure(adaptation, e.controller);
@@ -336,12 +340,13 @@ export function strategicAICommands(state, config, c) {
   // Chasse : comme un joueur, abattre les sympathisants et militants adverses qui passent à portée.
   // Chaque soutien abattu rentre chez lui redevenir neutre : une voix en moins pour l’adversaire.
   if (objective.purpose !== 'REGROUP') {
-    const fighters = n => [...state.npcs, ...state.temporary_units].filter(o => hostile(c, o) && FIGHTERS.includes(o.role)
-      && o !== n && distance(state, n.x, o.x) <= 5).length;
-    const prey = state.npcs.filter(n => hostile(c, n) && !isMinorFaction(n.faction_id) && ['SYMPATHISANT', 'MILITANT'].includes(n.role)
-      && keep(n) && distance(state, c.x, n.x) <= (mission ? tactics(config).hunt_radius_mission_units : tactics(config).hunt_radius_units)
-      && fighters(n) <= tactics(config).hunt_max_guards)
-      .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
+    const t = tactics(config), radius = mission ? t.hunt_radius_mission_units : t.hunt_radius_units;
+    // (Calcul léger : il tourne à chaque image pour chaque IA.)
+    const nearby = state.npcs.filter(n => distance(state, c.x, n.x) <= radius + 5 && hostile(c, n));
+    const guards = [...nearby.filter(n => FIGHTERS.includes(n.role)), ...state.temporary_units.filter(u => hostile(c, u) && distance(state, c.x, u.x) <= radius + 5)];
+    const prey = nearby.filter(n => ['SYMPATHISANT', 'MILITANT'].includes(n.role) && !isMinorFaction(n.faction_id) && distance(state, c.x, n.x) <= radius && keep(n))
+      .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))
+      .find(n => guards.filter(o => o !== n && distance(state, n.x, o.x) <= 5).length <= t.hunt_max_guards);
     if (prey) return finish([...plan, ...aiCombatCommands(state, config, c, prey, combatTempo(state, adaptation, prey))]);
   }
   const pickup = moneyPickup(state, config, c, avoid, stance);
