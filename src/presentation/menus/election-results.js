@@ -8,7 +8,7 @@ const FEMININE = new Set(['le_pen']);
 // `hold` : temps pendant lequel le résultat complet reste affiché avant que les boutons répondent.
 const TIMELINE = { count: 1900, countDuration: 1300, stamp: 3200, end: 3700, confettiLife: 6500, hold: 3000 };
 // Boutons qui quittent l’écran : verrouillés tant que le résultat n’a pas été vu quelques secondes.
-const LEAVING = ['continue', 'replay', 'return'];
+const LEAVING = ['continue', 'summary'];
 const CONFETTI_COUNT = 90;
 const CONFETTI_COLORS = ['#2457d6', '#ffffff', '#e5333b', '#ffd35a'];
 const format = n => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -30,15 +30,17 @@ export function expressedScores(scores, factions) {
 export function electionModel(state) {
   const first = state.phase === 'FIRST_ROUND_RESULTS';
   const result = first ? state.first_round_result : state.result;
-  const ranking = first ? result.ranking : [result.winner, result.second];
+  // Élu dès le premier tour (plus de 50 % des voix exprimées) : pas de second tour.
+  const direct = !first && !!result.first_round;
+  const ranking = first ? result.ranking : direct ? state.first_round_result.ranking : [result.winner, result.second];
   const local = state.local_candidate_id.split(':')[1];
-  const earlier = !first && state.first_round_result;
-  // Premier tour : les pourcentages portent sur toutes les voix exprimées, petits candidats compris.
-  const minors = first ? MINOR_FACTIONS.filter(f => Number.isFinite(result.scores[f])) : [];
+  const earlier = !first && !direct && state.first_round_result;
+  // Premier tour : les pourcentages portent sur toutes les voix exprimées, autres candidats compris.
+  const minors = first || direct ? MINOR_FACTIONS.filter(f => Number.isFinite(result.scores[f])) : [];
   const scores = expressedScores(result.scores, [...ranking, ...minors]);
-  return { first, ranking, scores, neutral: result.scores.neutral,
+  return { first, direct, ranking, scores, neutral: result.scores.neutral,
     minors: minors.map(f => ({ f, name: MINOR_LOOKS[f].fullName, value: scores?.[f] ?? null })).sort((a, b) => (b.value ?? 0) - (a.value ?? 0) || a.f.localeCompare(b.f)),
-    eliminated: first ? ranking[2] : state.eliminated_faction ?? null,
+    eliminated: first ? ranking[2] : direct ? null : state.eliminated_faction ?? null,
     firstRound: earlier ? { ranking: earlier.ranking, scores: expressedScores(earlier.scores, earlier.ranking) } : null,
     success: first ? ranking.slice(0, 2).includes(local) : result.winner === local,
     local, tie: !!result.tie_break };
@@ -47,6 +49,7 @@ export function electionModel(state) {
 function verdict(m) {
   const g = fem(m.local), winner = person(m.ranking[0]);
   if (m.first) return m.success ? [`Qualifié${g} !`, 'Cap sur le second tour'] : [`Éliminé${g}`, 'Vous suivrez le second tour en spectateur'];
+  if (m.direct) return m.success ? ['Victoire !', `Élu${g} dès le premier tour`] : ['Défaite', `${winner.short} élu${fem(m.ranking[0])} dès le premier tour`];
   if (m.success) return ['Victoire !', `Vous êtes élu${g} président${g} de la République`];
   return ['Défaite', m.ranking.includes(m.local) ? `${winner.short} remporte l’élection` : `Éliminé${g} au premier tour, ${winner.short} l’emporte`];
 }
@@ -55,11 +58,9 @@ function tickerItems(m) {
   const [a, b, c] = m.ranking, pct = f => m.scores ? `${format(m.scores[f])} %` : '—';
   const items = m.scores ? [] : ['Aucune voix exprimée'];
   if (m.first) items.push(`Second tour : ${person(a).name} face à ${person(b).name}`, `${person(c).name} éliminé${fem(c)} avec ${pct(c)} des voix`);
-  if (m.first && m.minors?.length && m.scores) items.push(`Petits candidats : ${m.minors.map(x => `${x.name} ${format(x.value)} %`).join(' · ')}`);
-  else {
-    items.push(`${person(a).name} élu${fem(a)} président${fem(a)} avec ${pct(a)} des voix`);
-    if (m.firstRound?.scores) items.push(`Rappel du premier tour : ${m.firstRound.ranking.map(f => `${person(f).short} ${format(m.firstRound.scores[f])} %`).join(' · ')}`);
-  }
+  else items.push(`${person(a).name} élu${fem(a)} président${fem(a)} ${m.direct ? 'dès le premier tour ' : ''}avec ${pct(a)} des voix`);
+  if ((m.first || m.direct) && m.minors?.length && m.scores) items.push(`Autres candidats : ${m.minors.map(x => `${x.name} ${format(x.value)} %`).join(' · ')}`);
+  if (m.firstRound?.scores) items.push(`Rappel du premier tour : ${m.firstRound.ranking.map(f => `${person(f).short} ${format(m.firstRound.scores[f])} %`).join(' · ')}`);
   items.push(`Électeurs neutres : ${format(m.neutral)} % du corps électoral`, 'Pourcentages calculés sur les seules voix attribuées aux candidats');
   if (m.tie) items.push(tieText(m));
   return items;
@@ -80,17 +81,17 @@ function tile(m, f, index) {
     ${stamp ? `<span class="election-stamp">${stamp}</span>` : ''}
     <div class="election-plate">
       <div class="election-name"><span class="election-chips"><b>${index + 1}<sup>${index ? 'e' : 'er'}</sup></b>${you ? '<b class="election-you">Vous</b>' : ''}</span>
-        <h2><small>${c.name.slice(0, -c.short.length).trim()}</small>${c.short}</h2>${m.first ? `<span class="election-gauge" style="--p:${value ?? 0}%"><i></i></span>` : ''}</div>
+        <h2><small>${c.name.slice(0, -c.short.length).trim()}</small>${c.short}</h2>${m.first || m.direct ? `<span class="election-gauge" style="--p:${value ?? 0}%"><i></i></span>` : ''}</div>
       ${score(value)}
     </div></article>`;
 }
 
 function band(m) {
-  if (m.first) {
+  if (m.first || m.direct) {
     const f = m.ranking[2], value = m.scores?.[f];
     return `<div class="election-band election-third${f === m.local ? ' is-you' : ''}" data-faction="${f}">
       <span class="election-avatar" aria-hidden="true"><span class="election-art"></span></span>
-      <span class="election-out">Éliminé${fem(f)}</span><b class="election-rank">3<sup>e</sup></b><strong>${person(f).name}</strong>${f === m.local ? '<b class="election-you">Vous</b>' : ''}
+      <span class="election-out">${m.direct ? 'Battu' : 'Éliminé'}${fem(f)}</span><b class="election-rank">3<sup>e</sup></b><strong>${person(f).name}</strong>${f === m.local ? '<b class="election-you">Vous</b>' : ''}
       <span class="election-gauge" style="--p:${value ?? 0}%"><i></i></span>${score(value, 'span', 'election-third-score')}</div>`;
   }
   const [a, b] = m.ranking;
@@ -100,32 +101,31 @@ function band(m) {
     <span data-faction="${b}">${person(b).short}</span></div>`;
 }
 
-/** Petits candidats du premier tour : leurs scores, sans possibilité de qualification. */
+/** Autres candidats du premier tour : leurs scores, sans possibilité de qualification. */
 function minorsBand(m) {
-  if (!m.first || !m.minors?.length || !m.scores) return '';
-  return `<div class="election-minors" aria-label="Petits candidats"><b>Petits candidats</b>${m.minors.map(x => `<span data-faction="${x.f}">${x.name} <em>${format(x.value)} %</em></span>`).join('')}</div>`;
+  if (!m.minors?.length || !m.scores) return '';
+  return `<div class="election-minors" aria-label="Autres candidats"><b>Autres candidats</b>${m.minors.map(x => `<span data-faction="${x.f}">${x.name} <em>${format(x.value)} %</em></span>`).join('')}</div>`;
 }
 
-function actions(m, { host, multiplayer }) {
-  const main = m.first
-    ? host ? '<button class="election-primary" data-action="continue">Continuer <span aria-hidden="true">➜</span></button>' : '<span class="election-waiting">En attente de l’hôte…</span>'
-    : multiplayer ? '' : '<button class="election-primary" data-action="replay">Rejouer</button>';
-  const summary = m.first ? '' : '<button data-action="summary">Bilan</button>';
-  return `${summary}${main}<button data-action="return">Retour au menu</button>`;
+// Parcours imposé : premier tour → second tour, puis résultat final → bilan (où se trouvent Rejouer et le menu).
+function actions(m, { host }) {
+  if (!m.first) return '<button class="election-primary" data-action="summary">Voir le bilan <span aria-hidden="true">➜</span></button>';
+  return host ? '<button class="election-primary" data-action="continue">Continuer <span aria-hidden="true">➜</span></button>' : '<span class="election-waiting">En attente de l’hôte…</span>';
 }
 
 function markup(m, options) {
   const [title, subtitle] = verdict(m), winner = m.ranking[0];
   const items = tickerItems(m), ticker = items.map(t => `<span>${t}</span>`).join('');
+  const firstRound = m.first || m.direct;
   return `<div class="election-stage" data-round="${m.first ? 'first' : 'second'}" data-outcome="${m.success ? 'success' : 'failure'}">
     <div class="election-backdrop" aria-hidden="true"><span class="election-beam"></span><span class="election-beam"></span><span class="election-watermark">2027</span></div>
     <div class="election-screen">
       <header class="election-top">
         <span class="election-brand"><i class="election-flag" aria-hidden="true"></i><b>Présidentielle</b> <strong>2027</strong></span>
-        <span class="election-program">Soirée électorale <em>${m.first ? '1<sup>er</sup> tour' : '2<sup>nd</sup> tour'}</em></span>
+        <span class="election-program">Soirée électorale <em>${firstRound ? '1<sup>er</sup> tour' : '2<sup>nd</sup> tour'}</em></span>
         <span class="election-live"><b><i aria-hidden="true"></i>${options.preview ? 'Données fictives' : 'En direct'}</b><time>20:00</time></span>
       </header>
-      <div class="election-heading"><p>${m.first ? 'Résultats du premier tour' : 'Résultats du second tour'}</p>
+      <div class="election-heading"><p>${firstRound ? 'Résultats du premier tour' : 'Résultats du second tour'}</p>
         <h1 tabindex="-1">${m.first ? 'Qualifiés pour le second tour' : `${person(winner).name} élu${fem(winner)} président${fem(winner)}`}</h1></div>
       <div class="election-duel">
         ${tile(m, m.ranking[0], 0)}
@@ -159,11 +159,11 @@ export class ElectionResults {
   later(ms, callback) { this.timers.push(setTimeout(callback, ms)); }
   values() { return [...this.stage.querySelectorAll('[data-value]:not([data-value=""])')]; }
   leavingButtons() { return LEAVING.map(action => this.stage.querySelector(`[data-action="${action}"]`)).filter(Boolean); }
-  render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onReplay, onReturn, onSummary } = {}) {
+  render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onSummary } = {}) {
     this.clear(); this.model = model; this.celebrated = false;
     this.element.innerHTML = markup(model, { preview, host, multiplayer });
     this.stage = this.element.querySelector('.election-stage');
-    for (const [action, callback] of Object.entries({ continue: onContinue, replay: onReplay, return: onReturn, summary: onSummary })) {
+    for (const [action, callback] of Object.entries({ continue: onContinue, summary: onSummary })) {
       const button = this.element.querySelector(`[data-action="${action}"]`);
       if (button) { button.hidden = !callback; button.onclick = callback; }
     }

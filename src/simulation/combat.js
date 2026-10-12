@@ -228,7 +228,10 @@ function triggerSpecial(sim, actor) {
     power.expires_tick += sim.secondsToTicks(s.duration_seconds + (hologram ? s.appearance_seconds : 0));
     const offsets = hologram ? Array.from({ length: s.count }, (_, i) => (i % 2 ? 1 : -1) * (s.spawn_distance + Math.floor(i / 2) * s.spawn_spacing))
       : [...Array.from({ length: s.guards_left }, (_, i) => -(i + 1) * s.follow_offset), ...Array.from({ length: s.guards_right }, (_, i) => (i + 1) * s.follow_offset)];
-    for (const offset of offsets) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
+    // Les hologrammes rejouent les gestes de Mélenchon avec un léger retard, plus grand pour les plus éloignés.
+    if (hologram) power.trail = [];
+    for (const [i, offset] of offsets.entries()) state.temporary_units.push({ id: `temporary:${state.next_temporary_id++}`, power_id: power.id,
+      ...(hologram ? { mirror_delay_ticks: sim.secondsToTicks(s.echo_delay_seconds * (Math.floor(i / 2) + 1)), mirror_done_id: null } : {}),
       owner_id: actor.id, role: hologram ? 'HOLOGRAMME' : 'CRS', faction_id: actor.faction_id, ...(actor.team_id ? { team_id: actor.team_id } : {}), temporary: true, expired: false,
       x: hologram ? hologramX(state, actor, offset) : combatPosition(state, actor.x + offset), follow_offset: offset, facing: hologram ? actor.facing : Math.sign(offset) || actor.facing,
       // Un hologramme n’a pas de points de vie : il disparaît seulement à la fin du pouvoir.
@@ -245,25 +248,54 @@ const hologramX = (state, owner, offset) => state.debate_bounds ? owner.x + offs
 const MIRRORED_ATTACKS = ['CANDIDATE', 'CHARGED', 'SCARF', 'DIVE'];
 const MIRRORED_POSE = ['press_tick', 'charge_active', 'press_airborne', 'jump_tick', 'height', 'jump_base', 'dive_tick', 'drop_through_id',
   'stun_ticks', 'hitstop_ticks', 'knockdown_tick', 'combo_step', 'combo_expires_tick', 'knockback_velocity'];
+// Dates recopiées : décalées du retard de l’hologramme pour que l’animation se joue en différé.
+const MIRRORED_TICKS = ['press_tick', 'jump_tick', 'dive_tick', 'knockdown_tick', 'combo_expires_tick'];
+const MIRRORED_ATTACK_FIELDS = ['id', 'kind', 'step', 'strong', 'partial', 'range', 'stun_seconds', 'damage', 'knockback', 'electoral_damage',
+  'direction', 'elapsed_ticks', 'windup_ticks', 'active_ticks', 'recovery_ticks'];
+
+/** Mémorise l’état de Mélenchon à ce tick, pour que ses hologrammes le rejouent en différé. */
+function recordHologramTrail(sim) {
+  const { state } = sim;
+  for (const power of state.powers) {
+    if (power.kind !== 'HOLOGRAMS' || !power.trail) continue;
+    const owner = state.candidates.find(c => c.id === power.owner_id);
+    if (!owner) continue;
+    const c = owner.combat, attack = state.attacks.find(a => a.id === c.attack_id && MIRRORED_ATTACKS.includes(a.kind));
+    const pose = {};
+    for (const key of MIRRORED_POSE) if (c[key] !== undefined) pose[key] = c[key];
+    power.trail.push({ tick: state.tick, x: owner.x, facing: owner.facing, moving: !!owner.moving, axis: owner.axis || 0,
+      dash_active: !!owner.dash_active, turn_tick: owner.turn_tick ?? null, pose,
+      attack: attack ? Object.fromEntries(MIRRORED_ATTACK_FIELDS.filter(k => attack[k] !== undefined).map(k => [k, attack[k]])) : null });
+    const longest = Math.max(0, ...state.temporary_units.filter(u => u.power_id === power.id).map(u => u.mirror_delay_ticks || 0));
+    if (power.trail.length > longest + 1) power.trail.splice(0, power.trail.length - longest - 1);
+  }
+}
 
 /** Hologramme de Mélenchon : copie exacte du candidat, décalée sur le côté.
- * Il marche, saute, charge et frappe en même temps que lui, toujours à sa hauteur
- * (pas de chute au-dessus du vide), et traverse tout. Ses coups sont ceux de Mélenchon,
- * avec les dégâts réduits des hologrammes. */
-function mirrorHologram(sim, unit, owner) {
-  const { state } = sim, s = sim.config.balance.specials.melenchon_holograms;
-  unit.x = hologramX(state, owner, unit.follow_offset);
-  unit.facing = owner.facing; unit.moving = !!owner.moving; unit.axis = owner.axis || 0;
-  unit.dash_active = !!owner.dash_active; unit.turn_tick = owner.turn_tick;
-  const from = owner.combat, to = unit.combat;
-  for (const key of MIRRORED_POSE) { if (from[key] === undefined) delete to[key]; else to[key] = from[key]; }
-  const source = state.attacks.find(a => a.id === from.attack_id && MIRRORED_ATTACKS.includes(a.kind));
+ * Il rejoue, avec un léger retard, tout ce qu’a fait Mélenchon : marche, saut, charge et coups,
+ * toujours à sa hauteur (pas de chute au-dessus du vide), en traversant tout.
+ * Ses coups font exactement les mêmes dégâts que ceux de Mélenchon. */
+function mirrorHologram(sim, unit, power) {
+  const { state } = sim, trail = power?.trail;
+  if (!trail?.length) return;
+  const frame = trail[Math.max(0, trail.length - 1 - unit.mirror_delay_ticks)], delay = state.tick - frame.tick;
+  unit.x = state.debate_bounds ? frame.x + unit.follow_offset : combatPosition(state, frame.x + unit.follow_offset);
+  unit.facing = frame.facing; unit.moving = frame.moving; unit.axis = frame.axis;
+  unit.dash_active = frame.dash_active; unit.turn_tick = frame.turn_tick == null ? frame.turn_tick : frame.turn_tick + delay;
+  const to = unit.combat;
+  for (const key of MIRRORED_POSE) { if (frame.pose[key] === undefined) delete to[key]; else to[key] = frame.pose[key]; }
+  for (const key of MIRRORED_TICKS) if (to[key] != null) to[key] += delay;
+  const source = frame.attack;
   let copy = state.attacks.find(a => a.id === to.attack_id);
   if (copy && (!source || copy.mirror_of !== source.id)) { state.attacks = state.attacks.filter(a => a !== copy); copy = null; to.attack_id = null; }
-  if (!source || state.tick < (unit.ready_tick || 0)) return;
-  copy ??= makeAttack(sim, unit, 'HOLOGRAM', { mirror_of: source.id, mirror_kind: source.kind, step: source.step || 0, strong: !!source.strong,
-    partial: !!source.partial, range: source.range, stun_seconds: source.stun_seconds,
-    damage: s.hidden_damage_per_hit, knockback: s.knockback, electoral_damage: s.electoral_damage });
+  // Un coup copié ne se rejoue qu’une fois, même s’il s’est terminé un peu avant celui de Mélenchon.
+  if (!source || state.tick < (unit.ready_tick || 0) || !copy && unit.mirror_done_id === source.id) return;
+  if (!copy) {
+    copy = makeAttack(sim, unit, 'HOLOGRAM', { mirror_of: source.id, mirror_kind: source.kind, step: source.step || 0, strong: !!source.strong,
+      partial: !!source.partial, range: source.range, stun_seconds: source.stun_seconds,
+      damage: source.damage, knockback: source.knockback, electoral_damage: source.electoral_damage });
+    unit.mirror_done_id = source.id;
+  }
   Object.assign(copy, { direction: source.direction, elapsed_ticks: source.elapsed_ticks, windup_ticks: source.windup_ticks,
     active_ticks: source.active_ticks, recovery_ticks: source.recovery_ticks });
 }
@@ -356,12 +388,13 @@ function updateProjectiles(sim) {
 
 function updateTemporaryUnits(sim) {
   const { state, config } = sim;
+  recordHologramTrail(sim);
   for (const unit of state.temporary_units) {
     if (state.tick >= unit.expires_tick) unit.expired = true;
     const owner = state.candidates.find(c => c.id === unit.owner_id);
     if (!owner || owner.is_ko || owner.eliminated) { unit.expired = true; continue; }
     if (unit.expired) continue;
-    if (unit.role === 'HOLOGRAMME') { mirrorHologram(sim, unit, owner); continue; }
+    if (unit.role === 'HOLOGRAMME') { mirrorHologram(sim, unit, state.powers.find(p => p.id === unit.power_id)); continue; }
     if (interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;
     if (updateStyleTemporary(sim, unit)) continue;
     const s = config.balance.specials.philippe_crs_wall;

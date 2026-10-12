@@ -27,9 +27,12 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
   } else {
     if (!support(s.telemetry.j0_scores) || !same(s.first_round_result, rankFirstRound(s.telemetry.j0_scores, s.seed))) fail('classement du premier tour invalide');
     if (s.phase === GamePhase.FIRST_ROUND_RESULTS && (s.days_remaining !== 0 || !same(s.first_round_result.scores, s.actualGameState.national_support))) fail('scores du premier tour incohérents');
-    if ([GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase) && s.eliminated_faction !== s.first_round_result.ranking[2]) fail('qualification incohérente');
+    if (s.first_round_result.majority !== (s.phase === GamePhase.RESULTS && !!s.result?.first_round)) fail('majorité du premier tour incohérente');
+    if ([GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase) && !s.first_round_result.majority && s.eliminated_faction !== s.first_round_result.ranking[2]) fail('qualification incohérente');
   }
-  const late = [GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase);
+  // Élu dès le premier tour : pas de second tour, donc ni éliminé ni finalistes.
+  const direct = s.phase === GamePhase.RESULTS && !!s.first_round_result?.majority;
+  const late = [GamePhase.SECOND_ROUND_SPRINT, GamePhase.RESULTS].includes(s.phase) && !direct;
   if (late) {
     if (!FACTIONS.includes(s.eliminated_faction) || !same(s.finalists, FACTIONS.filter(f => f !== s.eliminated_faction)) || !integer(s.sprint_remaining_ticks)
       || s.days_remaining !== 0 || s.debate !== null || s.campaign_snapshot !== null || !support(t.j0_scores) || !support(t.sprint_start_scores)
@@ -67,9 +70,13 @@ export function validateMatchSnapshot(s, sim, fail, validateWorld, nested) {
     validateCombatSnapshot(a, sim, fail);
     if (a.temporary_units.some(c => c.role !== 'HOLOGRAMME' && (c.x < a.debate_bounds.min || c.x > a.debate_bounds.max))) fail('temporaire hors plateau');
   } else if (s.debate !== null || s.campaign_snapshot !== null) fail('débat hors phase');
-  if (s.phase === GamePhase.RESULTS) {
+  if (direct) {
+    const r = s.result, [winner, second] = s.first_round_result.ranking;
+    if (!r || r.winner !== winner || r.second !== second || !same(r.scores, s.first_round_result.scores) || !same(r.scores, s.actualGameState.national_support)
+      || !same(t.final_scores, r.scores) || t.winner !== winner || !integer(r.decided_tick) || r.decided_tick !== s.tick || s.days_remaining !== 0) fail('résultat invalide');
+  } else if (s.phase === GamePhase.RESULTS) {
     const r = s.result;
-    if (!r || !s.finalists.includes(r.winner) || !s.finalists.includes(r.second) || r.winner === r.second || s.sprint_remaining_ticks !== 0
+    if (!r || r.first_round || !s.finalists.includes(r.winner) || !s.finalists.includes(r.second) || r.winner === r.second || s.sprint_remaining_ticks !== 0
       || !same(r.scores, s.actualGameState.national_support) || !same(t.final_scores, r.scores) || t.winner !== r.winner || !integer(r.decided_tick) || r.decided_tick !== s.tick
       || r.scores[r.winner] + 1e-10 < r.scores[r.second]) fail('résultat invalide');
   } else if (s.result !== null) fail('résultat prématuré');

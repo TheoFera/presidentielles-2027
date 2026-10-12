@@ -76,7 +76,7 @@
 .election-gauge i { display: block; width: var(--p); height: 100%; background: linear-gradient(90deg, var(--party-dark), var(--party)); border-radius: inherit; }
 [data-side='right'] .election-gauge i { margin-left: auto; background: linear-gradient(270deg, var(--party-dark), var(--party)); }
 .election-score { display: flex; align-items: center; margin: 0 0 0 calc(var(--u) * -1.2); padding: 0 calc(var(--u) * 1.4) 0 calc(var(--u) * 2.1); font-size: calc(var(--u) * 4.8); line-height: 1.02; letter-spacing: -.02em; white-space: nowrap; font-variant-numeric: tabular-nums; background: linear-gradient(color-mix(in srgb, var(--party) 85%, #fff), var(--party) 45%, var(--party-dark)); clip-path: polygon(calc(var(--u) * 1.2) 0, 100% 0, 100% 100%, 0 100%); text-shadow: 0 calc(var(--u) * .3) 0 #0007; }
-[data-side='right'] .election-score { margin: 0 calc(var(--u) * -1.2) 0 0; padding: 0 calc(var(--u) * 2.1) 0 calc(var(--u) * 1.4); clip-path: polygon(0 0, 100% 0, calc(100% - var(--u) * 1.2) 100%, 0 100%); }
+[data-side='right'] .election-score { margin: 0 calc(var(--u) * -1.2) 0 0; padding: 0 calc(var(--u) * 2.1) 0 calc(var(--u) * 1.4); clip-path: polygon(0 0, calc(100% - var(--u) * 1.2) 0, 100% 100%, 0 100%); }
 .election-score small { align-self: flex-start; margin: .32em 0 0 .08em; font-size: .45em; }
 .is-winner .election-score { color: #2b1800; text-shadow: 0 calc(var(--u) * .2) 0 #fff9; background: linear-gradient(#fff6c8, var(--gold) 45%, #eb9412); }
 

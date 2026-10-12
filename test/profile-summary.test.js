@@ -56,7 +56,7 @@ test('le bilan classe les camps, trace le sprint à part et arrête la courbe du
   assert.deepEqual(model.camps.map(c => c.faction), ['philippe', 'melenchon', 'le_pen']);
   assert.equal(model.camps[0].local, true);
   assert.equal(model.camps[0].status, 'Élu');
-  assert.equal(model.camps[2].status, 'Éliminé au 1er tour');
+  assert.equal(model.camps[2].status, 'Éliminée au 1er tour');
   assert.equal(model.camps[0].peak, 10.5);
   assert.equal(model.camps[0].peakVoters, 21);
   assert.equal(model.camps[2].peak, 6);

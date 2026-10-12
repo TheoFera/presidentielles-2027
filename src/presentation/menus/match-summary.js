@@ -6,7 +6,7 @@ import { formatCarriedMoney } from '../carte/money.js';
 const CAMPAIGN_SHARE = 0.8; // Part de la largeur du graphique réservée à la campagne ; le reste montre le sprint.
 const CHART = { width: 640, height: 250, left: 40, right: 92, top: 14, bottom: 30 };
 const FEMININE = new Set(['le_pen']);
-// Nom et couleur des petits candidats (reprend l'accent de leur tenue, voir minor-characters.js).
+// Nom et couleur des autres candidats (reprend l'accent de leur tenue, voir minor-characters.js).
 const MINORS = {
   glucksmann: { name: 'Glucksmann', color: '#d9719f' }, roussel: { name: 'Roussel', color: '#d8404b' },
   arthaud: { name: 'Arthaud', color: '#b3342c' }, dupont_aignan: { name: 'Dupont-Aignan', color: '#9a7cc9' },
@@ -29,7 +29,9 @@ export function summaryModel(state) {
   const history = Array.isArray(state.match_history) ? state.match_history : [];
   // Le bilan retrace la course des trois candidats principaux.
   const factions = state.candidates.filter(c => !c.minor).map(c => c.faction_id);
-  const ranking = state.result ? [state.result.winner, state.result.second, state.eliminated_faction].filter(Boolean) : factions;
+  // Élu dès le premier tour : classement du premier tour, personne n'est éliminé.
+  const direct = !!state.result?.first_round;
+  const ranking = direct ? state.first_round_result.ranking : state.result ? [state.result.winner, state.result.second, state.eliminated_faction].filter(Boolean) : factions;
   const order = [...ranking, ...factions.filter(f => !ranking.includes(f))];
   const campaign = history.filter(p => !p.sprint), sprint = history.filter(p => p.sprint);
   const start = history[0]?.tick ?? 0, j0 = campaign.at(-1)?.tick ?? start, end = history.at(-1)?.tick ?? j0;
@@ -37,7 +39,7 @@ export function summaryModel(state) {
   const x = point => point.sprint
     ? share + (1 - share) * (end > j0 ? (point.tick - j0) / (end - j0) : 1)
     : share * (j0 > start ? (point.tick - start) / (j0 - start) : 0);
-  // Petits candidats : une courbe fine jusqu'au premier tour (ils se retirent ensuite), classés par score final.
+  // Autres candidats : une courbe fine jusqu'au premier tour (ils se retirent ensuite), classés par score final.
   const minors = state.candidates.filter(c => c.minor).map(c => c.faction_id)
     .sort((a, b) => support(campaign.at(-1) || {}, b) - support(campaign.at(-1) || {}, a));
   const max = Math.min(100, niceMax(Math.max(0, ...history.flatMap(p => [...factions, ...minors].map(f => support(p, f))))));
@@ -52,7 +54,8 @@ export function summaryModel(state) {
   const camps = order.map((faction, index) => {
     const candidate = state.candidates.find(c => c.faction_id === faction);
     const peak = history.reduce((best, p) => !best || support(p, faction) > support(best, faction) ? p : best, null);
-    const status = !state.result ? '' : index === 0 ? `Élu${FEMININE.has(faction) ? 'e' : ''}` : faction === state.eliminated_faction ? 'Éliminé au 1er tour' : '2e du second tour';
+    const e = FEMININE.has(faction) ? 'e' : '';
+    const status = !state.result ? '' : index === 0 ? `Élu${e}${direct ? ' au 1er tour' : ''}` : direct ? `Battu${e} au 1er tour` : faction === state.eliminated_faction ? `Éliminé${e} au 1er tour` : '2e du second tour';
     return { faction, local: candidate?.id === state.local_candidate_id, status,
       peak: peak ? support(peak, faction) : 0, peakVoters: peak ? voters(peak, faction) : 0, peakMoment: peak ? moment(peak) : '',
       earned: candidate?.total_earned || 0, spent: candidate?.total_spent || 0 };
@@ -93,14 +96,14 @@ function chart(model) {
     ${sprint}<g class="summary-grid">${grid}</g>${minorLines}${lines}${ends}${ticks}</svg>`;
 }
 
-// Légende des petits candidats : leur score au premier tour (nombre d'électeurs).
+// Légende des autres candidats : leur score au premier tour (nombre d'électeurs).
 function minorLegend(model) {
   if (!model.minorSeries.length) return '';
   const items = model.minorSeries.map(s => {
     const last = s.points.at(-1);
     return `<li style="--party:${MINORS[s.faction]?.color || '#9fb3cc'}"><i aria-hidden="true"></i>${escape(MINORS[s.faction]?.name || s.faction)} <b>${percent(last?.value ?? 0)}</b> <small>(${whole(last?.voters ?? 0)})</small></li>`;
   }).join('');
-  return `<ul class="summary-minors" aria-label="Petits candidats au premier tour">${items}</ul>`;
+  return `<ul class="summary-minors" aria-label="Autres candidats au premier tour">${items}</ul>`;
 }
 
 function card(camp) {
@@ -115,10 +118,12 @@ function card(camp) {
     </dl></article>`;
 }
 
-export function summaryMarkup(model) {
+export function summaryMarkup(model, { replay = false, leave = false } = {}) {
+  // Fin du parcours : c'est ici seulement que l'on peut rejouer ou revenir au menu.
+  const exits = leave ? `<button type="button" data-summary="return">Retour au menu</button>${replay ? '<button type="button" class="election-primary" data-summary="replay">Rejouer</button>' : ''}` : '';
   return `<div class="match-summary-panel">
     <header class="match-summary-head"><div><p>Soirée électorale · Bilan</p><h2 id="match-summary-title" tabindex="-1">Bilan de la partie</h2></div>
-      <button type="button" data-summary="close">← Résultats</button></header>
+      <div class="match-summary-actions"><button type="button" data-summary="close">← Résultats</button>${exits}</div></header>
     <section class="summary-chart-card"><h3>Électeurs de chaque camp <small>en % de l’électorat · (nombre d’électeurs)</small></h3>
       ${model.empty ? '<p class="summary-empty">Pas assez de relevés pour tracer l’évolution de cette partie.</p>' : chart(model) + minorLegend(model)}</section>
     <div class="summary-camps">${model.camps.map(card).join('')}</div></div>`;
@@ -126,15 +131,27 @@ export function summaryMarkup(model) {
 
 export class MatchSummary {
   constructor(host) { this.host = host; this.element = null; }
-  open(state, onClose) {
+  /** `lockMs` : délai pendant lequel « Rejouer » et « Retour au menu » restent grisés (pas de sortie par erreur). */
+  open(state, onClose, { onReplay = null, onReturn = null, lockMs = 0 } = {}) {
     this.close();
     const element = document.createElement('div');
     element.className = 'match-summary'; element.setAttribute('role', 'dialog'); element.setAttribute('aria-modal', 'true'); element.setAttribute('aria-labelledby', 'match-summary-title');
-    element.innerHTML = summaryMarkup(summaryModel(state));
+    element.innerHTML = summaryMarkup(summaryModel(state), { replay: !!onReplay, leave: !!onReturn });
     element.querySelector('[data-summary="close"]').onclick = () => { this.close(); onClose?.(); };
+    const exits = [['replay', onReplay], ['return', onReturn]].map(([name, callback]) => {
+      const button = element.querySelector(`[data-summary="${name}"]`);
+      if (button) button.onclick = callback;
+      return button;
+    }).filter(Boolean);
+    if (lockMs > 0 && exits.length) {
+      const actions = element.querySelector('.match-summary-actions');
+      for (const button of exits) button.disabled = true;
+      actions.style.setProperty('--hold', `${lockMs}ms`); actions.classList.add('is-holding');
+      this.timer = setTimeout(() => { for (const button of exits) button.disabled = false; actions.classList.remove('is-holding'); }, lockMs);
+    }
     element.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); this.close(); onClose?.(); } });
     this.host.append(element); this.element = element;
     element.querySelector('h2').focus({ preventScroll: true });
   }
-  close() { this.element?.remove(); this.element = null; }
+  close() { clearTimeout(this.timer); this.element?.remove(); this.element = null; }
 }

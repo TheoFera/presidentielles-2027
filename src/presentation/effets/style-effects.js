@@ -23,7 +23,7 @@ export function drawStyleEffects(renderer, state) {
     if(c.ultimate_effect?.kind==='EUROPE'&&c.ultimate_effect.expires_tick>state.tick) {
       // last_hit is replaced by the outgoing retaliation. Use its confirmed
       // result, so ranged hits and evaded attacks never display a counter.
-      const counter=state.hit_results?.findLast(hit=>hit.source_id===c.id&&hit.attack_id?.startsWith('riposte:')&&hit.damage>0&&state.tick>=hit.tick&&state.tick-hit.tick<hz*.3);
+      const counter=state.hit_results?.findLast(hit=>hit.source_id===c.id&&(hit.attack_id?.startsWith('riposte:')||hit.attack_id?.startsWith('europe-dash:'))&&hit.damage>0&&state.tick>=hit.tick&&state.tick-hit.tick<hz*.3);
       if(counter){
         ctx.save();ctx.globalAlpha=Math.min(1,(1-(state.tick-counter.tick)/(hz*.3))*2);
         drawUltimateEffect(renderer,'europe',12,x-h*.48,feet-h*1.48,h*.96,h*1.58);

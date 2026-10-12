@@ -19,7 +19,7 @@
   <section id="results" class="election-results" aria-label="Résultats électoraux"></section>
   <form class="dev-bar">
     <select name="candidat"><option value="melenchon">Mélenchon</option><option value="le_pen">Le Pen</option><option value="philippe">Philippe</option></select>
-    <select name="situation"><option value="qualification">1er tour · qualification</option><option value="elimination">1er tour · élimination</option><option value="victoire">2nd tour · victoire</option><option value="defaite">2nd tour · défaite</option></select>
+    <select name="situation"><option value="qualification">1er tour · qualification</option><option value="elimination">1er tour · élimination</option><option value="victoire">2nd tour · victoire</option><option value="defaite">2nd tour · défaite</option><option value="majorite">1er tour · élu à la majorité</option></select>
     <button type="submit">Rejouer l’animation</button>
   </form>
   <script type="module">
@@ -32,7 +32,7 @@
     form.hidden = params.get('barre') === '0';
     const display = new ElectionResults(document.getElementById('results'));
     const show = () => display.render(electionModel(demoElectionState(form.candidat.value, form.situation.value)),
-      { preview: true, animate: params.get('fige') !== '1', onContinue: show, onReplay: show, onReturn: () => display.clear() });
+      { preview: true, animate: params.get('fige') !== '1', onContinue: show, onSummary: show });
     form.onchange = show; form.onsubmit = event => { event.preventDefault(); show(); };
     window.electionPreview = { display, show };
     show();

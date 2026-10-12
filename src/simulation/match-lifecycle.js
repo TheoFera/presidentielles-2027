@@ -3,7 +3,7 @@ import { dismountVehicle } from './vehicles.js';
 import { resolveCampaignEvent } from './campaign-events.js';
 import { GamePhase } from './phases.js';
 import { completePopulation } from './spawns.js';
-import { FACTIONS } from './world.js';
+import { ALL_FACTIONS, FACTIONS } from './world.js';
 import { combatState, demobilizeUnit, combatActors } from './combat-state.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { refreshElectoralState, updatePolls } from './electoral-state.js';
@@ -33,14 +33,31 @@ export function startDebate(sim) {
   s.first_round_result = rankFirstRound(s.telemetry.j0_scores, s.seed);
   s.phase = GamePhase.FIRST_ROUND_RESULTS; s.phase_started_match_tick = s.match_tick;
   sim.emit('FirstRoundResults', clone(s.first_round_result));
+  if (s.first_round_result.majority) finishFirstRoundMajority(sim);
   return true;
+}
+
+// Plus de la moitié des voix exprimées au premier tour : élu directement, pas de second tour.
+function finishFirstRoundMajority(sim) {
+  const s = sim.state, [winner, second] = s.first_round_result.ranking, scores = clone(s.first_round_result.scores);
+  s.result = { winner, second, scores, decided_tick: s.tick, tie_break: false, extensions: 0, first_round: true };
+  s.telemetry.final_scores = clone(scores); s.telemetry.winner = winner;
+  s.phase = GamePhase.RESULTS; s.phase_started_match_tick = s.match_tick;
+  sim.emit('MatchFinished', { winner, second, scores: clone(scores), first_round: true });
+}
+
+/** Part des voix exprimées (candidats seulement, autres candidats compris), en %. */
+export function expressedShare(scores, faction) {
+  const total = ALL_FACTIONS.reduce((sum, f) => sum + (scores[f] || 0), 0);
+  return total ? scores[faction] * 100 / total : 0;
 }
 
 // Rotation seeded once: ties never depend on rendering or network timing.
 export function rankFirstRound(scores, seed) {
   const order = FACTIONS.map((_, i) => FACTIONS[(i + seed % FACTIONS.length) % FACTIONS.length]);
   const ranking = [...order].sort((a, b) => scores[b] - scores[a]);
-  return { scores: clone(scores), ranking, tie_break: Math.abs(scores[ranking[1]] - scores[ranking[2]]) <= 1e-10 };
+  return { scores: clone(scores), ranking, tie_break: Math.abs(scores[ranking[1]] - scores[ranking[2]]) <= 1e-10,
+    majority: expressedShare(scores, ranking[0]) > 50 };
 }
 
 export function finishDebate(sim) {

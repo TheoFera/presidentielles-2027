@@ -196,11 +196,9 @@
     "melenchon_holograms": {
       "count": 4,
       "duration_seconds": 7,
-      "hidden_damage_per_hit": 3.5,
-      "knockback": 2.5,
-      "electoral_damage": 0.012,
       "spawn_distance": 2.4,
       "spawn_spacing": 2,
+      "echo_delay_seconds": 0.1,
       "appearance_seconds": 0.5
     },
     "le_pen_navy_wave": {
@@ -271,7 +269,7 @@
     },
     "europe": {
       "duration_seconds": 5,
-      "retaliation_damage": 8,
+      "dash_damage": 15,
       "knockback": 11,
       "stun_seconds": 0.5
     }

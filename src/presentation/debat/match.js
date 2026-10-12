@@ -5,6 +5,7 @@ import { drawCombatEffects } from '../effets/combat-effects.js';
 import { formatNumber } from '../interface/number-format.js';
 
 const DEBATE_CHARACTER_SCALE = 1.45;
+const SUMMARY_LOCK_MS = 2500;
 
 export function debateScreenX(x, width, debateWidthUnits) {
   return x * width / debateWidthUnits;
@@ -66,14 +67,17 @@ export class MatchDisplay {
     const stage = this.results.querySelector('.election-stage');
     if (!stage || !this.latest) return;
     this.summary.host = stage;
-    this.summary.open(this.latest, () => this.results.querySelector('[data-action="summary"]')?.focus({ preventScroll: true }));
+    // La première ouverture du bilan verrouille les sorties 2,5 s : on ne quitte pas la partie par un appui réflexe.
+    const lockMs = this.summarySeen ? 0 : SUMMARY_LOCK_MS; this.summarySeen = true;
+    this.summary.open(this.latest, () => this.results.querySelector('[data-action="summary"]')?.focus({ preventScroll: true }),
+      { onReplay: this.callbacks.isMultiplayer?.() ? null : this.callbacks.replay, onReturn: this.callbacks.return, lockMs });
   }
   viewedCandidate(state) {
     const local = state.candidates.find(c => c.id === state.local_candidate_id);
     const followable = state.candidates.filter(c => !c.eliminated && !c.minor);
     return local.eliminated ? followable.find(c => c.id === this.followId) || followable[0] : local;
   }
-  reset() { this.summary.close(); this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
+  reset() { this.summary.close(); this.summarySeen = false; this.phase = null; this.extensions = 0; this.followId = null; this.resultSignature = null; this.election.clear(); this.results.hidden = true; }
   update(state) {
     const names = this.config.prototype.presentation.factions;
     const debate = state.phase === GamePhase.FIRST_ROUND_DEBATE; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
@@ -120,11 +124,10 @@ export class MatchDisplay {
     const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;
     if (signature !== this.resultSignature) {
       this.resultSignature = signature;
-      this.summary.close();
+      this.summary.close(); this.summarySeen = false;
       if (!announced) this.election.clear();
       else this.election.render(electionModel(state), { host: this.callbacks.isHost?.() ?? true,
         multiplayer: this.callbacks.isMultiplayer?.() ?? false, onContinue: this.callbacks.continue,
-        onReplay: this.callbacks.replay, onReturn: this.callbacks.return,
         onSummary: finished ? () => this.openSummary() : null });
     }
   }

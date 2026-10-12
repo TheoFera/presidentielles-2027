@@ -2,7 +2,7 @@ import { ALL_FACTIONS } from './world.js';
 import { GamePhase } from './phases.js';
 
 /* Historique de la partie pour le bilan final : environ 80 relevés sur toute la campagne, quelle que soit
-   sa durée, puis un toutes les 3 secondes pendant le sprint. Chaque relevé garde, pour chaque camp (petits candidats compris), son score
+   sa durée, puis un toutes les 3 secondes pendant le sprint. Chaque relevé garde, pour chaque camp (autres candidats compris), son score
    national réel (% de l'électorat) et son nombre d'électeurs. Déterministe : il ne dépend que de la simulation. */
 const CAMPAIGN_SAMPLES = 80;
 const SPRINT_SAMPLE_SECONDS = 3;

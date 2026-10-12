@@ -1,6 +1,6 @@
 import { airborne } from './combat-actions.js';
 import { attackInput, cancelCurrentAttack } from './combat.js';
-import { interrupted } from './combat-state.js';
+import { combatActors, enemies, europeActive, hit, interrupted } from './combat-state.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { wallBlockedPosition } from './combat.js';
@@ -23,7 +23,9 @@ export function requestDash(sim, c, direction, buffered = false) {
   const d = sim.config.balance.dash;
   if (!c || ![-1, 1].includes(direction) || sim.state.debate_bounds && !d.allowed_in_debate || c.eliminated || c.is_ko) return;
   // Plus de charge : un petit son « à vide » prévient le joueur.
-  if (c.dash_charges <= 0) { clearDashBuffer(c); if (!buffered) sim.emit('DashUnavailable', { candidate_id: c.id }); return; }
+  // Super Européiste : dash illimité pendant l’ultime.
+  const free = europeActive(sim.state, c);
+  if (c.dash_charges <= 0 && !free) { clearDashBuffer(c); if (!buffered) sim.emit('DashUnavailable', { candidate_id: c.id }); return; }
   const meeting = sim.state.buildings.find(b => b.id === c.interaction_chain_site_id && b.type === 'meeting' && b.meeting_faction_id === c.faction_id && b.meeting_until_tick > sim.state.tick);
   if (meeting && Math.abs(combatDelta(sim.state, c.x, meeting.x)) <= sim.config.balance.buildings.meeting.interaction_radius) { clearDashBuffer(c); return; }
   // Le dash passe avant un achat en cours ; demandé pendant un coup ou un étourdissement,
@@ -34,12 +36,23 @@ export function requestDash(sim, c, direction, buffered = false) {
   }
   clearDashBuffer(c); c.purchase_hold = null;
   cancelCurrentAttack(sim, c);
-  c.dash_charges--; c.dash_active = true; c.dash_direction = direction; c.facing = direction;
+  if (!free) c.dash_charges--;
+  c.dash_active = true; c.dash_direction = direction; c.facing = direction;
   c.dash_until_tick = sim.state.tick + sim.secondsToTicks(d.duration_seconds);
   c.dash_invulnerable_until_tick = sim.state.tick + sim.secondsToTicks(d.invulnerability_seconds);
   c.combat.buffer_until_tick = -1;
   sim.emit('DashStarted', { candidate_id: c.id, direction });
-  sim.emit('DashChargeConsumed', { candidate_id: c.id, charges: c.dash_charges });
+  if (!free) sim.emit('DashChargeConsumed', { candidate_id: c.id, charges: c.dash_charges });
+}
+/** Super Européiste : traverser un adversaire en dash le repousse et le blesse. */
+function europeDashHits(sim, c, from) {
+  const s = sim.config.balance.specials.europe, dir = c.dash_direction;
+  for (const target of combatActors(sim.state)) {
+    if (!enemies(c, target)) continue;
+    if (combatDelta(sim.state, from, target.x) * dir >= 0 && combatDelta(sim.state, c.x, target.x) * dir < 0)
+      hit(sim, c, target, { kind: 'EUROPE_DASH', ultimate: true, exact_damage: true, damage: s.dash_damage, knockback: s.knockback,
+        stun_seconds: s.stun_seconds, direction: -dir, no_hitstop: true }, `europe-dash:${sim.state.tick}:${target.id}`);
+  }
 }
 export function changeCharge(sim, c, value) {
   const before = c.special_charge, threshold = sim.config.balance.special_charge.required_points;
@@ -76,8 +89,10 @@ export function updateMobileCombat(sim) {
       if (c.is_ko || c.eliminated || c.combat.stun_ticks || tick > c.dash_until_tick) {
         c.dash_active = false; c.dash_invulnerable_until_tick = 0; sim.emit('DashEnded', { candidate_id: c.id });
       } else {
+        const from = c.x;
         c.x = wallBlockedPosition(sim, c, combatPosition(sim.state, c.x + c.dash_direction * d.distance / sim.secondsToTicks(d.duration_seconds)));
         c.moving = true;
+        if (europeActive(sim.state, c)) europeDashHits(sim, c, from);
       }
     }
     if (!c.dash_recharge_disabled && c.dash_charges < c.dash_max_charges && ++c.dash_recharge_progress >= sim.secondsToTicks(d.recharge_seconds)) {

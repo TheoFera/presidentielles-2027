@@ -188,7 +188,7 @@ test('Bardellisation : une seule relève ; KO suivant et respawn sous forme Mari
 test('Super Européiste : riposte en mêlée, aucun renvoi à distance, nettoyage au KO', () => {
   const sim = make(), c = isolate(sim, 'philippe', 'philippe_europeiste'), enemy = sim.state.candidates[0];
   c.special_charge = sim.config.balance.special_charge.required_points; activateUltimate(sim, c); tickCombat(sim);
-  const before = enemy.resistance; hit(sim, enemy, c, { damage: 1, knockback: 1 }, 'test:melee'); assert.ok(enemy.resistance < before); assert.ok(c.resistance < sim.config.balance.candidate_combat.resistance_max);
+  const before = enemy.resistance; hit(sim, enemy, c, { damage: 7, knockback: 1 }, 'test:melee'); assert.equal(enemy.resistance, before - 7); assert.ok(c.resistance < sim.config.balance.candidate_combat.resistance_max);
   const after = enemy.resistance; hit(sim, enemy, c, { ranged: true, damage: 1, knockback: 1 }, 'test:ranged'); assert.equal(enemy.resistance, after);
   hit(sim, enemy, c, { ranged: true, damage: 999, knockback: 1 }, 'test:ko'); assert.equal(c.ultimate_effect, null); assert.equal(sim.state.powers.length, 0);
 });

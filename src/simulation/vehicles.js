@@ -2,6 +2,14 @@ import { canCampaign } from './combat-state.js';
 import { ringDelta } from './world.js';
 
 export const garageVehicle = type => ({ garage_velo: 'velo', garage_scooter: 'scooter' })[type] || null;
+/** Garage où la montée peut réellement progresser, pour la simulation et l’affichage. */
+export function vehicleMountSite(state, config, candidate) {
+  if (!candidate || candidate.eliminated || candidate.vehicle || candidate.axis || !candidate.interaction_active
+    || state.campaign_style_selection || !canCampaign(candidate) || candidate.combat?.height > 0
+    || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return null;
+  return state.buildings.find(b => garageVehicle(b.type) && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id
+    && Math.abs(ringDelta(candidate.x, b.x, state.world.length)) <= config.balance.vehicles.garage_radius_units) || null;
+}
 const actions = new Set(['Attack', 'PressAttack', 'Jump', 'Dash', 'ActivateUltimate', 'SelectCampaignStyle']);
 
 export function dismountVehicle(candidate) {
@@ -29,9 +37,7 @@ export function updateVehicles(sim) {
       dismountVehicle(candidate); continue;
     }
     if (candidate.vehicle) continue;
-    const site = !candidate.axis && candidate.interaction_active && state.buildings.find(b => garageVehicle(b.type)
-      && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id
-      && Math.abs(ringDelta(candidate.x, b.x, state.world.length)) <= settings.garage_radius_units);
+    const site = vehicleMountSite(state, config, candidate);
     if (!site) { candidate.vehicle_hold = null; continue; }
     if (candidate.vehicle_hold?.site_id !== site.id) candidate.vehicle_hold = { site_id: site.id, elapsed_ticks: 0 };
     if (++candidate.vehicle_hold.elapsed_ticks < sim.secondsToTicks(settings.mount_seconds)) continue;

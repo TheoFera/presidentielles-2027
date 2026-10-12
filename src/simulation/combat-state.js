@@ -22,6 +22,7 @@ const team = actor => actor.team_id ?? actor.faction_id;
 // Les hologrammes de Mélenchon ne sont que des images : personne ne peut les viser ni les toucher.
 export const targetable = actor => canBeHit(actor) && actor.role !== 'HOLOGRAMME';
 export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && targetable(b) && team(a) !== team(b);
+export const europeActive = (state, c) => c.ultimate_effect?.kind === 'EUROPE' && c.ultimate_effect.expires_tick > state.tick;
 export const interrupted = actor => actor.combat && (charging(actor) || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const movementBlocked = actor => actor.combat && (actor.combat.charge_active || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id && actor.combat.jump_tick == null || actor.combat.dive_tick != null);
 export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_debate_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
@@ -68,9 +69,11 @@ export function hit(sim, source, target, spec, attackId) {
   if (state.tick < (target.combat?.invulnerable_until_tick ?? -1)) return null;
   if (target.dash_active && state.tick <= target.dash_invulnerable_until_tick) { sim.emit('DashEvadedHit', { candidate_id: target.id, attack_id: attackId }); return null; }
   if (target.role === 'CANDIDAT') dismountVehicle(target);
+  // Le coup d’un hologramme compte comme le coup de Mélenchon qu’il imite.
+  if (spec.mirror_kind) spec = { ...spec, kind: spec.mirror_kind };
   const protectedHit = armored(state, target) && !(spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind));
-  const retaliate = target.role === 'CANDIDAT' && target.ultimate_effect?.kind === 'EUROPE' && target.ultimate_effect.expires_tick > state.tick && !spec.ranged && !spec.retaliation;
-  let revived = false;
+  const retaliate = target.role === 'CANDIDAT' && europeActive(state, target) && !spec.ranged && !spec.retaliation;
+  let revived = false, attackDamage = spec.damage || 0;
   const direction = spec.direction || Math.sign(combatDelta(state, source.x, target.x)) || source.facing;
   const result = { id: `hit:${state.next_hit_id++}`, tick: state.tick, attack_id: attackId,
     source_id: source.id, target_id: target.id, damage: 0, electoral_damage: 0, knockback: spec.knockback, direction, x: target.x, height: target.combat.height || 0, strong: !!spec.strong };
@@ -78,9 +81,9 @@ export function hit(sim, source, target, spec, attackId) {
     const damage = config.balance.first_round_debate.damage;
     const key = spec.kind === 'CHARGED' ? 'charged' : spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
     // Mode Débat : mêmes dégâts qu’en campagne ; premier tour et débats : barème du débat.
-    const dealt = source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1)
+    const dealt = spec.exact_damage ? spec.damage || 0 : source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1)
       : state.campaign_hit_damage ? spec.damage || 0 : damage[key] * (state.campaign_damage_multiplier || 1);
-    result.damage = Math.min(target.debate_hp, dealt);
+    result.damage = Math.min(target.debate_hp, dealt); attackDamage = dealt;
     result.score_damage = result.damage; result.debate_hp_before = target.debate_hp;
     target.debate_hp = Math.max(0, target.debate_hp - dealt); result.debate_hp_after = target.debate_hp;
     target.hits_received++; state.candidate_hit_count++;
@@ -150,7 +153,7 @@ export function hit(sim, source, target, spec, attackId) {
   sim.emit('HitResolved', result);
   if (retaliate && !target.is_ko && canBeHit(source)) {
     const s = config.balance.specials.europe;
-    hit(sim, target, source, { kind: 'RETALIATION', retaliation: true, ultimate: true, ranged: true, damage: s.retaliation_damage, knockback: s.knockback, stun_seconds: s.stun_seconds }, `riposte:${result.id}`);
+    hit(sim, target, source, { kind: 'RETALIATION', retaliation: true, ultimate: true, ranged: true, exact_damage: true, damage: attackDamage, knockback: s.knockback, stun_seconds: s.stun_seconds }, `riposte:${result.id}`);
   }
   return result;
 }

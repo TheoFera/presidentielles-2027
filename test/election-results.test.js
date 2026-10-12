@@ -13,10 +13,11 @@ import { encodePresentationState, encodeStateDelta, applyStateDelta } from '../s
 const base = new URL('../donnees-jeu/', import.meta.url);
 const [balance, layout, buildings, prototype, campaignCatalog] = await Promise.all(['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'].map(async f => JSON.parse(await readFile(new URL(f, base), 'utf8'))));
 const config = validateConfig({ balance, layout, buildings, prototype, campaignCatalog });
-function firstRound() {
+// Par défaut, aucun candidat n'atteint la majorité (6 voix sur 15) : il faut un second tour.
+function firstRound(split = [6, 11]) {
   const sim = new GameSimulation(config, 12);
   sim.state.ai_enabled = false;
-  for (let i = 0; i < 15; i++) convertNeutral(sim, sim.state.npcs[i], i < 8 ? 'melenchon' : i < 13 ? 'le_pen' : 'philippe');
+  for (let i = 0; i < 15; i++) convertNeutral(sim, sim.state.npcs[i], i < split[0] ? 'melenchon' : i < split[1] ? 'le_pen' : 'philippe');
   startDebate(sim); return sim;
 }
 test('Premier tour : classement réel, monde figé et aucun débat', () => {
@@ -41,6 +42,19 @@ test('Premier tour : classement réel, monde figé et aucun débat', () => {
   assert.equal(sim.state.result.winner, 'melenchon');
   copy.importSnapshot(sim.exportSnapshot());
   assert.deepEqual(sim.state.first_round_result, votes);
+});
+test('Plus de 50 % des voix exprimées au premier tour : élu sans second tour', () => {
+  const sim = firstRound([8, 13]);
+  assert.equal(sim.state.first_round_result.majority, true);
+  assert.equal(sim.state.phase, 'RESULTS');
+  assert.equal(sim.state.result.winner, 'melenchon');
+  assert.equal(sim.state.result.first_round, true);
+  assert.equal(sim.state.eliminated_faction, null);
+  const copy = new GameSimulation(config); copy.importSnapshot(sim.exportSnapshot());
+  const model = electionModel({ ...sim.getState(), local_candidate_id: 'candidate:melenchon' });
+  assert.equal(model.first, false); assert.equal(model.direct, true); assert.equal(model.success, true);
+  assert.ok(model.scores.melenchon > 50);
+  assert.equal(firstRound().state.first_round_result.majority, false);
 });
 test('Égalités reproductibles, classement et absence de voix', () => {
   const scores = { melenchon: 10, le_pen: 10, philippe: 10, neutral: 70, pending: 0 };

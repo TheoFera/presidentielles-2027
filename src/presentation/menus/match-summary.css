@@ -5,6 +5,11 @@
 .match-summary-head p { margin: 0; font-size: max(10px, calc(var(--u) * 1.2)); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #a9dcff; }
 .match-summary-head h2 { margin: 0; font-size: max(20px, calc(var(--u) * 3.4)); line-height: 1; text-transform: uppercase; letter-spacing: .02em; }
 .match-summary-head h2:focus { outline: none; }
+.match-summary-actions { position: relative; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+/* Barre qui se remplit pendant que les sorties sont verrouillées (même animation que la soirée électorale). */
+.match-summary-actions.is-holding::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 3px; border-radius: 2px; background: #ffd35a; transform-origin: left; animation: election-hold var(--hold) linear both; pointer-events: none; }
+#results .match-summary-head button:disabled { opacity: .45; filter: grayscale(.7); cursor: not-allowed; box-shadow: none; }
+#results .match-summary-head .election-primary { color: #fff; border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); box-shadow: inset 0 2px 0 #fff, 0 5px 0 #04270b, 0 0 15px #66ff2a66; text-shadow: 1px 2px 1px #092309; }
 #results .match-summary-head button { flex: none; min-height: max(38px, calc(var(--u) * 3.4)); padding: 0 max(12px, calc(var(--u) * 1.4)); font-size: max(13px, calc(var(--u) * 1.3)); white-space: nowrap; }
 
 .summary-chart-card { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: calc(var(--u) * .6); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * .6); background: #020a1f99; border: 1px solid #5cc1ff26; border-radius: calc(var(--u) * .9); }

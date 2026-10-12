@@ -124,6 +124,14 @@ function transact(simulation, candidate, offer) {
   return true;
 }
 
+/** Disponibilité de l’interaction, commune aux achats et à leurs indications à l’écran. */
+export function purchaseInteractionAvailable(state, candidate) {
+  return !!candidate && !candidate.eliminated && ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)
+    && !candidate.vehicle && !state.campaign_style_selection && !candidate.style_interaction_held && !candidate.style_hold
+    && candidate.campaign_active && candidate.interaction_active && canCampaign(candidate)
+    && state.tick >= (candidate.interaction_pause_until_tick || 0);
+}
+
 export function updateEconomy(simulation) {
   const { state, config } = simulation;
   for (const building of state.buildings) if (building.ownership_model === 'capturable' && building.state !== 'ACTIVE') building.capture_progress = 0;
@@ -135,7 +143,7 @@ export function updateEconomy(simulation) {
     const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
     const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : config.balance.interaction.radius_units;
     if (chained && distance(state, candidate.x, chained.x) > chainRadius) candidate.interaction_chain_site_id = null;
-    if (candidate.vehicle || state.campaign_style_selection || candidate.style_interaction_held || candidate.style_hold || !candidate.campaign_active || !candidate.interaction_active || !canCampaign(candidate) || state.tick < (candidate.interaction_pause_until_tick || 0)) { candidate.purchase_hold = null; continue; }
+    if (!purchaseInteractionAvailable(state, candidate)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);
     for (const building of state.buildings) if (building.id === offer?.target_id) {
       building.next_level_available = !!offer.enabled;

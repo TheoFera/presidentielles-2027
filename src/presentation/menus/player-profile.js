@@ -1,6 +1,7 @@
 import { CANDIDATES, portrait } from './arcade-content.js';
 import { expressedScores } from './election-results.js';
 import { CAMPAIGN_STYLES } from '../../simulation/campaign-styles.js';
+import { ALL_FACTIONS } from '../../simulation/world.js';
 import { nextTier, ratingTier } from '../../simulation/player-titles.js';
 import { DEBATE_CANDIDATES } from '../debat/debate-selection.js';
 import { candidateColor, medallionContent, playerCard, portraitFace, titleContent } from './player-card.js';
@@ -37,9 +38,12 @@ export function recordMatchResult(profile, state, { multiplayer = false } = {}) 
   const stats = normalizeStats(profile.stats);
   const local = state.local_candidate_id.split(':')[1];
   if (!state.result || !FACTIONS.includes(local)) return { ...profile, stats };
-  const win = state.result.winner === local, qualified = state.eliminated_faction !== local;
+  // Élu dès le premier tour : seul l'élu compte comme « qualifié », score sur toutes les voix exprimées.
+  const direct = !!state.result.first_round, win = state.result.winner === local;
+  const qualified = direct ? win : state.eliminated_faction !== local;
   const peak = Math.max(0, ...(state.match_history || []).map(p => p.voters?.[local] || 0));
-  const score = qualified ? expressedScores(state.result.scores, [state.result.winner, state.result.second])?.[local] : null;
+  const voters = direct ? ALL_FACTIONS.filter(f => Number.isFinite(state.result.scores[f])) : [state.result.winner, state.result.second];
+  const score = qualified ? expressedScores(state.result.scores, voters)?.[local] : null;
   stats.games++; stats.by_candidate[local].games++;
   if (win) { stats.wins++; stats.by_candidate[local].wins++; }
   if (qualified) { stats.qualified++; stats.by_candidate[local].qualified++; }

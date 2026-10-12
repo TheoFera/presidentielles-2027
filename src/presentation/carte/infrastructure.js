@@ -1,5 +1,5 @@
 import { localPoliticalPresence } from '../../simulation/strategic-sites.js';
-import { nearestOffer } from '../../simulation/economy.js';
+import { nearestOffer, purchaseInteractionAvailable } from '../../simulation/economy.js';
 import { buildingLabel, buildingSettings, factionVariant } from '../../simulation/building-rules.js';
 import { drawElectoralBuilding, meetingSpriteFrame } from './electoral.js';
 import { drawIllustratedBuilding, buildingAssetId, buildingGeometry } from './illustrated-buildings.js';
@@ -100,7 +100,7 @@ export function drawInfrastructure(renderer, state) {
 export function drawBanknote(renderer, state) {
   const { ctx, config, p } = renderer;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
-  if (!candidate.interaction_active || !candidate.campaign_active) return;
+  if (!purchaseInteractionAvailable(state, candidate)) return;
   const offer = nearestOffer(state, config, candidate);
   if (!offer) return;
   const building = state.buildings.find(b => b.id === offer.target_id);
@@ -227,7 +227,7 @@ export function drawSiteRequirements(renderer, state) {
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
   if (!candidate || candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return;
   const color = p.factions[candidate.faction_id]?.color;
-  const focus = candidate.interaction_active && candidate.campaign_active ? nearestOffer(state, config, candidate) : null;
+  const focus = purchaseInteractionAvailable(state, candidate) ? nearestOffer(state, config, candidate) : null;
   ctx.save();
   for (const building of state.buildings) {
     if (building.ownership_model !== 'capturable' || building.id === focus?.target_id) continue;

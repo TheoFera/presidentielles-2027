@@ -7,13 +7,107 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
 import { updateVehicles, candidateTravelSpeed } from '../src/simulation/vehicles.js';
 import { prepareDonations, updateDonationCourier, settleMoney } from '../src/simulation/money.js';
-import { buildingOffers } from '../src/simulation/economy.js';
+import { buildingOffers, updateEconomy } from '../src/simulation/economy.js';
+import { drawVehiclePrompts } from '../src/presentation/carte/vehicles.js';
+import { drawBanknote } from '../src/presentation/carte/infrastructure.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { startDebate } from '../src/simulation/match-lifecycle.js';
 
 const make = () => { const config = structuredClone(base); config.balance.campaign_events.event_enabled = false; const sim = new GameSimulation(config, 42); sim.state.ai_enabled = false; return sim; };
 const own = (sim, site, c = sim.state.candidates[0]) => { captureSite(sim, site, c); sim.state.campaign_style_selection = null; return c; };
+
+function promptRenderer(sim) {
+  const texts = [], fills = [];
+  const ctx = new Proxy({}, { get: (target, key) => {
+    if (key === 'measureText') return text => ({ width: text.length * 6 });
+    if (key === 'fillText') return text => texts.push(text);
+    if (key === 'fill') return () => fills.push(target.fillStyle);
+    return target[key] ?? (() => {});
+  } });
+  return { ctx, texts, fills, config: sim.config, p: sim.config.prototype.presentation,
+    width: 1000, metrics: { groundY: 700, characterHeight: 100, pixelsPerUnit: 50 },
+    fixedWorldActive: true, fixedWorldState: sim.state, screenX: () => 500 };
+}
+
+test('Les jauges de vélo et scooter apparaissent seulement pendant une montée effective', () => {
+  for (const type of ['garage_velo', 'garage_scooter']) {
+    const sim = make(), site = sim.state.buildings.find(b => b.type === type), c = own(sim, site);
+    c.x = site.x;
+    const initial = structuredClone(c);
+    const blocked = [
+      () => { c.x += sim.config.balance.vehicles.garage_radius_units + 0.01; },
+      () => { c.axis = 1; }, () => { c.interaction_active = false; },
+      () => { c.combat.jump_tick = sim.state.tick; }, () => { c.combat.height = 0.5; },
+      () => { c.combat.attack_id = 'attaque'; }, () => { c.combat.stun_ticks = 3; },
+      () => { c.combat.hitstop_ticks = 2; }, () => { c.combat.engaged = true; },
+      () => { c.dash_active = true; }, () => { c.style_interaction_held = true; },
+      () => { c.is_ko = true; }, () => { c.eliminated = true; },
+      () => { c.campaign_debate_id = 'débat'; }, () => { c.crisis_meeting_id = 'crise'; },
+      () => { sim.state.campaign_style_selection = {}; }, () => { sim.state.phase = 'DEBATE'; },
+      () => { site.owner_id = 'autre'; }, () => { site.state = 'NEUTRAL'; },
+    ];
+    for (const block of blocked) {
+      Object.assign(c, structuredClone(initial));
+      sim.state.phase = 'CAMPAIGN'; sim.state.campaign_style_selection = null;
+      site.owner_id = c.faction_id; site.state = 'ACTIVE';
+      // Même une ancienne attente reçue par le réseau ne doit pas afficher une fausse jauge.
+      c.vehicle_hold = { site_id: site.id, elapsed_ticks: 5 };
+      block();
+      const renderer = promptRenderer(sim);
+      drawVehiclePrompts(renderer, sim.state);
+      assert.deepEqual(renderer.texts, []);
+      updateVehicles(sim);
+      assert.equal(c.vehicle_hold, null);
+    }
+    Object.assign(c, structuredClone(initial));
+    sim.state.phase = 'CAMPAIGN'; sim.state.campaign_style_selection = null;
+    site.owner_id = c.faction_id; site.state = 'ACTIVE';
+    const renderer = promptRenderer(sim);
+    drawVehiclePrompts(renderer, sim.state);
+    assert.deepEqual(renderer.texts, [], 'Pas de jauge sans attente démarrée');
+    updateVehicles(sim);
+    drawVehiclePrompts(renderer, sim.state);
+    assert.deepEqual(renderer.texts, [type === 'garage_velo' ? 'Monter sur le vélo' : 'Monter sur le scooter']);
+    assert.ok(renderer.fills.includes('#b9d0a4'), 'La jauge affichée se remplit');
+  }
+});
+
+test('Les indications d’achat suivent la disponibilité réelle du candidat', () => {
+  const sim = make(), c = sim.state.candidates[0];
+  c.x = sim.state.buildings.find(b => b.type === 'institut_sondage').x;
+  c.money = 100;
+  sim.state.campaign_style_selection = null;
+  updateEconomy(sim);
+  assert.ok(c.purchase_hold);
+  const initial = structuredClone(c);
+  for (const block of [
+    () => { c.vehicle = { type: 'velo' }; }, () => { c.interaction_active = false; },
+    () => { c.campaign_active = false; }, () => { c.style_interaction_held = true; },
+    () => { c.combat.attack_id = 'attaque'; }, () => { c.combat.jump_tick = 1; },
+    () => { c.combat.stun_ticks = 3; }, () => { c.is_ko = true; },
+    () => { c.interaction_pause_until_tick = sim.state.tick + 2; },
+    () => { sim.state.campaign_style_selection = {}; },
+  ]) {
+    Object.assign(c, structuredClone(initial)); sim.state.campaign_style_selection = null;
+    block();
+    const renderer = promptRenderer(sim);
+    drawBanknote(renderer, sim.state);
+    assert.deepEqual(renderer.texts, []);
+    updateEconomy(sim);
+    assert.equal(c.purchase_hold, null);
+  }
+  Object.assign(c, structuredClone(initial)); sim.state.campaign_style_selection = null;
+  const renderer = promptRenderer(sim);
+  drawBanknote(renderer, sim.state);
+  assert.ok(renderer.fills.includes('#b9d0a4'), 'Un achat en cours affiche sa progression');
+  c.money = 0;
+  updateEconomy(sim);
+  const unfunded = promptRenderer(sim);
+  drawBanknote(unfunded, sim.state);
+  assert.ok(unfunded.texts.some(text => text.startsWith('✗')), 'Le manque d’argent reste expliqué');
+  assert.ok(!unfunded.fills.includes('#b9d0a4'), 'Aucune progression pour un achat bloqué');
+});
 
 test('Le tableau définit 18 contrôles, 6 meetings centraux et 3 instituts, sans hasard', () => {
   const sim = make(), other = new GameSimulation(sim.config, 91);
@@ -27,6 +121,39 @@ test('Le tableau définit 18 contrôles, 6 meetings centraux et 3 instituts, san
   assert.equal(sim.state.buildings.filter(b => b.type.startsWith('garage_')).length, 3);
   assert.equal(sim.state.buildings.filter(b => b.type === 'imprimerie').length, 0);
 });
+test('Les interactions des façades restaurées se trouvent devant leurs entrées peintes', () => {
+  const sim = make();
+  // Intervalles relevés sur les tuiles de 1 920 px, indépendamment des coordonnées du jeu.
+  const entrances = [
+    ['site:paris_b', 510, 700],
+    ['site:banlieue_b', 375, 460],
+    ['site:retraites_c', 1235, 1325],
+    ['site:riches_a', 975, 1055],
+    ['site:riches_b', 365, 450],
+    ['site:riches_c', 240, 620],
+    ['site:riches_c:institut_sondage', 1025, 1115],
+  ];
+  for (const [id, left, right] of entrances) {
+    const site = sim.state.buildings.find(b => b.site_id === id);
+    const zone = sim.state.world.subzones.find(z => z.id === site.subzone_id);
+    const pixelX = (site.x - zone.start) / zone.width * 1920;
+    assert.ok(pixelX >= left && pixelX <= right, `${id} : interaction hors de l’entrée (${pixelX} px)`);
+  }
+});
+
+test('Le vélo se récupère devant le garage peint et plus à son ancien emplacement', () => {
+  const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo'), c = own(sim, site);
+  const zone = sim.state.world.subzones.find(z => z.id === site.subzone_id);
+  c.interaction_active = true;
+  c.x = zone.start + zone.width * 445 / 1920;
+  updateVehicles(sim);
+  assert.equal(c.vehicle_hold, null);
+  c.x = zone.start + zone.width * 603 / 1920;
+  for (let i = 0; i < sim.secondsToTicks(sim.config.balance.vehicles.mount_seconds); i++) updateVehicles(sim);
+  assert.equal(c.vehicle?.type, 'velo');
+  assert.equal(c.vehicle.site_id, site.id);
+});
+
 test('Le local détermine le contrôle malgré une majorité adverse ; un institut ne contrôle pas', () => {
   const sim = make(); completePopulation(sim);
   const site = sim.state.buildings.find(b => b.type === 'garage_velo'), c = own(sim, site);

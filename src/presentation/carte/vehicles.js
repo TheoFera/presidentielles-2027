@@ -1,5 +1,5 @@
 import { CAMPAIGN_STYLES } from '../../simulation/campaign-styles.js';
-import { garageVehicle } from '../../simulation/vehicles.js';
+import { garageVehicle, vehicleMountSite } from '../../simulation/vehicles.js';
 import { ringDelta } from '../../simulation/world.js';
 
 const atlasFrames = new WeakMap();
@@ -125,22 +125,20 @@ export function drawMountedCandidate(renderer, entity, x, state) {
 
 export function drawVehiclePrompts(renderer, state) {
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
-  if (!candidate || candidate.eliminated) return;
+  const site = vehicleMountSite(state, renderer.config, candidate);
+  if (!site || candidate.vehicle_hold?.site_id !== site.id || !(candidate.vehicle_hold.elapsed_ticks > 0)) return;
   const { ctx, metrics: m } = renderer;
-  for (const site of state.buildings) {
-    const kind = garageVehicle(site.type);
-    if (!kind || site.owner_id !== candidate.faction_id || site.state !== 'ACTIVE') continue;
-    const x = renderer.screenX(site.x);
-    if (Math.abs(ringDelta(candidate.x, site.x, state.world.length)) > 3 || candidate.vehicle) continue;
-    const progress = candidate.vehicle_hold?.site_id === site.id ? candidate.vehicle_hold.elapsed_ticks / (renderer.config.balance.vehicles.mount_seconds * renderer.config.balance.simulation_architecture.fixed_tick_hz) : 0;
-    // L'étiquette sert elle-même de jauge : elle se remplit pendant la montée.
-    const label = `${kind === 'velo' ? 'Vélo' : 'Scooter'} · restez immobile`;
-    const w = 150, h = 24, left = x - w / 2, top = m.groundY - m.characterHeight - 40;
-    ctx.save(); ctx.font = '700 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffefd2'; ctx.strokeStyle = '#465c52'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.fill();
-    if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.beginPath(); ctx.roundRect(left, top, w * Math.min(1, progress), h, 12); ctx.fill(); }
-    ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.stroke();
-    ctx.fillStyle = '#43594e'; ctx.fillText(label, x, top + h / 2 + 0.5); ctx.restore();
-  }
+  const kind = garageVehicle(site.type);
+  const x = renderer.screenX(site.x);
+  const duration = Math.ceil(renderer.config.balance.vehicles.mount_seconds * renderer.config.balance.simulation_architecture.fixed_tick_hz);
+  const progress = candidate.vehicle_hold.elapsed_ticks / duration;
+  // L'étiquette sert elle-même de jauge : elle se remplit pendant la montée.
+  const label = kind === 'velo' ? 'Monter sur le vélo' : 'Monter sur le scooter';
+  const w = 150, h = 24, left = x - w / 2, top = m.groundY - m.characterHeight - 40;
+  ctx.save(); ctx.font = '700 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffefd2'; ctx.strokeStyle = '#465c52'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.fill();
+  if (progress > 0) { ctx.fillStyle = '#b9d0a4'; ctx.beginPath(); ctx.roundRect(left, top, w * Math.min(1, progress), h, 12); ctx.fill(); }
+  ctx.beginPath(); ctx.roundRect(left, top, w, h, 12); ctx.stroke();
+  ctx.fillStyle = '#43594e'; ctx.fillText(label, x, top + h / 2 + 0.5); ctx.restore();
 }

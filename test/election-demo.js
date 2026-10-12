@@ -9,6 +9,12 @@ export function demoElectionState(local = 'melenchon', scenario = 'qualification
   const first_round_result = { ranking, tie_break: false,
     scores: { neutral: 12, pending: 0, ...Object.fromEntries(ranking.map((f, i) => [f, [39, 31, 18][i]])) } };
   const base = { local_candidate_id: `candidate:${local}`, first_round_result };
+  // Élu dès le premier tour : plus de 50 % des voix exprimées.
+  if (scenario === 'majorite') {
+    const scores = { neutral: 12, pending: 0, [ranking[0]]: 52, [ranking[1]]: 24, [ranking[2]]: 12 };
+    return { ...base, phase: 'RESULTS', eliminated_faction: null, first_round_result: { ...first_round_result, scores, majority: true },
+      result: { winner: ranking[0], second: ranking[1], tie_break: false, scores, first_round: true } };
+  }
   if (['qualification', 'elimination'].includes(scenario)) return { ...base, phase: 'FIRST_ROUND_RESULTS', result: null, eliminated_faction: null };
   const [winner, second, eliminated] = ranking;
   return { ...base, phase: 'RESULTS', eliminated_faction: eliminated,

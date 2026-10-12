@@ -156,6 +156,13 @@ test('Traverser Super Européiste ne déclenche aucune riposte', () => {
   const {sim,c,enemy}=setup('philippe',2);c.special_charge=10;activateUltimate(sim,c);ticks(sim,30,true);
   enemy.x=c.x-1;requestDash(sim,enemy,1);const hp=enemy.resistance;ticks(sim,9,true);assert.equal(enemy.resistance,hp);
 });
+test('Dash Super Européiste : illimité, traverser repousse et inflige 15', () => {
+  const {sim,c,enemy}=setup('philippe',2);c.special_charge=10;activateUltimate(sim,c);ticks(sim,30,true);
+  enemy.x=c.x+1;const hp=enemy.resistance,charges=c.dash_charges;
+  requestDash(sim,c,1);ticks(sim,9,true);
+  assert.equal(enemy.resistance,hp-15);assert.ok(enemy.combat.knockback_velocity<0||enemy.x<c.x);assert.equal(c.dash_charges,charges);
+  c.dash_charges=0;requestDash(sim,c,1);assert.equal(c.dash_active,true);
+});
 
 test('Bulles des militants : dégâts réels, aucun recul ajouté ni retournement du recul existant', async () => {
   const { updateMilitantCombat } = await import('../src/simulation/combat.js');
@@ -196,22 +203,28 @@ test('Hologrammes : copies intouchables qui imitent Mélenchon (position, saut, 
   const holograms = sim.state.temporary_units.filter(u => u.role === 'HOLOGRAMME');
   const s = sim.config.balance.specials.melenchon_holograms;
   assert.deepEqual(holograms.map(h => h.follow_offset).sort((a, b) => a - b), [-(s.spawn_distance + s.spawn_spacing), -s.spawn_distance, s.spawn_distance, s.spawn_distance + s.spawn_spacing]);
-  // Ils suivent Mélenchon et regardent du même côté.
-  c.x += 3; c.facing = -1; ticks(sim, 1, true);
-  for (const h of holograms) { assert.ok(Math.abs(h.x - c.x - h.follow_offset) < 1e-9); assert.equal(h.facing, -1); }
+  // Ils suivent Mélenchon avec un léger retard : d’abord les plus proches, puis les plus éloignés.
+  const delay = h => Math.round(s.echo_delay_seconds * sim.hz) * (Math.abs(h.follow_offset) > s.spawn_distance ? 2 : 1);
+  const near = holograms.filter(h => delay(h) === 3), far = holograms.filter(h => delay(h) === 6);
+  assert.equal(near.length, 2); assert.equal(far.length, 2);
+  const followed = h => Math.abs(h.x - c.x - h.follow_offset) < 1e-9 && h.facing === -1;
+  c.x += 3; c.facing = -1; ticks(sim, 4, true);
+  assert.ok(near.every(followed)); assert.ok(!far.some(followed));
+  ticks(sim, 3, true); assert.ok(holograms.every(followed));
   // Un adversaire ne peut ni les viser ni les toucher : ils n’ont pas de points de vie.
   assert.equal(hit(sim, enemy, holograms[0], { damage: 99, knockback: 4 }, 'test:holo'), null);
   assert.equal(holograms[0].expired, false);
-  // Ils sautent avec lui, à la même hauteur.
-  attackInput(sim, c, 'Jump'); ticks(sim, 6, true);
-  for (const h of holograms) { assert.equal(h.combat.jump_tick, c.combat.jump_tick); assert.equal(h.combat.height, c.combat.height); }
+  // Ils sautent comme lui, en différé.
+  attackInput(sim, c, 'Jump'); ticks(sim, 8, true);
+  for (const h of holograms) assert.equal(h.combat.jump_tick, c.combat.jump_tick + delay(h));
   ticks(sim, 80, true);
-  // Ils frappent en même temps que lui, avec le même coup.
-  requestAttack(sim, c); ticks(sim, 2, true);
+  // Ils rejouent le même coup, avec les mêmes dégâts, en différé.
+  requestAttack(sim, c); ticks(sim, 7, true);
   const source = sim.state.attacks.find(a => a.id === c.combat.attack_id);
   for (const h of holograms) {
     const copy = sim.state.attacks.find(a => a.id === h.combat.attack_id);
-    assert.equal(copy.mirror_kind, source.kind); assert.equal(copy.step, source.step); assert.equal(copy.elapsed_ticks, source.elapsed_ticks);
+    assert.equal(copy.mirror_kind, source.kind); assert.equal(copy.step, source.step); assert.equal(copy.damage, source.damage);
+    assert.equal(copy.elapsed_ticks, source.elapsed_ticks - delay(h));
   }
   const restored = setup('melenchon', 0).sim; restored.importSnapshot(sim.exportSnapshot());
   ticks(sim, 20, true); ticks(restored, 20, true); assert.deepEqual(restored.state, sim.state);
