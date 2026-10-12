@@ -9,7 +9,8 @@ import { adaptationSettings, aiAdaptation, factionPressure, truceFilter } from '
 import { approaching, observeAxis, reflectOnRival, thinkingPause, validMind, visibleRival, worthChasing } from './ai-mind.js';
 import { campaignEventAICommands } from './ai-events.js';
 import { isHumanCandidate } from './human-candidates.js';
-import { rideGarage } from './ai-moments.js';
+import { rideGarage, tactics } from './ai-moments.js';
+import { biomeSympathisants } from './territory.js';
 
 const distance = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
 const hostile = (c, n) => canBeHit(n) && n.faction_id !== c.faction_id;
@@ -19,6 +20,32 @@ const outnumbered = (c, units) => {
   const theirs = units.filter(n => hostile(c, n) && FIGHTERS.includes(n.role)).length;
   return theirs >= 3 && theirs > units.filter(n => n.faction_id === c.faction_id && FIGHTERS.includes(n.role)).length + 1;
 };
+
+/**
+ * Territoire d’un camp : son cœur = les quartiers dont il possède le bâtiment, plus ceux où il a
+ * la majorité des soutiens sans qu’un autre camp en tienne le bâtiment. Le reste est à prendre.
+ */
+export function coreZones(state, c) {
+  return new Set(state.electorate.filter(e => e.controller === c.faction_id || !e.controller && e.support[c.faction_id] > 0
+    && Object.entries(e.support).every(([f, n]) => f === c.faction_id || ['neutral', 'pending'].includes(f) || n < e.support[c.faction_id]))
+    .map(e => e.subzone_id));
+}
+
+/** Rapport de force dans son cœur : troupes adverses (un candidat compte double) contre ses militants et son service d’ordre. */
+export function territoryThreat(state, c, core = coreZones(state, c)) {
+  let theirs = 0, ours = 0;
+  for (const n of [...state.candidates, ...state.npcs, ...(state.temporary_units || [])]) {
+    if (!core.has(zoneAt(state.world, n.x).id)) continue;
+    if (n.faction_id === c.faction_id) { if (FIGHTERS.includes(n.role)) ours++; continue; }
+    if (!hostile(c, n) || isMinorFaction(n.faction_id)) continue;
+    if (FIGHTERS.includes(n.role)) theirs++; else if (n.role === 'CANDIDAT') theirs += 2;
+  }
+  return { theirs, ours, weak: theirs >= 3 && theirs > ours + 1 };
+}
+
+/** Sympathisants et militants des grands camps adverses dans un quartier : ce qu’une attaque peut faire tomber. */
+const enemySupporters = (state, c, zoneId) => state.npcs.filter(n => hostile(c, n) && !isMinorFaction(n.faction_id)
+  && ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(n.role) && zoneAt(state.world, n.x).id === zoneId);
 const ticks = (config, seconds) => Math.max(1, Math.ceil(seconds * config.balance.simulation_architecture.fixed_tick_hz));
 
 export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(state, config, c)) {
@@ -44,15 +71,30 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
     if (best) return { subzone_id: best.subzone_id, purpose: 'SETUP', expires_tick: state.tick + Math.ceil(settings.opening_seconds * hz) };
   }
   const previous = c.ai_objective;
+  // Se sentir faible : des troupes adverses plus nombreuses que les siennes dans son cœur.
+  // Reculer à sa permanence, transformer ses sympathisants en militants (tracts), puis contre-attaquer.
+  const core = coreZones(state, c), threat = territoryThreat(state, c, core);
+  // Un repli engagé dure jusqu’à avoir au moins autant de troupes que l’adversaire (pas de va-et-vient).
+  if (threat.weak || previous?.purpose === 'REGROUP' && previous.expires_tick > state.tick && threat.ours < threat.theirs) {
+    const rally = state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE')
+      .map(b => ({ b, ready: biomeSympathisants(state, b.biome_id, c.faction_id, true).length }))
+      .filter(r => r.ready >= 2).sort((a, b) => b.ready - a.ready || distance(state, c.x, a.b.x) - distance(state, c.x, b.b.x))[0]?.b;
+    if (rally && c.money >= 0.5) {
+      if (previous?.purpose === 'REGROUP' && previous.subzone_id === rally.subzone_id && previous.expires_tick > state.tick) return previous;
+      return { subzone_id: rally.subzone_id, purpose: 'REGROUP', expires_tick: state.tick + ticks(config, 20) };
+    }
+  }
   const oldZone = state.electorate.find(e => e.subzone_id === previous?.subzone_id);
-  const keep = previous && previous.expires_tick > state.tick && previous.purpose !== 'SETUP'
+  // Une attaque s’arrête quand le quartier est nettoyé : on n’attend pas sur place que les neutres reviennent.
+  const keep = previous && previous.expires_tick > state.tick && !['SETUP', 'REGROUP'].includes(previous.purpose)
     && oldZone && (previous.purpose === 'CONQUER' ? oldZone.controller !== c.faction_id
+      : previous.purpose === 'ATTACK' ? enemySupporters(state, c, oldZone.subzone_id).length > 0
       : previous.purpose === 'DEFEND' && oldZone.controller === c.faction_id);
   // Réévaluer de temps en temps en chemin : l’IA peut changer d’avis si la situation a bougé.
   const reconsider = ticks(config, settings.reconsider_seconds ?? 9);
   const offset = Math.floor(aiNoise(state.seed, `${c.id}:reconsider`) * reconsider);
   if (keep && (state.tick + offset) % reconsider !== 0) return previous;
-  const s = adaptationSettings(config), boost = Math.max(0, adaptation.boost);
+  const s = adaptationSettings(config), boost = Math.max(0, adaptation.boost), tactic = tactics(config);
   // Un bon joueur s’empare vite d’un local de faction (service d’ordre ou cabinet), puis reprend les sites laissés vacants.
   const hasFactionSite = state.buildings.some(b => b.type === 'faction' && b.owner_id === c.faction_id && b.state === 'ACTIVE');
   // Les dons n’arrivent qu’à une permanence du même quartier : en ouvrir une là où il n’y en a pas encore.
@@ -71,7 +113,14 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
     const allied = e.controller === c.faction_id;
     const threatened = allied && enemies.length >= Math.max(1, units.filter(n => n.faction_id === c.faction_id).length - 1);
     const frontier = state.electorate.some(n => e.adjacent_subzone_ids.includes(n.subzone_id) && n.controller === c.faction_id);
-    const rivalSupport = Math.max(...FACTIONS.filter(f => f !== c.faction_id).map(f => e.support[f]));
+    // Électeurs adverses à faire tomber : c’est en les frappant qu’on fabrique des neutres à convaincre.
+    // Le camp à contenir compte plus, l’allié de circonstance contre le meneur beaucoup moins.
+    const prey = minorFief ? 0 : enemySupporters(state, c, zone.id)
+      .reduce((sum, n) => sum + 1 + 0.6 * factionPressure(adaptation, n.faction_id), 0);
+    const guards = enemies.filter(n => FIGHTERS.includes(n.role)).length;
+    // Son cœur envahi : y revenir chasser l’intrus (le repli gère le cas où il est trop fort).
+    const invaded = core.has(zone.id) && [...state.candidates, ...state.npcs].some(n => hostile(c, n) && !isMinorFaction(n.faction_id)
+      && (FIGHTERS.includes(n.role) || n.role === 'CANDIDAT') && zoneAt(state.world, n.x).id === zone.id);
     // Partie à trois : on grignote en priorité le camp qui domine, on épargne un humain distancé.
     const pressure = factionPressure(adaptation, e.controller);
     const focusSites = sites.filter(b => factionPressure(adaptation, b.owner_id) > 0).length;
@@ -86,11 +135,13 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
       + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 8 + focusSites * 4 + Math.min(12, enemies.length * 2) + opening
       + (pressure > 0 ? s.focus_zone_bonus * (1 + boost) : pressure < 0 ? s.spared_zone_penalty * pressure : 0)
       - enemies.filter(n => ['MILITANT', 'SERVICE_D_ORDRE'].includes(n.role)).length * 3
-      + e.electoral_weight * 0.2 - Math.max(0, rivalSupport - e.support[c.faction_id]) * 2
+      // On attaque de proche en proche : un quartier frontalier ou tout proche, pas l’autre bout de la carte.
+      + e.electoral_weight * 0.2 + Math.min(tactic.prey_cap, prey * tactic.prey_weight)
+        * (frontier || distance(state, c.x, zone.center) <= tactic.attack_near_units ? 1 : tactic.far_attack_factor) + (invaded ? tactic.invaded_bonus : 0)
       + (styleInfluenceMultiplier(config, c, zone.biome_id) - 1) * 30
       - distance(state, c.x, zone.center) * 0.6 * (1 - 0.3 * boost) - (!keep && previous?.subzone_id === zone.id ? 10 : 0)
       + aiNoise(state.seed, `${c.id}:${zone.id}`) * 3;
-    return { zone, score, purpose: threatened ? 'DEFEND' : 'CONQUER' };
+    return { zone, score, purpose: threatened || invaded ? 'DEFEND' : prey >= 3 && guards <= 2 ? 'ATTACK' : 'CONQUER' };
   }).sort((a, b) => b.score - a.score || a.zone.id.localeCompare(b.zone.id));
   const best = choices[0];
   if (keep) {
@@ -215,7 +266,7 @@ export function strategicAICommands(state, config, c) {
     && c.ai_objective?.purpose === 'RECOVER' && c.ai_objective.expires_tick > state.tick;
   const previousRetreat = c.ai_objective?.purpose === 'RECOVER';
   const fragile = c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio * (1 + risk * 0.5);
-  if (recovering || !previousRetreat && danger && (cautious && fragile || swarmed && c.resistance < config.balance.candidate_combat.resistance_max * 0.85)) {
+  if (recovering || !previousRetreat && danger && (cautious && fragile || swarmed && c.resistance < config.balance.candidate_combat.resistance_max * tactics(config).swarm_retreat_ratio)) {
     const safeZones = state.world.subzones.map(z => ({ z, danger: [...state.candidates, ...state.npcs, ...state.temporary_units]
       .filter(n => hostile(c, n) && distance(state, z.center, n.x) <= config.balance.candidate_combat.recovery_safe_distance + z.width / 2).length }))
       .sort((a, b) => a.danger - b.danger || distance(state, c.x, a.z.center) - distance(state, c.x, b.z.center));
@@ -264,30 +315,47 @@ export function strategicAICommands(state, config, c) {
   // Le coup du moment (local de faction, raid, meeting, mobilisation finale) ne se laisse pas distraire
   // par les soutiens adverses du quartier, sauf s’ils sont au contact.
   const opponent = nearestEnemy(state, c, settings.detection_range, n => n.role !== 'CANDIDAT' && zoneAt(state.world, n.x).id === zone.id && keep(n));
-  if (opponent && (!c.purchase_hold && !economic?.decisive || distance(state, c.x, opponent.x) <= config.balance.physical_units.militant.verbal_range))
+  // En repli, on ne s’arrête pas pour se battre en chemin, sauf au contact.
+  if (opponent && (!c.purchase_hold && !economic?.decisive && objective.purpose !== 'REGROUP' || distance(state, c.x, opponent.x) <= config.balance.physical_units.militant.verbal_range))
     return finish([...plan, ...aiCombatCommands(state, config, c, opponent, combatTempo(state, adaptation, opponent))]);
   const retained = state.npcs.find(n => n.role === 'NEUTRE' && n.persuasion?.actor_id === c.id);
   if (retained && !economic?.decisive) return finish([...plan, ...commands(0)]);
   // Finir une transaction engagée évite de remettre son compteur à zéro.
   if (c.purchase_hold) {
     const site = state.buildings.find(b => b.id === c.purchase_hold.target_id);
-    const offer = site && buildingOffers(state, config, c, site).find(o => o.key === c.purchase_hold.key && o.enabled);
+    // (Un sondage déclenché en passant devant l’institut n’était pas voulu : on ne le termine pas.)
+    const offer = site && buildingOffers(state, config, c, site).find(o => o.key === c.purchase_hold.key && o.enabled && o.kind !== 'POLL');
     if (offer) return finish([...plan, ...go(offer.x, offer.radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
   }
   if (economic?.decisive) return finish([...plan, ...pursue(economic)]);
   // Un achat déjà à portée (tracts devant sa permanence…) se fait avant d’aller ramasser des billets.
   if (economic && distance(state, c.x, economic.x) <= economic.interaction_radius + 1.5) return finish([...plan, ...pursue(economic)]);
+  // En route pour attaquer ou défendre un quartier : pas de détour, sauf pour ce qui est sur le chemin.
+  const mission = ['ATTACK', 'DEFEND'].includes(objective.purpose) && !here;
+  const onTheWay = x => !mission || distance(state, c.x, x) <= tactics(config).mission_detour_units;
+  // Chasse : comme un joueur, abattre les sympathisants et militants adverses qui passent à portée.
+  // Chaque soutien abattu rentre chez lui redevenir neutre : une voix en moins pour l’adversaire.
+  if (objective.purpose !== 'REGROUP') {
+    const fighters = n => [...state.npcs, ...state.temporary_units].filter(o => hostile(c, o) && FIGHTERS.includes(o.role)
+      && o !== n && distance(state, n.x, o.x) <= 5).length;
+    const prey = state.npcs.filter(n => hostile(c, n) && !isMinorFaction(n.faction_id) && ['SYMPATHISANT', 'MILITANT'].includes(n.role)
+      && keep(n) && distance(state, c.x, n.x) <= (mission ? tactics(config).hunt_radius_mission_units : tactics(config).hunt_radius_units)
+      && fighters(n) <= tactics(config).hunt_max_guards)
+      .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
+    if (prey) return finish([...plan, ...aiCombatCommands(state, config, c, prey, combatTempo(state, adaptation, prey))]);
+  }
   const pickup = moneyPickup(state, config, c, avoid, stance);
-  if (pickup) {
+  if (pickup && onTheWay(pickup.x)) {
     const result = go(pickup.x, config.balance.money.pickup_radius_units * 0.45);
     if (result[2].axis === 0 && pickup.height_ratio > 0 && c.combat.jump_tick == null && c.combat.height === 0)
       result.push({ type: 'Jump', candidateId: c.id });
     return finish([...plan, ...result]);
   }
+  // Les dons attendent à la permanence : on y passe quand le trajet en vaut la peine (500 € à côté, bien plus au loin).
   const funding = state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE'
-    && b.stored_money_cents >= config.balance.money.donation.ai_funding_collection_threshold_eur * 100)
+    && b.stored_money_cents >= config.balance.money.donation.ai_funding_collection_threshold_eur * 100 * (1 + distance(state, c.x, b.x) / tactics(config).funding_distance_units))
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
-  if (funding) return finish([...plan, ...go(funding.x, config.balance.money.donation.collection_radius_units * 0.6)]);
+  if (funding && onTheWay(funding.x)) return finish([...plan, ...go(funding.x, config.balance.money.donation.collection_radius_units * 0.6)]);
   const firstHQCost = config.balance.buildings.permanence.first_headquarters_capture_cost;
   const nextInvestment = c.headquarters_site_id ? config.balance.buildings.permanence.capture_cost : firstHQCost;
   if (c.money < nextInvestment && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE')) {
@@ -298,17 +366,18 @@ export function strategicAICommands(state, config, c) {
       .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
     if (donor) return finish([...plan, ...go(donor.x, config.balance.money.donation.handoff_radius_units * 0.6)]);
   }
-  if (economic) return finish([...plan, ...pursue(economic)]);
+  if (economic && onTheWay(economic.x)) return finish([...plan, ...pursue(economic)]);
   const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id && keep(n))
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   // Réduire la présence adverse avant de recruter si elle maintient un site ennemi.
   const enemySite = state.buildings.some(b => b.subzone_id === zone.id && b.owner_id && b.owner_id !== c.faction_id && b.state === 'ACTIVE');
-  if (here && enemySite && defenders[0]) return finish([...plan, ...aiCombatCommands(state, config, c, defenders[0], combatTempo(state, adaptation, defenders[0]))]);
+  // En attaque, abattre d’abord le maximum de sympathisants et militants adverses du quartier.
+  if (here && (enemySite || objective.purpose === 'ATTACK') && defenders[0]) return finish([...plan, ...aiCombatCommands(state, config, c, defenders[0], combatTempo(state, adaptation, defenders[0]))]);
   // Convaincre les neutres disponibles (pas ceux emportés par un rassemblement).
   const targets = state.npcs.filter(n => n.role === 'NEUTRE' && !n.persuasion && !n.rally_event_id && zoneAt(state.world, n.x).id === zone.id)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   if (targets[0]) return finish([...plan, ...go(targets[0].x, config.prototype.persuasion.radius_units * config.prototype.ai.stop_distance_radius_ratio)]);
   // Après avoir recruté, traverser la zone pour en chasser les soutiens adverses.
-  if (here && defenders[0]) return finish([...plan, ...aiCombatCommands(state, config, c, defenders[0], combatTempo(state, adaptation, defenders[0]))]);
+  if (here && defenders[0] && objective.purpose !== 'REGROUP') return finish([...plan, ...aiCombatCommands(state, config, c, defenders[0], combatTempo(state, adaptation, defenders[0]))]);
   return finish([...plan, ...go(zone.center, config.prototype.persuasion.radius_units)]);
 }

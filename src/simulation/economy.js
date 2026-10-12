@@ -293,12 +293,12 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
       // Coups décisifs, qui valent un long trajet : le local de faction, ses raids et fermetures,
       // un meeting quand vient leur moment, et les tracts de la mobilisation finale.
       const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['RAID', 'CLOSE'].includes(offer.kind))
-        || offer.kind === 'MEETING' || offer.kind === 'PRINT' && militants.final;
+        || offer.kind === 'MEETING' || offer.kind === 'PRINT' && (militants.final || militants.rally);
       // À la toute fin, l’argent ne sert plus à rien : tracts et meetings passent avant tout.
       const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : decisive ? 0.5 : newBranch ? 1.5
         : ['garage_velo', 'garage_scooter'].includes(building.type) ? 2 : building.type === 'tour_communication' ? 3 : 5)
         : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1 - aim
-        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? (militants.final ? 0.4 : 3)
+        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? (militants.rally ? 0.3 : militants.final ? 0.4 : 3)
         : offer.kind === 'MEETING' ? (militants.final ? 0.2 : 2 - boost) : 8;
       options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer, decisive,
         rank: priority + distance(state, candidate.x, offer.x) * (decisive ? 0.1 : 0.35) });

@@ -116,8 +116,8 @@ export function hit(sim, source, target, spec, attackId) {
       sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss, dropped_cents });
     }
   } else {
-    // Avantage de départ de Le Pen : ses propres coups démobilisent plus vite les sympathisants.
-    const lePen = source.role === 'CANDIDAT' && source.faction_id === 'le_pen' && target.role === 'SYMPATHISANT'
+    // Avantage de départ de Le Pen : ses propres coups démobilisent plus vite les sympathisants et les militants.
+    const lePen = source.role === 'CANDIDAT' && source.faction_id === 'le_pen' && ['SYMPATHISANT', 'MILITANT'].includes(target.role)
       ? config.balance.candidate_combat.le_pen_sympathisant_damage_multiplier : 1;
     const multiplier = localUnitDamageMultiplier(state, config, target) * lePen;
     result.damage = Math.min(target.hidden_durability, spec.damage * multiplier);

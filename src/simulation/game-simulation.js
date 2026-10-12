@@ -226,7 +226,7 @@ export class GameSimulation {
     if (candidate?.eliminated || command.factionId === this.state.eliminated_faction) return;
     if (command.type === 'SetAIObjective') {
       const objective = command.objective;
-      if (candidate && this.state.ai_enabled && objective && ['SETUP', 'CONQUER', 'DEFEND', 'RECOVER'].includes(objective.purpose)
+      if (candidate && this.state.ai_enabled && objective && ['SETUP', 'CONQUER', 'DEFEND', 'RECOVER', 'ATTACK', 'REGROUP'].includes(objective.purpose)
         && this.state.world.subzones.some(z => z.id === objective.subzone_id) && Number.isInteger(objective.expires_tick)
         && objective.expires_tick > this.state.tick) candidate.ai_objective = {
           subzone_id: objective.subzone_id, purpose: objective.purpose, expires_tick: objective.expires_tick };

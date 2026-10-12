@@ -5,6 +5,7 @@ import { debateAICommands } from './debate-simulation.js';
 import { factionPressure } from './ai-balance.js';
 import { assessDuel } from './ai-mind.js';
 import { canBeHit } from './combat-state.js';
+import { tactics } from './ai-moments.js';
 
 const activeEvents = state => (state.campaign_events || []).filter(e => e.status === 'ACTIVE');
 const gap = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
@@ -97,8 +98,14 @@ export function campaignEventAICommands(state, config, c, adaptation) {
     const site = state.buildings.find(b => b.id === e.target_site_id);
     if (site?.owner_id === null) options.push({ id: e.id, x: site.x, site: null, value: 4, close: gap(state, c.x, site.x) < 8 });
   }
-  options.sort((a, b) => b.value - a.value || a.x - b.x);
-  const chosen = options[0];
+  // Le territoire d’abord : en défense ou en repli, seul un événement tout proche détourne l’IA ;
+  // en attaque, seulement un événement à portée raisonnable.
+  const purpose = c.ai_objective?.purpose;
+  const t = tactics(config);
+  const reach = ['DEFEND', 'REGROUP'].includes(purpose) ? 0 : purpose === 'ATTACK' ? t.event_reach_attack_units : t.event_reach_units;
+  const usable = options.filter(o => o.close || gap(state, c.x, o.x) <= reach);
+  usable.sort((a, b) => b.value - a.value || a.x - b.x);
+  const chosen = usable[0];
   // Y aller ou non se décide une fois par événement (sinon l’IA fait des allers-retours entre l’événement et son travail),
   // sauf quand l’objectif est tout proche. Avant sa première permanence, seul un événement tout proche détourne l’IA.
   if (!chosen || !chosen.close && (!c.headquarters_site_id

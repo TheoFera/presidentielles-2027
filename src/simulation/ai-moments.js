@@ -17,6 +17,15 @@ const DEFAULTS = Object.freeze({
 
 export const momentSettings = config => ({ ...DEFAULTS, ...config.balance.ai_moments });
 
+/** Réglages tactiques de l’IA (territoire, chasse, détours), réglables par le banc d’essai. */
+const TACTICS = Object.freeze({
+  hunt_radius_units: 15, hunt_radius_mission_units: 10, hunt_max_guards: 1,
+  prey_weight: 2.5, prey_cap: 30, attack_near_units: 30, far_attack_factor: 0.35, invaded_bonus: 45,
+  funding_distance_units: 15, event_reach_units: 80, event_reach_attack_units: 40,
+  swarm_retreat_ratio: 0.85, mission_detour_units: 10,
+});
+export const tactics = config => ({ ...TACTICS, ...config.balance.ai_tactics });
+
 /** Probabilité d’une activité à cet avancement : interpolation linéaire entre les points [avancement, probabilité]. */
 export function momentChance(state, config, key) {
   const points = momentSettings(config).curves[key];
@@ -44,6 +53,8 @@ export function momentActive(state, config, c, key) {
 export function militantPlan(state, config, c) {
   const s = momentSettings(config).militants;
   if (momentActive(state, config, c, 'mobilisation_generale')) return { goal: Infinity, reserve: 0, final: true };
+  // Repli d’une IA qui se sent faible : presque tous ses sympathisants deviennent militants pour contre-attaquer.
+  if (c.ai_objective?.purpose === 'REGROUP') return { goal: Infinity, reserve: 1, final: false, rally: true };
   if (momentActive(state, config, c, 'groupes')) return { goal: s.group_goal, reserve: s.group_reserve, final: false };
   const [low, high] = s.first_goal;
   const goal = aiNoise(state.seed, `${c.id}:first-militants`) < 0.5 ? low : high;

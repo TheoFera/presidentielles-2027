@@ -25,6 +25,18 @@ Il n’y a plus de financement : l’argent vient des billets et des dons des sy
 
 L’achat du moment (local, raid, meeting, tracts de la fin) ne se laisse pas distraire par les soutiens adverses du quartier, sauf s’ils sont au contact. Un achat déjà à portée se fait avant d’aller ramasser des billets.
 
+## Territoire : défendre son coin, attaquer de proche en proche
+
+On ne convainc que des passants neutres. Un sympathisant ou un militant frappé rentre à pied dans son quartier d’origine et y redevient neutre. Prendre des voix à un adversaire, c’est donc abattre ses soutiens, puis convertir les neutres ainsi libérés.
+
+- **Cœur** de chaque IA (`coreZones` dans `src/simulation/ai-strategy.js`) : les quartiers dont elle possède le bâtiment, plus ceux où elle a la majorité des soutiens sans qu’un autre camp en tienne le bâtiment.
+- **Défendre** : un candidat ou des militants adverses dans son cœur l’y font revenir.
+- **Se replier** (`REGROUP`) : quand les troupes adverses dans son cœur dépassent nettement les siennes, l’IA recule à sa permanence la mieux fournie et transforme presque tous ses sympathisants en militants (tracts), puis contre-attaque. Le repli dure jusqu’à avoir au moins autant de troupes.
+- **Attaquer** (`ATTACK`) : un quartier proche ou frontalier riche en soutiens adverses (ceux du meneur comptent plus) et peu gardé. Sur place, elle abat d’abord le maximum de sympathisants et militants adverses, puis repart dès le quartier nettoyé, sans attendre le retour des neutres.
+- **Chasse** : comme un joueur, l’IA abat les sympathisants et militants adverses peu protégés qui passent à portée (15 unités, 10 en mission), sauf pendant un repli.
+- En route pour attaquer ou défendre, pas de détour (dons, billets, achats) sauf sur le chemin, et seuls les événements proches la détournent (à moins de 40 unités en attaque, 80 sinon).
+- Les dons qui attendent à une permanence ne valent le trajet que s’ils sont assez gros pour la distance (500 € à côté, environ 1 500 € à 30 unités).
+
 ## Partie à trois : contenir le plus fort
 
 Chaque IA mesure le **rapport de force** (`src/simulation/ai-balance.js`) : opinion nationale, territoires contrôlés, bâtiments actifs et un peu d’argent. Les deux autres camps se liguent naturellement contre le plus fort : ses territoires et ses bâtiments deviennent leurs cibles prioritaires. « Attaquer » veut surtout dire lui reprendre du terrain, pas forcément le frapper.

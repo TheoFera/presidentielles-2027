@@ -47,7 +47,7 @@ export function validateSnapshot(next, simulation, nested = false) {
   for (const candidate of next.candidates) {
     const objective = candidate.ai_objective;
     if (objective != null && (!next.world.subzones.some(z => z.id === objective.subzone_id)
-      || !['SETUP', 'CONQUER', 'DEFEND', 'RECOVER'].includes(objective.purpose) || !integer(objective.expires_tick))) fail('objectif de l’IA invalide');
+      || !['SETUP', 'CONQUER', 'DEFEND', 'RECOVER', 'ATTACK', 'REGROUP'].includes(objective.purpose) || !integer(objective.expires_tick))) fail('objectif de l’IA invalide');
     const mind = candidate.ai_mind;
     if (mind != null && (!MIND_STANCES.includes(mind.stance) || mind.opponent_id !== null && !candidateIds.has(mind.opponent_id)
       || !integer(mind.since_tick) || !integer(mind.review_tick) || !integer(mind.hits))) fail('réflexion de l’IA invalide');
