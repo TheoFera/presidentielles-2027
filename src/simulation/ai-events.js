@@ -40,7 +40,7 @@ export function campaignCommittedAICommands(state, config, c) {
 function placeFactor(state, config, c, x, adaptation) {
   const record = state.electorate.find(e => e.subzone_id === zoneAt(state.world, x).id);
   const pressure = factionPressure(adaptation, record?.controller);
-  let factor = record?.controller === c.faction_id ? 1.15 : pressure > 0 ? 1.3 : pressure < 0 ? 0.6 : 1;
+  let factor = record?.controller === c.faction_id ? 1.15 : pressure > 0 ? 1.3 : pressure < 0 ? 1 + 0.4 * pressure : 1;
   // Un rival déjà sur place et redoutable rend le déplacement risqué.
   for (const rival of state.candidates) {
     if (rival === c || rival.faction_id === c.faction_id || !canBeHit(rival) || gap(state, rival.x, x) > 6) continue;
@@ -89,18 +89,20 @@ export function campaignEventAICommands(state, config, c, adaptation) {
     }
     if (x === undefined) continue;
     value *= placeFactor(state, config, c, x, adaptation) * (1 + 0.5 * Math.max(0, boost));
-    options.push({ x, site, value: value / (1 + gap(state, c.x, x) / 30), close: gap(state, c.x, x) < 8 });
+    options.push({ id: e.id, x, site, value: value / (1 + gap(state, c.x, x) / 30), close: gap(state, c.x, x) < 8 });
   }
   // Rouvrir un bâtiment perdu après une fermeture administrative.
   for (const e of state.campaign_events.filter(e => e.family === 'FERMETURE_BATIMENT' && e.status === 'RESOLVED'
     && e.target_candidate_ids.includes(c.id) && state.tick - e.resolved_tick < 30 * hz)) {
     const site = state.buildings.find(b => b.id === e.target_site_id);
-    if (site?.owner_id === null) options.push({ x: site.x, site: null, value: 4, close: gap(state, c.x, site.x) < 8 });
+    if (site?.owner_id === null) options.push({ id: e.id, x: site.x, site: null, value: 4, close: gap(state, c.x, site.x) < 8 });
   }
   options.sort((a, b) => b.value - a.value || a.x - b.x);
   const chosen = options[0];
-  // L’intérêt fluctue d’une fenêtre à l’autre, sauf quand l’objectif est tout proche.
-  if (!chosen || !chosen.close && noise > Math.min(1, settings.event_interest + 0.15 * boost)) return null;
+  // Y aller ou non se décide une fois par événement (sinon l’IA fait des allers-retours entre l’événement et son travail),
+  // sauf quand l’objectif est tout proche. Avant sa première permanence, seul un événement tout proche détourne l’IA.
+  if (!chosen || !chosen.close && (!c.headquarters_site_id
+    || aiNoise(state.seed, `${c.id}:event-interest:${chosen.id}`) > Math.min(1, settings.event_interest + 0.15 * boost))) return null;
   const out = walk(state, c, chosen.x);
   return chosen.site ? climb(state, config, c, chosen.site, out) : out;
 }

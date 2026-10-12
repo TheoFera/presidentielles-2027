@@ -6,6 +6,9 @@ import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
 import { canBeHit, combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
+import { truceFilter } from './ai-balance.js';
+import { FACTIONS } from './world.js';
+import { isHumanCandidate } from './human-candidates.js';
 
 export function requestAttack(sim, actor, direction = null) {
   if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active || actor.is_ko) return;
@@ -416,7 +419,12 @@ function updateTemporaryUnits(sim) {
 
 export function updateMilitantCombat(sim, npc) {
   const s = sim.config.balance.physical_units.militant;
-  const target = nearestEnemy(sim.state, npc, s.detection_range, t => t.role !== 'SYMPATHISANT');
+  let target = nearestEnemy(sim.state, npc, s.detection_range, t => t.role !== 'SYMPATHISANT');
+  // Partie à trois : les militants d’une IA ne s’en prennent pas à l’autre camp qui contient le meneur.
+  // (La trêve ne concerne que deux camps joués par l’ordinateur : inutile de la calculer face au joueur.)
+  const bot = faction => FACTIONS.includes(faction) && !sim.state.candidates.some(c => c.faction_id === faction && isHumanCandidate(sim.state, c.id));
+  const keep = target && target.faction_id !== npc.faction_id && bot(target.faction_id) && bot(npc.faction_id) ? truceFilter(sim.state, sim.config, npc.faction_id) : null;
+  if (keep && !keep(target)) target = nearestEnemy(sim.state, npc, s.detection_range, t => t.role !== 'SYMPATHISANT' && keep(t));
   npc.combat.target_id = target?.id || null;
   if (!target) return false;
   npc.combat.engaged = true;

@@ -364,8 +364,8 @@
       "max_per_candidate": 6,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 30,
-      "build_cost": 30,
+      "capture_cost": 20,
+      "build_cost": 20,
       "capture_seconds": 2,
       "required_presence_N1": 3,
       "required_presence_N2": 4,
@@ -776,33 +776,37 @@
     "max_persuasion_slowdown": 0.15,
     "focus_zone_bonus": 18,
     "spared_zone_penalty": 24,
-    "money_risk_reference_k": 20
+    "money_risk_reference_k": 20,
+    "truce_gap": 8
   },
   "ai_economy": {
     "enabled": true,
     "reserve_sympathisants_per_biome": 2,
-    "militant_goal_per_biome": 5,
     "army_detour_units": 30,
-    "investment_reference_k": 20,
-    "development_order": [
-      "permanence",
-      "financement",
-      "tour_communication"
-    ],
-    "development_sympathisant_reserve": 6,
-    "development_tract_limit": 2,
-    "print_priority": 2.5,
-    "electoral_building_priorities": {
-      "financement": 0,
-      "tour_communication": 1,
-      "institut_sondage": 2,
-      "meeting": 3,
-      "permanence": 4,
-      "faction": 5
+    "investment_reference_k": 20
+  },
+  "ai_moments": {
+    "note": "Courbes [avancement de la campagne de 0 à 1, probabilité qu'une IA soit dans ce moment]. 0 = J-365, 0.5 = J-183, 1 = premier tour. Chaque IA tire son propre seuil par partie.",
+    "curves": {
+      "expansion": [[0, 0.1], [0.1, 0.5], [0.2, 0.9], [0.7, 0.9], [0.85, 0.3], [0.95, 0]],
+      "groupes": [[0.1, 0], [0.25, 0.5], [0.4, 0.9], [1, 1]],
+      "tour_communication": [[0.1, 0], [0.25, 0.5], [0.65, 0.7], [0.8, 0]],
+      "local_faction": [[0.3, 0], [0.45, 0.5], [0.6, 1], [0.92, 1], [1, 0]],
+      "offensive": [[0.4, 0], [0.55, 0.6], [0.75, 1], [1, 1]],
+      "meeting": [[0.5, 0], [0.62, 0.5], [0.75, 0.9], [1, 1]],
+      "mobilisation_generale": [[0.88, 0], [0.95, 1], [1, 1]]
     },
-    "first_meeting_priority": 3.5,
-    "tower_upgrade_priority": 6,
-    "repeat_meeting_priority": 7
+    "militants": {
+      "first_goal": [1, 2],
+      "first_reserve": 1,
+      "group_goal": 6,
+      "group_reserve": 2
+    },
+    "vehicles": {
+      "spread_units": 96,
+      "ride_min_distance_units": 48,
+      "garage_detour_units": 8
+    }
   },
   "debug": {
     "transaction_history_limit": 20,

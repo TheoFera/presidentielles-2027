@@ -214,6 +214,8 @@ test('l’IA conserve un meeting disponible comme objectif même avant de monter
   sim.state.buildings = [podium];
   const candidate = sim.state.candidates[1];
   candidate.x = podium.x; candidate.money = 1000;
+  // Les meetings arrivent plutôt en fin de campagne (moments de l’IA).
+  sim.state.campaign_progress_01 = 0.95;
   const target = aiEconomicTarget(sim.state, cfg, candidate);
   assert.equal(target?.id, podium.id);
   assert.equal(target.offer.reason, 'NOT_ON_STAGE');

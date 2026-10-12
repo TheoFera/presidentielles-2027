@@ -312,7 +312,7 @@ async function start() {
   const durationText = document.getElementById('balance-help');
   const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
   document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
-  durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Financement : ${format(config.balance.buildings.financement.capture_cost)} k€. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
+  durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Les dons des sympathisants remontent à une permanence du même quartier. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset(); campaignPrediction = null;
     void keepScreenAwake();

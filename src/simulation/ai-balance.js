@@ -7,7 +7,7 @@ const DEFAULTS = Object.freeze({
   enabled: true, dominance_gap: 14, mercy_gap: 12, mercy_threshold: 0.3,
   territory_weight: 30, building_weight: 1.5, money_weight: 0.05,
   max_persuasion_speed_bonus: 0.25, max_persuasion_slowdown: 0.15,
-  focus_zone_bonus: 18, spared_zone_penalty: 24, money_risk_reference_k: 20,
+  focus_zone_bonus: 18, spared_zone_penalty: 24, money_risk_reference_k: 20, truce_gap: 8,
 });
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
@@ -38,7 +38,9 @@ export function powerBalance(state, config) {
  * - boost > 0 : le meilleur humain devance cette IA, elle joue plus vite et plus juste ;
  * - boost < 0 : cette IA devance nettement les humains, elle relâche la pression ;
  * - focus : le camp à contenir (le plus fort, hors soi) ;
- * - spared : les humains trop faibles que l’IA laisse respirer.
+ * - spared : les humains trop faibles que l’IA laisse respirer ;
+ * - truce : les camps distancés par le meneur, qu’on évite d’affaiblir tant qu’il domine
+ *   (s’entre-déchirer lui offrirait la victoire).
  * Fonctionne pareil en solo et en multijoueur (plusieurs humains possibles).
  */
 export function aiAdaptation(state, config, c) {
@@ -62,13 +64,33 @@ export function aiAdaptation(state, config, c) {
     .filter(h => h.faction_id !== c.faction_id && top - strength[h.faction_id] >= s.mercy_gap * 0.5)
     .map(h => h.faction_id) : []);
   const focus = ranking.find(f => f !== c.faction_id && !spared.has(f)) ?? null;
-  return { boost, focus, spared, strength, ranking, leader: ranking[0] ?? null };
+  // Partie à trois : face à un meneur nettement devant, les deux autres camps cessent de se combattre.
+  const truce = new Set(focus && focus === ranking[0] ? alive.map(o => o.faction_id)
+    .filter(f => f !== c.faction_id && f !== focus && !spared.has(f) && strength[focus] - strength[f] >= s.truce_gap) : []);
+  return { boost, focus, spared, truce, strength, ranking, leader: ranking[0] ?? null };
 }
 
-/** +1 pour le camp à contenir, -1 pour un camp épargné, 0 sinon. */
+/**
+ * Les unités d’une IA laissent passer un allié de circonstance contre le meneur,
+ * sauf s’il s’en prend à leur camp. Renvoie null quand aucune trêve ne s’applique.
+ */
+export function truceFilter(state, config, faction, adaptation = null) {
+  if (state.ai_enabled === false) return null;
+  const own = state.candidates.find(c => c.faction_id === faction && !c.minor);
+  if (!own || isHumanCandidate(state, own.id)) return null;
+  const truce = (adaptation ?? aiAdaptation(state, config, own)).truce;
+  if (!truce?.size) return null;
+  return target => {
+    if (!truce.has(target.faction_id)) return true;
+    const victim = target.combat?.target_id;
+    return !!victim && [...state.npcs, ...state.candidates].some(o => o.id === victim && o.faction_id === faction);
+  };
+}
+
+/** +1 pour le camp à contenir, -1 pour un camp épargné, -0,6 pour un allié de circonstance, 0 sinon. */
 export function factionPressure(adaptation, faction) {
   if (!faction) return 0;
-  return faction === adaptation.focus ? 1 : adaptation.spared.has(faction) ? -1 : 0;
+  return faction === adaptation.focus ? 1 : adaptation.spared.has(faction) ? -1 : adaptation.truce?.has(faction) ? -0.6 : 0;
 }
 
 /**

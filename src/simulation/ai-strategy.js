@@ -5,24 +5,43 @@ import { aiEconomicTarget, buildingOffers } from './economy.js';
 import { candidateOnMeetingStage } from './electoral-buildings.js';
 import { canBeHit, nearestEnemy } from './combat-state.js';
 import { styleInfluenceMultiplier } from './campaign-styles.js';
-import { adaptationSettings, aiAdaptation, factionPressure } from './ai-balance.js';
+import { adaptationSettings, aiAdaptation, factionPressure, truceFilter } from './ai-balance.js';
 import { approaching, observeAxis, reflectOnRival, thinkingPause, validMind, visibleRival, worthChasing } from './ai-mind.js';
 import { campaignEventAICommands } from './ai-events.js';
 import { isHumanCandidate } from './human-candidates.js';
+import { rideGarage } from './ai-moments.js';
 
 const distance = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
 const hostile = (c, n) => canBeHit(n) && n.faction_id !== c.faction_id;
+const FIGHTERS = ['MILITANT', 'SERVICE_D_ORDRE'];
+/** Groupe adverse de militants ou de service d’ordre nettement plus nombreux que ses propres troupes. */
+const outnumbered = (c, units) => {
+  const theirs = units.filter(n => hostile(c, n) && FIGHTERS.includes(n.role)).length;
+  return theirs >= 3 && theirs > units.filter(n => n.faction_id === c.faction_id && FIGHTERS.includes(n.role)).length + 1;
+};
 const ticks = (config, seconds) => Math.max(1, Math.ceil(seconds * config.balance.simulation_architecture.fixed_tick_hz));
 
 export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(state, config, c)) {
   const settings = aiSettings(state, config), hz = config.balance.simulation_architecture.fixed_tick_hz;
   const opening = config.balance.ai_economy.enabled && state.phase === 'CAMPAIGN' && !c.headquarters_site_id;
   if (opening) {
-    if (c.ai_objective?.purpose === 'SETUP' && c.ai_objective.expires_tick > state.tick
-      && state.buildings.some(b => b.type === 'permanence' && !b.owner_id && b.subzone_id === c.ai_objective.subzone_id)) return c.ai_objective;
-    const sites = state.buildings.filter(b => b.type === 'permanence' && !b.owner_id);
-    sites.sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
-    if (sites[0]) return { subzone_id: sites[0].subzone_id, purpose: 'SETUP', expires_tick: state.tick + Math.ceil(settings.opening_seconds * hz) };
+    // Une permanence ne se prend qu’avec des soutiens sur place : viser un quartier où il y en a déjà,
+    // ou des passants à convaincre, plutôt que la plus proche d’un quartier vide.
+    const required = config.balance.buildings.permanence.required_presence_N1 ?? 0;
+    const missing = site => {
+      const units = state.npcs.filter(n => zoneAt(state.world, n.x).id === site.subzone_id);
+      const ready = units.filter(n => n.faction_id === c.faction_id && ['SYMPATHISANT', 'MILITANT'].includes(n.role)).length
+        + units.filter(n => n.role === 'NEUTRE' && !n.persuasion && !n.rally_event_id).length;
+      return Math.max(0, required - ready);
+    };
+    const cost = site => distance(state, c.x, site.x) + missing(site) * 60;
+    const sites = state.buildings.filter(b => b.type === 'permanence' && !b.owner_id)
+      .sort((a, b) => cost(a) - cost(b) || a.id.localeCompare(b.id));
+    const current = c.ai_objective?.purpose === 'SETUP' && sites.find(b => b.subzone_id === c.ai_objective.subzone_id);
+    if (current && c.ai_objective.expires_tick > state.tick && !missing(current)) return c.ai_objective;
+    // Changer de cible seulement pour une option nettement meilleure, sinon prolonger.
+    const best = current && cost(current) <= cost(sites[0]) + 20 ? current : sites[0];
+    if (best) return { subzone_id: best.subzone_id, purpose: 'SETUP', expires_tick: state.tick + Math.ceil(settings.opening_seconds * hz) };
   }
   const previous = c.ai_objective;
   const oldZone = state.electorate.find(e => e.subzone_id === previous?.subzone_id);
@@ -62,8 +81,10 @@ export function chooseAIObjective(state, config, c, adaptation = aiAdaptation(st
     const opening = vacant.some(b => b.type === 'faction') ? 20
       : vacant.some(b => b.type === 'permanence' && !fundedBiomes.has(b.biome_id)) ? 18 : vacant.length ? 6 : 0;
     const score = (enemyOwned ? settings.enemy_priority * (1 + 0.4 * boost) : allied ? -35 : minorFief ? -20 : 12) + (threatened ? 40 + threatPressure * 10 : 0)
+      // Défendre seul un quartier occupé par un groupe adverse, c’est se faire mettre K.-O. : attendre des renforts.
+      - (threatened && outnumbered(c, units) ? 30 + threatPressure * 10 : 0)
       + (frontier ? 12 : 0) + neutral * 1.4 + enemySites * 8 + focusSites * 4 + Math.min(12, enemies.length * 2) + opening
-      + (pressure > 0 ? s.focus_zone_bonus * (1 + boost) : pressure < 0 ? -s.spared_zone_penalty : 0)
+      + (pressure > 0 ? s.focus_zone_bonus * (1 + boost) : pressure < 0 ? s.spared_zone_penalty * pressure : 0)
       - enemies.filter(n => ['MILITANT', 'SERVICE_D_ORDRE'].includes(n.role)).length * 3
       + e.electoral_weight * 0.2 - Math.max(0, rivalSupport - e.support[c.faction_id]) * 2
       + (styleInfluenceMultiplier(config, c, zone.biome_id) - 1) * 30
@@ -101,6 +122,8 @@ function moneyPickup(state, config, c, rival, stance) {
       : d <= money.donation.ai_handoff_search_radius_units;
     if (!wanted) continue;
     if (rival && stance !== 'FIGHT' && distance(state, rival.x, p.x) < Math.min(d, 3)) continue;
+    // Pas de billet au milieu d’un groupe adverse : c’est là qu’on vient d’être mis K.-O.
+    if (outnumbered(c, [...state.npcs, ...state.temporary_units].filter(n => distance(state, p.x, n.x) <= config.balance.physical_units.militant.detection_range))) continue;
     options.push({ p, d });
   }
   options.sort((a, b) => a.d - b.d || a.p.id.localeCompare(b.p.id));
@@ -120,6 +143,14 @@ export function strategicAICommands(state, config, c) {
   }
   const go = (x, radius, purchase = false) => {
     const d = ringDelta(c.x, x, state.world.length), arrived = Math.abs(d) <= radius;
+    // On n’achète rien à vélo ou en scooter : sauter pour en descendre.
+    if (arrived && purchase && c.vehicle) return [...commands(0), { type: 'Jump', candidateId: c.id }];
+    // Long trajet : passer d’abord prendre son véhicule s’il est tout près (immobile devant le garage).
+    const garage = !arrived && rideGarage(state, config, c, x);
+    if (garage) {
+      const g = ringDelta(c.x, garage.x, state.world.length), atGarage = Math.abs(g) <= config.balance.vehicles.garage_radius_units * 0.6;
+      return commands(atGarage ? 0 : Math.sign(g), atGarage);
+    }
     return commands(arrived ? 0 : Math.sign(d), arrived && purchase);
   };
   const activeMeeting = state.buildings.find(b => b.type === 'meeting' && b.meeting_candidate_id === c.id);
@@ -134,7 +165,9 @@ export function strategicAICommands(state, config, c) {
   const note = mind => { if (mind !== c.ai_mind) notes.push({ type: 'SetAIMind', candidateId: c.id, mind }); };
 
   // 1. Un candidat rival en vue : observer, puis combattre, fuir ou l’éviter.
-  const rival = visibleRival(state, c, Math.max(settings.detection_range, 4));
+  // Le camp à contenir passe avant les autres, même s’il n’est pas le plus proche.
+  const sight = Math.max(settings.detection_range, 4);
+  const rival = visibleRival(state, c, sight, o => o.faction_id === adaptation.focus) ?? visibleRival(state, c, sight);
   let avoid = null, stance = null, avoidMargin = 2.6;
   if (rival) {
     const mind = reflectOnRival(state, config, c, rival, adaptation);
@@ -175,15 +208,23 @@ export function strategicAICommands(state, config, c) {
   const risk = Math.min(1, c.money * config.balance.candidate_combat.ko_money_drop_ratio / adaptationSettings(config).money_risk_reference_k);
   // Décision stable pour cette vie : une minorité se replie, les autres tiennent le combat.
   const cautious = aiNoise(state.seed, `${c.id}:retreat:${c.ko_started_tick}`) < settings.retreat_chance * (1 + risk);
-  const recovering = cautious && c.ai_objective?.purpose === 'RECOVER' && c.ai_objective.expires_tick > state.tick
-    && c.resistance < config.balance.candidate_combat.resistance_max * 0.55;
+  // Seul face à un groupe de militants adverses (ils frappent de loin et reculent quand on approche),
+  // même un candidat courageux recule dès les premiers coups, et tient son repli tant que le groupe est là.
+  const swarmed = !!danger && outnumbered(c, [...state.npcs, ...state.temporary_units].filter(n => distance(state, c.x, n.x) <= settings.detection_range));
+  const recovering = (cautious && c.resistance < config.balance.candidate_combat.resistance_max * 0.55 || swarmed)
+    && c.ai_objective?.purpose === 'RECOVER' && c.ai_objective.expires_tick > state.tick;
   const previousRetreat = c.ai_objective?.purpose === 'RECOVER';
-  if (recovering || cautious && !previousRetreat && danger && c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio * (1 + risk * 0.5)) {
+  const fragile = c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio * (1 + risk * 0.5);
+  if (recovering || !previousRetreat && danger && (cautious && fragile || swarmed && c.resistance < config.balance.candidate_combat.resistance_max * 0.85)) {
     const safeZones = state.world.subzones.map(z => ({ z, danger: [...state.candidates, ...state.npcs, ...state.temporary_units]
       .filter(n => hostile(c, n) && distance(state, z.center, n.x) <= config.balance.candidate_combat.recovery_safe_distance + z.width / 2).length }))
       .sort((a, b) => a.danger - b.danger || distance(state, c.x, a.z.center) - distance(state, c.x, b.z.center));
     const safe = safeZones[0].z;
-    const result = danger ? commands(-(Math.sign(ringDelta(c.x, danger.x, state.world.length)) || c.facing)) : go(safe.center, 1);
+    // Fuir du côté où les ennemis sont les moins nombreux, pas seulement à l’opposé du plus proche.
+    const pressureOn = side => [...state.candidates, ...state.npcs, ...state.temporary_units].filter(n => hostile(c, n) && (FIGHTERS.includes(n.role) || n.role === 'CANDIDAT')
+      && Math.sign(ringDelta(c.x, n.x, state.world.length)) === side && distance(state, c.x, n.x) <= settings.detection_range * 2).length;
+    const away = -(Math.sign(ringDelta(c.x, danger?.x ?? c.x, state.world.length)) || c.facing);
+    const result = danger ? commands(pressureOn(-away) < pressureOn(away) ? -away : away) : go(safe.center, 1);
     if (danger && settings.dash && c.dash_charges > 0) result.push({ type: 'Dash', candidateId: c.id, direction: result[2].axis });
     return [...notes, { type: 'SetAIObjective', candidateId: c.id, objective: { subzone_id: safe.id, purpose: 'RECOVER', expires_tick: recovering ? c.ai_objective.expires_tick : state.tick + 6 * config.balance.simulation_architecture.fixed_tick_hz } }, ...result];
   }
@@ -209,17 +250,33 @@ export function strategicAICommands(state, config, c) {
   const zone = state.world.subzones.find(z => z.id === objective.subzone_id);
   const here = zoneAt(state.world, c.x).id === zone.id;
   // Ne pas poursuivre à travers la carte : éliminer les soutiens qui tiennent réellement l’objectif.
-  const opponent = nearestEnemy(state, c, settings.detection_range, n => n.role !== 'CANDIDAT' && zoneAt(state.world, n.x).id === zone.id);
-  if (opponent && (!c.purchase_hold || distance(state, c.x, opponent.x) <= config.balance.physical_units.militant.verbal_range))
+  // Trêve contre le meneur : les soutiens de l’autre camp distancé ne sont combattus que s’ils attaquent.
+  const keep = truceFilter(state, config, c.faction_id, adaptation) ?? (() => true);
+  // Achat visé ; un meeting se lance depuis la scène (on y saute).
+  const economic = aiEconomicTarget(state, config, c, objective, adaptation);
+  const pursue = target => {
+    if (target.type !== 'meeting' || candidateOnMeetingStage(state, config, c, target))
+      return go(target.x, target.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true);
+    const approach = go(target.x, Math.min(0.25, target.interaction_radius * config.prototype.ai.stop_distance_radius_ratio));
+    if (approach[2].axis === 0 && c.combat.height <= 0 && c.combat.jump_tick == null) approach.push({ type: 'Jump', candidateId: c.id });
+    return approach;
+  };
+  // Le coup du moment (local de faction, raid, meeting, mobilisation finale) ne se laisse pas distraire
+  // par les soutiens adverses du quartier, sauf s’ils sont au contact.
+  const opponent = nearestEnemy(state, c, settings.detection_range, n => n.role !== 'CANDIDAT' && zoneAt(state.world, n.x).id === zone.id && keep(n));
+  if (opponent && (!c.purchase_hold && !economic?.decisive || distance(state, c.x, opponent.x) <= config.balance.physical_units.militant.verbal_range))
     return finish([...plan, ...aiCombatCommands(state, config, c, opponent, combatTempo(state, adaptation, opponent))]);
   const retained = state.npcs.find(n => n.role === 'NEUTRE' && n.persuasion?.actor_id === c.id);
-  if (retained) return finish([...plan, ...commands(0)]);
+  if (retained && !economic?.decisive) return finish([...plan, ...commands(0)]);
   // Finir une transaction engagée évite de remettre son compteur à zéro.
   if (c.purchase_hold) {
     const site = state.buildings.find(b => b.id === c.purchase_hold.target_id);
     const offer = site && buildingOffers(state, config, c, site).find(o => o.key === c.purchase_hold.key && o.enabled);
     if (offer) return finish([...plan, ...go(offer.x, offer.radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
   }
+  if (economic?.decisive) return finish([...plan, ...pursue(economic)]);
+  // Un achat déjà à portée (tracts devant sa permanence…) se fait avant d’aller ramasser des billets.
+  if (economic && distance(state, c.x, economic.x) <= economic.interaction_radius + 1.5) return finish([...plan, ...pursue(economic)]);
   const pickup = moneyPickup(state, config, c, avoid, stance);
   if (pickup) {
     const result = go(pickup.x, config.balance.money.pickup_radius_units * 0.45);
@@ -227,10 +284,7 @@ export function strategicAICommands(state, config, c) {
       result.push({ type: 'Jump', candidateId: c.id });
     return finish([...plan, ...result]);
   }
-  // Un coup décisif payable (local de faction, raid, fermeture) passe avant la tournée des dons.
-  const economic = aiEconomicTarget(state, config, c, objective, adaptation);
-  if (economic?.decisive) return finish([...plan, ...go(economic.x, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
-  const funding = state.buildings.filter(b => ['permanence', 'financement'].includes(b.type) && b.owner_id === c.faction_id && b.state === 'ACTIVE'
+  const funding = state.buildings.filter(b => b.type === 'permanence' && b.owner_id === c.faction_id && b.state === 'ACTIVE'
     && b.stored_money_cents >= config.balance.money.donation.ai_funding_collection_threshold_eur * 100)
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
   if (funding) return finish([...plan, ...go(funding.x, config.balance.money.donation.collection_radius_units * 0.6)]);
@@ -244,14 +298,8 @@ export function strategicAICommands(state, config, c) {
       .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id))[0];
     if (donor) return finish([...plan, ...go(donor.x, config.balance.money.donation.handoff_radius_units * 0.6)]);
   }
-  if (economic?.type === 'meeting' && !candidateOnMeetingStage(state, config, c, economic)) {
-    const approach = go(economic.x, Math.min(0.25, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio));
-    if (approach[2].axis === 0 && c.combat.height <= 0 && c.combat.jump_tick == null)
-      approach.push({ type: 'Jump', candidateId: c.id });
-    return finish([...plan, ...approach]);
-  }
-  if (economic) return finish([...plan, ...go(economic.x, economic.interaction_radius * config.prototype.ai.stop_distance_radius_ratio, true)]);
-  const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id)
+  if (economic) return finish([...plan, ...pursue(economic)]);
+  const defenders = state.npcs.filter(n => hostile(c, n) && zoneAt(state.world, n.x).id === zone.id && keep(n))
     .sort((a, b) => distance(state, c.x, a.x) - distance(state, c.x, b.x) || a.id.localeCompare(b.id));
   // Réduire la présence adverse avant de recruter si elle maintient un site ennemi.
   const enemySite = state.buildings.some(b => b.subzone_id === zone.id && b.owner_id && b.owner_id !== c.faction_id && b.state === 'ACTIVE');

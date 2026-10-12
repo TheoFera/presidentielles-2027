@@ -27,7 +27,7 @@ function optionsContent(config, session) {
   const { format, map } = hostOptions(config, session);
   const formats = count === 3 ? [['1v1v1', 'À trois']] : [['1v1', 'Duel'], ['1v1v1', 'À trois · + IA']];
   return `<div class="debate-options"><fieldset><legend>Format</legend>${formats.map(([id, name]) => `<button class="debate-option" data-format="${id}" aria-pressed="${id === format}">${name}</button>`).join('')}</fieldset>
-    <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset><p class="debate-map-help">${escape(config.balance.debate_mode.maps[map].description || '')}</p></div>`;
+    <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === map}">${escape(m.name)}</button>`).join('')}</fieldset></div>`;
 }
 function statusText(session) {
   if (session.selectionError) return session.selectionError;
@@ -73,6 +73,8 @@ export function showDebateLobby(menu, session, leave) {
       ${rosterContent(config, fighters, active, { disabled: session.choosing, unavailable: faction => !freeStyle(faction, me?.faction === faction ? me.style : null) })}</div>
       ${optionsContent(config, session)}<footer class="menu-footer select-footer"><p class="menu-note" id="room-message" role="status"></p>${session.host ? `<button id="debate-fight" class="menu-primary arcade-button" ${candidatesReady(session.room) ? '' : 'disabled'}>Combattre <span aria-hidden="true">➜</span></button>` : ''}</footer>`;
     root.querySelector('#room-message').textContent = statusText(session);
+    // Le plateau choisi par l’hôte apparaît, assombri, derrière la sélection.
+    menu.element.dataset.debateMap = (session.host ? hostOptions : sharedOptions)(config, session).map;
     hydrateSelectionPortraits(root); bindRosterKeyboard(root);
     root.querySelectorAll('[data-format]').forEach(b => b.onclick = () => { hostOptions(config, session).format = b.dataset.format; shareOptions(); render(); });
     root.querySelectorAll('[data-map]').forEach(b => b.onclick = () => { hostOptions(config, session).map = b.dataset.map; shareOptions(); render(); });

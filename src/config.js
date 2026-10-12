@@ -192,8 +192,15 @@ export function validateConfig(config) {
   positive(meeting.interaction_radius, 'portée Meeting');
   if (meeting.meeting_max_level !== 1 || meeting.activation_cost_by_level.length !== 1) throw new Error('Configuration : un seul meeting est attendu.');
   for (const key of ['activation_cost', 'hold_seconds', 'pause_grace_seconds', 'cooldown_seconds', 'gather_speed', 'gather_spacing', 'podium_height', 'podium_half_width', 'wave_visual_seconds']) positive(meeting[key], `meeting.${key}`);
-  for (const key of ['militant_goal_per_biome', 'army_detour_units', 'investment_reference_k']) positive(config.balance.ai_economy[key], `ai_economy.${key}`);
-  if (!Array.isArray(config.balance.ai_economy.development_order) || config.balance.ai_economy.development_order.some(type => !config.balance.buildings[type])) throw new Error('Configuration : ordre de développement IA invalide.');
+  for (const key of ['army_detour_units', 'investment_reference_k']) positive(config.balance.ai_economy[key], `ai_economy.${key}`);
+  // Moments de l’IA : courbes [avancement, probabilité] croissantes en avancement, entre 0 et 1.
+  for (const [key, points] of Object.entries(config.balance.ai_moments?.curves ?? {})) {
+    if (!Array.isArray(points) || !points.length || points.some(([x, y], i) => !(x >= 0 && x <= 1 && y >= 0 && y <= 1) || i && x < points[i - 1][0]))
+      throw new Error(`Configuration : courbe de moment IA invalide (${key}).`);
+  }
+  const firstMilitants = config.balance.ai_moments?.militants?.first_goal;
+  if (firstMilitants && Math.max(...firstMilitants) >= config.balance.physical_units.militant.expedition_min_group_size)
+    throw new Error('Configuration : les premiers militants de l’IA formeraient déjà un groupe.');
   return config;
 }
 

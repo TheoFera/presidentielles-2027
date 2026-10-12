@@ -41,10 +41,12 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
       <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>${active ? 'Choisissez le candidat de l’IA' : 'Choisissez votre candidat'}</span></div>
       ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>
-      <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}" title="${escape(m.description || '')}">${escape(m.name)}</button>`).join('')}</fieldset></div>
-      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(note || config.balance.debate_mode.maps[setup.map].description || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
+      <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}">${escape(m.name)}</button>`).join('')}</fieldset></div>
+      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(note || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
     </div>`, back);
     const root = menu.element;
+    // Le plateau choisi apparaît, assombri, derrière la sélection.
+    root.dataset.debateMap = setup.map;
     hydrateSelectionPortraits(root); bindRosterKeyboard(root);
     root.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => { active = Number(b.dataset.slot); render(`[data-slot="${active}"]`); });
     root.querySelectorAll('[data-format]').forEach(b => b.onclick = () => {

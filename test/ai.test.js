@@ -14,12 +14,18 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { zoneAt } from '../src/simulation/world.js';
 import { aiAdaptation, aiPersuasionMultiplier } from '../src/simulation/ai-balance.js';
 import { assessDuel, reflectOnRival } from '../src/simulation/ai-mind.js';
+import { updateMilitantCombat } from '../src/simulation/combat.js';
+import { momentActive, momentChance, supporterSpread } from '../src/simulation/ai-moments.js';
 
 function make(difficulty = 'normal', seed = 42) {
   // Duels et scénarios précis entre les trois candidats principaux : sans candidats mineurs.
   const config = campaignConfig(); config.balance.campaign_events.event_enabled = false; config.balance.minor_candidates.enabled = false;
   const sim = new GameSimulation(config, seed, 'candidate:melenchon', {}, { aiDifficulty: difficulty });
   return { sim, ai: new AIController(config), config };
+}
+/** Fige les moments de la campagne : seuls ceux listés sont actifs (les autres jamais). */
+function moments(config, ...active) {
+  for (const key of Object.keys(config.balance.ai_moments.curves)) config.balance.ai_moments.curves[key] = [[0, active.includes(key) ? 1 : 0]];
 }
 function isolate(sim, faction = 'le_pen') {
   sim.state.npcs = [];
@@ -160,7 +166,7 @@ test('Offensive complète : affaiblir les soutiens, puis reprendre un site du jo
 });
 
 test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
-  const { sim, config } = make(); const c = isolate(sim, 'philippe');
+  const { sim, config } = make(); const c = isolate(sim, 'philippe'); moments(config, 'offensive');
   c.money = config.balance.buildings.faction_slot_philippe_cabinet_administratif.close_enemy_building_cost_by_level[0];
   const cabinet = sim.state.buildings.find(b => b.fixed_variant === 'cabinet_administratif'); captureSite(sim, cabinet, c); c.x = cabinet.x;
   const rival = sim.state.candidates.find(c => c.faction_id === 'le_pen');
@@ -170,7 +176,7 @@ test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
 });
 
 test('L’IA déclenche un raid disponible dans la direction des bâtiments ennemis', () => {
-  const { sim, config } = make(); const c = isolate(sim); c.money = 1000;
+  const { sim, config } = make(); const c = isolate(sim); c.money = 1000; moments(config, 'offensive');
   const site = sim.state.buildings.find(b => b.type === 'faction'); captureSite(sim, site, c); site.level = 3; c.x = site.x;
   // Trois recrues pour le raid, plus la réserve que l'IA garde pour ses tracts.
   for (let i = 0; i < 5; i++) supporter(sim, c.faction_id, c.x + i * 0.5);
@@ -179,10 +185,27 @@ test('L’IA déclenche un raid disponible dans la direction des bâtiments enne
   assert.equal(aiEconomicTarget(sim.state, config, c, { subzone_id: site.subzone_id, purpose: 'CONQUER' }).offer.kind, 'RAID');
 });
 
+test('Militants : 1 ou 2 près de la permanence au début, des groupes ensuite, tout le monde à la fin', () => {
+  const { config } = make(), group = config.balance.physical_units.militant.expedition_min_group_size;
+  assert.ok(Math.max(...config.balance.ai_moments.militants.first_goal) < group);
+  assert.ok(config.balance.ai_moments.militants.group_goal > group);
+  // Début de partie : dès la permanence, un ou deux militants, jamais un groupe qui quitterait le quartier.
+  const early = make(); moments(early.config); const a = isolate(early.sim); a.money = 10;
+  const home = early.sim.state.buildings.find(b => b.type === 'permanence'); captureSite(early.sim, home, a); a.x = home.x;
+  for (let i = 0; i < 4; i++) supporter(early.sim, a.faction_id, home.x + 0.3 * i);
+  assert.equal(aiEconomicTarget(early.sim.state, early.config, a, { subzone_id: home.subzone_id, purpose: 'CONQUER' })?.offer.kind, 'PRINT');
+  for (let i = 0; i < 2; i++) supporter(early.sim, a.faction_id, home.x - 0.3 * i).role = 'MILITANT';
+  assert.notEqual(aiEconomicTarget(early.sim.state, early.config, a, { subzone_id: home.subzone_id, purpose: 'CONQUER' })?.offer.kind, 'PRINT');
+  // Toute fin : l’argent ne sert plus, chaque sympathisant devient militant, avant tout autre achat.
+  const late = make(); moments(late.config, 'mobilisation_generale', 'meeting', 'offensive'); const b = isolate(late.sim); b.money = 50;
+  const hq = late.sim.state.buildings.find(b => b.type === 'permanence'); captureSite(late.sim, hq, b); b.x = hq.x;
+  supporter(late.sim, b.faction_id, hq.x + 0.3);
+  for (let i = 0; i < 8; i++) supporter(late.sim, b.faction_id, hq.x - 0.3 * i).role = 'MILITANT';
+  assert.equal(aiEconomicTarget(late.sim.state, late.config, b, { subzone_id: hq.subzone_id, purpose: 'CONQUER' })?.offer.kind, 'PRINT');
+});
+
 test('L’IA imprime assez de tracts pour que ses militants partent en groupe', () => {
-  const { config } = make();
-  assert.ok(config.balance.ai_economy.militant_goal_per_biome > config.balance.physical_units.militant.expedition_min_group_size);
-  const { sim } = make(); const c = isolate(sim); c.money = 10;
+  const { sim, config } = make(); moments(config, 'groupes'); const c = isolate(sim); c.money = 10;
   const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c); c.x = hq.x;
   for (let i = 0; i < 6; i++) supporter(sim, c.faction_id, hq.x + 0.3 * i);
   // Trois militants déjà là : l’ancienne limite de deux est dépassée, l’IA continue pourtant.
@@ -191,7 +214,7 @@ test('L’IA imprime assez de tracts pour que ses militants partent en groupe', 
 });
 
 test('L’IA épargne pour son local de faction puis fait le trajet pour le prendre', () => {
-  const { sim, config } = make(); const c = isolate(sim);
+  const { sim, config } = make(); const c = isolate(sim); moments(config, 'local_faction', 'tour_communication');
   const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c);
   const slot = sim.state.buildings.find(b => b.type === 'faction' && !b.owner_id);
   for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, slot.x + 0.3 * i);
@@ -206,6 +229,50 @@ test('L’IA épargne pour son local de faction puis fait le trajet pour le pren
   assert.notEqual(aiEconomicTarget(sim.state, config, c, towerObjective)?.id, tower.id);
   captureSite(sim, slot, c);
   assert.equal(aiEconomicTarget(sim.state, config, c, towerObjective)?.id, tower.id);
+});
+
+test('Moments : courbes de probabilité, seuil propre à chaque IA, pas de local de faction en début de partie', () => {
+  const { sim, config } = make();
+  sim.state.campaign_progress_01 = 0;
+  assert.equal(momentChance(sim.state, config, 'local_faction'), 0);
+  assert.equal(momentChance(sim.state, config, 'mobilisation_generale'), 0);
+  sim.state.campaign_progress_01 = 1;
+  assert.equal(momentChance(sim.state, config, 'meeting'), 1);
+  // Entre deux points, la probabilité est interpolée et les IA ne basculent pas toutes au même instant.
+  const starts = sim.state.candidates.filter(c => !c.minor).map(c => {
+    for (let p = 0; p <= 1; p += 0.01) { sim.state.campaign_progress_01 = p; if (momentActive(sim.state, config, c, 'meeting')) return Math.round(p * 100); }
+    return null;
+  });
+  assert.ok(new Set(starts).size > 1, `départs : ${starts}`);
+  // Début de partie, de l’argent plein les poches : la permanence d’abord, pas le local de faction.
+  sim.state.campaign_progress_01 = 0;
+  const c = isolate(sim); c.money = 100;
+  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c);
+  const slot = sim.state.buildings.find(b => b.type === 'faction' && !b.owner_id);
+  for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, slot.x + 0.3 * i);
+  c.x = slot.x;
+  assert.notEqual(aiEconomicTarget(sim.state, config, c, { subzone_id: slot.subzone_id, purpose: 'CONQUER' })?.id, slot.id);
+});
+
+test('Véhicule : l’IA prend un garage quand ses soutiens sont trop étalés, et s’en sert pour les longs trajets', () => {
+  const { sim, config } = make(); moments(config); const c = isolate(sim); c.money = 20;
+  const garage = sim.state.buildings.find(b => b.type === 'garage_velo');
+  const hq = sim.state.buildings.find(b => b.type === 'permanence'); captureSite(sim, hq, c);
+  c.x = garage.x;
+  for (let i = 0; i < 2; i++) supporter(sim, c.faction_id, garage.x + 0.3 * i);
+  const objective = { subzone_id: garage.subzone_id, purpose: 'CONQUER' };
+  // Soutiens regroupés : pas besoin de vélo.
+  assert.ok(supporterSpread(sim.state, c) < config.balance.ai_moments.vehicles.spread_units);
+  assert.notEqual(aiEconomicTarget(sim.state, config, c, objective)?.id, garage.id);
+  // Soutiens étalés sur une grande partie de la carte : le garage devient un achat.
+  supporter(sim, c.faction_id, (garage.x + 150) % sim.state.world.length);
+  assert.equal(aiEconomicTarget(sim.state, config, c, objective)?.id, garage.id);
+  // Garage pris : avant un long trajet, l’IA s’arrête devant pour monter.
+  captureSite(sim, garage, c); c.x = garage.x + 3;
+  c.ai_objective = { subzone_id: zoneAt(sim.state.world, garage.x + 150).id, purpose: 'CONQUER', expires_tick: sim.state.tick + 9999 };
+  sim.state.npcs = sim.state.npcs.filter(n => n.faction_id === c.faction_id);
+  const move = strategicAICommands(sim.state, config, c).find(command => command.type === 'Move');
+  assert.equal(move.axis, -1);
 });
 
 test('Difficulté : cadence de combat distincte, dash offensif et repli après blessure', () => {
@@ -316,6 +383,27 @@ test('Humain distancé : les IA le laissent respirer et se disputent entre elles
   assert.ok(a.boost < 0); assert.ok(a.spared.has('melenchon')); assert.equal(a.focus, 'philippe'); assert.equal(b.focus, 'le_pen');
   assert.ok(aiPersuasionMultiplier(sim.state, config, lePen) > 1);
   assert.ok(assessDuel(sim.state, config, lePen, player, a).fight < assessDuel(sim.state, config, lePen, philippe, a).fight);
+});
+
+test('Humain dominant : les deux IA font trêve entre elles, militants compris, sauf si on les attaque', () => {
+  const { sim, config } = make(); dominate(sim, { melenchon: 7, le_pen: 1, philippe: 1 });
+  const [player, lePen, philippe] = ['melenchon', 'le_pen', 'philippe'].map(f => sim.state.candidates.find(c => c.faction_id === f));
+  const a = aiAdaptation(sim.state, config, philippe);
+  assert.ok(a.truce.has('le_pen')); assert.ok(!a.truce.has('melenchon'));
+  assert.ok(assessDuel(sim.state, config, philippe, lePen, a).fight < assessDuel(sim.state, config, philippe, player, a).fight);
+  // Un militant de Philippe laisse passer Le Pen…
+  const militant = sim.state.npcs.find(n => n.faction_id === 'philippe');
+  militant.role = 'MILITANT'; militant.combat.target_id = null;
+  for (const c of sim.state.candidates) if (c !== lePen) c.x = (militant.x + 60) % sim.state.world.length;
+  lePen.x = militant.x + 1;
+  sim.state.npcs = sim.state.npcs.filter(n => n === militant || Math.abs(n.x - militant.x) > 10);
+  updateMilitantCombat(sim, militant);
+  assert.equal(militant.combat.target_id, null);
+  // … mais se défend si elle s’en prend à son camp. Le joueur, lui, est toujours une cible.
+  lePen.combat.target_id = militant.id; updateMilitantCombat(sim, militant);
+  assert.equal(militant.combat.target_id, lePen.id);
+  lePen.combat.target_id = null; lePen.x += 60; player.x = militant.x + 1; updateMilitantCombat(sim, militant);
+  assert.equal(militant.combat.target_id, player.id);
 });
 
 test('Multijoueur : l’adaptation compte tous les humains et ne ralentit jamais un joueur', () => {

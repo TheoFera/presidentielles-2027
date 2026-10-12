@@ -25,8 +25,8 @@ export function validMind(state, mind) {
 }
 
 /** Candidat adverse le plus proche, visible et attaquable. */
-export function visibleRival(state, c, range) {
-  return state.candidates.filter(o => o !== c && o.faction_id !== c.faction_id && canBeHit(o) && gap(state, c.x, o.x) <= range)
+export function visibleRival(state, c, range, accept = () => true) {
+  return state.candidates.filter(o => o !== c && o.faction_id !== c.faction_id && canBeHit(o) && gap(state, c.x, o.x) <= range && accept(o))
     .sort((a, b) => gap(state, c.x, a.x) - gap(state, c.x, b.x) || a.id.localeCompare(b.id))[0] ?? null;
 }
 
@@ -63,7 +63,7 @@ export function assessDuel(state, config, c, rival, adaptation) {
   const pressure = factionPressure(adaptation, rival.faction_id);
   let fight = win - 0.5 + (level.courage ?? 0) + (aiNoise(state.seed, `${c.id}:temperament`) - 0.5) * 0.16
     + loot * 0.25 * win - risk * 0.4 * (1 - win)
-    + (pressure > 0 ? 0.04 : pressure < 0 ? -0.3 : 0)
+    + (pressure > 0 ? 0.04 : pressure < 0 ? 0.3 * pressure : 0)
     + (isHumanCandidate(state, rival.id) ? adaptation.boost * 0.08 : 0);
   if (c.VULNERABLE_SCANDAL) fight -= 0.3;
   if (rival.VULNERABLE_SCANDAL) fight += 0.22;

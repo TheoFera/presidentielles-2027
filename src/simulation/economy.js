@@ -1,5 +1,5 @@
 import { isMinorFaction, subzoneGap, wrap, zoneAt } from './world.js';
-import { biomeSympathisants, distance, localSympathisants, stableIdOrder } from './territory.js';
+import { biomeSympathisants, distance, stableIdOrder } from './territory.js';
 import { buildingSettings, printsTracts } from './building-rules.js';
 import { commitFactionAction, factionOffers, nearestFactionOffer } from './faction-buildings.js';
 import { canCampaign } from './combat-state.js';
@@ -8,6 +8,8 @@ import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, createInfrastructure, localPoliticalPresence } from './strategic-sites.js';
 import { publishPoll } from './electoral-state.js';
 import { raidRecruits } from './military.js';
+import { factionPressure } from './ai-balance.js';
+import { militantPlan, momentActive, momentSettings, supporterSpread } from './ai-moments.js';
 
 export { createInfrastructure } from './strategic-sites.js';
 
@@ -219,12 +221,23 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
   const zone = zoneAt(state.world, candidate.x);
   // Comme un bon joueur, l’IA ne garde pas son argent : plus elle en a, plus elle fait de détours pour le dépenser.
   const wealth = Math.min(1, Math.max(0, candidate.money / (settings.investment_reference_k ?? 20)));
-  // Militants, service d’ordre, raids, fermetures et nouvelles permanences valent un vrai trajet.
-  const armyDetour = (settings.army_detour_units ?? 0) * (1 + boost);
+  // Moments de la campagne (ai-moments.js) : ce que l’IA a envie de faire à cet instant de la partie.
+  const wants = key => momentActive(state, config, candidate, key);
+  const militants = militantPlan(state, config, candidate);
+  const meetingTime = wants('meeting');
+  // Militants, service d’ordre, raids, fermetures et nouvelles permanences valent un vrai trajet ;
+  // à la toute fin, on fait le tour de ses permanences pour mobiliser tout le monde.
+  const armyDetour = (settings.army_detour_units ?? 0) * (1 + boost) * (militants.final ? 3 : 1);
   const hasFactionSite = state.buildings.some(b => b.type === 'faction' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
-  // Tant qu’elle n’a pas de local de faction, l’IA met de côté de quoi en prendre un, au lieu de tout disperser.
-  const freeSlot = !hasFactionSite && candidate.headquarters_site_id && state.phase === 'CAMPAIGN'
+  // À la toute fin, plus d’épargne : tout part en meetings et en tracts.
+  const factionTime = !hasFactionSite && wants('local_faction') && !militants.final;
+  // Le moment venu, l’IA met de côté de quoi prendre son local de faction, au lieu de tout disperser.
+  const freeSlot = factionTime && candidate.headquarters_site_id && state.phase === 'CAMPAIGN'
     && state.buildings.find(b => b.type === 'faction' && ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(b.state));
+  // Un véhicule sert quand ses soutiens sont trop étalés pour faire la tournée à pied.
+  const ownsGarage = state.buildings.some(b => ['garage_velo', 'garage_scooter'].includes(b.type) && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
+  let spread = null;
+  const needsVehicle = () => !ownsGarage && (spread ??= supporterSpread(state, candidate)) >= momentSettings(config).vehicles.spread_units;
   const savings = freeSlot ? buildingSettings(config, freeSlot, candidate.faction_id).capture_cost : 0;
   const options = [];
   for (const building of state.buildings) {
@@ -236,8 +249,6 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
     if (!local && (objective?.purpose === 'SETUP' || far > Math.max(detour, armyDetour))) continue;
     for (const offer of buildingOffers(state, config, candidate, building)) {
       const firstHQ = !candidate.headquarters_site_id && building.type === 'permanence' && offer.kind === 'CAPTURE';
-      const firstFunding = building.type === 'financement' && offer.kind === 'CAPTURE'
-        && !state.buildings.some(b => b.type === 'financement' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE');
       // Une permanence dans un nouveau quartier y fait remonter les dons : c’est un placement, pas une dépense.
       const newBranch = building.type === 'permanence' && offer.kind === 'CAPTURE' && !firstHQ
         && !state.buildings.some(b => b.type === 'permanence' && b.owner_id === candidate.faction_id && b.state === 'ACTIVE' && b.biome_id === building.biome_id);
@@ -246,37 +257,49 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
       if (!local && far > (army ? Math.max(detour, armyDetour) : detour)) continue;
       if (!offer.enabled && !(offer.kind === 'MEETING' && offer.reason === 'NOT_ON_STAGE')) continue;
       if (offer.kind === 'POLL') continue;
-      // Les petites dépenses (tracts) restent permises pendant l’épargne.
-      if (savings && building.type !== 'faction' && !firstHQ && !newBranch && offer.cost > 1 && candidate.money - offer.cost < savings) continue;
+      // Chaque achat a son moment : ni local de faction, ni raid, ni meeting dès le début de la partie.
+      const capture = offer.kind === 'CAPTURE';
+      if (newBranch && !wants('expansion') || capture && building.type === 'tour_communication' && !wants('tour_communication')
+        || capture && building.type === 'faction' && !factionTime
+        || ['RAID', 'CLOSE'].includes(offer.kind) && !wants('offensive') || offer.kind === 'MEETING' && !meetingTime
+        || capture && ['garage_velo', 'garage_scooter'].includes(building.type) && !needsVehicle()) continue;
+      // Les petites dépenses (tracts) et les meetings, quand vient leur moment, restent permis pendant l’épargne.
+      if (savings && building.type !== 'faction' && !firstHQ && !newBranch && offer.kind !== 'MEETING' && offer.cost > 1 && candidate.money - offer.cost < savings) continue;
       if (objective?.purpose === 'SETUP' && !(building.type === 'permanence' && offer.kind === 'CAPTURE')) continue;
       if (offer.kind === 'PRINT') {
         const supporters = biomeSympathisants(state, building.biome_id, candidate.faction_id, true);
         const queued = state.buildings.filter(b => b.biome_id === building.biome_id && printsTracts(b))
           .flatMap(b => b.queue).filter(o => o.faction_id === candidate.faction_id).length;
-        const militants = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === building.biome_id).length;
-        if (supporters.length - queued <= settings.reserve_sympathisants_per_biome || militants + queued >= settings.militant_goal_per_biome) continue;
-        // Préserver les soutiens indispensables au maintien des sites déjà capturés.
-        if (supporters.some(n => state.buildings.some(b => b.subzone_id === zoneAt(state.world, n.x).id && b.owner_id === candidate.faction_id
-          && b.state === 'ACTIVE' && localSympathisants(state, b.subzone_id, candidate.faction_id).length - queued <= (buildingSettings(config, b).required_presence_N1 ?? 0)))) continue;
+        const present = state.npcs.filter(n => n.faction_id === candidate.faction_id && n.role === 'MILITANT' && zoneAt(state.world, n.x).biome_id === building.biome_id).length;
+        // Garder quelques sympathisants pour les dons ; un bâtiment se garde sans présence.
+        if (supporters.length - queued <= militants.reserve || present + queued >= militants.goal) continue;
       }
       // Laisser respirer un humain distancé : pas de fermeture administrative contre lui.
       if (offer.kind === 'CLOSE' && spared.has(state.buildings.find(b => b.id === offer.victim_id)?.owner_id)) continue;
+      // Partie à trois : viser d’abord le meneur, pas un camp avec qui l’on fait cause commune contre lui.
+      const aimAt = site => adaptation && site ? factionPressure(adaptation, site.type === 'meeting' ? site.meeting_faction_id : site.owner_id) : 0;
+      let aim = offer.kind === 'CLOSE' ? aimAt(state.buildings.find(b => b.id === offer.victim_id)) : 0;
       if (offer.kind === 'RAID') {
         const direction = offer.direction;
-        const enemy = state.buildings.some(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== candidate.faction_id
-          && wrap((b.x - building.x) * direction, state.world.length) < state.world.length / 2);
+        const enemy = state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== candidate.faction_id
+          && wrap((b.x - building.x) * direction, state.world.length) < state.world.length / 2)
+          .sort((a, b) => wrap((a.x - building.x) * direction, state.world.length) - wrap((b.x - building.x) * direction, state.world.length))[0];
         if (!enemy) continue;
+        aim = aimAt(enemy);
         // Un raid consomme des sympathisants : en garder quelques-uns pour les tracts et les dons.
         if (raidRecruits(state, building, candidate.faction_id).length - config.balance.physical_units.service_ordre.raid_recruits
           < settings.reserve_sympathisants_per_biome) continue;
       }
-      // Le local de faction, puis ses raids et fermetures, sont les coups décisifs : ils valent un long trajet.
-      const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['RAID', 'CLOSE'].includes(offer.kind));
-      const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : decisive ? 0.5 : newBranch ? 1.5 : firstFunding ? 2
-        : building.type === 'tour_communication' ? 3 : building.type === 'financement' ? 4 : 5)
-        : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1
-        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? 3
-        : offer.kind === 'MEETING' ? 7 - 4 * boost : 8;
+      // Coups décisifs, qui valent un long trajet : le local de faction, ses raids et fermetures,
+      // un meeting quand vient leur moment, et les tracts de la mobilisation finale.
+      const decisive = building.type === 'faction' && (offer.kind === 'CAPTURE' ? !hasFactionSite : ['RAID', 'CLOSE'].includes(offer.kind))
+        || offer.kind === 'MEETING' || offer.kind === 'PRINT' && militants.final;
+      // À la toute fin, l’argent ne sert plus à rien : tracts et meetings passent avant tout.
+      const priority = offer.kind === 'CAPTURE' ? (firstHQ ? 0 : decisive ? 0.5 : newBranch ? 1.5
+        : ['garage_velo', 'garage_scooter'].includes(building.type) ? 2 : building.type === 'tour_communication' ? 3 : 5)
+        : offer.kind === 'CLOSE' || offer.kind === 'RAID' ? 1 - aim
+        : offer.kind === 'UPGRADE' ? 2.5 : offer.kind === 'PRINT' ? (militants.final ? 0.4 : 3)
+        : offer.kind === 'MEETING' ? (militants.final ? 0.2 : 2 - boost) : 8;
       options.push({ ...building, x: offer.x, interaction_radius: offer.radius, offer, decisive,
         rank: priority + distance(state, candidate.x, offer.x) * (decisive ? 0.1 : 0.35) });
     }

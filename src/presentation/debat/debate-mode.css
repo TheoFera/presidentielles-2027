@@ -1,7 +1,12 @@
 /* Mode Débat : réglages dans le menu, puis interface du combat. */
 
 /* Sélection : silhouettes, grille commune et repères des joueurs. */
-#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { background: radial-gradient(ellipse at 15% 25%, #183a6555, transparent 55%), radial-gradient(ellipse at 90% 35%, #82294444, transparent 50%), #080d1b; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { --debate-map-art: none; background: radial-gradient(ellipse at 15% 25%, #183a6555, transparent 55%), radial-gradient(ellipse at 90% 35%, #82294444, transparent 50%), linear-gradient(#080d1bd1, #080d1bf0 70%), var(--debate-map-art) center / cover no-repeat, #080d1b; }
+/* Aperçu du plateau choisi : l’illustration du combat, assombrie derrière la sélection. */
+#start-menu[data-debate-map='elysee'] { --debate-map-art: url('../../../assets/images/debat/elysee-illustre-v3.png'); }
+#start-menu[data-debate-map='face_a_face'] { --debate-map-art: url('../../../assets/images/debat/face-a-face-cadrage-v3.png'); }
+#start-menu[data-debate-map='remue_menage'] { --debate-map-art: url('../../../assets/images/debat/remue-menage-balcons-v3.png'); }
+#start-menu[data-debate-map='ecologie'] { --debate-map-art: url('../../../assets/images/debat/ecologie-cadrage-v3.png'); }
 #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-shell { max-width: 1280px; gap: 8px; }
 #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) .menu-header { position: absolute; inset: 0 0 auto; min-height: 36px; }
 #start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) #menu-back { font: 800 16px/1 system-ui, sans-serif; text-shadow: none; }
@@ -59,7 +64,6 @@
 .debate-options legend { float: left; color: #8c9db7; margin-right: 8px; font: 800 11px/1 system-ui, sans-serif; text-transform: uppercase; }
 #start-menu .debate-option { min-height: 32px; padding: 5px 12px; border-radius: 2px; border: 1px solid #51627d; box-shadow: none; font: 700 12px/1.2 system-ui, sans-serif; }
 #start-menu .debate-option[aria-pressed='true'] { border-color: #f7d574; color: #f7d574; background: #f7d57412; }
-.debate-map-help { font-size: 12px; color: #b9c9dd; }
 #start-menu .select-footer { margin: 0; border-top: 1px solid #52658066; padding-top: 8px; align-items: center; }
 #start-menu .select-footer .menu-note { margin: 0; font-size: 12px; color: #b6c8df; max-width: 65%; }
 #start-menu #debate-fight { min-height: 40px; padding: 8px 32px; font: italic 900 clamp(18px, 3cqh, 28px)/1 Impact, sans-serif; border-radius: 2px; border: 1px solid #fff0b1; color: #101725; background: linear-gradient(110deg, #ffecac, #e9b53c); text-shadow: none; box-shadow: 3px 3px #8d5926; }
