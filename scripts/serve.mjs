@@ -21,7 +21,7 @@ function openBrowser() {
   child.on('error', () => console.log(`Ouvre le jeu manuellement : ${url}`));
   child.unref();
 }
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.md': 'text/plain; charset=utf-8' };
+const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.md': 'text/plain; charset=utf-8', '.webmanifest': 'application/manifest+json; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   if (await multiplayer(req, res)) return;
   try {
@@ -29,7 +29,7 @@ const server = http.createServer(async (req, res) => {
     const file = path.resolve(root, `.${urlPath === '/' ? '/index.html' : urlPath}`);
     const relative = path.relative(root, file);
     const normalizedPath = '/' + relative.split(path.sep).join('/');
-    const publicPath = normalizedPath === '/index.html' || normalizedPath === '/confidentialite.html' || normalizedPath === '/conditions.html' || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/images/') || /^\/donnees-jeu\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
+    const publicPath = normalizedPath === '/index.html' || normalizedPath === '/confidentialite.html' || normalizedPath === '/conditions.html' || normalizedPath === '/manifest.webmanifest' || normalizedPath.startsWith('/icones/') || normalizedPath.startsWith('/src/') || normalizedPath.startsWith('/assets/images/') || /^\/donnees-jeu\/(game_balance|world_layout|building_catalog|prototype_config|campaign_events)\.json$/.test(normalizedPath);
     if (!publicPath) { res.writeHead(404).end('Fichier introuvable.'); return; }
     if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(path.sep).some(p => p.startsWith('.'))) {
       res.writeHead(403).end('Accès refusé.'); return;

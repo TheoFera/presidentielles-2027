@@ -25,7 +25,7 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   // La conversion WebP (lente la première fois) est vérifiée à part ci-dessous.
   const report = await buildPages(output, { webp: false, app: true });
   const image = path => report.webp ? path.replace(/\.png$/, '.webp') : path;
-  assert.deepEqual((await readdir(output)).sort(), ['donnees-jeu', 'assets', 'conditions.html', 'confidentialite.html', 'index.html', 'src'].sort());
+  assert.deepEqual((await readdir(output)).sort(), ['donnees-jeu', 'assets', 'conditions.html', 'confidentialite.html', 'icones', 'index.html', 'manifest.webmanifest', 'src'].sort());
   assert.ok((await readFile(join(output, image('assets/images/candidats/melenchon/melenchon.png')))).length > 0);
   // Ni notes, ni silhouette remplacée par sa version corrigée « -fixed ».
   for (const absent of ['src/vendor/README.md', 'src/AGENTS.md', image('assets/images/habitants/neutres/npc-banlieue-9.png')]) {

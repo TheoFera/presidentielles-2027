@@ -10,7 +10,9 @@ const SOUND_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-
 const SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 9.5l5 5m0-5l-5 5"/></svg>';
 export { CANDIDATES } from './arcade-content.js';
 // L'application Android est déjà en plein écran et en paysage.
-const mobileLandscape = () => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
+// Jeu ouvert depuis l'icône de l'écran d'accueil : déjà sans barres, le bouton plein écran est inutile.
+const installed = () => window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+const mobileLandscape =() => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
 
 export class StartMenu {
   constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null }) {
@@ -44,7 +46,7 @@ export class StartMenu {
     this.element.hidden = false; this.game.inert = true;
     const left = screen !== 'home' ? '<button id="menu-back">← Retour</button>' : this.account ? profileButton(this.account.get()) : '<span></span>';
     const sound = this.audio ? '<button id="menu-sound" aria-pressed="false"></button>' : '';
-    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}${APP_BUILD ? '' : '<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button>'}</span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>${screen === 'home' ? `<p class="menu-version">v${GAME_VERSION}</p>` : ''}`;
+    this.element.innerHTML = `<div class="menu-shell"><header class="menu-header">${left}<span class="menu-tools">${sound}${APP_BUILD || installed() ? '' : '<button id="menu-fullscreen" aria-label="Passer en plein écran" title="Plein écran">⛶</button>'}</span></header>${title ? `<h1 ${screen === 'candidates' ? 'class="visually-hidden"' : ''} tabindex="-1">${title}</h1>` : ''}${content}</div>${screen === 'home' ? `<p class="menu-version">v${GAME_VERSION}</p>` : ''}`;
     this.element.querySelector('#menu-back')?.addEventListener('click', back);
     this.element.querySelector('#menu-profile')?.addEventListener('click', () => this.profile());
     const fullscreenButton = this.element.querySelector('#menu-fullscreen');

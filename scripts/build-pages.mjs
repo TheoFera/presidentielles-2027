@@ -68,7 +68,9 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
   // La politique de confidentialité est publiée avec le jeu (adresse demandée par le Play Store).
   // ads.txt / app-ads.txt (régies publicitaires, voir docs/publicites.md) : publiés s'ils existent.
   const adsFiles = (await readdir(root)).filter(name => ['ads.txt', 'app-ads.txt'].includes(name));
-  const files = [...code, 'confidentialite.html', 'conditions.html', ...adsFiles, ...await licenseFiles()];
+  // Manifeste et icônes PNG (gardées en PNG : l'iPhone n'accepte pas le WebP pour l'icône d'accueil).
+  const homeScreen = ['manifest.webmanifest', 'icones/icone-192.png', 'icones/icone-512.png', 'icones/icone-apple-180.png'];
+  const files = [...code, 'confidentialite.html', 'conditions.html', ...homeScreen, ...adsFiles, ...await licenseFiles()];
   const images = new Set();
   for (const file of code) {
     const source = await readFile(resolve(root, file), 'utf8');

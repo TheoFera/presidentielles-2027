@@ -14,6 +14,8 @@ L'export part de `index.html` et suit les `<script>`, `<link>` et `import` : seu
 
 La version web et l'application contiennent les mêmes fichiers. Dans l'application, `src/app-build.js` est remplacé par `APP_BUILD = true` : cadence d'affichage adaptée au téléphone, plein écran et paysage d'office (le bouton plein écran disparaît).
 
+Sur iPhone, Safari et les autres navigateurs refusent le plein écran d'une page (seules les vidéos y ont droit). Le seul moyen d'ouvrir le jeu sans barres est de l'ajouter à l'écran d'accueil (Partager → « Sur l'écran d'accueil ») puis de le lancer depuis l'icône. `manifest.webmanifest`, les balises `apple-mobile-web-app-*` de `index.html` et les icônes PNG de `icones/` (non converties en WebP) servent à cela. Ouvert depuis l'icône, le jeu masque son bouton plein écran.
+
 ## Images WebP sans perte
 
 - Les PNG sont convertis en **WebP sans perte** par `ffmpeg` (`scripts/lib/webp.mjs`) ; chaque conversion est vérifiée pixel par pixel. Les sources restent en PNG ; seuls les chemins des copies de `dist/` passent en `.webp`.

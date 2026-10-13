@@ -815,8 +815,8 @@
     "militants": {
       "first_goal": [1, 2],
       "first_reserve": 1,
-      "group_goal": 6,
-      "group_reserve": 2
+      "group_goal": 7,
+      "group_reserve": 1
     },
     "vehicles": {
       "spread_units": 96,
