@@ -7,6 +7,8 @@ import { debateAICommands } from './debate-simulation.js';
 import { sprintAICommands } from './sprint-ai.js';
 import { minorAICommands } from './minor-candidates.js';
 import { tactics } from './ai-moments.js';
+import { aiSettings } from './ai-settings.js';
+import { nearestEnemy } from './combat-state.js';
 
 export class Controller {
   commands(_state, _candidateId) { throw new Error('Le contrôleur doit produire des commandes.'); }
@@ -68,7 +70,9 @@ export class AIController extends Controller {
 
 /**
  * Image sans réflexion ? Les IA réfléchissent à tour de rôle (décalées d’une image), mais gardent tous leurs
- * réflexes à chaque image en combat, face à un rival, juste après un coup, pendant un achat ou un événement.
+ * réflexes à chaque image en combat, face à un rival, juste après un coup, pendant un achat ou un événement,
+ * et dès qu’un adversaire est en vue (le rythme des frappes est calé sur le numéro de l’image : une IA qui
+ * ne réfléchirait pas à chaque image pourrait ne jamais tomber sur une image de frappe).
  * Ne dépend que de l’état de la partie : sauvegardes et multijoueur restent identiques.
  */
 function enPause(state, config, c) {
@@ -78,7 +82,8 @@ function enPause(state, config, c) {
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   return !(c.combat.attack_id || c.combat.charge_active || c.combat.stun_ticks || c.dash_active || c.combat.jump_tick != null
     || c.ai_mind?.opponent_id || c.purchase_hold || c.campaign_debate_id || c.crisis_meeting_id || c.ai_objective?.purpose === 'RECOVER'
-    || state.tick - (c.combat.last_hit?.tick ?? -Infinity) < 2 * hz);
+    || state.tick - (c.combat.last_hit?.tick ?? -Infinity) < 2 * hz
+    || nearestEnemy(state, c, aiSettings(state, config).detection_range));
 }
 
 /**
