@@ -16,7 +16,6 @@
 .map-zone-divider { stroke-width: 1.5; }
 .map-biome-divider { stroke-width: 4; }
 .map-biome-arc { stroke: #d1ccbb; stroke-width: 2.5; }
-.map-icon { fill: #f2ead5; stroke: #29383b; stroke-width: 1.65; stroke-linejoin: round; stroke-linecap: round; }
 .map-center { fill: #26373b; stroke: #17292d; stroke-width: 4; }
 .map-center-line { fill: none; stroke: #a8a896; stroke-width: 0.8; opacity: .55; }
 .map-player { fill: #fff5df; stroke: #23353a; stroke-width: 3; stroke-linejoin: round; }

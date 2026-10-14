@@ -1,10 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { ElectoralDisplay, territoryColors } from '../src/presentation/carte/electoral.js';
 import { MapWheel, mapNeutralColor } from '../src/presentation/interface/map-wheel.js';
-import { mapWheelIcons } from '../src/presentation/interface/map-wheel-icons.js';
+import { mapWheelAtlas, mapWheelIcons } from '../src/presentation/interface/map-wheel-icons.js';
 import { interpolatedPlayerX } from '../src/presentation/rendu/player-position.js';
 
 const config = campaignConfig();
@@ -30,6 +32,17 @@ function documentFor(t) {
 const descendants = node => [node, ...(node.children || []).flatMap(descendants)];
 const stateFor = () => new GameSimulation(config, 42).state;
 
+test('La planche validée est conservée sans retouche et les découpes restent dans son image', async () => {
+  const source = await readFile(mapWheelAtlas.file);
+  assert.equal(createHash('sha256').update(source).digest('hex'), 'e34a227cfaf9ea263f2827621e7104ef28ebfe97453570e1182c5f863f69a5de');
+  assert.equal(source.readUInt32BE(16), mapWheelAtlas.width);
+  assert.equal(source.readUInt32BE(20), mapWheelAtlas.height);
+  for (const [x, y, width, height] of Object.values(mapWheelIcons)) {
+    assert.ok(x >= 0 && y >= 0 && width > 0 && height > 0);
+    assert.ok(x + width <= mapWheelAtlas.width && y + height <= mapWheelAtlas.height);
+  }
+});
+
 test('Carte complète sans sondage : 18 dessins, 6 biomes et géométrie conservée', t => {
   const node = documentFor(t), state = stateFor();
   const display = new ElectoralDisplay(config), candidate = state.candidates[0];
@@ -48,6 +61,10 @@ test('Carte complète sans sondage : 18 dessins, 6 biomes et géométrie conserv
   assert.equal(new Set(Object.values(mapWheelIcons).map(JSON.stringify)).size, 18);
   icons.forEach((icon, i) => {
     assert.ok(mapWheelIcons[state.world.subzones[i].id]);
+    const images = descendants(icon).filter(n => n.tag === 'image');
+    assert.equal(images.length, 1);
+    assert.equal(images[0].attributes.href, mapWheelAtlas.file.href);
+    assert.equal(images[0].attributes['data-crop'], mapWheelIcons[state.world.subzones[i].id].join(' '));
     const angle = Number(icon.attributes.transform.match(/rotate\(([^)]+)\)/)[1]);
     assert.ok(Math.abs(angle - (i + 0.5) * 20) < 1e-8);
     // Le vecteur du bas du dessin (+y local) pointe vers le centre de la roue.

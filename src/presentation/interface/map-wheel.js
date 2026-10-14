@@ -1,5 +1,5 @@
 import { wrap, zoneAt } from '../../simulation/world.js';
-import { mapWheelIcons } from './map-wheel-icons.js';
+import { mapWheelAtlas, mapWheelIcons } from './map-wheel-icons.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const CENTER = 160;
@@ -17,6 +17,20 @@ function sector(start, end) {
   return `${arc(136, start, end)} L${point(80, end)} A80,80 0 0 0 ${point(80, start)} Z`;
 }
 
+function atlasFilter() {
+  // Seul le gris moyen de la planche devient transparent ; les pixels des
+  // dessins d'origine (encre et crème) gardent leur couleur, sans redessin.
+  const filter = element('filter', { id: 'map-wheel-cutout', filterUnits: 'userSpaceOnUse',
+    x: -15, y: -21, width: 30, height: 42, 'color-interpolation-filters': 'sRGB' });
+  filter.append(element('feColorMatrix', { type: 'matrix',
+    values: '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  .2126 .7152 .0722 0 0' }));
+  const transfer = element('feComponentTransfer', { result: 'cutout' });
+  transfer.append(element('feFuncA', { type: 'table', tableValues: '1 1 1 1 0 0 0 0 0 1 1' }));
+  filter.append(transfer);
+  filter.append(element('feComposite', { in: 'SourceGraphic', in2: 'cutout', operator: 'in' }));
+  return filter;
+}
+
 export class MapWheel {
   constructor(container) {
     this.container = container;
@@ -29,6 +43,9 @@ export class MapWheel {
     this.layoutKey = key;
     this.sectors.clear();
     this.svg = element('svg', { viewBox: '0 0 320 320', role: 'img' });
+    const definitions = element('defs');
+    definitions.append(atlasFilter());
+    this.svg.append(definitions);
     this.rotor = element('g', { class: 'map-rotor' });
     this.svg.append(element('circle', { cx: 160, cy: 160, r: 145, class: 'map-rim' }), this.rotor);
     const boundaries = element('g', { class: 'map-boundaries' });
@@ -42,8 +59,23 @@ export class MapWheel {
       const middle = (start + end) / 2;
       const [x, y] = point(108, middle);
       const icon = element('g', { class: 'map-icon', transform: `translate(${x} ${y}) rotate(${middle * 180 / Math.PI})`, 'data-icon': zone.id });
-      const drawing = mapWheelIcons[zone.id] || ['M-9-6L0-15 9-6V12H-9Z', 'M-3 12V2h6v10'];
-      icon.append(element('path', { d: drawing[0] }), element('path', { d: drawing[1], fill: 'none' }));
+      const crop = mapWheelIcons[zone.id];
+      if (crop) {
+        const [left, top, width, height] = crop;
+        // Taille maximale commune et proportions d'origine conservées.
+        const scale = Math.min(28 / width, 40 / height);
+        const w = width * scale, h = height * scale;
+        const clipId = `map-wheel-crop-${zone.id}`;
+        const clip = element('clipPath', { id: clipId, clipPathUnits: 'userSpaceOnUse' });
+        clip.append(element('rect', { x: -w / 2, y: -h / 2, width: w, height: h }));
+        definitions.append(clip);
+        const artwork = element('g', { 'clip-path': `url(#${clipId})` });
+        artwork.append(element('image', { href: mapWheelAtlas.file.href,
+          x: -w / 2 - left * scale, y: -h / 2 - top * scale,
+          width: mapWheelAtlas.width * scale, height: mapWheelAtlas.height * scale,
+          filter: 'url(#map-wheel-cutout)', 'data-crop': crop.join(' ') }));
+        icon.append(artwork);
+      }
       this.rotor.append(icon);
       const firstInBiome = !biomes.has(zone.biome_id);
       boundaries.append(element('path', { d: `M${point(80, start)} L${point(firstInBiome ? 145 : 136, start)}`, class: firstInBiome ? 'map-biome-divider' : 'map-zone-divider' }));

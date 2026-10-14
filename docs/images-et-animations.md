@@ -31,6 +31,14 @@ Les fichiers de `src/presentation/` cités sans dossier sont dans ce même dossi
 
 Une version corrigée d'un habitant peut porter le suffixe `-fixed` (par exemple `npc-banlieue-9-fixed.png`) : elle remplace l'originale dans le manifeste.
 
+## Les symboles de la roue
+
+Les 18 quartiers affichent directement les dessins de la planche validée `assets/images/interface/roue-quartiers-planche.png`, copiée sans retouche. Les rectangles de découpe sont dans `src/presentation/interface/map-wheel-icons.js` : ils excluent les titres et les légendes. Les dessins ne sont pas redessinés en vectoriel. Le vélo est accompagné du Sacré-Cœur ; les deux scooters se distinguent par le rond-point ou la serre.
+
+Un filtre SVG rend le fond gris de la planche transparent à l'affichage tout en conservant l'encre et le crème des dessins. Chaque découpe garde ses proportions et reste dans son secteur. La planche est chargée une seule fois par le navigateur et son chemin PNG littéral permet son inclusion dans les exports web et Android.
+
+`map-wheel.js` tourne chaque dessin pour que son bas pointe vers le centre, puis fait tourner la roue avec la position du joueur. Les secteurs restent gris avant tout sondage ; seul un sondage acheté leur donne les couleurs électorales. Les symboles gardent leur palette contrastée sur tous les fonds.
+
 ## La carte plate
 
 Correction manuelle du petit toit à gauche de la tour de Retraités C : la fresque maître éditée par l’utilisateur sert de source. `retouches-carte/sources/retraites-c-toit-manuel-integrer.py` reporte uniquement les 254 pixels différents vers le jeu et les archives de production, sans réécrire la fresque maître. Sauvegarde, source et masque : `retraites-c-toit-manuel-*`.
