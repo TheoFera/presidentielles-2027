@@ -50,6 +50,7 @@ Le combat est **le même** en Campagne et en Débat télé (`candidate_combat`, 
 
 - **Frapper** enchaîne léger, léger, fort. **Maintenir 1 seconde** prépare un coup chargé : le candidat est immobile et protégé, puis frappe en relâchant.
 - **Sauter** évite les coups bas ; frapper en l'air donne un **coup plongeant**.
+- Pendant l’**étourdissement d’un coup léger**, maintenir une direction permet de se retourner sans se déplacer, dès que la brève pause d’impact est terminée. Les coups forts et les chutes au sol gardent leur blocage ; se retourner ne permet pas de frapper ou d’esquiver pendant l’étourdissement.
 - **Double appui** sur une direction : **esquive** (3 charges, une recharge toutes les 4 secondes). Le premier appui doit être bref (0,3 s au plus) ; le second doit suivre le relâchement de 0,25 s au plus au clavier, 0,35 s au doigt. Sur téléphone, juste après un appui, la flèche attrape aussi les appuis un peu à côté.
 - Les coups réussis remplissent la jauge d'**ultime** ; pleine, un son spécial retentit, le bouton Ultime devient doré et pulse (avec « PRÊT ! » au déblocage) ; l'ultime se lance alors avec R ou ce bouton.
 - À zéro de résistance, le candidat est **K.-O.** : il perd un peu de score national, fait tomber de l'argent et réapparaît après quelques secondes. La résistance remonte loin des combats.

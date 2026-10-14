@@ -17,7 +17,7 @@ import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-vo
 import { triggerMeeting, updateElectoralBuildings, meetingAttendeeStep } from './electoral-buildings.js';
 import { updateCollector, updateMilitant } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
-import { movementBlocked, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
+import { movementBlocked, canTurnDuringLightStun, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { startPodiumFall } from './combat-actions.js';
 import { updateGuard, updateRaidRecruit } from './military.js';
@@ -373,7 +373,11 @@ export class GameSimulation {
     beginCombatTick(this);
     updateVehicles(this);
     for (const candidate of state.candidates) {
-      if (candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id || movementBlocked(candidate)) continue;
+      if (candidate.eliminated || candidate.is_ko || candidate.campaign_debate_id) continue;
+      if (canTurnDuringLightStun(candidate, state.tick) && candidate.axis && candidate.axis !== candidate.facing) {
+        candidate.facing = candidate.axis; candidate.turn_tick = state.tick;
+      }
+      if (movementBlocked(candidate)) continue;
       candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis && candidate.axis !== candidate.facing) { candidate.facing = candidate.axis; candidate.turn_tick = state.tick; }

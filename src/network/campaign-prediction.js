@@ -1,4 +1,4 @@
-import { movementBlocked } from '../simulation/combat-state.js';
+import { movementBlocked, canTurnDuringLightStun } from '../simulation/combat-state.js';
 import { candidateTravelSpeed } from '../simulation/vehicles.js';
 import { ringDelta, wrap } from '../simulation/world.js';
 
@@ -66,8 +66,12 @@ export class CampaignPrediction {
   apply(shown, previous, alpha) {
     if (!this.active) return { shown, previous };
     const x = this.displayX(alpha), axis = this.axis;
-    const swap = state => state && { ...state, candidates: state.candidates.map(c => c.id !== this.localId ? c
-      : { ...c, x, moving: axis !== 0, facing: axis || c.facing }) };
+    const swap = state => state && { ...state, candidates: state.candidates.map(c => {
+      if (c.id !== this.localId) return c;
+      const moving = this.canMove(state, c);
+      const turning = moving || !c.eliminated && !c.is_ko && !c.campaign_debate_id && canTurnDuringLightStun(c, state.tick);
+      return { ...c, x, moving: moving && axis !== 0, facing: turning && axis ? axis : c.facing };
+    }) };
     const local = swap(shown);
     return { shown: local, previous: previous && { ...previous, candidates: previous.candidates.map(c => c.id === this.localId ? local.candidates.find(o => o.id === c.id) ?? c : c) } };
   }

@@ -32,6 +32,34 @@ function ticks(sim, count, combat = false) {
 }
 const input = (sim, c, type) => sim.applyCommand({ type, candidateId: c.id });
 
+for (const debate of [false, true]) for (const step of [1, 2, 3]) test(`Se retourner sans marcher pendant un coup léger, rester bloqué au sol : coup ${step} (${debate ? 'débat' : 'campagne'})`, () => {
+  const { sim, c, enemy } = setup(debate);
+  enemy.x = c.x + 5; c.facing = -1;
+  hit(sim, enemy, c, { kind: 'CANDIDATE', step, strong: step === 3, damage: 1, knockback: 0,
+    stun_seconds: sim.config.balance.candidate_combat.light_stun_seconds }, `turn:${step}`);
+  const x = c.x;
+  const move = { type: 'Move', candidateId: c.id, axis: 1 };
+  sim.applyCommand(move); sim.step();
+  assert.equal(c.facing, -1, 'La pause d’impact conserve la direction');
+  while (c.combat.hitstop_ticks > 1) sim.step();
+  sim.step();
+  assert.ok(c.combat.stun_ticks > 0);
+  assert.equal(c.facing, step === 3 ? -1 : 1);
+  assert.equal(c.x, x, 'Se retourner ne déplace pas le personnage');
+  assert.equal(c.moving, false);
+  input(sim, c, 'Attack'); input(sim, c, 'Jump');
+  assert.equal(c.combat.jump_tick, null);
+  sim.step();
+  assert.equal(c.combat.attack_id, null, 'L’étourdissement interdit toujours la riposte');
+  if (step === 3) {
+    while (sim.state.tick < c.combat.invulnerable_until_tick) sim.step();
+    c.facing = -1;
+    hit(sim, enemy, c, { kind: 'CANDIDATE', step: 1, damage: 1, knockback: 0, stun_seconds: 0.36, no_hitstop: true }, 'turn:after-fall');
+    sim.step();
+    assert.equal(c.facing, 1, 'Une ancienne chute ne bloque pas les étourdissements légers suivants');
+  }
+});
+
 for (const debate of [false,true]) test(`Poings : étourdissement configuré, sans aucun recul (${debate?'débat':'campagne'})`,()=>{
   for(const step of [1,2]){
     const {sim,c,enemy}=setup(debate),x=enemy.x,stun=sim.secondsToTicks(sim.config.balance.candidate_combat.light_stun_seconds);

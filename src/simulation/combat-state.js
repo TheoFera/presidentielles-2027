@@ -25,6 +25,10 @@ export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && targetable(b) &
 export const europeActive = (state, c) => c.ultimate_effect?.kind === 'EUROPE' && c.ultimate_effect.expires_tick > state.tick;
 export const interrupted = actor => actor.combat && (charging(actor) || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const movementBlocked = actor => actor.combat && (actor.combat.charge_active || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id && actor.combat.jump_tick == null || actor.combat.dive_tick != null);
+// Un coup léger bloque les pas, mais laisse choisir de quel côté regarder.
+export const canTurnDuringLightStun = (actor, tick) => actor.combat?.stun_ticks > 0 && actor.combat.last_hit?.strong === false
+  && (actor.combat.knockdown_tick == null || tick >= actor.combat.invulnerable_until_tick) && !actor.combat.hitstop_ticks && !actor.combat.charge_active
+  && !actor.dash_active && !actor.combat.attack_id && actor.combat.dive_tick == null;
 export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_debate_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {

@@ -2,7 +2,7 @@ import { aiCombatCommands } from './ai-combat.js';
 import { aiSettings } from './ai-settings.js';
 import { initializeMobileCombat, mobileCommand } from './mobile-combat.js';
 import { random } from './world.js';
-import { movementBlocked, combatState, interrupted } from './combat-state.js';
+import { movementBlocked, canTurnDuringLightStun, combatState, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, wallBlockedPosition } from './combat.js';
 import { combatPosition } from './combat-geometry.js';
 
@@ -52,6 +52,7 @@ export class DebateSimulation {
     this.state.tick++;
     beginCombatTick(this);
     for (const c of this.state.candidates) {
+      if (!c.is_ko && !c.eliminated && canTurnDuringLightStun(c, this.state.tick) && c.axis) c.facing = c.axis;
       if (movementBlocked(c)) continue;
       c.x = wallBlockedPosition(this, c, combatPosition(this.state, c.x + c.axis * this.config.prototype.movement.candidate_speed_units_per_second / this.hz));
       c.moving = c.axis !== 0; if (c.axis) c.facing = c.axis;

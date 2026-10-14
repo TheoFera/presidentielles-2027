@@ -55,6 +55,22 @@ test('Campagne en réseau : l’invité envoie peu de messages', () => {
   assert.ok(messages < 80, `${messages} messages en 10 s`);
 });
 
+test('Affichage invité : pivoter sous un coup léger sans marcher, conserver la direction sous un coup fort', () => {
+  const config = campaignConfig(), sim = new GameSimulation(config, 42);
+  const c = sim.state.candidates[1], prediction = new CampaignPrediction(config, c.id);
+  c.facing = -1;
+  prediction.authoritative({ ...sim.state, input_acks: { [c.id]: 0 } });
+  prediction.step([{ type: 'Move', axis: 1 }]);
+  c.combat.stun_ticks = 5; c.combat.last_hit = { strong: false };
+  const light = prediction.apply(sim.state, sim.state, 1).shown.candidates.find(candidate => candidate.id === c.id);
+  assert.equal(light.facing, 1);
+  assert.equal(light.moving, false);
+  c.combat.last_hit.strong = true;
+  const strong = prediction.apply(sim.state, sim.state, 1).shown.candidates.find(candidate => candidate.id === c.id);
+  assert.equal(strong.facing, -1);
+  assert.equal(strong.moving, false);
+});
+
 test('Horloge : un pas joué dès l’appui est rattrapé ensuite, jamais plus d’un d’avance', async () => {
   const { FixedClock } = await import('../src/simulation/fixed-clock.js');
   const clock = new FixedClock(30);
