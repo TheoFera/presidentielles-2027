@@ -783,12 +783,12 @@
   "ai_economy": {
     "enabled": true,
     "reserve_sympathisants_per_biome": 2,
-    "army_detour_units": 30,
+    "army_detour_units": 40,
     "investment_reference_k": 20
   },
   "ai_tactics": {
     "note": "Tactique de l'IA (territoire, chasse, détours). Valeurs par défaut dans src/simulation/ai-moments.js ; le banc d'essai les règle.",
-    "hunt_radius_units": 15,
+    "hunt_radius_units": 12,
     "hunt_radius_mission_units": 10,
     "hunt_max_guards": 1,
     "prey_weight": 2.5,
@@ -808,7 +808,7 @@
     "curves": {
       "expansion": [[0, 0.1], [0.1, 0.5], [0.2, 0.9], [0.7, 0.9], [0.85, 0.3], [0.95, 0]],
       "groupes": [[0.1, 0], [0.25, 0.5], [0.4, 0.9], [1, 1]],
-      "tour_communication": [[0.1, 0], [0.25, 0.5], [0.65, 0.7], [0.8, 0]],
+      "tour_communication": [[0.2, 0], [0.35, 0.5], [0.75, 0.7], [0.9, 0]],
       "local_faction": [[0.3, 0], [0.45, 0.5], [0.6, 1], [0.92, 1], [1, 0]],
       "offensive": [[0.4, 0], [0.55, 0.6], [0.75, 1], [1, 1]],
       "meeting": [[0.5, 0], [0.62, 0.5], [0.75, 0.9], [1, 1]],
@@ -817,7 +817,7 @@
     "militants": {
       "first_goal": [1, 2],
       "first_reserve": 1,
-      "group_goal": 8,
+      "group_goal": 9,
       "group_reserve": 0
     },
     "vehicles": {

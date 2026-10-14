@@ -147,8 +147,8 @@ test('Offensive complète : affaiblir les soutiens, puis reprendre un site du jo
   const site = sim.state.buildings.find(b => b.type === 'tour_communication');
   captureSite(sim, sim.state.buildings.find(b => b.type === 'permanence'), c);
   captureSite(sim, site, player); c.x = site.x - 3;
-  // Ce scénario commence après l’installation du QG pour tester l’offensive seule.
-  sim.state.tick = sim.secondsToTicks(80);
+  // Ce scénario se place après l’installation du QG, au moment où la Rédaction intéresse l’IA (moment tour_communication).
+  sim.state.tick = sim.secondsToTicks(160);
   c.ai_objective = { subzone_id: site.subzone_id, purpose: 'CONQUER', expires_tick: sim.state.tick + sim.secondsToTicks(100) };
   const defenders = [supporter(sim, player.faction_id, site.x), supporter(sim, player.faction_id, site.x + 0.2)];
   supporter(sim, c.faction_id, site.x - 0.2); supporter(sim, c.faction_id, site.x - 0.3);

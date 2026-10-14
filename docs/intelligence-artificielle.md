@@ -33,7 +33,7 @@ On ne convainc que des passants neutres. Un sympathisant ou un militant frappé 
 - **Défendre** : un candidat ou des militants adverses dans son cœur l’y font revenir.
 - **Se replier** (`REGROUP`) : quand les troupes adverses dans son cœur dépassent nettement les siennes, l’IA recule à sa permanence la mieux fournie et transforme presque tous ses sympathisants en militants (tracts), puis contre-attaque. Le repli dure jusqu’à avoir au moins autant de troupes.
 - **Attaquer** (`ATTACK`) : un quartier proche ou frontalier riche en soutiens adverses (ceux du meneur comptent plus) et peu gardé. Sur place, elle abat d’abord le maximum de sympathisants et militants adverses, puis repart dès le quartier nettoyé, sans attendre le retour des neutres.
-- **Chasse** : comme un joueur, l’IA abat les sympathisants et militants adverses peu protégés qui passent à portée (15 unités, 10 en mission), sauf pendant un repli.
+- **Chasse** : comme un joueur, l’IA abat les sympathisants et militants adverses peu protégés qui passent à portée (12 unités, 10 en mission), sauf pendant un repli.
 - En route pour attaquer ou défendre, pas de détour (dons, billets, achats) sauf sur le chemin, et seuls les événements proches la détournent (à moins de 40 unités en attaque, 80 sinon).
 - Les dons qui attendent à une permanence ne valent le trajet que s’ils sont assez gros pour la distance (500 € à côté, environ 1 500 € à 30 unités).
 
