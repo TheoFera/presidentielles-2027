@@ -1091,7 +1091,7 @@
   "zone_control": {
     "enemy_persuasion_time_multiplier": 1.6,
     "supporter_health_multiplier": 1.5,
-    "philippe_supporter_health_multiplier": 2
+    "philippe_supporter_health_multiplier": 3
   },
   "vehicles": {
     "mount_seconds": 1,

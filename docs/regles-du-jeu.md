@@ -27,7 +27,7 @@ Le « local du camp » devient le local du service d'ordre ou le cabinet adminis
 
 ## Bâtiments et contrôle des sous-zones
 
-- Chaque sous-zone a **un bâtiment de contrôle** (marqué d'un drapeau). Son propriétaire contrôle la sous-zone : ses partisans y ont **50 % de résistance en plus** (le double pour Philippe, `philippe_supporter_health_multiplier`) et les adversaires y mettent **60 % de temps en plus** pour convaincre (`zone_control`).
+- Chaque sous-zone a **un bâtiment de contrôle** (marqué d'un drapeau). Son propriétaire contrôle la sous-zone : ses partisans y ont **50 % de résistance en plus** (Philippe : **trois fois plus résistants**, `philippe_supporter_health_multiplier`) et les adversaires y mettent **60 % de temps en plus** pour convaincre (`zone_control`).
 - La première **permanence** prise devient le **QG** du candidat. Elle reçoit les **dons** des Sympathisants : le candidat récupère la cagnotte en passant. Elle fournit aussi les **tracts**.
 - On achète en restant devant le panneau de prix, si l'on a l'argent et l'implantation demandés. Les prix sont dans `building_catalog.json`.
 - **Services neutres** (payants à l'usage, sans propriétaire) : imprimerie, institut de sondage (publie un sondage), place de meeting (le candidat doit être présent).
