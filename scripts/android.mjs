@@ -13,6 +13,11 @@ const android = join(root, 'android');
 const release = !process.argv.includes('--test');
 const env = { ...process.env };
 
+// Une mise à jour Play Store doit garder la clé utilisée pour les versions précédentes.
+if (release && !existsSync(join(android, 'keystore.properties'))) {
+  throw new Error('Signature Play Store absente : configurez android/keystore.properties avec votre clé existante (voir android/LISEZMOI.md).');
+}
+
 // Java compatible avec Gradle 8.14 : versions 17 à 24. Android Studio fournit parfois une version
 // trop récente (Java 25 : « Unsupported class file major version 69 ») ; on prend alors un autre Java
 // installé, par exemple celui téléchargé par Android Studio dans ~/.jdks.
@@ -53,6 +58,3 @@ const output = release
   ? join(android, 'app/build/outputs/bundle/release/app-release.aab')
   : join(android, 'app/build/outputs/apk/debug/app-debug.apk');
 console.log(`\nApplication prête : ${output} (${(statSync(output).size / 1024 ** 2).toFixed(1)} Mio).`);
-if (release && !existsSync(join(android, 'keystore.properties'))) {
-  console.log('Attention : ce fichier n\'est pas signé. Créez votre clé (voir android/LISEZMOI.md) avant de l\'envoyer au Play Store.');
-}

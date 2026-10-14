@@ -49,6 +49,8 @@ test('Marche dans les deux sens entre centres extrêmes, puis retour près du sp
 test('Conversion en marchant des neutres et sympathisants adverses, jamais des militants',()=>{
   const sim=make(),e=start(sim),c=sim.state.candidates[0];c.campaign_active=true;c.axis=1;
   const [neutral,rival,militant]=e.march.participant_ids.slice(0,3).map(id=>sim.state.npcs.find(n=>n.id===id));
+  // Ce test porte sur des marcheurs déjà arrivés sur la carte.
+  for(const n of [neutral,rival,militant])n.entry_tick=null;
   convertNeutral(sim,rival,'le_pen');convertNeutral(sim,militant,'le_pen');militant.role='MILITANT';militant.next_donation_tick=null;
   for(let i=0;i<sim.secondsToTicks(.3);i++){for(const n of [neutral,rival,militant])n.x=c.x+.2;sim.step();}
   assert.equal(neutral.faction_id,c.faction_id);assert.equal(rival.faction_id,c.faction_id);assert.equal(militant.faction_id,'le_pen');

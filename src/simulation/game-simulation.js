@@ -11,6 +11,7 @@ import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEven
 import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { chooseHomeX, createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
+import { npcHasArrived } from './npc-entry.js';
 import { createElectorate, localPersuasionMultiplier, populationByOrigin } from './territory.js';
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
@@ -454,7 +455,7 @@ export class GameSimulation {
     // Les neutres sont rangés par position : chaque militant ne regarde que ceux de son voisinage,
     // au lieu de parcourir toute la carte. (L'ordre des demandes ne compte pas : elles sont triées plus bas.)
     const length = state.world.length, reach = radius + 1e-6;
-    const neutrals = state.npcs.filter(npc => !npc.rally_event_id && npc.role === 'NEUTRE')
+    const neutrals = state.npcs.filter(npc => !npc.rally_event_id && npc.role === 'NEUTRE' && npcHasArrived(npc, state.tick, this.hz))
       .map(npc => ({ npc, x: wrap(npc.x, length) })).sort((a, b) => a.x - b.x);
     const firstFrom = x => {
       let low = 0, high = neutrals.length;

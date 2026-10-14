@@ -3,6 +3,7 @@ import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
 import { npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { stableIdOrder } from './territory.js';
 import { forgetMeetingCrowd } from './electoral-buildings.js';
+import { npcHasArrived } from './npc-entry.js';
 
 const position = (sim, npc, target, speed) => {
   const delta = ringDelta(npc.x, target, sim.state.world.length);
@@ -79,7 +80,8 @@ export function updateRally(sim, event) {
   // Ici, marcher reste compatible avec la persuasion. Un PNJ ne change qu'une fois de camp par tick.
   const actors = state.candidates.filter(c => !c.minor && !c.eliminated && c.campaign_active && canCampaign(c));
   for (const npc of state.npcs.filter(n => n.rally_event_id === event.id)) {
-    if (!['NEUTRE', 'SYMPATHISANT'].includes(npc.role) || interrupted(npc) || state.tick < npc.rally_immune_until_tick) continue;
+    if (!['NEUTRE', 'SYMPATHISANT'].includes(npc.role) || interrupted(npc) || state.tick < npc.rally_immune_until_tick
+      || !npcHasArrived(npc, state.tick, sim.hz)) continue;
     const actor = actors.filter(c => c.faction_id !== npc.faction_id
       && Math.abs(ringDelta(c.x, npc.x, state.world.length)) <= sim.config.prototype.persuasion.radius_units)
       .sort((a, b) => Math.abs(ringDelta(a.x, npc.x, state.world.length)) - Math.abs(ringDelta(b.x, npc.x, state.world.length)) || stableIdOrder(a, b))[0];

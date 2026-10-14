@@ -66,6 +66,29 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 2. Relance `npm run android`.
 3. Dans la Play Console, crée une nouvelle version et envoie le nouveau `.aab`.
 
+### Mise à jour 1.0.4 (code 5)
+
+La version précédente publiée est **1.0.3 (code 4)**. La prochaine est **1.0.4 (code 5)**. L’identifiant de l’application reste `fr.presidentielles2027.jeu`.
+
+Réutilise la clé de téléversement des versions précédentes : **ne crée pas une nouvelle clé**. Sur cet ordinateur, elle se trouve dans `C:/Users/ferat/Documents/AndroidKeys/presidentielle2027-upload.jks`, avec l’alias `presidentielle2027`. Le fichier local `android/keystore.properties` doit contenir ce chemin, cet alias et les deux mots de passe. Il est exclu de Git. `npm run android` refuse désormais de construire une version Play Store si ce fichier manque.
+
+Après la construction, envoie `android/app/build/outputs/bundle/release/app-release.aab`. Garde aussi `android/app/build/outputs/mapping/release/mapping.txt` : il permet de rendre lisibles les rapports de plantage du code Android optimisé. Le fichier AAB produit par Gradle inclut normalement cette correspondance.
+
+Nom de la version dans la Play Console : **1.0.4**. Notes de mise à jour à copier dans le champ français :
+
+```text
+<fr-FR>
+Amélioration de la fluidité pendant les meetings et en fin de campagne.
+Ajustement des tactiques et des objectifs des adversaires contrôlés par le jeu.
+Rééquilibrage d’Édouard Philippe : partisans plus résistants et contrôle renforcé.
+Possibilité de se retourner pendant un étourdissement léger.
+</fr-FR>
+```
+
+Avant le déploiement, utilise une piste de test interne pour essayer cette version finale sur téléphone : ouverture, menu affichant 1.0.4, campagne jusqu’aux résultats, débat, son, retour, connexion Google, publicités et multijoueur. Vérifie aussi la mise à jour depuis la version Play Store précédente, avec conservation de la progression. Un APK de débogage ne remplace pas cet essai, car sa signature et ses publicités sont différentes.
+
+Dans la Play Console, ouvre la piste utilisée par ton application (test fermé ou production), crée une version, ajoute l’AAB, colle les notes, puis vérifie le résumé et les messages de Google avant de lancer le déploiement. Conserve les déclarations de confidentialité, de sécurité des données et de publicités à jour si les fonctionnalités changent. La préparation locale ne publie rien automatiquement. [Procédure officielle Google](https://support.google.com/googleplay/android-developer/answer/9859348?hl=fr).
+
 ## Bon à savoir
 
 - Le jeu exporté (`dist/`) est reconstruit à chaque `npm run android` : ne modifie jamais `dist/` à la main.

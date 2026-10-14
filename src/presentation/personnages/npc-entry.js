@@ -1,7 +1,8 @@
 // Un nouveau PNJ n'apparaît pas d'un coup : il arrive du bas de l'écran en marchant.
-// Effet d'affichage seulement ; la simulation le place directement à sa position.
+// La simulation bloque la persuasion pendant ce trajet d'arrivée.
 
-export const NPC_ENTRY_SECONDS = 1.6;
+import { NPC_ENTRY_SECONDS } from '../../simulation/npc-entry.js';
+export { NPC_ENTRY_SECONDS };
 
 /**
  * Avancement de l'arrivée (0 = tout en bas, 1 = arrivé) pour chaque PNJ récemment apparu.

@@ -13,7 +13,7 @@ import {drawCandidateCombat,usesCandidateCombat,candidateCombatPose} from '../sr
 function setup(){const sim=new GameSimulation((() => { const config = campaignConfig(); config.balance.minor_candidates.enabled = false; return config; })(),42);sim.state.npcs=[];sim.state.ai_enabled=false;sim.state.candidates.forEach((c,i)=>{c.x=100+i*100;c.axis=0;});return {sim,c:sim.state.candidates[0]};}
 
 test('Persuasion : rester immobile ; marcher annule immédiatement les deux côtés',()=>{
- const {sim,c}=setup(),n=sim.spawn(sim.state.world.subzones[0],c.x+.2);
+ const {sim,c}=setup(),n=sim.spawn(sim.state.world.subzones[0],c.x+.2,false);
  sim.updatePersuasion();assert.equal(n.persuasion.actor_id,c.id);assert.equal(c.persuasion_target_ids.length,1);
  c.axis=1;sim.updatePersuasion();assert.equal(n.persuasion,null);assert.deepEqual(c.persuasion_target_ids,[]);
  c.axis=0;c.moving=true;sim.updatePersuasion();assert.equal(n.persuasion,null);

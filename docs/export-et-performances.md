@@ -10,6 +10,8 @@
 | `npm run android:test` | idem, avec un `.apk` d'essai à installer sur un téléphone |
 | `npm run start:appli` | sert `dist/` sur <http://localhost:2028> pour l'essayer |
 
+Pour le Play Store, la prochaine version est **1.0.4**, avec **`versionCode = 5`**, après la version publiée 1.0.3 (code 4). Le numéro affiché vient de `src/version.js` et le code de `android/app/build.gradle`. La construction finale nécessite `android/keystore.properties` et la clé de téléversement existante ; les secrets restent locaux et exclus de Git. Les notes de mise à jour et la procédure sont dans [le guide Android](../android/LISEZMOI.md#mise-à-jour-104-code-5).
+
 L'export part de `index.html` et suit les `<script>`, `<link>` et `import` : seuls les fichiers réellement chargés par le jeu sont copiés, avec les cinq fichiers de `donnees-jeu/`, les pages légales et les licences des bibliothèques. Les documents, tests, scripts et outils ne sont jamais exportés. Ne jamais modifier `dist/` à la main : il est recréé à chaque export.
 
 La version web et l'application contiennent les mêmes fichiers. Dans l'application, `src/app-build.js` est remplacé par `APP_BUILD = true` : cadence d'affichage adaptée au téléphone, plein écran et paysage d'office (le bouton plein écran disparaît).
