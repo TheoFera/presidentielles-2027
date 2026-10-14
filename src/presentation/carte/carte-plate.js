@@ -89,6 +89,20 @@ export function plateSnapOffset(renderer, world, zoneId) {
   return Math.round(left) - left;
 }
 
+/** Rectangle peint transformé exactement comme la tuile, arrondis compris. */
+export function plateFeatureFrame(renderer, building, feature) {
+  const world = renderer.fixedWorldState?.world;
+  const zone = world?.subzones.find(z => z.id === building.subzone_id);
+  if (!zone) return null;
+  const left = tileLeft(renderer, world, zone), k = tileScale(renderer, zone);
+  const x0 = Math.round(left), x1 = Math.round(left + zone.width * renderer.metrics.pixelsPerUnit);
+  const y0 = Math.round(renderer.metrics.groundY - GROUND_Y * k);
+  const y1 = Math.round(renderer.metrics.groundY + (TILE_H - GROUND_Y) * k);
+  const scaleX = (x1 - x0) / TILE_W, scaleY = (y1 - y0) / TILE_H;
+  return { left: x0 + feature.x * scaleX, top: y0 + feature.y * scaleY,
+    w: feature.w * scaleX, h: feature.h * scaleY, scaleX, scaleY, x0, y0, tile: tileId(zone.index % TILE_COUNT) };
+}
+
 /** Dessine les tuiles visibles, bord à bord à des positions entières. Renvoie false si une tuile visible manque encore. */
 export function drawPlateWorld(renderer, state) {
   const { ctx, metrics: m, width, height } = renderer, world = state.world;

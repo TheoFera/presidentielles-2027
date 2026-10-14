@@ -109,14 +109,3 @@ export function drawIntegratedBuilding(renderer, state, building) {
   }
   ctx.restore(); return true;
 }
-
-export function drawRallyAccessories(renderer, entity, x, feetY, height, state) {
-  if (!entity.rally_event_id || entity.rally_index % 5) return;
-  const { ctx } = renderer;
-  const event = state.campaign_events.find(e => e.id === entity.rally_event_id);
-  const text = { paris_19e: 'ENSEMBLE', banlieue: 'JUSTICE', periurbain_usine: 'EMPLOIS', campagne: 'NOS FERMES', retraites: 'HOMMAGE', quartiers_riches: 'SOLIDARITÉ' }[event?.target_biome_id] || 'ENSEMBLE';
-  const y = feetY - height * 1.2 + Math.sin(state.tick / 8 + entity.rally_index) * 2;
-  ctx.save(); ctx.strokeStyle = '#60442a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 14, feetY - height * 0.5); ctx.lineTo(x - 14, y); ctx.stroke();
-  ctx.fillStyle = '#ecd3a2'; ctx.strokeStyle = '#473e31'; ctx.fillRect(x - 46, y - 22, 64, 23); ctx.strokeRect(x - 46, y - 22, 64, 23);
-  ctx.fillStyle = '#343b38'; ctx.font = '800 8px system-ui'; ctx.textAlign = 'center'; ctx.fillText(text, x - 14, y - 7, 59); ctx.restore();
-}

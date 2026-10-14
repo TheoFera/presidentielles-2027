@@ -86,6 +86,10 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!expected) fail('bâtiment inconnu');
     for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model', 'controls_zone', 'fixed_variant', 'label']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
     if (!Array.isArray(building.queue) || !integer(building.delivered_count) || !Number.isInteger(building.last_action_tick) || building.last_action_tick > next.tick) fail('état du bâtiment invalide');
+    // Champ facultatif : une ancienne sauvegarde affiche directement le bon état du rideau.
+    const shutter = building.shutter_transition;
+    if (shutter != null && (!building.controls_zone || !integer(shutter.tick) || shutter.tick > next.tick
+      || !finite(shutter.from) || shutter.from > 1)) fail('animation du rideau invalide');
     const settings = buildingSettings(config, building);
     if (!integer(building.level) || building.level > settings.max_level || !Number.isFinite(building.capture_progress) || !Number.isFinite(building.closure_progress)) fail('niveau ou progression invalide');
     if (building.ownership_model === 'neutral_service') {

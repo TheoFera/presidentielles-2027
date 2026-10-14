@@ -88,7 +88,7 @@ Six autres candidats tiennent chacun une sous-zone dès le début, avec leur QG 
 
 ## Événements de campagne
 
-Des **rassemblements** apparaissent pendant la campagne, annoncés par un bandeau télé « EN DIRECT » avec une flèche vers le lieu. Les habitants du quartier se regroupent pendant `gather_seconds` (6 s), puis marchent ensemble d'une sous-zone à l'autre ; ceux qui n'ont pas eu le temps d'arriver rattrapent le cortège en route. Passer près d'eux convainc très vite. Les gardes du service d'ordre n'y participent pas. Contenu : `campaign_events.json` ; fréquence : `campaign_events` dans `game_balance.json`.
+Des **rassemblements** apparaissent pendant la campagne. Un grand flash télé « EN DIRECT » affiche pendant 6 secondes l’un des trois titres du biome, sans couper la phrase. Il se réduit ensuite sous la carte à une étiquette « EN DIRECT » et au nom court : Manifestation (Paris 19ᵉ), Marche (banlieues), Mouvement (périurbain), Blocages (campagne), Cortège (retraités) ou Rassemblement (quartiers riches). Le rappel reste visible jusqu’à la fin du cortège, sans lieu, consigne ni compte à rebours. Les habitants du quartier se regroupent pendant `gather_seconds` (6 s), puis marchent ensemble d'une sous-zone à l'autre ; ceux qui n'ont pas eu le temps d'arriver rattrapent le cortège en route. Passer près d'eux convainc très vite. Les gardes du service d'ordre n'y participent pas. Contenu et titres : `campaign_events.json` ; fréquence et durée du flash : `campaign_events` dans `game_balance.json`.
 
 ## Élection
 

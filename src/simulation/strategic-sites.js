@@ -3,6 +3,7 @@ import { scatterMoney } from './money.js';
 import { random, ringDelta, zoneAt } from './world.js';
 import { buildingSettings, siteVariant, acceptsDonations, isCapturable } from './building-rules.js';
 import { stableIdOrder } from './territory.js';
+import { prepareBuildingShutterTransition } from './building-shutters.js';
 
 const neutralTypes = new Set(['imprimerie', 'meeting', 'institut_sondage']);
 
@@ -16,6 +17,7 @@ export function createInfrastructure(world, config, _rngState) {
     const type = slot.type; const service = neutralTypes.has(type);
     return { id: slot.site_id, site_id: slot.site_id, type, slot_id: slot.id, x: slot.x, subzone_id: slot.subzone_id, biome_id: slot.biome_id,
       controls_zone: !!slot.controls_zone, fixed_variant: slot.fixed_variant || null, label: slot.label || null,
+      ...(slot.controls_zone ? { shutter_transition: null } : {}),
       next_sponsor_tick: 0, ownership_model: service ? 'neutral_service' : 'capturable', owner_id: null, level: service ? 1 : 0,
       state: service ? 'ACTIVE' : 'NEUTRAL', active: service, neutral: true,
       capture_progress: 0, closure_progress: 0, required_presence: 0, current_political_presence: 0,
@@ -56,6 +58,7 @@ export function plannedHeadquartersSuccessor(state, faction, fromX = null) {
 }
 
 export function captureSite(sim, building, candidate) {
+  prepareBuildingShutterTransition(building, 'ACTIVE', sim.state.tick, sim.hz);
   building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.active = true; building.neutral = false;
   building.capture_progress = 0; building.closure_progress = 0; building.variant = building.type === 'faction' ? siteVariant(building, candidate.faction_id) : null;
   candidate.interaction_chain_site_id = building.id;
@@ -75,6 +78,7 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
     building.stored_money_cents = 0;
   }
   const oldOwner = building.owner_id; const wasHeadquarters = building.headquarters; const oldX = building.x;
+  prepareBuildingShutterTransition(building, 'NEUTRAL', sim.state.tick, sim.hz);
   building.owner_id = null; building.level = 0; building.state = 'NEUTRAL'; building.active = false; building.neutral = true;
   building.next_broadcast_tick = 0;
   building.capture_progress = 0; building.closure_progress = 0; building.current_political_presence = 0; building.current_effective_presence = 0;

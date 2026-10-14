@@ -56,11 +56,11 @@ try {
       const card = document.createElement('article'); card.className = 'campaign-card';
       const title = document.createElement('strong'); title.textContent = 'Meeting exceptionnel';
       const description = document.createElement('span'); description.textContent = 'Un rassemblement se prépare dans le quartier.';
-      card.append(title, description); document.getElementById('campaign-events').append(card);
+      card.append(title, description); document.getElementById('campaign-flashes').append(card);
     });
     await page.locator('#poll-scores').waitFor();
     const overlays = await page.evaluate(() => {
-      const ids = ['electoral-display', 'poll-scores', 'campaign-events'];
+      const ids = ['electoral-display', 'poll-scores', 'campaign-flashes'];
       return ids.map(id => { const r = document.getElementById(id).getBoundingClientRect(); return { id, x: r.x, y: r.y, right: r.right, bottom: r.bottom }; });
     });
     for (let i = 0; i < overlays.length; i++) for (let j = i + 1; j < overlays.length; j++) {

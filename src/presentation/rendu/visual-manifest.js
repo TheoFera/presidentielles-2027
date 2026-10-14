@@ -4,6 +4,9 @@ import { plateAssets } from '../carte/carte-plate.js';
 export const visualManifest = {
   ...fixedWorldAssets,
   ...plateAssets,
+  'building-shutter-metal': { file: new URL('../../../assets/images/batiments/rideau-metallique.png', import.meta.url).href },
+  'building-barn-doors': { file: new URL('../../../assets/images/batiments/portes-garage-campagne.png', import.meta.url).href },
+  'building-barn-door-backdrop': { file: new URL('../../../assets/images/batiments/garage-campagne-sans-portes.png', import.meta.url).href },
   "building-meeting_stage-bobo": { file: new URL("../../../assets/images/meeting/building-meeting_stage-bobo.png", import.meta.url).href },
   "building-meeting_stage-banlieue": { file: new URL("../../../assets/images/meeting/building-meeting_stage-banlieue.png", import.meta.url).href },
   "building-meeting_stage-periurbain": { file: new URL("../../../assets/images/meeting/building-meeting_stage-periurbain.png", import.meta.url).href },
@@ -60,6 +63,8 @@ export const visualManifest = {
   "character-le_pen": { file: new URL("../../../assets/images/candidats/le-pen/character-le_pen.png", import.meta.url).href },
   "character-philippe": { file: new URL("../../../assets/images/candidats/philippe/character-philippe.png", import.meta.url).href },
   "crs-0": { file: new URL("../../../assets/images/secondaires/crs-0.png", import.meta.url).href },
+  "rally-placards": { file: new URL("../../../assets/images/manifestations/pancartes-v1.png", import.meta.url).href },
+  "rally-biome-placards": { file: new URL("../../../assets/images/manifestations/pancartes-biomes-v2.png", import.meta.url).href },
   "crs-1": { file: new URL("../../../assets/images/secondaires/crs-1.png", import.meta.url).href },
   "journalist-0": { file: new URL("../../../assets/images/secondaires/journalist-0.png", import.meta.url).href },
   "journalist-1": { file: new URL("../../../assets/images/secondaires/journalist-1.png", import.meta.url).href },

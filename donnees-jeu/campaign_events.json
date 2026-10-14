@@ -3,6 +3,11 @@
     "event_id": "rassemblement_paris_19e",
     "family": "RASSEMBLEMENT",
     "title": "Manifestation",
+    "headlines": [
+      "Manifestation pour des cantines 100 % végétariennes",
+      "Mouvement pour la décarbonation de l’économie",
+      "Le mouvement « Plus de vélo, moins de béton » prend de l’ampleur"
+    ],
     "description": "Une manifestation traverse le quartier.",
     "biome_target": "paris_19e",
     "candidate_target": null,
@@ -23,7 +28,12 @@
   {
     "event_id": "rassemblement_banlieue",
     "family": "RASSEMBLEMENT",
-    "title": "Marche de protestation",
+    "title": "Marche",
+    "headlines": [
+      "Nouvelles émeutes alors que les banlieues s’enflamment",
+      "Mort d’un jeune : les quartiers demandent justice",
+      "Nouvelle marche pour l’égalité contre la police"
+    ],
     "description": "Un jeune est mort lors d’une intervention policière.",
     "biome_target": "banlieue",
     "candidate_target": null,
@@ -44,7 +54,12 @@
   {
     "event_id": "rassemblement_periurbain_usine",
     "family": "RASSEMBLEMENT",
-    "title": "Marche des grévistes",
+    "title": "Mouvement",
+    "headlines": [
+      "Le retour des gilets jaunes, 8 ans après",
+      "Nouvelle mobilisation contre les ZFE",
+      "L’usine ferme, la colère monte"
+    ],
     "description": "L’usine du coin annonce sa fermeture.",
     "biome_target": "periurbain_usine",
     "candidate_target": null,
@@ -65,7 +80,12 @@
   {
     "event_id": "rassemblement_campagne",
     "family": "RASSEMBLEMENT",
-    "title": "Mouvement agricole",
+    "title": "Blocages",
+    "headlines": [
+      "Les agriculteurs en colère",
+      "Vers un nouveau mouvement agricole ?",
+      "Colère : du beurre pour nos tracteurs"
+    ],
     "description": "Agriculteurs et habitants défilent ensemble.",
     "biome_target": "campagne",
     "candidate_target": null,
@@ -86,7 +106,12 @@
   {
     "event_id": "rassemblement_retraites",
     "family": "RASSEMBLEMENT",
-    "title": "Marche en hommage",
+    "title": "Cortège",
+    "headlines": [
+      "Marche blanche pour Léonie",
+      "Hommage au jeune Léo, assassiné",
+      "Colère des retraités : pas touche à nos pensions"
+    ],
     "description": "Les habitants rendent hommage à un jeune disparu.",
     "biome_target": "retraites",
     "candidate_target": null,
@@ -107,7 +132,12 @@
   {
     "event_id": "rassemblement_quartiers_riches",
     "family": "RASSEMBLEMENT",
-    "title": "Rassemblement citoyen",
+    "title": "Rassemblement",
+    "headlines": [
+      "Rassemblement pour la croissance",
+      "Défilés des grandes fortunes qui s’inquiètent",
+      "Appel contre la construction de nouveaux logements sociaux"
+    ],
     "description": "Un krach boursier fait descendre le quartier dans la rue.",
     "biome_target": "quartiers_riches",
     "candidate_target": null,

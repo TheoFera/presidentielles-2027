@@ -1,5 +1,5 @@
 import { drawMountedCandidate } from '../carte/vehicles.js';
-import { drawRallyAccessories } from '../carte/fixed-world.js';
+import { drawRallyAccessories } from './rally-sprites.js';
 import { drawCandidateCombat } from './melenchon-combat.js';
 import { drawUltimateCharacter } from '../effets/ultimate-sprites.js';
 import { specialCharacterAssetId } from './campaign-style-art.js';
@@ -140,6 +140,7 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, width * 0.48, 3, 0, 0, Math.PI * 2); ctx.fill();
+  drawRallyAccessories(renderer, entity, x, feetY, height, width, state, motion);
   if (entity.role === 'ENCAPUCHONNE' && state.tick < entity.ready_tick) {
     ctx.beginPath(); ctx.rect(x - width, feetY - height * 1.1, width * 2, height * 1.1); ctx.clip();
     ctx.translate(0, height * (1 - (state.tick - entity.spawn_tick) / Math.max(1, entity.ready_tick - entity.spawn_tick)));
@@ -187,7 +188,8 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
     for (let ray = 0; ray < 7; ray++) { const a = ray / 6 * Math.PI; ctx.beginPath(); ctx.moveTo(Math.cos(a) * width * .65, -height * .6 - Math.sin(a) * width); ctx.lineTo(Math.cos(a) * width * .85, -height * .6 - Math.sin(a) * width * 1.25); ctx.stroke(); }
   }
   ctx.restore();
-  drawRallyAccessories(renderer, entity, x, feetY, height, state);
+  // Les bouquets sont tenus devant le torse ; les manches des pancartes restent derrière la main.
+  if (entity.rally_event_id) drawRallyAccessories(renderer, entity, x, feetY, height, width, state, motion, true);
   ctx.save(); ctx.textAlign = 'center';
   if (supporter && !entity.moving && seed % 2 === 0) {
     // Pancarte brandie au rythme des acclamations, texte toujours lisible (dessinée hors du miroir).

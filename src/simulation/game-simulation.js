@@ -12,6 +12,7 @@ import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, z
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { chooseHomeX, createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
 import { npcHasArrived } from './npc-entry.js';
+import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { createElectorate, localPersuasionMultiplier, populationByOrigin } from './territory.js';
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
@@ -276,6 +277,7 @@ export class GameSimulation {
         const building = this.state.buildings.find(b => b.subzone_id === zoneAt(this.state.world, candidate.x).id && b.type === command.buildingType);
         if (!building || building.state === 'ACTIVE' || (building.owner_id && building.owner_id !== candidate.faction_id)) break;
         if (building.type === 'tour_communication' && this.state.buildings.filter(b => b.type === building.type && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id).length >= this.config.balance.buildings.tour_communication.global_limit) break;
+        prepareBuildingShutterTransition(building, 'ACTIVE', this.state.tick, this.hz);
         building.owner_id = candidate.faction_id; building.level = 1; building.state = 'ACTIVE'; building.last_action_tick = this.state.tick;
         this.emit('DebugBuildingConstructed', { target_id: building.id });
         break;
