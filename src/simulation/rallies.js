@@ -2,6 +2,7 @@ import { canCampaign, interrupted } from './combat-state.js';
 import { convertNeutral, neutralizeSupporter } from './npc-votes.js';
 import { npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
 import { stableIdOrder } from './territory.js';
+import { forgetMeetingCrowd } from './electoral-buildings.js';
 
 const position = (sim, npc, target, speed) => {
   const delta = ringDelta(npc.x, target, sim.state.world.length);
@@ -38,6 +39,7 @@ export function startRally(sim, event) {
     npc.rally_event_id = event.id; npc.rally_index = index; npc.rally_return_x = null;
     npc.rally_conversion = null; npc.rally_immune_until_tick = 0;
   });
+  forgetMeetingCrowd(state);
   for (const actor of [...state.candidates, ...state.npcs]) {
     actor.persuasion_target_ids = actor.persuasion_target_ids.filter(id => !participantIds.has(id));
     if (participantIds.has(actor.persuasion?.actor_id)) actor.persuasion = null;

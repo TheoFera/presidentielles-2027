@@ -6,6 +6,7 @@ import { GamePhase } from './phases.js';
 import { debateAICommands } from './debate-simulation.js';
 import { sprintAICommands } from './sprint-ai.js';
 import { minorAICommands } from './minor-candidates.js';
+import { tactics } from './ai-moments.js';
 
 export class Controller {
   commands(_state, _candidateId) { throw new Error('Le contrôleur doit produire des commandes.'); }
@@ -53,6 +54,8 @@ export class AIController extends Controller {
       return state.tick - candidate.combat.press_tick >= readyTicks
         ? [{ type: 'ReleaseAttack', candidateId }] : [{ type: 'Move', candidateId, axis: 0 }];
     }
+    // Hors combat, l’IA peut réfléchir moins souvent : entre deux réflexions, elle n’envoie rien et garde sa direction.
+    if (state.phase === GamePhase.CAMPAIGN && enPause(state, this.config, candidate)) return [];
     if (candidate.minor) return steadyTurns(state, this.config, candidate, minorAICommands(state, this.config, candidate));
     if (state.phase === GamePhase.SECOND_ROUND_SPRINT) return steadyTurns(state, this.config, candidate, sprintAICommands(state, this.config, candidate));
     // Débat médiatique ou meeting de crise en cours : l’engagement prime.
@@ -61,6 +64,21 @@ export class AIController extends Controller {
     if (committed) return committed;
     return steadyTurns(state, this.config, candidate, strategicAICommands(state, this.config, candidate));
   }
+}
+
+/**
+ * Image sans réflexion ? Les IA réfléchissent à tour de rôle (décalées d’une image), mais gardent tous leurs
+ * réflexes à chaque image en combat, face à un rival, juste après un coup, pendant un achat ou un événement.
+ * Ne dépend que de l’état de la partie : sauvegardes et multijoueur restent identiques.
+ */
+function enPause(state, config, c) {
+  const toutes = tactics(config).think_every_ticks;
+  if (!(toutes > 1) || !state.ai_enabled || c.is_ko) return false;
+  if ((state.tick + state.candidates.indexOf(c)) % toutes === 0) return false;
+  const hz = config.balance.simulation_architecture.fixed_tick_hz;
+  return !(c.combat.attack_id || c.combat.charge_active || c.combat.stun_ticks || c.dash_active || c.combat.jump_tick != null
+    || c.ai_mind?.opponent_id || c.purchase_hold || c.campaign_debate_id || c.crisis_meeting_id || c.ai_objective?.purpose === 'RECOVER'
+    || state.tick - (c.combat.last_hit?.tick ?? -Infinity) < 2 * hz);
 }
 
 /**

@@ -3,47 +3,65 @@ import { ALL_FACTIONS, FACTIONS, zoneAt } from './world.js';
 
 // Les candidats mineurs ont leurs propres voix (scores affichés).
 export const SUPPORT_KEYS = [...ALL_FACTIONS, 'neutral', 'pending'];
-export const emptySupport = () => Object.fromEntries(SUPPORT_KEYS.map(key => [key, 0]));
-const votingRole = role => ['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(role);
+// Recompté à chaque coup porté : ces fonctions évitent copies et tris (même résultat, bien plus rapide).
+const EMPTY_SUPPORT = Object.freeze(Object.fromEntries(SUPPORT_KEYS.map(key => [key, 0])));
+export const emptySupport = () => ({ ...EMPTY_SUPPORT });
+const VOTING_ROLES = new Set(['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']);
+const VOTING_FACTIONS = new Set(ALL_FACTIONS);
 
+/** Le camp en tête, seulement s’il est seul en tête. */
 export function leadership(support) {
-  const order = [...ALL_FACTIONS].sort((a, b) => support[b] - support[a] || ALL_FACTIONS.indexOf(a) - ALL_FACTIONS.indexOf(b));
-  const leader = support[order[0]] > support[order[1]] ? order[0] : null;
+  let best = null, top = -Infinity, tied = false;
+  for (const faction of ALL_FACTIONS) {
+    const value = support[faction];
+    if (value > top) { best = faction; top = value; tied = false; }
+    else if (value === top) tied = true;
+  }
+  const leader = tied ? null : best;
   return { leader, controller: leader };
 }
 
 /** Chaque entrée locale est un nombre de PNJ, jamais un pourcentage fictif. */
 export function aggregateNational(electorate) {
+  return nationalShares(nationalCounts(electorate), electorate);
+}
+
+function nationalCounts(electorate) {
   const counts = emptySupport();
-  const total = electorate.reduce((sum, zone) => sum + zone.electoral_weight, 0);
   for (const zone of electorate) for (const key of SUPPORT_KEYS) counts[key] += zone.support[key];
-  return Object.fromEntries(SUPPORT_KEYS.map(key => [key, total ? counts[key] * 100 / total : 0]));
+  return counts;
+}
+
+function nationalShares(counts, electorate) {
+  let total = 0;
+  for (const zone of electorate) total += zone.electoral_weight;
+  const shares = {};
+  for (const key of SUPPORT_KEYS) shares[key] = total ? counts[key] * 100 / total : 0;
+  return shares;
 }
 
 export function refreshElectoralState(state) {
   const byZone = new Map(state.electorate.map(zone => [zone.subzone_id, zone]));
   for (const zone of state.electorate) zone.support = emptySupport();
+  const born = new Map();
   for (const npc of state.npcs) {
     const zone = byZone.get(zoneAt(state.world, npc.x).id);
-    const key = votingRole(npc.role) && ALL_FACTIONS.includes(npc.faction_id) ? npc.faction_id : 'neutral';
+    const key = VOTING_ROLES.has(npc.role) && VOTING_FACTIONS.has(npc.faction_id) ? npc.faction_id : 'neutral';
     zone.support[key]++;
+    born.set(npc.origin_subzone_id, (born.get(npc.origin_subzone_id) ?? 0) + 1);
   }
-  for (const worldZone of state.world.subzones) {
-    const born = state.npcs.filter(npc => npc.origin_subzone_id === worldZone.id).length;
-    byZone.get(worldZone.id).support.pending = worldZone.max_npcs_by_origin - born;
-  }
+  for (const worldZone of state.world.subzones) byZone.get(worldZone.id).support.pending = worldZone.max_npcs_by_origin - (born.get(worldZone.id) ?? 0);
   const controlledCounts = { ...Object.fromEntries(ALL_FACTIONS.map(faction => [faction, 0])), contested: 0 };
   for (const zone of state.electorate) {
     zone.leader = leadership(zone.support).leader;
     zone.controller = zoneController(state, zone.subzone_id);
     controlledCounts[zone.controller || 'contested']++;
   }
-  const nationalCounts = emptySupport();
-  for (const zone of state.electorate) for (const key of SUPPORT_KEYS) nationalCounts[key] += zone.support[key];
+  const counts = nationalCounts(state.electorate);
   state.actualGameState = {
     updated_tick: state.tick,
-    national_counts: nationalCounts,
-    national_support: aggregateNational(state.electorate),
+    national_counts: counts,
+    national_support: nationalShares(counts, state.electorate),
     controlled_counts: controlledCounts,
     electorate_size: state.world.subzones.reduce((sum, zone) => sum + zone.max_npcs_by_origin, 0),
   };

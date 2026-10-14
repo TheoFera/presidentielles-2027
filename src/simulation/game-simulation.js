@@ -447,11 +447,28 @@ export class GameSimulation {
     const eligible = [...state.candidates.filter(c => !c.eliminated && c.campaign_active && minorCanRecruit(state, this.config, c)), ...state.npcs.filter(n => n.role === 'MILITANT')]
       .filter(actor => !actor.rally_event_id && actor.rally_return_x == null && canCampaign(actor) && !actor.moving && !actor.axis && Math.abs(actor.combat?.knockback_velocity || 0) <= 0.02);
     const claims = [];
+    // Les neutres sont rangés par position : chaque militant ne regarde que ceux de son voisinage,
+    // au lieu de parcourir toute la carte. (L'ordre des demandes ne compte pas : elles sont triées plus bas.)
+    const length = state.world.length, reach = radius + 1e-6;
+    const neutrals = state.npcs.filter(npc => !npc.rally_event_id && npc.role === 'NEUTRE')
+      .map(npc => ({ npc, x: wrap(npc.x, length) })).sort((a, b) => a.x - b.x);
+    const firstFrom = x => {
+      let low = 0, high = neutrals.length;
+      while (low < high) { const middle = (low + high) >> 1; if (neutrals[middle].x < x) low = middle + 1; else high = middle; }
+      return low;
+    };
+    const claim = (actor, npc) => {
+      const distance = Math.abs(ringDelta(actor.x, npc.x, length));
+      if (distance <= radius) claims.push({ actor, npc, distance, retained: npc.persuasion?.actor_id === actor.id });
+    };
     for (const actor of eligible) {
-      for (const npc of state.npcs) {
-        const distance = Math.abs(ringDelta(actor.x, npc.x, state.world.length));
-        if (!npc.rally_event_id && npc.role === 'NEUTRE' && distance <= radius) claims.push({ actor, npc, distance, retained: npc.persuasion?.actor_id === actor.id });
-      }
+      if (2 * reach >= length) { for (const { npc } of neutrals) claim(actor, npc); continue; }
+      const center = wrap(actor.x, length);
+      const scan = (from, to) => { for (let i = firstFrom(from); i < neutrals.length && neutrals[i].x <= to; i++) claim(actor, neutrals[i].npc); };
+      scan(center - reach, center + reach);
+      // La carte fait le tour : le voisinage peut déborder de l'autre côté.
+      if (center - reach < 0) scan(center - reach + length, length);
+      if (center + reach >= length) scan(0, center + reach - length);
     }
     // Keep a conversation until it breaks. New claims use distance then stable IDs,
     // so overlapping actors can never convert the same person twice in a tick.

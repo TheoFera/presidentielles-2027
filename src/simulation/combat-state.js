@@ -170,8 +170,24 @@ function knockDown(sim, target) {
   sim.emit('CandidateKnockedDown', { candidate_id: target.id });
 }
 
-export function nearestEnemy(state, actor, range, predicate = () => true) {
-  return combatActors(state).filter(target => enemies(actor, target) && predicate(target)
-    && Math.abs(combatDelta(state, actor.x, target.x)) <= range)
-    .sort((a, b) => Math.abs(combatDelta(state, actor.x, a.x)) - Math.abs(combatDelta(state, actor.x, b.x)) || stableIdOrder(a, b))[0] || null;
+/** Ennemi le plus proche à portée (à égalité de distance : le plus petit identifiant). Sans tableau ni tri : appelé très souvent. */
+export function nearestEnemy(state, actor, range, predicate = null) {
+  if (!canBeHit(actor)) return null;
+  // La distance (un simple calcul) est testée avant tout le reste : la plupart des personnages sont loin
+  // et sont écartés tout de suite. Les règles d'équipe ne sont vérifiées que pour les quelques proches.
+  const x = actor.x, length = state.debate_bounds ? Infinity : state.world.length, far = range + 1e-6;
+  let best = null, bestDistance = Infinity;
+  const consider = target => {
+    // Tri rapide par simple soustraction (la carte fait le tour : on regarde aussi « par l'autre côté »).
+    const gap = Math.abs(target.x - x);
+    if (gap > far && length - gap > far) return;
+    const d = Math.abs(combatDelta(state, x, target.x));
+    if (d > range || d > bestDistance || d === bestDistance && stableIdOrder(target, best) >= 0) return;
+    if (!enemies(actor, target) || predicate && !predicate(target)) return;
+    best = target; bestDistance = d;
+  };
+  for (const c of state.candidates) if (!c.eliminated && !c.campaign_debate_id) consider(c);
+  for (const n of state.npcs) consider(n);
+  for (const u of state.temporary_units) consider(u);
+  return best;
 }

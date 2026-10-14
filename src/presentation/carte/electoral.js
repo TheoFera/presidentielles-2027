@@ -357,23 +357,26 @@ export function drawMeetingWaves(renderer, state, alpha = 0) {
       ctx.fillStyle = veil; ctx.beginPath(); ctx.arc(x, cy, radius, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalAlpha = fade;
-    ctx.shadowColor = color; ctx.shadowBlur = 26;
-    ctx.strokeStyle = withAlpha(color, 0.35); ctx.lineWidth = 16;
-    ctx.beginPath(); ctx.arc(x, cy, radius, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = withAlpha(color, 0.9); ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.arc(x, cy, radius, 0, Math.PI * 2); ctx.stroke();
-    ctx.shadowColor = '#ffe9a8'; ctx.shadowBlur = 10;
-    ctx.strokeStyle = '#fff7d6'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(x, cy, radius, 0, Math.PI * 2); ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = withAlpha(color, 0.3); ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, cy, radius * 0.78, 0, Math.PI * 2); ctx.stroke();
-    // Étincelles portées par l'anneau.
-    ctx.fillStyle = '#fff6cf'; ctx.font = 'bold 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // Halo en traits larges et transparents superposés : même lueur qu'un flou (shadowBlur), bien moins coûteuse.
+    const ring = (style, lineWidth, r = radius) => {
+      ctx.strokeStyle = style; ctx.lineWidth = lineWidth;
+      ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.stroke();
+    };
+    for (const [opacity, lineWidth] of [[0.06, 48], [0.08, 40], [0.11, 32], [0.15, 25], [0.2, 18], [0.27, 12]]) ring(withAlpha(color, opacity), lineWidth);
+    ring(withAlpha(color, 0.9), 5);
+    ring('rgba(255, 233, 168, 0.35)', 7);
+    ring('#fff7d6', 2);
+    ring(withAlpha(color, 0.3), 3, radius * 0.78);
+    // Étincelles portées par l'anneau : petites étoiles à quatre branches, dessinées en un seul tracé.
+    ctx.fillStyle = '#fff6cf';
+    ctx.beginPath();
     for (let i = 0; i < 12; i++) {
       const angle = i / 12 * Math.PI * 2 + progress * 0.9;
-      ctx.fillText('✦', x + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+      const sx = x + Math.cos(angle) * radius, sy = cy + Math.sin(angle) * radius;
+      ctx.moveTo(sx, sy - 7); ctx.lineTo(sx + 2, sy - 2); ctx.lineTo(sx + 7, sy); ctx.lineTo(sx + 2, sy + 2);
+      ctx.lineTo(sx, sy + 7); ctx.lineTo(sx - 2, sy + 2); ctx.lineTo(sx - 7, sy); ctx.lineTo(sx - 2, sy - 2); ctx.closePath();
     }
+    ctx.fill();
     ctx.restore();
   }
 }

@@ -799,7 +799,8 @@
     "event_reach_units": 80,
     "event_reach_attack_units": 40,
     "swarm_retreat_ratio": 0.85,
-    "mission_detour_units": 10
+    "mission_detour_units": 10,
+    "think_every_ticks": 1
   },
   "ai_moments": {
     "note": "Courbes [avancement de la campagne de 0 à 1, probabilité qu'une IA soit dans ce moment]. 0 = J-365, 0.5 = J-183, 1 = premier tour. Chaque IA tire son propre seuil par partie.",
@@ -815,8 +816,8 @@
     "militants": {
       "first_goal": [1, 2],
       "first_reserve": 1,
-      "group_goal": 7,
-      "group_reserve": 1
+      "group_goal": 8,
+      "group_reserve": 0
     },
     "vehicles": {
       "spread_units": 96,

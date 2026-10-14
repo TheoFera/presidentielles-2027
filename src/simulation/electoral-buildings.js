@@ -40,6 +40,7 @@ export function triggerMeeting(sim, building, faction, candidateId = `candidate:
       npc.meeting_target_id = building.id;
     }
   }
+  forgetMeetingCrowd(sim.state);
   sim.emit('MeetingStarted', { target_id: building.id, faction_id: faction, candidate_id: candidate.id });
   return true;
 }
@@ -48,6 +49,7 @@ export function meetingAttendeeStep(sim, npc) {
   const building = sim.state.buildings.find(b => b.id === npc.meeting_target_id && b.meeting_candidate_id);
   if (!building || !['NEUTRE', 'SYMPATHISANT'].includes(npc.role)) {
     npc.meeting_target_id = null;
+    forgetMeetingCrowd(sim.state);
     return false;
   }
   const settings = sim.config.balance.buildings.meeting;
@@ -68,9 +70,28 @@ export function meetingAttendeeStep(sim, npc) {
  * Les places paires vont à gauche, les impaires à droite : les deux flancs se remplissent à égalité.
  */
 export function meetingCrowdPlace(state, npc) {
-  let place = 0;
-  for (const other of state.npcs) if (other.meeting_target_id === npc.meeting_target_id && other.id < npc.id) place++;
-  return place;
+  // Les places sont calculées en une fois pour toute la foule, puis réutilisées jusqu'au pas suivant :
+  // les recompter pour chaque spectateur, à chaque image, ralentissait le jeu pendant les meetings.
+  let cache = crowdPlaces.get(state);
+  if (!cache || cache.tick !== state.tick || cache.count !== state.npcs.length) {
+    const places = new Map(), byMeeting = new Map();
+    for (const other of state.npcs) {
+      if (!other.meeting_target_id) continue;
+      if (!byMeeting.has(other.meeting_target_id)) byMeeting.set(other.meeting_target_id, []);
+      byMeeting.get(other.meeting_target_id).push(other.id);
+    }
+    for (const ids of byMeeting.values()) ids.sort((a, b) => a < b ? -1 : a > b ? 1 : 0).forEach((id, place) => places.set(id, place));
+    cache = { tick: state.tick, count: state.npcs.length, places };
+    crowdPlaces.set(state, cache);
+  }
+  return cache.places.get(npc.id) ?? 0;
+}
+
+const crowdPlaces = new WeakMap();
+
+/** À appeler quand un PNJ rejoint ou quitte le public d'un meeting : les places seront recalculées. */
+export function forgetMeetingCrowd(state) {
+  crowdPlaces.delete(state);
 }
 
 /** Position dans la foule : chacun à côté du précédent, le centre reste dégagé pour voir l'orateur. */
@@ -130,6 +151,7 @@ function finishMeeting(sim, building, valid) {
   building.meeting_hold_ticks = 0;
   building.meeting_pause_ticks = 0;
   for (const npc of state.npcs) if (npc.meeting_target_id === building.id) npc.meeting_target_id = null;
+  forgetMeetingCrowd(state);
   refreshElectoralState(state);
   sim.emit(valid ? 'MeetingValidated' : 'MeetingCancelled', {
     target_id: building.id, faction_id: faction, candidate_id: candidateId, reached,

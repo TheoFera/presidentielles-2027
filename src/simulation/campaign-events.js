@@ -102,6 +102,8 @@ export class CampaignEventDirector {
 }
 export function updateCampaignEvents(sim){
  const s=sim.state;if(s.phase!=='CAMPAIGN')return;
+ // Les voix ne sont recomptées ici que si un événement a pu les changer (sinon : une fois en fin de pas).
+ const enCours=active(s).length>0;
  if(!cfg(sim).event_enabled){for(const e of active(s))resolveCampaignEvent(sim,e,'EXPIRED');return;}
  for(const e of active(s)){
  if(e.family==='RASSEMBLEMENT'){if(updateRally(sim,e))resolveCampaignEvent(sim,e);continue;}
@@ -141,7 +143,7 @@ export function updateCampaignEvents(sim){
  if(e.status==='ACTIVE'&&e.end_tick!==null&&s.tick>=e.end_tick)resolveCampaignEvent(sim,e,'EXPIRED');
  }
  for(const c of s.candidates){c.disappeared=!!c.campaign_debate_id||(c.is_ko&&s.tick>=c.disappear_tick);if(c.campaign_debate_id)c.axis=0;}
- refreshElectoralState(s,sim.config);
+ if(enCours)refreshElectoralState(s,sim.config);
 }
 export function campaignCommand(sim,command){
  if(command.type==='DebugStartCampaignEvent'){if(!cfg(sim).event_enabled||!CampaignEventDirector.start(sim,command))sim.emit('CampaignEventRejected',{reason:!cfg(sim).event_enabled?'Les événements de campagne sont désactivés.':'Aucune cible admissible, variante déjà utilisée ou limite d’événements atteinte.'});return true;}

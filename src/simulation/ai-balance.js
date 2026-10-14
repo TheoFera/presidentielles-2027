@@ -18,6 +18,19 @@ export const adaptationSettings = config => ({ ...DEFAULTS, ...config.balance.ai
  * bâtiments actifs et un peu d’argent. Lecture pure, sans aléa.
  */
 export function powerBalance(state, config) {
+  // Demandé par chaque IA, chaque militant et chaque conversion en cours : calculé une fois par image et par jeu
+  // de réglages. L’objet des voix (actualGameState) change à chaque recomptage, ce qui invalide la mémoire.
+  const parReglages = memoireForce.get(state) ?? new Map();
+  memoireForce.set(state, parReglages);
+  const connu = parReglages.get(config);
+  if (connu && connu.tick === state.tick && connu.voix === state.actualGameState) return connu.resultat;
+  const resultat = calculerForce(state, config);
+  parReglages.set(config, { tick: state.tick, voix: state.actualGameState, resultat });
+  return resultat;
+}
+const memoireForce = new WeakMap();
+
+function calculerForce(state, config) {
   const s = adaptationSettings(config);
   const national = aggregateNational(state.electorate);
   const zones = state.electorate.length || 1;

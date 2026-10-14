@@ -23,6 +23,8 @@ const TACTICS = Object.freeze({
   prey_weight: 2.5, prey_cap: 30, attack_near_units: 30, far_attack_factor: 0.35, invaded_bonus: 45,
   funding_distance_units: 15, event_reach_units: 80, event_reach_attack_units: 40,
   swarm_retreat_ratio: 0.85, mission_detour_units: 10,
+  // Fréquence de réflexion hors combat : 1 = à chaque image ; 3 = une image sur trois (10 fois par seconde).
+  think_every_ticks: 1,
 });
 export const tactics = config => ({ ...TACTICS, ...config.balance.ai_tactics });
 
