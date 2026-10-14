@@ -235,6 +235,29 @@ test('les bâtiments n’offrent plus d’amélioration', () => {
   }
 });
 
+test('cabinet : une fermeture renvoie chez eux les soutiens du camp visé autour du bâtiment (dossiers)', () => {
+  const sim = make();
+  const philippe = sim.state.candidates.find(candidate => candidate.faction_id === 'philippe');
+  const lePen = sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen');
+  const cabinet = sim.state.buildings.find(building => building.fixed_variant === 'cabinet_administratif');
+  captureSite(sim, cabinet, philippe); philippe.money = 1000;
+  const victim = sim.state.buildings.find(building => building.type === 'tour_communication');
+  captureSite(sim, victim, lePen);
+  const radius = config.balance.buildings.faction_slot_philippe_cabinet_administratif.close_demobilize_radius_units;
+  const [proche, militant, loin, autreCamp] = sim.state.npcs.slice(0, 4);
+  Object.assign(proche, { role: 'SYMPATHISANT', faction_id: 'le_pen', task: null, x: victim.x + 1 });
+  Object.assign(militant, { role: 'MILITANT', faction_id: 'le_pen', task: null, x: victim.x - radius + 0.5 });
+  Object.assign(loin, { role: 'SYMPATHISANT', faction_id: 'le_pen', task: null, x: victim.x + radius + 3 });
+  Object.assign(autreCamp, { role: 'SYMPATHISANT', faction_id: 'melenchon', task: null, x: victim.x + 2 });
+  const offer = buildingOffers(sim.state, sim.config, philippe, cabinet).find(o => o.kind === 'CLOSE' && o.victim_id === victim.id);
+  assert.ok(offer?.enabled, 'fermeture disponible');
+  assert.ok(commitFactionAction(sim, philippe, cabinet, offer));
+  assert.notEqual(victim.state, 'ACTIVE');
+  assert.equal(proche.role, 'DEMOBILISE'); assert.equal(militant.role, 'DEMOBILISE');
+  assert.equal(loin.role, 'SYMPATHISANT', 'hors du rayon : non touché');
+  assert.equal(autreCamp.faction_id, 'melenchon', 'un autre camp n’est pas touché');
+});
+
 test('raid : 3 sympathisants entrent au local, ressortent en SO côte à côte, puis partent sans jamais revenir', () => {
   const sim = make();
   const site = sim.state.buildings.find(building => building.type === 'faction');

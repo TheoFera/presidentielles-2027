@@ -172,6 +172,14 @@ test('Résistance et difficulté de persuasion restent limitées à la sous-zone
   target.x += 24; assert.equal(localUnitDamageMultiplier(sim.state, sim.config, target), 1);
   target.x = site.x; neutralizeSite(sim, site); assert.ok(controlledTime >= sim.persuasionTicks(enemy, target) * 1.59);
 });
+test('Les quartiers tenus par Philippe protègent davantage ses soutiens', () => {
+  const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo');
+  const c = own(sim, site, sim.state.candidates.find(x => x.faction_id === 'philippe'));
+  const target = sim.state.npcs.find(n => n.origin_subzone_id === site.subzone_id); target.x = site.x;
+  convertNeutral(sim, target, c.faction_id);
+  assert.equal(localUnitDamageMultiplier(sim.state, sim.config, target), 1 / sim.config.balance.zone_control.philippe_supporter_health_multiplier);
+  assert.ok(localUnitDamageMultiplier(sim.state, sim.config, target) < 1 / 1.5);
+});
 test('Le contrôle persiste sans soutiens ; une pression hostile peut le neutraliser', () => {
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo'); own(sim, site);
   for (let i = 0; i < 600; i++) updateStrategicSites(sim); assert.equal(site.state, 'ACTIVE');

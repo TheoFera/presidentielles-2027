@@ -5,6 +5,7 @@ import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
 import { cancelMeeting } from './electoral-buildings.js';
 import { raidRecruits, startRaid } from './military.js';
+import { demobilizeUnit } from './combat-state.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
@@ -69,6 +70,7 @@ export function commitFactionAction(sim, candidate, building, offer) {
   if (offer.kind === 'CLOSE') {
     const victim = state.buildings.find(b => b.id === offer.victim_id);
     if (!victim || victim.headquarters) return false;
+    const targetFaction = victim.type === 'meeting' ? victim.meeting_faction_id : victim.owner_id;
     if (victim.type === 'meeting') {
       const targeted = victim.meeting_faction_id;
       cancelMeeting(sim, victim);
@@ -87,8 +89,15 @@ export function commitFactionAction(sim, candidate, building, offer) {
       if (c.purchase_hold?.target_id === victim.id) c.purchase_hold = null;
       if (c.interaction_chain_site_id === victim.id) c.interaction_chain_site_id = null;
     }
+    // « Dossiers » : la fermeture renvoie chez eux les soutiens du camp visé autour du bâtiment ; ils redeviennent neutres.
+    const radius = buildingSettings(config, building).close_demobilize_radius_units ?? 0;
+    let sentHome = 0;
+    if (radius > 0 && targetFaction) for (const npc of state.npcs) {
+      if (npc.faction_id !== targetFaction || !['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) || distance(state, npc.x, victim.x) > radius) continue;
+      demobilizeUnit(sim, npc); sentHome++;
+    }
     building.closure_ready_tick = state.tick + sim.secondsToTicks(buildingSettings(config, building).closure_cooldown_seconds);
-    sim.emit('BuildingClosed', { target_id: victim.id, cabinet_id: building.id, owner_id: victim.owner_id });
+    sim.emit('BuildingClosed', { target_id: victim.id, cabinet_id: building.id, owner_id: victim.owner_id, sent_home: sentHome });
     return true;
   }
   return false;

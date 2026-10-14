@@ -18,5 +18,8 @@ export function hostilePersuasionMultiplier(state, config, actor, target) {
 export function controlledUnitDamageMultiplier(state, config, target) {
   if (!['SYMPATHISANT', 'MILITANT'].includes(target.role)) return 1;
   const owner = zoneController(state, zoneAt(state.world, target.x).id);
-  return owner && owner === target.faction_id ? 1 / config.balance.zone_control.supporter_health_multiplier : 1;
+  if (!owner || owner !== target.faction_id) return 1;
+  // Avantage de Philippe : ses quartiers tenus protègent davantage ses soutiens.
+  const control = config.balance.zone_control;
+  return 1 / (owner === 'philippe' ? control.philippe_supporter_health_multiplier ?? control.supporter_health_multiplier : control.supporter_health_multiplier);
 }

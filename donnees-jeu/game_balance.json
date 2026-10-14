@@ -377,6 +377,7 @@
       "close_enemy_building_cost_by_level": [
         5
       ],
+      "close_demobilize_radius_units": 6,
       "meeting_ban_seconds": 20,
       "allowed_targets_by_level": [
         [
@@ -1089,7 +1090,8 @@
   },
   "zone_control": {
     "enemy_persuasion_time_multiplier": 1.6,
-    "supporter_health_multiplier": 1.5
+    "supporter_health_multiplier": 1.5,
+    "philippe_supporter_health_multiplier": 2
   },
   "vehicles": {
     "mount_seconds": 1,
