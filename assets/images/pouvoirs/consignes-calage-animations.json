@@ -1,0 +1,19 @@
+{
+  "outil": "ImageGen",
+  "consignes": [
+    {
+      "name": "attal-ko",
+      "prompt": "Use case: identity-preserve. Production 2D game sprite sheet, EXACTLY FIVE isolated figures in FIVE equal columns ONE horizontal row, full figure in each cell, consistent drawing scale. Reference image is Gabriel Attal's USER APPROVED skin: preserve exact recognizable face, dark wavy curly hair, nose, stubble, navy suit white shirt navy tie and black shoes, inked painterly caricature style. CRITICAL anatomically SAME large head and SAME compact body proportions as reference in ALL FIVE poses, never shrink head in falling/lying figures. The reference head (hair to chin) occupies about 37% of the character's full standing height. Keep this ratio, no realistic long slender body. Figure0 upright calm standing SIDE PROFILE facing RIGHT, arms relaxed at sides, provides size reference. Figure1 beginning backward fall, feet and arms in front to RIGHT. Figure2 fallen seated leaning back, feet RIGHT. Figure3 lying sideways supported on elbow, face RIGHT and legs extended RIGHT. Figure4 lying on side resting on bent forearm, eyes closed, legs extended RIGHT; same full body length as standing height, same physical head size as figure0. Ensure nose/face looks RIGHT even lying, no blood or injury. Bending or lying changes the bounding rectangle, NOT anatomical scale. Transparent RGBA, NO backdrop, no shadow, glow, floor, scenery, labels, text, numbers or grid. HUGE transparent gutters between all five figures and wide margins, no touching/clipping.",
+      "reference": "assets/images/candidats/attal/attal-base-v6.png",
+      "source": "C:/Users/ferat/.codex/generated_images/01a137dc-5e42-7cd3-85e4-d153bd74149d/exec-40355609-5e6f-46ae-a5b9-83dfb8114f2c.png",
+      "destination": "assets/images/candidats/attal/attal-chutes-v7.png"
+    },
+    {
+      "name": "gluck-phone",
+      "prompt": "Use case: identity-preserve. Production 2D game sprites EXACTLY THREE isolated figures in THREE equal columns ONE horizontal row. Reference is the USER APPROVED Raphaël Glucksmann skin; preserve exactly face, grey temples, stubble, navy suit and open white shirt, satirical inked painterly game style. CRITICAL same BIG CARICATURE HEAD and COMPACT body proportions in all3 as reference, not realistic lanky body. Head from hair to chin occupies about 37% of full standing height, short compact torso and legs as reference. All3 face RIGHT side profile and identical physical head and body size. Figure0 calmly standing arms relaxed at sides (scale reference). Figure1 stands holding a black mobile phone against near ear, free hand on waist. Figure2 same phone at ear, free hand gestures forward. Keep hair/head and shoes fully visible, no redesign of face. Transparent RGBA, NO background, glow, shadow, floor, text, logos, numbers/grid. Generous transparent margins and gutters. No detached props.",
+      "reference": "assets/images/candidats/glucksmann/glucksmann-combat-v5.png",
+      "source": "C:/Users/ferat/.codex/generated_images/01a137dc-5e42-7cd3-85e4-d153bd74149d/exec-7d38e500-124b-489c-a709-c075406ad485.png",
+      "destination": "assets/images/pouvoirs/glucksmann-appel-v2.png"
+    }
+  ]
+}

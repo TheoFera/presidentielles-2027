@@ -5,6 +5,11 @@ import { ULTIMATE_GUARD_FILES } from '../effets/ultimate-guard-sprites.js';
 // Les chemins restent écrits en entier : scripts/build-pages.mjs les repère pour l'export web.
 
 export const fixedWorldAssets = {
+  'riders-periurbain-melenchon': { file: new URL('../../../assets/images/vehicules/riders-periurbain-melenchon.png', import.meta.url).href },
+  'riders-periurbain-le_pen': { file: new URL('../../../assets/images/vehicules/riders-periurbain-le_pen.png', import.meta.url).href },
+  'riders-periurbain-philippe': { file: new URL('../../../assets/images/vehicules/riders-periurbain-philippe.png', import.meta.url).href },
+  'riders-periurbain-bardella': { file: new URL('../../../assets/images/vehicules/riders-periurbain-bardella.png', import.meta.url).href },
+  'scooter-periurbain': { file: new URL('../../../assets/images/vehicules/scooter-periurbain.png', import.meta.url).href },
   'riders-melenchon': { file: new URL('../../../assets/images/vehicules/riders-melenchon.png', import.meta.url).href },
   'riders-le_pen': { file: new URL('../../../assets/images/vehicules/riders-le_pen.png', import.meta.url).href },
   'riders-philippe': { file: new URL('../../../assets/images/vehicules/riders-philippe.png', import.meta.url).href },

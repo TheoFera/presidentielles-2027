@@ -11,11 +11,18 @@ import { releaseDonation, dropCandidateMoney } from './money.js';
 import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
 import { recordKnockout } from './unlock-catalog.js';
+import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null,
   knockdown_tick: null, invulnerable_until_tick: -1 });
 export const combatActors = state => [...state.candidates.filter(c => !c.eliminated && !c.campaign_debate_id), ...state.npcs, ...state.temporary_units];
+/** Recherche sans recopier toute la population ; conserve l'ordre de combatActors. */
+export function findCombatActor(state, id) {
+  for (const c of state.candidates) if (c.id === id && !c.eliminated && !c.campaign_debate_id) return c;
+  for (const npc of state.npcs) if (npc.id === id) return npc;
+  for (const unit of state.temporary_units) if (unit.id === id) return unit;
+}
 export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_debate_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
 // En mode Débat, deux copies d’un même candidat s’affrontent : chacune a sa propre équipe.
 const team = actor => actor.team_id ?? actor.faction_id;
@@ -133,7 +140,7 @@ export function hit(sim, source, target, spec, attackId) {
   if (!protectedHit) target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
   // Chute au sol : coup final du combo ou coup chargé sur un candidat encore debout.
   if (!protectedHit && target.role === 'CANDIDAT' && !target.is_ko && !revived && !(state.debate_bounds && target.debate_hp <= 0)
-    && (spec.kind === 'CHARGED' && !spec.partial || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind))) knockDown(sim, target);
+    && spec.tool !== 'HAMMER' && (spec.kind === 'CHARGED' && !spec.partial || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind))) knockDown(sim, target);
   // Encaisser un coup d’un candidat (ou de ses invocations) remplit aussi l’ultime.
   if (target.role === 'CANDIDAT' && result.damage > 0 && !target.is_ko && (source.role === 'CANDIDAT' || source.temporary)) hitTakenCharge(sim, target, !!spec.strong);
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
@@ -187,7 +194,7 @@ export function nearestEnemy(state, actor, range, predicate = null) {
     if (gap > far && length - gap > far) return;
     const d = Math.abs(combatDelta(state, x, target.x));
     if (d > range || d > bestDistance || d === bestDistance && stableIdOrder(target, best) >= 0) return;
-    if (!enemies(actor, target) || predicate && !predicate(target)) return;
+    if (!enemies(actor, target) || invisibleToEnemies(target, state.tick) || predicate && !predicate(target)) return;
     best = target; bestDistance = d;
   };
   for (const c of state.candidates) if (!c.eliminated && !c.campaign_debate_id) consider(c);

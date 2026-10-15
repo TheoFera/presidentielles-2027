@@ -3,6 +3,7 @@ import { ultimateGuardAtlases } from './ultimate-guard-sprites.js';
 import { MelenchonMotionTracker } from '../personnages/melenchon-extra-poses.js';
 import { prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
 import { waveEffectAtlas, waveEffectBounds } from './wave-sprites.js';
+import { ultimateCharacterScale } from './ultimate-character-scale.js';
 
 const sheets = { WAVE:'wave', FIRE:'fire', SURGE:'surge', WALL:'wall', ZEMMOUR:'zemmour', SCARF:'scarf', BARDELLA:'bardella', EUROPE:'europe' };
 const hzOf = config => config.balance.simulation_architecture.fixed_tick_hz;
@@ -112,9 +113,8 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
   }
   const baseHeight=pose.sheet==='surge'?m.characterHeight*SURGE_HEIGHT_RATIO:m.characterHeight*(entity.role==='CANDIDAT'?1:renderer.p.npc_height_multiplier);
   const height=baseHeight*surgeScale;
-  const scale = height / atlas.referenceHeight * (pose.sheet === 'fire' ? 1.1236 : 1);
-  const castScale=['scarf','wave'].includes(pose.sheet);
-  const scaleX=scale*(castScale?1.12:1),scaleY=scale*(castScale?1.06:1);
+  const scale = entity.role === 'CANDIDAT' ? ultimateCharacterScale(atlas, pose.frame, height, pose.sheet) : height / atlas.referenceHeight;
+  const scaleX=scale,scaleY=scale;
   const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   ctx.save();
   ctx.globalAlpha*=surgeAlpha;

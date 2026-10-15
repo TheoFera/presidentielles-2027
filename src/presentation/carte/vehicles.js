@@ -6,6 +6,15 @@ const atlasFrames = new WeakMap();
 const wheelMotion = new WeakMap();
 const wheelSpins = new WeakMap();
 
+// Le garage d'origine suffit à distinguer les deux scooters, y compris dans
+// les anciennes sauvegardes et les instantanés multijoueurs.
+export function mountedVehicleAssetId(entity, state) {
+  const candidate = entity.bardella_form ? 'bardella' : entity.faction_id;
+  const site = state.buildings?.find(b => b.id === entity.vehicle?.site_id);
+  const modern = entity.vehicle?.type === 'scooter' && site?.subzone_id === 'periurbain_b';
+  return `riders-${modern ? 'periurbain-' : ''}${candidate}`;
+}
+
 // Centres horizontaux et rayons dans les images d'origine (rapportés à leur largeur).
 // La hauteur se mesure depuis le bas de chaque pose, quelle que soit sa tenue.
 const wheelLayouts = {
@@ -13,6 +22,12 @@ const wheelLayouts = {
   le_pen: { velo: [[.184, .061], [.385, .061]], scooter: [[.634, .040], [.849, .042]] },
   philippe: { velo: [[.167, .059], [.369, .059]], scooter: [[.634, .041], [.868, .043]] },
   bardella: { velo: [[.111, .084], [.398, .084]], scooter: [[.605, .054], [.915, .055]] },
+};
+const modernWheelLayouts = {
+  melenchon: [[.166, .124], [.862, .132]],
+  le_pen: [[.175, .127], [.872, .13]],
+  philippe: [[.17, .125], [.86, .13]],
+  bardella: [[.161, .134], [.849, .14]],
 };
 
 export function vehicleWheelTravel(renderer, entity, x, state) {
@@ -36,8 +51,11 @@ export function vehicleWheelSpin(spin, distance, pixelsPerUnit, radius, spokes) 
   return { distance, angle: (spin?.angle || 0) + Math.max(-limit, Math.min(limit, step)) };
 }
 
-function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
-  const layout = wheelLayouts[entity.bardella_form ? 'bardella' : entity.faction_id]?.[entity.vehicle.type];
+function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance, modern = false) {
+  // Les nouveaux pneus sont plus grands : leurs centres sont mesurés dans
+  // chaque pose recadrée, et non dans l'ancienne planche vélo/scooter.
+  const candidate = entity.bardella_form ? 'bardella' : entity.faction_id;
+  const layout = modern ? modernWheelLayouts[candidate] : wheelLayouts[candidate]?.[entity.vehicle.type];
   if (!layout) return;
   const { ctx, metrics: m } = renderer;
   let spins = wheelSpins.get(renderer);
@@ -45,8 +63,8 @@ function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
   const scale = h / frame.height;
   const spokes = entity.vehicle.type === 'velo' ? 12 : 5;
   layout.forEach(([centre, size], index) => {
-    const radius = size * sprite.naturalWidth * scale;
-    const cx = (centre * sprite.naturalWidth - frame.x) * scale - w / 2;
+    const radius = size * (modern ? frame.width : sprite.naturalWidth) * scale;
+    const cx = modern ? centre * w - w / 2 : (centre * sprite.naturalWidth - frame.x) * scale - w / 2;
     const cy = -radius;
     const key = `${entity.id}:${index}`;
     const spin = vehicleWheelSpin(spins.get(key), distance, m.pixelsPerUnit, radius, spokes);
@@ -58,10 +76,10 @@ function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
     // restent devant la roue, comme dans l'illustration d'origine.
     ctx.beginPath(); ctx.rect(-radius, radius * .15, radius * 2, radius); ctx.clip();
     ctx.beginPath(); ctx.arc(0, 0, radius * .78, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = entity.vehicle.type === 'velo' ? '#303633' : '#8f9494';
+    ctx.fillStyle = modern ? '#292b28' : entity.vehicle.type === 'velo' ? '#303633' : '#8f9494';
     ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
     ctx.rotate(angle);
-    ctx.strokeStyle = entity.vehicle.type === 'velo' ? '#bac0b5' : '#dfe3df';
+    ctx.strokeStyle = modern ? '#74776d' : entity.vehicle.type === 'velo' ? '#bac0b5' : '#dfe3df';
     ctx.lineWidth = Math.max(.65, radius * .045);
     for (let i = 0; i < spokes; i++) {
       const a = i * Math.PI * 2 / spokes;
@@ -73,13 +91,15 @@ function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance) {
 }
 export function prepareVehicleAtlas(id, image) {
   if (atlasFrames.has(image)) return atlasFrames.get(image);
-  const rows = id === 'vehicles' || id === 'riders-bardella' ? 1 : 4;
+  const modern = id.startsWith('riders-periurbain-');
+  const columns = modern && id.endsWith('bardella') ? 1 : 2;
+  const rows = id === 'vehicles' || id.endsWith('bardella') ? 1 : modern ? 2 : 4;
   const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
   const ctx = canvas.getContext('2d', { willReadFrequently: true }); ctx.drawImage(image, 0, 0);
   const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const frames = [];
-  for (let col = 0; col < 2; col++) {
-    const x0 = Math.floor(col * canvas.width / 2), x1 = Math.floor((col + 1) * canvas.width / 2);
+  for (let col = 0; col < columns; col++) {
+    const x0 = Math.floor(col * canvas.width / columns), x1 = Math.floor((col + 1) * canvas.width / columns);
     // Les espaces transparents séparent les poses : ne pas couper une roue ou
     // une coiffure lorsque le dessin déborde légèrement de sa cellule théorique.
     const bands = []; let band = null;
@@ -99,7 +119,7 @@ export function prepareVehicleAtlas(id, image) {
       for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (data[(y * canvas.width + x) * 4 + 3] > 96) {
         left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
       }
-      frames[row * 2 + col] = { x: left, y: top, width: Math.max(1, right - left + 1), height: Math.max(1, bottom - top + 1) };
+      frames[row * columns + col] = { x: left, y: top, width: Math.max(1, right - left + 1), height: Math.max(1, bottom - top + 1) };
     }
   }
   atlasFrames.set(image, frames); return frames;
@@ -107,11 +127,12 @@ export function prepareVehicleAtlas(id, image) {
 
 export function drawMountedCandidate(renderer, entity, x, state) {
   if (entity.role !== 'CANDIDAT' || !entity.vehicle) return false;
-  const id = `riders-${entity.bardella_form ? 'bardella' : entity.faction_id}`;
+  const id = mountedVehicleAssetId(entity, state);
   const sprite = renderer.assets.get(id);
   if (!sprite) { void renderer.assets.load(id); return false; }
   const row = entity.bardella_form ? 0 : Math.max(0, 1 + CAMPAIGN_STYLES[entity.faction_id].findIndex(s => s.id === entity.current_campaign_style));
-  const frame = prepareVehicleAtlas(id, sprite)[row * 2 + (entity.vehicle.type === 'scooter' ? 1 : 0)];
+  const modern = id.startsWith('riders-periurbain-');
+  const frame = prepareVehicleAtlas(id, sprite)[modern ? row : row * 2 + (entity.vehicle.type === 'scooter' ? 1 : 0)];
   const { ctx, metrics: m } = renderer;
   const h = m.characterHeight * 1.12, w = h * frame.width / frame.height;
   const bob = entity.moving ? Math.sin(state.tick * 0.6) * 0.6 : 0;
@@ -119,7 +140,7 @@ export function drawMountedCandidate(renderer, entity, x, state) {
   ctx.fillStyle = '#28363325'; ctx.beginPath(); ctx.ellipse(x, m.groundY + 6, w * 0.45, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, m.groundY + 6 + bob); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   ctx.drawImage(sprite, frame.x, frame.y, frame.width, frame.height, -w / 2, -h, w, h);
-  drawTurningWheels(renderer, entity, sprite, frame, h, w, vehicleWheelTravel(renderer, entity, x, state));
+  drawTurningWheels(renderer, entity, sprite, frame, h, w, vehicleWheelTravel(renderer, entity, x, state), modern);
   ctx.restore(); return true;
 }
 

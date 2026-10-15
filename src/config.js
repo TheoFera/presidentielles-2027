@@ -62,8 +62,9 @@ export function validateConfig(config) {
   if (ko.ko_respawn_max_seconds < ko.ko_respawn_min_seconds || !Number.isFinite(ko.ko_money_drop_ratio) || ko.ko_money_drop_ratio < 0 || ko.ko_money_drop_ratio > 1) throw new Error('Configuration : perte d’argent au KO invalide.');
   if (!Number.isInteger(config.balance.time.starting_days_before_first_round) || config.balance.time.starting_days_before_first_round < 1) throw new Error('Configuration : nombre de jours initial invalide.');
   positive(config.balance.time.second_round_sprint_seconds, 'durée du second tour');
+  for (const [key, value] of Object.entries(config.prototype.presentation.transitions)) positive(value, `transition ${key}`);
   const debate = config.balance.first_round_debate;
-  for (const key of ['width_units', 'edge_margin', 'transition_seconds', 'ai_retarget_seconds', 'ai_variation_units']) positive(debate[key], `débat ${key}`);
+  for (const key of ['width_units', 'edge_margin', 'ai_retarget_seconds', 'ai_variation_units']) positive(debate[key], `débat ${key}`);
   if (debate.width_units >= config.layout.biomes.length * 3 * config.prototype.world.units_per_screen || debate.edge_margin * 2 >= debate.width_units) throw new Error('Configuration : limites du plateau invalides.');
   for (const key of ['light_1', 'light_2', 'heavy', 'hologram', 'wave', 'crs']) positive(debate.damage[key], `dégât de débat ${key}`);
   const mode = config.balance.debate_mode;

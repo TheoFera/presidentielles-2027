@@ -7,6 +7,7 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
 import { formatNumber } from '../src/presentation/interface/number-format.js';
+import { combatActors, findCombatActor } from '../src/simulation/combat-state.js';
 
 test('Les voix restent celles des PNJ après mutations au même tick', () => {
   const config = campaignConfig(), sim = new GameSimulation(config);
@@ -61,4 +62,18 @@ test('L’affichage lit l’état vivant et ne garde que les positions du pas pr
   assert.deepEqual(view.events, sim.state.events);
   assert.equal(view.campaign_snapshot, null);
   assert.ok(Object.isFrozen(view.world));
+});
+
+test('La recherche directe d’un combattant respecte les exclusions et les mutations au même tick', () => {
+  const sim = new GameSimulation(campaignConfig());
+  completePopulation(sim);
+  const state = sim.state, candidate = state.candidates[0];
+  state.temporary_units.push({ id: 'temporary:performance', role: 'HOLOGRAMME' });
+  const ids = [...combatActors(state).map(a => a.id), 'absent'];
+  const check = () => {
+    for (const id of ids) assert.equal(findCombatActor(state, id), combatActors(state).find(a => a.id === id));
+  };
+  check(); candidate.eliminated = true; check();
+  candidate.eliminated = false; candidate.campaign_debate_id = 'debate:test'; check();
+  candidate.campaign_debate_id = null; state.npcs.shift(); state.temporary_units.pop(); check();
 });

@@ -1,5 +1,6 @@
 import { seasonAt } from '../../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../../simulation/world.js';
+import { candidateOpacity } from '../personnages/candidate-visibility.js';
 const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 const siteNames={permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'};
 
@@ -90,6 +91,7 @@ export function drawCampaignMarkers(renderer,state){
  if(e.family==='DEBAT_THEMATIQUE')ctx.fillText(`Premier paiement · ${e.parameters.meeting_cost} k€`,x,m.groundY-122);
  }
  for(const c of state.candidates){
+ if(candidateOpacity(c,state,renderer.config)<.99)continue;
  if(state.campaign_events.some(e=>e.status==='ACTIVE'&&e.family==='CANDIDAT_FRAGILISE'&&e.target_candidate_ids.includes(c.id))){ctx.fillStyle='#ffdb76';ctx.fillText('⚠ Prime au KO',renderer.screenX(c.x),m.groundY-m.characterHeight-35);}
 
  }

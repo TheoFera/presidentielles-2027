@@ -5,6 +5,7 @@ import { combatDelta } from './combat-geometry.js';
 import { adaptationSettings, factionPressure } from './ai-balance.js';
 import { aiAttackRange } from './ai-combat.js';
 import { isHumanCandidate } from './human-candidates.js';
+import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 /**
  * « Réflexion » d’une IA face à un rival :
@@ -26,7 +27,7 @@ export function validMind(state, mind) {
 
 /** Candidat adverse le plus proche, visible et attaquable. */
 export function visibleRival(state, c, range, accept = () => true) {
-  return state.candidates.filter(o => o !== c && o.faction_id !== c.faction_id && canBeHit(o) && gap(state, c.x, o.x) <= range && accept(o))
+  return state.candidates.filter(o => o !== c && o.faction_id !== c.faction_id && canBeHit(o) && !invisibleToEnemies(o, state.tick) && gap(state, c.x, o.x) <= range && accept(o))
     .sort((a, b) => gap(state, c.x, a.x) - gap(state, c.x, b.x) || a.id.localeCompare(b.id))[0] ?? null;
 }
 

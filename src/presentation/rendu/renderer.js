@@ -20,8 +20,9 @@ import { CrowdSpacing } from './crowd-spacing.js';
 import { npcEntryProgress, entryPath } from '../personnages/npc-entry.js';
 import { drawPersuasionFeedback } from '../effets/persuasion-feedback.js';
 import { prepareMinorFrames, prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
-import { MINOR_ANIMATION_DATA } from '../personnages/minor-animation-data.js';
+import { minorCombatAtlases, minorExtraAtlases } from '../personnages/minor-animation-sprites.js';
 import { ultimateGuardAtlases } from '../effets/ultimate-guard-sprites.js';
+import { candidateOpacity, flattenScale } from '../personnages/candidate-visibility.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
@@ -32,7 +33,7 @@ async function prepareImage(id, image) {
   if (ultimateGuard) prepareAtlasFrames(image, ultimateGuard);
   if (id.startsWith('character-minor-')) {
     const [faction, sheet] = id.slice('character-minor-'.length).split('-');
-    prepareAtlasFrames(image, MINOR_ANIMATION_DATA[faction]?.[sheet]);
+    prepareAtlasFrames(image, sheet === 'combat' ? minorCombatAtlases[faction] : minorExtraAtlases[faction]?.[sheet]);
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
@@ -154,17 +155,20 @@ export class WorldRenderer {
     }
     const oldPositions = this.oldPositions;
     // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
-    const rows = new Map(state.npcs.map(npc => [npc, meetingCrowdRow(npc, state)]));
+    const visible = entity => Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) <= screenUnits * 0.6;
+    const rows = new Map();
     // Une recrue de raid entrée dans le local n'est plus visible jusqu'à sa sortie en service d'ordre.
-    const npcs = state.npcs.filter(npc => !(npc.task?.kind === 'JOIN_RAID' && npc.task.phase === 'INSIDE')).sort((a, b) => rows.get(a) - rows.get(b));
+    const npcs = state.npcs.filter(npc => {
+      if (!visible(npc) || (npc.task?.kind === 'JOIN_RAID' && npc.task.phase === 'INSIDE')) return false;
+      rows.set(npc, meetingCrowdRow(npc, state));
+      return true;
+    }).sort((a, b) => rows.get(a) - rows.get(b));
     const entities = [...npcs, ...state.temporary_units, ...state.candidates.filter(c => !c.eliminated && !c.disappeared && c.id !== candidate.id), ...(!candidate.eliminated && !candidate.disappeared ? [candidate] : [])];
-    const onMeeting = entity => isOnMeetingStage(entity, this.config, state);
     // Deux PNJ immobiles ne restent pas l'un sur l'autre : écart d'environ une demi-silhouette.
     this.crowd.update(state, m.characterHeight * this.p.npc_height_multiplier * 0.3 / m.pixelsPerUnit);
     this.personMarks = new Map();
     const drawEntities = group => {
       for (const entity of group) {
-        if (Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) > screenUnits * 0.6) continue;
         const old = oldPositions.get(entity.id) || entity;
         const x = entity.id === candidate.id ? playerX : wrap(old.x + ringDelta(old.x, entity.x, state.world.length) * alpha + this.crowd.offset(entity.id), state.world.length);
         // Un PNJ qui s'écarte d'un voisin fait un vrai pas : animation de marche dans le sens du décalage.
@@ -186,11 +190,18 @@ export class WorldRenderer {
     const npcHeight = m.characterHeight * this.p.npc_height_multiplier;
     const entryRise = (this.height - m.groundY) / zoom + npcHeight * 1.2;
     const entrySide = npcHeight * 1.6, entryBob = npcHeight * 0.035;
-    drawEntities(entities.filter(onMeeting));
+    const stage = [], street = [], arrivals = [];
+    for (const entity of entities) {
+      if (!visible(entity)) continue;
+      if (isOnMeetingStage(entity, this.config, state)) stage.push(entity);
+      else if (entering.has(entity.id)) arrivals.push(entity);
+      else street.push(entity);
+    }
+    drawEntities(stage);
     drawMeetingForeground(this, state);
     // Ceux qui arrivent passent devant : ils viennent du premier plan.
-    drawEntities(entities.filter(entity => !onMeeting(entity) && !entering.has(entity.id)));
-    drawEntities(entities.filter(entity => !onMeeting(entity) && entering.has(entity.id)));
+    drawEntities(street);
+    drawEntities(arrivals);
     drawPersuasionFeedback(this, state);
     drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);
@@ -294,6 +305,18 @@ export class WorldRenderer {
   }
 
   drawPerson(entity, x, state) {
+    const opacity = candidateOpacity(entity, state, this.config);
+    if (opacity <= 0) return;
+    const scale = flattenScale(entity, state.tick), { ctx, metrics: m } = this;
+    if (opacity === 1 && scale.x === 1 && scale.y === 1) { this.drawVisiblePerson(entity, x, state); return; }
+    const feet = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06) - (entity.combat?.height || 0) * m.characterHeight;
+    ctx.save();
+    ctx.globalAlpha *= opacity;
+    ctx.translate(x, feet); ctx.scale(scale.x, scale.y); ctx.translate(-x, -feet);
+    try { this.drawVisiblePerson(entity, x, state); } finally { ctx.restore(); }
+  }
+
+  drawVisiblePerson(entity, x, state) {
     if (drawIllustratedCharacter(this, entity, x, state)) return;
     const ctx = this.ctx;
     const candidate = entity.role === 'CANDIDAT';

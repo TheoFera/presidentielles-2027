@@ -4,7 +4,7 @@ import { readPng } from '../lib/png.mjs';
 import { MINOR_FACTIONS } from '../../src/simulation/world.js';
 import { MINOR_SPRITES } from '../../src/presentation/personnages/minor-sprites.js';
 
-export function measureMinorSprites(image, { count = 12, columns = 4, koFrames = [10] } = {}) {
+export function measureMinorSprites(image, { count = 12, columns = 4, koFrames = [10], cuts = [] } = {}) {
   const { width, height, data } = image;
   const seen = new Uint8Array(width * height), queue = new Int32Array(width * height);
   const figures = [];
@@ -18,6 +18,7 @@ export function measureMinorSprites(image, { count = 12, columns = 4, koFrames =
       top = Math.min(top, y); bottom = Math.max(bottom, y);
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if (!(dx || dy) || x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) continue;
+        if (cuts.some(cut => cut.x != null ? y >= cut.minY && (x < cut.x) !== (x + dx < cut.x) : x >= (cut.minX || 0) && (y < cut.y) !== (y + dy < cut.y))) continue;
         const next = pixel + dy * width + dx;
         if (!seen[next] && data[next * 4 + 3] >= 90) { seen[next] = 1; queue[tail++] = next; }
       }
@@ -48,7 +49,11 @@ if (process.argv[1]?.endsWith('measure-minor-sprites.mjs')) {
   // et sont conservées. Seuls les rectangles et points d'appui sont remesurés.
   const { MINOR_ATLASES: current } = await import('../../src/presentation/personnages/minor-sprite-atlases.js');
   const atlases = Object.fromEntries(MINOR_FACTIONS.map(id => {
-    const atlas = measureMinorSprites(readPng(MINOR_SPRITES[id]));
+    const single = current[id]?.frames.length === 1;
+    // Glucksmann : la pose debout validée est extraite de sa planche d’actions.
+    if (id === 'glucksmann' && single) return [id, current[id]];
+    const atlas = measureMinorSprites(readPng(MINOR_SPRITES[id]), single ? { count: 1, columns: 1, koFrames: [] } : {});
+    if (single) atlas.frames[0][4] = atlas.frames[0][0] + atlas.frames[0][2] / 2;
     if (current[id]) atlas.referenceHeight = current[id].referenceHeight;
     console.log(`${id} : ${atlas.frames.length} poses, hauteur de référence ${atlas.referenceHeight} px.`);
     return [id, atlas];

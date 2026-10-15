@@ -39,8 +39,9 @@ export function prepareMinorFrames(image, faction) {
 export const preparedMinorFrames = faction => preparedByFaction.get(faction) || null;
 
 export function prepareAtlasFrames(image, atlas) {
-  if (cache.has(image)) return cache.get(image);
   if (!atlas) return null;
+  const byAtlas = cache.get(image);
+  if (byAtlas?.has(atlas.frames)) return byAtlas.get(atlas.frames);
   const source = cleanGeneratedImage(image);
   const frames = atlas.frames.map(([sx, sy, sw, sh]) => {
     const canvas = document.createElement('canvas'); canvas.width = sw; canvas.height = sh;
@@ -51,6 +52,8 @@ export function prepareAtlasFrames(image, atlas) {
     ctx.putImageData(pixels, 0, 0);
     return canvas;
   });
-  cache.set(image, frames);
+  const entries = byAtlas || new WeakMap();
+  entries.set(atlas.frames, frames);
+  if (!byAtlas) cache.set(image, entries);
   return frames;
 }

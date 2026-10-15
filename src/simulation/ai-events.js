@@ -6,6 +6,7 @@ import { factionPressure } from './ai-balance.js';
 import { assessDuel } from './ai-mind.js';
 import { canBeHit } from './combat-state.js';
 import { tactics } from './ai-moments.js';
+import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 const activeEvents = state => (state.campaign_events || []).filter(e => e.status === 'ACTIVE');
 const gap = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
@@ -44,7 +45,7 @@ function placeFactor(state, config, c, x, adaptation) {
   let factor = record?.controller === c.faction_id ? 1.15 : pressure > 0 ? 1.3 : pressure < 0 ? 1 + 0.4 * pressure : 1;
   // Un rival déjà sur place et redoutable rend le déplacement risqué.
   for (const rival of state.candidates) {
-    if (rival === c || rival.faction_id === c.faction_id || !canBeHit(rival) || gap(state, rival.x, x) > 6) continue;
+    if (rival === c || rival.faction_id === c.faction_id || !canBeHit(rival) || invisibleToEnemies(rival, state.tick) || gap(state, rival.x, x) > 6) continue;
     const duel = assessDuel(state, config, c, rival, adaptation);
     if (duel.fight < -0.1) factor *= 0.45;
   }
@@ -85,7 +86,7 @@ export function campaignEventAICommands(state, config, c, adaptation) {
     }
     if (e.family === 'CANDIDAT_FRAGILISE' && !e.target_candidate_ids.includes(c.id)) {
       const prey = state.candidates.find(o => o.id === e.target_candidate_ids[0]);
-      if (!prey || !canBeHit(prey) || factionPressure(adaptation, prey.faction_id) < 0) continue;
+      if (!prey || !canBeHit(prey) || invisibleToEnemies(prey, state.tick) || factionPressure(adaptation, prey.faction_id) < 0) continue;
       x = prey.x; value = 15 * (1 + Math.max(0, assessDuel(state, config, c, prey, adaptation).fight));
     }
     if (x === undefined) continue;

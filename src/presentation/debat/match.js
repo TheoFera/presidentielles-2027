@@ -3,6 +3,7 @@ import { MatchSummary } from '../menus/match-summary.js';
 import { GamePhase } from '../../simulation/phases.js';
 import { drawCombatEffects } from '../effets/combat-effects.js';
 import { formatNumber } from '../interface/number-format.js';
+import { candidateOpacity } from '../personnages/candidate-visibility.js';
 
 const DEBATE_CHARACTER_SCALE = 1.45;
 const SUMMARY_LOCK_MS = 2500;
@@ -40,7 +41,7 @@ export function drawDebate(renderer, state, previous, alpha) {
     const old = [...(previous?.candidates || []), ...(previous?.temporary_units || [])].find(c => c.id === entity.id) || entity;
     const x = renderer.screenX(old.x + (entity.x - old.x) * alpha);
     renderer.drawPerson(entity, x, state);
-    if (entity.role === 'CANDIDAT') {
+    if (entity.role === 'CANDIDAT' && candidateOpacity(entity, state, renderer.config) >= .99) {
       ctx.fillStyle = '#eef0df'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'center';
       ctx.fillText(entity.presentation_name || renderer.p.factions[entity.faction_id].name, x, m.groundY - m.characterHeight - 20);
       if (state.campaign_event_family) { ctx.fillStyle = '#182434'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70, 5); ctx.fillStyle = '#9bdbca'; ctx.fillRect(x - 35, m.groundY - m.characterHeight - 12, 70 * entity.debate_hp / entity.debate_initial_hp, 5); }
@@ -82,16 +83,13 @@ export class MatchDisplay {
     const names = this.config.prototype.presentation.factions;
     const debate = state.phase === GamePhase.FIRST_ROUND_DEBATE; const sprint = state.phase === GamePhase.SECOND_ROUND_SPRINT;
     const finished = state.phase === GamePhase.RESULTS;
-    this.hud.hidden = !debate; this.results.hidden = !finished && state.phase !== GamePhase.FIRST_ROUND_RESULTS;
+    // `resultsHeld` : « Place au vote… » est encore à l’écran, les résultats attendent la fin de l’annonce.
+    const announced = (finished || state.phase === GamePhase.FIRST_ROUND_RESULTS) && !this.resultsHeld;
+    this.hud.hidden = !debate; this.results.hidden = !announced;
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
     this.spectator.hidden = !sprint || !eliminated;
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
       this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
-      if (this.phase !== state.phase) {
-        const fade = document.getElementById('phase-fade');
-        fade.getAnimations().forEach(a => a.cancel());
-        if (this.phase !== null) fade.animate([{ opacity: 1 }, { opacity: 0 }], { duration: this.config.balance.first_round_debate.transition_seconds * 1000 });
-      }
       this.phase = state.phase; this.extensions = state.extensions;
       if (debate) {
         this.hud.replaceChildren(); this.cards.clear();
@@ -120,7 +118,6 @@ export class MatchDisplay {
       card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }
     this.latest = state;
-    const announced = finished || state.phase === GamePhase.FIRST_ROUND_RESULTS;
     const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;
     if (signature !== this.resultSignature) {
       this.resultSignature = signature;

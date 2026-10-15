@@ -8,6 +8,7 @@ import { initializeMobileCombat } from './mobile-combat.js';
 import { ALL_FACTIONS, isMinorFaction } from './world.js';
 import { arenaNavigationCommands, edgeEscapeCommands, fallSafeCommands } from './debate-navigation.js';
 import { copyStateSharing } from '../network/state-stream.js';
+import { MINOR_ULTIMATES, invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -15,10 +16,10 @@ const clone = value => JSON.parse(JSON.stringify(value));
 export const DEBATE_FORMATS = Object.freeze({ '1v1': 2, '1v1v1': 3 });
 export { BETATEST_NICKNAME, isBetatestProfile } from './campaign-styles.js';
 
-/** Les candidats mineurs ont une tenue de base, sans ultime ni déblocage. */
+/** Les candidats mineurs ont une tenue de base et leur propre ultime. */
 export function debateStyles(config, faction) {
-  if (isMinorFaction(faction)) return [{ id: `${faction}_standard`, name: 'Tenue de base', ultimate: null,
-    summary: 'Tous les coups, sauts et dashs. Sans ultime pour l’instant.',
+  if (isMinorFaction(faction)) return [{ id: `${faction}_standard`, name: 'Tenue de base', ultimate: MINOR_ULTIMATES[faction],
+    summary: MINOR_ULTIMATES[faction].summary,
     skin: { accent: config.prototype.presentation.factions[faction].color } }];
   return campaignStyles(config, faction);
 }
@@ -270,7 +271,7 @@ const standingHeight = actor => airborne(actor) ? Math.max(0, actor.combat.jump_
 /** Adversaire visé : proche, à portée de hauteur, affaibli, avec une variation stable par période. */
 export function debateModeTarget(state, config, c) {
   const period = Math.floor(state.tick / Math.max(1, Math.round(config.balance.debate_mode.ai_retarget_seconds * config.balance.simulation_architecture.fixed_tick_hz)));
-  const options = state.candidates.filter(t => t.id !== c.id && !t.is_ko && (t.team_id ?? t.faction_id) !== (c.team_id ?? c.faction_id));
+  const options = state.candidates.filter(t => t.id !== c.id && !t.is_ko && !invisibleToEnemies(t, state.tick) && (t.team_id ?? t.faction_id) !== (c.team_id ?? c.faction_id));
   // En 1 contre 1 contre 1, une cible déjà assaillie par un autre attire moins : pas d’acharnement à deux.
   const pressure = t => state.candidates.filter(o => o.id !== c.id && o.id !== t.id && !o.is_ko && o.combat.target_id === t.id).length * 2.5;
   return options.map(t => ({ t, rank: Math.abs(t.x - c.x) * 0.65 + Math.abs(standingHeight(t) - standingHeight(c)) * 3 + t.debate_hp * 0.04 + pressure(t)

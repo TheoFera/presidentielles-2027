@@ -308,10 +308,10 @@ test('À trois, 1 – 1 – 1 : un round bonus « Question du public » départa
   assert.equal(match.state.phase, 'OVER'); assert.equal(match.state.winner_id, b); assert.equal(match.state.standings[0], b);
 });
 
-test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ultime', () => {
+test('Les six candidats mineurs sont jouables : déplacement, coups et ultime personnel', () => {
   for (const faction of MINOR_FACTIONS) {
     const style = debateStyles(config, faction)[0];
-    assert.equal(style.ultimate, null);
+    assert.ok(style.ultimate?.kind);
     // Verrouillés au départ, jouables une fois battus en campagne (déblocage).
     assert.equal(debateStyleAvailable(config, fresh, faction, style.id), false);
     const owner = { unlocked_minor_candidates: [faction] };
@@ -329,8 +329,8 @@ test('Les six candidats mineurs sont jouables : déplacement, coups et aucun ult
     assert.ok(enemy.debate_hp < 100, faction);
     player.special_charge = 100;
     run(match, () => [{ type: 'ActivateUltimate', candidateId: player.id }]);
-    assert.equal(player.ultimate_effect, null);
-    assert.equal(match.state.powers.length, 0);
+    assert.equal(match.state.powers.at(-1)?.kind, style.ultimate.kind);
+    assert.equal(player.special_charge, 0);
     const assets = debateAssetIds(visualManifest, setup);
     assert.ok(assets.includes(`minor-${faction}`));
     assert.ok(assets.includes(`character-minor-${faction}-combat`));

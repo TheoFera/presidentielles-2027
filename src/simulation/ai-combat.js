@@ -2,6 +2,7 @@ import { activeCampaignStyle } from './campaign-styles.js';
 import { airborne, diving } from './combat-actions.js';
 import { aiSettings, aiNoise } from './ai-settings.js';
 import { combatDelta } from './combat-geometry.js';
+import { MINOR_ULTIMATE_KINDS, pendingSatchel, invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 /** Lecture du combat, dosée selon la difficulté : l’IA n’exploite jamais tout. */
 const READING = {
@@ -11,7 +12,7 @@ const READING = {
 };
 
 export function aiAttackRange(config,c) {
-  const range=c.ultimate_effect?.kind==='SCARF'?config.balance.specials.scarf.range:config.balance.candidate_combat.light_range;
+  const range=c.ultimate_effect?.kind==='SCARF'?config.balance.specials.scarf.range:c.ultimate_effect?.kind==='TOOLS'?config.balance.minor_ultimates.tools.range:config.balance.candidate_combat.light_range;
   return range+config.balance.candidate_combat.target_radius*0.5;
 }
 
@@ -20,6 +21,7 @@ export function aiAttackRange(config,c) {
  * tempo > 1 : frappe plus souvent (humain dominant) ; tempo < 1 : retenue (humain épargné).
  */
 export function aiCombatCommands(state, config, c, target, tempo = 1) {
+  if (invisibleToEnemies(target, state.tick)) return [{ type: 'Move', candidateId: c.id, axis: 0 }];
   const settings = aiSettings(state, config), d = combatDelta(state, c.x, target.x);
   const direction = Math.sign(d) || c.facing;
   const range = c.ultimate_effect?.kind === 'SCARF' ? config.balance.specials.scarf.range : config.balance.candidate_combat.light_range;
@@ -55,6 +57,10 @@ export function aiCombatCommands(state, config, c, target, tempo = 1) {
     return result;
   }
   if (c.is_ko || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || c.dash_active) return result;
+  const satchel = pendingSatchel(state, c);
+  if (satchel?.launched && (Math.abs(combatDelta(state, satchel.x, target.x)) < config.balance.minor_ultimates.satchel.radius || state.tick - satchel.launch_tick > hz * 2)) {
+    result.push({ type: 'ActivateUltimate', candidateId: c.id }); return result;
+  }
   // Coup raté ou réception de plongeon adverse : punir, parfois.
   const theirs = state.attacks.find(a => a.id === target.combat?.attack_id);
   if (theirs && ['CANDIDATE', 'CHARGED', 'DIVE'].includes(theirs.kind) && !theirs.hit_ids.length && theirs.elapsed_ticks >= theirs.windup_ticks + theirs.active_ticks
@@ -67,7 +73,7 @@ export function aiCombatCommands(state, config, c, target, tempo = 1) {
   const ready = kind && c.special_charge >= config.balance.special_charge.required_points && !c.ultimate_effect
     && !c.bardella_guardian_armed && !(kind === 'BARDELLA' && c.bardellisation_used)
     && !c.purchase_hold && Math.abs(c.combat.knockback_velocity) <= 0.02;
-  if (ready && (close || Math.abs(d) <= settings.detection_range && ['WAVE', 'HOLOGRAMS', 'SURGE', 'ZEMMOUR', 'BARDELLA', 'FIRE'].includes(kind))) {
+  if (ready && !satchel && (close || Math.abs(d) <= settings.detection_range && ['WAVE', 'HOLOGRAMS', 'SURGE', 'ZEMMOUR', 'BARDELLA', 'FIRE', ...MINOR_ULTIMATE_KINDS].includes(kind))) {
     // Une vague ou une invocation doit partir du bon côté, même à l’arrêt.
     if (c.facing !== direction) result[2].axis = direction;
     else result.push({ type: 'ActivateUltimate', candidateId: c.id });

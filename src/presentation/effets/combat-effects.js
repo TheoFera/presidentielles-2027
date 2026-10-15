@@ -1,10 +1,13 @@
 import { drawStyleEffects } from './style-effects.js';
 import { drawUltimateProjectile } from './ultimate-sprites.js';
+import { candidateOpacity } from '../personnages/candidate-visibility.js';
+import { drawMinorUltimateEffects } from './minor-ultimates.js';
 export function drawCombatEffects(renderer, state, debug) {
   const { ctx, metrics: m, config } = renderer;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   ctx.save();
   for (const c of state.candidates) {
+    if (candidateOpacity(c, state, config) < .99) continue;
     if (c.combat?.charge_active) {
       const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * 1.1;
       const progress = Math.min(1, (state.tick - c.combat.press_tick) / (hz * config.balance.candidate_combat.charge_ready_seconds));
@@ -13,6 +16,7 @@ export function drawCombatEffects(renderer, state, debug) {
     }
   }
   for (const c of state.candidates) {
+    if (candidateOpacity(c, state, config) < .99) continue;
     if (!c.dash_active) continue;
     const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * .45;
     ctx.strokeStyle = state.tick <= c.dash_invulnerable_until_tick ? '#c5f8ff' : '#e9dfcc88'; ctx.lineWidth = 3;
@@ -87,7 +91,7 @@ export function drawCombatEffects(renderer, state, debug) {
   ctx.globalAlpha = 1;
   if (debug) for (const a of state.attacks) {
     const owner = [...state.candidates, ...state.npcs, ...state.temporary_units].find(t => t.id === a.owner_id);
-    if (!owner || !a.range) continue;
+    if (!owner || !a.range || candidateOpacity(owner, state, config) < .99) continue;
     const x = renderer.screenX(owner.x); const w = a.range * m.pixelsPerUnit;
     const active = a.elapsed_ticks >= a.windup_ticks && a.elapsed_ticks < a.windup_ticks + a.active_ticks;
     ctx.fillStyle = active ? '#e9585844' : '#dfbc4730'; ctx.strokeStyle = active ? '#b74b4b' : '#b59740';
@@ -96,4 +100,5 @@ export function drawCombatEffects(renderer, state, debug) {
   }
   ctx.restore();
   drawStyleEffects(renderer, state);
+  drawMinorUltimateEffects(renderer, state);
 }

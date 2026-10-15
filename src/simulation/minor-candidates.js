@@ -4,6 +4,7 @@ import { aiCombatCommands } from './ai-combat.js';
 import { nearestEnemy } from './combat-state.js';
 import { neutralizeSite } from './strategic-sites.js';
 import { neutralizeSupporter } from './npc-votes.js';
+import { clearCampaignUltimate } from './campaign-styles.js';
 
 /**
  * Candidats mineurs (Glucksmann, Roussel, Arthaud, Dupont-Aignan, Retailleau, Attal).
@@ -42,6 +43,7 @@ export function minorTerritory(state, config, c) {
 /** Battu (K.-O.) : le mineur quitte définitivement la campagne et son QG redevient neutre. */
 export function defeatMinor(sim, candidate, reason = 'KO') {
   if (candidate.eliminated) return;
+  clearCampaignUltimate(sim, candidate, true);
   candidate.eliminated = true; candidate.disappeared = true; candidate.axis = 0; candidate.moving = false;
   candidate.campaign_active = false; candidate.interaction_active = false; candidate.persuasion_target_ids = [];
   for (const npc of sim.state.npcs) if (npc.persuasion?.actor_id === candidate.id) npc.persuasion = null;

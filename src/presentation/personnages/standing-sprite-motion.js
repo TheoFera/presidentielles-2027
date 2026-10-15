@@ -5,8 +5,8 @@ export function standingSpriteMotion(animation, time) {
     breathing: walking ? 1 + Math.sin(time * 3) * .004 : 1 };
 }
 
-export function drawStandingSprite(ctx, sprite, frame, height, width, { walking, stride }) {
-  if (!walking) {
+export function drawStandingSprite(ctx, sprite, frame, height, width, { walking, stride, rigid = false }) {
+  if (!walking || rigid) {
     ctx.drawImage(sprite, frame.x, frame.y, frame.width, frame.height, -width / 2, -height, width, height);
     return;
   }

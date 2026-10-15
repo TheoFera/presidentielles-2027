@@ -1,4 +1,5 @@
 import { combatPosition } from './combat-geometry.js';
+import { barrierBlockedPosition } from './minor-ultimates.js';
 
 // All durations and heights belong to the authoritative simulation, never the browser.
 export const actionState = () => ({ press_tick: null, charge_active: false, press_airborne: false, jump_tick: null, height: 0, dive_tick: null });
@@ -60,7 +61,7 @@ function updateDive(sim, actor) {
   const nextHeight = c.height - b.dive_vertical_speed / hz;
   c.height = state.fall_death_height != null ? nextHeight : Math.max(0, nextHeight);
   const x = actor.x + actor.facing * b.dive_horizontal_speed / hz;
-  actor.x = combatPosition(state, x);
+  actor.x = barrierBlockedPosition(sim, actor, combatPosition(state, x));
   let landed = false;
   if (state.platforms?.length) {
     const landing = state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
@@ -114,7 +115,8 @@ export function verticalHit(config, source, target, spec) {
   const height = actor => actor.role === 'CANDIDAT' ? 1 : config.prototype.presentation.npc_height_multiplier ?? 0.8;
   const bottom = target.combat?.height || 0, top = bottom + height(target);
   let low, high;
-  if (kind === 'WAVE') { low = 0; high = 1.65; }
+  if (Number.isFinite(spec.area_height)) { low = Math.max(0, spec.area_height - spec.area_radius); high = spec.area_height + spec.area_radius; }
+  else if (kind === 'WAVE') { low = 0; high = 1.65; }
   else if (kind === 'BUBBLE') { low = config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
   else if (kind === 'VERBAL') { low = 0.65; high = 0.9; }
   else if (kind === 'SURGE') { low = 0; high = 1; }

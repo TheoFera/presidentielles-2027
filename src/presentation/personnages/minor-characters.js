@@ -4,8 +4,9 @@ import { cleanGeneratedImage } from '../carte/fixed-world.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
 import { minorExtraAtlases } from './minor-animation-sprites.js';
-import { drawCandidateCombat, MELENCHON_HEIGHT_STRETCH, MELENCHON_WIDTH_STRETCH } from './melenchon-combat.js';
-import { drawStandingSprite, standingSpriteMotion } from './standing-sprite-motion.js';
+import { drawCandidateCombat } from './melenchon-combat.js';
+import { standingSpriteMotion } from './standing-sprite-motion.js';
+import { characterFrameScale } from './character-scale.js';
 
 /**
  * Dessin de secours des candidats secondaires si leur planche est indisponible.
@@ -137,22 +138,16 @@ export function drawMinorCandidate(renderer, entity, x, state) {
     // Les rectangles mesurés évitent de couper les cheveux, les coups et les chaussures.
     const image = cleanGeneratedImage(sheet);
     const motion = standingSpriteMotion(animation, time);
-    const cell = listenSheet ? 6 + Math.floor(time / .35) % 2 : motion.walking ? 0 : minorSheetCell(animation, time, airborne);
     const atlas = listenSheet ? listening : MINOR_ATLASES[entity.faction_id];
+    const cell = listenSheet ? 6 + Math.floor(time / .35) % 2
+      : (atlas?.frames.length === 1 || motion.walking) ? 0 : minorSheetCell(animation, time, airborne);
     ctx.imageSmoothingEnabled = true;
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
-      // L'écoute réutilise la planche d'actions : même étirement qu'en combat, sinon la frame paraît 10 % trop petite.
-      const k = height / atlas.referenceHeight * (atlas.frameScales?.[cell] ?? 1) * (listenSheet ? MELENCHON_HEIGHT_STRETCH : 1);
-      // Même largeur de silhouette debout que Philippe (161 px pour 384 px),
-      // sauf Dupont-Aignan, plus mince : sa largeur naturelle évite de l’écraser.
-      const widthScale = listenSheet ? (atlas.widthScale || 1) * MELENCHON_WIDTH_STRETCH / MELENCHON_HEIGHT_STRETCH : entity.faction_id === 'dupont_aignan' ? 1 : (161 / 384) * atlas.referenceHeight / atlas.frames[0][2];
-      ctx.scale(widthScale, 1);
+      const k = characterFrameScale(atlas, cell, height);
       const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
-      if (motion.walking) {
-        ctx.rotate(motion.stride * .025); ctx.scale(1 / motion.breathing, motion.breathing);
-        drawStandingSprite(ctx, frame, { x: 0, y: 0, width: sw, height: sh }, height, sw * k, motion);
-      } else ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
+      if (motion.walking) ctx.rotate(motion.stride * .025);
+      ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
     } else {
       // Taille d'origine (une planche réduite de l'application garde naturalWidth, voir sprite-bitmaps.js).
       const imageWidth = image.naturalWidth || image.width, imageHeight = image.naturalHeight || image.height;

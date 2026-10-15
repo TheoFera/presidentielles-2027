@@ -220,6 +220,7 @@ test('Le chargement complet et les changements de zone conservent tous les sprit
   assert.ok(!ids.some(id => /^(distant|landscape|street)-(bobo|banlieue|periurbain|campagne|retraites|riches)$/.test(id)), 'L’ancien décor « biomes » n’est plus chargé');
   for (const building of state.buildings.filter(b => b.type === 'meeting')) assert.ok(ids.includes(buildingAssetId(building, state.world)), building.site_id);
   for (const id of ['riders-melenchon', 'riders-le_pen', 'riders-philippe', 'riders-bardella', 'vehicles']) assert.ok(ids.includes(id), id);
+  for (const name of ['melenchon', 'le_pen', 'philippe', 'bardella']) assert.ok(ids.includes(`riders-periurbain-${name}`));
   for (const biome of ['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']) for (const part of ['stage', 'micro']) assert.ok(ids.includes(`building-meeting_${part}-${biome}`), `estrade ${part} ${biome}`);
   for (const id of Object.keys(visualManifest).filter(id => /^(character-|ultimate-)/.test(id))) assert.ok(ids.includes(id), id);
   assert.ok(!ids.some(id => /^background-(strip-|\d)/.test(id)), 'Les anciens panoramas inutilisés ne prennent pas de mémoire');

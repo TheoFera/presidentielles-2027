@@ -5,10 +5,12 @@ import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEff
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
-import { canBeHit, combatActors, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
+import { canBeHit, combatActors, findCombatActor, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
 import { truceFilter } from './ai-balance.js';
 import { FACTIONS } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
+import { pendingSatchel, invisibleToEnemies } from './minor-ultimate-catalog.js';
+import { startMinorUltimate, updateMinorUltimates, detonateSatchel, barrierBlockedPosition, revealCandidate, toolsAttack, applyToolHit } from './minor-ultimates.js';
 
 export function requestAttack(sim, actor, direction = null) {
   if (!actor || actor.eliminated || actor.role !== 'CANDIDAT' || !actor.campaign_active || actor.is_ko) return;
@@ -78,13 +80,14 @@ export function beginCombatTick(sim) {
     if (c.stun_ticks > 0) c.stun_ticks--;
     if (c.hitstop_ticks > 0) { c.hitstop_ticks--; continue; }
     if (Math.abs(c.knockback_velocity) > 0.02) {
-      actor.x = combatPosition(state, actor.x + c.knockback_velocity / hz);
+      actor.x = barrierBlockedPosition(sim, actor, combatPosition(state, actor.x + c.knockback_velocity / hz));
       c.knockback_velocity *= Math.max(0, 1 - config.balance.candidate_combat.knockback_decay_per_second / hz);
     } else c.knockback_velocity = 0;
   }
 }
 
 export function wallBlockedPosition(sim, actor, desired) {
+  desired = barrierBlockedPosition(sim, actor, desired);
   const d = combatDelta(sim.state, actor.x, desired);
   if (!d) return desired;
   const radius = sim.config.balance.specials.philippe_crs_wall.interception_radius;
@@ -110,16 +113,20 @@ export function separateCandidates(sim) {
     if (overlap <= 1e-9) continue;
     const side = Math.sign(d) || 1;
     const before = { a: a.x, b: b.x };
-    a.x = combatPosition(state, a.x - side * overlap / 2); b.x = combatPosition(state, b.x + side * overlap / 2);
+    a.x = barrierBlockedPosition(sim, a, combatPosition(state, a.x - side * overlap / 2)); b.x = barrierBlockedPosition(sim, b, combatPosition(state, b.x + side * overlap / 2));
     const rest = overlap - Math.abs(combatDelta(state, before.a, a.x)) - Math.abs(combatDelta(state, before.b, b.x));
     if (rest > 1e-9) {
-      if (Math.abs(combatDelta(state, before.a, a.x)) < overlap / 2) b.x = combatPosition(state, b.x + side * rest);
-      else a.x = combatPosition(state, a.x - side * rest);
+      if (Math.abs(combatDelta(state, before.a, a.x)) < overlap / 2) b.x = barrierBlockedPosition(sim, b, combatPosition(state, b.x + side * rest));
+      else a.x = barrierBlockedPosition(sim, a, combatPosition(state, a.x - side * rest));
     }
   }
 }
 
 function makeAttack(sim, actor, kind, spec) {
+  if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(kind)) {
+    revealCandidate(sim, actor);
+    spec = toolsAttack(sim, actor, spec);
+  }
   const b = sim.config.balance.candidate_combat;
   const attack = { id: `attack:${sim.state.next_attack_id++}`, owner_id: actor.id, faction_id: actor.faction_id,
     kind, direction: actor.facing, elapsed_ticks: 0, hit_ids: [], launched: false, charged: false,
@@ -180,9 +187,12 @@ function startCandidateAttack(sim, actor) {
 export function ultimateBlockedReason(sim, actor) {
   if (!actor || actor.eliminated || actor.is_ko || !actor.campaign_active) return 'Ultime indisponible : candidat hors combat.';
   if (!activeCampaignStyle(sim.config, actor)) return 'Choisis d’abord un style à ton QG.';
+  const satchel = pendingSatchel(sim.state, actor);
+  if (satchel) return actor.combat.stun_ticks > 0 ? 'Personnage étourdi : attends de reprendre le contrôle.' : satchel.launched ? null : 'Lancer du cartable en cours.';
   if (actor.bardella_guardian_armed) return 'Bardellisation déjà armée : elle se déclenchera au prochain KO.';
   if (activeCampaignStyle(sim.config, actor).ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return 'Bardellisation déjà utilisée pour cette vie.';
   if (actor.ultimate_effect) return 'Un effet d’ultime est encore actif.';
+  if (sim.state.powers.some(p => p.owner_id === actor.id && ['SAUSAGE', 'DELIVERY', 'BARRIER'].includes(p.kind) && p.expires_tick > sim.state.tick)) return 'Un ultime est encore en cours.';
   if (actor.special_charge < sim.config.balance.special_charge.required_points) return `Ultime chargé à ${Math.floor(100 * actor.special_charge / sim.config.balance.special_charge.required_points)} % : touche des adversaires pour le recharger.`;
   if (actor.combat.stun_ticks > 0) return 'Personnage étourdi : attends de reprendre le contrôle.';
   return null;
@@ -190,6 +200,7 @@ export function ultimateBlockedReason(sim, actor) {
 
 export function activateUltimate(sim, actor) {
   if (ultimateBlockedReason(sim, actor)) return;
+  if (pendingSatchel(sim.state, actor)) { detonateSatchel(sim, actor); return; }
   const style = activeCampaignStyle(sim.config, actor);
   if (!style || style.ultimate.kind === 'BARDELLA' && actor.bardellisation_used) return;
   cancelCharge(actor);
@@ -215,7 +226,7 @@ function triggerSpecial(sim, actor) {
   if (!kind) return;
   const power = { id: `power:${state.next_power_id++}`, owner_id: actor.id, faction_id: actor.faction_id, kind, started_tick: state.tick, expires_tick: state.tick };
   state.powers.push(power);
-  if (startStyleUltimate(sim, actor, power)) {
+  if (startMinorUltimate(sim, actor, power) || startStyleUltimate(sim, actor, power)) {
     // New styles share the same authoritative power lifetime.
   } else if (kind === 'WAVE') {
     const s = config.balance.specials.le_pen_navy_wave;
@@ -242,7 +253,8 @@ function triggerSpecial(sim, actor) {
       combat: combatState(), persuasion_target_ids: [] });
   }
   // The same button consumes the power; a short recovery prevents double activation.
-  makeAttack(sim, actor, 'SPECIAL', { strong: true, range: 0, damage: 0, knockback: 0, electoral_damage: 0 });
+  makeAttack(sim, actor, 'SPECIAL', { strong: true, range: 0, damage: 0, knockback: 0, electoral_damage: 0,
+    ...(kind === 'DELIVERY' ? { windup_ticks: sim.secondsToTicks(config.balance.minor_ultimates.delivery.call_seconds) } : {}) });
   sim.emit('SpecialTriggered', { power_id: power.id, candidate_id: actor.id, kind: power.kind });
 }
 
@@ -305,16 +317,16 @@ function mirrorHologram(sim, unit, power) {
 
 function meleeTargets(sim, owner, attack) {
   const radius = sim.config.balance.candidate_combat.target_radius;
-  return combatActors(sim.state).filter(t => verticalHit(sim.config, owner, t, attack) && enemies(owner, t) && !attack.hit_ids.includes(t.id)
+  return combatActors(sim.state).filter(t => distance(sim.state, owner.x, t.x) <= attack.range + radius
     && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
-    && distance(sim.state, owner.x, t.x) <= attack.range + radius)
+    && enemies(owner, t) && !attack.hit_ids.includes(t.id) && verticalHit(sim.config, owner, t, attack))
     .sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
 }
 
 function updateAttacks(sim) {
   for (const attack of [...sim.state.attacks]) {
     if (sim.state.debate_bounds && sim.state.eliminated_faction) break;
-    const actor = combatActors(sim.state).find(a => a.id === attack.owner_id);
+    const actor = findCombatActor(sim.state, attack.owner_id);
     if (!actor || actor.combat.attack_id !== attack.id || !actor.faction_id || actor.expired) continue;
     if (actor.combat.hitstop_ticks > 0) continue;
     attack.elapsed_ticks++;
@@ -330,6 +342,7 @@ function updateAttacks(sim) {
         for (const target of (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) ? targets : targets.slice(0, 1))) {
         if (target && hit(sim, actor, target, attack, attack.id)) {
           attack.hit_ids.push(target.id);
+          applyToolHit(sim, actor, target, attack);
           if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
         }
         }
@@ -337,34 +350,36 @@ function updateAttacks(sim) {
     }
     if (attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks + attack.recovery_ticks) actor.combat.attack_id = null;
   }
-  sim.state.attacks = sim.state.attacks.filter(a => combatActors(sim.state).some(t => t.id === a.owner_id && t.combat.attack_id === a.id && !t.expired));
+  sim.state.attacks = sim.state.attacks.filter(a => { const owner = findCombatActor(sim.state, a.owner_id); return owner?.combat.attack_id === a.id && !owner.expired; });
 }
 
 function updateProjectiles(sim) {
   const { state, config } = sim;
   for (const p of state.projectiles) {
     if (state.debate_bounds && state.eliminated_faction) break;
-    const owner = combatActors(state).find(a => a.id === p.owner_id);
+    const owner = findCombatActor(state, p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
     if(p.launch_tick!=null&&state.tick<p.launch_tick)continue;
     if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;}
     if(p.kind==='MOLOTOV'&&!p.launched){
-      const target=combatActors(state).find(actor=>actor.id===p.target_id&&enemies(owner,actor));
+      const target=findCombatActor(state, p.target_id);
       const visible=config.prototype.world.units_per_screen/2;
-      const seen=target&&Math.abs(combatDelta(state,owner.x,target.x))<=visible;
+      const seen=target&&enemies(owner,target)&&!invisibleToEnemies(target,state.tick)&&Math.abs(combatDelta(state,owner.x,target.x))<=visible;
       const targetX=seen?target.x:combatPosition(state,owner.x+owner.facing*6);
       const delta=combatDelta(state,owner.x,targetX);
       p.x=owner.x;p.target_x=targetX;p.direction=Math.sign(delta)||owner.facing;
       p.remaining_range=Math.max(.1,Math.abs(delta));p.initial_range=p.remaining_range;p.launched=true;
     }
-    if (p.kind === 'BUBBLE') { const target = combatActors(state).find(t => t.id === p.target_id && enemies(owner,t)); if (target) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
+    if (p.kind === 'BUBBLE') { const target = findCombatActor(state, p.target_id); if (target && enemies(owner,target) && !invisibleToEnemies(target,state.tick)) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     if (updateMolotov(sim, p, step)) continue;
     const radius = p.kind === 'BUBBLE' ? config.balance.specials.zemmour.bubble_hit_radius : config.balance.candidate_combat.target_radius;
-    const targets = combatActors(state).filter(t => verticalHit(config, owner, t, p) && enemies(owner, t) && !p.hit_ids.includes(t.id)
-      && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT')
-      && combatDelta(state, p.x, t.x) * p.direction >= -radius
-      && combatDelta(state, p.x, t.x) * p.direction <= step + radius)
+    const targets = combatActors(state).filter(t => {
+      const along = combatDelta(state, p.x, t.x) * p.direction;
+      return along >= -radius - (p.kind === 'WAVE' ? config.balance.specials.le_pen_navy_wave.body_length_units : 0)
+        && along <= step + radius && enemies(owner, t) && !p.hit_ids.includes(t.id)
+        && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT') && verticalHit(config, owner, t, p);
+    })
       .sort((a, b) => distance(state, p.x, a.x) - distance(state, p.x, b.x) || stableIdOrder(a, b));
     for (const target of targets) {
       if (state.debate_bounds && state.eliminated_faction) break;
@@ -446,9 +461,10 @@ export function updateCombat(sim) {
   updateTemporaryUnits(sim);
   updateAttacks(sim);
   updateProjectiles(sim);
+  updateMinorUltimates(sim);
   updateStyleEffects(sim);
   const expiredIds = new Set(sim.state.temporary_units.filter(t => t.expired).map(t => t.id));
   sim.state.projectiles = sim.state.projectiles.filter(p => !expiredIds.has(p.owner_id));
   sim.state.temporary_units = sim.state.temporary_units.filter(t => !t.expired);
-  sim.state.attacks = sim.state.attacks.filter(a => combatActors(sim.state).some(t => t.id === a.owner_id && t.combat.attack_id === a.id));
+  sim.state.attacks = sim.state.attacks.filter(a => findCombatActor(sim.state, a.owner_id)?.combat.attack_id === a.id);
 }

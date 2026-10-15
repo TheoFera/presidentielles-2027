@@ -10,30 +10,17 @@ import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
 import { standingSpriteMotion, drawStandingSprite } from '../src/presentation/personnages/standing-sprite-motion.js';
 import { additionalCombatAtlases } from '../src/presentation/personnages/candidate-combat-atlases.js';
-import { additionalExtraAtlases } from '../src/presentation/personnages/candidate-extra-atlases.js';
 import { MINOR_SPRITES } from '../src/presentation/personnages/minor-sprites.js';
 import { MINOR_ATLASES } from '../src/presentation/personnages/minor-sprite-atlases.js';
 import { measureMinorSprites } from '../scripts/outils-images/measure-minor-sprites.mjs';
-
-test('Les six mineurs gardent une échelle proche de Philippe après correction des têtes', () => {
-  for (const [faction, sheets] of Object.entries(MINOR_ANIMATION_DATA)) for (const [sheet, atlas] of Object.entries(sheets)) {
-    const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
-    const height = reference.referenceHeight || 340;
-    const redrawn = ['roussel', 'arthaud', 'attal'].includes(faction);
-    // Une tête réduite diminue le rectangle complet. Renormaliser sa hauteur à l'identique
-    // agrandirait le corps et annulerait en partie la correction du dessin.
-    const heightRatio = (atlas.frames[0][3] / atlas.referenceHeight) / (reference.frames[0][3] / height);
-    assert.ok(Math.abs(heightRatio - 1) < (redrawn ? .1 : 1e-8), `${faction} · ${sheet} : hauteur`);
-    if (!atlas.frameScales && faction !== 'dupont_aignan') {
-      const widthRatio = (atlas.frames[0][2] * atlas.widthScale / atlas.referenceHeight) / (reference.frames[0][2] / height);
-      assert.ok(Math.abs(widthRatio - 1) < (redrawn ? .08 : 1e-8), `${faction} · ${sheet} : largeur`);
-    }
-  }
-});
+import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
 
 test('Les douze planches redessinées ont des découpes et points d’appui mesurés dans leurs PNG', () => {
   for (const faction of ['roussel', 'arthaud', 'attal']) {
-    assert.deepEqual(MINOR_ATLASES[faction].frames, measureMinorSprites(readPng(MINOR_SPRITES[faction])).frames);
+    const single = MINOR_ATLASES[faction].frames.length === 1;
+    const measured = measureMinorSprites(readPng(MINOR_SPRITES[faction]), single ? { count: 1, columns: 1, koFrames: [] } : undefined);
+    if (single) measured.frames[0][4] = measured.frames[0][0] + measured.frames[0][2] / 2;
+    assert.deepEqual(MINOR_ATLASES[faction].frames, measured.frames);
     for (const [sheet, file] of Object.entries(MINOR_ANIMATION_FILES[faction])) {
       const options = { count: sheet === 'actions' ? 12 : 16, columns: 4, koFrames: sheet === 'actions' ? [8, 9, 10, 11] : [] };
       assert.deepEqual(MINOR_ANIMATION_DATA[faction][sheet].frames, measureMinorSprites(readPng(file), options).frames);
@@ -41,28 +28,12 @@ test('Les douze planches redessinées ont des découpes et points d’appui mesu
   }
 });
 
-test('Dupont-Aignan garde ses proportions : aucune pose étirée en hauteur', () => {
-  for (const atlas of Object.values(MINOR_ANIMATION_DATA.dupont_aignan)) assert.equal(atlas.widthScale * 1.06, 1.1236);
-  assert.equal(minorCombatAtlases.dupont_aignan.minor, true);
-});
 
-test('Roussel : échelle constante par rangée, marche à la taille de la garde, sans étirement du visage', () => {
-  const rendered = (atlas, frame) => atlas.frames[frame][3] / atlas.referenceHeight * atlas.frameScales[frame];
-  for (const [sheet, atlas] of Object.entries(MINOR_ANIMATION_DATA.roussel)) {
-    const reference = sheet === 'combat' ? additionalCombatAtlases.philippe : additionalExtraAtlases.philippe[sheet];
-    const height = reference.referenceHeight || 340;
-    assert.equal(atlas.widthScale * 1.06, 1.1236);
-    for (let row = 0; row < atlas.frames.length; row += 4) assert.equal(new Set(atlas.frameScales.slice(row, row + 4)).size, 1);
-    assert.ok(atlas.frameScales.every(scale => scale > 0 && scale <= 1));
-    assert.ok(atlas.frames[0][3] / atlas.referenceHeight * .92 < reference.frames[0][3] / height);
-  }
-  // Les huit pas de garde ne doivent pas rapetisser Roussel par rapport à la garde de combat.
-  const { combat, movement } = MINOR_ANIMATION_DATA.roussel, guard = rendered(combat, 0);
-  for (let frame = 0; frame < 8; frame++) assert.ok(Math.abs(rendered(movement, frame) / guard - 1) < .04, `pas ${frame}`);
-});
+
+
 
 test('Roussel redessiné : hauteur de garde proche des références et huit pas sans changement de taille', () => {
-  const height = (atlas, frame) => atlas.frames[frame][3] / (atlas.referenceHeight || 340) * (atlas.frameScales?.[frame] ?? 1);
+  const height = (atlas, frame) => atlas.frames[frame][3] * (atlas.uniformCharacter ? characterFrameScale(atlas,frame,1) : 1.1236/(atlas.referenceHeight||340));
   const guard = height(minorCombatAtlases.roussel, 0);
   const reference = (height(additionalCombatAtlases.philippe, 0) + height(additionalCombatAtlases.le_pen, 0)) / 2;
   assert.ok(Math.abs(guard / reference - 1) < .06, 'La surface seule peut masquer une silhouette trop basse.');
@@ -112,9 +83,9 @@ test('Pas de garde, esquive, réception, persuasion et relevé partagent les pri
     actor.dash_active = true; actor.dash_direction = -1; actor.dash_until_tick = state.tick+Math.ceil(config.balance.dash.duration_seconds*config.balance.simulation_architecture.fixed_tick_hz);
     assert.equal(pose().sheet,'movement'); assert.equal(pose().frame,8); assert.equal(pose().direction,-1);
     actor.dash_active = false; actor.is_ko = true; actor.ko_started_tick = state.tick;
-    assert.equal(pose().frame,8); actor.ko_started_tick -= 60; assert.equal(pose().frame,11);
+    assert.equal(pose().frame,faction==='attal'?1:8); actor.ko_started_tick -= 60; assert.equal(pose().frame,faction==='attal'?4:11);
     actor.is_ko = false; actor.combat.knockdown_tick = state.tick;
-    assert.equal(pose().frame,8);
+    assert.equal(pose().frame,faction==='attal'?1:8);
     actor.combat.knockdown_tick = null; actor.purchase_hold = {};
     assert.equal(pose(),null,'Aucune planche d’achat inutile pour un secondaire.');
   }
@@ -145,26 +116,31 @@ test('La marche générale conserve le mouvement discret commun et alterne les a
   }
 });
 
-test('Chaque frame des secondaires garde la taille de la même pose chez Philippe et Le Pen', () => {
-  const HEIGHT = 1.1236, WIDTH = 1.06, images = {};
-  // Surface affichée (racine), à l'échelle réelle du jeu, pour une frame d'une planche.
-  const size = (faction, sheet, index) => {
-    const atlas = sheet === 'combat' ? combatAtlasFor({ faction_id: faction }) : extraAtlasesFor({ faction_id: faction })[sheet];
-    const image = images[atlas.sprite] ??= readPng(new URL(visualManifest[atlas.sprite].file));
-    const [sx, sy, sw, sh] = atlas.frames[index];
-    const scale = (atlas.frameScales?.[index] ?? 1) / (atlas.referenceHeight || (sheet === 'combat' ? 340 : 360));
-    let opaque = 0;
-    for (let y = sy; y < sy + sh; y++) for (let x = sx; x < sx + sw; x++) if (image.data[(y * image.width + x) * 4 + 3] >= 90) opaque++;
-    return Math.sqrt(opaque * scale * WIDTH * (atlas.widthScale || 1) * scale * HEIGHT * (sheet === 'combat' && !atlas.minor && index === 1 ? 1.055 : 1));
-  };
-  // Les secondaires n'ont pas les frames 8-9 (maintien) ni 14-15 (ultime) des actions.
-  const referenceFrame = (sheet, index) => sheet === 'actions' && index >= 8 ? index + 2 : index;
-  const reference = {};
-  for (const sheet of ['combat', 'movement', 'actions']) reference[sheet] = Array.from({ length: sheet === 'actions' ? 12 : 16 },
-    (_, index) => (size('philippe', sheet, referenceFrame(sheet, index)) + size('le_pen', sheet, referenceFrame(sheet, index))) / 2);
-  for (const faction of Object.keys(MINOR_ANIMATION_FILES)) {
-    const ratios = Object.entries(reference).flatMap(([sheet, sizes]) => sizes.map((value, index) => ({ sheet, index, ratio: size(faction, sheet, index) / value })));
-    const median = ratios.map(r => r.ratio).sort((a, b) => a - b)[ratios.length >> 1];
-    for (const { sheet, index, ratio } of ratios) assert.ok(Math.abs(ratio / median - 1) < .08, `${faction} · ${sheet} ${index} : ${Math.round(ratio / median * 100)} %`);
+
+
+
+test('Les six secondaires : garde, huit pas et persuasion à la taille de garde de Philippe', () => {
+ const reference = additionalCombatAtlases.philippe.frames[0][3] / 340 * 1.1236;
+ assert.equal(CHARACTER_HEIGHT_RATIO,reference);
+ for(const faction of Object.keys(MINOR_ANIMATION_FILES)) {
+  for(const [sheet,indices]of [['combat',[0,1,2,3,4,5,6,7,9,10,11]],['movement',[0,1,2,3,4,5,6,7]],['actions',[0,1,4,5,6,7]]]) {
+   const atlas=sheet==='combat'?minorCombatAtlases[faction]:minorExtraAtlases[faction][sheet];
+   for(const index of indices)for(const height of [80,150,220])assert.ok(Math.abs(atlas.frames[index][3]*characterFrameScale(atlas,index,height)-reference*height)<1e-10,faction+' '+sheet+' '+index);
   }
+ }
+});
+
+test('Les poses courbées et couchées conservent une hauteur inférieure à la garde', () => {
+ for(const faction of Object.keys(MINOR_ANIMATION_FILES)) {
+  const combat=minorCombatAtlases[faction],extra=minorExtraAtlases[faction];
+  for(const index of [8,12,13,15])assert.ok(combat.frames[index][3]*characterFrameScale(combat,index,1)<CHARACTER_HEIGHT_RATIO,faction+' saut '+index);
+  const atlas=extra.knockout||extra.actions,index=extra.knockout?4:11;
+  assert.ok(atlas.frames[index][3]*characterFrameScale(atlas,index,1)<CHARACTER_HEIGHT_RATIO*.65,faction+' K.O.');
+ }
+});
+
+test('Déplacement rigide d’un candidat : un seul dessin, sans écrasement des jambes', () => {
+ const calls=[],ctx={drawImage:(...args)=>calls.push(args)};
+ drawStandingSprite(ctx,{}, {x:0,y:0,width:120,height:240},150,75,{...standingSpriteMotion('walk',.5),rigid:true});
+ assert.equal(calls.length,1);assert.equal(calls[0][7]/calls[0][3],calls[0][8]/calls[0][4]);
 });

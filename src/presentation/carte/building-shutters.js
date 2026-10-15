@@ -86,6 +86,44 @@ function drawDoors(renderer, opening, frame, progress, sprite, backdrop) {
   }
 }
 
+// Les 32 bandes de perspective restent calculées pendant le mouvement. Au repos,
+// on réutilise leur rendu à la résolution physique exacte du canevas, sans réduction.
+const doorImages = new WeakMap();
+function drawRestingDoors(renderer, opening, frame, progress, sprite, backdrop) {
+  if ((progress !== 0 && progress !== 1) || !renderer.fixedWorldActive
+    || !sprite || !backdrop || typeof document === 'undefined') return false;
+  const { ctx } = renderer, t = ctx.getTransform();
+  if (t.b !== 0 || t.c !== 0 || t.a <= 0 || t.d <= 0 || ctx.globalAlpha !== 1) return false;
+  const bounds = buildingOpeningBounds(opening);
+  const left = Math.floor((frame.x0 + bounds.x * frame.scaleX) * t.a + t.e) - 2;
+  const top = Math.floor((frame.y0 + bounds.y * frame.scaleY) * t.d + t.f) - 2;
+  const width = Math.ceil(bounds.w * frame.scaleX * t.a) + 4;
+  const height = Math.ceil(bounds.h * frame.scaleY * t.d) + 4;
+  const originX = frame.x0 * t.a + t.e - left, originY = frame.y0 * t.d + t.f - top;
+  let cache = doorImages.get(renderer);
+  if (!cache || cache.sprite !== sprite || cache.backdrop !== backdrop) {
+    cache = { sprite, backdrop, images: new Map() }; doorImages.set(renderer, cache);
+  }
+  const key = [opening.x, opening.y, progress, frame.scaleX, frame.scaleY, t.a, t.d,
+    originX.toFixed(8), originY.toFixed(8), width, height, ctx.imageSmoothingEnabled, ctx.imageSmoothingQuality].join('|');
+  let image = cache.images.get(key);
+  if (!image) {
+    image = document.createElement('canvas'); image.width = width; image.height = height;
+    const c = image.getContext('2d');
+    c.imageSmoothingEnabled = ctx.imageSmoothingEnabled; c.imageSmoothingQuality = ctx.imageSmoothingQuality;
+    c.setTransform(t.a, 0, 0, t.d, originX, originY);
+    const local = { ...frame, x0: 0, y0: 0,
+      left: frame.left - frame.x0, top: frame.top - frame.y0 };
+    drawDoors({ ctx: c, fixedWorldActive: true }, opening, local, progress, sprite, backdrop);
+    // Petit cache borné, y compris si le zoom ou l'orientation change.
+    if (cache.images.size >= 16) cache.images.delete(cache.images.keys().next().value);
+    cache.images.set(key, image);
+  }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(image, left, top); ctx.restore();
+  return true;
+}
+
 function drawPanel(ctx, texture, frame, progress) {
   const { left, top, w, h, scaleX, scaleY } = frame;
   const rail = 3 * scaleX, casing = 7 * scaleY;
@@ -121,7 +159,10 @@ function restoreForeground(renderer, opening, frame) {
   if (!image) return;
   const sw = image.naturalWidth || image.width, sh = image.naturalHeight || image.height;
   const { ctx } = renderer;
-  ctx.save(); ctx.beginPath();
+  // Seule la partie recouverte par le rideau doit être remise au premier plan.
+  // Le reste du pot ou de l'arbuste est déjà présent dans la tuile.
+  ctx.save(); ctx.beginPath(); ctx.rect(frame.left, frame.top, frame.w, frame.h); ctx.clip();
+  ctx.beginPath();
   for (const polygon of opening.foreground) {
     polygon.forEach(([x, y], i) => {
       const px = frame.x0 + x * frame.scaleX, py = frame.y0 + y * frame.scaleY;
@@ -155,7 +196,9 @@ export function drawBuildingShutters(renderer, state) {
     const margin = opening.kind === 'doors' ? 70 * (frame?.scaleX || 1) : 0;
     if (!frame || frame.left + frame.w + margin < 0 || frame.left - margin > renderer.width) continue;
     const progress = buildingShutterProgress(building, tick, hz);
-    if (opening.kind === 'doors') drawDoors(renderer, opening, frame, progress, doors, backdrop);
+    if (opening.kind === 'doors') {
+      if (!drawRestingDoors(renderer, opening, frame, progress, doors, backdrop)) drawDoors(renderer, opening, frame, progress, doors, backdrop);
+    }
     else drawPanel(renderer.ctx, texture, frame, progress);
     if (renderer.fixedWorldActive && progress > 0) restoreForeground(renderer, opening, frame);
   }

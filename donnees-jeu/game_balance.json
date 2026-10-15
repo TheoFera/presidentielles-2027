@@ -202,6 +202,7 @@
       "appearance_seconds": 0.5
     },
     "le_pen_navy_wave": {
+      "body_length_units": 5,
       "range_screens": 0.7,
       "travel_speed": 15,
       "launch_delay_seconds": 0.3,
@@ -273,6 +274,14 @@
       "knockback": 11,
       "stun_seconds": 0.5
     }
+  },
+  "minor_ultimates": {
+    "sausage": { "range": 8, "speed": 12, "damage": 10, "push": 3, "pull": 6, "height": 0.65 },
+    "invisible": { "duration_seconds": 5, "transition_seconds": 0.3 },
+    "delivery": { "call_seconds": 0.8, "warning_seconds": 0.8, "interval_seconds": 0.45, "spacing": 2.4, "radius": 1.3, "damage": 13, "knockback": 4 },
+    "tools": { "duration_seconds": 6, "range": 2.3, "sickle_damage": 10, "hammer_damage": 18, "pull": 4, "flatten_seconds": 0.8 },
+    "barrier": { "duration_seconds": 3.5, "fall_seconds": 0.65, "height": 1.15, "half_width": 0.3, "max_distance": 3, "fall_range": 3.2, "damage": 22, "knockback": 9 },
+    "satchel": { "launch_seconds": 0.3, "speed": 9, "range": 6, "radius": 2.6, "damage": 25, "knockback": 7, "lifetime_seconds": 30 }
   },
   "buildings": {
     "permanence": {
@@ -542,7 +551,6 @@
     "show_vote_health_bars": true,
     "width_units": 28,
     "edge_margin": 1.2,
-    "transition_seconds": 0.35,
     "damage": {
       "light_1": 0.45,
       "light_2": 0.55,

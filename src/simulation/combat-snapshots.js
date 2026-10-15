@@ -1,4 +1,5 @@
 import { ALL_FACTIONS } from './world.js';
+import { ULTIMATE_KINDS, MINOR_ULTIMATE_KINDS } from './minor-ultimate-catalog.js';
 
 export function validateCombatSnapshot(state, sim, fail) {
   const integer = n => Number.isInteger(n) && n >= 0;
@@ -25,7 +26,9 @@ export function validateCombatSnapshot(state, sim, fail) {
         || ![-1, 1].includes(actor.dash_direction) || ![undefined, -1, 0, 1].includes(actor.dash_buffer_direction) || actor.dash_buffer_until_tick !== undefined && !Number.isInteger(actor.dash_buffer_until_tick) || ['dash_active', 'dash_recharge_disabled', 'special_decay_started', 'bardella_guardian_armed'].some(k => typeof actor[k] !== 'boolean')
         || !Number.isInteger(actor.last_successful_hit_tick) || !finite(actor.special_decay_origin) || actor.special_decay_origin > sim.config.balance.special_charge.required_points
         || actor.special_threshold !== sim.config.balance.special_charge.required_points
-        || actor.active_ultimate_id !== null && !['HOLOGRAMS','WAVE','WALL','SURGE','FIRE','ZEMMOUR','BARDELLA','SCARF','EUROPE'].includes(actor.active_ultimate_id)) fail('dash ou momentum invalide');
+        || actor.active_ultimate_id !== null && !ULTIMATE_KINDS.includes(actor.active_ultimate_id)) fail('dash ou momentum invalide');
+      if (actor.reveal_tick != null && (!integer(actor.reveal_tick) || actor.reveal_tick > state.tick)
+        || c.flatten_tick != null && (!integer(c.flatten_tick) || c.flatten_tick > state.tick || !integer(c.flatten_until_tick) || c.flatten_until_tick < c.flatten_tick)) fail('transition du candidat invalide');
     }
     if (actor.raid) {
       const raid = actor.raid;
@@ -56,12 +59,28 @@ export function validateCombatSnapshot(state, sim, fail) {
       || !Array.isArray(projectile.hit_ids) || new Set(projectile.hit_ids).size !== projectile.hit_ids.length) fail('projectile invalide');
   }
   for (const power of state.powers) {
-    if (!counterId(power.id, 'power', 'next_power_id') || !['HOLOGRAMS', 'WAVE', 'WALL', 'SURGE', 'FIRE', 'ZEMMOUR', 'SCARF', 'EUROPE'].includes(power.kind)
+    if (!counterId(power.id, 'power', 'next_power_id') || !ULTIMATE_KINDS.includes(power.kind)
       || !state.candidates.some(c => c.id === power.owner_id && c.faction_id === power.faction_id) || !integer(power.started_tick) || power.started_tick > state.tick
       || !integer(power.expires_tick) || power.expires_tick <= state.tick) fail('pouvoir invalide');
+    if (MINOR_ULTIMATE_KINDS.includes(power.kind)) validateMinorPower(power, state, { integer, finite, position }, fail);
   }
   for (const result of state.hit_results) {
     if (!counterId(result.id, 'hit', 'next_hit_id') || !integer(result.tick) || result.tick > state.tick || !position(result.x)
       || ['damage', 'electoral_damage', 'knockback'].some(k => !finite(result[k])) || ![-1, 1].includes(result.direction)) fail('résultat de coup invalide');
   }
+}
+
+function validateMinorPower(p, state, check, fail) {
+  const { integer, finite, position } = check;
+  const ids = values => Array.isArray(values) && values.every(id => typeof id === 'string') && new Set(values).size === values.length;
+  const owner = state.candidates.find(c => c.id === p.owner_id);
+  const kinds = { roussel: 'SAUSAGE', dupont_aignan: 'INVISIBLE', glucksmann: 'DELIVERY', arthaud: 'TOOLS', retailleau: 'BARRIER', attal: 'SATCHEL' };
+  if (kinds[owner?.faction_id] !== p.kind || !position(p.x) || ![-1, 1].includes(p.direction)) fail('ultime secondaire incohérent');
+  if (p.kind === 'SAUSAGE' && (!finite(p.height) || !finite(p.travelled) || typeof p.returning !== 'boolean'
+    || ![p.hit_ids, p.return_hit_ids, p.carried_ids].every(ids))) fail('saucisse invalide');
+  if (p.kind === 'DELIVERY' && (!Array.isArray(p.impacts) || p.impacts.length !== 3 || p.impacts.some(drop => !position(drop.x) || !integer(drop.tick) || typeof drop.done !== 'boolean'))) fail('livraison invalide');
+  if (p.kind === 'BARRIER' && (!finite(p.base_height) || !integer(p.fall_tick) || !ids(p.hit_ids))) fail('mur invalide');
+  if (p.kind === 'SATCHEL' && (!integer(p.launch_tick) || !position(p.target_x) || p.target_id !== null && typeof p.target_id !== 'string'
+    || typeof p.launched !== 'boolean' || typeof p.landed !== 'boolean' || !finite(p.height) || !finite(p.initial_range) || !finite(p.remaining_range)
+    || p.detonated_tick != null && (!integer(p.detonated_tick) || p.detonated_tick > state.tick))) fail('cartable invalide');
 }

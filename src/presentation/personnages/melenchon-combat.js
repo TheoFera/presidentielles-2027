@@ -5,7 +5,8 @@ import { MelenchonMotionTracker, knockdownPose } from './melenchon-extra-poses.j
 import { combatDelta } from '../../simulation/combat-geometry.js';
 import { enemies } from '../../simulation/combat-state.js';
 import { minorCombatAtlases } from './minor-animation-sprites.js';
-import { prepareAtlasFrames } from './minor-sprite-images.js';
+import { invisibleToEnemies } from '../../simulation/minor-ultimate-catalog.js';
+import { characterFrameScale, drawCharacterAtlasFrame } from './character-scale.js';
 
 export const MELENCHON_SPRITE = 'character-melenchon-combat-v4';
 // Source bounds and body pivots for independently drawn poses.
@@ -23,9 +24,6 @@ export const MELENCHON_FRAMES = [
 // rather than stretching each bent silhouette to the standing character height.
 export const MELENCHON_REFERENCE_HEIGHT = 340;
 export const MELENCHON_HEIGHT_STRETCH = 1.1236;
-export const MELENCHON_WIDTH_STRETCH = 1.06;
-export const MELENCHON_JUMP_SCALE = 1.06;
-export const MELENCHON_CHARGED_SCALE = 1.06;
 
 export const combatAtlases = { melenchon: { sprite: MELENCHON_SPRITE, frames: MELENCHON_FRAMES, style: 'melenchon_universaliste' }, ...additionalCombatAtlases, ...minorCombatAtlases };
 export const combatAtlasFor = entity => skinAnimationFor(entity)?.combat || combatAtlases[entity.faction_id];
@@ -33,7 +31,7 @@ export function usesCandidateCombat(entity, state) {
   const atlas = combatAtlases[entity.faction_id];
   return !!atlas && (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME' && entity.faction_id === 'melenchon') && !entity.bardella_form && !entity.presentation_name
     && (!entity.current_campaign_style || entity.current_campaign_style === atlas.style || !!skinAnimationFor(entity))
-    && !(entity.ultimate_effect && entity.ultimate_effect.kind !== 'SCARF' && entity.ultimate_effect.expires_tick > state.tick);
+    && !(entity.ultimate_effect && !['SCARF', 'INVISIBLE', 'TOOLS'].includes(entity.ultimate_effect.kind) && entity.ultimate_effect.expires_tick > state.tick);
 }
 export const usesMelenchonCombat = (entity,state) => entity.faction_id === 'melenchon' && usesCandidateCombat(entity,state);
 
@@ -48,7 +46,7 @@ export class CombatPoseTracker {
     const radius = config.balance.candidate_combat.ai_detection_range * (active ? 1.3 : 1);
     const dangerous = new Set(['CANDIDAT', 'MILITANT', 'SERVICE_D_ORDRE', 'HOLOGRAMME', 'CRS', 'ENCAPUCHONNE', 'ZEMMOUR']);
     const threat = [...state.candidates, ...state.npcs, ...state.temporary_units].some(target =>
-      dangerous.has(target.role) && enemies(entity, target)
+      dangerous.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick)
       && Math.abs(combatDelta(state, entity.x, target.x)) <= radius);
     const attack = state.attacks.some(a => a.owner_id === entity.id);
     const recentHit = entity.combat?.last_hit?.tick === state.tick;
@@ -126,23 +124,10 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
-  const [sx,sy,sw,sh,px,py] = definition.frames[pose.frame];
-  const scale = m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[pose.frame] ?? 1);
-  const jumpScale = pose.name === 'jump' || pose.name === 'jump_attack' ? MELENCHON_JUMP_SCALE : 1;
-  const chargedScale = !extra && (pose.frame === 9 || pose.frame === 10) ? MELENCHON_CHARGED_SCALE : 1;
-  const actionScale = pose.name === 'ultimate' ? 1.06 * 1.06
-    : ['attack_3_finisher','interaction_hold','ko_fall','ko_ground'].includes(pose.name) ? 1.06 : 1;
-  const horizontalScale = scale * MELENCHON_WIDTH_STRETCH * (definition.widthScale || 1) * jumpScale * chargedScale * actionScale * (pose.name==='ultimate'&&entity.faction_id==='le_pen'?1.12:1);
-  const verticalScale = scale * MELENCHON_HEIGHT_STRETCH * (!extra && !definition.minor && pose.frame === 1 ? 1.055 : 1) * jumpScale * chargedScale * actionScale;
+  const scale = definition.uniformCharacter ? characterFrameScale(definition, pose.frame, m.characterHeight)
+    : m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[pose.frame] ?? 1) * MELENCHON_HEIGHT_STRETCH;
   if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
-  const clip=definition.clips?.[pose.frame];
-  if(clip) {
-    ctx.beginPath();
-    clip.forEach(([cx,cy],index)=>ctx[index?'lineTo':'moveTo']((cx-px)*horizontalScale,(cy-py)*verticalScale));
-    ctx.closePath();ctx.clip();
-  }
-  if (definition.isolated) ctx.drawImage(prepareAtlasFrames(atlas, definition)[pose.frame], (sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
-  else ctx.drawImage(atlas,sx,sy,sw,sh,(sx-px)*horizontalScale,(sy-py)*verticalScale,sw*horizontalScale,sh*verticalScale);
+  drawCharacterAtlasFrame(ctx, atlas, definition, pose.frame, scale);
   if (pose.name === 'charge_ready') {
     ctx.strokeStyle = '#a9e9f0'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.arc(0, -m.characterHeight*.4, m.characterHeight*.28, -.7, .7); ctx.stroke();

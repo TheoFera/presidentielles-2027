@@ -86,6 +86,19 @@ Six autres candidats tiennent chacun une sous-zone dès le début, avec leur QG 
 - Leurs voix comptent au premier tour, mais seuls les deux meilleurs des trois candidats principaux se qualifient. Au second tour, ils se retirent et leurs électeurs redeviennent Neutres.
 - Réglages : `minor_candidates` dans `game_balance.json` et `world_layout.json`.
 
+Chacun possède aussi un ultime personnel, en campagne et en mode Débat, sans choisir de style. Les coups donnés et reçus remplissent la même jauge que pour les candidats principaux. R ou le bouton **Ultime** l’active.
+
+| Candidat | Ultime | Fonctionnement |
+|---|---|---|
+| Roussel | Saucisse boomerang | Repousse légèrement à l’aller, touche à nouveau au retour et ramène les adversaires vers lui. |
+| Dupont-Aignan | Sous les radars | Invisible aux adversaires et à leur IA pendant 5 s. Son joueur et ses alliés gardent une silhouette discrète. Une attaque annule l’invisibilité ; disparition et réapparition prennent 0,3 s. Les coups non ciblés peuvent toujours le toucher. |
+| Glucksmann | Livraison express de démocratie | Un appel de 0,8 s fait venir un avion caricatural. Trois enveloppes annoncées au sol éclatent en confettis devant lui et bousculent les adversaires. L’aigle aviateur est un dessin fictif. |
+| Arthaud | Les outils de la lutte | Pendant 6 s, la faucille du premier coup rapproche ; le marteau du deuxième coup et des coups forts aplatit brièvement les sprites touchés. Portée accrue et plusieurs cibles possibles. |
+| Retailleau | Le mur républicain | Un mur apparaît entre lui et le candidat adverse le plus proche, puis une unité ennemie à défaut. Il bloque les deux camps ; seuls les pieds d’un saut assez haut peuvent passer. Après 3,5 s, il bascule vers l’adversaire, inflige des dégâts et repousse. |
+| Attal | Changement de programme | Lance un cartable vers le candidat adverse le plus proche à portée, puis une unité à défaut. Il ne fait aucun dégât à l’atterrissage. Un second appui sur **Ultime / Faire éclater** déclenche l’explosion caricaturale, même en vol. L’IA sait aussi le déclencher. |
+
+Les valeurs sont dans `minor_ultimates` de `game_balance.json` ; le catalogue et la simulation dans `minor-ultimate-catalog.js` et `minor-ultimates.js`. La mort, le retrait d’un candidat et le changement de round nettoient ses pouvoirs. La vague de Le Pen vérifie le passage de son corps derrière le front (`body_length_units`), conserve les cibles momentanément protégées pour les retester et ne touche chaque adversaire qu’une fois.
+
 ## Événements de campagne
 
 Des **rassemblements** apparaissent pendant la campagne. Un grand flash télé « EN DIRECT » affiche pendant 6 secondes l’un des trois titres du biome, sans couper la phrase. Il se réduit ensuite sous la carte à une étiquette « EN DIRECT » et au nom court : Manifestation (Paris 19ᵉ), Marche (banlieues), Mouvement (périurbain), Blocages (campagne), Cortège (retraités) ou Rassemblement (quartiers riches). Le rappel reste visible jusqu’à la fin du cortège, sans lieu, consigne ni compte à rebours. Les habitants du quartier se regroupent pendant `gather_seconds` (6 s), puis marchent ensemble d'une sous-zone à l'autre ; ceux qui n'ont pas eu le temps d'arriver rattrapent le cortège en route. Passer près d'eux convainc très vite. Les gardes du service d'ordre n'y participent pas. Contenu et titres : `campaign_events.json` ; fréquence et durée du flash : `campaign_events` dans `game_balance.json`.
@@ -93,10 +106,11 @@ Des **rassemblements** apparaissent pendant la campagne. Un grand flash télé �
 ## Élection
 
 1. La campagne dure `time.starting_days_before_first_round` jours de `time.real_seconds_per_game_day` secondes chacun (actuellement 365 jours de 1,4 seconde, environ 8 min 30, puis 1 min de sprint au second tour).
-2. **Soirée électorale** : le monde est figé, les scores du premier tour s'affichent. Les deux premiers des trois candidats principaux se qualifient. **Majorité absolue** : un candidat qui obtient plus de 50 % des voix exprimées (voix des candidats, autres candidats compris, sans les neutres) est élu dès le premier tour ; la partie passe directement au résultat final, sans second tour.
+2. **Soirée électorale** : le monde est figé et s'assombrit sous « Place au vote… » (`vote_seconds`, 2,2 s), puis les scores du premier tour s'affichent. La carte n'est plus redessinée derrière l'écran des résultats. Les deux premiers des trois candidats principaux se qualifient. **Majorité absolue** : un candidat qui obtient plus de 50 % des voix exprimées (voix des candidats, autres candidats compris, sans les neutres) est élu dès le premier tour ; la partie passe directement au résultat final, sans second tour.
 3. **Parcours de fin imposé** : premier tour → « Continuer » (seul bouton ; un invité attend l'hôte) → second tour → résultat final → « Voir le bilan » → bilan, où se trouvent enfin « Rejouer » (en solo) et « Retour au menu ». Les boutons d'un écran de résultats restent grisés 3 secondes après l'affichage complet (`TIMELINE.hold` dans `election-results.js`), et ceux du bilan 2,5 secondes à sa première ouverture (`SUMMARY_LOCK_MS` dans `debat/match.js`), pour qu'un appui involontaire ne fasse pas sauter une étape.
 4. **Second tour** : sprint de `time.second_round_sprint_seconds` secondes (60 s). Le troisième est éliminé : ses partisans redeviennent Neutres et ses bâtiments perdent leur propriétaire. Les instituts publient des sondages ; à la fin, ce sont les **vrais scores** qui comptent. En cas d'égalité, une prolongation est jouée (`second_round`).
 5. Un joueur éliminé devient **spectateur** et choisit quel finaliste suivre.
+6. **Transitions** (`presentation.transitions` dans `prototype_config.json`, logique dans `interface/transitions.js`) : à l'arrivée, le menu s'efface sur la carte et l'interface glisse à sa place ; en solo, la partie attend la fin du fondu. Entrer dans un débat ou en sortir passe par un rideau sombre (fermeture `cover_seconds`, ouverture `reveal_seconds`). À la fin d'un débat, l'image reste figée `debate_hold_seconds` sur le coup décisif. En solo, la partie est en pause tant que le rideau se ferme ; en multijoueur, elle continue, sans image figée. Avec « réduire les animations », tout change sans transition.
 
 ## Débat télé
 

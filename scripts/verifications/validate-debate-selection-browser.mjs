@@ -33,7 +33,7 @@ try {
   assert.equal(await solo.locator('.select-tile').count(), 9);
   assert.equal(await solo.locator('#start-menu h1').textContent(), 'Débat télé');
   await fit(solo); await solo.screenshot({ path: `${output}/solo-desktop.png` });
-  // Les six nouveaux portraits répondent au choix, sans texte ni bouton d’ultime.
+  // Les six portraits répondent au choix, avec une tenue unique et leur ultime personnel.
   for (const faction of ['glucksmann', 'roussel', 'arthaud', 'dupont_aignan', 'retailleau', 'attal']) {
     await solo.locator(`[data-faction="${faction}"]`).click();
     assert.equal(await solo.locator('.select-fighter.active [data-portrait]').getAttribute('data-portrait'), faction);
@@ -58,7 +58,7 @@ try {
   await solo.locator('[data-map="elysee"]').click(); await solo.locator('#debate-fight').click();
   await solo.locator('#debate-mode-hud:not([hidden])').waitFor({timeout:60000});
   assert.equal(await solo.locator('.debate-fighter').count(),2);
-  assert.equal(await solo.locator('.debate-fighter-ultimate:not([hidden])').count(),0);
+  assert.equal(await solo.locator('.debate-fighter-ultimate:not([hidden])').count(),2);
   await solo.screenshot({ path: `${output}/combat-minors.png` });
   await solo.close();
 

@@ -15,8 +15,8 @@ const installed = () => window.matchMedia('(display-mode: standalone), (display-
 const mobileLandscape =() => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, ads, debateMode: debate, selected: null, generation: 0 });
+  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null, arrivalSeconds = 0 }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, ads, debateMode: debate, arrivalSeconds, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -38,9 +38,11 @@ export class StartMenu {
     });
     this.home();
   }
-  get active() { return !this.element.hidden; }
+  // Pendant son effacement, le menu ne compte plus : la partie tourne déjà derrière lui.
+  get active() { return !this.element.hidden && !this.fading; }
   page(screen, title, content, back = () => this.home()) {
     this.cleanup?.(); this.cleanup = null;
+    this.stopFading();
     this.back = back;
     this.screen = screen; this.generation++; this.element.dataset.screen = screen;
     this.element.hidden = false; this.game.inert = true;
@@ -213,7 +215,7 @@ export class StartMenu {
       this.element.querySelector('#loading-status').textContent = 'Prêt !';
       const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Jouer ➜';
       button.onclick = async () => {
-        if (!ready) { this.close(); this.play(); return; }
+        if (!ready) { this.close({ fade: this.arrivalSeconds }); this.play(); return; }
         button.disabled = true; button.textContent = 'En attente…';
         try { await ready(); } catch (error) {
           if (generation !== this.generation) return;
@@ -228,5 +230,19 @@ export class StartMenu {
       button.onclick = () => void this.loading({ multiplayer, ready });
     }
   }
-  close() { this.cleanup?.(); this.cleanup = null; this.generation++; this.element.hidden = true; syncOrientation(); }
+  /** `fade` (secondes) : le menu s'efface en douceur sur la partie déjà dessinée derrière lui. */
+  close({ fade = 0 } = {}) {
+    this.cleanup?.(); this.cleanup = null; this.generation++; this.stopFading();
+    const element = this.element;
+    if (!fade || element.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { element.hidden = true; syncOrientation(); return; }
+    element.classList.add('is-leaving'); syncOrientation();
+    const fading = this.fading = element.animate([{ opacity: 1 }, { opacity: 0 }], { duration: fade * 1000, easing: 'ease-in', fill: 'forwards' });
+    // Minuterie plutôt que la fin de l'animation : le menu se ferme même si l'onglet ne dessine plus.
+    fading.timer = setTimeout(() => { if (this.fading !== fading) return; this.stopFading(); element.hidden = true; syncOrientation(); }, fade * 1000);
+  }
+  stopFading() {
+    const fading = this.fading; this.fading = null;
+    if (fading) { clearTimeout(fading.timer); fading.cancel(); }
+    this.element.classList.remove('is-leaving');
+  }
 }

@@ -1,6 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { vehicleWheelSpin, vehicleWheelTravel } from '../src/presentation/carte/vehicles.js';
+import { CAMPAIGN_STYLES } from '../src/simulation/campaign-styles.js';
+import { mountedVehicleAssetId, vehicleWheelSpin, vehicleWheelTravel } from '../src/presentation/carte/vehicles.js';
+
+test('Le scooter moderne dépend du garage périurbain, pour toutes les tenues et Bardella', () => {
+  const state = { buildings: [
+    { id: 'peri', subzone_id: 'periurbain_b' },
+    { id: 'campagne', subzone_id: 'campagne_a' },
+  ] };
+  for (const faction_id of ['melenchon', 'le_pen', 'philippe']) {
+    for (const current_campaign_style of [null, ...CAMPAIGN_STYLES[faction_id].map(s => s.id)]) {
+      const entity = { faction_id, current_campaign_style, vehicle: { type: 'scooter', site_id: 'peri' } };
+      assert.equal(mountedVehicleAssetId(entity, state), `riders-periurbain-${faction_id}`);
+      entity.bardella_form = true;
+      assert.equal(mountedVehicleAssetId(entity, state), 'riders-periurbain-bardella');
+      entity.bardella_form = false;
+      entity.vehicle.site_id = 'campagne';
+      assert.equal(mountedVehicleAssetId(entity, state), `riders-${faction_id}`);
+      entity.vehicle = { type: 'velo', site_id: 'peri' };
+      assert.equal(mountedVehicleAssetId(entity, state), `riders-${faction_id}`);
+    }
+  }
+});
 
 test('Les roues suivent le déplacement, les arrêts et le passage autour de la carte', () => {
   const renderer = { cameraX: 98, metrics: { anchorX: 100, pixelsPerUnit: 10 } };

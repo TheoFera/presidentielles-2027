@@ -1,6 +1,7 @@
 import { DamageFeedbackDisplay } from './presentation/effets/damage-feedback.js';
 import { CampaignStylesDisplay } from './presentation/interface/campaign-styles.js';
 import { ultimateBlockedReason } from './simulation/combat.js';
+import { pendingSatchel } from './simulation/minor-ultimate-catalog.js';
 import { loadCampaignProfile, saveCampaignProfile } from './presentation/menus/campaign-profile.js';
 import { CampaignDisplay } from './presentation/interface/campaign.js';
 import { loadConfig } from './config.js';
@@ -27,6 +28,7 @@ import { StartMenu } from './presentation/menus/start-menu.js';
 import { showLegalNotice, warmUpBehindNotice } from './presentation/menus/legal-notice.js';
 import { worldAssetIds } from './presentation/carte/illustrated-world.js';
 import { installLandscape } from './presentation/interface/landscape.js';
+import { SceneTransitions, campaignScene } from './presentation/interface/transitions.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multijoueur/multiplayer.js';
 import { PeerSession } from './network/peer-session.js';
 import { OnlineSession } from './network/online-session.js';
@@ -171,6 +173,16 @@ async function start() {
   let previousTime = performance.now();
   let lastDrawnTime = -Infinity;
   let debugElapsed = 0;
+  // Transitions de la campagne : rideau entre carte et débats, « Place au vote… » avant les résultats.
+  const transitionSettings = config.prototype.presentation.transitions;
+  const transitions = new SceneTransitions(transitionSettings);
+  const curtain = document.getElementById('phase-fade'), voteInterlude = document.getElementById('vote-interlude');
+  voteInterlude.style.setProperty('--vote', `${transitionSettings.vote_seconds}s`);
+  sounds.resultsLead = transitionSettings.vote_seconds;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = () => motionPreference.matches;
+  // sceneFreeze : le décor change (solo) ; arrivalRemaining : le menu s'efface encore (solo).
+  let sceneFreeze = false, arrivalRemaining = 0;
   let currentZone = zoneAt(state.world, state.candidates[0].x).id;
   let currentDay = state.days_remaining;
   // Mode Débat : combat autonome, sans monde de campagne.
@@ -208,6 +220,7 @@ async function start() {
   const queue = command => { pending.push(command); canvas.focus(); };
   const resetPresentation = () => {
     state = simulation.getState(); previous = state; pending = []; clock.reset(); input.clear(); renderer.resetCamera();
+    transitions.reset(); sceneFreeze = false; curtain.style.opacity = 0; voteInterlude.hidden = true; matchDisplay.resultsHeld = false;
     matchDisplay.reset(); moneyCounter.reset(); sounds.reset(); combatMusic.clear();
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
@@ -483,7 +496,15 @@ async function start() {
     });
   }
 
-  function play() { snapshots.reset(); sentTick = null; paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake(); }
+  function play() {
+    snapshots.reset(); sentTick = null; paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake();
+    // Arrivée dans la campagne : la partie attend que le menu soit effacé, l'interface glisse à sa place.
+    if (debateMatch || reducedMotion()) return;
+    arrivalRemaining = session ? 0 : transitionSettings.arrival_seconds;
+    const game = document.getElementById('game');
+    game.classList.remove('hud-entering'); void game.offsetWidth; game.classList.add('hud-entering');
+    setTimeout(() => game.classList.remove('hud-entering'), (transitionSettings.arrival_seconds + 0.9) * 1000);
+  }
   function roomChanged(room) {
     if (!session) return;
     if (room.phase === 'pairing') {
@@ -502,7 +523,7 @@ async function start() {
         void menu.loading({ multiplayer: true, ready: () => session.request('ready') });
       }
     } else if (room.phase === 'playing') {
-      if (roomPhase !== 'playing') { menu.close(); if (debateMatch) playDebate(); else play(); }
+      if (roomPhase !== 'playing') { menu.close({ fade: debateMatch ? 0 : transitionSettings.arrival_seconds }); if (debateMatch) playDebate(); else play(); }
       if (debateMatch) {
         const votes = room.rematch || [];
         debateDisplay.setRematch({ voted: votes.includes(session.id) || debateDisplay.rematch.voted, waiting: votes.filter(id => id !== session.id).length });
@@ -565,7 +586,7 @@ async function start() {
   // Multijoueur : compte obligatoire. Une fois connecté, l'action voulue reprend toute seule.
   const multiplayerGate = (current, mode) => requireAccount(current, accounts, { resume: () => showMultiplayerSetup(current, connectRoom, mode), back: () => current.players(mode), suggestion: profile.nickname });
   setCandidateColors(config.prototype.presentation.factions);
-  menu = new StartMenu({ prepare, play, audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate,
+  menu = new StartMenu({ prepare, play, audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate, arrivalSeconds: transitionSettings.arrival_seconds,
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   menu.onProfile = current => decorateProfile(current, accounts);
@@ -635,16 +656,18 @@ async function start() {
   function updateCombatButtons(combatView, fighter) {
     const ultimateButton = document.getElementById('ultimate-touch');
     const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
-    ultimateButton.hidden = ratio <= 0; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
+    const satchel = pendingSatchel(combatView, fighter);
+    ultimateButton.hidden = ratio <= 0 && !satchel; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
     const heldTicks = fighter.combat.press_tick == null ? 0 : combatView.tick - fighter.combat.press_tick;
     const chargeRatio = fighter.combat.charge_active ? Math.min(1, heldTicks / (config.balance.candidate_combat.charge_ready_seconds * config.balance.simulation_architecture.fixed_tick_hz)) : 0;
     const attackButton = document.getElementById('attack-touch');
     attackButton.classList.toggle('charging', chargeRatio > 0);
     attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
     setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
-    ultimateButton.classList.toggle('ready', ratio >= 1);
+    setText(ultimateButton, satchel ? 'Faire éclater' : 'Ultime');
+    ultimateButton.classList.toggle('ready', !!satchel?.launched || ratio >= 1);
     ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
-    ultimateButton.setAttribute('aria-label', `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
+    ultimateButton.setAttribute('aria-label', satchel ? 'Faire éclater le cartable' : `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
     document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
   }
 
@@ -792,7 +815,8 @@ async function start() {
         campaignPrediction?.decay(paused ? 0 : elapsed);
         guestView();
       }
-      if (!paused && !document.hidden && (!session || session.host)) {
+      if (arrivalRemaining > 0) arrivalRemaining -= elapsed;
+      if (!paused && !document.hidden && (!session || session.host) && !sceneFreeze && arrivalRemaining <= 0) {
         const frameStart = state;
         let changedCamera = false;
         // Après un ralentissement, on rattrape au plus max_presentation_frame_seconds :
@@ -818,6 +842,14 @@ async function start() {
       }
       if (!paused && !document.hidden) { noticeRemaining -= elapsed; }
       networkFrame(elapsed);
+      // Pas limité à 0,1 s : après un à-coup, le fondu reprend au lieu d'être sauté.
+      const scene = transitions.update(campaignScene(state), Math.min(elapsed, 0.1), { solo: !session, instant: reducedMotion() });
+      sceneFreeze = scene.freeze;
+      if (scene.swap) { previous = state; renderer.resetCamera(); }
+      const curtainOpacity = String(Math.round(scene.curtain * 100) / 100);
+      if (curtain.style.opacity !== curtainOpacity) curtain.style.opacity = curtainOpacity;
+      if (voteInterlude.hidden === scene.vote) voteInterlude.hidden = !scene.vote;
+      matchDisplay.resultsHeld = !scene.results;
       matchDisplay.update(state);
       campaignDisplay.update(state);
       stylesDisplay.update(state);
@@ -853,7 +885,8 @@ async function start() {
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
       const renderAlpha = session && !session.host ? guestAlpha : clock.alpha;
       electoralDisplay.update(state, candidate, interpolatedPlayerX(viewState, paused ? viewState : previous, candidate, paused ? 1 : renderAlpha));
-      renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+      // Rideau en train de se fermer (image figée) ou résultats à l'écran (carte cachée) : rien à redessiner.
+      if (scene.draw) renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);

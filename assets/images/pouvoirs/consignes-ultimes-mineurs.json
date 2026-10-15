@@ -1,0 +1,21 @@
+{
+  "generateur": "image_gen intégré",
+  "images": [
+    {
+      "nom": "arthaud",
+      "prompt": "Use case: identity-preserve. Reference locks Nathalie Arthaud's face, short dark hair, glasses, red jacket, black shirt, navy trousers, black flat shoes, anatomical proportions and inked game style. Make a new production sprite sheet with EXACTLY EIGHT isolated fullbody figures arranged FOUR equal columns TWO equal rows. EVERY figure facing RIGHT side profile same head size and body size. She wields a curved steel SICKLE in front hand and a squat steel HAMMER with wooden handle in other hand, stylized comical safe cartoon weapons, no blood. Row1: 0 upright guard holding both visibly, 1 right step same guard; 2 front hand sickle extended RIGHT to hook opponent, hammer tucked; 3 sickle pulling back towards chest. Row2: 4 hammer lifted above head preparing smash sickle at side; 5 hammer swung DOWN in front reaching knee-height, sickle in other hand; 6 low dash holding tools close to body; 7 midair tucked jump holding both. In EVERY pose both tools are present and firmly held. Anatomical scale identical in all8 even bent ones. Transparent RGBA, no background, NO glow or floor shadows, no scenery or detached props, no text labels grid numbers. VERY LARGE transparent gutters and margins, silhouettes MUST NOT TOUCH between rows or columns. Weapons fully inside each cell, no clipping.",
+      "reference": "assets/images/candidats/arthaud/arthaud-combat-v4.png",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4ffabb4e-0704-4135-af14-5eca60d210fa.png"
+    },
+    {
+      "nom": "phone",
+      "prompt": "Use case: identity-preserve. Reference locks the approved Raphaël Glucksmann face, grey temples, stubble, open collar WHITE shirt navy suit, head-body proportions and inked painterly game style. New production sprite sheet EXACTLY TWO fullbody isolated figures in TWO equal columns ONE row. Both face RIGHT side profile. Figure0: standing making a phone call, black mobile phone held vertically firmly against near ear, other hand at waist. Figure1: same figure phone at ear but free hand gestures forward as if ordering delivery. Keep identical recognizable face and outfit and head size, no redesign. Satirical game acting, no text, no logos on phone. Transparent RGBA, NO background, no glow, no shadows, generous margins/gutter. Whole figure including shoes and hair in each cell.",
+      "reference": "assets/images/candidats/glucksmann/glucksmann-combat-v5.png",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-c452cc9e-7618-4393-9d00-5f766412a8ce.png"
+    }
+  ],
+  "accessoires": {
+    "prompt": "Use case: stylized-concept. PRODUCTION TRANSPARENT SPRITE SHEET, six separated game objects, 3 columns 2 rows, NOTHING else. Top row: 1 curved grilled sausage with mustard; 2 whimsical cream and navy propeller DELIVERY airplane flying RIGHT, tail bears an ORIGINAL CARTOON eagle wearing AVIATOR GOGGLES carrying an ENVELOPE (no seal, no real agency logo, no letters); 3 tall rectangular stone brick wall FRONT view. Bottom row: 4 old school brown leather school SATCHEL; 5 short wooden-handled curved steel sickle; 6 short wooden-handled squared steel hammer. French satirical painterly inked game style, clean bold outlines, simple flat cel shading. Each item fits fully in its own cell with VERY WIDE transparent gutters. CRITICAL: background MUST BE genuinely transparent alpha=0 throughout empty space, NO gradient background, NO ambient glow, NO colored backdrop, NO floor, NO shadows outside the object itself. Objects floating on transparency. No text, no logo text, no labels or grid.",
+    "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-478dc511-72da-466d-aadb-b59bb5f425a7.png"
+  }
+}

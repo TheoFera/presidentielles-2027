@@ -1,5 +1,6 @@
 import { campaignStyles, CAMPAIGN_STYLES } from './campaign-styles.js';
 import { validAIDifficulty } from './ai-settings.js';
+import { TEMPORARY_ULTIMATES, ULTIMATE_KINDS } from './minor-ultimate-catalog.js';
 /** Validation of the authoritative campaign extension, before atomic snapshot import. */
 export function validateCampaignSnapshot(state, config, fail) {
  const finite=n=>Number.isFinite(n)&&n>=0;
@@ -20,7 +21,8 @@ export function validateCampaignSnapshot(state, config, fail) {
  if(typeof c.bardella_form!=='boolean'||typeof c.bardellisation_used!=='boolean'||typeof c.style_interaction_held!=='boolean')fail('état du style invalide');
  if(c.bardella_form&&(!c.bardellisation_used||c.current_campaign_style!=='le_pen_gouvernement'))fail('forme Bardella incohérente');
  if(c.style_hold&&(!Number.isInteger(c.style_hold.start_tick)||c.style_hold.start_tick<0||c.style_hold.start_tick>state.tick||!finite(c.style_hold.hits)||!finite(c.style_hold.x)))fail('maintien de style invalide');
- if(c.ultimate_effect&&(!['FIRE','SCARF','EUROPE'].includes(c.ultimate_effect.kind)||!Number.isInteger(c.ultimate_effect.expires_tick)||c.ultimate_effect.expires_tick<=state.tick||c.is_ko))fail('effet temporaire du candidat invalide');
+ if(c.ultimate_effect&&(!TEMPORARY_ULTIMATES.includes(c.ultimate_effect.kind)||!Number.isInteger(c.ultimate_effect.expires_tick)||c.ultimate_effect.expires_tick<=state.tick||c.is_ko))fail('effet temporaire du candidat invalide');
+ if(c.ultimate_effect?.kind==='INVISIBLE'&&(!Number.isInteger(c.ultimate_effect.started_tick)||c.ultimate_effect.started_tick<0||c.ultimate_effect.started_tick>state.tick))fail('début de disparition invalide');
  for(const field of ['campaign_debate_id','crisis_meeting_id'])if(c[field]!==null&&!state.campaign_events.some(e=>e.id===c[field]&&e.status==='ACTIVE'))fail('activité de campagne orpheline');
  }
  if(state.campaign_style_selection && (!state.candidates.some(c=>c.id===state.campaign_style_selection.candidate_id)||typeof state.campaign_style_selection.mandatory!=='boolean'))fail('sélection de style invalide');
@@ -33,10 +35,14 @@ export function validateCampaignConfig(config){
  for(const faction of Object.keys(CAMPAIGN_STYLES))for(const style of campaignStyles(config,faction)){
    for(const field of ['biome_multipliers','penalized_biomes'])if(!style[field]||Object.entries(style[field]).some(([id,v])=>!config.layout.biomes.some(b=>b.id===id)||!Number.isFinite(v)||v<0))fail(style.id+' / '+field);
    for(const field of ['event_tag_weights','opinion_tag_multipliers'])if(!style[field]||Object.values(style[field]).some(v=>!Number.isFinite(v)||v<0))fail(style.id+' / '+field);
-   if(!['MANUAL','MANUAL_GUARDIAN'].includes(style.ultimate.activation_mode)||!['HOLOGRAMS','WAVE','WALL','SURGE','FIRE','ZEMMOUR','BARDELLA','SCARF','EUROPE'].includes(style.ultimate.kind))fail(style.id+' / ultime');
+   if(!['MANUAL','MANUAL_GUARDIAN'].includes(style.ultimate.activation_mode)||!ULTIMATE_KINDS.includes(style.ultimate.kind))fail(style.id+' / ultime');
  }
  for(const key of ['surge','fire','zemmour','scarf','europe']){
    const power=config.balance.specials[key];if(!power||Object.entries(power).some(([field,value])=>typeof value==='number'&&(field==='knockback'?(!Number.isFinite(value)||value<0):!positive(value))))fail('ultime '+key);
+ }
+ for(const key of ['sausage','invisible','delivery','tools','barrier','satchel']){
+   const power=config.balance.minor_ultimates?.[key];
+   if(!power||Object.values(power).some(value=>!positive(value)))fail('ultime secondaire '+key);
  }
  if(!b||!positive(b.max_simultaneous_events)||!positive(b.initial_event_delay_days)||!positive(b.notification_display_seconds)||!positive(b.notification_arrival_seconds)||b.notification_arrival_seconds>b.notification_display_seconds||!Array.isArray(b.frequency_curve)||b.frequency_curve.some(row=>row.length!==3||!positive(row[1])||row[2]<row[1]))fail('calendrier, annonces ou fréquence');
  for(const [family,p]of Object.entries(b.families)){for(const key of ['base_weight','duration','max_simultaneous','leader_weight','second_weight','third_weight'])if(!positive(p[key]))fail(family+' / '+key);if(p.minimum_day>p.maximum_day||Object.values(p.intensity_weights).some(v=>!positive(v)))fail(family);}

@@ -3,6 +3,7 @@ import { campaignStyles } from '../../simulation/campaign-styles.js';
 import { portraitContent, hydrateSelectionPortraits } from './debate-selection.js';
 import { DEBATE_ARENAS, arenaSupportHeight, drawDebateArena } from './debate-arenas.js';
 import { themeColor, themeIcon, themeName } from './debate-themes.js';
+import { candidateOpacity } from '../personnages/candidate-visibility.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -232,7 +233,7 @@ export function drawDebateMode(renderer, state, previous, alpha, elapsed = 0) {
     renderer.metrics = { ...m, groundY: m.groundY - support * m.characterHeight };
     renderer.drawPerson({ ...entity, x, combat: entity.combat && { ...entity.combat, height: Math.max(0, h - support) } }, renderer.screenX(x), state);
     renderer.metrics = m;
-    if (entity.role === 'CANDIDAT') tags.push([entity, renderer.screenX(x), m.groundY - h * m.characterHeight]);
+    if (entity.role === 'CANDIDAT' && candidateOpacity(entity, state, renderer.config) >= .99) tags.push([entity, renderer.screenX(x), m.groundY - h * m.characterHeight]);
   }
   // Étiquettes : quand deux combattants se collent, la seconde monte d’un cran.
   ctx.font = '800 12px system-ui, sans-serif';
@@ -303,7 +304,7 @@ export class DebateModeDisplay {
       const card = document.createElement('div'); card.className = 'debate-fighter';
       card.style.setProperty('--fighter-color', label.color); card.style.setProperty('--camp-color', label.faction);
       const local = fighter.id === state.local_candidate_id;
-      card.innerHTML = `${portraitContent(fighter.faction_id)}<div class="debate-fighter-name"><strong></strong><small></small></div><output></output><div class="debate-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="debate-fighter-ultimate" title="Ultime" ${fighter.minor ? 'hidden' : ''}><i></i></div>`;
+      card.innerHTML = `${portraitContent(fighter.faction_id)}<div class="debate-fighter-name"><strong></strong><small></small></div><output></output><div class="debate-fighter-hp"><i class="lag"></i><i class="life"></i></div><div class="debate-fighter-ultimate" title="Ultime"><i></i></div>`;
       hydrateSelectionPortraits(card);
       card.querySelector('strong').textContent = `${label.name}${local ? ' · Vous' : ''}`;
       card.querySelector('small').textContent = label.style;

@@ -1,6 +1,7 @@
 import { movementBlocked, canTurnDuringLightStun } from '../simulation/combat-state.js';
 import { candidateTravelSpeed } from '../simulation/vehicles.js';
 import { ringDelta, wrap } from '../simulation/world.js';
+import { barrierBlockedPosition } from '../simulation/minor-ultimates.js';
 
 /**
  * Prédiction de la Campagne chez un invité : seulement le déplacement de son propre candidat.
@@ -83,6 +84,7 @@ export class CampaignPrediction {
   move(x, axis) {
     const c = this.base?.candidate;
     if (!c || !axis) return x;
-    return wrap(x + axis * candidateTravelSpeed(this.config, c) / this.hz, this.length);
+    const desired = wrap(x + axis * candidateTravelSpeed(this.config, c) / this.hz, this.length);
+    return barrierBlockedPosition({ state: this.base.state, config: this.config }, c, desired, x);
   }
 }

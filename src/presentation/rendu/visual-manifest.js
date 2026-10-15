@@ -1,9 +1,13 @@
 import { fixedWorldAssets } from './fixed-world-assets.js';
 import { plateAssets } from '../carte/carte-plate.js';
+import { minorUltimateAssets } from '../effets/minor-ultimate-art.js';
+import { minorCorrectionAssets } from '../personnages/minor-animation-sprites.js';
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
   ...fixedWorldAssets,
   ...plateAssets,
+  ...minorUltimateAssets,
+  ...minorCorrectionAssets,
   'building-shutter-metal': { file: new URL('../../../assets/images/batiments/rideau-metallique.png', import.meta.url).href },
   'building-barn-doors': { file: new URL('../../../assets/images/batiments/portes-garage-campagne.png', import.meta.url).href },
   'building-barn-door-backdrop': { file: new URL('../../../assets/images/batiments/garage-campagne-sans-portes.png', import.meta.url).href },
@@ -82,7 +86,7 @@ export const visualManifest = {
   "character-style-melenchon-populiste": { file: new URL("../../../assets/images/candidats/melenchon/styles/character-style-melenchon-populiste.png", import.meta.url).href },
   "character-style-melenchon-universaliste": { file: new URL("../../../assets/images/candidats/melenchon/styles/character-style-melenchon-universaliste.png", import.meta.url).href },
   "character-style-philippe-europeiste": { file: new URL("../../../assets/images/candidats/philippe/styles/character-style-philippe-europeiste.png", import.meta.url).href },
-  "character-style-philippe-gestionnaire": { file: new URL("../../../assets/images/candidats/philippe/styles/character-style-philippe-gestionnaire.png", import.meta.url).href },
+  "character-style-philippe-gestionnaire": { file: new URL("../../../assets/images/candidats/philippe/character-philippe.png", import.meta.url).href },
   "character-style-philippe-notable": { file: new URL("../../../assets/images/candidats/philippe/styles/character-style-philippe-notable.png", import.meta.url).href },
   "character-ultimate-melenchon-gilet-jaune": { file: new URL("../../../assets/images/pouvoirs/character-ultimate-melenchon-gilet-jaune.png", import.meta.url).href },
   "character-ultimate-bardella": { file: new URL("../../../assets/images/pouvoirs/character-ultimate-bardella.png", import.meta.url).href },

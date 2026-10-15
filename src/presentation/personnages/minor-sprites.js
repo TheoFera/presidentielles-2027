@@ -2,17 +2,17 @@
  * Planches ImageGen des six candidats secondaires, dans le style des candidats principaux.
  * Tant qu'une planche manque, le jeu dessine le candidat par le code (minor-characters.js).
  *
- * Format : 1536 × 1024 px, transparent, 4 colonnes × 3 lignes, regard vers la droite.
+ * Planches transparentes, regard vers la droite ; les skins validés utilisent une pose de base unique.
  * Le cadrage final est mesuré individuellement dans minor-sprite-atlases.js.
  * MINOR_SHEET conserve le format de secours pour les anciennes planches non calibrées.
  */
 export const MINOR_SPRITES = {
-  glucksmann: 'assets/images/candidats/glucksmann/glucksmann.png',
+  glucksmann: 'assets/images/candidats/glucksmann/glucksmann-base-v5.png',
   roussel: 'assets/images/candidats/roussel/roussel-v7.png',
   arthaud: 'assets/images/candidats/arthaud/arthaud-v3.png',
-  dupont_aignan: 'assets/images/candidats/dupont-aignan/dupont_aignan-v2.png',
+  dupont_aignan: 'assets/images/candidats/dupont-aignan/dupont_aignan-base-v6.png',
   retailleau: 'assets/images/candidats/retailleau/retailleau-v2.png',
-  attal: 'assets/images/candidats/attal/attal-v2.png',
+  attal: 'assets/images/candidats/attal/attal-base-v6.png',
 };
 
 /** Ordre des cases, de gauche à droite puis de haut en bas. */

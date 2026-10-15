@@ -25,7 +25,9 @@ export function candidateExtraPose(actor,state,config,guard,landingAge=null,walk
   case 'landing':return {...pose,sheet:'actions',frame:frame-12};
   case 'persuade':return {...pose,sheet:'actions',frame:frame-2};
   case 'interaction_hold':return {...pose,sheet:'actions',frame:frame+2};
-  case 'ko_fall': case 'ko_ground': return {...pose,sheet:'actions',frame:minorExtraAtlases[actor.faction_id]?frame-2:frame};
+  case 'ko_fall': case 'ko_ground': return actor.faction_id === 'attal'
+    ? {...pose,sheet:'knockout',frame:frame-9}
+    : {...pose,sheet:'actions',frame:minorExtraAtlases[actor.faction_id]?frame-2:frame};
   default:return {...pose,sheet:'actions'}; // KO (10–13), activation (14–15).
  }
 }

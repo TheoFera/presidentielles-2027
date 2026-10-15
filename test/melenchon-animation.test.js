@@ -269,7 +269,7 @@ test('Marche en garde : appuis fournis par la distance ; réaction légère sans
   c.combat.knockback_velocity=.4;assert.equal(pose(c,state,config,true),null);
 });
 
-test('Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol conservé',async()=>{
+test('Mélenchon : proportions natives pendant les attaques, interactions et chutes, sans agrandissement de l’ultime',async()=>{
   const {melenchonExtraAtlases:atlases}=await import('../src/presentation/personnages/melenchon-extra-atlases.js');
   for(const action of ['finisher','ultimate','persuade','interaction','ko']){
     const {config,state,c}=setup();state.tick=0;
@@ -283,9 +283,9 @@ test('Tailles Mélenchon : persuasion initiale, ultime agrandi, ancrage au sol c
     const calls=[],ctx=new Proxy({},{get:(_,k)=>(...args)=>calls.push([k,...args])});
     drawMelenchonCombat({config,ctx,metrics:{characterHeight:100,groundY:400},assets:{get:()=>({})}},c,200,state);
     const d=calls.find(a=>a[0]==='drawImage'),[,,w,h]=definition.frames[frame],scale=100/(definition.referenceHeight||360);
-    const extraScale=action==='persuade'?1:action==='ultimate'?1.06*1.06:1.06;
-    assert.ok(Math.abs(d[8]-w*scale*1.06*extraScale)<1e-8,action+' largeur');
-    assert.ok(Math.abs(d[9]-h*scale*1.1236*extraScale)<1e-8,action+' hauteur');
+    assert.ok(Math.abs(d[8]-w*scale*1.1236)<1e-8,action+' largeur');
+    assert.ok(Math.abs(d[9]-h*scale*1.1236)<1e-8,action+' hauteur');
+    assert.ok(Math.abs(d[8]/w-d[9]/h)<1e-12,action+' proportions');
     assert.ok(calls.some(a=>a[0]==='translate'&&a[2]===406));
   }
 });

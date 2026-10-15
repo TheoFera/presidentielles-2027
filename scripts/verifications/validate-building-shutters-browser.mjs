@@ -10,6 +10,7 @@ const { chromium } = require(path.join(process.env.CAMPAIGN_TEST_NODE_MODULES, '
 const output = path.resolve(process.env.CAMPAIGN_TEST_ARTIFACTS || 'artifacts/building-shutters');
 const base = process.env.CAMPAIGN_TEST_URL || 'http://localhost:2027';
 const root = fileURLToPath(new URL('../../', import.meta.url));
+const reference = process.argv[2] ? JSON.parse(await readFile(process.argv[2], 'utf8')) : null;
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const errors = [];
@@ -24,7 +25,10 @@ try {
     const file = path.resolve(root, `.${decodeURIComponent(url.pathname)}`);
     if (url.origin !== new URL(base).origin || !file.startsWith(root)) return route.abort();
     const mime = { '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp' };
-    try { await route.fulfill({ contentType: mime[path.extname(file)] || 'application/octet-stream', body: await readFile(file) }); }
+    try {
+      const name = path.relative(root, file).split(path.sep).join('/');
+      await route.fulfill({ contentType: mime[path.extname(file)] || 'application/octet-stream', body: reference?.[name] ?? await readFile(file) });
+    }
     catch { await route.fulfill({ status: 404, body: 'Fichier introuvable.' }); }
   });
   await page.goto(`${base}/building-shutters-check`);
@@ -56,6 +60,9 @@ try {
       const modes = new Map();
       const take = (mode, tick) => {
         renderer.buildingShutterTick = tick;
+        // Le moteur repeint le fond à chaque image. Éviter ici de cumuler les
+        // arrondis de transparence des captures et des quartiers précédents.
+        ctx.clearRect(0, 0, 1920, 1080);
         drawPlateWorld(renderer, state); drawBuildingShutters(renderer, state);
         const copy = document.createElement('canvas'); copy.width = 1920; copy.height = 1080;
         copy.getContext('2d').drawImage(canvas, 0, 0); modes.set(mode, copy);

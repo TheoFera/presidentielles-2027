@@ -269,8 +269,8 @@ export class SoundDirector {
       } else if (state.phase === 'SECOND_ROUND_SPRINT') audio.music(local?.eliminated ? 'campaign' : 'sprint');
       else if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) {
         audio.music(null);
-        // Le jingle tombe avec le tampon « Qualifié / Élu » de la soirée électorale.
-        const delay = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0.2 : 3.2;
+        // Le jingle tombe avec le tampon « Qualifié / Élu » de la soirée électorale, après « Place au vote… » (resultsLead).
+        const delay = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 0.2 : 3.2 + (this.resultsLead ?? 0);
         const success = state.phase === 'FIRST_ROUND_RESULTS' ? state.first_round_result?.ranking.slice(0, 2).includes(faction) : state.result?.winner === faction;
         if (previous !== null) audio.jingle(state.phase === 'FIRST_ROUND_RESULTS' ? success ? 'qualified' : 'eliminated' : success ? 'victory' : 'defeat', delay);
       }

@@ -2,6 +2,7 @@ import { actionState } from './combat-actions.js';
 import { ringDelta, MINOR_FACTIONS } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
 import { aiNoise } from './ai-settings.js';
+import { MINOR_ULTIMATES } from './minor-ultimate-catalog.js';
 
 const style = (id, name, biome, summary, ultimate, kind, tags, accent, outfit) => ({
   id, name, primary_biome: biome, summary, skin: { accent, outfit },
@@ -58,7 +59,8 @@ export function campaignStyles(config, faction) {
     return { ...s, ...override, id: s.id, ultimate: { ...s.ultimate, ...override.ultimate } };
   });
 }
-export const activeCampaignStyle = (config, candidate) => campaignStyles(config, candidate?.faction_id).find(s => s.id === candidate.current_campaign_style) || null;
+export const activeCampaignStyle = (config, candidate) => campaignStyles(config, candidate?.faction_id).find(s => s.id === candidate.current_campaign_style)
+  || (MINOR_ULTIMATES[candidate?.faction_id] ? { ultimate: MINOR_ULTIMATES[candidate.faction_id] } : null);
 /** Tous les styles du candidat sont accessibles à l’IA, sans déblocage joueur.
  * Le terrain du QG favorise un style, sans exclure les autres possibilités. */
 export function chooseAICampaignStyle(state, config, candidate) {
@@ -101,6 +103,7 @@ export function clearCampaignUltimate(sim, candidate, resetLife = false) {
   candidate.combat.combo_step = 0; candidate.combat.combo_expires_tick = 0;
   candidate.combat.attack_id = null; candidate.combat.buffer_until_tick = -1;
   candidate.ultimate_effect = null; candidate.style_hold = null; candidate.style_interaction_held = false;
+  candidate.reveal_tick = null; candidate.combat.flatten_tick = null; candidate.combat.flatten_until_tick = null;
   candidate.special_charge = 0; candidate.special_decay_started = false; candidate.special_decay_origin = 0; candidate.bardella_guardian_armed = false; candidate.active_ultimate_id = null;
   candidate.dash_active = false; candidate.dash_until_tick = 0; candidate.dash_invulnerable_until_tick = 0; candidate.dash_buffer_direction = 0; candidate.dash_buffer_until_tick = -1;
   if (resetLife) { candidate.bardella_form = false; candidate.bardellisation_used = false; }

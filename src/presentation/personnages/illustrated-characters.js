@@ -10,6 +10,7 @@ import { standingSpriteMotion, drawStandingSprite } from './standing-sprite-moti
 import { zoneAt } from '../../simulation/world.js';
 import { drawMinorCandidate } from './minor-characters.js';
 import { conversionBadgeLanded, conversionHop, conversionProgress } from '../effets/persuasion-feedback.js';
+import { drawMinorUltimateCandidate } from '../effets/minor-ultimates.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
 const hash = value => [...String(value)].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 0);
@@ -100,6 +101,7 @@ export function meetingCrowdRow(entity, state) {
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
+  if (drawMinorUltimateCandidate(renderer, entity, x, state)) return true;
   if (drawMinorCandidate(renderer, entity, x, state)) return true;
   if (drawMountedCandidate(renderer, entity, x, state)) return true;
   if (drawUltimateCharacter(renderer, entity, x, state)) return true;
@@ -153,9 +155,9 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.5 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
   if (entity.role === 'HOLOGRAMME') { ctx.globalAlpha *= Math.min(1, (state.tick - (entity.spawn_tick || 0)) / Math.max(1, (entity.ready_tick || 1) - (entity.spawn_tick || 0))); ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
   // Les PNJ restent statiques au repos ; seule la marche reçoit un léger mouvement procédural.
-  ctx.scale(1 / breathing, breathing);
+  if (!candidate) ctx.scale(1 / breathing, breathing);
   // Deform the two leg regions around a fixed hip seam, reusing the master identity.
-  drawStandingSprite(ctx, sprite, frame, height, width, motion);
+  drawStandingSprite(ctx, sprite, frame, height, width, { ...motion, rigid: candidate });
   ctx.shadowBlur = 0;
   const pinX = width * 0.10;
   const pinY = -height * (entity.role === 'MILITANT' ? 0.66 : 0.60);

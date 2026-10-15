@@ -6,8 +6,10 @@ export function syncOrientation() {
   const menu = document.getElementById('start-menu');
   // L'avertissement de l'allumage garde le menu inaccessible tant qu'il n'est pas validé.
   const notice = document.getElementById('legal-notice');
-  menu.inert = blocked || !!notice && !notice.hidden && !notice.classList.contains('closing');
-  document.getElementById('game').inert = blocked || !menu.hidden;
+  // Menu en train de s'effacer (arrivée dans la partie) : déjà inactif, le jeu répond.
+  const leaving = menu.classList.contains('is-leaving');
+  menu.inert = blocked || leaving || !!notice && !notice.hidden && !notice.classList.contains('closing');
+  document.getElementById('game').inert = blocked || !menu.hidden && !leaving;
   document.getElementById('landscape-gate').hidden = !blocked;
 }
 
