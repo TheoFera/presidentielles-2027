@@ -29,3 +29,4 @@ tmp/
 # Fichiers temporaires de Wrangler (serveur de salons en ligne)
 serveur-en-ligne/.wrangler/
 serveur-en-ligne/.dev.vars
+output/
