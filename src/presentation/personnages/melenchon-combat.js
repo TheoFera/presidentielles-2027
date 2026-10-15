@@ -37,6 +37,7 @@ export function usesCandidateCombat(entity, state) {
 export const usesMelenchonCombat = (entity,state) => entity.faction_id === 'melenchon' && usesCandidateCombat(entity,state);
 
 // Visual memory only: does not block persuasion, change facing, or modify saved state.
+const dangerousRoles = new Set(['CANDIDAT', 'MILITANT', 'SERVICE_D_ORDRE', 'HOLOGRAMME', 'CRS', 'ENCAPUCHONNE', 'ZEMMOUR']);
 export class CombatPoseTracker {
   constructor() { this.actors = new Map(); }
   clear() { this.actors.clear(); }
@@ -45,10 +46,9 @@ export class CombatPoseTracker {
     const entry = previous && previous.tick <= state.tick ? previous : { until: -1, tick: state.tick };
     const active = state.tick <= entry.until;
     const radius = config.balance.candidate_combat.ai_detection_range * (active ? 1.3 : 1);
-    const dangerous = new Set(['CANDIDAT', 'MILITANT', 'SERVICE_D_ORDRE', 'HOLOGRAMME', 'CRS', 'ENCAPUCHONNE', 'ZEMMOUR']);
-    const threat = [...state.candidates, ...state.npcs, ...state.temporary_units].some(target =>
-      dangerous.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick)
-      && Math.abs(combatDelta(state, entity.x, target.x)) <= radius);
+    const threatens = target => dangerousRoles.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick)
+      && Math.abs(combatDelta(state, entity.x, target.x)) <= radius;
+    const threat = state.candidates.some(threatens) || state.npcs.some(threatens) || state.temporary_units.some(threatens);
     const attack = state.attacks.some(a => a.owner_id === entity.id);
     const recentHit = entity.combat?.last_hit?.tick === state.tick;
     if (threat || attack || recentHit || entity.combat?.charge_active) entry.until = state.tick + Math.ceil(2 * config.balance.simulation_architecture.fixed_tick_hz);

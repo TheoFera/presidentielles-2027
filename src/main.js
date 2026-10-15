@@ -19,6 +19,7 @@ import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
 import { WorldRenderer } from './presentation/rendu/renderer.js';
+import { setHidden, setClass, setStyle, setAttribute } from './presentation/interface/dom-updates.js';
 import { preparedDrawingSources } from './presentation/personnages/minor-sprite-images.js';
 import { BrowserInput } from './presentation/interface/input.js';
 import { DebugPanel } from './presentation/debogage/debug.js';
@@ -659,18 +660,20 @@ async function start() {
     const ultimateButton = document.getElementById('ultimate-touch');
     const ratio = Math.max(0, Math.min(1, fighter.special_charge / config.balance.special_charge.required_points));
     const satchel = pendingSatchel(combatView, fighter);
-    ultimateButton.hidden = ratio <= 0 && !satchel; ultimateButton.disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
+    setHidden(ultimateButton, ratio <= 0 && !satchel);
+    const disabled = !!ultimateBlockedReason({ state: combatView, config }, fighter);
+    if (ultimateButton.disabled !== disabled) ultimateButton.disabled = disabled;
     const heldTicks = fighter.combat.press_tick == null ? 0 : combatView.tick - fighter.combat.press_tick;
     const chargeRatio = fighter.combat.charge_active ? Math.min(1, heldTicks / (config.balance.candidate_combat.charge_ready_seconds * config.balance.simulation_architecture.fixed_tick_hz)) : 0;
     const attackButton = document.getElementById('attack-touch');
-    attackButton.classList.toggle('charging', chargeRatio > 0);
-    attackButton.style.setProperty('--focus', `${chargeRatio * 100}%`);
+    setClass(attackButton, 'charging', chargeRatio > 0);
+    setStyle(attackButton, '--focus', `${chargeRatio * 100}%`);
     setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
     setText(ultimateButton, satchel ? 'Faire éclater' : 'Ultime');
-    ultimateButton.classList.toggle('ready', !!satchel?.launched || ratio >= 1);
-    ultimateButton.style.setProperty('--charge', `${ratio * 100}%`);
-    ultimateButton.setAttribute('aria-label', satchel ? 'Faire éclater le cartable' : `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
-    document.getElementById('bardella-armed').hidden = !fighter.bardella_guardian_armed;
+    setClass(ultimateButton, 'ready', !!satchel?.launched || ratio >= 1);
+    setStyle(ultimateButton, '--charge', `${ratio * 100}%`);
+    setAttribute(ultimateButton, 'aria-label', satchel ? 'Faire éclater le cartable' : `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
+    setHidden(document.getElementById('bardella-armed'), !fighter.bardella_guardian_armed);
   }
 
   /** Invité : l’état affiché est pris dans le tampon, avec un léger retard constant. */
@@ -747,11 +750,11 @@ async function start() {
     if (playing !== lowLatency) { lowLatency = playing; try { globalThis.PTJNativeNetwork?.setLowLatency(playing); } catch { /* Pont absent : navigateur. */ } }
     const badge = document.getElementById('network-ping');
     const stats = elapsed !== null && session?.room?.phase === 'playing' ? session.networkStats?.() || [] : [];
-    if (!stats.length) { badge.hidden = true; return; }
+    if (!stats.length) { setHidden(badge, true); return; }
     if ((pingElapsed += elapsed) < 0.5 && !badge.hidden) return;
     pingElapsed = 0;
     const worst = stats.reduce((a, b) => b.ping > a.ping ? b : a), ping = Math.round(worst.ping);
-    badge.hidden = false;
+    setHidden(badge, false);
     setText(badge, `Ping ${ping} ms${worst.jitter > 40 ? ' · irrégulier' : ''}`);
     badge.dataset.quality = ping < 60 ? 'bon' : ping < 150 ? 'moyen' : 'mauvais';
     // Réseau irrégulier : corrections plus douces (moins de petits sauts) ; stable : plus vives.
@@ -856,9 +859,9 @@ async function start() {
       campaignDisplay.update(state);
       stylesDisplay.update(state);
       const waiting = session && state.campaign_style_selection && state.campaign_style_selection.candidate_id !== state.local_candidate_id;
-      const networkStatus = document.getElementById('network-status'); networkStatus.hidden = !waiting;
+      const networkStatus = document.getElementById('network-status'); setHidden(networkStatus, !waiting);
       if (waiting) networkStatus.textContent = 'Un autre joueur choisit son style. La campagne reprendra dès qu’il aura terminé.';
-      document.body.classList.toggle('campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(state.local_candidate_id)));
+      setClass(document.body, 'campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(state.local_candidate_id)));
       const candidate = matchDisplay.viewedCandidate(state);
       const combatView = state.phase === 'FIRST_ROUND_DEBATE' ? state.debate : state.campaign_events.find(e => e.debate && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.debate || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
@@ -880,10 +883,10 @@ async function start() {
         finishProgress();
       }
       announceKnockouts();
-      funds.hidden = !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-      document.getElementById('touch-controls').hidden = paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
+      setHidden(funds, !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
+      setHidden(document.getElementById('touch-controls'), paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       if (noticeRemaining <= 0) setText(notice, '');
-      notice.hidden = ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase);
+      setHidden(notice, ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase));
       const viewState = candidate.id === state.local_candidate_id ? state : { ...state, local_candidate_id: candidate.id };
       const renderAlpha = session && !session.host ? guestAlpha : clock.alpha;
       electoralDisplay.update(state, candidate, interpolatedPlayerX(viewState, paused ? viewState : previous, candidate, paused ? 1 : renderAlpha));

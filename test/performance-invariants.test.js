@@ -5,9 +5,12 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { ALL_FACTIONS, FACTIONS } from '../src/simulation/world.js';
 import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { completePopulation } from '../src/simulation/spawns.js';
-import { incomePerSecond, incomeBreakdown } from '../src/simulation/territory.js';
+import { incomePerSecond, incomeBreakdown, stableIdOrder } from '../src/simulation/territory.js';
 import { formatNumber } from '../src/presentation/interface/number-format.js';
-import { combatActors, findCombatActor } from '../src/simulation/combat-state.js';
+import { combatActors, findCombatActor, nearestEnemy, enemies } from '../src/simulation/combat-state.js';
+import { combatDelta } from '../src/simulation/combat-geometry.js';
+import { withNpcProximity, nearbyNpcs, updateNpcProximity } from '../src/simulation/npc-proximity.js';
+import { CrowdSpacing, crowdTargets } from '../src/presentation/rendu/crowd-spacing.js';
 
 test('Les voix restent celles des PNJ après mutations au même tick', () => {
   const config = campaignConfig(), sim = new GameSimulation(config);
@@ -76,4 +79,81 @@ test('La recherche directe d’un combattant respecte les exclusions et les muta
   check(); candidate.eliminated = true; check();
   candidate.eliminated = false; candidate.campaign_debate_id = 'debate:test'; check();
   candidate.campaign_debate_id = null; state.npcs.shift(); state.temporary_units.pop(); check();
+});
+
+test('Les recherches par secteur gardent les cibles, les égalités et le raccord circulaire', () => {
+  const sim = new GameSimulation(campaignConfig()); completePopulation(sim);
+  const state = sim.state, actor = state.candidates[0];
+  state.npcs.forEach((npc, i) => {
+    npc.x = i * state.world.length / state.npcs.length;
+    npc.role = 'MILITANT'; npc.faction_id = i % 2 ? 'le_pen' : actor.faction_id;
+  });
+  const reference = (range, predicate) => combatActors(state)
+    .filter(target => enemies(actor, target) && Math.abs(combatDelta(state, actor.x, target.x)) <= range && predicate(target))
+    .sort((a, b) => Math.abs(combatDelta(state, actor.x, a.x)) - Math.abs(combatDelta(state, actor.x, b.x)) || stableIdOrder(a, b))[0] || null;
+  for (const debate of [false, true]) {
+    if (debate) state.debate_bounds = { min: 0, max: state.world.length };
+    withNpcProximity(state, () => {
+      for (const x of [0, .001, 8, state.world.length / 2, state.world.length - .001]) {
+        actor.x = x;
+        for (const range of [0, .5, 4, 17, state.world.length / 2, Infinity]) {
+          const predicate = target => !target.id.endsWith('3');
+          assert.equal(nearestEnemy(state, actor, range, predicate), reference(range, predicate));
+        }
+      }
+    });
+  }
+});
+
+test('Un déplacement suivi, une conversion et un nouveau traitement restent visibles au même tick', () => {
+  const sim = new GameSimulation(campaignConfig()); completePopulation(sim);
+  const state = sim.state, actor = state.candidates[0], npc = state.npcs[0];
+  actor.x = 0; state.candidates.slice(1).forEach(candidate => { candidate.x = 100; });
+  state.npcs.forEach((npc, i) => { npc.x = 100 + i; });
+  npc.role = 'MILITANT'; npc.faction_id = 'le_pen';
+  withNpcProximity(state, () => {
+    for (let i = 0; i < 4; i++) nearestEnemy(state, actor, 2);
+    assert.ok(nearbyNpcs(state, 0, 2).length < state.npcs.length / 2);
+    npc.x = state.world.length - 1; updateNpcProximity(state, npc);
+    assert.equal(nearestEnemy(state, actor, 2), npc);
+    npc.faction_id = actor.faction_id;
+    assert.equal(nearestEnemy(state, actor, 2), null);
+    npc.faction_id = 'le_pen'; npc.x = 30; updateNpcProximity(state, npc);
+    assert.equal(nearestEnemy(state, actor, 2), null);
+  });
+  npc.x = 1; // Hors du traitement indexé, les appels directs lisent immédiatement l'état vivant.
+  assert.equal(nearestEnemy(state, actor, 2), npc);
+  withNpcProximity(state, () => { for (let i = 0; i < 4; i++) assert.equal(nearestEnemy(state, actor, 2), npc); });
+  const replacement = { ...npc, id: 'npc:replacement' }; state.npcs[0] = replacement;
+  withNpcProximity(state, () => { for (let i = 0; i < 4; i++) assert.equal(nearestEnemy(state, actor, 2), replacement); });
+  assert.throws(() => withNpcProximity(state, () => { nearbyNpcs(state, 0, 2); throw new Error('Interruption'); }));
+  assert.equal(nearbyNpcs(state, 0, 2), state.npcs);
+});
+
+test('La foule réutilise son placement et garde les mêmes pas de côté à chaque image', () => {
+  const crowd = new CrowdSpacing(), state = { npcs: Array.from({ length: 80 }, (_, i) => ({ id: `npc:${i}`, x: Math.floor(i / 4) * 2, moving: false })) };
+  let expected = new Map(), lastTime = null;
+  const target = crowd.targetsFor(state, .5);
+  assert.equal(crowd.targetsFor(structuredClone(state), .5), target);
+  for (let frame = 0; frame < 240; frame++) {
+    if (frame === 60) state.npcs[0].x += .2;
+    if (frame === 90) state.npcs[1].moving = true;
+    if (frame === 120) state.npcs[2].meeting_target_id = 'meeting';
+    if (frame === 150) state.npcs[3].rally_event_id = 'rally';
+    if (frame === 180) state.npcs.splice(4, 1);
+    const gap = frame < 210 ? .5 : .7, now = frame * 1000 / 60;
+    const dt = lastTime === null ? 0 : Math.min(.1, (now - lastTime) / 1000); lastTime = now;
+    const targets = crowdTargets(state, gap), offsets = new Map(), steps = new Map();
+    for (const npc of state.npcs) {
+      const current = expected.get(npc.id) || 0, goal = targets.get(npc.id) || 0;
+      const limit = (npc.moving ? .35 : .9) * dt, change = Math.max(-limit, Math.min(limit, goal - current));
+      const value = current + change;
+      if (goal || Math.abs(value) > .001) offsets.set(npc.id, value);
+      if (!npc.moving && dt > 0 && Math.abs(change) / dt > .12) steps.set(npc.id, Math.sign(change));
+    }
+    expected = offsets;
+    crowd.update(state, gap, now);
+    assert.deepEqual(crowd.offsets, expected);
+    assert.deepEqual(crowd.steps, steps);
+  }
 });

@@ -38,7 +38,12 @@ export class MapWheel {
     this.layoutKey = '';
   }
   build(world) {
-    const key = JSON.stringify(world.subzones.map(z => [z.id, z.biome_id, z.start, z.end]));
+    if (this.layout && this.layout.length === world.subzones.length && world.subzones.every((z, i) => {
+      const old = this.layout[i];
+      return old[0] === z.id && old[1] === z.biome_id && old[2] === z.start && old[3] === z.end;
+    })) return;
+    this.layout = world.subzones.map(z => [z.id, z.biome_id, z.start, z.end]);
+    const key = JSON.stringify(this.layout);
     if (key === this.layoutKey) return;
     this.layoutKey = key;
     this.sectors.clear();

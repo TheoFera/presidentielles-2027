@@ -3,6 +3,7 @@ import { npcHomeX, ringDelta, subzoneGap, wrap, zoneAt } from './world.js';
 import { distance, stableIdOrder } from './territory.js';
 import { releaseDonation } from './money.js';
 import { barrierBlockedPosition } from './minor-ultimates.js';
+import { nearbyNpcs, updateNpcProximity } from './npc-proximity.js';
 
 export function moveNpcTowards(simulation, npc, destination, speed) {
   if (npc.role === 'MILITANT') speed = Math.min(speed, simulation.config.prototype.movement.candidate_speed_units_per_second * Math.min(2, simulation.config.balance.physical_units.militant.max_player_speed_multiplier));
@@ -10,11 +11,13 @@ export function moveNpcTowards(simulation, npc, destination, speed) {
   const step = speed / simulation.hz;
   if (Math.abs(delta) <= step) {
     npc.x = barrierBlockedPosition(simulation, npc, combatPosition(simulation.state, destination));
+    updateNpcProximity(simulation.state, npc);
     npc.moving = Math.abs(delta) > simulation.config.prototype.world.arrival_epsilon_units;
     return Math.abs(combatDelta(simulation.state, npc.x, destination)) <= simulation.config.prototype.world.arrival_epsilon_units;
   }
   npc.facing = Math.sign(delta); npc.moving = true;
   npc.x = barrierBlockedPosition(simulation, npc, combatPosition(simulation.state, npc.x + npc.facing * step));
+  updateNpcProximity(simulation.state, npc);
   return false;
 }
 
@@ -48,7 +51,22 @@ const freeNeutral = (npc, reserved) => n => n.role === 'NEUTRE' && !n.rally_even
   && (!n.persuasion || n.persuasion.actor_id === npc.id) && !reserved.has(n.id);
 
 function reservedTargets(state, npc) {
-  return new Set(state.npcs.filter(other => other.id !== npc.id && other.role === 'MILITANT').map(other => other.task?.target_id));
+  const reserved = new Set();
+  for (const other of state.npcs) if (other.id !== npc.id && other.role === 'MILITANT') reserved.add(other.task?.target_id);
+  return reserved;
+}
+
+function closestNeutral(state, npc, x, reserved, accept, population = state.npcs) {
+  const free = freeNeutral(npc, reserved);
+  let best = null, bestDistance = Infinity;
+  for (const target of population) {
+    if (!free(target) || !accept(target)) continue;
+    const gap = distance(state, x, target.x);
+    if (gap < bestDistance || gap === bestDistance && (!best || stableIdOrder(target, best) < 0)) {
+      best = target; bestDistance = gap;
+    }
+  }
+  return best;
 }
 
 const ownSite = (building, factionId) => building.state === 'ACTIVE' && building.owner_id === factionId;
@@ -77,9 +95,10 @@ function chooseLocalTask(simulation, npc, home) {
   const { state, config } = simulation;
   const anchorX = home?.x ?? npc.x;
   const homeZone = zoneAt(state.world, anchorX);
-  const target = state.npcs.filter(freeNeutral(npc, reservedTargets(state, npc)))
-    .filter(n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) <= config.balance.physical_units.militant.nearby_zone_radius)
-    .sort((a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b))[0];
+  const reach = homeZone.width * (config.balance.physical_units.militant.nearby_zone_radius + 1);
+  const target = closestNeutral(state, npc, npc.x, reservedTargets(state, npc),
+    n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) <= config.balance.physical_units.militant.nearby_zone_radius,
+    nearbyNpcs(state, anchorX, reach));
   return expandTask(simulation, target, target?.x ?? (home ? anchorX + idleOffset(simulation, npc) : anchorX));
 }
 
@@ -101,9 +120,8 @@ function tryFormExpedition(simulation, npc, home) {
   if (waiting.length < settings.expedition_min_group_size || !waiting.includes(npc)) return;
   const homeZone = zoneAt(state.world, home.x);
   // Le groupe part du côté du neutre le plus proche hors du territoire ; s'il n'y en a aucun, il continue d'attendre.
-  const nearest = state.npcs.filter(freeNeutral(npc, new Set()))
-    .filter(n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) > settings.nearby_zone_radius)
-    .sort((a, b) => distance(state, home.x, a.x) - distance(state, home.x, b.x) || stableIdOrder(a, b))[0];
+  const nearest = closestNeutral(state, npc, home.x, new Set(),
+    n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) > settings.nearby_zone_radius);
   if (!nearest) return;
   const expedition = { id: `expedition:${npc.faction_id}:${state.tick}`, direction: ringDelta(home.x, nearest.x, state.world.length) < 0 ? -1 : 1,
     home_site_id: home.id, formed_tick: state.tick };
@@ -125,9 +143,9 @@ function updateExpedition(simulation, npc, members) {
   const lead = members[0];
   const center = wrap(lead.x + members.reduce((sum, m) => sum + ringDelta(lead.x, m.x, length), 0) / members.length, length);
   const reach = state.world.subzones[0].width;
-  const target = state.npcs.filter(freeNeutral(npc, reservedTargets(state, npc)))
-    .filter(n => { const ahead = ringDelta(center, n.x, length) * direction; return ahead >= -radius && ahead <= reach; })
-    .sort((a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b))[0];
+  const target = closestNeutral(state, npc, npc.x, reservedTargets(state, npc),
+    n => { const ahead = ringDelta(center, n.x, length) * direction; return ahead >= -radius && ahead <= reach; },
+    nearbyNpcs(state, center, Math.max(radius, reach)));
   // Sans cible, chacun garde sa place dans la file, juste devant le centre du groupe :
   // les membres marchent ensemble, côte à côte, sans jamais se superposer.
   const slot = (members.indexOf(npc) - (members.length - 1) / 2) * settings.expedition_spacing_units;

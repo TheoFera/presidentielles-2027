@@ -28,15 +28,30 @@ export function crowdTargets(state, gap) {
 }
 
 export class CrowdSpacing {
-  constructor() { this.offsets = new Map(); this.steps = new Map(); this.lastTime = null; }
+  constructor() {
+    this.offsets = new Map(); this.spareOffsets = new Map(); this.steps = new Map(); this.lastTime = null;
+    this.layout = []; this.targets = null; this.gap = null;
+  }
+
+  targetsFor(state, gap) {
+    const still = npc => !npc.moving && !npc.meeting_target_id && !npc.rally_event_id;
+    if (!this.targets || gap !== this.gap || this.layout.length !== state.npcs.length || state.npcs.some((npc, i) => {
+      const before = this.layout[i], eligible = still(npc);
+      return before.id !== npc.id || before.still !== eligible || eligible && before.x !== npc.x;
+    })) {
+      this.targets = crowdTargets(state, gap); this.gap = gap;
+      this.layout = state.npcs.map(npc => ({ id: npc.id, still: still(npc), x: npc.x }));
+    }
+    return this.targets;
+  }
 
   /** Chaque PNJ rejoint sa place à petits pas : jamais de glissement rapide ni de saut. */
   update(state, gap, now = performance.now()) {
     const dt = this.lastTime === null ? 0 : Math.min(0.1, (now - this.lastTime) / 1000);
     this.lastTime = now;
-    const targets = crowdTargets(state, gap);
-    const offsets = new Map();
-    this.steps = new Map();
+    const targets = this.targetsFor(state, gap);
+    const offsets = this.spareOffsets; offsets.clear();
+    this.steps.clear();
     for (const npc of state.npcs) {
       const current = this.offsets.get(npc.id) || 0;
       const goal = targets.get(npc.id) || 0;
@@ -46,7 +61,7 @@ export class CrowdSpacing {
       if (goal || Math.abs(value) > 0.001) offsets.set(npc.id, value);
       if (!npc.moving && dt > 0 && Math.abs(change) / dt > STEPPING) this.steps.set(npc.id, Math.sign(change));
     }
-    this.offsets = offsets;
+    this.spareOffsets = this.offsets; this.offsets = offsets;
   }
 
   offset(id) { return this.offsets.get(id) || 0; }

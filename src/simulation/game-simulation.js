@@ -12,6 +12,7 @@ import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, z
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { chooseHomeX, createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
 import { npcHasArrived } from './npc-entry.js';
+import { withNpcProximity, updateNpcProximity } from './npc-proximity.js';
 import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { createElectorate, localPersuasionMultiplier, populationByOrigin } from './territory.js';
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
@@ -394,10 +395,12 @@ export class GameSimulation {
     }
     separateCandidates(this);
     updateSpawns(this);
-    for (const npc of state.npcs) {
-      if (npc.role === 'MILITANT' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
-      if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
-    }
+    withNpcProximity(state, () => {
+      for (const npc of state.npcs) {
+        if (npc.role === 'MILITANT' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
+        if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
+      }
+    });
     updateCombat(this);
     updateCandidateResistance(this);
     updateCampaignEvents(this);
@@ -406,7 +409,7 @@ export class GameSimulation {
     updateEconomy(this);
     updateProduction(this);
     prepareDonations(this);
-    this.updateNpcs();
+    withNpcProximity(state, () => this.updateNpcs());
     updateElectoralBuildings(this);
     updateStrategicSites(this);
     settleMoney(this);
@@ -504,38 +507,40 @@ export class GameSimulation {
     const state = this.state;
     const settings = this.config.prototype.world;
     for (const npc of state.npcs) {
-      if (rallyNpcStep(this, npc)) continue;
-      if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
-      npc.moving = false;
-      if (npc.role === 'SYMPATHISANT' && npc.handoff_until_tick > state.tick) continue;
-      const origin = state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
-      if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
-      if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
-      if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }
-      if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'JOIN_RAID') { updateRaidRecruit(this, npc); continue; }
-      if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
-      if (npc.role === 'DEMOBILISE') {
-        const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
-        const step = this.config.balance.physical_units.demobilized.move_speed / this.hz;
-        if (Math.abs(delta) <= step) {
-          npc.x = npc.roam_target_x; npc.role = 'NEUTRE'; npc.roam_wait_ticks = this.waitTicks();
-          this.emit('NpcReturnedHome', { npc_id: npc.id, social_point_id: origin.id });
-        } else {
-          npc.facing = Math.sign(delta); npc.x = wrap(npc.x + npc.facing * step, state.world.length); npc.moving = true;
+      try {
+        if (rallyNpcStep(this, npc)) continue;
+        if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
+        npc.moving = false;
+        if (npc.role === 'SYMPATHISANT' && npc.handoff_until_tick > state.tick) continue;
+        const origin = state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
+        if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
+        if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
+        if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }
+        if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'JOIN_RAID') { updateRaidRecruit(this, npc); continue; }
+        if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
+        if (npc.role === 'DEMOBILISE') {
+          const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
+          const step = this.config.balance.physical_units.demobilized.move_speed / this.hz;
+          if (Math.abs(delta) <= step) {
+            npc.x = npc.roam_target_x; npc.role = 'NEUTRE'; npc.roam_wait_ticks = this.waitTicks();
+            this.emit('NpcReturnedHome', { npc_id: npc.id, social_point_id: origin.id });
+          } else {
+            npc.facing = Math.sign(delta); npc.x = wrap(npc.x + npc.facing * step, state.world.length); npc.moving = true;
+          }
+          continue;
         }
-        continue;
-      }
-      if (npc.persuasion && this.config.prototype.persuasion.freeze_target_while_persuading) continue;
-      if (npc.roam_wait_ticks > 0) { npc.roam_wait_ticks--; continue; }
-      const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
-      if (Math.abs(delta) <= settings.arrival_epsilon_units) {
-        const zone = state.world.subzones.find(z => z.id === npc.origin_subzone_id);
-        npc.roam_target_x = Math.max(zone.start + settings.arrival_epsilon_units, Math.min(zone.end - settings.arrival_epsilon_units, npcHomeX(state, npc) + (random(state) * 2 - 1) * settings.roam_radius_units));
-        npc.roam_wait_ticks = this.waitTicks();
-      } else {
-        npc.facing = Math.sign(delta); npc.moving = true;
-        npc.x = wrap(npc.x + npc.facing * Math.min(Math.abs(delta), settings.roam_speed_units_per_second / this.hz), state.world.length);
-      }
+        if (npc.persuasion && this.config.prototype.persuasion.freeze_target_while_persuading) continue;
+        if (npc.roam_wait_ticks > 0) { npc.roam_wait_ticks--; continue; }
+        const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);
+        if (Math.abs(delta) <= settings.arrival_epsilon_units) {
+          const zone = state.world.subzones.find(z => z.id === npc.origin_subzone_id);
+          npc.roam_target_x = Math.max(zone.start + settings.arrival_epsilon_units, Math.min(zone.end - settings.arrival_epsilon_units, npcHomeX(state, npc) + (random(state) * 2 - 1) * settings.roam_radius_units));
+          npc.roam_wait_ticks = this.waitTicks();
+        } else {
+          npc.facing = Math.sign(delta); npc.moving = true;
+          npc.x = wrap(npc.x + npc.facing * Math.min(Math.abs(delta), settings.roam_speed_units_per_second / this.hz), state.world.length);
+        }
+      } finally { updateNpcProximity(state, npc); }
     }
   }
 

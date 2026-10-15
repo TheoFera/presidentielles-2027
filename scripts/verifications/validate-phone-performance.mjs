@@ -81,6 +81,27 @@ try {
   });
   await page.locator('#start-campaign').click();
   await page.waitForFunction(() => document.querySelector('#start-menu').hidden);
+  let interfaceAudit;
+  if (process.argv.includes('--audit-interface')) {
+    interfaceAudit = await page.evaluate(() => new Promise(resolve => {
+      const report = { frames: 180, mutations: 0, attributes: {} };
+      const count = records => {
+        for (const record of records) {
+          report.mutations++;
+          const key = record.attributeName || record.type;
+          report.attributes[key] = (report.attributes[key] || 0) + 1;
+        }
+      };
+      const observer = new MutationObserver(count);
+      observer.observe(document.getElementById('game'), { subtree: true, attributes: true, childList: true, characterData: true });
+      let frames = 0;
+      function step() {
+        if (++frames < report.frames) requestAnimationFrame(step);
+        else { count(observer.takeRecords()); observer.disconnect(); resolve(report); }
+      }
+      requestAnimationFrame(step);
+    }));
+  }
   if (engine === 'chromium') {
     const client = await page.context().newCDPSession(page);
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -134,7 +155,7 @@ try {
   const percentile = (values, p) => [...values].sort((a, b) => a - b)[Math.floor((values.length - 1) * p)];
   const report = { label, engine, cpuSlowdown: engine === 'chromium' ? 4 : 1, loadingMs, ...memory, canvas: details.canvas,
     frames: frames.length, medianMs: percentile(frames, .5), p95Ms: percentile(frames, .95), over50Ms: frames.filter(ms => ms > 50).length,
-    draws: details.draws.length, drawMedianMs: percentile(details.draws, .5), drawP95Ms: percentile(details.draws, .95), spriteValidation, errors, failed: details.failed };
+    draws: details.draws.length, drawMedianMs: percentile(details.draws, .5), drawP95Ms: percentile(details.draws, .95), interfaceAudit, spriteValidation, errors, failed: details.failed };
   await page.screenshot({ path: path.join(output, `phone-${label}-${engine}.png`) });
   await writeFile(path.join(output, `phone-${label}-${engine}.json`), JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));

@@ -12,6 +12,7 @@ import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
 import { recordKnockout } from './unlock-catalog.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
+import { visitNearbyNpcs } from './npc-proximity.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null,
@@ -198,7 +199,7 @@ export function nearestEnemy(state, actor, range, predicate = null) {
     best = target; bestDistance = d;
   };
   for (const c of state.candidates) if (!c.eliminated && !c.campaign_debate_id) consider(c);
-  for (const n of state.npcs) consider(n);
+  visitNearbyNpcs(state, x, far, consider);
   for (const u of state.temporary_units) consider(u);
   return best;
 }

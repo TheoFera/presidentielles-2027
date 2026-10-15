@@ -1,6 +1,7 @@
 import { seasonAt } from '../../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../../simulation/world.js';
 import { candidateOpacity } from '../personnages/candidate-visibility.js';
+import { setClass, setStyle } from './dom-updates.js';
 const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 const siteNames={permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'};
 
@@ -65,8 +66,8 @@ export class CampaignDisplay {
   const after=card.getBoundingClientRect();
   card.animate([{transform:`translate(${compactFrom.left-after.left}px, ${compactFrom.top-after.top}px) scale(${compactFrom.width/after.width}, ${compactFrom.height/after.height})`},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});
  }
- const left=live&&e.end_tick!==null&&e.end_tick>e.start_tick?Math.max(0,Math.min(1,(e.end_tick-state.tick)/(e.end_tick-e.start_tick))):0;card.children[4].style.setProperty('--news-left',(left*100).toFixed(1)+'%');
- card.classList.toggle('arriving',age<arrivalSeconds);card.classList.toggle('ended',!live);
+ const left=live&&e.end_tick!==null&&e.end_tick>e.start_tick?Math.max(0,Math.min(1,(e.end_tick-state.tick)/(e.end_tick-e.start_tick))):0;setStyle(card.children[4],'--news-left',(left*100).toFixed(1)+'%');
+ setClass(card,'arriving',age<arrivalSeconds);setClass(card,'ended',!live);
  }
  }
 }

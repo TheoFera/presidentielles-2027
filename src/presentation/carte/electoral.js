@@ -3,6 +3,7 @@ import { plateSnapOffset } from './carte-plate.js';
 import { ringDelta } from '../../simulation/world.js';
 import { meetingWaveRadius } from '../../simulation/electoral-buildings.js';
 import { MapWheel } from '../interface/map-wheel.js';
+import { setHidden, setClass, setAttribute } from '../interface/dom-updates.js';
 
 const MEETING_UPPER_HEIGHT_SCALE = 1.45;
 // L'estrade a été agrandie de 40 % (podium_half_width et podium_height aussi) ; le micro garde sa taille d'avant.
@@ -112,6 +113,7 @@ export class ElectoralDisplay {
     this.circle = document.getElementById('electoral-circle');
     this.scores = document.getElementById('poll-scores');
     this.element = document.getElementById('electoral-display');
+    this.game = document.getElementById('game');
     this.wheel = new MapWheel(this.circle);
     this.signature = '';
   }
@@ -120,24 +122,31 @@ export class ElectoralDisplay {
     const sprint = state.phase === 'SECOND_ROUND_SPRINT';
     const visible = ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase);
     const studio = state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(candidate.id));
-    this.element.hidden = !visible;
-    this.element.classList.toggle('map-clock-only', studio);
-    document.getElementById('game').classList.toggle('has-map-wheel', visible && !studio);
-    this.element.classList.toggle('sprint-clock', sprint);
+    setHidden(this.element, !visible);
+    setClass(this.element, 'map-clock-only', studio);
+    setClass(this.game, 'has-map-wheel', visible && !studio);
+    setClass(this.element, 'sprint-clock', sprint);
     const dayText = sprint ? `${Math.ceil(state.sprint_remaining_ticks / this.hz)}` : `J-${state.days_remaining}`;
     if (this.day.textContent !== dayText) this.day.textContent = dayText;
-    this.day.setAttribute('aria-label', sprint ? `${this.day.textContent} secondes avant le second tour` : `J-${state.days_remaining}`);
+    setAttribute(this.day, 'aria-label', sprint ? `${this.day.textContent} secondes avant le second tour` : `J-${state.days_remaining}`);
     const poll = state.polls[faction];
     const snapshot = poll.lastPollSnapshot;
-    this.circle.hidden = studio;
-    this.scores.hidden = !visible || studio || !snapshot;
-    this.element.classList.toggle('poll-stale', !!snapshot && !poll.active);
-    this.scores.classList.toggle('poll-stale', !!snapshot && !poll.active);
+    setHidden(this.circle, studio);
+    setHidden(this.scores, !visible || studio || !snapshot);
+    setClass(this.element, 'poll-stale', !!snapshot && !poll.active);
+    setClass(this.scores, 'poll-stale', !!snapshot && !poll.active);
     this.wheel.build(state.world);
     this.wheel.updatePosition(state.world, playerX);
-    const signature = `${this.wheel.layoutKey}:${faction}:${state.seed}:${poll.active}:${snapshot?.measured_tick}:${JSON.stringify(snapshot)}`;
-    if (signature === this.signature) return;
+    const signature = `${this.wheel.layoutKey}:${faction}:${state.seed}:${poll.active}:${snapshot?.measured_tick}`;
+    const keys = snapshot ? Object.keys(snapshot.national_support) : [];
+    const old = this.pollView;
+    const sameSupport = snapshot && old && keys.length === old.support.length
+      && keys.every((key, i) => key === old.support[i][0] && snapshot.national_support[key] === old.support[i][1]);
+    const sameZones = snapshot && old && snapshot.zones.length === old.zones.length
+      && snapshot.zones.every((zone, i) => zone.subzone_id === old.zones[i][0] && zone.controller === old.zones[i][1]);
+    if (signature === this.signature && (snapshot ? sameSupport && sameZones : !old)) return;
     this.signature = signature;
+    this.pollView = snapshot ? { support: keys.map(key => [key, snapshot.national_support[key]]), zones: snapshot.zones.map(zone => [zone.subzone_id, zone.controller]) } : null;
     this.wheel.updatePoll(snapshot, territoryColors);
     this.scores.replaceChildren();
     if (!snapshot) return;

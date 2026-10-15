@@ -5,6 +5,7 @@ import { buildingSettings } from './building-rules.js';
 import { releaseDonation } from './money.js';
 import { interrupted, targetable } from './combat-state.js';
 import { startNpcAttack } from './combat.js';
+import { nearbyNpcs } from './npc-proximity.js';
 
 /** Sympathisants libres d'un camp, du plus proche au plus éloigné du local : les recrues d'un raid. */
 export function raidRecruits(state, building, faction) {
@@ -82,7 +83,7 @@ export function updateGuard(sim, npc) {
   const closest = (a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b);
   // Un candidat adverse à portée (environ un tiers de sous-zone) attire tous les gardes, avant tout le reste.
   const candidate = state.candidates.filter(c => near(c, s.candidate_focus_range)).sort(closest)[0];
-  const target = candidate || state.npcs.concat(state.temporary_units).filter(t => t.role !== 'SYMPATHISANT' && near(t, s.engage_range))
+  const target = candidate || nearbyNpcs(state, npc.x, s.engage_range).concat(state.temporary_units).filter(t => t.role !== 'SYMPATHISANT' && near(t, s.engage_range))
     .sort((a, b) => {
       const priority = unit => unit.combat?.attack_id || unit.combat?.engaged ? 0 : unit.role === 'MILITANT' ? 1 : 2;
       return priority(a) - priority(b) || closest(a, b);

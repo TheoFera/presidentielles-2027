@@ -4,6 +4,7 @@ import { GamePhase } from '../../simulation/phases.js';
 import { drawCombatEffects } from '../effets/combat-effects.js';
 import { formatNumber } from '../interface/number-format.js';
 import { candidateOpacity } from '../personnages/candidate-visibility.js';
+import { setHidden, setStyle, setAttribute } from '../interface/dom-updates.js';
 
 const DEBATE_CHARACTER_SCALE = 1.45;
 const SUMMARY_LOCK_MS = 2500;
@@ -85,9 +86,9 @@ export class MatchDisplay {
     const finished = state.phase === GamePhase.RESULTS;
     // `resultsHeld` : « Place au vote… » est encore à l’écran, les résultats attendent la fin de l’annonce.
     const announced = (finished || state.phase === GamePhase.FIRST_ROUND_RESULTS) && !this.resultsHeld;
-    this.hud.hidden = !debate; this.results.hidden = !announced;
+    setHidden(this.hud, !debate); setHidden(this.results, !announced);
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
-    this.spectator.hidden = !sprint || !eliminated;
+    setHidden(this.spectator, !sprint || !eliminated);
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
       this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
       this.phase = state.phase; this.extensions = state.extensions;
@@ -107,15 +108,15 @@ export class MatchDisplay {
         document.getElementById('spectator-label').textContent = `Élimination de ${names[state.eliminated_faction].name} · Spectateur`;
       }
     }
-    this.banner.hidden = !this.banner.textContent || state.match_tick - state.phase_started_match_tick > this.config.balance.simulation_architecture.fixed_tick_hz * 4;
+    setHidden(this.banner, !this.banner.textContent || state.match_tick - state.phase_started_match_tick > this.config.balance.simulation_architecture.fixed_tick_hz * 4);
     if (debate) for (const c of state.debate.candidates) {
       const card = this.cards.get(c.id);
       const name = `${names[c.faction_id].symbol} · ${names[c.faction_id].name}${c.id === state.local_candidate_id ? ' · Vous' : ''}`;
       const value = c.debate_hp > 0 && c.debate_hp < 0.1 ? '< 0,1 %' : `${formatNumber(c.debate_hp, 1, 1)} %`;
       if (card.name.textContent !== name) card.name.textContent = name;
       if (card.value.textContent !== value) card.value.textContent = value;
-      card.fill.style.width = `${c.debate_initial_hp ? c.debate_hp / c.debate_initial_hp * 100 : 0}%`;
-      card.value.setAttribute('aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
+      setStyle(card.fill, 'width', `${c.debate_initial_hp ? c.debate_hp / c.debate_initial_hp * 100 : 0}%`);
+      setAttribute(card.value, 'aria-label', `${names[c.faction_id].name} : ${card.value.textContent} de jauge restante`);
     }
     this.latest = state;
     const signature = announced ? JSON.stringify([state.phase, state.first_round_result, state.result, state.local_candidate_id, this.callbacks.isHost?.(), this.callbacks.isMultiplayer?.()]) : null;

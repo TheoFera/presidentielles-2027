@@ -1,3 +1,5 @@
+import { setHidden, setStyle } from '../interface/dom-updates.js';
+
 const clamp = value => Math.max(0, Math.min(1, value));
 
 /** Read-only feedback: only damage received by the controlled candidate counts. */
@@ -40,8 +42,8 @@ export class DamageFeedbackDisplay {
   }
   update(state, candidate, alpha, hidden = false) {
     const feedback = damageFeedbackState(state, candidate, this.config, alpha, this.motionPreference.matches);
-    this.element.hidden = hidden || feedback.opacity <= 0;
-    this.element.style.setProperty('--damage-opacity', feedback.opacity.toFixed(4));
-    this.element.style.setProperty('--damage-clear', `${feedback.clearRadius.toFixed(2)}%`);
+    setHidden(this.element, hidden || feedback.opacity <= 0);
+    setStyle(this.element, '--damage-opacity', feedback.opacity.toFixed(4));
+    setStyle(this.element, '--damage-clear', `${feedback.clearRadius.toFixed(2)}%`);
   }
 }

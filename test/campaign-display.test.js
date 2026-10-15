@@ -160,3 +160,20 @@ test('Les cartes conservent leurs éléments lorsque seul le compte à rebours c
   assert.equal(created, 0);
   display.cards.get(event.id).children.forEach((node, i) => assert.equal(node, nodes[i]));
 });
+
+test('Une notification stable évite les écritures répétées et sa jauge suit toujours le temps', t => {
+  installDocument(t);
+  const config = campaignConfig(), { sim, event } = startVariant(config, config.campaignCatalog.find(v => v.family === 'RASSEMBLEMENT'));
+  const display = new CampaignDisplay(config); display.update(sim.state);
+  const card = display.cards.get(event.id);
+  let styles = 0, classes = 0;
+  const toggle = card.classList.toggle;
+  card.classList.toggle = (...args) => { classes++; return toggle(...args); };
+  card.children[4].style.setProperty = () => { styles++; };
+  display.update(sim.state);
+  assert.equal(styles, 0); assert.equal(classes, 0);
+  sim.state.tick += sim.hz;
+  display.update(sim.state);
+  assert.equal(styles, 1);
+  assert.equal(classes, 0);
+});

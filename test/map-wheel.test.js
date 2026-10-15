@@ -151,6 +151,31 @@ test('Compteur et visibilité en campagne, studio, débat et second tour', t => 
   assert.equal(node('electoral-circle').hidden, false);
 });
 
+test('Une image inchangée ne réécrit pas la carte et un sondage modifié au même tick reste visible', t => {
+  const node = documentFor(t), state = stateFor(), candidate = state.candidates[0];
+  const display = new ElectoralDisplay(config), poll = state.polls[candidate.faction_id];
+  poll.lastPollSnapshot = { measured_tick: 5, national_support: { melenchon: 30, le_pen: 20, philippe: 10, neutral: 35, pending: 5 },
+    zones: state.world.subzones.map(zone => ({ subzone_id: zone.id, controller: null })) };
+  display.update(state, candidate);
+  const nodes = [...node('poll-scores').children];
+  let writes = 0;
+  for (const element of [node('day'), node('electoral-display'), node('game'), node('poll-scores')]) {
+    const setAttribute = element.setAttribute.bind(element), toggle = element.classList.toggle;
+    element.setAttribute = (...args) => { writes++; return setAttribute(...args); };
+    element.classList.toggle = (...args) => { writes++; return toggle(...args); };
+  }
+  t.mock.method(JSON, 'stringify', () => { throw new Error('La carte stable ne doit pas être sérialisée à chaque image.'); });
+  display.update(structuredClone(state), candidate);
+  assert.equal(writes, 0);
+  assert.deepEqual(node('poll-scores').children, nodes);
+  poll.lastPollSnapshot.zones[0].controller = 'le_pen';
+  poll.lastPollSnapshot.national_support.le_pen = 21;
+  poll.lastPollSnapshot.national_support.neutral = 34;
+  display.update(state, candidate);
+  assert.equal(display.wheel.sectors.get(state.world.subzones[0].id).attributes.fill, territoryColors.le_pen);
+  assert.match(node('poll-scores').children[1].children[1], /21/);
+});
+
 test('Position partagée : interpolation réseau, pause, téléportation et redémarrage', () => {
   const state = stateFor(), candidate = state.candidates[0], length = state.world.length;
   candidate.x = length - 2;
