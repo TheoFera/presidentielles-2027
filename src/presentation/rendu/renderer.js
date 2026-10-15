@@ -1,4 +1,4 @@
-import { drawFixedWorld, prepareGeneratedImage } from '../carte/fixed-world.js';
+import { drawFixedWorld } from '../carte/fixed-world.js';
 import { prepareVehicleAtlas, drawVehiclePrompts } from '../carte/vehicles.js';
 import { drawCampaignScenery, drawCampaignMarkers } from '../interface/campaign.js';
 import { ringDelta, wrap, zoneAt } from '../../simulation/world.js';
@@ -19,24 +19,34 @@ import { drawMoneyPickups, drawMoneyFeedback } from '../carte/money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
 import { npcEntryProgress, entryPath } from '../personnages/npc-entry.js';
 import { drawPersuasionFeedback } from '../effets/persuasion-feedback.js';
-import { prepareMinorFrames, prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
-import { minorCombatAtlases, minorExtraAtlases } from '../personnages/minor-animation-sprites.js';
+import { prepareMinorFrames, prepareAtlasBitmaps, releasePreparedAtlasSource } from '../personnages/minor-sprite-images.js';
+import { minorCombatAtlases, minorExtraAtlases, minorStandingAtlases } from '../personnages/minor-animation-sprites.js';
 import { ultimateGuardAtlases } from '../effets/ultimate-guard-sprites.js';
+import { minorUltimateAtlases } from '../effets/minor-ultimate-art.js';
 import { candidateOpacity, flattenScale } from '../personnages/candidate-visibility.js';
 
 async function prepareImage(id, image) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
-  prepareGeneratedImage(image, id);
-  if (id.startsWith('minor-')) prepareMinorFrames(image, id.slice(6));
+  let preparedOnly = false;
+  if (id.startsWith('minor-')) { prepareMinorFrames(image, id.slice(6)); preparedOnly = true; }
   const ultimateGuard = Object.values(ultimateGuardAtlases).find(atlas => atlas.sprite === id);
-  if (ultimateGuard) prepareAtlasFrames(image, ultimateGuard);
+  if (ultimateGuard) { await prepareAtlasBitmaps(image, ultimateGuard); preparedOnly = true; }
+  for (const atlas of Object.values(minorUltimateAtlases)) if (atlas.sprite === id) {
+    await prepareAtlasBitmaps(image, atlas); preparedOnly = true;
+  }
   if (id.startsWith('character-minor-')) {
     const [faction, sheet] = id.slice('character-minor-'.length).split('-');
-    prepareAtlasFrames(image, sheet === 'combat' ? minorCombatAtlases[faction] : minorExtraAtlases[faction]?.[sheet]);
+    if (sheet === 'locomotion') {
+      await prepareAtlasBitmaps(image, minorExtraAtlases[faction].guardIdle);
+      await prepareAtlasBitmaps(image, minorExtraAtlases[faction].guardWalk);
+    } else await prepareAtlasBitmaps(image, sheet === 'combat' ? minorCombatAtlases[faction] : minorExtraAtlases[faction]?.[sheet]);
+    if (minorStandingAtlases[faction]?.sprite === id) await prepareAtlasBitmaps(image, minorStandingAtlases[faction]);
+    preparedOnly = true;
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
+  return preparedOnly ? releasePreparedAtlasSource(image) : image;
 }
 
 export function compositionMetrics(config, width, height) {
@@ -56,14 +66,16 @@ export class WorldRenderer {
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.config = config;
     this.p = config.prototype.presentation;
-    // Application : images décompressées une fois, gardées, planches réduites à la taille utile (sprite-bitmaps.js).
+    // Même protection mémoire sur téléphone web, depuis l'écran d'accueil et dans l'application.
+    this.mobileRendering = APP_BUILD || !!window.matchMedia?.('(any-pointer: coarse)').matches;
     let loadImage = null;
-    if (APP_BUILD && spriteBitmapsSupported()) {
-      const screenHeight = Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio);
+    if (this.mobileRendering && spriteBitmapsSupported()) {
       installSpriteDrawing();
-      loadImage = spriteBitmapLoader(spriteScaleFor(screenHeight));
+      // Web/iPhone : résolution d'origine. Android conserve son réglage antérieur.
+      const screenHeight = APP_BUILD ? Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio) : 0;
+      loadImage = spriteBitmapLoader(APP_BUILD ? spriteScaleFor(screenHeight) : 1);
     }
-    this.assets = new VisualAssets(visualManifest, {limit: 80, prepareImage, loadImage});
+    this.assets = new VisualAssets(visualManifest, {limit: 80, concurrency: this.mobileRendering ? 4 : 8, prepareImage, loadImage});
     this.width = this.p.reference_width;
     this.height = this.p.reference_height;
     this.metrics = compositionMetrics(config, this.width, this.height);

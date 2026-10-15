@@ -1,7 +1,24 @@
-import { cleanGeneratedImage } from '../carte/fixed-world.js';
+import { cleanGeneratedPixels } from '../carte/fixed-world.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
 
 const cache = new WeakMap();
+const bitmapJobs = new WeakMap();
+const drawingSources = new WeakMap();
+
+/** Textures réellement dessinées : les grandes planches découpées n'ont pas à partir aussi vers le GPU. */
+export const preparedDrawingSources = image => drawingSources.get(image) || [image];
+
+/** La planche complète n'est plus dessinée : garder ses découpes natives et ses repères suffit. */
+export function releasePreparedAtlasSource(image) {
+  if (!drawingSources.has(image) || typeof image.close !== 'function') return image;
+  const atlas = { preparedOnly: true, width: 0, height: 0,
+    naturalWidth: image.naturalWidth || image.width, naturalHeight: image.naturalHeight || image.height,
+    spriteScaleX: image.spriteScaleX, spriteScaleY: image.spriteScaleY };
+  cache.set(atlas, cache.get(image));
+  drawingSources.set(atlas, drawingSources.get(image));
+  image.close();
+  return atlas;
+}
 
 /** Isole la silhouette principale d'une découpe dont le rectangle croise une pose voisine. */
 export function isolateMinorFigure(data, width, height) {
@@ -42,18 +59,46 @@ export function prepareAtlasFrames(image, atlas) {
   if (!atlas) return null;
   const byAtlas = cache.get(image);
   if (byAtlas?.has(atlas.frames)) return byAtlas.get(atlas.frames);
-  const source = cleanGeneratedImage(image);
+  // Nettoyer seulement les découpes utiles évite une copie persistante de toute la planche.
+  const scaleX = image.spriteScaleX ?? 1, scaleY = image.spriteScaleY ?? 1;
   const frames = atlas.frames.map(([sx, sy, sw, sh]) => {
-    const canvas = document.createElement('canvas'); canvas.width = sw; canvas.height = sh;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(sw * scaleX)); canvas.height = Math.max(1, Math.round(sh * scaleY));
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(source, sx, sy, sw, sh, 0, 0, sw, sh);
-    const pixels = ctx.getImageData(0, 0, sw, sh);
-    isolateMinorFigure(pixels.data, sw, sh);
+    ctx.drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    cleanGeneratedPixels(pixels.data);
+    isolateMinorFigure(pixels.data, canvas.width, canvas.height);
     ctx.putImageData(pixels, 0, 0);
     return canvas;
   });
   const entries = byAtlas || new WeakMap();
   entries.set(atlas.frames, frames);
   if (!byAtlas) cache.set(image, entries);
+  let sources = drawingSources.get(image);
+  if (!sources) { sources = new Set(); drawingSources.set(image, sources); }
+  for (const frame of frames) sources.add(frame);
   return frames;
+}
+
+/** Convertit les découpes avant de jouer et libère immédiatement leurs canevas de travail. */
+export function prepareAtlasBitmaps(image, atlas) {
+  const frames = prepareAtlasFrames(image, atlas);
+  if (!frames || typeof createImageBitmap !== 'function') return Promise.resolve(frames);
+  if (bitmapJobs.has(frames)) return bitmapJobs.get(frames);
+  const job = (async () => {
+    // Une conversion à la fois : pas de pic de mémoire avec toutes les poses d'une planche.
+    for (let i = 0; i < frames.length; i++) {
+      const canvas = frames[i];
+      try {
+        frames[i] = await createImageBitmap(canvas);
+        const sources = drawingSources.get(image);
+        sources.delete(canvas); sources.add(frames[i]);
+        canvas.width = 0; canvas.height = 0;
+      } catch { /* Le canevas préparé reste utilisable sur les anciens navigateurs. */ }
+    }
+    return frames;
+  })();
+  bitmapJobs.set(frames, job);
+  return job;
 }

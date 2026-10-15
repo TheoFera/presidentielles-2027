@@ -1,6 +1,6 @@
 // Presentation-only image cache. Missing images always leave the existing renderer usable.
 export class VisualAssets {
-  // loadImage (facultatif) : chargeur qui remplace les images ordinaires (application : rendu/sprite-bitmaps.js).
+  // loadImage remplace les images ordinaires ; prepareImage peut rendre les repères d'une planche libérée.
   constructor(manifest = {}, { createImage = () => new Image(), limit = 64, concurrency = 8, prepareImage = null, loadImage = null } = {}) {
     this.manifest = manifest;
     this.createImage = createImage;
@@ -99,7 +99,7 @@ export class VisualAssets {
         this.loadImage(id, source.file).then(async image => {
           entry.image = image;
           if (this.prepareImage) {
-            try { await this.prepareImage(id, image); }
+            try { entry.image = await this.prepareImage(id, image) || image; }
             catch { /* Drawing still has its original lazy preparation path. */ }
           }
           finish(false);
@@ -114,7 +114,7 @@ export class VisualAssets {
           // browsers reject decode() for an otherwise usable loaded image.
           try { await image.decode?.(); } catch { /* Keep the loaded image. */ }
           if (this.prepareImage) {
-            try { await this.prepareImage(id, image); }
+            try { entry.image = await this.prepareImage(id, image) || image; }
             catch { /* Drawing still has its original lazy preparation path. */ }
           }
           finish(false);

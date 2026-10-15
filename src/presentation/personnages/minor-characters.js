@@ -3,7 +3,7 @@ import { MINOR_SHEET, minorSheetCell } from './minor-sprites.js';
 import { cleanGeneratedImage } from '../carte/fixed-world.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
 import { prepareMinorFrames, prepareAtlasFrames } from './minor-sprite-images.js';
-import { minorExtraAtlases } from './minor-animation-sprites.js';
+import { minorExtraAtlases, minorStandingAtlases } from './minor-animation-sprites.js';
 import { drawCandidateCombat } from './melenchon-combat.js';
 import { standingSpriteMotion } from './standing-sprite-motion.js';
 import { characterFrameScale } from './character-scale.js';
@@ -127,7 +127,8 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, groundY, height * 0.22, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feetY); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (entity.combat?.charge_active) { ctx.shadowColor = renderer.p.factions[entity.faction_id].color; ctx.shadowBlur = 14; }
-  const assetId = `minor-${entity.faction_id}`;
+  const standing = minorStandingAtlases[entity.faction_id];
+  const assetId = standing?.sprite || `minor-${entity.faction_id}`;
   const airborne = (entity.combat?.height || 0) > 0.02;
   const listening = animation === 'persuade_listen' ? minorExtraAtlases[entity.faction_id]?.actions : null;
   const listenSheet = listening ? renderer.assets.get(listening.sprite) : null;
@@ -136,19 +137,19 @@ export function drawMinorCandidate(renderer, entity, x, state) {
   if (!sheet) void renderer.assets.load(assetId);
   if (sheet) {
     // Les rectangles mesurés évitent de couper les cheveux, les coups et les chaussures.
-    const image = cleanGeneratedImage(sheet);
     const motion = standingSpriteMotion(animation, time);
-    const atlas = listenSheet ? listening : MINOR_ATLASES[entity.faction_id];
+    const atlas = listenSheet ? listening : standing || MINOR_ATLASES[entity.faction_id];
     const cell = listenSheet ? 6 + Math.floor(time / .35) % 2
       : (atlas?.frames.length === 1 || motion.walking) ? 0 : minorSheetCell(animation, time, airborne);
     ctx.imageSmoothingEnabled = true;
     if (atlas) {
       const [sx, sy, sw, sh, px, py] = atlas.frames[cell];
       const k = characterFrameScale(atlas, cell, height);
-      const frame = (listenSheet ? prepareAtlasFrames(sheet, listening) : prepareMinorFrames(sheet, entity.faction_id))[cell];
+      const frame = (listenSheet || standing ? prepareAtlasFrames(sheet, atlas) : prepareMinorFrames(sheet, entity.faction_id))[cell];
       if (motion.walking) ctx.rotate(motion.stride * .025);
       ctx.drawImage(frame, (sx - px) * k, (sy - py) * k, sw * k, sh * k);
     } else {
+      const image = cleanGeneratedImage(sheet);
       // Taille d'origine (une planche réduite de l'application garde naturalWidth, voir sprite-bitmaps.js).
       const imageWidth = image.naturalWidth || image.width, imageHeight = image.naturalHeight || image.height;
       const cw = imageWidth / MINOR_SHEET.columns, ch = imageHeight / MINOR_SHEET.rows;

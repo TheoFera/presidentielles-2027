@@ -5,7 +5,7 @@ import { prepareAtlasFrames } from './minor-sprite-images.js';
 export const CHARACTER_HEIGHT_RATIO = 296 / 340 * 1.1236;
 
 export function characterFrameScale(atlas, frame, height) {
-  return height * CHARACTER_HEIGHT_RATIO / atlas.frames[0][3] * (atlas.anatomicalScales?.[frame] ?? 1);
+  return height * CHARACTER_HEIGHT_RATIO / (atlas.standingHeight || atlas.frames[0][3]) * (atlas.anatomicalScales?.[frame] ?? 1);
 }
 
 /** Dessin commun au jeu et au contrôle des planches : un seul coefficient pour les deux axes. */

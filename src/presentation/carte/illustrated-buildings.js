@@ -29,6 +29,7 @@ function signSlot(sprite) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(sprite, 0, 0, 160, 200);
   const { data } = ctx.getImageData(0, 0, 160, 200);
+  canvas.width = 0; canvas.height = 0;
   let start = -1, best = [18, 43];
   for (let y = 8; y <= 108; y++) {
     let light = 0;

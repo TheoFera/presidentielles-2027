@@ -1,5 +1,5 @@
 /**
- * Cadence de l'application : 60 images par seconde au plus, à intervalles égaux.
+ * Cadence des téléphones web et de l'application : une image sur deux à 120 Hz.
  *
  * Mesuré le 09/10/2026 sur un Redmi Note 13 Pro 5G : dans l'application, la carte graphique de la WebView
  * met environ 8,4 ms à dessiner une image du jeu. Sur un écran à 120 Hz (8,3 ms par image), c'est intenable :

@@ -5,7 +5,7 @@ import { readPng } from '../lib/png.mjs';
 import { visualManifest } from '../../src/presentation/rendu/visual-manifest.js';
 import { MINOR_SPRITES } from '../../src/presentation/personnages/minor-sprites.js';
 import { MINOR_ATLASES } from '../../src/presentation/personnages/minor-sprite-atlases.js';
-import { minorCombatAtlases, minorExtraAtlases } from '../../src/presentation/personnages/minor-animation-sprites.js';
+import { minorCombatAtlases, minorExtraAtlases, minorStandingAtlases } from '../../src/presentation/personnages/minor-animation-sprites.js';
 import { combatAtlases } from '../../src/presentation/personnages/melenchon-combat.js';
 import { candidateExtraAtlases } from '../../src/presentation/personnages/candidate-extra-poses.js';
 import { skinAnimationAtlases } from '../../src/presentation/personnages/skin-animation-atlases.js';
@@ -38,6 +38,7 @@ function add(group, faction, sheet, atlas, type, allowed = null) {
 }
 
 for(const [faction,atlas]of Object.entries(combatAtlases))add(faction,faction,'combat',atlas,'combat');
+for(const [faction,atlas]of Object.entries(minorStandingAtlases))add(faction,faction,'attente',atlas,'base');
 for(const [faction,sheets]of Object.entries(candidateExtraAtlases))for(const[sheet,atlas]of Object.entries(sheets))add(faction,faction,sheet,atlas,minorExtraAtlases[faction]?'minor-extra':'extra');
 for(const [style,skin]of Object.entries(skinAnimationAtlases)) {
   add(style,skin.faction,'combat',skin.combat,'combat');

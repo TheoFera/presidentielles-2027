@@ -2,12 +2,14 @@ import { fixedWorldAssets } from './fixed-world-assets.js';
 import { plateAssets } from '../carte/carte-plate.js';
 import { minorUltimateAssets } from '../effets/minor-ultimate-art.js';
 import { minorCorrectionAssets } from '../personnages/minor-animation-sprites.js';
+import { minorLocomotionAssets } from '../personnages/minor-locomotion-sprites.js';
 // Generated from visual_codex/generated_asset_registry.json.
 export const visualManifest = {
   ...fixedWorldAssets,
   ...plateAssets,
   ...minorUltimateAssets,
   ...minorCorrectionAssets,
+  ...minorLocomotionAssets,
   'building-shutter-metal': { file: new URL('../../../assets/images/batiments/rideau-metallique.png', import.meta.url).href },
   'building-barn-doors': { file: new URL('../../../assets/images/batiments/portes-garage-campagne.png', import.meta.url).href },
   'building-barn-door-backdrop': { file: new URL('../../../assets/images/batiments/garage-campagne-sans-portes.png', import.meta.url).href },

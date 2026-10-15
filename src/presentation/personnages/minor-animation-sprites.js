@@ -1,4 +1,5 @@
 import { MINOR_ANIMATION_DATA } from './minor-animation-data.js';
+import { minorLocomotionAtlases } from './minor-locomotion-sprites.js';
 
 // Même ordre de combat et de déplacement que les candidats principaux.
 export const MINOR_ANIMATION_FILES = {
@@ -24,6 +25,14 @@ const minorAtlas = (faction, sheet, atlas) => ({
 export const minorAnimationId = (faction, sheet) => `character-minor-${faction}-${sheet}`;
 export const minorCombatAtlases = Object.fromEntries(Object.entries(MINOR_ANIMATION_DATA).map(([faction, sheets]) => [faction, { ...minorAtlas(faction, 'combat', sheets.combat), minor: true }]));
 export const minorExtraAtlases = Object.fromEntries(Object.entries(MINOR_ANIMATION_DATA).map(([faction, sheets]) => [faction, Object.fromEntries(['movement', 'actions'].map(sheet => [sheet, minorAtlas(faction, sheet, sheets[sheet])]))]));
+for (const [faction, atlases] of Object.entries(minorLocomotionAtlases)) Object.assign(minorExtraAtlases[faction], atlases);
+
+// Une référence dessinée en plein pas ne doit pas rester figée à l'arrêt.
+// Ces poses neutres ont les deux pieds posés ; le déplacement ordinaire conserve le même dessin.
+export const minorStandingAtlases = Object.fromEntries(['attal', 'dupont_aignan', 'glucksmann'].map(faction => {
+  const actions = minorExtraAtlases[faction].actions;
+  return [faction, { sprite: actions.sprite, frames: [actions.frames[6]], isolated: true, uniformCharacter: true }];
+}));
 
 export const minorCorrectionAssets = {
   'character-minor-attal-knockout': { file: new URL('../../../assets/images/candidats/attal/attal-chutes-v7.png', import.meta.url).href },

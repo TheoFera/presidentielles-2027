@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { candidateCombatPose, usesCandidateCombat, combatAtlasFor } from '../src/presentation/personnages/melenchon-combat.js';
 import { candidateExtraPose, extraAtlasesFor } from '../src/presentation/personnages/candidate-extra-poses.js';
-import { MINOR_ANIMATION_FILES, minorCombatAtlases, minorExtraAtlases } from '../src/presentation/personnages/minor-animation-sprites.js';
+import { MINOR_ANIMATION_FILES, minorCombatAtlases, minorExtraAtlases, minorStandingAtlases } from '../src/presentation/personnages/minor-animation-sprites.js';
 import { MINOR_ANIMATION_DATA } from '../src/presentation/personnages/minor-animation-data.js';
 import { visualManifest } from '../src/presentation/rendu/visual-manifest.js';
 import { readPng } from '../scripts/lib/png.mjs';
@@ -14,6 +14,7 @@ import { MINOR_SPRITES } from '../src/presentation/personnages/minor-sprites.js'
 import { MINOR_ATLASES } from '../src/presentation/personnages/minor-sprite-atlases.js';
 import { measureMinorSprites } from '../scripts/outils-images/measure-minor-sprites.mjs';
 import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
+import { minorLocomotionAtlases, minorGuardIdleFrame } from '../src/presentation/personnages/minor-locomotion-sprites.js';
 
 test('Les douze planches redessinées ont des découpes et points d’appui mesurés dans leurs PNG', () => {
   for (const faction of ['roussel', 'arthaud', 'attal']) {
@@ -76,7 +77,7 @@ test('Pas de garde, esquive, réception, persuasion et relevé partagent les pri
     const actor = structuredClone(original); actor.faction_id = faction; actor.current_campaign_style = null;
     const pose = (landing=null, frame=0) => candidateExtraPose(actor,state,config,true,landing,frame);
     actor.moving = true; actor.axis = 1;
-    for (let frame=0; frame<8; frame++) assert.deepEqual([pose(null,frame).sheet,pose(null,frame).frame],['movement',frame]);
+    for (let frame=0; frame<8; frame++) assert.deepEqual([pose(null,frame).sheet,pose(null,frame).frame],[minorLocomotionAtlases[faction]?'guardWalk':'movement',frame]);
     actor.moving = false; actor.axis = 0; actor.persuasion_target_ids = ['npc'];
     assert.equal(pose().name,'persuade'); assert.ok([4,5].includes(pose().frame));
     actor.persuasion_target_ids = []; assert.equal(pose(0).frame,2); assert.equal(pose(5).frame,3);
@@ -143,4 +144,29 @@ test('Déplacement rigide d’un candidat : un seul dessin, sans écrasement des
  const calls=[],ctx={drawImage:(...args)=>calls.push(args)};
  drawStandingSprite(ctx,{}, {x:0,y:0,width:120,height:240},150,75,{...standingSpriteMotion('walk',.5),rigid:true});
  assert.equal(calls.length,1);assert.equal(calls[0][7]/calls[0][3],calls[0][8]/calls[0][4]);
+});
+
+test('Attal, NDA et Glucksmann : pose neutre au repos et en déplacement ordinaire', () => {
+ for(const faction of ['attal','dupont_aignan','glucksmann']) {
+  const atlas=minorStandingAtlases[faction],actions=minorExtraAtlases[faction].actions;
+  assert.equal(atlas.sprite,actions.sprite);
+  assert.deepEqual(atlas.frames,[actions.frames[6]],'La référence en plein pas ne sert pas de pose d’attente.');
+  assert.ok(Math.abs(atlas.frames[0][3]*characterFrameScale(atlas,0,150)-146.7289411764706)<1e-10);
+ }
+});
+
+test('Les trois nouveaux cycles de garde utilisent des dessins distincts et une échelle anatomique constante', () => {
+ for(const faction of ['attal','dupont_aignan','glucksmann']) {
+  const {guardIdle,guardWalk}=minorLocomotionAtlases[faction];
+  assert.equal(new Set(guardIdle.frames.map(f=>f.join(','))).size,3,faction+' garde figée');
+  assert.equal(guardWalk.frames.length,8);
+  assert.equal(new Set(guardWalk.frames.map(f=>f.join(','))).size,4,faction+' appuis');
+  const image=readPng(new URL(visualManifest[guardIdle.sprite].file));
+  for(const atlas of [guardIdle,guardWalk])for(const [i,frame]of atlas.frames.entries()) {
+   assert.equal(characterFrameScale(atlas,i,150),characterFrameScale(guardIdle,0,150),'Aucun grossissement de la tête entre deux appuis.');
+   const [x,y,w,h,px,py]=frame;
+   assert.ok(x>=0&&y>=0&&x+w<=image.width&&y+h<=image.height&&px>=x&&px<=x+w&&py===y+h);
+  }
+ }
+ assert.deepEqual([0,4,8,11,14].map(tick=>minorGuardIdleFrame(tick,20)),[0,1,2,1,0]);
 });

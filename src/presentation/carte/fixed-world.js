@@ -13,13 +13,16 @@ const imageHeight = image => image.naturalHeight || image.height;
 /* ---------- Préparation des images ---------- */
 
 const cleaned = new WeakMap();
+export function cleanGeneratedPixels(data) {
+  for (let i = 3; i < data.length; i += 4) data[i] = data[i] < 90 ? 0 : data[i] > 200 ? 255 : Math.round((data[i] - 90) / 110 * 255);
+}
 /** Retire le halo sombre semi-transparent des images générées (alpha faible → transparent, bords nets). */
 export function cleanGeneratedImage(image) {
   if (cleaned.has(image)) return cleaned.get(image);
   const canvas = document.createElement('canvas'); canvas.width = imageWidth(image); canvas.height = imageHeight(image);
   const ctx = canvas.getContext('2d', { willReadFrequently: true }); ctx.drawImage(image, 0, 0);
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height), data = pixels.data;
-  for (let i = 3; i < data.length; i += 4) data[i] = data[i] < 90 ? 0 : data[i] > 200 ? 255 : Math.round((data[i] - 90) / 110 * 255);
+  cleanGeneratedPixels(data);
   ctx.putImageData(pixels, 0, 0);
   cleaned.set(image, canvas); return canvas;
 }

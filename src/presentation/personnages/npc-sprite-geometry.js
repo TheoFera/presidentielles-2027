@@ -26,6 +26,7 @@ export function npcSpriteFrame(source) {
   if (!context) return fallback;
   context.drawImage(source, 0, 0);
   const frame = opaqueSpriteFrame(context.getImageData(0, 0, width, height).data, width, height);
+  canvas.width = 0; canvas.height = 0;
   frames.set(source, frame);
   return frame;
 }

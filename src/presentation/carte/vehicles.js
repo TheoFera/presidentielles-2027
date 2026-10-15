@@ -122,6 +122,7 @@ export function prepareVehicleAtlas(id, image) {
       frames[row * columns + col] = { x: left, y: top, width: Math.max(1, right - left + 1), height: Math.max(1, bottom - top + 1) };
     }
   }
+  canvas.width = 0; canvas.height = 0;
   atlasFrames.set(image, frames); return frames;
 }
 

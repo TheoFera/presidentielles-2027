@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contrôle des poses d’attente et de déplacement</title>
+<style>
+body{margin:0;background:#e9e1ce;color:#223440;font:16px system-ui}main{max-width:1080px;margin:auto;padding:20px}h1{font-size:24px;margin:0 0 10px}p{line-height:1.5}button,select{font:inherit;padding:8px 12px;border:1px solid #89968d;border-radius:6px;background:#fff9ec;color:inherit}button[aria-pressed=true]{background:#223440;color:white}nav{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}canvas{width:100%;height:auto;background:#e9e1ce;border:1px solid #b4a88b}#statut{min-height:24px}
+</style>
+<main><h1>Attente et déplacement : les neuf candidats</h1>
+<p>Le même moteur que dans le jeu dessine ces personnages. Compare les changements d’appuis et la garde au ralenti. Le déplacement ordinaire conserve son léger balancement ; les pas de garde s’affichent séparément lorsqu’un adversaire est proche.</p>
+<nav><button data-mode="idle" aria-pressed="true">À l’arrêt</button><button data-mode="walk">Déplacement ordinaire</button><button data-mode="guard">En garde</button><button data-mode="guard-walk">Déplacement en garde</button><select aria-label="Orientation" id="sens"><option value="1">Vers la droite</option><option value="-1">Vers la gauche</option></select><select aria-label="Vitesse de lecture" id="vitesse"><option value="1">Vitesse normale</option><option value="0.5">Ralenti × 2</option><option value="0.25">Ralenti × 4</option></select><button id="pause">Mettre en pause</button></nav>
+<p id="statut">Chargement des images…</p><canvas width="1080" height="840"></canvas></main>
+<script type="module">
+import {loadConfig} from '/src/config.js';
+import {GameSimulation} from '/src/simulation/game-simulation.js';
+import {combatState} from '/src/simulation/combat-state.js';
+import {WorldRenderer} from '/src/presentation/rendu/renderer.js';
+import {visualManifest} from '/src/presentation/rendu/visual-manifest.js';
+import {combatAtlases} from '/src/presentation/personnages/melenchon-combat.js';
+import {candidateExtraAtlases} from '/src/presentation/personnages/candidate-extra-poses.js';
+const config=await loadConfig(),sim=new GameSimulation(config,42),state=sim.state;
+const order=['philippe','attal','dupont_aignan','le_pen','glucksmann','melenchon','roussel','arthaud','retailleau'];
+const names={philippe:'Édouard Philippe · référence',attal:'Gabriel Attal',dupont_aignan:'Nicolas Dupont-Aignan',le_pen:'Marine Le Pen',glucksmann:'Raphaël Glucksmann',melenchon:'Jean-Luc Mélenchon',roussel:'Fabien Roussel',arthaud:'Nathalie Arthaud',retailleau:'Bruno Retailleau'};
+const actors=order.map(faction=>({...structuredClone(state.candidates.find(c=>c.faction_id===faction)),current_campaign_style:null,combat:combatState(),purchase_hold:null,persuasion_target_ids:[]}));
+state.candidates=actors;state.npcs=[];state.temporary_units=[];state.powers=[];state.attacks=[];state.buildings=[];
+const ids=new Set(order.map(faction=>'minor-'+faction));
+for(const faction of order){ids.add('character-'+faction);ids.add(combatAtlases[faction].sprite);for(const atlas of Object.values(candidateExtraAtlases[faction]))ids.add(atlas.sprite);}
+const loaded=new Map(await Promise.all([...ids].filter(id=>visualManifest[id]).map(async id=>{const image=new Image();image.src=visualManifest[id].file;await image.decode();return[id,image];})));
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+let mode=new URLSearchParams(location.search).get('mode')||'idle',facing=1,paused=false,speed=1,clock=0,previous=performance.now(),records=[];
+let current=null;
+const fingerprints=new WeakMap(),probe=document.createElement('canvas');probe.width=48;probe.height=64;
+const probeContext=probe.getContext('2d',{willReadFrequently:true});
+function fingerprint(args){const image=args[0],rect=args.length===9?args.slice(1,5):[0,0,image.width,image.height],key=rect.join(',');let cache=fingerprints.get(image);if(!cache){cache=new Map();fingerprints.set(image,cache);}if(!cache.has(key)){probeContext.clearRect(0,0,48,64);probeContext.drawImage(image,...rect,0,0,48,64);let hash=2166136261;for(const value of probeContext.getImageData(0,0,48,64).data)hash=Math.imul(hash^value,16777619);cache.set(key,hash>>>0);}return cache.get(key);}
+const monitored=new Proxy(ctx,{get(target,key){if(key==='drawImage')return(...args)=>{const matrix=target.getTransform(),sw=args.length===9?args[3]:args[0].width,sh=args.length===9?args[4]:args[0].height;records.push({faction:current,sw,sh,fingerprint:fingerprint(args),width:args.at(-2),height:args.at(-1),ratio:Math.hypot(matrix.a,matrix.b)*args.at(-2)/sw/(Math.hypot(matrix.c,matrix.d)*args.at(-1)/sh)});target.drawImage(...args);};const value=target[key];return typeof value==='function'?value.bind(target):value;},set(target,key,value){target[key]=value;return true;}});
+const renderer={ctx:monitored,config,p:config.prototype.presentation,width:360,height:280,metrics:{groundY:242,characterHeight:150,pixelsPerUnit:40,groundOffsetRatio:0},assets:{get:id=>loaded.get(id),load:async()=>{}},screenX:()=>180,combatPoseTracker:{active:()=>mode.includes('guard')},drawVisiblePerson:WorldRenderer.prototype.drawVisiblePerson};
+function render(nextMode=mode,tick=Math.floor(clock*sim.hz),direction=facing,walkFrame=null){
+ mode=nextMode;facing=direction;state.tick=tick;records=[];
+ if(walkFrame!=null)renderer.melenchonMotionTracker={landing:()=>null,walk:()=>walkFrame};else if(renderer.melenchonMotionTracker?.walk?.length===0)delete renderer.melenchonMotionTracker;
+ ctx.reset();ctx.fillStyle='#e9e1ce';ctx.fillRect(0,0,canvas.width,canvas.height);
+ actors.forEach((actor,i)=>{
+  actor.moving=mode==='walk'||mode==='guard-walk';actor.axis=actor.moving?facing:0;actor.facing=facing;actor.x=100+tick/sim.hz*6*facing;
+  current=actor.faction_id;ctx.save();ctx.translate(i%3*360,Math.floor(i/3)*280);
+  ctx.fillStyle='#223440';ctx.textAlign='center';ctx.font='bold 17px system-ui';ctx.fillText(names[current],180,30);
+  ctx.strokeStyle='#afa385';ctx.beginPath();ctx.moveTo(20,242);ctx.lineTo(340,242);ctx.stroke();
+  WorldRenderer.prototype.drawPerson.call(renderer,actor,180,state);ctx.restore();
+ });
+ document.querySelector('#statut').textContent=({idle:'À l’arrêt : deux pieds au sol.',walk:'Déplacement ordinaire : pose neutre, sans genou levé.',guard:'Garde : posture de combat.', 'guard-walk':'Pas de garde : huit poses, distinctes du déplacement ordinaire.'})[mode];
+ return records;
+}
+window.controleDeplacements={render,actors,names,hz:sim.hz,ready:true,pause:()=>{paused=true;},resume:()=>{paused=false;}};
+document.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>{mode=button.dataset.mode;delete renderer.melenchonMotionTracker;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();});
+document.querySelector('#sens').onchange=event=>{facing=Number(event.target.value);delete renderer.melenchonMotionTracker;};
+document.querySelector('#vitesse').onchange=event=>{speed=Number(event.target.value);};
+document.querySelector('#pause').onclick=event=>{paused=!paused;event.target.textContent=paused?'Reprendre':'Mettre en pause';};
+document.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode===mode)));
+function loop(now){const dt=Math.min(.05,(now-previous)/1000);previous=now;if(!paused){clock+=dt*speed;render();}requestAnimationFrame(loop);}render();requestAnimationFrame(loop);
+</script>
+</html>

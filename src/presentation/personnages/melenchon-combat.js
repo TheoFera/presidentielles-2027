@@ -7,6 +7,7 @@ import { enemies } from '../../simulation/combat-state.js';
 import { minorCombatAtlases } from './minor-animation-sprites.js';
 import { invisibleToEnemies } from '../../simulation/minor-ultimate-catalog.js';
 import { characterFrameScale, drawCharacterAtlasFrame } from './character-scale.js';
+import { minorGuardIdleFrame } from './minor-locomotion-sprites.js';
 
 export const MELENCHON_SPRITE = 'character-melenchon-combat-v4';
 // Source bounds and body pivots for independently drawn poses.
@@ -112,22 +113,26 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   }
   const pose = extra || melenchonPose(entity, state, renderer.config, guard);
   if (!pose) return false;
-  const definition = extra ? extraAtlasesFor(entity)[extra.sheet] : combatAtlasFor(entity);
+  const idle = pose.name === 'combat_idle' && extraAtlasesFor(entity)?.guardIdle;
+  const definition = idle || (extra ? extraAtlasesFor(entity)[extra.sheet] : combatAtlasFor(entity));
+  const frame = idle ? minorGuardIdleFrame(state.tick, renderer.config.balance.simulation_architecture.fixed_tick_hz) : pose.frame;
   const atlas = renderer.assets.get(definition.sprite);
   if (!atlas) { void renderer.assets.load(definition.sprite); return false; }
   const { ctx, metrics: m } = renderer;
   // Même sol que la pose d’attente : décalage de la campagne, nul sur les plateaux peints du débat.
   const floor = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   const feet = floor - (entity.combat.height || 0) * m.characterHeight;
-  const breathing = pose.name === 'combat_idle' ? Math.sin(state.tick / 6) * m.characterHeight * .006 : 0;
+  const breathing = pose.name === 'combat_idle' && !idle ? Math.sin(state.tick / 6) * m.characterHeight * .006 : 0;
   const step = !extra && pose.name === 'combat_walk' ? Math.sin(state.tick * .65) * m.characterHeight * .02 : 0;
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, m.characterHeight * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet + breathing + step); ctx.scale(pose.direction < 0 ? -1 : 1, 1);
-  const scale = definition.uniformCharacter ? characterFrameScale(definition, pose.frame, m.characterHeight)
-    : m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[pose.frame] ?? 1) * MELENCHON_HEIGHT_STRETCH;
+  // Balancement rigide autour des appuis : garde vivante sans étirer la tête ni le costume.
+  if (idle) ctx.rotate(Math.sin(state.tick / renderer.config.balance.simulation_architecture.fixed_tick_hz * Math.PI * 2 / .7) * .018);
+  const scale = definition.uniformCharacter ? characterFrameScale(definition, frame, m.characterHeight)
+    : m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[frame] ?? 1) * MELENCHON_HEIGHT_STRETCH;
   if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
-  drawCharacterAtlasFrame(ctx, atlas, definition, pose.frame, scale);
+  drawCharacterAtlasFrame(ctx, atlas, definition, frame, scale);
   if (pose.name === 'charge_ready') {
     ctx.strokeStyle = '#a9e9f0'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.arc(0, -m.characterHeight*.4, m.characterHeight*.28, -.7, .7); ctx.stroke();

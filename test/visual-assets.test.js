@@ -295,6 +295,19 @@ test('Un navigateur refusant decode conserve une image chargée et le rendu de s
   assert.equal(cache.get('a'), image);
 });
 
+test('Une planche découpée remplace sa grande source dans le cache sans perdre ses repères', async () => {
+  const source = { width: 2000, height: 1000 };
+  const prepared = { preparedOnly: true, naturalWidth: 2000, naturalHeight: 1000 };
+  const cache = new VisualAssets({ a: { file: 'a' } }, {
+    loadImage: async () => source,
+    prepareImage: async (id, image) => { assert.equal(id, 'a'); assert.equal(image, source); return prepared; },
+  });
+  assert.equal(await cache.load('a'), prepared);
+  assert.equal(cache.get('a'), prepared);
+  assert.equal(await cache.load('a'), prepared);
+  assert.equal(cache.status().loaded, 1);
+});
+
 test('Le visage du PNJ reste stable après déplacement et conversion ; les journalistes ont leur propre sprite', () => {
   const state={world:{subzones:[{id:'origine',biome_id:'banlieue'}]}};
   const entity={id:'citoyen-12',origin_subzone_id:'origine',role:'NEUTRE',x:3};

@@ -1,17 +1,12 @@
 /**
- * Images prêtes à dessiner, pour l'application Android.
+ * Images prêtes à dessiner, pour les téléphones web et l'application Android.
  *
- * Une partie utilise environ 650 Mo d'images une fois décompressées. Chrome en garde l'essentiel
- * en mémoire ; la WebView de l'application en garde moins : elle jette des planches d'animation
- * et les décompresse de nouveau au moment de les dessiner (60 à 280 ms : une saccade), par exemple
- * quand une attaque ou un personnage apparaît.
+ * Les images ordinaires peuvent être redécodées pendant une attaque ou un déplacement.
+ * Les bitmaps gardent les pixels prêts à dessiner ; les sources des atlas découpés sont ensuite
+ * libérées par minor-sprite-images.js. Le web garde la résolution native (scale = 1).
  *
- * Dans l'application, chaque image du jeu est donc :
- * - décompressée une seule fois, hors du fil du jeu (createImageBitmap), puis gardée telle quelle :
- *   elle n'est plus jamais décompressée en pleine partie ;
- * - réduite pour les planches des personnages : elles étaient dessinées pour 350 à 520 pixels de haut,
- *   alors qu'un personnage en mesure environ 150 sur un téléphone. Réduites de moitié, elles restent
- *   plus grandes qu'à l'écran (aucune perte visible) et pèsent 4 fois moins en mémoire.
+ * L'application Android conserve son réglage antérieur : les grandes planches sont réduites
+ * selon l'écran. Aucune réduction n'est appliquée au web, y compris sur iPhone.
  *
  * Le reste du jeu ne change pas : les coordonnées des planches restent celles des fichiers d'origine.
  * naturalWidth / naturalHeight donnent la taille d'origine, et drawImage convertit les coordonnées
@@ -27,7 +22,7 @@ export const spriteBitmapsSupported = () => typeof createImageBitmap === 'functi
   && typeof CanvasRenderingContext2D === 'function';
 
 /**
- * Réduction des planches selon l'écran : un personnage de débat (le plus grand) mesure environ
+ * Réglage antérieur de l'application Android : un personnage de débat (le plus grand) mesure environ
  * 0,27 × la hauteur du canevas ; les planches les plus hautes font 520 pixels ; 15 % de marge.
  * Téléphone (canevas d'environ 800 pixels de haut) : 0,5. Grande tablette : jusqu'à 1 (aucune réduction).
  */
@@ -57,8 +52,8 @@ async function loadSpriteBitmap(url, scale) {
   let bitmap = full;
   const w = Math.round(width * scale), h = Math.round(height * scale);
   if (scale < 1 && w >= 32 && h >= 32) {
-    bitmap = await createImageBitmap(full, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
-    full.close();
+    try { bitmap = await resizeBitmap(full, w, h); }
+    finally { full.close(); }
     bitmap.spriteScaleX = w / width;
     bitmap.spriteScaleY = h / height;
   }
@@ -66,6 +61,22 @@ async function loadSpriteBitmap(url, scale) {
   bitmap.naturalWidth = width;
   bitmap.naturalHeight = height;
   return bitmap;
+}
+
+async function resizeBitmap(full, width, height) {
+  try {
+    const bitmap = await createImageBitmap(full, { resizeWidth: width, resizeHeight: height, resizeQuality: 'high' });
+    if (bitmap.width === width && bitmap.height === height) return bitmap;
+    // Certains navigateurs acceptent les options sans appliquer la réduction.
+    bitmap.close();
+  } catch { /* Essayer la réduction par canevas avant de revenir à l'image ordinaire. */ }
+  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  try {
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(full, 0, 0, width, height);
+    return await createImageBitmap(canvas);
+  } finally { canvas.width = 0; canvas.height = 0; }
 }
 
 function loadImageElement(url, createImage) {

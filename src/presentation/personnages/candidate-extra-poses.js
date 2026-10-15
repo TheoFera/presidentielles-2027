@@ -16,7 +16,7 @@ export function candidateExtraPose(actor,state,config,guard,landingAge=null,walk
  if(minorExtraAtlases[actor.faction_id] && ['interaction_hold','ultimate'].includes(pose.name))return null;
  const frame=pose.frame;
  switch(pose.name){
-  case 'combat_walk':return {...pose,sheet:'movement',frame};
+  case 'combat_walk':return {...pose,sheet:extraAtlasesFor(actor).guardWalk?'guardWalk':'movement',frame};
   case 'dash':return {...pose,sheet:'movement',frame:frame+4};
   case 'hit_light':return {...pose,sheet:'movement',frame:pose.sheet==='fighter'?frame+5:frame+4};
   case 'hit_heavy':return {...pose,sheet:'movement',frame:frame+4};

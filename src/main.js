@@ -19,6 +19,7 @@ import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
 import { WorldRenderer } from './presentation/rendu/renderer.js';
+import { preparedDrawingSources } from './presentation/personnages/minor-sprite-images.js';
 import { BrowserInput } from './presentation/interface/input.js';
 import { DebugPanel } from './presentation/debogage/debug.js';
 import { ElectoralDisplay } from './presentation/carte/electoral.js';
@@ -412,7 +413,8 @@ async function start() {
       // particular, texture uploads must not become simulation catch-up time.
       // Chaque image est envoyée une fois à la carte graphique derrière l’écran de chargement :
       // sinon ce transfert se fait au premier affichage, en pleine partie (à-coups).
-      const ready = [...renderer.assets.cache.values()].filter(entry => entry.ready).map(entry => entry.image);
+      const ready = [...new Set([...renderer.assets.cache.values()].filter(entry => entry.ready)
+        .flatMap(entry => [...preparedDrawingSources(entry.image)]))];
       for (let i = 0; i < ready.length; i += 6) {
         renderer.ctx.save(); renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
         for (const image of ready.slice(i, i + 6)) renderer.ctx.drawImage(image, 0, 0, 1, 1);
@@ -798,8 +800,8 @@ async function start() {
 
   function frame(now) {
     try {
-      // Application : 60 images par seconde au plus, à intervalles égaux (voir frame-cadence.js).
-      if (APP_BUILD) {
+      // Téléphones web et application : évite de surcharger les écrans à 120 Hz.
+      if (renderer.mobileRendering) {
         if (!shouldDrawFrame(now, lastDrawnTime)) { requestAnimationFrame(frame); return; }
         lastDrawnTime = now;
       }
