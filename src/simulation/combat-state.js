@@ -18,6 +18,12 @@ export const combatState = () => ({ ...actionState(), attack_id: null, stun_tick
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null,
   knockdown_tick: null, invulnerable_until_tick: -1 });
 export const combatActors = state => [...state.candidates.filter(c => !c.eliminated && !c.campaign_debate_id), ...state.npcs, ...state.temporary_units];
+/** Présélection locale ; les règles de touche et le tri restent à la charge de l'appelant. */
+export function visitNearbyCombatActors(state, x, radius, consider) {
+  for (const candidate of state.candidates) if (!candidate.eliminated && !candidate.campaign_debate_id) consider(candidate);
+  visitNearbyNpcs(state, x, radius, consider);
+  for (const unit of state.temporary_units) consider(unit);
+}
 /** Recherche sans recopier toute la population ; conserve l'ordre de combatActors. */
 export function findCombatActor(state, id) {
   for (const c of state.candidates) if (c.id === id && !c.eliminated && !c.campaign_debate_id) return c;

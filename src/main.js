@@ -17,6 +17,7 @@ import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
+import { withAIObservation } from './simulation/ai-observation.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
 import { WorldRenderer } from './presentation/rendu/renderer.js';
 import { setHidden, setClass, setStyle, setAttribute } from './presentation/interface/dom-updates.js';
@@ -611,7 +612,7 @@ async function start() {
     if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
     if (!session) return collectCommands(state, human, ai);
     const frame = ++campaignFrame;
-    return state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
+    return withAIObservation(state, () => state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
       if (candidate.id === state.local_candidate_id) return human.commands(state, candidate.id);
       if (!state.human_candidate_ids.includes(candidate.id)) return ai.commands(state, candidate.id);
       const id = candidate.id, presence = [{ type: 'InteractionPresence', candidateId: id, active: true }, { type: 'SetCampaignActive', candidateId: id, active: true }];
@@ -620,7 +621,7 @@ async function start() {
       if (!commands) return [{ type: 'Move', candidateId: id, axis: 0 }, ...presence, { type: 'CancelAttack', candidateId: id }, { type: 'HoldCampaignStyle', candidateId: id, active: false }];
       const [move, ...actions] = commands.map(command => ({ ...command, candidateId: id }));
       return [move, ...presence, ...actions];
-    });
+    }));
   }
 
   function networkFrame(elapsed) {

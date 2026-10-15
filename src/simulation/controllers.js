@@ -9,6 +9,7 @@ import { minorAICommands } from './minor-candidates.js';
 import { tactics } from './ai-moments.js';
 import { aiSettings } from './ai-settings.js';
 import { nearestEnemy } from './combat-state.js';
+import { withAIObservation } from './ai-observation.js';
 
 export class Controller {
   commands(_state, _candidateId) { throw new Error('Le contrôleur doit produire des commandes.'); }
@@ -44,6 +45,9 @@ export class LocalHumanController extends Controller {
 export class AIController extends Controller {
   constructor(config) { super(); this.config = config; }
   commands(state, candidateId) {
+    return withAIObservation(state, () => this.decide(state, candidateId));
+  }
+  decide(state, candidateId) {
     if (state.campaign_style_selection?.candidate_id === candidateId) return state.ai_enabled
       ? [{ type: 'SelectCampaignStyle', candidateId, styleId: DEFAULT_UNLOCKS[state.candidates.find(c => c.id === candidateId).faction_id][0] }] : [];
     if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
@@ -100,6 +104,10 @@ function steadyTurns(state, config, candidate, result) {
 
 export function collectCommands(state, human, ai) {
   if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
-  return state.candidates.filter(c => !c.eliminated).flatMap(candidate =>
-    (candidate.id === state.local_candidate_id ? human : ai).commands(state, candidate.id));
+  return withAIObservation(state, () => {
+    const commands = [];
+    for (const candidate of state.candidates) if (!candidate.eliminated)
+      commands.push(...(candidate.id === state.local_candidate_id ? human : ai).commands(state, candidate.id));
+    return commands;
+  });
 }

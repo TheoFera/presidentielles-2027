@@ -27,6 +27,7 @@ export function startMinorUltimate(sim, owner, power) {
   switch (power.kind) {
     case 'SAUSAGE':
       Object.assign(power, { height: (owner.combat.height || 0) + b.sausage.height, returning: false,
+        launch_tick: tick + seconds(sim, b.sausage.launch_seconds), launched: false,
         travelled: 0, hit_ids: [], return_hit_ids: [], carried_ids: [] });
       power.expires_tick = tick + seconds(sim, 6); break;
     case 'INVISIBLE':
@@ -55,7 +56,8 @@ export function startMinorUltimate(sim, owner, power) {
     }
     case 'SATCHEL':
       Object.assign(power, { ...aim(sim, owner, b.satchel.range), launch_tick: tick + seconds(sim, b.satchel.launch_seconds),
-        launched: false, landed: false, remaining_range: b.satchel.range, initial_range: b.satchel.range, height: .7 });
+        launched: false, landed: false, remaining_range: b.satchel.range, initial_range: b.satchel.range, height: b.satchel.height });
+      power.direction = Math.sign(delta(sim, owner.x, power.target_x)) || owner.facing;
       power.expires_tick = tick + seconds(sim, b.satchel.lifetime_seconds); break;
     default: return false;
   }
@@ -83,7 +85,15 @@ export function detonateSatchel(sim, owner) {
 
 function updateSausage(sim, owner, p) {
   const b = settings(sim).sausage, radius = sim.config.balance.candidate_combat.target_radius;
-  const d = delta(sim, p.x, owner.x), step = Math.min(b.speed / sim.hz, p.returning ? Math.abs(d) : b.range - p.travelled);
+  if (p.caught_tick != null) { p.x = owner.x; return; }
+  if (sim.state.tick < (p.launch_tick ?? p.started_tick)) { p.x = owner.x; return; }
+  const releasing = !p.launched;
+  if (releasing) {
+    p.launched = true; p.x = owner.x;
+    p.height = (owner.combat.height || 0) + b.height;
+  }
+  const d = delta(sim, p.x, owner.x), step = Math.min(b.speed / sim.hz + (releasing ? b.release_offset : 0), p.returning ? Math.abs(d) : b.range - p.travelled);
+  if (p.returning) p.catch_direction = Math.sign(delta(sim, owner.x, p.x)) || p.catch_direction || p.direction;
   const direction = p.returning ? Math.sign(d) || p.direction : p.direction;
   const hits = p.returning ? p.return_hit_ids : p.hit_ids;
   for (const target of combatActors(sim.state)) {
@@ -103,7 +113,11 @@ function updateSausage(sim, owner, p) {
         target.combat.knockback_velocity = 0;
       }
     }
-    if (Math.abs(delta(sim, p.x, owner.x)) < .3) p.expires_tick = sim.state.tick;
+    if (Math.abs(delta(sim, p.x, owner.x)) < .3) {
+      p.x = owner.x; p.caught_tick = sim.state.tick;
+      p.expires_tick = sim.state.tick + seconds(sim, b.catch_seconds);
+      sim.emit('SausageCaught', { candidate_id: owner.id, power_id: p.id });
+    }
   } else {
     p.travelled += step;
     if (p.travelled >= b.range || sim.state.debate_bounds && (p.x <= sim.state.debate_bounds.min || p.x >= sim.state.debate_bounds.max)) p.returning = true;
@@ -118,14 +132,16 @@ function updateSatchel(sim, owner, p) {
     const target = findCombatActor(sim.state, p.target_id);
     if (target && enemies(owner, target) && !invisibleToEnemies(target, sim.state.tick) && Math.abs(delta(sim, owner.x, target.x)) <= b.range) p.target_x = target.x;
     const d = delta(sim, owner.x, p.target_x);
-    p.x = owner.x; p.direction = Math.sign(d) || owner.facing;
-    p.remaining_range = p.initial_range = Math.max(.1, Math.min(b.range, Math.abs(d)));
+    p.direction = Math.sign(d) || owner.facing;
+    const offset = Math.min(b.release_offset, Math.max(0, Math.abs(d) - .1));
+    p.x = combatPosition(sim.state, owner.x + p.direction * offset);
+    p.remaining_range = p.initial_range = Math.max(.1, Math.min(b.range, Math.abs(d)) - offset);
     p.launch_height = Math.max(0, owner.combat.height || 0); p.launched = true;
   }
   const step = Math.min(p.remaining_range, b.speed / sim.hz);
   p.x = combatPosition(sim.state, p.x + p.direction * step); p.remaining_range -= step;
   const progress = 1 - p.remaining_range / p.initial_range;
-  p.height = (1 - progress) * (.7 + p.launch_height) + 4 * progress * (1 - progress) * .65;
+  p.height = (1 - progress) * (b.height + p.launch_height) + 4 * progress * (1 - progress) * .65;
   if (p.remaining_range <= 0) { p.landed = true; p.height = 0; }
 }
 

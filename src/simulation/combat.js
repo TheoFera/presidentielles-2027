@@ -5,7 +5,8 @@ import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEff
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
-import { canBeHit, combatActors, findCombatActor, combatState, enemies, hit, interrupted, nearestEnemy } from './combat-state.js';
+import { canBeHit, combatActors, findCombatActor, combatState, enemies, hit, interrupted, nearestEnemy, visitNearbyCombatActors } from './combat-state.js';
+import { withNpcProximity } from './npc-proximity.js';
 import { truceFilter } from './ai-balance.js';
 import { FACTIONS } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
@@ -315,16 +316,22 @@ function mirrorHologram(sim, unit, power) {
     active_ticks: source.active_ticks, recovery_ticks: source.recovery_ticks });
 }
 
-function meleeTargets(sim, owner, attack) {
+function meleeTargets(sim, owner, attack, targets) {
   const radius = sim.config.balance.candidate_combat.target_radius;
-  return combatActors(sim.state).filter(t => distance(sim.state, owner.x, t.x) <= attack.range + radius
-    && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
-    && enemies(owner, t) && !attack.hit_ids.includes(t.id) && verticalHit(sim.config, owner, t, attack))
-    .sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
+  targets.length = 0;
+  visitNearbyCombatActors(sim.state, owner.x, attack.range + radius, t => {
+    if (distance(sim.state, owner.x, t.x) <= attack.range + radius
+      && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
+      && enemies(owner, t) && !attack.hit_ids.includes(t.id) && verticalHit(sim.config, owner, t, attack)) targets.push(t);
+  });
+  return targets.sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
 }
 
-function updateAttacks(sim) {
-  for (const attack of [...sim.state.attacks]) {
+function updateAttacks(sim, work) {
+  // Un coup peut remplacer state.attacks : garder l'instantané de début, dans un tableau de travail.
+  work.attacks.length = 0;
+  for (const attack of sim.state.attacks) work.attacks.push(attack);
+  for (const attack of work.attacks) {
     if (sim.state.debate_bounds && sim.state.eliminated_faction) break;
     const actor = findCombatActor(sim.state, attack.owner_id);
     if (!actor || actor.combat.attack_id !== attack.id || !actor.faction_id || actor.expired) continue;
@@ -338,13 +345,15 @@ function updateAttacks(sim) {
           hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
         attack.launched = true;
       } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) || attack.hit_ids.length === 0)) {
-        const targets = meleeTargets(sim, actor, attack);
-        for (const target of (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) ? targets : targets.slice(0, 1))) {
-        if (target && hit(sim, actor, target, attack, attack.id)) {
-          attack.hit_ids.push(target.id);
-          applyToolHit(sim, actor, target, attack);
-          if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
-        }
+        const targets = meleeTargets(sim, actor, attack, work.targets);
+        const count = MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) ? targets.length : Math.min(1, targets.length);
+        for (let index = 0; index < count; index++) {
+          const target = targets[index];
+          if (target && hit(sim, actor, target, attack, attack.id)) {
+            attack.hit_ids.push(target.id);
+            applyToolHit(sim, actor, target, attack);
+            if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
+          }
         }
       }
     }
@@ -353,7 +362,7 @@ function updateAttacks(sim) {
   sim.state.attacks = sim.state.attacks.filter(a => { const owner = findCombatActor(sim.state, a.owner_id); return owner?.combat.attack_id === a.id && !owner.expired; });
 }
 
-function updateProjectiles(sim) {
+function updateProjectiles(sim, targets) {
   const { state, config } = sim;
   for (const p of state.projectiles) {
     if (state.debate_bounds && state.eliminated_faction) break;
@@ -374,13 +383,16 @@ function updateProjectiles(sim) {
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
     if (updateMolotov(sim, p, step)) continue;
     const radius = p.kind === 'BUBBLE' ? config.balance.specials.zemmour.bubble_hit_radius : config.balance.candidate_combat.target_radius;
-    const targets = combatActors(state).filter(t => {
+    const tail = p.kind === 'WAVE' ? config.balance.specials.le_pen_navy_wave.body_length_units : 0;
+    targets.length = 0;
+    // Couvrir tout le trajet du pas et l'arrière de la vague, y compris au raccord de la carte.
+    visitNearbyCombatActors(state, p.x, step + radius + tail, t => {
       const along = combatDelta(state, p.x, t.x) * p.direction;
-      return along >= -radius - (p.kind === 'WAVE' ? config.balance.specials.le_pen_navy_wave.body_length_units : 0)
+      if (along >= -radius - tail
         && along <= step + radius && enemies(owner, t) && !p.hit_ids.includes(t.id)
-        && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT') && verticalHit(config, owner, t, p);
-    })
-      .sort((a, b) => distance(state, p.x, a.x) - distance(state, p.x, b.x) || stableIdOrder(a, b));
+        && (p.kind !== 'VERBAL' || t.role !== 'SYMPATHISANT') && verticalHit(config, owner, t, p)) targets.push(t);
+    });
+    targets.sort((a, b) => distance(state, p.x, a.x) - distance(state, p.x, b.x) || stableIdOrder(a, b));
     for (const target of targets) {
       if (state.debate_bounds && state.eliminated_faction) break;
       let damage = p.damage;
@@ -456,15 +468,24 @@ export function updateMilitantCombat(sim, npc) {
   return true;
 }
 
+const combatWork = new WeakMap();
 export function updateCombat(sim) {
   for (const c of [...sim.state.candidates].sort(stableIdOrder)) startCandidateAttack(sim, c);
   updateTemporaryUnits(sim);
-  updateAttacks(sim);
-  updateProjectiles(sim);
+  const work = combatWork.get(sim.state) || { attacks: [], targets: [] };
+  combatWork.set(sim.state, work);
+  // Les habitants ne changent pas de position dans ces deux traitements. Les unités temporaires,
+  // déjà déplacées, sont lues directement ; les ultimes qui déplacent des cibles passent ensuite.
+  try {
+    withNpcProximity(sim.state, () => { updateAttacks(sim, work); updateProjectiles(sim, work.targets); });
+  } finally { work.attacks.length = 0; work.targets.length = 0; }
   updateMinorUltimates(sim);
   updateStyleEffects(sim);
-  const expiredIds = new Set(sim.state.temporary_units.filter(t => t.expired).map(t => t.id));
-  sim.state.projectiles = sim.state.projectiles.filter(p => !expiredIds.has(p.owner_id));
-  sim.state.temporary_units = sim.state.temporary_units.filter(t => !t.expired);
+  if (sim.state.temporary_units.some(t => t.expired)) {
+    const expiredIds = new Set();
+    for (const unit of sim.state.temporary_units) if (unit.expired) expiredIds.add(unit.id);
+    sim.state.projectiles = sim.state.projectiles.filter(p => !expiredIds.has(p.owner_id));
+    sim.state.temporary_units = sim.state.temporary_units.filter(t => !t.expired);
+  }
   sim.state.attacks = sim.state.attacks.filter(a => findCombatActor(sim.state, a.owner_id)?.combat.attack_id === a.id);
 }

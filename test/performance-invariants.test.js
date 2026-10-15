@@ -7,7 +7,12 @@ import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 import { incomePerSecond, incomeBreakdown, stableIdOrder } from '../src/simulation/territory.js';
 import { formatNumber } from '../src/presentation/interface/number-format.js';
-import { combatActors, findCombatActor, nearestEnemy, enemies } from '../src/simulation/combat-state.js';
+import { combatActors, findCombatActor, nearestEnemy, enemies, combatState } from '../src/simulation/combat-state.js';
+import { updateCombat } from '../src/simulation/combat.js';
+import { verticalHit } from '../src/simulation/combat-actions.js';
+import { AIController, collectCommands } from '../src/simulation/controllers.js';
+import { chooseAIObjective } from '../src/simulation/ai-strategy.js';
+import { withAIObservation, aiObservation } from '../src/simulation/ai-observation.js';
 import { combatDelta } from '../src/simulation/combat-geometry.js';
 import { withNpcProximity, nearbyNpcs, updateNpcProximity } from '../src/simulation/npc-proximity.js';
 import { CrowdSpacing, crowdTargets } from '../src/presentation/rendu/crowd-spacing.js';
@@ -155,5 +160,100 @@ test('La foule réutilise son placement et garde les mêmes pas de côté à cha
     crowd.update(state, gap, now);
     assert.deepEqual(crowd.offsets, expected);
     assert.deepEqual(crowd.steps, steps);
+  }
+});
+
+test('Les observations partagées restent pures et se renouvellent après un déplacement ou une conversion au même tick', () => {
+  const config = campaignConfig(), sim = new GameSimulation(config); completePopulation(sim);
+  const { state } = sim, ai = new AIController(config);
+  for (let variant = 0; variant < 8; variant++) {
+    const npc = state.npcs[0];
+    npc.x = state.world.subzones[variant].center;
+    npc.role = variant % 2 ? 'MILITANT' : 'NEUTRE'; npc.faction_id = variant % 2 ? 'le_pen' : null;
+    const snapshot = sim.exportSnapshot();
+    const independent = state.candidates.filter(c => !c.eliminated).flatMap(c => ai.commands(state, c.id));
+    assert.deepEqual(collectCommands(state, ai, ai), independent);
+    withAIObservation(state, () => {
+      const view = aiObservation(state);
+      assert.equal(aiObservation(state), view);
+      for (const group of view.zones.values()) {
+        assert.deepEqual(group.units, state.npcs.filter(n => Math.floor(n.x / group.zone.width) === group.zone.index));
+        assert.equal(group.readyNeutral, group.units.filter(n => n.role === 'NEUTRE' && !n.persuasion && !n.rally_event_id).length);
+      }
+    });
+    assert.equal(sim.exportSnapshot(), snapshot, 'Les données de travail ne modifient pas la partie');
+  }
+  assert.throws(() => withAIObservation(state, () => { aiObservation(state); throw new Error('Interruption'); }));
+  state.npcs = [state.npcs[0]]; state.npcs[0].x = state.world.length - .01;
+  withAIObservation(state, () => assert.deepEqual(aiObservation(state).zones.get(state.world.subzones.at(-1).id).units, state.npcs));
+});
+
+test('Le choix du premier QG recalcule les soutiens et garde les égalités de distance', () => {
+  const config = campaignConfig(), sim = new GameSimulation(config); completePopulation(sim);
+  const { state } = sim, c = state.candidates[0], [left, right] = state.buildings.filter(b => b.type === 'permanence');
+  state.buildings = [right, left]; left.owner_id = null; right.owner_id = null;
+  c.headquarters_site_id = null; c.ai_objective = null; c.x = (left.x + right.x) / 2;
+  for (const npc of state.npcs) { npc.role = 'DEMOBILISE'; npc.faction_id = null; npc.persuasion = null; }
+  assert.equal(chooseAIObjective(state, config, c).subzone_id, [left, right].sort((a, b) => a.id.localeCompare(b.id))[0].subzone_id);
+  for (const npc of state.npcs.slice(0, 2)) { npc.x = right.x; npc.role = 'SYMPATHISANT'; npc.faction_id = c.faction_id; }
+  assert.equal(chooseAIObjective(state, config, c).subzone_id, right.subzone_id);
+  for (const npc of state.npcs.slice(0, 2)) { npc.x = left.x; npc.role = 'NEUTRE'; }
+  assert.equal(chooseAIObjective(state, config, c).subzone_id, left.subzone_id);
+});
+
+test('Les projectiles indexés gardent les touches exactes, la hauteur et l’ordre au raccord et en ligne droite', () => {
+  for (const linear of [false, true]) for (const direction of [-1, 1]) for (const kind of ['VERBAL', 'BUBBLE', 'WAVE']) {
+    const config = campaignConfig(), sim = new GameSimulation(config); completePopulation(sim);
+    const { state } = sim, owner = state.candidates[0]; state.candidates = [owner];
+    owner.x = linear ? 10 : .1;
+    if (linear) state.debate_bounds = { min: 0, max: state.world.length };
+    // Éviter les dégâts propres au débat : ce test isole ses coordonnées linéaires.
+    for (const [i, npc] of state.npcs.entries()) {
+      npc.x = i < 16 ? owner.x + direction * (i / 2 - 4) : 100 + i;
+      if (!linear) npc.x = (npc.x + state.world.length) % state.world.length;
+      npc.role = i % 4 === 0 ? 'SYMPATHISANT' : 'MILITANT'; npc.faction_id = i % 7 === 0 ? owner.faction_id : 'le_pen';
+      npc.hidden_durability = 10000; npc.combat = combatState(); npc.combat.height = i % 3 === 0 ? 4 : 0;
+    }
+    const projectile = { id: 'projectile:index-test', kind, owner_id: owner.id, faction_id: owner.faction_id,
+      x: owner.x, direction, launched: true, remaining_range: 20, speed: sim.hz * 3, damage: 1, knockback: 0, hit_ids: [] };
+    // Trois recherches sans cibles précèdent le projectile afin d'activer les secteurs.
+    state.projectiles = Array.from({ length: 3 }, (_, i) => ({ ...projectile, id: `projectile:empty:${i}`, x: 60, hit_ids: [] }));
+    state.projectiles.push(projectile);
+    const radius = kind === 'BUBBLE' ? config.balance.specials.zemmour.bubble_hit_radius : config.balance.candidate_combat.target_radius;
+    const tail = kind === 'WAVE' ? config.balance.specials.le_pen_navy_wave.body_length_units : 0;
+    const expected = combatActors(state).filter(t => {
+      const along = combatDelta(state, projectile.x, t.x) * direction;
+      return along >= -radius - tail && along <= 3 + radius && enemies(owner, t)
+        && (kind !== 'VERBAL' || t.role !== 'SYMPATHISANT') && verticalHit(config, owner, t, projectile);
+    }).sort((a, b) => Math.abs(combatDelta(state, projectile.x, a.x)) - Math.abs(combatDelta(state, projectile.x, b.x)) || stableIdOrder(a, b));
+    updateCombat(sim);
+    assert.deepEqual(projectile.hit_ids, (kind === 'WAVE' ? expected : expected.slice(0, 1)).map(t => t.id), `${kind}, sens ${direction}, linéaire ${linear}`);
+  }
+});
+
+test('Les coups indexés gardent leurs cibles exactes et leur ordre après le raccord circulaire', () => {
+  for (const direction of [-1, 1]) {
+    const config = campaignConfig(), sim = new GameSimulation(config); completePopulation(sim);
+    const { state } = sim, owner = state.candidates[0];
+    const owners = [...state.candidates.slice(1, 4), owner]; state.candidates = owners;
+    owners.forEach((actor, i) => { actor.x = i === 3 ? .1 : 80 + i * 30; });
+    state.npcs.forEach(npc => {
+      npc.x = state.world.length / 2; npc.role = 'MILITANT'; npc.faction_id = 'le_pen';
+      npc.hidden_durability = 10000; npc.combat = combatState();
+    });
+    state.npcs[0].x = owner.x; state.npcs[0].combat.height = 4;
+    state.npcs[1].x = state.world.length - .15; state.npcs[2].x = .35;
+    state.attacks = owners.map((actor, i) => {
+      const attack = { id: `attack:index:${i}`, owner_id: actor.id, kind: 'CANDIDATE', direction,
+        range: 1, damage: 1, knockback: 0, elapsed_ticks: 0, windup_ticks: 0, active_ticks: 3, recovery_ticks: 3, hit_ids: [], charged: true };
+      actor.combat.attack_id = attack.id; return attack;
+    });
+    const attack = state.attacks.at(-1), radius = config.balance.candidate_combat.target_radius;
+    const expected = combatActors(state).filter(t => Math.abs(combatDelta(state, owner.x, t.x)) <= attack.range + radius
+      && combatDelta(state, owner.x, t.x) * direction >= -radius && enemies(owner, t) && verticalHit(config, owner, t, attack))
+      .sort((a, b) => Math.abs(combatDelta(state, owner.x, a.x)) - Math.abs(combatDelta(state, owner.x, b.x)) || stableIdOrder(a, b));
+    assert.ok(expected.length > 0);
+    updateCombat(sim);
+    assert.deepEqual(attack.hit_ids, expected.map(t => t.id));
   }
 });

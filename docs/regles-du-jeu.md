@@ -90,9 +90,9 @@ Chacun possède aussi un ultime personnel, en campagne et en mode Débat, sans c
 
 | Candidat | Ultime | Fonctionnement |
 |---|---|---|
-| Roussel | Saucisse boomerang | Repousse légèrement à l’aller, touche à nouveau au retour et ramène les adversaires vers lui. |
+| Roussel | Saucisse boomerang | Arme son lancer pendant 0,36 s, puis repousse légèrement à l’aller. La saucisse touche à nouveau au retour, ramène les adversaires vers lui et est rattrapée dans sa main, sans nouveau dégât pendant la récupération. |
 | Dupont-Aignan | Sous les radars | Invisible aux adversaires et à leur IA pendant 5 s. Son joueur et ses alliés gardent une silhouette discrète. Une attaque annule l’invisibilité ; disparition et réapparition prennent 0,3 s. Les coups non ciblés peuvent toujours le toucher. |
-| Glucksmann | Livraison express de démocratie | Un appel de 0,8 s fait venir un avion caricatural. Trois enveloppes annoncées au sol éclatent en confettis devant lui et bousculent les adversaires. L’aigle aviateur est un dessin fictif. |
+| Glucksmann | Livraison express de démocratie | Un appel de 0,8 s, téléphone à la même oreille, fait venir un bombardier stylisé sans pilote apparent. Trois bombes « Démocratie », annoncées au sol, éclatent en confettis devant lui et bousculent les adversaires. Le petit aigle sur l’avion est fictif. |
 | Arthaud | Les outils de la lutte | Pendant 6 s, la faucille du premier coup rapproche ; le marteau du deuxième coup et des coups forts aplatit brièvement les sprites touchés. Portée accrue et plusieurs cibles possibles. |
 | Retailleau | Le mur républicain | Un mur apparaît entre lui et le candidat adverse le plus proche, puis une unité ennemie à défaut. Il bloque les deux camps ; seuls les pieds d’un saut assez haut peuvent passer. Après 3,5 s, il bascule vers l’adversaire, inflige des dégâts et repousse. |
 | Attal | Changement de programme | Lance un cartable vers le candidat adverse le plus proche à portée, puis une unité à défaut. Il ne fait aucun dégât à l’atterrissage. Un second appui sur **Ultime / Faire éclater** déclenche l’explosion caricaturale, même en vol. L’IA sait aussi le déclencher. |

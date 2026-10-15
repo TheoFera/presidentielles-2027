@@ -1,0 +1,61 @@
+{
+  "outil": "ImageGen intégré",
+  "assets": [
+    {
+      "key": "attal",
+      "dest": "assets/images/pouvoirs/attal-lancer-cartable-v1.png",
+      "refs": [
+        "assets/images/candidats/attal/attal-combat-v6.png"
+      ],
+      "prompt": "Use case: identity-preserve. Transparent sprite sheet for existing French satirical fighting game. Input is identity and exact art-style reference for Gabriel Attal: keep same face, big head proportions, dark wavy hair, navy suit white shirt dark tie, black shoes. Generate EXACTLY SIX isolated full-body figures, clean 3 columns x 2 rows grid, ample transparent gutters, all looking RIGHT in same three-quarter profile. Same character size, same head size, feet on equal row baselines, consistent camera. Row1: 1 neutral grounded standing reference with arms relaxed; 2 underhand throw anticipation, near arm swung behind hips, knees slightly bent, fist loosely gripping an invisible handle at rear; 3 underhand swing forward, near arm angled down and forward, hand gripping invisible handle. Row2: 4 RELEASE, arm fully extended diagonally forward and slightly upward with open fingers releasing invisible bag; 5 follow-through arm raised forward chest level, weight forward feet grounded; 6 recovery hands returning to fighting guard. Body only, NO actual bag or accessory drawn, no projectiles, no lettering. Distinct continuous throwing motion NOT punching. Preserve reference identity and hand-drawn shaded outlines. Full shoes visible, no cropping, real transparent background.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-df69c6fc-cf33-4210-b044-b7ff594a9951.png"
+    },
+    {
+      "key": "roussel",
+      "dest": "assets/images/pouvoirs/roussel-lancer-rattraper-v1.png",
+      "refs": [
+        "assets/images/candidats/roussel/roussel-combat-v8.png"
+      ],
+      "prompt": "Use case: identity-preserve. Transparent sprite sheet for existing French satirical fighting game. Reference is Fabien Roussel, preserve EXACT face, gray swept hair, navy open-neck suit white shirt NO tie, big head proportions, hand-drawn shaded cartoon style. EXACTLY EIGHT isolated full-body sprites in clean 4 columns x 2 rows, ample transparent gutters, consistent same size camera head proportions, all face RIGHT three-quarter profile, shoes grounded at same baseline each row. Row1: 1 neutral standing size reference; 2 boomerang throw windup, near hand far BACK at hip height, shoulder twisted back, gripping invisible sausage; 3 throwing hand swings FORWARD at belly height; 4 RELEASE open near hand extended forward at chest height, torso leans forward, feet still grounded. Row2: 5 follow-through then return to guard; 6 CATCH anticipation with near arm reaching forward at belly height, fingers open, palm ready to receive returning object; 7 CATCH hand now closed at belly height holding invisible object, elbow bending to absorb impact; 8 recovered hand pulled close to chest showing satisfied expression. NO sausage or props drawn because game attaches same projectile sprite to hand. No text, no panels, no ground shadows. Fully transparent background. Preserve exact likeness of reference in every sprite, no raised walking knees, full shoes.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-cad3f449-012b-48ab-840c-9611eee46462.png"
+    },
+    {
+      "key": "phone",
+      "dest": "assets/images/pouvoirs/glucksmann-appel-v3.png",
+      "refs": [
+        "assets/images/pouvoirs/glucksmann-appel-v2.png"
+      ],
+      "prompt": "Use case: identity-preserve. Make a replacement transparent sprite sheet of Raphaël Glucksmann from input, exactly SAME face navy suit open white shirt and existing painted cartoon game art. EXACTLY FOUR isolated full-body poses in ONE HORIZONTAL ROW, all face RIGHT same three-quarter angle, identical head size body proportions shoes baseline. Phone must ALWAYS use his SAME near hand and SAME VISIBLE EAR ON LEFT SIDE OF HIS HEAD (ear at image-left, opposite nose which points right). NEVER put the phone at the far ear or in front of mouth. Four continuous poses: 1 standing neutral reference arms relaxed no phone; 2 near hand raising black smartphone from chest toward SAME VISIBLE EAR, phone not yet touching ear; 3 smartphone held firmly against VISIBLE EAR at left side of head, near elbow below it, free far hand relaxed; 4 lowering phone away from SAME VISIBLE EAR toward shoulder. Phone black flat smartphone, same hand throughout, visible ear location fixed. NO switching hands or head direction, NO duplicate phones. Entire figures visible with ample transparent gutters. Real transparent background, no lettering.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-76e2e2fd-0875-4af3-958c-933fa7ae3759.png"
+    },
+    {
+      "key": "plane",
+      "dest": "assets/images/pouvoirs/glucksmann-bombardier-v1.png",
+      "refs": [
+        "assets/images/pouvoirs/accessoires-ultimes-mineurs-v2.png"
+      ],
+      "prompt": "Use case: stylized-concept. SINGLE isolated full aircraft game sprite, real transparent background. Replace biplane concept from reference with an immediately recognizable stylized B-52 Stratofortress heavy jet bomber, NO propellers. Long slender gray blue fuselage pointing RIGHT, very long swept-back wings, EIGHT jet engines arranged in FOUR twin engine pods under wings, large vertical tail, dark opaque closed cockpit windows, NO visible pilot, NO bird character riding plane. Three-quarter SIDE view very slightly from above, readable silhouette at small size, length about 3x image height. Match reference's hand-painted satirical 2D game style, bold dark outlines, shaded metal. Small original simple gold eagle decal on tail, NOT a government agency seal, NO CIA lettering or official insignia. No weapons in this sprite, no background, no contrails, no letters. Full wings and tail visible.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-716dbd8a-210d-444a-8dc8-0e27c93b9a0a.png",
+      "correctionPrompt": "Precise-object-edit of this aircraft sprite. Preserve EVERYTHING: silhouette, fuselage, wings, cockpit, tail, eagle decal, art style and transparency. Correct the engine count: this image accidentally has FIVE twin engine pods (ten engines). B-52 needs exactly FOUR twin engine pods, EIGHT engines total. REMOVE ONLY the middle twin-engine pod under the large near wing: the pod around x=950,y=590 of the 2172x724 image, situated between the far-left near pod at x=550,y=630 and right near pod at x=1320,y=540. Remove that pod AND its small mounting pylon cleanly, transparent empty air below wing there. Keep the two remaining near-wing twin pods and two far-wing twin pods unchanged. EXACTLY FOUR twin pods / EIGHT round engine mouths should remain. Do not add, move or redesign anything else. Real transparent background."
+    },
+    {
+      "key": "bomb",
+      "dest": "assets/images/pouvoirs/glucksmann-bombe-democratie-v1.png",
+      "refs": [
+        "assets/images/pouvoirs/accessoires-ultimes-mineurs-v2.png"
+      ],
+      "prompt": "Use case: stylized-concept. SINGLE isolated stylized cartoon aerial bomb game sprite on real transparent background, matching input game's painted outlines shaded props. Nose pointing DOWN, tail fins on TOP, stout elongated olive-gray steel body with rounded pointed nose and four clear tail fins. Broad light cream label panel across center, exact readable French text « Démocratie » in dark bold letters on label, correct acute accent. Satirical toy-like shape, no flames, no skulls, no scene, no plane, no extra objects. Bomb must read as an aerial bomb not an envelope or bag. Clear dark outlines, full object visible.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-bc53eacf-b07c-4dbf-a7c1-9396a97bea10.png"
+    },
+    {
+      "key": "wall",
+      "dest": "assets/images/pouvoirs/retailleau-barriere-v1.png",
+      "refs": [
+        "C:/Users/ferat/AppData/Local/Temp/codex-clipboard-c017fb96-b833-4a70-b770-5a7311bd6eed.png",
+        "assets/images/pouvoirs/accessoires-ultimes-mineurs-v2.png"
+      ],
+      "prompt": "Use case: stylized-concept. SINGLE isolated upright border BARRIER PANEL game sprite on real transparent background. Input1 is structural reference: tall closely spaced vertical metal slats, weathered beige concrete support posts and solid concrete top blocks, angled short wire supports on top. Input2 is exact hand-painted cartoon prop style, bold dark outlines, shaded materials. Draw a compact narrow panel made of TWO concrete posts framing SIX vertical slender steel bars with thick horizontal concrete top cap, three short angled wire supports and one restrained strand of wire on top, sturdy bottom footing. Aspect ratio roughly width 0.5 times height, naturally TALL structure correctly drawn from outset, NO image stretching. Nearly frontal orthographic view with small visible right-side thickness, no long perspective fence, NO brick pattern, no background, no floor, no people. Warm sand concrete, blue-gray metal, full outline clear at small scale. Entire panel full visible.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-47f78097-28e6-4f41-89a4-a989af15040f.png"
+    }
+  ]
+}

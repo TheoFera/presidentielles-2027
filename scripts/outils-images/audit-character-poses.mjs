@@ -50,7 +50,7 @@ for(const[key,allowed]of Object.entries(ultimateCharacters)) {
   add(`ultimate:${key}`,faction,'ultimate',ultimateAtlases[key],'ultimate',allowed);
 }
 for(const[key,atlas]of Object.entries(ultimateGuardAtlases))add(`ultimate:${key}`,key.startsWith('europe')?'philippe':'le_pen','ultimate',atlas,'ultimate');
-for(const key of ['tools','phone'])add(key==='tools'?'arthaud':'glucksmann',key==='tools'?'arthaud':'glucksmann',key,minorUltimateAtlases[key],'minor-ultimate');
+for(const [key,faction] of Object.entries({tools:'arthaud',phone:'glucksmann',satchelThrow:'attal',sausageThrow:'roussel'}))add(faction,faction,key,minorUltimateAtlases[key],'minor-ultimate');
 for(const[faction,file]of Object.entries(MINOR_SPRITES)) {
  const atlas=MINOR_ATLASES[faction],sprite=`minor-${faction}`;
  add(faction,faction,'base',{...atlas,sprite},'base');

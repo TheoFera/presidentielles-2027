@@ -15,6 +15,7 @@ import { readPng } from '../scripts/lib/png.mjs';
 import { CampaignPrediction } from '../src/network/campaign-prediction.js';
 import { encodePresentationState } from '../src/network/state-stream.js';
 import { retireMinorsForSecondRound } from '../src/simulation/minor-candidates.js';
+import { minorUltimateGesture, minorBarrierPose } from '../src/presentation/effets/minor-ultimate-gestures.js';
 
 const config = campaignConfig();
 function setup(faction) {
@@ -56,6 +57,64 @@ test('Roussel : pousse à l’aller, touche une fois par trajet et ramène au re
   while (sim.state.powers.length) tick(sim);
   assert.equal(sim.state.hit_results.filter(h => h.target_id === target.id).length, 2);
   assert.ok(target.x < before && Math.abs(target.x - owner.x) <= 1.1);
+});
+
+test('Roussel : armement sans projectile actif, rattrapage visible puis rangement sans nouveau dégât', () => {
+  for (const facing of [-1, 1]) {
+    const { sim, owner, target } = setup('roussel'); owner.facing = facing; target.x = owner.x + facing * .6;
+    activateUltimate(sim, owner); const p = sim.state.powers[0];
+    while (sim.state.tick < p.launch_tick - 1) { tick(sim); assert.equal(p.x, owner.x); assert.equal(target.resistance, 100); }
+    tick(sim); assert.equal(p.launched, true); assert.ok((p.x - owner.x) * facing > 0);
+    while (p.caught_tick == null) tick(sim);
+    assert.equal(p.x, owner.x); assert.ok(p.expires_tick > sim.state.tick);
+    const copy = new GameSimulation(config, 42);
+    const snapshot = JSON.parse(sim.exportSnapshot()); snapshot.local_candidate_id = 'candidate:philippe';
+    copy.importSnapshot(JSON.stringify(snapshot));
+    const hp = target.resistance, caught = p.caught_tick;
+    owner.x += facing; target.x = owner.x; tick(sim);
+    assert.equal(p.x, owner.x); assert.equal(p.caught_tick, caught); assert.equal(target.resistance, hp);
+    tick(sim, sim.secondsToTicks(config.balance.minor_ultimates.sausage.catch_seconds));
+    assert.equal(sim.state.powers.length, 0);
+    tick(copy, sim.secondsToTicks(config.balance.minor_ultimates.sausage.catch_seconds));
+    assert.equal(copy.state.powers.length, 0);
+  }
+});
+
+test('Gestes : objet tenu avant le lâcher, mains ouvertes au départ et deux poses de récupération', () => {
+  for (const faction of ['roussel', 'attal']) {
+    const { sim, owner } = setup(faction); activateUltimate(sim, owner); const p = sim.state.powers[0];
+    const pose = tick => minorUltimateGesture(p, tick, sim.hz, config.balance.minor_ultimates);
+    assert.equal(pose(p.started_tick).held, true);
+    assert.equal(pose(p.launch_tick - 1).held, true);
+    assert.equal(pose(p.launch_tick).held, undefined); assert.equal(pose(p.launch_tick).index, 3);
+    assert.equal(pose(p.launch_tick + sim.secondsToTicks(.15)).index, 4);
+    if (faction === 'roussel') {
+      p.returning = true;
+      assert.equal(minorUltimateGesture(p, p.launch_tick + sim.hz, sim.hz, config.balance.minor_ultimates, .5).index, 5);
+      p.caught_tick = p.launch_tick + sim.hz;
+      assert.equal(pose(p.caught_tick).index, 6);
+      assert.equal(pose(p.caught_tick + sim.secondsToTicks(.25)).index, 7);
+      assert.equal(pose(p.caught_tick).held, true);
+    }
+  }
+});
+
+test('Glucksmann : une seule pose et une seule oreille pendant toute la conversation', () => {
+  const { sim, owner } = setup('glucksmann'); activateUltimate(sim, owner); const p = sim.state.powers[0];
+  const poses = Array.from({length: sim.secondsToTicks(config.balance.minor_ultimates.delivery.call_seconds)}, (_, n) => minorUltimateGesture(p, p.started_tick + n, sim.hz, config.balance.minor_ultimates));
+  assert.equal(poses[0].index, 1); assert.equal(poses.at(-1).index, 3);
+  assert.ok(poses.slice(6, 19).every(pose => pose.index === 2));
+  assert.equal(minorUltimateAtlases.phone.frames.length, 4);
+});
+
+test('Retailleau : longueur constante à l’apparition, debout et pendant toute la bascule', () => {
+  const { sim, owner } = setup('retailleau'); activateUltimate(sim, owner); const p = sim.state.powers[0];
+  const b = config.balance.minor_ultimates.barrier;
+  for (const height of [80, 150, 220]) for (let tick = p.started_tick; tick <= p.expires_tick; tick++) {
+    const pose = minorBarrierPose(p, tick, sim.hz, b, height);
+    assert.equal(pose.height, b.height * height); assert.ok(pose.reveal >= 0 && pose.reveal <= 1);
+    assert.ok(pose.progress >= 0 && pose.progress <= 1);
+  }
 });
 
 test('NDA : disparition progressive, joueur visible, IA aveugle et attaques de zone toujours possibles', () => {

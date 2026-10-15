@@ -77,6 +77,8 @@ function validateMinorPower(p, state, check, fail) {
   const kinds = { roussel: 'SAUSAGE', dupont_aignan: 'INVISIBLE', glucksmann: 'DELIVERY', arthaud: 'TOOLS', retailleau: 'BARRIER', attal: 'SATCHEL' };
   if (kinds[owner?.faction_id] !== p.kind || !position(p.x) || ![-1, 1].includes(p.direction)) fail('ultime secondaire incohérent');
   if (p.kind === 'SAUSAGE' && (!finite(p.height) || !finite(p.travelled) || typeof p.returning !== 'boolean'
+    || p.launch_tick != null && !integer(p.launch_tick) || p.launched != null && typeof p.launched !== 'boolean'
+    || p.caught_tick != null && (!integer(p.caught_tick) || p.caught_tick > state.tick || !p.returning)
     || ![p.hit_ids, p.return_hit_ids, p.carried_ids].every(ids))) fail('saucisse invalide');
   if (p.kind === 'DELIVERY' && (!Array.isArray(p.impacts) || p.impacts.length !== 3 || p.impacts.some(drop => !position(drop.x) || !integer(drop.tick) || typeof drop.done !== 'boolean'))) fail('livraison invalide');
   if (p.kind === 'BARRIER' && (!finite(p.base_height) || !integer(p.fall_tick) || !ids(p.hit_ids))) fail('mur invalide');
