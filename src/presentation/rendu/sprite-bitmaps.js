@@ -6,7 +6,8 @@
  * libérées par minor-sprite-images.js. Le web garde la résolution native (scale = 1).
  *
  * L'application Android conserve son réglage antérieur : les grandes planches sont réduites
- * selon l'écran. Aucune réduction n'est appliquée au web, y compris sur iPhone.
+ * selon l'écran. Aucune réduction n'est appliquée au web. iPhone et iPad gardent les images ordinaires
+ * (spriteBitmapsWanted).
  *
  * Le reste du jeu ne change pas : les coordonnées des planches restent celles des fichiers d'origine.
  * naturalWidth / naturalHeight donnent la taille d'origine, et drawImage convertit les coordonnées
@@ -20,6 +21,22 @@ const FULL_SIZE = /^(ultimate-|npc-)/;
 
 export const spriteBitmapsSupported = () => typeof createImageBitmap === 'function' && typeof fetch === 'function'
   && typeof CanvasRenderingContext2D === 'function';
+
+/** iPhone et iPad (iPadOS se présente comme un Mac tactile). */
+export const isAppleMobile = (nav = globalThis.navigator) => /iPad|iPhone|iPod/.test(nav?.userAgent || '')
+  || (nav?.platform === 'MacIntel' && nav?.maxTouchPoints > 1);
+
+/**
+ * Bitmaps (images prêtes à dessiner et découpes converties) ou images ordinaires.
+ * iPhone et iPad : images ordinaires par défaut. Le jeu y est devenu très lent dans Safari quand les bitmaps
+ * ont été étendus au navigateur mobile (15/10/2026), alors que le rendu ordinaire était fluide.
+ * Pour comparer sans republier : ?bitmaps=1 force les bitmaps, ?bitmaps=0 les retire partout.
+ */
+export function spriteBitmapsWanted(search = globalThis.location?.search || '', nav = globalThis.navigator) {
+  const forced = new URLSearchParams(search).get('bitmaps');
+  if (forced === '1' || forced === '0') return forced === '1';
+  return !isAppleMobile(nav);
+}
 
 /**
  * Réglage antérieur de l'application Android : un personnage de débat (le plus grand) mesure environ

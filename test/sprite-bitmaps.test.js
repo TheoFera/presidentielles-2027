@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installSpriteDrawing, spriteScaleFor, spriteBitmapLoader } from '../src/presentation/rendu/sprite-bitmaps.js';
+import { installSpriteDrawing, spriteScaleFor, spriteBitmapLoader, spriteBitmapsWanted } from '../src/presentation/rendu/sprite-bitmaps.js';
 import { prepareAtlasFrames, prepareAtlasBitmaps, preparedDrawingSources, releasePreparedAtlasSource } from '../src/presentation/personnages/minor-sprite-images.js';
 
 function globals(t, values) {
@@ -143,4 +143,18 @@ test('Une découpe reste dessinable si la conversion en bitmap est refusée', as
   const frames = await prepareAtlasBitmaps({}, { frames: [[0, 0, 2, 2, 1, 2]] });
   assert.equal(frames[0], canvas);
   assert.equal(canvas.width, 2); assert.equal(canvas.height, 2);
+});
+
+test('iPhone et iPad gardent les images ordinaires, sauf avec ?bitmaps=1', () => {
+  const iphone = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', platform: 'iPhone', maxTouchPoints: 5 };
+  const ipad = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 5 };
+  const android = { userAgent: 'Mozilla/5.0 (Linux; Android 14)', platform: 'Linux armv8l', maxTouchPoints: 5 };
+  const mac = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 0 };
+  assert.equal(spriteBitmapsWanted('', iphone), false);
+  assert.equal(spriteBitmapsWanted('', ipad), false);
+  assert.equal(spriteBitmapsWanted('', android), true);
+  assert.equal(spriteBitmapsWanted('', mac), true);
+  assert.equal(spriteBitmapsWanted('?bitmaps=1', iphone), true);
+  assert.equal(spriteBitmapsWanted('?salon=AB12&bitmaps=0', android), false);
+  assert.equal(spriteBitmapsWanted('?bitmaps=oui', iphone), false);
 });
