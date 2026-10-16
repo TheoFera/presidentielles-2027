@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { installSpriteDrawing, spriteScaleFor, spriteBitmapLoader, spriteBitmapsWanted } from '../src/presentation/rendu/sprite-bitmaps.js';
+import { installSpriteDrawing, spriteScaleFor, spriteBitmapLoader, spriteBitmapsWanted, spriteReductionWanted } from '../src/presentation/rendu/sprite-bitmaps.js';
 import { prepareAtlasFrames, prepareAtlasBitmaps, preparedDrawingSources, releasePreparedAtlasSource } from '../src/presentation/personnages/minor-sprite-images.js';
 
 function globals(t, values) {
@@ -145,16 +145,18 @@ test('Une découpe reste dessinable si la conversion en bitmap est refusée', as
   assert.equal(canvas.width, 2); assert.equal(canvas.height, 2);
 });
 
-test('iPhone et iPad gardent les images ordinaires, sauf avec ?bitmaps=1', () => {
+test('Planches réduites dans l’application et sur iPhone/iPad, réglables depuis l’adresse', () => {
   const iphone = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', platform: 'iPhone', maxTouchPoints: 5 };
   const ipad = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 5 };
   const android = { userAgent: 'Mozilla/5.0 (Linux; Android 14)', platform: 'Linux armv8l', maxTouchPoints: 5 };
   const mac = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 0 };
-  assert.equal(spriteBitmapsWanted('', iphone), false);
-  assert.equal(spriteBitmapsWanted('', ipad), false);
-  assert.equal(spriteBitmapsWanted('', android), true);
-  assert.equal(spriteBitmapsWanted('', mac), true);
-  assert.equal(spriteBitmapsWanted('?bitmaps=1', iphone), true);
-  assert.equal(spriteBitmapsWanted('?salon=AB12&bitmaps=0', android), false);
-  assert.equal(spriteBitmapsWanted('?bitmaps=oui', iphone), false);
+  assert.equal(spriteReductionWanted(false, '', iphone), true);
+  assert.equal(spriteReductionWanted(false, '', ipad), true);
+  assert.equal(spriteReductionWanted(false, '', android), false);
+  assert.equal(spriteReductionWanted(true, '', android), true);
+  assert.equal(spriteReductionWanted(false, '', mac), false);
+  assert.equal(spriteReductionWanted(false, '?reduction=0', iphone), false);
+  assert.equal(spriteReductionWanted(false, '?salon=AB12&reduction=1', android), true);
+  assert.equal(spriteBitmapsWanted('', iphone), true);
+  assert.equal(spriteBitmapsWanted('?bitmaps=0', android), false);
 });

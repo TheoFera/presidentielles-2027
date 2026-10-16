@@ -1,0 +1,24 @@
+{
+  "outil": "ImageGen intégré",
+  "referenceAvion": "https://www.dassault-aviation.com/fr/defense/rafale/concevoir-et-optimiser/",
+  "assets": [
+    {
+      "key": "rafale",
+      "dest": "assets/images/pouvoirs/glucksmann-rafale-v1.png",
+      "refs": [
+        "assets/images/pouvoirs/glucksmann-bombardier-v1.png"
+      ],
+      "prompt": "Use case: stylized-concept. Create ONE isolated Dassault RAFALE fighter jet game sprite. Input image is STYLE REFERENCE ONLY, NOT the aircraft type: replace the heavy bomber with a compact recognizable Rafale. Preserve the game's painted 2D caricature style, clear black outlines, blue-gray shaded metal. Rafale silhouette: pointed slender nose facing exactly RIGHT, broad triangular DELTA wings, small CANARD foreplanes next to cockpit, ONE vertical tail fin, TWO engines integrated in fuselage at rear, NO engine pods under wings. Three-quarter SIDE view slightly from above, aircraft longitudinal axis HORIZONTAL so game rotates entire sprite for flight. Closed dark opaque blue canopy, NO visible pilot. Landing gear retracted, no weapons attached (missiles are separate sprites), no contrails, no exhaust flame, no other objects. Tiny original gold eagle decal on tail, no text, no official seals, no CIA, no manufacturer logos. Entire aircraft visible with generous transparent margin. Single full sprite, TRUE TRANSPARENT background.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4a607915-3f95-4c34-9ca5-b507922b2043.png"
+    },
+    {
+      "key": "missile",
+      "dest": "assets/images/pouvoirs/glucksmann-missile-democratie-v1.png",
+      "refs": [
+        "assets/images/pouvoirs/glucksmann-bombe-democratie-v1.png"
+      ],
+      "prompt": "Use case: stylized-concept. SINGLE isolated cartoon rocket MISSILE game sprite on genuine transparent background. Use input only for painted shaded prop style and French lettering. Change bomb into a sleek long missile, pointed NOSE toward the RIGHT, horizontal axis, slim pale-gray cylindrical body, small swept fins at TAIL on LEFT, small forward guidance fins near right, blue-gray nose tip, no face. Length about FIVE times body thickness. Across body exact clearly readable dark bold text: « Démocratie » with acute accent. Warm cream label area or light gray metal under lettering for legibility. Match bold dark outlined hand-painted 2D French satirical game. No flames or smoke baked in (game draws animated exhaust), no scenery, no other objects. FULL missile uncropped including tail fins, transparent background.",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-a2b9f77e-0b25-4279-a865-597c070fbba8.png"
+    }
+  ]
+}

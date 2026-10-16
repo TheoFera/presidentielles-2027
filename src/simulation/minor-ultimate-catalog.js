@@ -2,7 +2,7 @@
 export const MINOR_ULTIMATES = {
   roussel: { kind: 'SAUSAGE', name: 'Saucisse boomerang', summary: 'Lance puis rattrape sa saucisse. Repousse à l’aller, ramène au retour.' },
   dupont_aignan: { kind: 'INVISIBLE', name: 'Sous les radars', summary: 'Disparaît pendant 5 secondes. Attaquer révèle sa position.' },
-  glucksmann: { kind: 'DELIVERY', name: 'Livraison express de démocratie', summary: 'Un appel, un bombardier et trois bombes de confettis « Démocratie ».' },
+  glucksmann: { kind: 'DELIVERY', name: 'Livraison express de démocratie', summary: 'Un appel, un Rafale et trois missiles rapides « Démocratie » qui éclatent en confettis.' },
   arthaud: { kind: 'TOOLS', name: 'Les outils de la lutte', summary: 'La faucille rapproche, le marteau aplatit.' },
   retailleau: { kind: 'BARRIER', name: 'Le mur républicain', summary: 'Un mur à franchir en sautant, qui finit par tomber sur les adversaires.' },
   attal: { kind: 'SATCHEL', name: 'Changement de programme', summary: 'Lance un cartable. Appuie à nouveau sur Ultime pour le faire éclater.' },

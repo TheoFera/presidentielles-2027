@@ -5,9 +5,8 @@
  * Les bitmaps gardent les pixels prêts à dessiner ; les sources des atlas découpés sont ensuite
  * libérées par minor-sprite-images.js. Le web garde la résolution native (scale = 1).
  *
- * L'application Android conserve son réglage antérieur : les grandes planches sont réduites
- * selon l'écran. Aucune réduction n'est appliquée au web. iPhone et iPad gardent les images ordinaires
- * (spriteBitmapsWanted).
+ * L'application Android, l'iPhone et l'iPad réduisent les grandes planches selon l'écran
+ * (spriteReductionWanted). Les autres navigateurs gardent la résolution d'origine.
  *
  * Le reste du jeu ne change pas : les coordonnées des planches restent celles des fichiers d'origine.
  * naturalWidth / naturalHeight donnent la taille d'origine, et drawImage convertit les coordonnées
@@ -26,16 +25,24 @@ export const spriteBitmapsSupported = () => typeof createImageBitmap === 'functi
 export const isAppleMobile = (nav = globalThis.navigator) => /iPad|iPhone|iPod/.test(nav?.userAgent || '')
   || (nav?.platform === 'MacIntel' && nav?.maxTouchPoints > 1);
 
-/**
- * Bitmaps (images prêtes à dessiner et découpes converties) ou images ordinaires.
- * iPhone et iPad : images ordinaires par défaut. Le jeu y est devenu très lent dans Safari quand les bitmaps
- * ont été étendus au navigateur mobile (15/10/2026), alors que le rendu ordinaire était fluide.
- * Pour comparer sans republier : ?bitmaps=1 force les bitmaps, ?bitmaps=0 les retire partout.
- */
+/** Bitmaps (images prêtes à dessiner et découpes converties) ; ?bitmaps=0 les retire pour comparer. */
 export function spriteBitmapsWanted(search = globalThis.location?.search || '', nav = globalThis.navigator) {
   const forced = new URLSearchParams(search).get('bitmaps');
   if (forced === '1' || forced === '0') return forced === '1';
-  return !isAppleMobile(nav);
+  return true;
+}
+
+/**
+ * Planches réduites selon l'écran : application Android et iPhone/iPad.
+ * Sur iPhone, la campagne garde environ 770 Mio d'images décodées (644 Mio le 13/10, avant les nouvelles
+ * planches) : Safari en jette alors une partie et la redécode en pleine partie, surtout pendant les
+ * déplacements. Le débat, qui charge moins d'images, restait fluide.
+ * ?reduction=0 garde la résolution d'origine, ?reduction=1 réduit aussi ailleurs.
+ */
+export function spriteReductionWanted(appBuild, search = globalThis.location?.search || '', nav = globalThis.navigator) {
+  const forced = new URLSearchParams(search).get('reduction');
+  if (forced === '1' || forced === '0') return forced === '1';
+  return appBuild || isAppleMobile(nav);
 }
 
 /**

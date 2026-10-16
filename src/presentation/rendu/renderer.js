@@ -9,7 +9,7 @@ import { drawCombatEffects } from '../effets/combat-effects.js';
 import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from '../carte/electoral.js';
 import { drawDebate } from '../debat/match.js';
 import { VisualAssets } from './visual-assets.js';
-import { installSpriteDrawing, spriteBitmapLoader, spriteBitmapsSupported, spriteBitmapsWanted, spriteScaleFor } from './sprite-bitmaps.js';
+import { installSpriteDrawing, spriteBitmapLoader, spriteBitmapsSupported, spriteBitmapsWanted, spriteReductionWanted, spriteScaleFor } from './sprite-bitmaps.js';
 import { APP_BUILD } from '../../app-build.js';
 import { visualManifest } from './visual-manifest.js';
 import { drawIllustratedCharacter, meetingCrowdRow } from '../personnages/illustrated-characters.js';
@@ -28,7 +28,7 @@ import { candidateOpacity, flattenScale } from '../personnages/candidate-visibil
 async function prepareImage(id, image, bitmaps = true) {
   // Let the browser paint and handle input between preparation jobs.
   await new Promise(resolve => setTimeout(resolve, 0));
-  // Sans bitmaps (iPhone par défaut) : découpes en canevas et planche gardée, comme avant le 15/10.
+  // Sans bitmaps (?bitmaps=0) : découpes en canevas et planche gardée, comme avant le 15/10.
   const prepareAtlas = bitmaps ? prepareAtlasBitmaps : prepareAtlasFrames;
   let preparedOnly = false;
   if (id.startsWith('minor-')) { prepareMinorFrames(image, id.slice(6)); preparedOnly = true; }
@@ -70,14 +70,15 @@ export class WorldRenderer {
     this.p = config.prototype.presentation;
     // Même protection mémoire sur téléphone web, depuis l'écran d'accueil et dans l'application.
     this.mobileRendering = APP_BUILD || !!window.matchMedia?.('(any-pointer: coarse)').matches;
-    // iPhone/iPad : images ordinaires par défaut ; ?bitmaps=1 pour comparer (sprite-bitmaps.js).
+    // ?bitmaps=0 : images ordinaires, pour comparer (sprite-bitmaps.js).
     this.spriteBitmaps = spriteBitmapsWanted();
     let loadImage = null;
     if (this.mobileRendering && this.spriteBitmaps && spriteBitmapsSupported()) {
       installSpriteDrawing();
-      // Web/iPhone : résolution d'origine. Android conserve son réglage antérieur.
-      const screenHeight = APP_BUILD ? Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio) : 0;
-      loadImage = spriteBitmapLoader(APP_BUILD ? spriteScaleFor(screenHeight) : 1);
+      // Application Android et iPhone/iPad : planches réduites selon l'écran (mémoire). Ailleurs : résolution d'origine.
+      const reduce = spriteReductionWanted(APP_BUILD);
+      const screenHeight = Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio);
+      loadImage = spriteBitmapLoader(reduce ? spriteScaleFor(screenHeight) : 1);
     }
     this.assets = new VisualAssets(visualManifest, {limit: 80, concurrency: this.mobileRendering ? 4 : 8,
       prepareImage: (id, image) => prepareImage(id, image, this.spriteBitmaps), loadImage});

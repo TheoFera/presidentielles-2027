@@ -1,0 +1,98 @@
+{
+  "outil": "ImageGen intégré",
+  "images": [
+    {
+      "key": "phone",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-6dbbd923-e566-4372-afdc-571283eb14fb.png",
+      "dest": "assets/images/pouvoirs/glucksmann-appel-v4.png",
+      "refs": [
+        "assets/images/candidats/glucksmann/glucksmann-garde-v6.png",
+        "assets/images/candidats/glucksmann/glucksmann-actions-v5.png"
+      ],
+      "prompt": "Use case: identity-preserve. Exact sprite continuity task. Reference 1 is the EXISTING in-game Raphaël Glucksmann combat sprite. MATCH THE FIRST FIGURE at TOP LEFT precisely: same oversized head, short compact body, same face profile and jaw, gray-brown hair, stubble, thick eyebrows, navy suit white OPEN collar no tie, same palette, thick black outline and simplified painted shading. Reference 2 confirms his existing standing face. Generate a sprite sheet of EXACTLY FOUR full-body figures in ONE ROW with wide transparent gutters. ALL FOUR keep the same fighting stance as top-left reference1: feet spread, knees only slightly bent, same foot positions, same total height and same head size and head direction RIGHT three-quarter profile. Change ONLY the near arm and phone. Pose 1: identical base fighting guard, no phone, reference figure. Pose 2: raise a flat black smartphone with near hand from chest toward the VISIBLE EAR at LEFT SIDE of his head. Pose 3: hold the black phone pressed to that SAME visible EAR, face unchanged, free hand still in guard. Pose 4: lower the phone toward chest from that SAME ear. Absolutely NO slim tall upright body, NO different face, NO more realistic style, NO changing legs or head shape, no dramatic lean, no changing ears or hands. Full shoes visible and identical ground baseline; crown top at same height each figure. Real transparent background, no shadows, no labels or text, no framing."
+    },
+    {
+      "key": "attal",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4a3586b9-7ace-4658-b1cf-b6d556bc62f1.png",
+      "dest": "assets/images/pouvoirs/attal-lancer-cartable-v2.png",
+      "refs": [
+        "assets/images/candidats/attal/attal-actions-v6.png",
+        "assets/images/candidats/attal/attal-combat-v6.png"
+      ],
+      "prompt": "Use case: identity-preserve. Six-frame sprite sheet for Gabriel Attal matching existing game character EXACTLY. References are approved face and costume. Preserve dark wavy hair, profile face, SAME very large head to compact body ratio, navy suit white shirt dark tie, black shoes, bold black cartoon outlines and shaded painted style. EXACTLY SIX full-body figures in 3 columns x 2 rows on real transparent background. Same camera, ALL face RIGHT three-quarter profile. CRITICAL: all figures SAME HEIGHT, SAME HEAD SIZE, same torso and leg length, tops of heads aligned within each row, feet same baseline; no shrinking during throw. Only slight waist rotation, NO crouch or lunge, knees same small bend. 1 grounded reference fighting guard; 2 underhand BAG throw windup with near arm stretched BACK at hip level, fingers closed around invisible bag handle; 3 swing near hand forward at hip height, empty gripping fist; 4 RELEASE with near arm extended diagonally forward at lower chest height, open fingers; 5 follow-through arm forward chest level, feet still in SAME stance; 6 return to guard identical frame1. NO ACTUAL BAG in any frame because game adds bag sprite. NO punching, no lifted walking knee, NO small heads, NO realistic long body, no text, no effects. Same character proportions and shading as references throughout. Keep huge clear gutters, full uncropped shoes."
+    },
+    {
+      "key": "roussel",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4e4b1996-322a-4e5c-a7e6-8d074aecb934.png",
+      "dest": "assets/images/pouvoirs/roussel-lancer-rattraper-v2.png",
+      "refs": [
+        "assets/images/candidats/roussel/roussel-combat-v8.png"
+      ],
+      "prompt": "Use case: identity-preserve. EIGHT isolated full-body animation sprites in 4 columns x 2 rows on real transparent background, matching exact Fabien Roussel identity and painted cartoon style of first sprite top-left in reference. Same gray swept hair, same face, stocky compact body huge head, navy suit open-neck white shirt NO tie, black shoes. All face RIGHT three-quarter profile, head size and body size constant, feet always grounded, no deep squat or walking knee. One continuous boomerang throw AND catch by the SAME near arm, the far hand stays at chest throughout: row1 1 reference fighting guard; 2 WINDUP near elbow drawn far BACK with closed hand at shoulder height behind body, torso rotated slightly back; 3 SWING near hand sweeps forward to shoulder height, fingers still closed; 4 RELEASE near arm stretched FORWARD at shoulder/chest level, open palm and clearly spread fingers, torso slightly forward but same height. Row2 5 FOLLOW-THROUGH near arm down and forward; 6 READY TO CATCH near arm reaching FORWARD at chest level palm open facing right, fingers spread to meet returning boomerang; 7 CATCH same hand CLOSED around invisible object, elbow bends slightly absorbing impact; 8 BRING BACK same closed hand pulled toward chest after catch. No sausage, weapon, prop or projectile drawn, empty hands because game attaches its single sausage sprite. Do not switch which arm throws/catches. All heads at same scale as reference. Full shoes, identical baseline and plenty of transparent gutters, no text or background."
+    },
+    {
+      "key": "sausage",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-40fbe1e2-8469-40ee-b106-408fc8a6ceb8.png",
+      "dest": "assets/images/pouvoirs/roussel-saucisse-nature-v1.png",
+      "refs": [
+        "assets/images/pouvoirs/accessoires-ultimes-mineurs-v2.png"
+      ],
+      "prompt": "Use case: precise-object-edit. SINGLE isolated game prop on real transparent background, using ONLY the sausage in top-left of reference as style guide. Create a PLAIN grilled sausage, moderately curved crescent like a boomerang, rich reddish brown casing with a few dark grill marks, tiny tied ends. NO SAUCE AT ALL: absolutely no yellow mustard, ketchup, white sauces, garnishes, bread, plate, herbs, text or other objects. Slender natural sausage, not oversized fat hot dog, length about 4.5 times its thickness, dark outlined shaded hand-painted 2D cartoon game prop. Single whole curved sausage with center of arc pointing upward, horizontal orientation, fully uncropped. Transparent background."
+    }
+  ],
+  "iterations": [
+    {
+      "key": "attal",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-879bafeb-2c18-4568-bf91-e2a7905bf0c7.png",
+      "prompt": "Use case: precise-object-edit. Fix ONLY arm continuity and size in this exact six-frame character sprite sheet. Preserve face, hair, suit, body proportions, leg stance, layout3columns2rows, and SAME full body and head height throughout, transparent background. The arm on LEFT of each torso (near arm attached to leftmost visible shoulder) is the throwing arm for ALL frames. The other RIGHT arm stays bent fist near chin throughout. Frame3 near LEFT forearm swings across torso, clenched hand at hip just right of belt, far RIGHT fist stays near chin. Frame4 and5 extend the SAME LEFT near arm across body towards RIGHT with open hand at lower chest level, sleeve originates at LEFT shoulder and crosses chest clearly. Far RIGHT arm remains bent with fist near chin just above crossing forearm. Frame6 returns same left near fist to boxing guard. All poses exactly same body and head scale as top-left frame. No bag or objects. Remove any background glow: truly transparent, no shadows, no effects. Do not alter facial identity or costume.",
+      "refs": [
+        "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4a3586b9-7ace-4658-b1cf-b6d556bc62f1.png"
+      ]
+    },
+    {
+      "key": "roussel",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-ac914fad-312b-4dc9-be21-241d65db2df2.png",
+      "prompt": "Use case: precise-object-edit. Fix ONLY arm continuity of this existing eight-frame sprite sheet. Preserve all eight faces, head sizes, bodies, legs, suit, palette, exact sheet layout, transparent background, and total character heights. Right-facing character. The arm visible on the LEFT of each torso (near arm, attached to shoulder on LEFT side) must be the SAME arm that winds up, throws and catches. The other arm on the RIGHT of torso stays bent in boxing guard near chin in EVERY frame. Current frame4 and frames6/7/8 erroneously extend that far right arm: correct these. Frame3 should be near LEFT arm crossing in front of chest, hand clenched forward-right at shoulder height as it accelerates; far RIGHT hand stays near chin. Frame4 should extend near LEFT arm across chest diagonally to RIGHT, open hand shoulder level; far RIGHT hand bent near chin visible just above extended forearm. Frame5 near arm followthrough down-front, keep. Frame6 near LEFT arm crosses body reaching to RIGHT open palm at lower chest level; far RIGHT fist remains near chin. Frame7 same near LEFT arm catches, closed hand slightly closer to chest, far RIGHT fist near chin. Frame8 near LEFT hand closes at chest as guard recovers; far RIGHT fist near chin. Absolutely NO object or sausage drawn. Keep wide transparent gutters. No glow or background.",
+      "refs": [
+        "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-4e4b1996-322a-4e5c-a7e6-8d074aecb934.png"
+      ]
+    },
+    {
+      "key": "roussel",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-1072cc65-8b95-4d0c-ae3f-8fcbb6e5325e.png",
+      "refs": [
+        "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-ac914fad-312b-4dc9-be21-241d65db2df2.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Change ONLY figure7, row2 column3, in this eight-figure sprite sheet. Preserve ALL other seven figures pixel-identical, preserve transparent background and layout. In figure7 keep head torso legs unchanged, but have near arm (LEFT shoulder) extend across chest towards RIGHT exactly like previous figure6(row2column2), with elbow only very slightly bent. The extended hand is a CLOSED gripping fist (nothing inside) at the same distance in front of body as open palm in previousfigure6, at chest level. This is a catch: open palm frame6 turns into closed fist frame7 at SAME location; do not return near arm to guard early. Far RIGHT fist stays near chin. Figure8 is already recovery toguard so leave it. No props, no background, no glow, no text."
+    },
+    {
+      "key": "roussel",
+      "source": "C:\\Users\\ferat\\.codex\\generated_images\\01a137dc-5e42-7cd3-85e4-d153bd74149d\\exec-911f2b3d-7a41-4767-acbf-5b3056ddcac6.png",
+      "dest": "assets/images/pouvoirs/roussel-lancer-rattraper-v3.png",
+      "refs": [
+        "assets/images/pouvoirs/roussel-lancer-rattraper-v2.png",
+        "assets/images/candidats/roussel/roussel-combat-v8.png"
+      ],
+      "prompt": "Use case: precise-object-edit.\nAsset type: existing Fabien Roussel game animation sprite sheet, EIGHT figures in FOUR columns x TWO rows.\nInput image1 is EDIT TARGET: preserve exact eight poses, face identity, hair, suit, coloring, lighting, geometry, body proportions, feet positions, head size and exact layout. Input image2 is supporting REFERENCE FOR LINE WEIGHT ONLY; do not borrow its poses.\nPrimary request: remove the excessively heavy jet-black outer border from ALL EIGHT figures in image1, particularly around arms, trousers, jacket silhouette, shoes and hands. Replace it with a very fine restrained dark ink edge matching the subtle outline of reference2 when characters are displayed at the SAME full-body height. Thin the target's outer contour by roughly 60 percent. The edge should be dark navy around navy fabric and restrained dark brown around skin; no heavy black sticker-like border. Keep edges crisp, keep the painted cartoon style and internal shading. Preserve facial features, thin face details, folds and hair detail. This is a very small surgical edge edit, NOT a redraw, NOT a design change. Do not change the throwing arm or catch hand, stance or any pose. Do not add effects, objects, captions, outlines around the whole sheet or glow. ALL full shoes visible. Keep real transparent background and same wide gutters. Keep the near arm crossing the chest in release and catching frames. No sausage painted in hands; these sprites remain empty-handed. Preserve every figure's size, placement, and alignment as closely as possible."
+    }
+  ],
+  "mesures": "scripts/outils-images/measure-minor-ultimate-continuity.mjs",
+  "fichiersFinaux": [
+    {
+      "fichier": "assets/images/pouvoirs/glucksmann-appel-v4.png",
+      "source": "exec-6dbbd923-e566-4372-afdc-571283eb14fb.png"
+    },
+    {
+      "fichier": "assets/images/pouvoirs/attal-lancer-cartable-v2.png",
+      "source": "exec-879bafeb-2c18-4568-bf91-e2a7905bf0c7.png"
+    },
+    {
+      "fichier": "assets/images/pouvoirs/roussel-lancer-rattraper-v3.png",
+      "source": "exec-911f2b3d-7a41-4767-acbf-5b3056ddcac6.png"
+    },
+    {
+      "fichier": "assets/images/pouvoirs/roussel-saucisse-nature-v1.png",
+      "source": "exec-40fbe1e2-8469-40ee-b106-408fc8a6ceb8.png"
+    }
+  ]
+}

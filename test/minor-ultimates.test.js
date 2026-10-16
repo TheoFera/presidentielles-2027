@@ -16,6 +16,9 @@ import { CampaignPrediction } from '../src/network/campaign-prediction.js';
 import { encodePresentationState } from '../src/network/state-stream.js';
 import { retireMinorsForSecondRound } from '../src/simulation/minor-candidates.js';
 import { minorUltimateGesture, minorBarrierPose } from '../src/presentation/effets/minor-ultimate-gestures.js';
+import { deliveryPlanePose, deliveryMissilePose } from '../src/presentation/effets/minor-delivery-flight.js';
+import { sausageFlightPose, SAUSAGE_HELD_ANGLE } from '../src/presentation/effets/minor-sausage-flight.js';
+import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
 
 const config = campaignConfig();
 function setup(faction) {
@@ -99,6 +102,54 @@ test('Gestes : objet tenu avant le lâcher, mains ouvertes au départ et deux po
   }
 });
 
+test('Roussel : raccord exact à la main au lâcher, au demi-tour et au rattrapage dans les deux sens', () => {
+  const b = config.balance.minor_ultimates.sausage;
+  for (const direction of [-1, 1]) for (const height of [80, 145, 220]) {
+    const geometry = { x: 100, y: 180, release: { x: 84, y: 176 }, releaseOrigin: { x: 100, y: 180 },
+      catchHand: { x: 210 + direction * height * .25, y: 160 }, ownerOrigin: { x: 210, y: 180 }, distance: 8, turnDistance: 8 };
+    const p = { direction, launch_tick: 100, travelled: b.release_offset, returning: false };
+    const release = sausageFlightPose(p, 100, 30, b, geometry);
+    assert.equal(release.x, geometry.release.x); assert.equal(release.y, geometry.release.y);
+    assert.equal(release.angle, SAUSAGE_HELD_ANGLE * direction);
+    p.travelled = b.range;
+    const outgoing = sausageFlightPose(p, 120, 30, b, geometry);
+    p.returning = true;
+    assert.deepEqual(sausageFlightPose(p, 120, 30, b, geometry), outgoing);
+    p.catch_started_tick = 130; p.catch_start_distance = 2;
+    geometry.x = geometry.ownerOrigin.x; geometry.distance = 0;
+    const caught = sausageFlightPose(p, 136, 30, b, geometry);
+    assert.equal(caught.x, geometry.catchHand.x); assert.equal(caught.y, geometry.catchHand.y);
+    assert.ok(Math.abs(Math.sin(caught.angle - SAUSAGE_HELD_ANGLE * direction)) < 1e-10);
+    const rotation = [2,1.5,1,.5,0].map(distance => sausageFlightPose(p, 136, 30, b, {...geometry,distance}).angle * direction);
+    assert.ok(rotation.every((angle, i) => !i || angle >= rotation[i-1]), 'La rotation ne doit pas s’inverser avant la prise.');
+  }
+});
+
+test('Roussel : la saucisse rejoint un lanceur mobile et la sauvegarde conserve les raccords du retour', () => {
+  const { sim, owner, target } = setup('roussel'); target.x = 200;
+  activateUltimate(sim, owner); const p = sim.state.powers[0];
+  while (!p.returning) tick(sim);
+  assert.equal(p.launch_x, 100); assert.equal(p.turn_x, p.x);
+  owner.x = 98;
+  const copy = new GameSimulation(config, 42);
+  const snapshot = JSON.parse(sim.exportSnapshot()); snapshot.local_candidate_id = 'candidate:philippe';
+  copy.importSnapshot(JSON.stringify(snapshot)); sim.state.local_candidate_id = 'candidate:philippe';
+  for (let n = 0; n < 120 && p.caught_tick == null; n++) { tick(sim); tick(copy); assert.deepEqual(copy.state, sim.state); }
+  assert.ok(p.caught_tick != null); assert.equal(p.x, owner.x);
+});
+
+test('Glucksmann, Attal et Roussel : hauteur constante et échelle uniforme des nouvelles poses au sol', () => {
+  for (const name of ['phone', 'satchelThrow', 'sausageThrow']) {
+    const atlas = minorUltimateAtlases[name];
+    for (const height of [80, 145, 220]) for (const [index, frame] of atlas.frames.entries()) {
+      const scale = characterFrameScale(atlas, index, height);
+      assert.ok(Math.abs(frame[3] * scale - height * CHARACTER_HEIGHT_RATIO) < 1e-9);
+      assert.ok(frame[4] >= frame[0] && frame[4] <= frame[0] + frame[2]);
+      assert.equal(frame[5], frame[1] + frame[3]);
+    }
+  }
+});
+
 test('Glucksmann : une seule pose et une seule oreille pendant toute la conversation', () => {
   const { sim, owner } = setup('glucksmann'); activateUltimate(sim, owner); const p = sim.state.powers[0];
   const poses = Array.from({length: sim.secondsToTicks(config.balance.minor_ultimates.delivery.call_seconds)}, (_, n) => minorUltimateGesture(p, p.started_tick + n, sim.hz, config.balance.minor_ultimates));
@@ -158,6 +209,83 @@ test('Glucksmann : appel sans dégâts puis trois livraisons annoncées, chacune
   }
   assert.equal(sim.state.hit_results.filter(h => h.target_id === target.id).length, 3);
   assert.equal(target.resistance, 61);
+});
+
+test('Glucksmann : trois missiles plus rapides, mêmes centres et mêmes rayons d’impact', () => {
+  const b = config.balance.minor_ultimates.delivery;
+  assert.equal(b.spacing, 2.4); assert.equal(b.radius, 1.3); assert.equal(b.damage, 13);
+  for (const facing of [-1, 1]) {
+    const { sim, owner, target } = setup('glucksmann'); owner.facing = facing;
+    activateUltimate(sim, owner); const p = sim.state.powers[0];
+    p.impacts.forEach((drop, index) => assert.ok(Math.abs(drop.x - (owner.x + facing * 2.4 * (index + 1))) < 1e-9));
+    for (const [index, drop] of p.impacts.entries()) {
+      assert.equal(drop.tick - drop.launch_tick, sim.secondsToTicks(b.warning_seconds));
+      assert.ok((drop.tick - drop.launch_tick) / sim.hz < .3);
+      if (index) assert.equal(drop.launch_tick - p.impacts[index - 1].launch_tick, sim.secondsToTicks(b.interval_seconds));
+      target.x = drop.x; target.combat = combatState();
+      while (sim.state.tick < drop.tick - 1) tick(sim);
+      const hp = target.resistance; tick(sim); assert.equal(target.resistance, hp - b.damage);
+    }
+    assert.equal(sim.state.hit_results.filter(hit => hit.target_id === target.id).length, 3);
+  }
+});
+
+test('Glucksmann : Rafale hors écran au début et à la fin, missiles reliés aux tirs et aux impacts', () => {
+  const b = config.balance.minor_ultimates.delivery;
+  for (const facing of [-1, 1]) for (const h of [80, 145, 220]) {
+    const { sim, owner } = setup('glucksmann'); owner.facing = facing; activateUltimate(sim, owner);
+    const p = sim.state.powers[0], m = { characterHeight: h, groundY: h * 2.7, groundOffsetRatio: .06, pixelsPerUnit: h / 3 };
+    const project = x => 400 + (x - 100) * m.pixelsPerUnit;
+    const plane = tick => deliveryPlanePose(p, tick, sim.hz, b, m, project);
+    const planeBottom = tick => {
+      const pose = plane(tick), atlas = minorUltimateAtlases.plane, [, , w, h] = atlas.frames[0];
+      const angle = pose.angle - facing * atlas.headingAngle;
+      return pose.y + pose.width / 2 * (Math.abs(Math.sin(angle)) + h / w * Math.abs(Math.cos(angle)));
+    };
+    const entry = p.started_tick + sim.secondsToTicks(b.call_seconds), exit = p.impacts.at(-1).launch_tick + sim.secondsToTicks(b.exit_seconds);
+    assert.equal(plane(entry - 1).visible, false); assert.ok(planeBottom(entry) < 0);
+    assert.equal(plane(exit + 1).visible, false); assert.ok(planeBottom(exit) < 0);
+    for (const drop of p.impacts) {
+      const atLaunch = plane(drop.launch_tick);
+      const missile = tick => deliveryMissilePose(p, drop, tick, sim.hz, b, m, project);
+      assert.equal(missile(drop.launch_tick - 1).visible, false);
+      assert.equal(missile(drop.launch_tick).visible, true);
+      const fx = facing * Math.cos(atLaunch.angle), fy = facing * Math.sin(atLaunch.angle);
+      assert.equal(missile(drop.launch_tick).x, atLaunch.x - fx * atLaunch.width * .18 - Math.sin(atLaunch.angle) * h * .65);
+      assert.equal(missile(drop.launch_tick).y, atLaunch.y - fy * atLaunch.width * .18 + Math.cos(atLaunch.angle) * h * .65);
+      const start = missile(drop.launch_tick), early = missile(drop.launch_tick + 1);
+      assert.ok(Math.abs(Math.cos(start.angle) * fy - Math.sin(start.angle) * fx) < 1e-9);
+      assert.ok(Math.abs((early.x - start.x) * fy - (early.y - start.y) * fx) < 1e-8, 'Le missile prolonge le cap du Rafale avant de tourner.');
+      assert.ok(Math.hypot(early.x - start.x, early.y - start.y) * sim.hz > Math.hypot(atLaunch.velocity.x, atLaunch.velocity.y));
+      const middle = missile((drop.launch_tick + drop.tick) / 2);
+      assert.ok((middle.x - middle.from.x) * facing > 0 && (middle.target.x - middle.x) * facing > 0);
+      assert.ok(middle.y > middle.from.y && middle.y < middle.target.y);
+      assert.equal(missile(drop.tick).x, project(drop.x));
+      assert.equal(missile(drop.tick).y, m.groundY + h * .06);
+      assert.equal(missile(drop.tick).visible, false);
+      const join = drop.launch_tick + (drop.tick - drop.launch_tick) * .3, epsilon = .0001;
+      const before = missile(join - epsilon), after = missile(join + epsilon), atJoin = missile(join);
+      assert.ok(Math.abs(after.angle - before.angle) < .001);
+      const vxBefore = (atJoin.x - before.x) / epsilon, vxAfter = (after.x - atJoin.x) / epsilon;
+      const vyBefore = (atJoin.y - before.y) / epsilon, vyAfter = (after.y - atJoin.y) / epsilon;
+      assert.ok(Math.abs(vxAfter - vxBefore) < .02 && Math.abs(vyAfter - vyBefore) < .02, 'La courbure conserve la vitesse au raccord.');
+    }
+    for (const join of [p.impacts[0].launch_tick, p.impacts.at(-1).launch_tick]) {
+      const before = plane(join - .0001), after = plane(join + .0001);
+      const velocity = plane(join).velocity;
+      assert.ok(Math.abs(after.x - before.x - velocity.x * .0002 / sim.hz) < 1e-8);
+      assert.ok(Math.abs(after.y - before.y - velocity.y * .0002 / sim.hz) < 1e-8);
+      assert.ok(Math.abs(after.angle - before.angle) < .001);
+    }
+    for (let tick = entry; tick <= exit; tick++) {
+      const pose = plane(tick), before = plane(tick - .0001), after = plane(tick + .0001);
+      assert.ok(Math.abs(pose.angle) <= .52 + 1e-9);
+      const direction = Math.atan2(after.y - before.y, Math.abs(after.x - before.x));
+      assert.ok(Math.abs(direction - facing * pose.angle) < 1e-8, 'Le nez suit la tangente réelle de la courbe.');
+    }
+    const together = p.impacts.at(-1).launch_tick + 1;
+    assert.ok(p.impacts.every(drop => deliveryMissilePose(p, drop, together, sim.hz, b, m, project).visible), 'Les trois missiles doivent voler ensemble pendant la salve.');
+  }
 });
 
 test('Arthaud : portée accrue, faucille qui attire, marteau qui aplatit plusieurs adversaires', () => {

@@ -38,8 +38,11 @@ export function startMinorUltimate(sim, owner, power) {
       for (const actor of combatActors(sim.state)) if (actor.combat.target_id === owner.id) actor.combat.target_id = null;
       break;
     case 'DELIVERY':
-      power.impacts = [0, 1, 2].map(index => ({ x: combatPosition(sim.state, owner.x + owner.facing * b.delivery.spacing * (index + 1)),
-        tick: tick + seconds(sim, b.delivery.call_seconds + b.delivery.warning_seconds + index * b.delivery.interval_seconds), done: false }));
+      power.impacts = [0, 1, 2].map(index => {
+        const launch_tick = tick + seconds(sim, b.delivery.call_seconds) + seconds(sim, b.delivery.entry_seconds) + index * seconds(sim, b.delivery.interval_seconds);
+        return { x: combatPosition(sim.state, owner.x + owner.facing * b.delivery.spacing * (index + 1)),
+          launch_tick, tick: launch_tick + seconds(sim, b.delivery.warning_seconds), done: false };
+      });
       power.expires_tick = power.impacts.at(-1).tick + seconds(sim, .8); break;
     case 'TOOLS':
       power.expires_tick = tick + seconds(sim, b.tools.duration_seconds);
@@ -90,10 +93,18 @@ function updateSausage(sim, owner, p) {
   const releasing = !p.launched;
   if (releasing) {
     p.launched = true; p.x = owner.x;
-    p.height = (owner.combat.height || 0) + b.height;
+    p.launch_x = owner.x; p.launch_height = owner.combat.height || 0;
+    p.height = p.launch_height + b.height;
   }
-  const d = delta(sim, p.x, owner.x), step = Math.min(b.speed / sim.hz + (releasing ? b.release_offset : 0), p.returning ? Math.abs(d) : b.range - p.travelled);
+  const d = delta(sim, p.x, owner.x), remaining = b.range - p.travelled;
+  // Freiner au bout de l'aller, puis reprendre de la vitesse au retour.
+  const speed = p.returning ? Math.min(1, .25 + (sim.state.tick - (p.turn_tick ?? sim.state.tick)) / (sim.hz * .15))
+    : Math.max(.25, Math.min(1, remaining / (b.range * .2)));
+  const step = Math.min(releasing ? b.release_offset : b.speed * speed / sim.hz, p.returning ? Math.abs(d) : remaining);
   if (p.returning) p.catch_direction = Math.sign(delta(sim, owner.x, p.x)) || p.catch_direction || p.direction;
+  if (p.returning && p.catch_started_tick == null && Math.abs(d) < b.speed * .2) {
+    p.catch_started_tick = sim.state.tick; p.catch_start_distance = Math.abs(d);
+  }
   const direction = p.returning ? Math.sign(d) || p.direction : p.direction;
   const hits = p.returning ? p.return_hit_ids : p.hit_ids;
   for (const target of combatActors(sim.state)) {
@@ -105,6 +116,8 @@ function updateSausage(sim, owner, p) {
   }
   p.x = combatPosition(sim.state, p.x + direction * step);
   if (p.returning) {
+    const progress = 1 - Math.min(1, Math.abs(delta(sim, p.x, owner.x)) / Math.max(.001, Math.abs(delta(sim, p.turn_x ?? p.x, owner.x))));
+    p.height = (p.launch_height || 0) * (1 - progress) + (owner.combat.height || 0) * progress + b.height + .12 * Math.sin(Math.PI * progress);
     for (const id of p.carried_ids) {
       const target = findCombatActor(sim.state, id);
       if (canBeHit(target) && Math.abs(delta(sim, owner.x, target.x)) > sim.config.balance.candidate_combat.body_width) {
@@ -113,14 +126,18 @@ function updateSausage(sim, owner, p) {
         target.combat.knockback_velocity = 0;
       }
     }
-    if (Math.abs(delta(sim, p.x, owner.x)) < .3) {
+    if (Math.abs(delta(sim, p.x, owner.x)) < .000001) {
       p.x = owner.x; p.caught_tick = sim.state.tick;
       p.expires_tick = sim.state.tick + seconds(sim, b.catch_seconds);
       sim.emit('SausageCaught', { candidate_id: owner.id, power_id: p.id });
     }
   } else {
     p.travelled += step;
-    if (p.travelled >= b.range || sim.state.debate_bounds && (p.x <= sim.state.debate_bounds.min || p.x >= sim.state.debate_bounds.max)) p.returning = true;
+    const progress = Math.max(0, (p.travelled - b.release_offset) / (b.range - b.release_offset));
+    p.height = (p.launch_height || 0) + b.height - .08 * Math.sin(Math.PI * progress);
+    if (p.travelled >= b.range || sim.state.debate_bounds && (p.x <= sim.state.debate_bounds.min || p.x >= sim.state.debate_bounds.max)) {
+      p.returning = true; p.turn_tick = sim.state.tick; p.turn_x = p.x;
+    }
   }
 }
 

@@ -4,6 +4,8 @@ import { minorCombatAtlases } from '../personnages/minor-animation-sprites.js';
 import { characterFrameScale } from '../personnages/character-scale.js';
 import { minorUltimateGesture, minorBarrierPose } from './minor-ultimate-gestures.js';
 import { combatDelta } from '../../simulation/combat-geometry.js';
+import { deliveryPlanePose, deliveryMissilePose, DELIVERY_SIZES } from './minor-delivery-flight.js';
+import { sausageFlightPose, SAUSAGE_SIZE, SAUSAGE_HELD_ANGLE } from './minor-sausage-flight.js';
 
 function frameImage(renderer, atlas, index) {
   const image = renderer.assets.get(atlas.sprite);
@@ -95,13 +97,6 @@ function confetti(renderer, x, y, progress, radius, count = 24) {
   ctx.restore();
 }
 
-function label(ctx, text, x, y) {
-  ctx.font = '700 13px system-ui'; ctx.textAlign = 'center';
-  const w = ctx.measureText(text).width + 16;
-  ctx.fillStyle = '#192838e6'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 16, w, 23, 7); ctx.fill();
-  ctx.fillStyle = '#fff0c9'; ctx.fillText(text, x, y);
-}
-
 export function drawMinorUltimateEffects(renderer, state) {
   const { ctx, config, metrics: m } = renderer, b = config.balance.minor_ultimates;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
@@ -117,45 +112,63 @@ export function drawMinorUltimateEffects(renderer, state) {
         const direction = p.catch_direction || p.direction, sausage = p.kind === 'SAUSAGE';
         const atlas = minorUltimateAtlases[gesture.atlas];
         const hand = handPoint(renderer, owner, renderer.screenX(owner.x), atlas, gesture.index, direction);
-        prop(renderer, sausage ? 0 : 3, hand.x, hand.y, m.characterHeight * (sausage ? .5 : .32),
-          (sausage ? gesture.index === 1 ? -.6 : .1 : gesture.index === 1 ? -.35 : .1) * direction, direction,
-          minorUltimateAtlases.props, sausage ? [.5, .5] : [.5, .05]);
+        prop(renderer, sausage ? 0 : 3, hand.x, hand.y, m.characterHeight * (sausage ? SAUSAGE_SIZE : .32),
+          (sausage ? gesture.index === 1 ? -.6 : SAUSAGE_HELD_ANGLE : gesture.index === 1 ? -.35 : .1) * direction, direction,
+          sausage ? minorUltimateAtlases.sausage : minorUltimateAtlases.props, sausage ? [.5, .5] : [.5, .05]);
         handGrip(renderer, atlas, gesture.index, hand, direction);
       }
     }
     if (p.kind === 'SAUSAGE') {
       if (!p.launched || p.caught_tick != null) continue;
       const owner = state.candidates.find(c => c.id === p.owner_id);
-      let projectileX = x, y = ground - p.height * m.characterHeight;
+      let pose = { x, y: ground - p.height * m.characterHeight, angle: 0 };
       if (owner) {
         const atlas = minorUltimateAtlases.sausageThrow;
-        const catching = p.returning && Math.abs(combatDelta(state, p.x, owner.x)) < b.sausage.speed * .2;
-        const hand = handPoint(renderer, owner, renderer.screenX(owner.x), atlas, catching ? 5 : 3, p.catch_direction || p.direction);
-        const blend = catching ? 1 - Math.min(1, Math.abs(combatDelta(state, p.x, owner.x)) / (b.sausage.speed * .2))
-          : Math.max(0, 1 - (state.tick - p.launch_tick) / (hz * .12));
-        projectileX += (hand.x - x) * blend; y += (hand.y - y) * blend;
+        const launchX = p.launch_x ?? owner.x, launchHeight = p.launch_height || 0;
+        const release = handPoint(renderer, { combat: { height: launchHeight } }, renderer.screenX(launchX), atlas, 3, p.direction);
+        const catchHand = handPoint(renderer, owner, renderer.screenX(owner.x), atlas, 6, p.catch_direction || p.direction);
+        pose = sausageFlightPose(p, state.tick, hz, b.sausage, {
+          x, y: pose.y, release, catchHand,
+          releaseOrigin: { x: renderer.screenX(launchX + p.direction * b.sausage.release_offset), y: ground - (launchHeight + b.sausage.height) * m.characterHeight },
+          ownerOrigin: { x: renderer.screenX(owner.x), y: ground - ((owner.combat.height || 0) + b.sausage.height) * m.characterHeight },
+          distance: Math.abs(combatDelta(state, p.x, owner.x)), turnDistance: Math.abs(combatDelta(state, p.turn_x ?? p.x, owner.x)),
+        });
       }
-      ctx.strokeStyle = p.returning ? '#f5d582aa' : '#df9b5a88'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(projectileX, y, m.characterHeight * .2, age * 12, age * 12 + Math.PI * 1.25); ctx.stroke();
-      const catchBlend = p.returning && owner ? Math.max(0, 1 - Math.abs(combatDelta(state, p.x, owner.x)) / (b.sausage.speed * .2)) : 0;
-      const spin = age * (p.returning ? -12 : 12);
-      prop(renderer, 0, projectileX, y, m.characterHeight * .5, catchBlend ? Math.atan2(Math.sin(spin), Math.cos(spin)) * (1 - catchBlend) : spin);
+      prop(renderer, 0, pose.x, pose.y, m.characterHeight * SAUSAGE_SIZE, pose.angle, p.direction, minorUltimateAtlases.sausage);
     } else if (p.kind === 'DELIVERY') {
       if (age < b.delivery.call_seconds) continue;
-      const first = renderer.screenX(p.impacts[0].x);
-      const planeX = first + p.direction * (age - b.delivery.call_seconds) / b.delivery.interval_seconds * b.delivery.spacing * m.pixelsPerUnit;
-      const planeY = ground - m.characterHeight * 2.1;
-      prop(renderer, 0, planeX, planeY, m.characterHeight * 2, 0, p.direction, minorUltimateAtlases.plane);
-      label(ctx, 'Livraison express de démocratie', planeX, planeY - m.characterHeight * .5);
+      const screenX = x => renderer.screenX(x);
+      const plane = deliveryPlanePose(p, state.tick, hz, b.delivery, m, screenX);
+      if (plane.visible) {
+        ctx.strokeStyle = '#c5d5eaaa'; ctx.lineWidth = 3; ctx.beginPath();
+        for (let n = 5; n >= 0; n--) {
+          const previous = deliveryPlanePose(p, state.tick - n, hz, b.delivery, m, screenX);
+          const tailX = previous.x - p.direction * Math.cos(previous.angle) * previous.width * .36;
+          const tailY = previous.y - p.direction * Math.sin(previous.angle) * previous.width * .36;
+          ctx[n === 5 ? 'moveTo' : 'lineTo'](tailX, tailY);
+        }
+        ctx.stroke();
+      }
       for (const drop of p.impacts) {
         const dx = renderer.screenX(drop.x), remaining = (drop.tick - state.tick) / hz;
-        if (remaining > 0 && remaining < b.delivery.warning_seconds) {
+        if (remaining > 0) {
           ctx.strokeStyle = '#edcf6dbb'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
           ctx.beginPath(); ctx.ellipse(dx, ground, b.delivery.radius * m.pixelsPerUnit, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-          const fall = 1 - remaining / b.delivery.warning_seconds, startY = planeY + m.characterHeight * .16;
-          const y = startY + (ground - startY) * fall * fall;
-          prop(renderer, 0, dx, y, m.characterHeight * .38, 0, 1, minorUltimateAtlases.bomb);
+          const missile = deliveryMissilePose(p, drop, state.tick, hz, b.delivery, m, screenX);
+          if (missile.visible) {
+            const length = m.characterHeight * DELIVERY_SIZES.missile, ux = Math.cos(missile.angle), uy = Math.sin(missile.angle);
+            const tailX = missile.x - ux * length * .95, tailY = missile.y - uy * length * .95;
+            ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = '#fff2d4bb'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(tailX - ux * length * .6, tailY - uy * length * .6); ctx.lineTo(tailX, tailY); ctx.stroke();
+            ctx.strokeStyle = '#e8a446'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+            // Le nez est le point de trajectoire : il rejoint le sol exactement au tick des dégâts.
+            prop(renderer, 0, missile.x, missile.y, length, missile.angle, 1, minorUltimateAtlases.missile, [1, .5]);
+          }
         } else if (remaining <= 0 && remaining > -.8) confetti(renderer, dx, ground - m.characterHeight * .45, -remaining / .8, b.delivery.radius * m.pixelsPerUnit);
+      }
+      // Les missiles sortent de sous les ailes, puis deviennent visibles en s'écartant de l'avion.
+      if (plane.visible) {
+        prop(renderer, 0, plane.x, plane.y, plane.width, plane.angle - p.direction * minorUltimateAtlases.plane.headingAngle, p.direction, minorUltimateAtlases.plane);
       }
     } else if (p.kind === 'BARRIER') {
       const { progress, reveal, height } = minorBarrierPose(p, state.tick, hz, b.barrier, m.characterHeight);
@@ -171,7 +184,6 @@ export function drawMinorUltimateEffects(renderer, state) {
       if (p.detonated_tick != null) {
         const progress = (state.tick - p.detonated_tick) / (hz * .7);
         confetti(renderer, x, y, progress, b.satchel.radius * m.pixelsPerUnit, 42);
-        label(ctx, 'Interro surprise !', x, y - 30);
       } else {
         const flightAge = (state.tick - p.launch_tick) / hz;
         let bagX = x, bagY = y;
@@ -184,7 +196,6 @@ export function drawMinorUltimateEffects(renderer, state) {
         }
         prop(renderer, 3, bagX, bagY, m.characterHeight * .32, (p.landed ? Math.sin(age * 3) * .035 : flightAge * 5) * p.direction, p.direction);
         ctx.fillStyle = Math.floor(age * 5) % 2 ? '#e35a4b' : '#ffe795'; ctx.beginPath(); ctx.arc(bagX, bagY - m.characterHeight * .18, 3, 0, Math.PI * 2); ctx.fill();
-        if (p.owner_id === state.local_candidate_id) label(ctx, 'Ultime : faire éclater', bagX, bagY - m.characterHeight * .27);
       }
     }
   }

@@ -79,8 +79,12 @@ function validateMinorPower(p, state, check, fail) {
   if (p.kind === 'SAUSAGE' && (!finite(p.height) || !finite(p.travelled) || typeof p.returning !== 'boolean'
     || p.launch_tick != null && !integer(p.launch_tick) || p.launched != null && typeof p.launched !== 'boolean'
     || p.caught_tick != null && (!integer(p.caught_tick) || p.caught_tick > state.tick || !p.returning)
+    || ['launch_x', 'turn_x'].some(key => p[key] != null && !position(p[key]))
+    || ['turn_tick', 'catch_started_tick'].some(key => p[key] != null && (!integer(p[key]) || p[key] > state.tick))
+    || ['launch_height', 'catch_start_distance'].some(key => p[key] != null && !finite(p[key]))
     || ![p.hit_ids, p.return_hit_ids, p.carried_ids].every(ids))) fail('saucisse invalide');
-  if (p.kind === 'DELIVERY' && (!Array.isArray(p.impacts) || p.impacts.length !== 3 || p.impacts.some(drop => !position(drop.x) || !integer(drop.tick) || typeof drop.done !== 'boolean'))) fail('livraison invalide');
+  if (p.kind === 'DELIVERY' && (!Array.isArray(p.impacts) || p.impacts.length !== 3 || p.impacts.some(drop => !position(drop.x) || !integer(drop.tick) || typeof drop.done !== 'boolean'
+    || drop.launch_tick != null && (!integer(drop.launch_tick) || drop.launch_tick < p.started_tick || drop.launch_tick >= drop.tick)))) fail('livraison invalide');
   if (p.kind === 'BARRIER' && (!finite(p.base_height) || !integer(p.fall_tick) || !ids(p.hit_ids))) fail('mur invalide');
   if (p.kind === 'SATCHEL' && (!integer(p.launch_tick) || !position(p.target_x) || p.target_id !== null && typeof p.target_id !== 'string'
     || typeof p.launched !== 'boolean' || typeof p.landed !== 'boolean' || !finite(p.height) || !finite(p.initial_range) || !finite(p.remaining_range)
