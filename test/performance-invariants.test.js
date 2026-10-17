@@ -257,3 +257,35 @@ test('Les coups indexés gardent leurs cibles exactes et leur ordre après le ra
     assert.deepEqual(attack.hit_ids, expected.map(t => t.id));
   }
 });
+
+test('Les offres restent à portée de leur bâtiment : nearestOffer ignore les bâtiments lointains sans changer son choix', async () => {
+  const { buildingOffers, nearestOffer, offerReach } = await import('../src/simulation/economy.js');
+  const { distance } = await import('../src/simulation/territory.js');
+  const { candidateOnMeetingStage } = await import('../src/simulation/electoral-buildings.js');
+  const config = campaignConfig(), sim = new GameSimulation(config, 7), ai = new AIController(config);
+  completePopulation(sim);
+  const { state } = sim, reach = offerReach(config);
+  // Ancienne version : devis de tous les bâtiments, puis filtre par distance.
+  const reference = candidate => state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id).flatMap(b => buildingOffers(state, config, candidate, b))
+    .filter(o => distance(state, candidate.x, o.x) <= o.radius && (o.kind !== 'MEETING' || candidateOnMeetingStage(state, config, candidate, state.buildings.find(b => b.id === o.target_id))))
+    .sort((a, b) => distance(state, candidate.x, a.x) - distance(state, candidate.x, b.x) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))[0] || null;
+  let offers = 0, compared = 0;
+  for (let step = 0; step < 1800; step++) {
+    sim.step(state.candidates.flatMap(c => ai.commands(state, c.id)));
+    if (step % 150) continue;
+    for (const candidate of state.candidates) {
+      for (const building of state.buildings) for (const offer of buildingOffers(state, config, candidate, building)) {
+        offers++;
+        assert.ok(distance(state, building.x, offer.x) + offer.radius <= reach, `${offer.key} dépasse la portée`);
+      }
+      const x = candidate.x;
+      for (const building of state.buildings) for (const shift of [-2.6, -2, -1, -0.4, 0, 0.5, 0.95, 1.9, 2.5]) {
+        candidate.x = (building.x + shift + state.world.length) % state.world.length;
+        assert.deepEqual(nearestOffer(state, config, candidate), reference(candidate));
+        compared++;
+      }
+      candidate.x = x;
+    }
+  }
+  assert.ok(offers > 100 && compared > 1000);
+});

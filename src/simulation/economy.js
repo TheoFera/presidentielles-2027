@@ -75,8 +75,33 @@ export function buildingOffers(state, config, candidate, building) {
   return offers;
 }
 
+/**
+ * Distance maximale entre un bâtiment et la zone d'une de ses offres (décalage + rayon), d'après les réglages.
+ * Un bâtiment plus loin ne peut rien proposer : nearestOffer l'ignore sans calculer ses devis (même résultat).
+ * test/performance-invariants.test.js vérifie cette borne sur toutes les offres de vraies parties.
+ */
+const offerReaches = new WeakMap();
+export function offerReach(config) {
+  let reach = offerReaches.get(config);
+  if (reach !== undefined) return reach;
+  const balance = config.balance, faction = balance.faction_interactions;
+  const spans = [balance.interaction.radius_units, balance.buildings.meeting.podium_half_width,
+    faction.center_radius, faction.side_offset + faction.side_radius, faction.upgrade_offset + faction.upgrade_radius];
+  const visit = value => {
+    if (!value || typeof value !== 'object') return;
+    if (typeof value.upgrade_offset === 'number') spans.push(Math.abs(value.upgrade_offset) + (value.upgrade_radius ?? balance.interaction.radius_units));
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(balance.buildings);
+  reach = Math.max(...spans.filter(Number.isFinite)) + 1e-6;
+  offerReaches.set(config, reach);
+  return reach;
+}
+
 export function nearestOffer(state, config, candidate) {
-  const offers = state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id).flatMap(b => buildingOffers(state, config, candidate, b));
+  const reach = offerReach(config);
+  const offers = state.buildings.filter(b => b.id !== candidate.purchase_latch_target_id && distance(state, candidate.x, b.x) <= reach)
+    .flatMap(b => buildingOffers(state, config, candidate, b));
   return offers.filter(o => distance(state, candidate.x, o.x) <= o.radius
     && (o.kind !== 'MEETING' || candidateOnMeetingStage(state, config, candidate,
       state.buildings.find(building => building.id === o.target_id))))
