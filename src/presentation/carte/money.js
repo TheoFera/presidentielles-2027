@@ -47,6 +47,40 @@ function moneySprite(tier) {
   sprites.set(tier, canvas); return canvas;
 }
 
+/**
+ * Billet au sol prêt à dessiner : halo et ombre floue préparés une fois, à la résolution réelle de l'écran.
+ * Avant, chaque billet visible recréait un dégradé et un flou à chaque image. Le flou et le décalage de
+ * l'ombre s'expriment en pixels de l'écran (indépendants du zoom), comme dans le dessin direct.
+ */
+const pickupImages = new Map();
+function pickupImage(tier, size, halo, scale) {
+  const key = `${tier}:${size}:${halo}:${scale}`;
+  let entry = pickupImages.get(key);
+  if (entry) return entry;
+  if (pickupImages.size > 32) pickupImages.clear();
+  const pad = 10 / scale;
+  const left = -size * 0.64 - pad, top = -size * 0.75 - pad;
+  const width = size * 1.28 + 2 * pad, height = size * 0.86 + 2 * pad;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(width * scale); canvas.height = Math.ceil(height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(scale, 0, 0, scale, -left * scale, -top * scale);
+  if (halo > 0) {
+    const centerY = -size * 0.32;
+    const light = ctx.createRadialGradient(0, centerY, size * 0.08, 0, centerY, size * 0.64);
+    light.addColorStop(0, `rgba(218, 248, 178, ${halo})`);
+    light.addColorStop(0.6, `rgba(218, 248, 178, ${halo * 0.4})`);
+    light.addColorStop(1, 'rgba(218, 248, 178, 0)');
+    ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(0, centerY, size * 0.64, size * 0.43, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.shadowColor = '#263d32'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+  ctx.drawImage(moneySprite(tier), -size / 2, -size * 0.65, size, size * 0.65);
+  entry = { canvas, left, top, width: canvas.width / scale, height: canvas.height / scale };
+  pickupImages.set(key, entry);
+  return entry;
+}
+
 export function moneyTier(config, amountCents) {
   const amount = amountCents / 100;
   return config.balance.money.sprite_tiers_eur.filter(limit => amount >= limit).length;
@@ -72,20 +106,8 @@ export function drawMoneyPickups(renderer, state) {
       : config.balance.money.ground_pickup_visual_offset_px;
     const y = m.groundY - pickup.height_ratio * config.balance.candidate_combat.jump_height_ratio * m.characterHeight
       - visualOffset - tossHeight - hover;
-    const sprite = moneySprite(tier);
-    ctx.save();
-    const halo = config.balance.money.pickup_halo_opacity;
-    if (halo > 0) {
-      const centerY = y - size * 0.32;
-      const light = ctx.createRadialGradient(x, centerY, size * 0.08, x, centerY, size * 0.64);
-      light.addColorStop(0, `rgba(218, 248, 178, ${halo})`);
-      light.addColorStop(0.6, `rgba(218, 248, 178, ${halo * 0.4})`);
-      light.addColorStop(1, 'rgba(218, 248, 178, 0)');
-      ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(x, centerY, size * 0.64, size * 0.43, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.shadowColor = '#263d32'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
-    ctx.drawImage(sprite, x - size / 2, y - size * 0.65, size, size * 0.65);
-    ctx.restore();
+    const image = pickupImage(tier, size, config.balance.money.pickup_halo_opacity, Math.round(ctx.getTransform().a * 1000) / 1000);
+    ctx.drawImage(image.canvas, x + image.left, y + image.top, image.width, image.height);
   }
 }
 

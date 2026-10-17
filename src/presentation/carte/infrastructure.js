@@ -205,17 +205,31 @@ function drawPawns(ctx, left, centerY, need, color) {
   return shown * 9;
 }
 
+// Étiquettes « 1/2 soutiens » préparées une fois par contenu, à la résolution réelle de l'écran :
+// avant, chaque image remesurait et redessinait texte, cadre et personnages.
+const presenceRows = new Map();
 function drawPresenceRow(ctx, x, y, need, color, ok, text) {
-  ctx.save();
-  ctx.font = '700 10px system-ui'; ctx.textBaseline = 'middle';
-  const pawnsWidth = Math.max(need.required, 1) * 9;
-  const w = pawnsWidth + ctx.measureText(text).width + 26, h = 19, left = x - w / 2;
-  ctx.fillStyle = '#fff4d6'; ctx.strokeStyle = ok ? '#4d6648' : '#b98474'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.roundRect(left, y, w, h, 9); ctx.fill(); ctx.stroke();
-  drawPawns(ctx, left + 9, y + h / 2, need, color);
-  ctx.textAlign = 'left'; ctx.fillStyle = ok ? '#2f4a30' : '#8a3a32';
-  ctx.fillText(text, left + 15 + pawnsWidth, y + h / 2 + 0.5);
-  ctx.restore();
+  const scale = Math.round(ctx.getTransform().a * 1000) / 1000;
+  const key = `${text}:${need.required}:${need.current}:${color}:${ok}:${scale}`;
+  let row = presenceRows.get(key);
+  if (!row) {
+    if (presenceRows.size > 64) presenceRows.clear();
+    const canvas = document.createElement('canvas'), target = canvas.getContext('2d');
+    target.font = '700 10px system-ui';
+    const pawnsWidth = Math.max(need.required, 1) * 9;
+    const w = pawnsWidth + target.measureText(text).width + 26, h = 19, pad = 2;
+    canvas.width = Math.ceil((w + 2 * pad) * scale); canvas.height = Math.ceil((h + 2 * pad) * scale);
+    target.setTransform(scale, 0, 0, scale, pad * scale, pad * scale);
+    target.font = '700 10px system-ui'; target.textBaseline = 'middle';
+    target.fillStyle = '#fff4d6'; target.strokeStyle = ok ? '#4d6648' : '#b98474'; target.lineWidth = 1.2;
+    target.beginPath(); target.roundRect(0, 0, w, h, 9); target.fill(); target.stroke();
+    drawPawns(target, 9, h / 2, need, color);
+    target.textAlign = 'left'; target.fillStyle = ok ? '#2f4a30' : '#8a3a32';
+    target.fillText(text, 15 + pawnsWidth, h / 2 + 0.5);
+    row = { canvas, left: -w / 2 - pad, top: -pad, width: canvas.width / scale, height: canvas.height / scale };
+    presenceRows.set(key, row);
+  }
+  ctx.drawImage(row.canvas, x + row.left, y + row.top, row.width, row.height);
 }
 
 /**
