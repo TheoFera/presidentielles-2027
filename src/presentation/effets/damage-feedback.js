@@ -44,6 +44,8 @@ export class DamageFeedbackDisplay {
     const feedback = damageFeedbackState(state, candidate, this.config, alpha, this.motionPreference.matches);
     setHidden(this.element, hidden || feedback.opacity <= 0);
     setStyle(this.element, '--damage-opacity', feedback.opacity.toFixed(4));
-    setStyle(this.element, '--damage-clear', `${feedback.clearRadius.toFixed(2)}%`);
+    // Changer le rayon oblige à repeindre tout le dégradé : seulement par pas de 0,25 % (écart invisible),
+    // au lieu d'une repeinte plein écran à chaque image pendant un choc.
+    setStyle(this.element, '--damage-clear', `${(Math.round(feedback.clearRadius * 4) / 4).toFixed(2)}%`);
   }
 }

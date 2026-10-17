@@ -44,7 +44,9 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 /* Screen feedback sits under the controls and never intercepts a finger. */
 #damage-feedback { position: fixed; inset: 0; z-index: 1; pointer-events: none; user-select: none;
   background: radial-gradient(ellipse at center, transparent var(--damage-clear, 50%), rgba(135, 0, 12, .48) 72%, rgba(190, 5, 25, .95) 100%);
-  opacity: var(--damage-opacity, 0); }
+  opacity: var(--damage-opacity, 0);
+  /* Calque à part : l'opacité qui pulse ne repeint ni ce dégradé plein écran ni le reste de l'interface. */
+  will-change: opacity; }
 #damage-feedback[hidden] { display: none; }
 #touch-controls { z-index: 2; }
 
