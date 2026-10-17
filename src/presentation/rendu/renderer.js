@@ -137,11 +137,14 @@ export class WorldRenderer {
     const zone = zoneAt(state.world, playerX);
     preloadWorld(this, state, zone);
     const palette = this.p.biome_palettes[zone.biome_id];
-    ctx.fillStyle = palette.sky;
-    ctx.fillRect(0, 0, this.width, this.height);
+    // Les tuiles couvrent tout l'écran, bord à bord et prolongées en haut et en bas : le ciel n'est peint
+    // que pour le décor de secours (une surface plein écran en moins par image pour la carte graphique).
+    // drawFixedWorld ne dessine rien quand il renvoie false.
     this.fixedWorldActive = drawFixedWorld(this, state);
     // Tant qu'une tuile de la carte n'est pas chargée : décor de secours dessiné par le code.
     if (!this.fixedWorldActive) {
+      ctx.fillStyle = palette.sky;
+      ctx.fillRect(0, 0, this.width, this.height);
       this.drawFarScenery(state, palette);
       for (const subzone of state.world.subzones) {
         const left = this.screenX(subzone.start);
