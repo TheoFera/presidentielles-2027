@@ -117,7 +117,8 @@ function transact(simulation, candidate, offer) {
     candidate.purchase_latch_target_id = building.id;
   }
   // Les tracts s'enchaînent tant qu'on reste devant : courte pause, sans devoir repartir.
-  if (['CAPTURE', 'UPGRADE', 'PRINT'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(buildingSettings(config, building).upgrade_pause_seconds || 0.4);
+  const pauseSettings = fresh.kind === 'PRINT' ? config.balance.buildings.imprimerie : buildingSettings(config, building);
+  if (['CAPTURE', 'UPGRADE', 'PRINT'].includes(fresh.kind)) candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(pauseSettings.upgrade_pause_seconds || 0.4);
   if (fresh.kind === 'MEETING') {
     candidate.interaction_chain_site_id = building.id;
     candidate.interaction_pause_until_tick = state.tick + simulation.secondsToTicks(config.balance.buildings.meeting.upgrade_pause_seconds);

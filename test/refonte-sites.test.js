@@ -120,10 +120,11 @@ test('Permanence : les commandes de tracts s’enchaînent tant qu’on reste de
   const printer = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, printer, actor); actor.x = printer.x;
   sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
   unit(sim, 'SYMPATHISANT', actor.faction_id, printer.x);
-  advance(sim, sim.secondsToTicks(4));
+  advance(sim, sim.secondsToTicks(1.1));
   assert.equal(actor.spending.PRINT, 0.1); assert.equal(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length, 1);
   assert.equal(actor.purchase_latch_target_id, null);
-  advance(sim, sim.secondsToTicks(3));
+  // Un tract toutes les 1,2 s environ : 1 s d’appui puis 0,2 s de pause.
+  advance(sim, sim.secondsToTicks(1.3));
   assert.ok(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length >= 2);
 });
 

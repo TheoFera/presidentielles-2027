@@ -334,14 +334,15 @@
         0.1
       ],
       "equipment_seconds_by_level": [
-        2
+        1
       ],
       "preexisting_in_world": true,
       "required_local_sympathisants_to_use": 1,
       "can_be_targeted_by_philippe": false,
       "pay_per_use": true,
-      "purchase_hold_seconds": 2,
-      "pickup_seconds": 1
+      "purchase_hold_seconds": 1,
+      "upgrade_pause_seconds": 0.2,
+      "pickup_seconds": 0.5
     },
     "faction_slot_melenchon_lepen_service_ordre": {
       "ownership_model": "capturable",
