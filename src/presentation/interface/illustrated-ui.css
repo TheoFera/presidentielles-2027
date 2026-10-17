@@ -29,7 +29,8 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 /* Ultime prêt : bouton doré et lumineux, pour que le joueur ne passe pas à côté (le texte reste fixe). */
 #touch-controls #ultimate-touch.ready { overflow: visible; background: linear-gradient(160deg, #fff1a8, #f2b630 55%, #e08a1c); border-color: #7a4a0c; color: #3a2205; font-weight: 800; text-shadow: 0 1px #fff6c8; box-shadow: 0 3px 0 #7a4a0c, 0 0 12px 3px #ffd75acc; }
 /* Déblocage : le bouton surgit, un anneau lumineux s'élargit et « PRÊT ! » s'envole au-dessus, puis le halo pulse. */
-#ultimate-touch.ready { animation: ultimate-unlock .6s cubic-bezier(.2, 1.6, .4, 1) both, ultimate-ready 1.1s ease-in-out .6s infinite; }
+/* Calque à part : la lueur qui pulse ne repeint que le bouton, pas les grandes tuiles de l'interface. */
+#ultimate-touch.ready { will-change: transform; animation: ultimate-unlock .6s cubic-bezier(.2, 1.6, .4, 1) both, ultimate-ready 1.1s ease-in-out .6s infinite; }
 #ultimate-touch.ready::after { content: ''; position: absolute; inset: -4px; border: 3px solid #ffe27a; border-radius: 16px; pointer-events: none; animation: ultimate-ring .8s ease-out forwards; }
 #ultimate-touch.ready::before { content: 'PRÊT !'; position: absolute; left: 50%; bottom: 100%; color: #fff3b0; font-size: 15px; font-weight: 900; white-space: nowrap; pointer-events: none;
   text-shadow: 0 2px #2c3c40, 1px 0 #2c3c40, -1px 0 #2c3c40, 0 -1px #2c3c40; animation: ultimate-label 1.2s ease-out forwards; }
