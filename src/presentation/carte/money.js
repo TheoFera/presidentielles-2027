@@ -111,13 +111,15 @@ export function drawMoneyPickups(renderer, state) {
   }
 }
 
+const MONEY_FEEDBACK_EVENTS = new Set(['DonationDropped', 'DonationHandedOver', 'DonationDeposited', 'FundingCollected', 'MoneyPickedUp']);
 export function drawMoneyFeedback(renderer, state) {
   const { ctx, metrics: m } = renderer;
   const duration = renderer.config.balance.simulation_architecture.fixed_tick_hz;
   for (const event of state.events || []) {
-    if (!['DonationDropped', 'DonationHandedOver', 'DonationDeposited', 'FundingCollected', 'MoneyPickedUp'].includes(event.type)) continue;
+    // L'âge d'abord : la plupart des événements sont trop anciens, inutile de comparer leur type.
     const age = state.tick - event.tick;
     if (age < 0 || age >= duration) continue;
+    if (!MONEY_FEEDBACK_EVENTS.has(event.type)) continue;
     const entity = state.npcs.find(n => n.id === event.npc_id) || state.candidates.find(c => c.id === event.candidate_id)
       || state.buildings.find(b => b.id === event.target_id);
     if (!entity) continue;

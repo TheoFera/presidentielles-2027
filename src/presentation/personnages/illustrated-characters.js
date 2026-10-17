@@ -13,7 +13,8 @@ import { conversionBadgeLanded, conversionHop, conversionProgress } from '../eff
 import { drawMinorUltimateCandidate } from '../effets/minor-ultimates.js';
 
 export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
-const hash = value => [...String(value)].reduce((sum, c) => (sum * 31 + c.charCodeAt(0)) >>> 0, 0);
+// Même résultat que [...texte].reduce(...), sans créer de tableau (appelé pour chaque personnage dessiné).
+const hash = value => { let sum = 0; for (const c of String(value)) sum = (sum * 31 + c.charCodeAt(0)) >>> 0; return sum; };
 export const npcVariantCounts = Object.freeze({bobo:20,banlieue:20,periurbain:20,campagne:20,retraites:20,riches:20});
 export const npcBiomeOrder = Object.freeze(['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']);
 
@@ -31,13 +32,38 @@ const npcSequence = entity => {
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
 };
 
+// Rang de chaque habitant dans son quartier d'origine, calculé une fois par pas de simulation :
+// avant, chaque personnage dessiné filtrait et triait tous les habitants de son quartier à chaque image.
+let zoneRanks = { npcs: null, length: -1, tick: null, byZone: new Map(), results: new Map() };
+function zoneRank(state, zoneId, homeBiome, id) {
+  const npcs = state.npcs || [];
+  if (zoneRanks.npcs !== npcs || zoneRanks.length !== npcs.length || zoneRanks.tick !== state.tick) {
+    zoneRanks = { npcs, length: npcs.length, tick: state.tick, byZone: new Map(), results: new Map() };
+  }
+  const key = `${zoneId}\n${homeBiome}`;
+  let ranks = zoneRanks.byZone.get(key);
+  if (!ranks) {
+    ranks = new Map();
+    npcs.filter(npc => (npc.origin_subzone_id || homeBiome) === zoneId)
+      .sort((a, b) => npcSequence(a) - npcSequence(b) || String(a.id).localeCompare(String(b.id)))
+      .forEach((npc, i) => { if (!ranks.has(npc.id)) ranks.set(npc.id, i); });
+    zoneRanks.byZone.set(key, ranks);
+  }
+  return ranks.get(id) ?? -1;
+}
+
 export function npcAppearanceAssetId(entity, state, homeBiome) {
-  const count = npcVariantCounts[homeBiome] || 20;
   const zoneId = entity.origin_subzone_id || homeBiome;
-  const zoneNpcs = (state.npcs || [])
-    .filter(npc => (npc.origin_subzone_id || homeBiome) === zoneId)
-    .sort((a, b) => npcSequence(a) - npcSequence(b) || String(a.id).localeCompare(String(b.id)));
-  const position = zoneNpcs.findIndex(npc => npc.id === entity.id);
+  const position = zoneRank(state, zoneId, homeBiome, entity.id);
+  // Même pas de simulation, même habitant : même apparence (zoneRank vient de valider le cache).
+  const key = `${entity.id}\n${zoneId}\n${homeBiome}`;
+  let id = zoneRanks.results.get(key);
+  if (id === undefined) { id = appearanceFor(entity, zoneId, homeBiome, position); zoneRanks.results.set(key, id); }
+  return id;
+}
+
+function appearanceFor(entity, zoneId, homeBiome, position) {
+  const count = npcVariantCounts[homeBiome] || 20;
   const cyclePosition = position >= 0 ? position % count : hash(`${entity.id}:slot`) % count;
 
   // Chaque sous-zone possède un cycle fixe de vingt apparences : quinze
