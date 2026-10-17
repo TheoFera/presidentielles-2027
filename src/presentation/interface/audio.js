@@ -46,6 +46,57 @@ const TRACKS = {
 };
 for (const track of Object.values(TRACKS)) { track.notes = parseMelody(track.melody); track.harmony = track.chords.map(chord); }
 
+/** Joue une double croche du morceau (step compté depuis le début, loop = numéro de boucle) avec voice. */
+function playStep(voice, track, step, loop, time, bus) {
+  const sixteenth = 60 / track.bpm / 4, bar = Math.floor(step / 16), beat = step % 16;
+  const harmony = track.harmony[bar];
+  // Basse : rebond d'octave en croches, ou pulsation fondamentale/quinte en doubles croches pour le sprint.
+  if (track.drivingBass) voice.tone(frequency(harmony.root - 12 + (beat % 4 === 2 ? 7 : 0)), time, sixteenth * 0.8, 'triangle', 0.3, bus);
+  else if (beat % 2 === 0) voice.tone(frequency(harmony.root - 12 + (beat % 4 === 2 ? 12 : 0)), time, sixteenth * 1.6, 'triangle', 0.3, bus);
+  // Arpège discret des notes de l'accord.
+  const tone = harmony.tones[[0, 1, 2, 1][beat % 4]];
+  voice.tone(frequency(harmony.root + 12 + tone), time, sixteenth * 0.7, 'square', 0.025, bus, 1800);
+  // Mélodie ; en campagne, une boucle sur deux laisse respirer (arpège seul).
+  if (!(track.restingLoops && loop % 2 === 1)) {
+    for (const note of track.notes) if (note.step === step) voice.tone(frequency(note.note), time, note.length * sixteenth * 0.92, 'square', track.lead, bus, 2600);
+  }
+  if (track.kick[beat] === 'x') voice.kick(time, bus, 0.5);
+  if (track.snare[beat] === 'x') voice.snare(time, bus, 0.22);
+  if (track.hat[beat] === 'x') voice.hat(time, bus, beat % 4 === 0 ? 0.08 : 0.05);
+}
+// Un cycle complet : deux boucles quand une sur deux est sans mélodie.
+const cycleSteps = track => track.harmony.length * 16 * (track.restingLoops ? 2 : 1);
+
+/**
+ * Musique précalculée : synthétiser chaque note en direct crée une trentaine d'oscillateurs et de filtres
+ * par seconde, recalculés en continu par le téléphone. Chaque morceau est donc calculé une fois, hors du
+ * fil du jeu (OfflineAudioContext), avec exactement les mêmes notes, puis lu en boucle par un seul lecteur.
+ * La traîne des dernières notes est repliée sur le début : la boucle s'enchaîne comme en direct.
+ */
+async function renderTrack(track, sampleRate, noise) {
+  const Offline = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
+  const sixteenth = 60 / track.bpm / 4, steps = cycleSteps(track), loopLength = Math.round(steps * sixteenth * sampleRate);
+  const tail = Math.round(sampleRate * 0.5);
+  const ctx = new Offline(1, loopLength + tail, sampleRate);
+  const voice = Object.create(GameAudio.prototype);
+  voice.ctx = ctx; voice.noise = noise;
+  const bars = track.harmony.length;
+  const scheduleBar = bar => { for (let step = bar * 16; step < (bar + 1) * 16; step++) playStep(voice, track, step % (bars * 16), Math.floor(step / (bars * 16)), step * sixteenth, ctx.destination); };
+  // Comme en direct, les notes sont créées une mesure à l'avance : peu de filtres actifs à la fois.
+  if (typeof ctx.suspend === 'function') {
+    scheduleBar(0);
+    for (let bar = 1; bar < steps / 16; bar++) {
+      ctx.suspend(Math.max(0, bar * 16 - 4) * sixteenth).then(() => { scheduleBar(bar); return ctx.resume(); });
+    }
+  } else for (let bar = 0; bar < steps / 16; bar++) scheduleBar(bar);
+  const rendered = await ctx.startRendering();
+  const loop = ctx.createBuffer(1, loopLength, sampleRate);
+  const data = loop.getChannelData(0), source = rendered.getChannelData(0);
+  data.set(source.subarray(0, loopLength));
+  for (let i = 0; i < tail; i++) data[i] += source[loopLength + i];
+  return loop;
+}
+
 const JINGLES = {
   victory: { bpm: 150, melody: 'G4 . C5 . E5 . G5 - - - E5 . G5 - - - - - - - - - - -', bass: ['C', 'C', 'G', 'C'] },
   qualified: { bpm: 150, melody: 'E5 . G5 . C6 - - - D6 . E6 - - - - -', bass: ['C', 'G'] },
@@ -104,6 +155,7 @@ export class GameAudio {
       this.timer = setInterval(() => this.schedule(), 25);
       document.addEventListener('visibilitychange', () => { if (document.hidden) void this.ctx.suspend(); else if (!this.held) void this.ctx.resume(); });
       if (this.wanted) this.music(this.wanted, true);
+      void this.prepareLoops();
     }
     if (this.ctx.state === 'suspended' && !document.hidden && !this.held) void this.ctx.resume();
   }
@@ -131,8 +183,45 @@ export class GameAudio {
     if (this.wanted === name && !force) return;
     this.wanted = name;
     if (!this.ctx) return;
+    const time = this.ctx.currentTime + 0.08;
+    this.stopLoop(time);
     this.track = TRACKS[name] || null; this.step = 0; this.loop = 0;
-    this.nextStep = this.ctx.currentTime + 0.08;
+    this.nextStep = time;
+    // Morceau déjà précalculé : un seul lecteur en boucle remplace la synthèse note par note.
+    if (this.loops?.has(name)) { this.startLoop(name, time, 0); this.track = null; }
+  }
+  /** Calcule les morceaux un par un, en commençant par celui demandé (synthèse en direct en attendant). */
+  async prepareLoops() {
+    const Offline = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
+    if (!Offline || this.loops) return;
+    this.loops = new Map();
+    const names = [...new Set([this.wanted, 'campaign', 'combat', 'sprint', 'menu'].filter(name => TRACKS[name]))];
+    for (const name of names) {
+      let buffer;
+      try { buffer = await renderTrack(TRACKS[name], this.ctx.sampleRate, this.noise); } catch { return; }
+      this.loops.set(name, buffer);
+      // Morceau en cours de synthèse : relais par la boucle à la prochaine double croche, au même endroit.
+      if (this.track === TRACKS[name] && this.wanted === name) {
+        const track = this.track, steps = track.harmony.length * 16;
+        const position = (this.loop % (track.restingLoops ? 2 : 1)) * steps + this.step % steps;
+        this.startLoop(name, Math.max(this.nextStep, this.ctx.currentTime), position * 60 / track.bpm / 4);
+        this.track = null;
+      }
+    }
+  }
+  startLoop(name, time, offset) {
+    const source = this.ctx.createBufferSource(), gain = this.ctx.createGain();
+    source.buffer = this.loops.get(name); source.loop = true;
+    source.connect(gain); gain.connect(this.musicBus);
+    source.start(time, offset);
+    this.player = { source, gain };
+  }
+  stopLoop(time) {
+    if (!this.player) return;
+    // Court fondu : les notes en cours s'éteignent comme à un changement de morceau en direct.
+    this.player.gain.gain.setTargetAtTime(0, time, 0.02);
+    this.player.source.stop(time + 0.2);
+    this.player = null;
   }
   schedule() {
     if (!this.track || this.ctx.state !== 'running') return;
@@ -140,21 +229,7 @@ export class GameAudio {
     // Après une longue pause de l'onglet, on repart de maintenant au lieu de rattraper.
     if (this.nextStep < this.ctx.currentTime - 0.2) this.nextStep = this.ctx.currentTime + 0.05;
     while (this.nextStep < this.ctx.currentTime + 0.12) {
-      const step = this.step % (bars * 16), bar = Math.floor(step / 16), beat = step % 16, time = this.nextStep;
-      const harmony = track.harmony[bar];
-      // Basse : rebond d'octave en croches, ou pulsation fondamentale/quinte en doubles croches pour le sprint.
-      if (track.drivingBass) this.tone(frequency(harmony.root - 12 + (beat % 4 === 2 ? 7 : 0)), time, sixteenth * 0.8, 'triangle', 0.3, this.musicBus);
-      else if (beat % 2 === 0) this.tone(frequency(harmony.root - 12 + (beat % 4 === 2 ? 12 : 0)), time, sixteenth * 1.6, 'triangle', 0.3, this.musicBus);
-      // Arpège discret des notes de l'accord.
-      const tone = harmony.tones[[0, 1, 2, 1][beat % 4]];
-      this.tone(frequency(harmony.root + 12 + tone), time, sixteenth * 0.7, 'square', 0.025, this.musicBus, 1800);
-      // Mélodie ; en campagne, une boucle sur deux laisse respirer (arpège seul).
-      if (!(track.restingLoops && this.loop % 2 === 1)) {
-        for (const note of track.notes) if (note.step === step) this.tone(frequency(note.note), time, note.length * sixteenth * 0.92, 'square', track.lead, this.musicBus, 2600);
-      }
-      if (track.kick[beat] === 'x') this.kick(time, this.musicBus, 0.5);
-      if (track.snare[beat] === 'x') this.snare(time, this.musicBus, 0.22);
-      if (track.hat[beat] === 'x') this.hat(time, this.musicBus, beat % 4 === 0 ? 0.08 : 0.05);
+      playStep(this, track, this.step % (bars * 16), this.loop, this.nextStep, this.musicBus);
       this.nextStep += sixteenth; this.step++;
       if (this.step % (bars * 16) === 0) this.loop++;
     }
