@@ -46,21 +46,23 @@ try {
       return [];
     }));
     assert.deepEqual(overflowing, [], `${name} : un dessin déborde de son secteur`);
-    const rotor = page.locator('.map-rotor');
-    const before = await rotor.getAttribute('transform');
+    // La rotation est une transformation CSS du disque (calque à part, rien n'est redessiné).
+    const rotor = page.locator('.map-wheel-disc');
+    const turn = locator => locator.evaluate(node => node.style.transform);
+    const before = await turn(rotor);
     await page.locator('#world').focus();
     await page.keyboard.down('ArrowRight');
-    await page.waitForFunction(old => document.querySelector('.map-rotor').getAttribute('transform') !== old, before);
+    await page.waitForFunction(old => document.querySelector('.map-wheel-disc').style.transform !== old, before);
     await page.keyboard.up('ArrowRight');
     await page.keyboard.press('h');
     await page.locator('#help').waitFor();
     // Laisser l'affichage appliquer la position figée avant de la comparer.
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-    const paused = await rotor.getAttribute('transform');
+    const paused = await turn(rotor);
     await page.waitForTimeout(100);
     // Tolérer le dernier ajustement d'interpolation, inférieur à un pixel.
-    const angleOf = transform => Number(transform.match(/rotate\(([^ ]+)/)[1]);
-    assert.ok(Math.abs(angleOf(await rotor.getAttribute('transform')) - angleOf(paused)) < .05);
+    const angleOf = transform => Number(transform.match(/rotate\(([-\d.e]+)/)[1]);
+    assert.ok(Math.abs(angleOf(await turn(rotor)) - angleOf(paused)) < .05);
     await page.keyboard.press('h');
     await page.locator('#help').waitFor({ state: 'hidden' });
     const boxes = await page.evaluate(() => {

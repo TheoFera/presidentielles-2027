@@ -9,7 +9,11 @@
   width: var(--map-size); height: var(--map-size); transform: none;
   pointer-events: none; user-select: none;
 }
-#electoral-circle svg { filter: drop-shadow(0 3px 2px #172b3540); overflow: visible; }
+#electoral-circle svg { position: absolute; inset: 0; filter: none; overflow: visible; }
+/* Seul le fond porte l'ombre (silhouette de la bordure et du repère, comme la roue entière). */
+#electoral-circle .map-wheel-back { filter: drop-shadow(0 3px 2px #172b3540); }
+/* Disque sur son propre calque : sa rotation ne redessine rien (map-wheel.js). */
+#electoral-circle .map-wheel-disc { transform-origin: 50% 50%; will-change: transform; }
 .map-rim { fill: #29383b; stroke: #1c2b30; stroke-width: 3; }
 .map-sector { stroke: none; }
 .map-boundaries { fill: none; stroke: #29383b; }

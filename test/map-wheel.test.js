@@ -52,7 +52,7 @@ test('Carte complète sans sondage : 18 dessins, 6 biomes et géométrie conserv
   assert.equal(display.wheel.sectors.size, 18);
   assert.deepEqual([...display.wheel.sectors.keys()], state.world.subzones.map(z => z.id));
   for (const sector of display.wheel.sectors.values()) assert.equal(sector.attributes.fill, mapNeutralColor);
-  const all = descendants(display.wheel.svg);
+  const all = descendants(display.wheel.container);
   assert.equal(all.filter(n => n.attributes?.class === 'map-biome-divider').length, 6);
   assert.equal(all.filter(n => n.attributes?.class === 'map-zone-divider').length, 12);
   assert.equal(all.filter(n => n.attributes?.['data-biome']).length, 6);

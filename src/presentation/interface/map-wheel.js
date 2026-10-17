@@ -47,12 +47,19 @@ export class MapWheel {
     if (key === this.layoutKey) return;
     this.layoutKey = key;
     this.sectors.clear();
-    this.svg = element('svg', { viewBox: '0 0 320 320', role: 'img' });
+    // Trois calques superposés : fond (bordure, ombre), disque tournant, centre et repère du joueur.
+    // Le disque tourne par une transformation CSS sur son propre calque : la carte graphique le fait
+    // pivoter sans rien redessiner. Avant, chaque pas du joueur recalculait les 18 filtres des dessins
+    // et repeignait tout le calque de l'interface (mesuré le 18/10/2026).
+    const playerMark = 'M147 5H173L160 33Z';
+    this.svg = element('svg', { viewBox: '0 0 320 320', role: 'img', class: 'map-wheel-back' });
+    // Le fond porte aussi la silhouette du repère : l'ombre reste celle de la roue entière.
+    this.svg.append(element('circle', { cx: 160, cy: 160, r: 145, class: 'map-rim' }), element('path', { d: playerMark, class: 'map-player' }));
+    this.disc = element('svg', { viewBox: '0 0 320 320', class: 'map-wheel-disc', 'aria-hidden': 'true' });
     const definitions = element('defs');
     definitions.append(atlasFilter());
-    this.svg.append(definitions);
     this.rotor = element('g', { class: 'map-rotor' });
-    this.svg.append(element('circle', { cx: 160, cy: 160, r: 145, class: 'map-rim' }), this.rotor);
+    this.disc.append(definitions, this.rotor);
     const boundaries = element('g', { class: 'map-boundaries' });
     const biomes = new Map();
     for (const zone of world.subzones) {
@@ -91,17 +98,18 @@ export class MapWheel {
       d: arc(141, biome.start + 0.025, biome.end - 0.025), class: 'map-biome-arc', 'data-biome': id,
     }));
     this.rotor.append(boundaries);
-    this.svg.append(element('circle', { cx: 160, cy: 160, r: 79, class: 'map-center' }),
+    const front = element('svg', { viewBox: '0 0 320 320', class: 'map-wheel-front', 'aria-hidden': 'true' });
+    front.append(element('circle', { cx: 160, cy: 160, r: 79, class: 'map-center' }),
       element('circle', { cx: 160, cy: 160, r: 72, class: 'map-center-line' }),
-      element('path', { d: 'M147 5H173L160 33Z', class: 'map-player' }));
-    this.container.replaceChildren(this.svg);
+      element('path', { d: playerMark, class: 'map-player' }));
+    this.container.replaceChildren(this.svg, this.disc, front);
     this.lastRotation = null;
     this.lastLabel = '';
   }
   updatePosition(world, x) {
     const rotation = -wrap(x, world.length) / world.length * 360;
     // Pas de transition CSS : 0° et 360° sont identiques, même au raccord du monde.
-    if (rotation !== this.lastRotation) this.rotor.setAttribute('transform', `rotate(${rotation} 160 160)`);
+    if (rotation !== this.lastRotation) this.disc.style.transform = `rotate(${rotation}deg)`;
     this.lastRotation = rotation;
     const zone = zoneAt(world, x);
     const label = `Carte : ${zone.biome_name}, ${zone.concept}. Position du joueur en haut. 6 biomes, 18 sous-zones.`;
