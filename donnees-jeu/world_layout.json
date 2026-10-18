@@ -294,6 +294,7 @@
         "site_id": "site:paris_a",
         "subzone_id": "paris_a",
         "x_ratio": 0.6738,
+        "interaction_half_width": 2.3,
         "type": "permanence",
         "controls_zone": true
       },
@@ -301,6 +302,7 @@
         "site_id": "site:paris_b",
         "subzone_id": "paris_b",
         "x_ratio": 0.3140625,
+        "interaction_half_width": 1.9,
         "type": "garage_velo",
         "controls_zone": true
       },
@@ -315,6 +317,7 @@
         "site_id": "site:paris_c",
         "subzone_id": "paris_c",
         "x_ratio": 0.23872,
+        "interaction_half_width": 2.4,
         "type": "permanence",
         "controls_zone": true
       },
@@ -322,6 +325,7 @@
         "site_id": "site:banlieue_a",
         "subzone_id": "banlieue_a",
         "x_ratio": 0.37572,
+        "interaction_half_width": 2.4,
         "type": "tour_communication",
         "controls_zone": true,
         "label": "Média associatif"
@@ -330,6 +334,7 @@
         "site_id": "site:banlieue_b",
         "subzone_id": "banlieue_b",
         "x_ratio": 0.22,
+        "interaction_half_width": 2.1,
         "type": "permanence",
         "controls_zone": true
       },
@@ -352,13 +357,15 @@
         "site_id": "site:periurbain_a",
         "subzone_id": "periurbain_a",
         "x_ratio": 0.57336,
+        "interaction_half_width": 1.7,
         "type": "permanence",
         "controls_zone": true
       },
       {
         "site_id": "site:periurbain_b",
         "subzone_id": "periurbain_b",
-        "x_ratio": 0.20,
+        "x_ratio": 0.1635,
+        "interaction_half_width": 2.6,
         "type": "garage_scooter",
         "controls_zone": true
       },
@@ -373,13 +380,15 @@
         "site_id": "site:periurbain_c",
         "subzone_id": "periurbain_c",
         "x_ratio": 0.4882,
+        "interaction_half_width": 2.4,
         "type": "permanence",
         "controls_zone": true
       },
       {
         "site_id": "site:campagne_a",
         "subzone_id": "campagne_a",
-        "x_ratio": 0.76776,
+        "x_ratio": 0.801,
+        "interaction_half_width": 3.2,
         "type": "garage_scooter",
         "controls_zone": true
       },
@@ -387,6 +396,7 @@
         "site_id": "site:campagne_b",
         "subzone_id": "campagne_b",
         "x_ratio": 0.22,
+        "interaction_half_width": 2.2,
         "type": "permanence",
         "controls_zone": true
       },
@@ -409,13 +419,15 @@
         "site_id": "site:retraites_a",
         "subzone_id": "retraites_a",
         "x_ratio": 0.65436,
+        "interaction_half_width": 2.3,
         "type": "permanence",
         "controls_zone": true
       },
       {
         "site_id": "site:retraites_b",
         "subzone_id": "retraites_b",
-        "x_ratio": 0.19544,
+        "x_ratio": 0.1901,
+        "interaction_half_width": 2.2,
         "type": "tour_communication",
         "controls_zone": true,
         "label": "Média d’opinion"
@@ -431,6 +443,7 @@
         "site_id": "site:retraites_c",
         "subzone_id": "retraites_c",
         "x_ratio": 0.66316,
+        "interaction_half_width": 1.7,
         "type": "permanence",
         "controls_zone": true
       },
@@ -438,6 +451,7 @@
         "site_id": "site:riches_a",
         "subzone_id": "riches_a",
         "x_ratio": 0.5286458333333333,
+        "interaction_half_width": 2,
         "type": "tour_communication",
         "controls_zone": true,
         "label": "Média grand public"
@@ -446,6 +460,7 @@
         "site_id": "site:riches_b",
         "subzone_id": "riches_b",
         "x_ratio": 0.22,
+        "interaction_half_width": 2.3,
         "type": "permanence",
         "controls_zone": true
       },
@@ -468,6 +483,7 @@
         "site_id": "site:paris_c:institut_sondage",
         "subzone_id": "paris_c",
         "x_ratio": 0.74219,
+        "interaction_half_width": 2.6,
         "type": "institut_sondage",
         "controls_zone": false,
         "label": "Institut de sondage"
@@ -476,6 +492,7 @@
         "site_id": "site:retraites_b:institut_sondage",
         "subzone_id": "retraites_b",
         "x_ratio": 0.80,
+        "interaction_half_width": 1.7,
         "type": "institut_sondage",
         "controls_zone": false,
         "label": "Institut de sondage"
@@ -483,7 +500,8 @@
       {
         "site_id": "site:riches_c:institut_sondage",
         "subzone_id": "riches_c",
-        "x_ratio": 0.56596,
+        "x_ratio": 0.5443,
+        "interaction_half_width": 2.8,
         "type": "institut_sondage",
         "controls_zone": false,
         "label": "Institut de sondage"

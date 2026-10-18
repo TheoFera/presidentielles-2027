@@ -141,12 +141,32 @@
 }
 
 /* Fin de campagne : choix du candidat à débloquer (src/presentation/menus/unlock-choice.js).
-   Caché tant que le joueur regarde les résultats ; ouvert par le bouton doré de la barre des résultats. */
-.unlock-choice { position: fixed; z-index: 55; inset: 0; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom)); background: #050a18c9; animation: unlock-choice-in .25s ease both; }
+   Étape du parcours : ouvert au clic sur « Voir le bilan », avant le bilan. */
+.unlock-choice { position: fixed; z-index: 55; inset: 0; overflow: hidden; display: grid; place-items: center; padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom)); background: #050a18c9; animation: unlock-choice-in .25s ease both; }
 .unlock-choice[hidden] { display: none; }
 @keyframes unlock-choice-in { from { opacity: 0; } to { opacity: 1; } }
-#results .election-actions .unlock-choice-launcher { color: #2b1c00; border-color: #fff4c9; background: linear-gradient(#fff1a8, #ffd75e 50%, #e9b52c 51%, #ffd75e 90%); box-shadow: inset 0 2px 0 #fff, 0 5px 0 #5a3c00, 0 0 15px #ffd75e88; animation: unlock-launcher 1.6s ease-in-out infinite; }
-@keyframes unlock-launcher { 50% { box-shadow: inset 0 2px 0 #fff, 0 5px 0 #5a3c00, 0 0 26px #ffd75ecc; } }
+/* Un emplacement par déblocage possible : 🎁 gratuit, 🎬 contre une pub. Le portrait choisi s'y pose,
+   le tampon « Débloqué » n'arrive qu'une fois l'enregistrement confirmé. */
+.unlock-choice [hidden] { display: none !important; }
+.unlock-slots { --slot-size: clamp(48px, 11vmin, 80px); display: flex; justify-content: center; gap: 12px; }
+.unlock-slot { position: relative; display: grid; place-items: center; width: var(--slot-size); height: var(--slot-size); border: 2px dashed #ffffff55; border-radius: 4px; background: #0b1226; }
+.unlock-slot-icon { font-style: normal; font-size: calc(var(--slot-size) * .42); opacity: .45; }
+.unlock-slot[data-state='next'] { border: 2px solid #ffd75e; animation: unlock-slot-next 1.2s ease-in-out infinite; }
+.unlock-slot[data-state='next'] .unlock-slot-icon { opacity: 1; }
+@keyframes unlock-slot-next { 50% { box-shadow: 0 0 16px #ffd75ecc; } }
+.unlock-slot[data-id] { border: 2px solid #ffd75e; }
+.unlock-slot[data-id] .unlock-slot-icon { display: none; }
+.unlock-slot-face { position: absolute; inset: 0; animation: unlock-slot-in .35s cubic-bezier(.2, 1.5, .4, 1) both; }
+.unlock-slot-face .medallion-face { width: 100%; height: 100%; border-radius: 2px; }
+@keyframes unlock-slot-in { from { transform: translateY(40px) scale(.6); opacity: 0; } }
+.unlock-slot[data-state='saving'] .unlock-slot-face { animation: unlock-slot-saving .8s ease-in-out infinite alternate; }
+@keyframes unlock-slot-saving { to { opacity: .45; } }
+.unlock-slot-stamp { position: absolute; left: 50%; bottom: -8px; padding: 2px 5px; font: 900 clamp(9px, 1.8vmin, 12px)/1.1 system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; color: #10240a; background: #a9ff7a; border-radius: 3px; box-shadow: 2px 2px 0 #0008; transform: translateX(-50%) rotate(-8deg); opacity: 0; }
+.unlock-slot[data-state='saved'] .unlock-slot-stamp { opacity: 1; animation: unlock-stamp .4s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes unlock-stamp { from { opacity: 0; transform: translateX(-50%) rotate(-8deg) scale(2.4); } }
+.unlock-slot[data-state='failed'] { border-color: #ff5d8f; animation: unlock-slot-shake .4s ease both; }
+.unlock-slot[data-state='failed'] .unlock-slot-face { filter: grayscale(1); opacity: .55; }
+@keyframes unlock-slot-shake { 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 .unlock-choice-later { margin-top: -2px; padding: 4px 8px; color: #b4c4e7; font: 700 clamp(12px, 2vmin, 14px)/1.2 system-ui, sans-serif; text-decoration: underline; background: none; border: 0; cursor: pointer; }
 .unlock-choice-later:focus-visible { outline: 3px solid #63edff; outline-offset: 2px; }
 .unlock-choice-panel { box-sizing: border-box; width: min(640px, 100%); max-height: 100%; overflow: auto; display: grid; justify-items: center; gap: 8px; padding: 14px 16px 16px; color: #fff; text-align: center; border: 3px solid #ffd75e; border-radius: 4px; background: linear-gradient(170deg, #1f3159, #0b1226); box-shadow: 6px 6px 0 #0009, 0 0 30px #ffd75e55; }
@@ -159,11 +179,10 @@
 .unlock-card strong { font: 900 clamp(12px, 2.2vmin, 15px)/1.1 system-ui, sans-serif; }
 .unlock-card small { font: 700 clamp(10px, 1.9vmin, 12px)/1.1 system-ui, sans-serif; color: #b4c4e7; }
 .unlock-card[aria-checked='true'] { border-color: #ffd75e; box-shadow: 0 0 0 3px #ffd75e66; transform: translateY(-3px); }
-.unlock-card[data-state='picked'] { border-color: #a9ff7a; cursor: default; }
-.unlock-card:disabled:not([data-state='picked']) { opacity: .6; cursor: default; }
+.unlock-card:disabled { opacity: .6; cursor: default; }
 .unlock-card:focus-visible { outline: 3px solid #63edff; outline-offset: 2px; }
-.unlock-card-badge { position: absolute; top: 4px; left: 50%; transform: translateX(-50%) rotate(-6deg); padding: 2px 6px; font: 900 11px/1.2 system-ui, sans-serif; color: #10240a; white-space: nowrap; background: #a9ff7a; border-radius: 3px; box-shadow: 2px 2px 0 #0008; }
-.unlock-choice-status { min-height: 1.3em; margin: 0; font: 700 clamp(12px, 2vmin, 14px)/1.3 system-ui, sans-serif; color: #ff8fb3; }
+.unlock-choice-status:empty { display: none; }
+.unlock-choice-status { margin: 0; font: 700 clamp(12px, 2vmin, 14px)/1.3 system-ui, sans-serif; color: #ff8fb3; }
 .unlock-choice-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .unlock-choice-actions button { min-height: 46px; padding: 10px 18px; font: 800 clamp(14px, 2.2vmin, 17px)/1.2 system-ui, sans-serif; border-radius: 4px; cursor: pointer; }
 .unlock-choice-primary { color: #2b1c00; background: #ffd75e; border: 2px solid #fff4c9; box-shadow: 3px 3px 0 #0008; }
@@ -171,7 +190,7 @@
 .unlock-choice-secondary { color: #fff; background: transparent; border: 2px solid #ffffff66; }
 .unlock-choice-actions button:focus-visible { outline: 3px solid #63edff; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .unlock-choice, #results .election-actions .unlock-choice-launcher { animation: none; }
+  .unlock-choice, .unlock-slot, .unlock-slot-face, .unlock-slot-stamp { animation: none !important; }
   .unlock-card { transition: none; }
   .unlock-card[aria-checked='true'] { transform: none; }
 }

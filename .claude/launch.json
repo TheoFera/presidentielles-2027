@@ -21,6 +21,17 @@
       "env": {
         "PORT": "2028"
       }
+    },
+    {
+      "name": "maquette",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/ferat/AppData/Local/Temp/claude/C--Users-ferat-Documents-Programmation-Presidentielles-2027/4db2ef3b-aacb-457e-b5b2-e262a3e744e3/scratchpad/maquette/serve.mjs"
+      ],
+      "port": 2031,
+      "env": {
+        "PORT": "2031"
+      }
     }
   ]
 }

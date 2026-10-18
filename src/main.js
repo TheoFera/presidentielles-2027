@@ -123,9 +123,15 @@ async function start() {
       state = simulation.getState(); previous = state; renderer.resetCamera(); canvas.focus();
     },
     follow: () => { renderer.resetCamera(); canvas.focus(); },
+    // Choix du candidat à débloquer : étape du parcours entre les résultats et le bilan.
+    beforeSummary: openSummary => {
+      if (!unlockChoice) return false;
+      unlockChoice.reveal();
+      unlockChoice.next = openSummary;
+      return true;
+    },
     replay: () => {
       if (session) { returnHome(); return; }
-      // Le choix du candidat à débloquer passe avant : il apparaît tout de suite.
       if (unlockChoice) { unlockChoice.reveal(); return; }
       void ads.afterGame('campaign', () => { menu.selected = state.local_candidate_id.split(':')[1]; void menu.loading(); });
     },
@@ -455,9 +461,10 @@ async function start() {
   function finishProgress() {
     const faction = state.local_candidate_id.split(':')[1];
     const titleBefore = playerCard(profile).title;
-    const announce = ids => {
+    // shown : l'écran de choix montre déjà les candidats débloqués (pas de message en double).
+    const announce = (ids, shown = false) => {
       if (!ids.length) return;
-      showAccountToast(`Débloqué : ${unlockNames(ids)} !`, 'ok');
+      if (!shown) showAccountToast(`Débloqué : ${unlockNames(ids)} !`, 'ok');
       // Nouveau titre gagné grâce à ce déblocage : annoncé juste après.
       const title = playerCard(profile).title;
       if (title > titleBefore) setTimeout(() => showAccountToast(`Nouveau titre : ${titleName(title)} !`, 'knockout'), 3500);
@@ -483,14 +490,25 @@ async function start() {
       accounts.completeRun(run.id, ids).then(result => announce(result.unlocked))
         .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
     };
+    // Depuis l'écran de choix : l'écran affiche lui-même la réussite (tampon) ou l'échec (message, nouvel essai).
+    const save = async ids => {
+      if (!signedIn) { announce(addDeviceUnlocks(profile, ids), true); account.save(rememberTitle(profile)); return; }
+      try { announce((await accounts.completeRun(run.id, ids)).unlocked, true); }
+      catch (error) { throw { message: error.offline ? 'Pas de connexion : déblocage non enregistré.' : error.message, retry: !!error.offline }; }
+    };
     // Rien à choisir (aucun K.-O. nouveau, ou un seul candidat gagné sans bonus possible) : comme avant.
     if (!offer || (offer.free === offer.choices.length && !offer.rewarded)) { record(offer?.choices ?? []); return; }
     const game = simulation;
     const getAd = () => ads.rewarded('campaign');
     const open = ad => {
-      // Pas d'ouverture automatique : le joueur regarde les résultats, puis ouvre le choix par le bouton ajouté à côté de « Rejouer ».
-      const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, launcher: document.querySelector('#results .election-actions') });
-      void choice.done.then(ids => { if (unlockChoice === choice) unlockChoice = null; record(ids); });
+      // Pas d'ouverture automatique : le joueur lit les résultats, l'écran s'ouvre au clic sur « Voir le bilan ».
+      const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, save, sound: () => audio.play('reveal'),
+        onBack: () => document.querySelector('#results [data-action="summary"]')?.focus({ preventScroll: true }) });
+      void choice.done.then(() => {
+        if (unlockChoice !== choice) return;
+        unlockChoice = null;
+        if (simulation === game && state.phase === 'RESULTS') choice.next?.();
+      });
     };
     if (offer.won) { open(null); return; }
     // Seconde chance : proposée seulement si une pub récompensée est prête, et si le joueur est encore sur les résultats.

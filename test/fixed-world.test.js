@@ -132,6 +132,9 @@ test('Les interactions des façades restaurées se trouvent devant leurs entrée
     ['site:riches_b', 365, 450],
     ['site:riches_c', 240, 620],
     ['site:riches_c:institut_sondage', 1025, 1115],
+    ['site:campagne_a', 1435, 1670],
+    ['site:periurbain_b', 175, 455],
+    ['site:retraites_b', 330, 405],
   ];
   for (const [id, left, right] of entrances) {
     const site = sim.state.buildings.find(b => b.site_id === id);

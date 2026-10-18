@@ -66,6 +66,8 @@ export class MatchDisplay {
     this.summary = new MatchSummary(this.results);
   }
   openSummary() {
+    // Étape intercalée avant le bilan (choix du candidat à débloquer) : elle rouvrira le bilan une fois finie.
+    if (this.callbacks.beforeSummary?.(() => this.openSummary())) return;
     const stage = this.results.querySelector('.election-stage');
     if (!stage || !this.latest) return;
     this.summary.host = stage;

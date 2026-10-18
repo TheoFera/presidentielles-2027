@@ -15,11 +15,11 @@
 import { ApiError, audit, nowSeconds, randomId, randomToken, sha256Hex } from './util.js';
 import { STYLE_UNLOCKS, MINOR_UNLOCKS, DEFAULT_UNLOCKED, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { eloChanges, INITIAL_RATING } from './ratings.js';
-import { updateTitleRank } from './progression.js';
+import { SOLO_CAMPAIGN_MIN_SECONDS, updateTitleRank } from './progression.js';
 
 export const MATCH_RULES = {
-  // Campagne : 365 jours de jeu × 2,5 s ≈ 15 min (game_balance.json), sans accélération en multijoueur.
-  campaign: { formats: { trio: [2, 3] }, minSeconds: 420, maxSeconds: 3 * 3600, ladder: 'campaign' },
+  // Campagne : même durée minimale qu'en solo (calculée depuis game_balance.json), sans accélération en multijoueur.
+  campaign: { formats: { trio: [2, 3] }, minSeconds: SOLO_CAMPAIGN_MIN_SECONDS, maxSeconds: 3 * 3600, ladder: 'campaign' },
   // Débat : un combat en une manche (compte à rebours compris).
   debate: { formats: { '1v1': [2, 2], '1v1v1': [2, 3] }, minSeconds: 8, maxSeconds: 3600, ladder: 'debate' },
 };

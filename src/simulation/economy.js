@@ -52,6 +52,11 @@ export function buildingOffer(state, config, candidate, building) {
     ...paymentStatus(candidate, config, cost, available ? null : reason) };
 }
 
+/** Portée d'achat d'un bâtiment : la demi-largeur de sa façade peinte (world_layout.json), sinon la portée commune. */
+export function siteInteractionRadius(config, building) {
+  return building?.interaction_radius || config.balance.interaction.radius_units;
+}
+
 export function buildingOffers(state, config, candidate, building) {
   if (building.type === 'meeting' && state.campaign_events?.some(e => e.status === 'ACTIVE' && e.target_site_id === building.id && ['MEETING_DE_CRISE', 'DEBAT_THEMATIQUE'].includes(e.family))) return [];
   if (candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return [];
@@ -60,7 +65,7 @@ export function buildingOffers(state, config, candidate, building) {
   if (building.type === 'faction') return factionOffers(state, config, candidate, building);
   if (building.type === 'meeting') return meetingOffers(state, config, candidate, building);
   const offer = buildingOffer(state, config, candidate, building);
-  const offers = offer ? [{ ...offer, x: building.x, radius: config.balance.interaction.radius_units }] : [];
+  const offers = offer ? [{ ...offer, x: building.x, radius: siteInteractionRadius(config, building) }] : [];
   if (building.type === 'financement' && building.state === 'ACTIVE' && building.owner_id === candidate.faction_id
     && building.level < config.balance.buildings.financement.max_level) {
     const settings = config.balance.buildings.financement;
@@ -86,6 +91,7 @@ export function offerReach(config) {
   if (reach !== undefined) return reach;
   const balance = config.balance, faction = balance.faction_interactions;
   const spans = [balance.interaction.radius_units, balance.buildings.meeting.podium_half_width,
+    ...config.layout.strategic_site_generation.slots.map(slot => slot.interaction_half_width),
     faction.center_radius, faction.side_offset + faction.side_radius, faction.upgrade_offset + faction.upgrade_radius];
   const visit = value => {
     if (!value || typeof value !== 'object') return;
@@ -112,7 +118,7 @@ function transact(simulation, candidate, offer) {
   const { state, config } = simulation;
   const building = state.buildings.find(b => b.id === offer.target_id);
   const fresh = buildingOffers(state, config, candidate, building).find(o => o.key === offer.key);
-  if (!fresh?.enabled || !paymentStatus(candidate, config, fresh.cost).enabled || fresh.key !== offer.key || distance(state, candidate.x, fresh.x ?? building.x) > (fresh.radius ?? config.balance.interaction.radius_units)) return false;
+  if (!fresh?.enabled || !paymentStatus(candidate, config, fresh.cost).enabled || fresh.key !== offer.key || distance(state, candidate.x, fresh.x ?? building.x) > (fresh.radius ?? siteInteractionRadius(config, building))) return false;
   const transaction = { id: `transaction:${state.next_transaction_id++}`, tick: state.tick, candidate_id: candidate.id,
     faction_id: candidate.faction_id, target_id: building.id, kind: fresh.kind, cost: fresh.cost };
   // One synchronous commit: ownership/queue validation and money are never split by a UI callback.
@@ -167,9 +173,9 @@ export function updateEconomy(simulation) {
     if (candidate.eliminated) continue;
     candidate.income_per_second = 0;
     const latched = state.buildings.find(b => b.id === candidate.purchase_latch_target_id);
-    if (latched && distance(state, candidate.x, latched.x) > config.balance.interaction.radius_units) candidate.purchase_latch_target_id = null;
+    if (latched && distance(state, candidate.x, latched.x) > siteInteractionRadius(config, latched)) candidate.purchase_latch_target_id = null;
     const chained = state.buildings.find(b => b.id === candidate.interaction_chain_site_id);
-    const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : config.balance.interaction.radius_units;
+    const chainRadius = chained?.type === 'meeting' ? config.balance.buildings.meeting.interaction_radius : siteInteractionRadius(config, chained);
     if (chained && distance(state, candidate.x, chained.x) > chainRadius) candidate.interaction_chain_site_id = null;
     if (!purchaseInteractionAvailable(state, candidate)) { candidate.purchase_hold = null; continue; }
     const offer = nearestOffer(state, config, candidate);

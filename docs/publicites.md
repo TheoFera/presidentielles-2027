@@ -32,8 +32,9 @@ Ces chiffres se règlent dans `src/network/ads-config.js` (`AD_RULES`).
 | Victoire | 1 candidat au choix | 1 candidat de plus (le 2ᵉ) |
 | Défaite (« seconde chance ») | rien | 1 candidat au choix |
 
-- Les résultats restent affichés aussi longtemps que le joueur le veut. Un bouton doré « 🎁 Choisir mon candidat » (ou « 🎬 Seconde chance » après une défaite) s'ajoute à côté de « Rejouer » et ouvre l'écran de choix. « Revoir les résultats » le referme sans rien perdre.
-- Si le joueur clique sur « Rejouer » ou « Retour au menu » sans avoir choisi, l'écran de choix s'ouvre d'abord : impossible d'oublier son déblocage.
+- Le choix est une **étape du parcours** : résultats → clic sur « Voir le bilan » → écran de choix → bilan. « ← Résultats » le referme sans rien perdre ; « Voir le bilan » le rouvre.
+- En haut de l'écran, un emplacement par déblocage possible (🎁 gratuit, 🎬 contre une pub). La carte choisie quitte la grille et se pose dans son emplacement : rien n'est affiché en double.
+- Une fois les choix faits, l'écran les enregistre (portraits qui clignotent), puis pose le tampon « Débloqué » avec confettis et son **seulement si l'enregistrement est confirmé**. Le titre donne alors les noms ; l'écran reste ouvert jusqu'à « Voir le bilan ➜ ». En cas d'échec : portrait grisé, message, et « Réessayer » si c'est un problème de connexion.
 - Un seul candidat nouveau mis K.-O. et une victoire : il est débloqué directement, sans écran (aucun bonus possible).
 - Le bouton « 🎬 Regarder une pub » ne s'affiche **que si une pub est prête**. Sans pub prête (hors ligne, bloqueur de pubs…), la victoire donne son candidat gratuit, et la défaite affiche seulement « Élection perdue : … reste à débloquer ».
 - La récompense n'est donnée que si **Google confirme que la vidéo a été regardée jusqu'au bout**. Pub fermée avant la fin : rien, le joueur peut réessayer.

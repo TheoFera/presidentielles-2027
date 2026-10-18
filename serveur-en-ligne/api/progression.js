@@ -11,9 +11,13 @@ import { ApiError, audit, nowSeconds, randomId } from './util.js';
 import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, STYLE_UNLOCKS, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { titleRank } from '../../src/simulation/player-titles.js';
 
-// Campagne solo sans accélération de débogage : 365 jours × 2,5 s ≈ 15 min (+ sprint).
-// Le jeu n'envoie pas la fin d'une partie accélérée ; 10 min laissent une marge.
-export const SOLO_CAMPAIGN_MIN_SECONDS = 420;
+import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
+
+// Durée réelle de la campagne, lue dans les données du jeu (365 jours × durée d'un jour) :
+// le seuil suit tout changement de durée, sans oublier de le recopier ici.
+export const CAMPAIGN_SECONDS = balance.time.starting_days_before_first_round * balance.time.real_seconds_per_game_day;
+// Le jeu n'envoie pas la fin d'une partie accélérée ; 75 % de la campagne laissent une marge.
+export const SOLO_CAMPAIGN_MIN_SECONDS = Math.floor(CAMPAIGN_SECONDS * 0.75);
 export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 
 export async function listUnlocks(db, userId) {
