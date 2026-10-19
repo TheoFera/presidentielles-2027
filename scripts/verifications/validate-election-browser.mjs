@@ -26,7 +26,7 @@ try {
     for (const candidate of ['melenchon', 'le_pen', 'philippe']) for (const scenario of DEMO_SCENARIOS) {
       await show(page, demoElectionState(candidate, scenario), false);
       assert.equal(await page.locator('.election-confetti i').count(), ['qualification', 'victoire'].includes(scenario) ? 90 : 0, `${name} ${candidate} ${scenario}`);
-      for (const selector of ['.election-score', '.election-band', '.election-footer', '.election-verdict']) {
+      for (const selector of ['.election-info', '.election-heading', '.election-footer']) {
         for (const el of await page.locator(selector).all()) {
           const box = await el.boundingBox();
           assert.ok(box.x >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1, `${name} : ${selector} déborde`);
@@ -41,7 +41,7 @@ try {
     await show(page, demoElectionState('le_pen', 'qualification'));
     assert.equal(await page.locator('.election-stage.is-playing').count(), 1);
     await page.waitForFunction(() => !document.querySelector('.election-stage.is-playing'), null, { timeout: 6000 });
-    assert.equal(await page.locator('.election-score span').first().textContent(), '44,32');
+    assert.equal(await page.locator('.election-score span').first().textContent(), '44,3');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await show(page, demoElectionState('le_pen', 'victoire'));
     assert.equal(await page.locator('.election-confetti i').count(), 0);
@@ -61,7 +61,7 @@ try {
   await page.keyboard.press('F3');
   await page.locator('#force-j0').click();
   await page.locator('#results h1').waitFor();
-  assert.match(await page.locator('#results h1').textContent(), /Qualifiés/);
+  assert.match(await page.locator('#results h1').textContent(), /Qualifi/);
   const frozen = await page.locator('#match-debug-text').textContent();
   await page.waitForTimeout(1500);
   assert.equal(await page.locator('#match-debug-text').textContent(), frozen, 'la partie avance pendant l’annonce');
