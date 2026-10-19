@@ -15,7 +15,7 @@ import { playerCard, rememberTitle, setCandidateColors } from './presentation/me
 import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interface/knockout-reveal.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
-import { FixedClock } from './simulation/fixed-clock.js';
+import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
 import { withAIObservation } from './simulation/ai-observation.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
@@ -856,10 +856,11 @@ async function start() {
         let changedCamera = false;
         // Après un ralentissement, on rattrape au plus max_presentation_frame_seconds :
         // un appareil lent ne s’enfonce pas dans une avalanche de ticks.
-        clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds) * simulationSpeed, () => {
+        // Ce retard est réparti sur les images suivantes (catchUpTicks) au lieu d'être joué d'un coup.
+        const frameSeconds = Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds) * simulationSpeed;
+        clock.advance(frameSeconds, lastTick => {
           // Rien n’est recopié : avant le dernier pas de l’image, on retient seulement les positions
           // (lissage des mouvements) ; l’image lit ensuite l’état vivant, sans le modifier.
-          const lastTick = clock.accumulator + 1e-10 < 2 * clock.dt;
           const commands = [...matchCommands(), ...pending];
           changedCamera ||= pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
@@ -867,7 +868,8 @@ async function start() {
           simulation.step(commands);
           // Vue à jour après chaque pas : l’IA du pas suivant lit le bon numéro de pas et la bonne phase.
           state = simulation.presentationView();
-        });
+        }, { maxTicks: catchUpTicks(clock, frameSeconds, simulationSpeed),
+          maxBacklog: simulationSpeed > 1 ? Infinity : config.prototype.presentation.max_presentation_frame_seconds });
         if (state !== frameStart) {
           const rejected = state.events.findLast(e => e.type === 'CampaignEventRejected' && e.tick >= frameStart.tick);
           if (rejected && !frameStart.events.some(e => e.id === rejected.id)) notify(rejected.reason, 4);
