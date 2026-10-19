@@ -77,6 +77,21 @@ test('le bilan classe les camps, trace le sprint à part et arrête la courbe du
   assert.equal(summaryModel({ ...finished(), match_history: undefined }).empty, true);
 });
 
+test('élu au premier tour : le bilan s’arrête au premier tour, sans période de second tour', () => {
+  const direct = { ...finished(), eliminated_faction: null,
+    result: { first_round: true, winner: 'philippe', scores: {} },
+    first_round_result: { ranking: ['philippe', 'melenchon', 'le_pen'] } };
+  const model = summaryModel(direct);
+  assert.equal(model.sprintStart, null);
+  for (const s of model.series) {
+    assert.equal(s.points.length, 3);
+    assert.equal(s.points.at(-1).x, 1);
+  }
+  assert.equal(model.ticks.at(-1).label, '1er tour');
+  assert.ok(!model.ticks.some(t => t.label === 'Fin'));
+  assert.doesNotMatch(summaryMarkup(model), /2nd tour/);
+});
+
 test('le profil compte victoires, qualifications, meilleur score et record d’électeurs', () => {
   let profile = { nickname: 'Théo', unlocked_campaign_styles: {} };
   profile = recordMatchResult(profile, finished());

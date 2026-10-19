@@ -26,11 +26,13 @@ export function niceMax(value) {
 }
 
 export function summaryModel(state) {
-  const history = Array.isArray(state.match_history) ? state.match_history : [];
+  // Élu dès le premier tour : classement du premier tour, personne n'est éliminé,
+  // et la courbe s'arrête au premier tour (pas de second tour à montrer).
+  const direct = !!state.result?.first_round;
+  const recorded = Array.isArray(state.match_history) ? state.match_history : [];
+  const history = direct ? recorded.filter(p => !p.sprint) : recorded;
   // Le bilan retrace la course des trois candidats principaux.
   const factions = state.candidates.filter(c => !c.minor).map(c => c.faction_id);
-  // Élu dès le premier tour : classement du premier tour, personne n'est éliminé.
-  const direct = !!state.result?.first_round;
   const ranking = direct ? state.first_round_result.ranking : state.result ? [state.result.winner, state.result.second, state.eliminated_faction].filter(Boolean) : factions;
   const order = [...ranking, ...factions.filter(f => !ranking.includes(f))];
   const campaign = history.filter(p => !p.sprint), sprint = history.filter(p => p.sprint);
