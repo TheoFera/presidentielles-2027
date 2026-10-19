@@ -147,6 +147,10 @@ test('Seul le sondage acheté colore les secteurs, par identifiant', t => {
   assert.deepEqual(parts.map(p => p.attributes.stroke), [territoryColors.melenchon, territoryColors.le_pen, territoryColors.philippe]);
   assert.equal(parts.filter(p => p.attributes.class.includes('map-poll-player')).length, 1);
   assert.ok(display.wheel.ring.classes.has('map-poll-animate'));
+  // Mini-classement : rang, nom et score, la ligne du joueur mise en avant.
+  const rows = display.wheel.ranking.children;
+  assert.deepEqual(rows.map(r => r.children.map(c => c.textContent).join(' ')), ['1. Mélenchon 50 %', '2. Le Pen 33 %', '3. Philippe 17 %']);
+  assert.equal(rows.filter(r => r.className.includes('map-poll-row-player')).length, 1);
   // Les autres candidats de la partie figurent aussi dans le sondage affiché.
   const autres = state.candidates.filter(c => c.minor).map(c => c.faction_id);
   assert.equal(autres.length, 6);
@@ -237,4 +241,19 @@ test('Position partagée : interpolation réseau, pause, téléportation et red�
   assert.equal(interpolatedPlayerX(state, previous, candidate, .2), candidate.x);
   state.seed = previous.seed; state.tick = -1;
   assert.equal(interpolatedPlayerX(state, previous, candidate, .2), candidate.x);
+});
+
+test('Mini-classement : tous les candidats au-dessus de 0 %, et toujours le joueur', t => {
+  documentFor(t);
+  const wheel = new MapWheel(document.getElementById('electoral-circle'));
+  wheel.build(stateFor().world);
+  const shares = [['le_pen', 35], ['philippe', 25], ['melenchon', 15], ['glucksmann', 8], ['retailleau', 6], ['roussel', 5], ['attal', 3], ['arthaud', 3], ['dupont_aignan', 0]];
+  wheel.updatePollRing(shares, () => '#123456', 'arthaud', true, { le_pen: 'Le Pen', arthaud: 'Arthaud' });
+  const labels = wheel.ranking.children.map(r => r.children[0].textContent);
+  assert.deepEqual(labels, ['1. Le Pen', '2. philippe', '3. melenchon', '4. glucksmann', '5. retailleau', '6. roussel', '7. attal', '8. Arthaud']);
+  assert.ok(wheel.ranking.children.at(-1).className.includes('map-poll-row-player'));
+  // Le joueur garde sa ligne même à 0 %.
+  wheel.updatePollRing(shares, () => '#123456', 'dupont_aignan', false, {});
+  assert.equal(wheel.ranking.children.length, 9);
+  assert.equal(wheel.ranking.classes.has('map-poll-animate'), false);
 });

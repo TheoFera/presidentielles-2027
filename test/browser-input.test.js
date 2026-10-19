@@ -146,19 +146,6 @@ test('Aide, changement d’onglet et perte de focus libèrent les commandes', t 
   assert.deepEqual(actions, ['h', 'f']);
 });
 
-test('L’aide ouverte bloque les commandes de jeu et Échap la ferme', t => {
-  const { win, doc, human, actions, input } = setup(t);
-  const help = new Element(); help.hidden = false;
-  const previousGet = doc.getElementById;
-  doc.getElementById = id => id === 'help' ? help : previousGet(id);
-  win.send('keydown', { key: 'd' });
-  win.send('keydown', { key: ' ' });
-  assert.equal(human.axis, 0);
-  assert.equal(input.attackSources.size, 0);
-  win.send('keydown', { key: 'Escape' });
-  assert.deepEqual(actions, ['escape']);
-});
-
 test('Le clavier et le déplacement tactile sur le monde restent disponibles', t => {
   const { canvas, win, human } = setup(t);
   win.send('keydown', { key: 'd' });

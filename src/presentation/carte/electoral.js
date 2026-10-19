@@ -173,7 +173,7 @@ export class ElectoralDisplay {
     const present = new Set(state.candidates.map(c => c.faction_id));
     for (const id of MINOR_FACTIONS) if (present.has(id) && id in snapshot.national_support) labels[id] = this.factions[id]?.name || id;
     const { shares, undecided } = pollShares(snapshot.national_support, Object.keys(labels));
-    this.wheel.updatePollRing(shares, pollColor.bind(null, this.factions), faction, fresh);
+    this.wheel.updatePollRing(shares, pollColor.bind(null, this.factions), faction, fresh, labels);
     // Version texte (lecteurs d'écran), masquée à l'écran : l'anneau la remplace.
     for (const [id, value] of shares) {
       const span = document.createElement('span');

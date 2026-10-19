@@ -54,6 +54,21 @@ test('Militants : rapprochement avant de tirer et projectile expiré avant cinq 
  }
 });
 
+test('Militants : un tir verbal blesse de 3 sans immobiliser ni interrompre, et le recul reste lent et court',()=>{
+ const {sim,c}=setup(),enemy=sim.state.candidates[1],s=sim.config.balance.physical_units.militant;enemy.x=c.x+3;
+ const n=sim.spawn(sim.state.world.subzones[0],c.x);n.role='MILITANT';n.faction_id=c.faction_id;n.facing=1;n.hidden_durability=30;
+ startNpcAttack(sim,n,'VERBAL',{range:s.verbal_range,damage:s.verbal_damage,knockback:s.verbal_knockback,electoral_damage:s.verbal_attack_electoral_damage,cooldown_seconds:s.verbal_cooldown_seconds});
+ const before=enemy.resistance;let hit=false;
+ for(let i=0;i<40&&!hit;i++){sim.state.tick++;beginCombatTick(sim);enemy.combat.attack_id='attaque-en-cours';updateCombat(sim);hit=enemy.resistance<before;}
+ assert.ok(hit);assert.equal(before-enemy.resistance,3);
+ assert.equal(enemy.combat.stun_ticks,0);assert.equal(enemy.combat.hitstop_ticks,0);assert.equal(enemy.combat.attack_id,'attaque-en-cours');
+ // Candidat trop près : le militant recule à 1,4 u/s, moins vite que la marche du candidat.
+ n.x=c.x;n.combat=combatState();enemy.combat=combatState();enemy.x=c.x+1;sim.state.attacks=[];
+ updateMilitantCombat(sim,n);
+ assert.ok(Math.abs(n.x-(c.x-s.retreat_speed/sim.hz))<1e-9);
+ assert.ok(s.retreat_speed<sim.config.prototype.movement.candidate_speed_units_per_second);assert.equal(s.preferred_distance,1.6);
+});
+
 test('Zemmour : 1 tir/s, bulle basse évitable dès une hauteur de 0,8 personnage',()=>{
  const {sim,c}=setup(),s=sim.config.balance.specials.zemmour;
  assert.equal(s.shots_per_second,1);

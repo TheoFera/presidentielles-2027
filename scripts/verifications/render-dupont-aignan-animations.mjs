@@ -130,22 +130,30 @@ try {
       bounds.push({x:m.a*dx+m.e,y:m.d*dy+m.f,width:Math.abs(m.a*w),height:Math.abs(m.d*h)});
       nativeDraw(image,...args);
     };
-    window.renderBatch = frames => frames.map(({state,label,note})=>{
+    window.renderBatch = frames => frames.map(({state,label,note,comparison=false})=>{
       ctx.reset(); ctx.fillStyle='#ede8df'; ctx.fillRect(0,0,1000,620);
       ctx.fillStyle='#d8cbb8'; ctx.fillRect(0,501,1000,119);
       ctx.strokeStyle='#9b8976'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,500); ctx.lineTo(970,500); ctx.stroke();
       const top=500-170*296/340*1.1236;
       ctx.save();ctx.setLineDash([5,6]);ctx.strokeStyle='#9da6a4';ctx.beginPath();ctx.moveTo(70,top);ctx.lineTo(940,top);ctx.stroke();ctx.restore();
       ctx.textAlign='center';ctx.fillStyle='#263b45';ctx.font='bold 25px system-ui';ctx.fillText(label,500,40);
-      ctx.font='15px system-ui';ctx.fillText('Mêmes paramètres de taille que dans le jeu · Ligne de sol commune',500,68);
+      ctx.font='15px system-ui';ctx.fillText('Sprites redessinés · Cou et épaules raccordés · Ligne de sol commune',500,68);
       bounds=[];
-      WorldRenderer.prototype.drawPerson.call(renderer,state.candidates[0],renderer.screenX(state.candidates[0].x),state);
+      if(comparison) {
+        const idle=structuredClone(state.candidates[0]);
+        Object.assign(idle,{id:'nda-repos',persuasion_target_ids:[],persuasion:null,crisis_meeting_id:null});
+        WorldRenderer.prototype.drawPerson.call(renderer,idle,170,state);
+        bounds=[];
+      }
+      WorldRenderer.prototype.drawPerson.call(renderer,state.candidates[0],comparison?450:renderer.screenX(state.candidates[0].x),state);
       const actorBounds=bounds.slice(); bounds=[];
       const ref=structuredClone(state.candidates[1]); Object.assign(ref,{x:110,combat:{...ref.combat,attack_id:null,stun_ticks:0,height:0},moving:false,axis:0});
       WorldRenderer.prototype.drawPerson.call(renderer,ref,740,{...state,tick:0,attacks:[],powers:[],previewGuard:true});
       const refBounds=bounds.slice();
-      ctx.fillStyle='#263b45';ctx.font='bold 19px system-ui';ctx.fillText('Nicolas Dupont-Aignan',340,548);ctx.fillText('Édouard Philippe',740,548);
-      ctx.font='15px system-ui';ctx.fillText('Animation en cours',340,574);ctx.fillText('Garde fixe — repère de taille',740,574);
+      ctx.fillStyle='#263b45';ctx.font='bold 19px system-ui';ctx.fillText(comparison?'Persuasion corrigée':'Nicolas Dupont-Aignan',comparison?450:340,548);ctx.fillText('Édouard Philippe',740,548);
+      if(comparison)ctx.fillText('Dupont-Aignan au repos',170,548);
+      ctx.font='15px system-ui';ctx.fillText('Animation en cours',comparison?450:340,574);ctx.fillText('Garde fixe — repère de taille',740,574);
+      if(comparison)ctx.fillText('Repère de gabarit',170,574);
       ctx.font='14px system-ui';if(note)ctx.fillText(note,500,606);
       return {image:canvas.toDataURL('image/png').split(',')[1],actorBounds,refBounds};
     });
@@ -160,15 +168,20 @@ try {
       await writeFile(path.join(output,'images',`image-${String(i+j).padStart(4,'0')}.png`),Buffer.from(frame.image,'base64'));
     }));
   }
+  const persuasion=frames.filter(frame=>frame.label==='Persuasion — proposition 3');
+  const comparison=await page.evaluate(batch=>window.renderBatch(batch),persuasion.map(frame=>({...frame,comparison:true,label:'Comparaison du gabarit — repos et persuasion'})));
+  await mkdir(path.join(output,'comparaison-gabarit'),{recursive:true});
+  await Promise.all(comparison.map((frame,i)=>writeFile(path.join(output,'comparaison-gabarit',`image-${String(i).padStart(4,'0')}.png`),Buffer.from(frame.image,'base64'))));
   assert.deepEqual(errors,[]);
 } finally { await browser.close(); server.close(); }
 function ffmpeg(args) {
   const result=spawnSync(process.env.CAMPAIGN_FFMPEG||'ffmpeg',['-hide_banner','-loglevel','error','-y',...args],{encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);
 }
-const video=path.join(output,'dupont-aignan-toutes-animations.mp4');
+const video=path.join(output,'dupont-aignan-animations-persuasion-gabarit-v3.mp4');
 ffmpeg(['-framerate',String(fps),'-i',path.join(output,'images','image-%04d.png'),'-c:v','libx264','-pix_fmt','yuv420p','-crf','20','-movflags','+faststart',video]);
-ffmpeg(['-i',video,'-vf','fps=10,scale=700:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer','-loop','0',path.join(output,'dupont-aignan-toutes-animations.gif')]);
+ffmpeg(['-i',video,'-vf','fps=10,scale=700:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer','-loop','0',path.join(output,'dupont-aignan-animations-persuasion-gabarit-v3.gif')]);
+ffmpeg(['-framerate',String(fps),'-i',path.join(output,'comparaison-gabarit','image-%04d.png'),'-filter_complex','fps=10,scale=1000:-1,split[a][b];[a]palettegen=max_colors=160[p];[b][p]paletteuse=dither=bayer','-loop','0',path.join(output,'comparaison-persuasion-gabarit-v3.gif')]);
 const videoData=(await readFile(video)).toString('base64');
 const chaptersJSON=JSON.stringify(chapters).replaceAll('<','\\u003c');
 const html=`<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Animations de Dupont-Aignan — comparaison avec Philippe</title>
@@ -176,8 +189,8 @@ const html=`<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="vie
 <main><h1>Dupont-Aignan : toutes les animations à la suite</h1><p>Édouard Philippe reste en garde fixe sur la même ligne de sol. La ligne pointillée indique le haut de sa silhouette. Les tailles et les appuis proviennent du rendu du jeu.</p>
 <video id="video" controls autoplay muted loop playsinline src="data:video/mp4;base64,${videoData}"></video>
 <nav><button id="pause">Pause / Lecture</button><button id="avant">− 1 image</button><button id="apres">+ 1 image</button><label>Vitesse <select id="vitesse"><option value=".25">Ralenti × 0,25</option><option value=".5">Ralenti × 0,5</option><option value="1" selected>Normale</option></select></label><label>Animation <select id="chapitres"></select></label></nav>
-<p id="titre"></p><p>La proposition 3 est intégrée à la persuasion. Les autres dessins sont ceux du jeu. Le saut s’élève volontairement au-dessus du repère ; les poses accroupies et au sol restent plus basses. L’ultime montre la vue du joueur Dupont-Aignan.</p></main>
+<p id="titre"></p><p>Chaque personnage est dessiné entier, avec un raccord continu entre le cou, le col et les épaules. La persuasion conserve les gestes de la proposition 3. Le saut s’élève volontairement au-dessus du repère ; les poses accroupies et au sol restent plus basses. L’ultime montre la vue du joueur Dupont-Aignan.</p></main>
 <script>const chapters=${chaptersJSON};const v=document.getElementById('video'),s=document.getElementById('chapitres');chapters.forEach((c,i)=>s.add(new Option(c.label,i)));s.onchange=()=>{v.currentTime=chapters[+s.value].start;v.play().catch(()=>{})};document.getElementById('pause').onclick=()=>v.paused?v.play().catch(()=>{}):v.pause();document.getElementById('avant').onclick=()=>{v.pause();v.currentTime=Math.max(0,v.currentTime-1/${fps})};document.getElementById('apres').onclick=()=>{v.pause();v.currentTime=Math.min(v.duration,v.currentTime+1/${fps})};document.getElementById('vitesse').onchange=e=>v.playbackRate=+e.target.value;v.ontimeupdate=()=>{let i=chapters.findLastIndex(c=>c.start<=v.currentTime+.01);s.value=i;document.getElementById('titre').textContent=chapters[i].label+' — '+v.currentTime.toFixed(1)+' s / '+v.duration.toFixed(1)+' s'};</script></html>`;
-await writeFile(path.join(output,'apercu.html'),html);
+await writeFile(path.join(output,'apercu-persuasion-gabarit-v3.html'),html);
 await writeFile(path.join(output,'verification.json'),JSON.stringify({fps,seconds:frames.length/fps,chapters,errors,measurements},null,2));
 console.log(JSON.stringify({output,animations:chapters.length,seconds:frames.length/fps}));

@@ -94,10 +94,12 @@
       "max_player_speed_multiplier": 2,
       "detection_range": 7,
       "verbal_range": 3.5,
-      "preferred_distance": 2.5,
+      "preferred_distance": 1.6,
+      "retreat_speed": 1.4,
       "verbal_cooldown_seconds": 1.15,
-      "verbal_damage": 4,
+      "verbal_damage": 3,
       "verbal_knockback": 0,
+      "verbal_stun_seconds": 0,
       "projectile_speed": 9,
       "projectile_range": 4.5
     },
@@ -572,7 +574,7 @@
     "ai_variation_units": 7
   },
   "debate_mode": {
-    "dash_distance": 3.6,
+    "dash_distance": 3,
     "countdown_seconds": 3,
     "theme_intro_seconds": 1.4,
     "fight_banner_seconds": 1,
@@ -1088,7 +1090,7 @@
     "max_charges": 3,
     "recharge_seconds": 4,
     "duration_seconds": 0.24,
-    "distance": 3.6,
+    "distance": 3,
     "invulnerability_seconds": 0.12,
     "double_tap_window_ms": 250,
     "touch_double_tap_window_ms": 350,

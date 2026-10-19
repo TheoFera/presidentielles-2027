@@ -1,0 +1,11 @@
+{
+  "outil": "ImageGen intégré",
+  "cible": "dupont-aignan-persuasion-v1.png",
+  "referencesStyle": [
+    "dupont-aignan-actions-raccords-v2.png",
+    "dupont-aignan-locomotion-raccords-v2.png"
+  ],
+  "fichier": "dupont-aignan-persuasion-raccords-v2.png",
+  "sourceGeneree": "exec-019b3d95-4cf2-4a9b-af08-8717edffa0f5.png",
+  "prompt": "Use case: style-transfer and identity-preserve. Asset type: 2-frame persuasion sprite strip for an existing 2D cartoon game. Image 1 is the EDIT TARGET for POSES ONLY: the two approved gestures must be kept. Images 2 and 3 are the AUTHORITATIVE STYLE AND CHARACTER references, especially the neutral standing/listening Nicolas Dupont-Aignan in row2 columns3/4 of image2. Redraw the TWO ENTIRE figures from image1 in EXACTLY the simpler unified cartoon sprite style of images2/3: same recognizable face shape, head proportions, short gray hair, nose, ears, jaw, cheek treatment, black outline weight, compact small body, navy suit color and shading, white shirt, blue tie, French lapel pin, black shoes, hand size. Image1 is too detailed and painterly; remove that style discrepancy. Use the clean cel-painted cartoon shading and less photorealistic face detail of images2/3. Preserve exact gesture choreography: frame1 bent elbows, both open hands in front of chest with palms facing each other; frame2 both hands move forward and apart, palms still facing each other. Face right in three-quarter profile, slightly open speaking mouth, earnest expression. Same skull size and identical leg stance in both frames, same feet baseline, identical anatomical scale. Two full-body sprites side by side in one row, generous transparent margins and gutter, no cropping. EACH character must be a single connected drawing: short natural neck inside a continuous shirt collar, shoulders under the head, seamless jaw-neck-collar-lapel junction; no head paste, floating head, neck gaps, cutout marks or incomplete fingers. Real transparent background. No labels, text, effects, scenery, NPCs or additional figures. Keep the target poses but match the reference sheets' style, anatomy and proportions closely."
+}

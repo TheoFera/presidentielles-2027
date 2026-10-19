@@ -144,7 +144,7 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 .debate-result-score[hidden], .debate-result-rounds[hidden] { display: none; }
 
 /* Conteneur propre : sur tactile, #game perd son conteneur et les cqw suivraient tout l’écran.
-   Le calque reste sous l’aide (#help, placée après lui avec le même z-index). */
+   Le calque reste sous le débogage (#debug, placé après lui). */
 #debate-mode-layer { position: absolute; inset: 0; z-index: 3; container-type: size; pointer-events: none; }
 #debate-mode-result { position: absolute; inset: 0; z-index: 4; container-type: size; pointer-events: auto; display: grid; place-items: center; background: radial-gradient(ellipse at center, #10163acc, #04061cf2); }
 #debate-mode-result[hidden] { display: none; }

@@ -8,6 +8,9 @@
   left: auto; right: var(--map-margin); top: var(--map-margin);
   width: var(--map-size); height: var(--map-size); transform: none;
   pointer-events: none; user-select: none;
+  /* Cercle et mini-classement du sondage passent devant les annonces d'évènements (#campaign-events : 18),
+     qui gardent ainsi leur largeur normale. */
+  z-index: 19;
 }
 #electoral-circle svg { position: absolute; inset: 0; filter: none; overflow: visible; }
 /* Seul le fond porte l'ombre (silhouette de la bordure et du repère, comme la roue entière). */
@@ -30,17 +33,27 @@
 /* Anneau du sondage (map-wheel.js) : parts fines autour du cercle, la vôtre plus épaisse. */
 .map-poll-part { fill: none; stroke-width: 11; }
 .map-poll-player { stroke-width: 16; }
-.map-poll-badge circle { stroke: #1c2b30; stroke-width: 3; }
-.map-poll-badge text { fill: #fff; font: 700 22px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; font-variant-numeric: tabular-nums; }
-.map-poll-badge text.map-poll-dark { fill: #1c2b30; }
 .map-poll-ring { transition: opacity .3s; }
-.poll-stale .map-poll-ring { opacity: .45; }
-/* Arrivée d'un sondage : chaque part se trace à la suite de la précédente, puis son chiffre apparaît. */
+.poll-stale .map-poll-ring, .poll-stale .map-poll-ranking { opacity: .45; }
+/* Mini-classement du sondage (map-wheel.js) : collé à gauche du cercle, jamais vers le bord droit de l'écran.
+   Taille liée à celle du cercle, 8 px au minimum. */
+.map-poll-ranking {
+  position: absolute; top: 2%; right: calc(100% + var(--map-margin)); margin: 0; padding: .15em .4em; list-style: none;
+  min-width: 8.5em; font-size: max(8px, calc(var(--map-size) * .036)); line-height: 1.15; font-variant-numeric: tabular-nums;
+  color: #1f2b2a; background: #fff6dfef; border: 1px solid #364444; border-radius: 5px; transition: opacity .3s;
+}
+.map-poll-ranking:empty { display: none; }
+.map-poll-row { display: flex; align-items: center; gap: .35em; white-space: nowrap; }
+.map-poll-row::before { content: ''; flex: none; width: .4em; height: .85em; border-radius: 2px; background: var(--row); box-shadow: 0 0 0 1px #1c2b30; }
+.map-poll-row span { flex: 1; }
+.map-poll-row b { font-weight: 600; }
+.map-poll-row-player, .map-poll-row-player b { font-weight: 800; }
+/* Arrivée d'un sondage : l'anneau se trace part après part, puis le classement apparaît. */
 .map-poll-animate .map-poll-part { animation: map-poll-draw var(--duration) linear var(--delay) both; }
-.map-poll-animate .map-poll-badge { animation: map-poll-badge .25s ease-out var(--delay) both; }
+.map-poll-ranking.map-poll-animate { animation: map-poll-fade .3s ease-out .9s both; }
 @keyframes map-poll-draw { from { stroke-dasharray: 0 100; } }
-@keyframes map-poll-badge { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .map-poll-animate .map-poll-part, .map-poll-animate .map-poll-badge { animation: none; } }
+@keyframes map-poll-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .map-poll-animate .map-poll-part, .map-poll-ranking.map-poll-animate { animation: none; } }
 /* Le bandeau chiffré reste lisible par les lecteurs d'écran, mais l'anneau le remplace à l'écran. */
 #poll-scores {
   top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; pointer-events: none;

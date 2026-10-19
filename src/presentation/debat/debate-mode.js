@@ -285,7 +285,7 @@ export class DebateModeDisplay {
     // Calque propre au débat : sur tactile, #game perd son conteneur et les cqw suivraient tout l’écran.
     const layer = document.createElement('div'); layer.id = 'debate-mode-layer';
     layer.append(this.hud, this.rounds, this.theme, this.banner, this.result);
-    game.insertBefore(layer, document.getElementById('help')?.parentElement === game ? document.getElementById('help') : null);
+    game.insertBefore(layer, document.getElementById('debug')?.parentElement === game ? document.getElementById('debug') : null);
     this.result.addEventListener('click', event => {
       const action = event.target.closest('[data-debate-action]')?.dataset.debateAction;
       if (action) this.actions[action]?.();

@@ -8,10 +8,6 @@ export class BrowserInput {
     window.addEventListener('keydown', event => {
       if (document.getElementById('game')?.inert) return;
       if (event.target.closest?.('#campaign-styles')) return;
-      if (document.getElementById('help')?.hidden === false) {
-        if (['h', 'escape'].includes(event.key.toLowerCase()) && !event.repeat) onAction(event.key.toLowerCase());
-        return;
-      }
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(event.target.tagName) && !['Escape', 'F3'].includes(event.key)) return;
       const key = event.key.toLowerCase();
       if ([' ', 'arrowup', 'arrowdown'].includes(key)) event.preventDefault();
@@ -61,7 +57,8 @@ export class BrowserInput {
       const relative = (event.clientX - rect.left) / rect.width;
       const nearArrow = this.nearestArrow(event.clientX, event.clientY);
       if (nearArrow) { this.pointers.set(event.pointerId, nearArrow); this.updatePointers(); }
-      else if (Math.abs(relative - anchorRatio) < touchPauseRadius) onAction('h');
+      // Près du personnage, l’appui ne fait rien : il n’ouvre plus l’aide (un glissement depuis le bas l’ouvrait par erreur).
+      else if (Math.abs(relative - anchorRatio) < touchPauseRadius) return;
       else { this.pointers.set(event.pointerId, relative < anchorRatio ? -1 : 1); this.updatePointers(); }
     });
     bindRelease(canvas);

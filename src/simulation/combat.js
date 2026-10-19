@@ -342,7 +342,9 @@ function updateAttacks(sim, work) {
         const s = sim.config.balance.physical_units.militant;
         sim.state.projectiles.push({ id: `projectile:${sim.state.next_projectile_id++}`, power_id: null, owner_id: actor.id, faction_id: actor.faction_id,
           kind: 'VERBAL', x: actor.x, direction: attack.direction, speed: s.projectile_speed, remaining_range: s.projectile_range,
-          hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage });
+          hit_ids: [], damage: s.verbal_damage, knockback: s.verbal_knockback, electoral_damage: s.verbal_attack_electoral_damage,
+          // Un tir verbal blesse sans immobiliser ni interrompre : on peut continuer d’avancer et de frapper.
+          stun_seconds: s.verbal_stun_seconds, no_hitstop: true, no_interrupt: true });
         attack.launched = true;
       } else if (!['VERBAL', 'SPECIAL'].includes(attack.kind) && (MIRRORED_ATTACKS.includes(attack.mirror_kind || attack.kind) || attack.hit_ids.length === 0)) {
         const targets = meleeTargets(sim, actor, attack, work.targets);
@@ -460,7 +462,7 @@ export function updateMilitantCombat(sim, npc) {
   npc.facing = Math.sign(d) || npc.facing;
   if (Math.abs(d) > s.verbal_range) moveNpcTowards(sim, npc, target.x, s.move_speed);
   else {
-    if (Math.abs(d) < s.preferred_distance && !npc.combat.attack_id) moveNpcTowards(sim, npc, combatPosition(sim.state, npc.x - npc.facing * s.preferred_distance), s.move_speed);
+    if (Math.abs(d) < s.preferred_distance && !npc.combat.attack_id) moveNpcTowards(sim, npc, combatPosition(sim.state, npc.x - npc.facing * s.preferred_distance), s.retreat_speed);
     npc.facing = Math.sign(d) || npc.facing;
     startNpcAttack(sim, npc, 'VERBAL', { range: s.verbal_range, damage: s.verbal_damage, knockback: s.verbal_knockback,
       electoral_damage: s.verbal_attack_electoral_damage, cooldown_seconds: s.verbal_cooldown_seconds });

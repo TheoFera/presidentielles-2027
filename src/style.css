@@ -58,13 +58,11 @@ input, textarea, select { user-select: text; -webkit-user-select: text; -webkit-
 #winning-score { font-size: 2.5em; margin: 8px 0 20px; font-weight: 650; }
 .result-actions { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
 #replay { background: #344e41; color: #fff; border-color: #344e41; }
-#help { z-index: 3; }
-#debug { z-index: 5; }
+#debug { z-index: 20; } /* Devant le cercle de la carte (19), qu'il recouvre en haut à droite. */
 #match-tools { margin-bottom: 14px; }
 #match-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
 #match-debug-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.85em; }
 .panel { position: absolute; background: #f4f5eff5; border: 1px solid #a4afa7; box-shadow: 0 8px 28px #23362d26; padding: 24px; overflow: auto; max-height: 90%; font-size: clamp(11px, 1.35cqw, 16px); }
-#help { width: min(570px, 88%); left: 50%; top: 50%; transform: translate(-50%, -50%); }
 h1 { font-weight: 620; font-size: 1.7em; margin: 9px 0 18px; letter-spacing: -0.04em; }
 p { line-height: 1.55; }
 .eyebrow { font-size: 0.7em; letter-spacing: 0.13em; color: #708277; }
@@ -104,8 +102,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   #touch-controls { display: flex; }
   .panel { font-size: 16px; overscroll-behavior: contain; }
   .panel button, .panel select { min-height: 44px; }
-  #help, #results, #debug { position: fixed; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
-  #help, #results { width: min(570px, calc(100vw - 24px)); }
+  #results, #debug { position: fixed; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  #results { width: min(570px, calc(100vw - 24px)); }
   #debug { width: min(420px, calc(100vw - 24px)); font-size: 14px; }
   #resume { position: sticky; bottom: 0; }
   #debate-hud { top: 62px; }
@@ -118,7 +116,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
   #debate-hud { top: 5%; }
   .result-actions { flex-wrap: wrap; }
 }
-@media (max-height: 450px) { .panel { padding: 12px; } #help p { margin: 7px 0; } dl { gap: 6px; } }
+@media (max-height: 450px) { .panel { padding: 12px; } dl { gap: 6px; } }
 /* Bandeau « en direct » : l’évènement tombe en haut de l’écran comme une info télévisée. */
 #campaign-events { position: absolute; inset: 0; z-index: 18; pointer-events: none; }
 #campaign-flashes { position: absolute; top: calc(2.5% + 34px); left: 50%; transform: translateX(-50%); width: min(620px, calc(100% - 2 * var(--map-left-space, 16px))); display: flex; flex-direction: column; gap: 6px; }

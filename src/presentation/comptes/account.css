@@ -121,7 +121,7 @@
 }
 
 /* Campagne : carte du candidat mis K.-O., en haut de l'écran comme les évènements média (rayons dorés, confettis).
-   Placée haut pour ne jamais cacher les personnages. Ne capte aucun clic. */
+   Placée haut pour ne jamais cacher les personnages, au-dessus des évènements et du sondage. Ne capte aucun clic. */
 .ko-reveal { position: fixed; z-index: 60; inset: 0; pointer-events: none; overflow: hidden; }
 .ko-reveal-rays { position: absolute; left: 50%; top: calc(2.5% + 34px + 10vmin - 45vmin); width: 90vmin; height: 90vmin; margin-left: -45vmin; border-radius: 50%; background: repeating-conic-gradient(#ffd75e40 0 10deg, transparent 10deg 20deg); -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%); mask: radial-gradient(circle, #000 25%, transparent 70%); animation: ko-reveal-rays 2.8s linear both; }
 .ko-reveal-card { --medallion-size: clamp(64px, 16vmin, 120px); position: absolute; left: 50%; top: calc(2.5% + 34px); display: grid; justify-items: center; gap: 3px; width: max-content; max-width: 90vw; padding: 8px 14px 10px; color: #fff; text-align: center; border: 3px solid #ffd75e; border-radius: 4px; background: linear-gradient(170deg, #1f3159, #0b1226); box-shadow: 5px 5px 0 #0009, 0 0 26px #ffd75e66; animation: ko-reveal-card 2.8s cubic-bezier(.2, 1.4, .4, 1) both; }

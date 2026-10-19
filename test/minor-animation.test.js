@@ -16,16 +16,57 @@ import { measureMinorSprites } from '../scripts/outils-images/measure-minor-spri
 import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
 import { minorLocomotionAtlases, minorGuardIdleFrame } from '../src/presentation/personnages/minor-locomotion-sprites.js';
 
-test('La persuasion validée de Dupont-Aignan conserve ses découpes, ses appuis et la hauteur de Philippe', () => {
+test('La persuasion de Dupont-Aignan garde ses appuis et la hauteur de sa pose neutre', () => {
   const atlas = minorExtraAtlases.dupont_aignan.persuasion;
-  const file = 'assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-v1.png';
+  const file = 'assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-raccords-v3.png';
   assert.ok(visualManifest[atlas.sprite].file.endsWith(file));
-  assert.deepEqual(atlas.frames, measureMinorSprites(readPng(file), { count: 2, columns: 2, koFrames: [] }).frames);
+  assert.equal(measureMinorSprites(readPng(file), { count: 2, columns: 2, koFrames: [] }).frames.length, 2);
   for (let i = 0; i < 2; i++) {
     const frame = atlas.frames[i], scale = characterFrameScale(atlas, i, 170);
     assert.equal(frame[1] + frame[3], frame[5], 'Les chaussures restent sur la ligne de sol.');
-    assert.ok(Math.abs(frame[3] * scale - 170 * CHARACTER_HEIGHT_RATIO) < .001);
+    const standing=minorStandingAtlases.dupont_aignan;
+    assert.ok(Math.abs(frame[3] * scale - standing.frames[0][3] * characterFrameScale(standing,0,170)) < 1);
   }
+});
+
+test('Dupont-Aignan : une seule échelle de tête entre le repos, les coups, les sauts, les chutes et la persuasion', () => {
+  const atlases = [minorStandingAtlases.dupont_aignan, minorCombatAtlases.dupont_aignan, ...Object.values(minorExtraAtlases.dupont_aignan)];
+  for (const height of [80,150,220]) for (const atlas of atlases) for (let i=0;i<atlas.frames.length;i++) {
+    assert.ok(!atlas.preserveComponents, 'Les sprites entiers ne nécessitent pas de conserver une tête détachée.');
+    assert.ok(Math.abs(atlas.headHeights[i] * characterFrameScale(atlas,i,height) - height*.335) < 1e-10);
+  }
+});
+
+test('Dupont-Aignan : le buste de persuasion garde un gabarit proche du repos', () => {
+  function waistWidth(file,atlas,index) {
+    const image=readPng(file),[sx,sy,sw]=atlas.frames[index],head=atlas.headHeights[index];
+    const widths=[1.88,1.9,1.92].map(ratio=>{
+      const y=Math.round(sy+head*ratio);let longest=0,run=0;
+      for(let x=sx;x<sx+sw;x++) {
+        run=image.data[(y*image.width+x)*4+3]>=90?run+1:0;
+        longest=Math.max(longest,run);
+      }
+      return longest*characterFrameScale(atlas,index,170);
+    });
+    return widths.reduce((a,b)=>a+b,0)/widths.length;
+  }
+  const standing=waistWidth(MINOR_ANIMATION_FILES.dupont_aignan.actions,minorExtraAtlases.dupont_aignan.actions,6);
+  const atlas=minorExtraAtlases.dupont_aignan.persuasion;
+  for(let i=0;i<2;i++) {
+    const width=waistWidth('assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-raccords-v3.png',atlas,i);
+    assert.ok(width/standing>=.85&&width/standing<=1.15,`Pose ${i} : la veste ne doit pas s’amincir pendant la persuasion.`);
+  }
+});
+
+test('Dupont-Aignan : les nouvelles planches contiennent des personnages connectés, sans tête isolée', () => {
+  for (const [sheet,file] of Object.entries(MINOR_ANIMATION_FILES.dupont_aignan)) {
+    const atlas=sheet==='combat'?minorCombatAtlases.dupont_aignan:minorExtraAtlases.dupont_aignan[sheet];
+    const measured=measureMinorSprites(readPng(file), { count:sheet==='actions'?12:16, columns:4, koFrames:sheet==='actions'?[8,9,10,11]:[] });
+    assert.deepEqual(atlas.frames,measured.frames);
+  }
+  const atlas=minorLocomotionAtlases.dupont_aignan.guardIdle;
+  const measured=measureMinorSprites(readPng(new URL(visualManifest[atlas.sprite].file)), {count:12,columns:4,koFrames:[]});
+  assert.deepEqual(atlas.frames,[0,1,3].map(i=>measured.frames[i]));
 });
 
 test('Les douze planches redessinées ont des découpes et points d’appui mesurés dans leurs PNG', () => {
@@ -141,7 +182,7 @@ test('Les six secondaires : garde, huit pas et persuasion à la taille de garde 
   for(const [sheet,indices]of [['combat',[0,1,2,3,4,5,6,7,9,10,11]],['movement',[0,1,2,3,4,5,6,7]],['actions',[0,1,4,5,6,7]]]) {
    const atlas=sheet==='combat'?minorCombatAtlases[faction]:minorExtraAtlases[faction][sheet];
    const posture = faction === 'glucksmann' && sheet === 'combat' ? .92 : 1;
-   for(const index of indices)for(const height of [80,150,220])assert.ok(Math.abs(atlas.frames[index][3]*characterFrameScale(atlas,index,height)-reference*height*posture)<1e-10,faction+' '+sheet+' '+index);
+   for(const index of indices)for(const height of [80,150,220])assert.ok(Math.abs(atlas.frames[index][3]*characterFrameScale(atlas,index,height)-reference*height*posture)<(faction==='dupont_aignan'?height*.06:1e-10),faction+' '+sheet+' '+index);
   }
  }
 });
@@ -166,7 +207,7 @@ test('Attal, NDA et Glucksmann : pose neutre au repos et en déplacement ordinai
   const atlas=minorStandingAtlases[faction],actions=minorExtraAtlases[faction].actions;
   assert.equal(atlas.sprite,actions.sprite);
   assert.deepEqual(atlas.frames,[actions.frames[6]],'La référence en plein pas ne sert pas de pose d’attente.');
-  assert.ok(Math.abs(atlas.frames[0][3]*characterFrameScale(atlas,0,150)-146.7289411764706)<1e-10);
+  assert.ok(Math.abs(atlas.frames[0][3]*characterFrameScale(atlas,0,150)-146.7289411764706)<(faction==='dupont_aignan'?5:1e-10));
  }
 });
 

@@ -1,8 +1,9 @@
 import { MINOR_LOCOMOTION_DATA } from './minor-locomotion-data.js';
+import { DUPONT_AIGNAN_ATLASES } from './dupont-aignan-raccords.js';
 
 export const minorLocomotionAssets = {
   'character-minor-attal-locomotion': { file: new URL('../../../assets/images/candidats/attal/attal-garde-v7.png', import.meta.url).href },
-  'character-minor-dupont_aignan-locomotion': { file: new URL('../../../assets/images/candidats/dupont-aignan/dupont_aignan-garde-v7.png', import.meta.url).href },
+  'character-minor-dupont_aignan-locomotion': { file: new URL('../../../assets/images/candidats/dupont-aignan/dupont-aignan-locomotion-raccords-v2.png', import.meta.url).href },
   'character-minor-glucksmann-locomotion': { file: new URL('../../../assets/images/candidats/glucksmann/glucksmann-garde-v6.png', import.meta.url).href },
 };
 
@@ -12,6 +13,7 @@ export const MINOR_GUARD_FRAME_SECONDS = .175;
 export const minorGuardIdleFrame = (tick, hz) => [0, 1, 2, 1][Math.floor(tick / (hz * MINOR_GUARD_FRAME_SECONDS)) % 4];
 
 export const minorLocomotionAtlases = Object.fromEntries(Object.entries(MINOR_LOCOMOTION_DATA).map(([faction, data]) => {
+  if (faction === 'dupont_aignan') return [faction, { guardIdle: DUPONT_AIGNAN_ATLASES.guardIdle, guardWalk: DUPONT_AIGNAN_ATLASES.guardWalk }];
   // Glucksmann fléchit les jambes : sa garde doit être plus basse que sa pose droite,
   // sans agrandir son visage pour compenser cette différence de posture.
   const standingHeight = data.referenceHeight / (faction === 'glucksmann' ? .92 : 1);

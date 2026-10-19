@@ -1,0 +1,49 @@
+{
+  "outil": "ImageGen intégré",
+  "referenceIdentite": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/candidats/dupont-aignan/dupont-aignan-portrait-repos-v1.png",
+  "referencePersuasion": "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-v1.png",
+  "consigneCommune": "Use case: identity-preserve and precise-object-edit. Repair this 2D game sprite sheet. Image 1 is the EDIT TARGET; its heads were badly pasted onto the bodies, leaving detached heads, triangular holes, broken necks, white gaps, chopped hands and bad collars. Image 2 is the authoritative approved identity and fully connected anatomy/style reference. Image 3 is approved persuasion reference for proportions and continuous neck/collar drawing. Redraw and repaint EACH ENTIRE CHARACTER as one anatomically continuous integrated illustration, faithfully matching the approved Nicolas Dupont-Aignan face outline, hair, nose, ear and jaw of image 2. Maintain a consistent head size across ALL sixteen figures, including crouching and jumping figures: bending legs never shrinks or enlarges the skull. Keep head-to-body proportions of image 2. Repair neck muscles and skin, chin overlap, white shirt collar, navy jacket shoulders, lapels and blue tie naturally for EACH pose; the head must grow out of the neck and shoulders, never look glued on. Uniform cartoon line weight and cel painted shading throughout face AND body. Preserve navy suit, blue tie, tiny French lapel pin, right-facing direction, the exact sixteen poses in image 1, and exact row-major order in a clean FOUR COLUMN by FOUR ROW grid. Each sprite whole and isolated, no touching or overlapping neighbors. Large transparent gutters around hair, hands and shoes; every kick completely visible. Same anatomical scale across sheet, consistent feet baseline within each row for standing poses; crouches remain naturally low, NOT scaled to fill cell. Fully transparent background. No text, no grid lines, no labels, no effects, no extra objects, no additional figures. Do NOT merely shift or paste a head over old art: repaint head, neck and shoulder junction seamlessly in one drawing. No floating heads, no sharp rectangular cutout boundaries, no gaps through the suit or neck, no scarflike extra neck skin, no doubled chins or leftover faces.",
+  "planches": [
+    {
+      "type": "combat",
+      "fichier": "dupont-aignan-combat-raccords-v2.png",
+      "source": "exec-132cefea-6cfd-4904-b5a0-ecc76f2cb69b.png",
+      "grille": [
+        4,
+        4
+      ],
+      "precision": "Consigne commune sans ajout."
+    },
+    {
+      "type": "movement",
+      "fichier": "dupont-aignan-movement-raccords-v2.png",
+      "source": "exec-d0d82c0a-c179-40e4-996a-7c000d2e0226.png",
+      "grille": [
+        4,
+        4
+      ],
+      "precision": "SPECIAL ATTENTION to third row columns 1,2,3: they are three forward duck/dash poses. Reconstruct a short natural neck inserted INSIDE a continuous white collar between chin and shoulders, with the suit chest connected to the lapels; both tucked fists must be whole. Row 3 column4 and row4 are backward impact poses, not a different man. Fully redraw the collar and sternum with NO white rectangular torn areas. Keep all 16 poses."
+    },
+    {
+      "type": "actions",
+      "fichier": "dupont-aignan-actions-raccords-v2.png",
+      "source": "exec-54588cb0-3957-48ea-8fcb-da00097da5f8.png",
+      "grille": [
+        4,
+        3
+      ],
+      "precision": "Preserve twelve poses: row1 neutral standing, hand to forehead, low hand-on-ground crouch, higher crouch; row2 two talking open-palm gestures then two neutral/listening standing figures; row3 backward fall, seated landing, lying propped on elbow, lying asleep. The asleep figure must have closed eyes with the SAME skull shape, face identity and head scale. The head in each fallen figure must be anatomically attached to the lying or reclined torso via a natural neck/collar. No detached head glued near an arm, no extra white stripe under the jaw, no open triangular gap through the chest."
+    },
+    {
+      "type": "locomotion",
+      "fichier": "dupont-aignan-locomotion-raccords-v2.png",
+      "source": "exec-f9cf5d40-563c-4548-94f5-960aa960a9cc.png",
+      "grille": [
+        4,
+        3
+      ],
+      "precision": "This is specifically a twelve-frame low boxing guard and small guarded step sheet. First row: four breathing/guard poses, third one slightly more crouched. Other two rows: small low guarded walking steps. All fists must be whole and naturally separate from the jaw. SAME skull volume and hairline in all twelve figures. Avoid neck sticking out like a tube: it should be short and anchored inside the suit collar, with shoulders rising naturally on either side. Continuous connected skin and clothing. Every standing figure on a common ground baseline per row. Slightly flexed knees, no straight tall replacement stance."
+    }
+  ],
+  "regle": "Les sprites sont redessinés entiers. Le script de préparation ne fait que mesurer leurs rectangles et calculer une échelle uniforme pour le personnage entier."
+}

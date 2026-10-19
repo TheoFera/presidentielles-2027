@@ -90,7 +90,8 @@ export function hit(sim, source, target, spec, attackId) {
   // Le coup d’un hologramme compte comme le coup de Mélenchon qu’il imite.
   if (spec.mirror_kind) spec = { ...spec, kind: spec.mirror_kind };
   const protectedHit = armored(state, target) && !(spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind));
-  const retaliate = target.role === 'CANDIDAT' && europeActive(state, target) && !spec.ranged && !spec.retaliation;
+  // Super Européiste : renvoie les coups de corps à corps, et aussi les piques des PNJ (militants), qui ne frappent qu’à distance.
+  const retaliate = target.role === 'CANDIDAT' && europeActive(state, target) && (!spec.ranged || source.role !== 'CANDIDAT') && !spec.retaliation;
   let revived = false, attackDamage = spec.damage || 0;
   const direction = spec.direction || Math.sign(combatDelta(state, source.x, target.x)) || source.facing;
   const result = { id: `hit:${state.next_hit_id++}`, tick: state.tick, attack_id: attackId,
@@ -154,7 +155,7 @@ export function hit(sim, source, target, spec, attackId) {
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
   source.combat.last_hit = result; target.combat.last_hit = result;
   source.combat.target_id = target.id;
-  if (!protectedHit && spec.kind !== 'BURN') {
+  if (!protectedHit && spec.kind !== 'BURN' && !spec.no_interrupt) {
     target.combat.attack_id = null; target.combat.buffer_until_tick = -1;
     // Les coups légers (1 et 2 du combo) n’interrompent pas la charge ; le coup 3 et les coups forts, si.
     if (spec.strong || spec.step === 3) cancelCharge(target);

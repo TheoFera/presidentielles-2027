@@ -5,15 +5,15 @@
 #start-menu::before, #start-menu::after { display: none; }
 #start-menu .menu-shell { width: min(1150px, 100%); }
 #start-menu .menu-header { min-height: 44px; }
-#start-menu button, #help button, #results button { border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714, 0 0 10px #138cff66; }
-#start-menu button:hover, #help button:hover, #results button:hover { filter: brightness(1.16); }
-#start-menu button:active:not(:disabled), #help button:active, #results button:active { transform: translateY(2px); }
+#start-menu button, #results button { border-radius: 12px; border: 2px solid #a6dbff; background: linear-gradient(#20385b, #081225 65%); box-shadow: inset 0 2px 0 #ffffff80, 0 4px 0 #020714, 0 0 10px #138cff66; }
+#start-menu button:hover, #results button:hover { filter: brightness(1.16); }
+#start-menu button:active:not(:disabled), #results button:active { transform: translateY(2px); }
 #start-menu button:focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
 #start-menu #menu-fullscreen { font-size: 26px; line-height: 1; width: 48px; padding: 5px; }
 #start-menu #menu-back { font-family: Impact, 'Arial Black', sans-serif; font-size: clamp(16px, 2cqw, 25px); }
 #start-menu h1 { color: #ffe879; text-shadow: 2px 3px 0 #061128, 0 0 16px #167aff66; }
-#start-menu .menu-primary, #help #resume, #results #replay { color: white; border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); box-shadow: inset 0 2px 0 white, 0 5px 0 #04270b, 0 0 15px #66ff2a66; text-shadow: 1px 2px 1px #092309; }
-#start-menu .tutorial-card, #start-menu .lobby-player, #start-menu .qr-card, .help-page article { border-radius: 16px; background: linear-gradient(145deg, #1c3556ee, #081326f5); border: 2px solid #85c5f8; box-shadow: inset 0 1px 0 #ffffff70, 0 5px 15px #0005; }
+#start-menu .menu-primary, #results #replay { color: white; border-color: #b1ff76; background: linear-gradient(#7eff23, #20b900 50%, #087a14 51%, #22ce08 90%); box-shadow: inset 0 2px 0 white, 0 5px 0 #04270b, 0 0 15px #66ff2a66; text-shadow: 1px 2px 1px #092309; }
+#start-menu .tutorial-card, #start-menu .lobby-player, #start-menu .qr-card { border-radius: 16px; background: linear-gradient(145deg, #1c3556ee, #081326f5); border: 2px solid #85c5f8; box-shadow: inset 0 1px 0 #ffffff70, 0 5px 15px #0005; }
 #start-menu input, #start-menu select { border-radius: 8px; }
 
 /* No cropped illustration, including on tall desktop windows or wide phones. */
@@ -85,7 +85,7 @@
 #start-menu[data-screen='loading'] #start-campaign { margin-left: auto; }
 #start-menu #start-campaign:focus-visible, #start-menu #prepare-game:focus-visible { outline: 3px solid white; outline-offset: 4px; }
 #start-menu #start-campaign:disabled { background: #263a52; border-color: #7593ad; box-shadow: inset 0 2px 0 #93b3ce; opacity: .8; }
-#help, #results { background: linear-gradient(#061329ed, #061329f5), var(--menu-candidates-art) center / cover; }
+#results { background: linear-gradient(#061329ed, #061329f5), var(--menu-candidates-art) center / cover; }
 #campaign-styles { background: linear-gradient(#061329e8, #061329f5), var(--menu-candidates-art) center / cover; }
 #campaign-styles .campaign-style-card { border-radius: 16px; box-shadow: inset 0 2px 0 #ffffff70, 0 5px 15px #0005; }
 

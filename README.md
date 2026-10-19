@@ -32,7 +32,6 @@ L'accueil propose deux modes, chacun **Solo** (contre l'ordinateur) ou **Multijo
 | Ultime (jauge pleine) | R | Ultime |
 | Convaincre un électeur | s'arrêter près de lui | idem |
 | Acheter un bâtiment, un service | rester devant le panneau de prix | idem |
-| Aide et pause | H ou Échap | Pause |
 | Plein écran | F | bouton des menus |
 
 En Débat, ↓ fait redescendre d'un pupitre. F3 ouvre le panneau de débogage (voir [docs/verifications.md](docs/verifications.md)).

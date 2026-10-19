@@ -35,7 +35,7 @@ Les scripts de `scripts/verifications/` pilotent Chrome avec Playwright pour vé
 
 | Script | Ce qu'il vérifie |
 |---|---|
-| `validate-start-menu-browser.mjs`, `validate-illustrated-menus-browser.mjs` | menus, pause, aide, chargement, plein écran |
+| `validate-start-menu-browser.mjs`, `validate-illustrated-menus-browser.mjs` | menus, pause, chargement, plein écran |
 | `validate-candidate-selection-browser.mjs`, `validate-debate-selection-browser.mjs` | choix des candidats (Campagne, Débat) |
 | `validate-arcade-browser.mjs` | menus sur petits écrans et parties à 2 puis 3 navigateurs |
 | `validate-qr-browser.mjs` | invitations par QR lues par des caméras simulées |

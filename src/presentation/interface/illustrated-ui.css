@@ -66,3 +66,14 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
   #touch-controls .touch-directions, #touch-controls #jump-touch, #touch-controls #attack-touch { display: none; }
   #touch-controls .touch-actions { margin-left: auto; }
 }
+
+/* K.-O. en campagne : le décor passe en gris, le HUD garde ses couleurs, et un grand décompte
+   (même style que le « 3, 2, 1 » du mode Débat) annonce le retour à la permanence. */
+#world { transition: filter .5s ease-out; }
+#world.is-knocked-out { filter: grayscale(.9) brightness(.82); }
+#respawn-countdown { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 1; display: grid; justify-items: center; gap: .3em; pointer-events: none; }
+#respawn-countdown[hidden] { display: none; }
+#respawn-countdown .respawn-label { padding: .25em .9em; border-radius: 4px; background: #10163acc; color: #f2f5ff; font: 900 clamp(11px, 1.5cqw, 20px)/1 Impact, 'Arial Black', sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+#respawn-countdown .respawn-digit { font: 900 clamp(48px, 11cqw, 150px)/1 Impact, 'Arial Black', sans-serif; color: #ffe36e; font-variant-numeric: tabular-nums;
+  text-shadow: 0 .5cqw 0 #c43b5c, 0 1cqw 0 #3b1450, 0 0 3cqw #ffb13b99; paint-order: stroke fill; -webkit-text-stroke: .5cqw #10163a; }
+@media (prefers-reduced-motion: reduce) { #world { transition: none; } }

@@ -1,8 +1,8 @@
 // Campagne : quand le joueur met K.-O. un candidat (ou un style) qu'il n'a pas encore,
 // la carte du candidat descend en haut de l'écran (rayons dorés, confettis) puis repart.
 // Elle ne bloque jamais le jeu (aucun clic capté) et plusieurs K.-O. s'enchaînent dans l'ordre.
-// Pour ne pas surcharger l'écran, elle attend qu'aucune autre pop-up ne soit affichée
-// (évènement média, message, choix du style).
+// Elle s'affiche dès le K.-O., par-dessus les bandeaux d'évènement, le sondage et les messages ;
+// seuls un menu ouvert (pause) ou l'écran de choix de fin de partie la font patienter.
 import { DEBATE_CANDIDATES } from '../debat/debate-selection.js';
 import { CAMPAIGN_STYLES } from '../../simulation/campaign-styles.js';
 import { avatarFaction, hydrateMedallions, portraitFace } from '../menus/player-card.js';
@@ -11,8 +11,8 @@ const DURATION_MS = 2800;
 const CONFETTI_COLORS = ['#ffd75e', '#e5333b', '#2b55c9', '#f2f5ff', '#5dcaa5'];
 const queue = [];
 let showing = false;
-/** Une autre pop-up occupe déjà l'écran : la carte attend son tour. */
-const otherPopupVisible = () => !!document.querySelector('#campaign-events .campaign-card, .account-toast, dialog[open], .unlock-choice:not([hidden])');
+/** Un menu (pause) ou l'écran de choix couvre le jeu : la carte attend qu'il se ferme. */
+const otherPopupVisible = () => !!document.querySelector('dialog[open], .unlock-choice:not([hidden])');
 
 /** Nom court du candidat et, pour un style, son nom (« Zemmouriste »). Sert aussi à l'écran de choix de fin de partie. */
 export function unlockLabel(id) {

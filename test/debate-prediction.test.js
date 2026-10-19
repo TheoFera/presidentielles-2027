@@ -32,6 +32,7 @@ function play({ setup = duel, latency, jitter = 0, ticks, guestInput, hostInput 
   const toHost = [], toGuest = [], predicted = [];
   let upAt = 0, downAt = 0, messages = 0, rollbacks = 0, seenFrame = 0;
   const waited = [], phases = [];
+  let resumedTick = -Infinity, paused = false;
   const delivery = (from, t) => { const at = Math.max(from, t + latency + Math.floor(random() * (jitter + 1))); return outage && at >= outage[0] && at < outage[1] ? outage[1] : at; };
   const rollback = host.rollback.bind(host); host.rollback = from => { rollbacks++; rollback(from); };
   for (let t = 0; t < ticks; t++) {
@@ -42,16 +43,18 @@ function play({ setup = duel, latency, jitter = 0, ticks, guestInput, hostInput 
     while (toHost.length && toHost[0].at <= t) { const m = toHost.shift(); host.receive(guestId, m.seq, m.commands, m.seen); }
     host.step(hostInput(t));
     // Les premiers pas attendent le premier message de l'invité : ce n'est pas un incident.
-    if (host.waiting && t >= 30) waited.push(t);
+    if (host.waiting && t >= 30) { waited.push(t); if (outage && t >= outage[0]) paused = true; }
+    // Premier pas joué après l'attente due à la coupure (pas celle, normale, entre deux manches).
+    else if (paused && resumedTick === -Infinity) resumedTick = match.state.tick;
     phases.push(match.state.phase);
     const sent = { ...match.getState(), input_acks: host.acks(), ai_seed: match.state.rng_state, host_frame: host.frame, sync_wait: host.waiting };
     toGuest.push({ at: downAt = delivery(downAt, t), state: JSON.parse(JSON.stringify(encodePresentationState(sent))) });
     while (toGuest.length && toGuest[0].at <= t) { const state = toGuest.shift().state; seenFrame = state.host_frame; prediction.authoritative(state); }
     if (prediction.active) predicted.push({ tick: prediction.state.tick, positions: new Map(prediction.state.candidates.map(c => [c.id, c.x])) });
   }
-  // Écart entre la prédiction de l'invité et la vérité finale de l'hôte, au même tick.
-  const error = id => predicted.filter(p => truth.has(p.tick)).map(p => Math.abs(p.positions.get(id) - truth.get(p.tick).get(id)));
-  return { host, match, prediction, messages, rollbacks, error, waited, phases, ids: match.state.candidates.map(c => c.id) };
+  // Écart entre la prédiction de l'invité et la vérité finale de l'hôte, au même tick (à partir de `from`).
+  const error = (id, from = -Infinity) => predicted.filter(p => truth.has(p.tick) && p.tick >= from).map(p => Math.abs(p.positions.get(id) - truth.get(p.tick).get(id)));
+  return { host, match, prediction, messages, rollbacks, error, waited, resumedTick, phases, ids: match.state.candidates.map(c => c.id) };
 }
 const mean = list => list.reduce((a, b) => a + b, 0) / list.length;
 const goAndBack = t => [{ type: 'Move', axis: Math.floor(t / 20) % 3 - 1 }];
@@ -154,7 +157,10 @@ test('Débat à 2 joueurs + 1 IA : une coupure ne dérègle pas l’IA', () => {
   const run = play({ setup: trio, latency: 2, jitter: 2, ticks: 500, guestInput: goAndBack, outage: [200, 245] });
   assert.ok(run.waited.length >= 30, 'le combat attend pendant la coupure');
   assert.equal(run.host.waiting, false, 'puis reprend');
-  // Après la reprise, l'invité et l'IA sont de nouveau prédits à l'identique.
-  assert.ok(mean(run.error(run.ids[1]).slice(-100)) < 0.01);
-  assert.ok(mean(run.error(run.ids[2]).slice(-100)) < 0.02);
+  // Après la reprise (1,5 s de rattrapage), l'invité et l'IA sont de nouveau prédits à l'identique.
+  // Mesurer à partir de la reprise : selon le combat, la manche peut finir peu après la coupure.
+  const after = run.resumedTick + 45;
+  assert.ok(run.error(run.ids[1], after).length >= 20);
+  assert.ok(mean(run.error(run.ids[1], after)) < 0.01);
+  assert.ok(mean(run.error(run.ids[2], after)) < 0.02);
 });

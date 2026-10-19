@@ -44,7 +44,7 @@
     </section>
     <section id="start-menu" aria-label="Menu de Présidentielle 2027 : Le Jeu"><p class="boot-message" role="status">Préparation du jeu…</p></section>
     <main id="game" inert aria-label="Présidentielle 2027 : Le Jeu">
-      <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour frapper, maintenir pour charger, frapper en l’air pour plonger, flèche haut ou Z pour sauter, R pour l’ultime, rester près d’un Neutre pour convaincre. H pour l’aide, F3 pour le débogage."></canvas>
+      <canvas id="world" tabindex="0" aria-label="Monde horizontal. Flèches ou Q et D pour marcher, Espace ou J pour frapper, maintenir pour charger, frapper en l’air pour plonger, flèche haut ou Z pour sauter, R pour l’ultime, rester près d’un Neutre pour convaincre. F3 pour le débogage."></canvas>
       <div id="touch-controls" aria-label="Commandes tactiles">
         <div class="touch-directions">
           <button id="move-left" aria-label="Marcher à gauche">←</button>
@@ -70,27 +70,6 @@
       <div id="phase-fade" aria-hidden="true"></div>
       <div id="vote-interlude" hidden role="status"><p>Place au vote<span aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></p></div>
       <section id="results" class="election-results" hidden aria-label="Résultats électoraux"></section>
-<section id="help" class="panel" hidden aria-label="Aide">
-        <span class="eyebrow">PRÉSIDENTIELLE 2027 : LE JEU</span><h1>Aide</h1>
-        <nav class="help-tabs" aria-label="Pages du guide">
-          <button data-help-tab="controls" aria-selected="true">Commandes</button>
-          <button data-help-tab="field" aria-selected="false">Terrain</button>
-          <button data-help-tab="election" aria-selected="false">Élection</button>
-        </nav>
-        <div class="help-page" data-help-page="controls">
-          <article><h2>Déplacez-vous, combattez</h2><dl class="keyboard-guide"><dt>← → / Q D / A D</dt><dd>Marcher</dd><dt>Espace / J</dt><dd>Frapper dès l’appui ; maintenir <span data-charge-duration></span> pour charger ; en l’air : coup plongeant</dd><dt>↑ / Z</dt><dd>Sauter, même pendant un coup (l’interrompt)</dd><dt>↓ / S</dt><dd>Débat : descendre d’un pupitre</dd><dt>Double appui ← / →</dt><dd>Esquiver</dd><dt>R</dt><dd>Ultime chargé</dd><dt>H</dt><dd>Afficher l’aide</dd><dt>F</dt><dd>Plein écran</dd></dl><div class="touch-guide"><p>Maintenez <strong>← / →</strong> pour marcher. Double appui pour esquiver.</p><p>Appuyez sur <strong>Frapper</strong> pour attaquer. Maintenez <span data-charge-duration></span> pour charger. En l’air, <strong>Frapper</strong> déclenche un coup plongeant. <strong>Sauter</strong> interrompt le coup en cours et permet d’éviter les coups bas. <strong>Ultime</strong> devient activable à pleine jauge.</p><p>Relâchez les flèches pour vous arrêter et convaincre.</p></div></article>
-          <article><h2>Prenez l’avantage</h2><p>Trois frappes rapprochées forment un combo : si vous réappuyez vite après une touche, l’adversaire ne peut pas s’échapper. La troisième frappe le renverse ; il se relève intouchable un court instant. La troisième brise aussi une charge. Pendant la charge, vous recevez les dégâts mais résistez aux interruptions. Un dash annule la charge. Touchez vos adversaires, ou encaissez leurs coups, pour remplir l’ultime, prioritaire sauf pendant un étourdissement.</p><p>Le style choisi à la création du QG est définitif pour toute la partie.</p></article>
-        </div>
-        <div class="help-page" data-help-page="field" hidden>
-          <article><h2>Rassemblez des voix</h2><p>Sautez pour ramasser les billets dans votre biome. Restez près d’un passant neutre pour en faire un sympathisant : il vous donnera de l’argent quand il sera prêt.</p><p>Un sympathisant dépose aussi ses dons dans une permanence de votre camp. Passez devant ce bâtiment pour vider sa cagnotte. Un militant ou un SO ne fait plus de dons.</p><p><strong>Prendre un bâtiment</strong> demande deux choses : assez d’argent <em>et</em> assez de soutiens (sympathisants ou militants) dans son quartier. Les petits personnages au-dessus du bâtiment montrent combien il en faut. Convainquez des passants tout près, puis restez immobile devant le billet.</p><p>Le bâtiment de contrôle détermine qui possède le quartier : vos sympathisants et militants y sont plus résistants, et les neutres y résistent davantage aux adversaires. Les dons et les tracts sont regroupés dans les permanences.</p><p><strong>Vélos et scooters :</strong> achetez le garage puis restez immobile devant pendant 2,5 secondes. Le véhicule accélère vos déplacements ; sauter, frapper ou utiliser une capacité le fait disparaître.</p><p><strong>Rassemblements :</strong> traversez le cortège pour convaincre presque instantanément les neutres et les sympathisants adverses. À la fin de la marche, les habitants rentrent près de leur point de départ.</p><p id="balance-help"></p></article>
-          <article><h2>Développez votre camp</h2><p>Le premier Local devient votre QG. L’Imprimerie transforme vos sympathisants en militants grâce aux tracts.</p><p>Éloignez-vous puis revenez pour un nouvel achat. L’Imprimerie permet plusieurs commandes sur place.</p><p id="poll-help"></p></article>
-        </div>
-        <div class="help-page" data-help-page="election" hidden>
-          <article><h2>La course à l’Élysée</h2><p>Chaque PNJ convaincu apporte une voix sur 200. À J0, la soirée électorale annonce le premier tour : les deux meilleurs scores sont qualifiés, le troisième est éliminé.</p><p>Les deux finalistes repartent pour <strong>60 secondes</strong> et convainquent les PNJ restants.</p><p>Le meilleur nombre de voix final gagne. Un candidat éliminé peut suivre la fin en spectateur.</p></article>
-          <article><h2>Gardez le cap</h2><p>Les rivaux recrutent, construisent et attaquent. Les voix des habitants neutres restent à conquérir.</p><p id="budget-help"></p><p>En multijoueur, gardez tous le jeu ouvert.</p></article>
-        </div>
-        <div class="help-actions"><button id="resume">Fermer l’aide</button><button id="help-home">Menu principal</button></div>
-      </section>
       <aside id="debug" class="panel" hidden aria-label="Débogage de la simulation">
         <header><strong>État de la simulation</strong><button id="close-debug" aria-label="Fermer le débogage">×</button></header>
         <details id="match-tools">

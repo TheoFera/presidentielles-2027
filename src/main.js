@@ -13,6 +13,7 @@ import { CombatPoseTracker } from './presentation/personnages/melenchon-combat.j
 import { recordMatchResult } from './presentation/menus/player-profile.js';
 import { playerCard, rememberTitle, setCandidateColors } from './presentation/menus/player-card.js';
 import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interface/knockout-reveal.js';
+import { RespawnCountdown } from './presentation/interface/respawn-countdown.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
@@ -71,8 +72,6 @@ function showError(error, duringGame = false) {
 async function start() {
   showLegalNotice();
   const config = await loadConfig();
-  const chargeDuration = `${config.balance.candidate_combat.charge_ready_seconds.toLocaleString('fr-FR')} s`;
-  document.querySelectorAll('[data-charge-duration]').forEach(element => { element.textContent = chargeDuration; });
   const profile = loadCampaignProfile();
   try { saveCampaignProfile(profile); } catch { console.warn('Le profil ne peut pas être enregistré dans ce navigateur.'); }
   // Le profil reste le même objet : les simulations et l'écran des styles gardent leur référence.
@@ -94,7 +93,7 @@ async function start() {
   const audio = new GameAudio();
   // Le navigateur n'autorise le son qu'après un geste de l'utilisateur.
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
-  document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #help button, #results button, #campaign-styles button, .unlock-choice button')) audio.play('ui'); }, true);
+  document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #results button, #campaign-styles button, .unlock-choice button')) audio.play('ui'); }, true);
   const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
   // Pub plein écran au clic de fin de partie, en solo seulement (voir docs/publicites.md).
   const ads = new InterstitialAds({ audio });
@@ -145,17 +144,15 @@ async function start() {
       else void ads.afterGame('campaign', returnHome);
     },
   });
-  const help = document.getElementById('help');
   const money = document.getElementById('money');
   const funds = document.getElementById('funds');
   const moneyCounter = new MoneyCounter(money, formatCarriedMoney);
-  document.getElementById('budget-help').textContent = `Plafond de dépenses : ${config.balance.money.campaign_spending_limit.toLocaleString('fr-FR')} k€ par candidat sur toute la partie. Les remboursements ne rétablissent pas ce budget.`;
   const notice = document.getElementById('notice');
   let pending = [];
   let paused = true;
   let wakeLock = null;
   let wakePending = false;
-  // In multiplayer the screen stays on in the lobby and the help panel too:
+  // In multiplayer the screen stays on in the lobby too:
   // a sleeping phone suspends its page and drops the connection for everybody.
   const screenIdle = () => document.hidden || (!session && (paused || menu?.active));
   async function keepScreenAwake() {
@@ -189,6 +186,8 @@ async function start() {
   const transitionSettings = config.prototype.presentation.transitions;
   const transitions = new SceneTransitions(transitionSettings);
   const curtain = document.getElementById('phase-fade'), voteInterlude = document.getElementById('vote-interlude');
+  // K.-O. en campagne : monde en gris et décompte avant la réapparition.
+  const respawnCountdown = new RespawnCountdown(document.getElementById('game'), canvas, config.balance.simulation_architecture.fixed_tick_hz);
   voteInterlude.style.setProperty('--vote', `${transitionSettings.vote_seconds}s`);
   sounds.resultsLead = transitionSettings.vote_seconds;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -243,7 +242,7 @@ async function start() {
   function restartMatch(home = false, seed = config.prototype.seed) {
     simulation = new GameSimulation(config, seed, state.local_candidate_id, profile);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
-    debug.toggle(false); paused = home; help.hidden = true; input.clear(); clock.reset(); canvas.focus();
+    debug.toggle(false); paused = home; input.clear(); clock.reset(); canvas.focus();
   }
   const debug = new DebugPanel(config, {
     state: () => state, queue, notify,
@@ -272,15 +271,8 @@ async function start() {
       notify(`Nouvelle partie · graine ${seed}`);
     },
   });
-  function toggleHelp() {
-    if (menu?.active || state.campaign_style_selection) return;
-    help.hidden = !help.hidden; input.clear();
-    if (help.hidden) canvas.focus();
-    else { document.getElementById('resume').focus({ preventScroll: true }); help.scrollTop = 0; }
-  }
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
-    if (!help.hidden) { if (['h', 'escape'].includes(key)) toggleHelp(); return; }
     if (!debateMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
@@ -296,7 +288,6 @@ async function start() {
       }
     }
     else if (key === 'dash-left' || key === 'dash-right') { if (!paused) human.dash(key === 'dash-left' ? -1 : 1); }
-    else if (key === 'h') toggleHelp();
     else if (key === 'f3') {
       if (!session && !debateMatch) debug.toggle();
       // Outils de débogage (accélération, triche) : cette partie ne débloquera rien sur le compte.
@@ -316,12 +307,6 @@ async function start() {
     if (session && !session.host) { pending.push(command); return; }
     simulation.applyCommand(command); state = simulation.getState();
   }, () => { input.clear(); pending = []; clock.reset(); });
-  document.getElementById('resume').addEventListener('click', toggleHelp);
-  document.getElementById('help-home').addEventListener('click', () => returnHome());
-  document.querySelectorAll('[data-help-tab]').forEach(button => button.addEventListener('click', () => {
-    document.querySelectorAll('[data-help-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab === button)));
-    document.querySelectorAll('[data-help-page]').forEach(page => { page.hidden = page.dataset.helpPage !== button.dataset.helpTab; });
-  }));
   document.addEventListener('visibilitychange', () => {
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
@@ -333,11 +318,6 @@ async function start() {
   // Closing the tab or leaving the page warns the other phones at once instead of
   // letting them wait for a time-out.
   window.addEventListener('pagehide', event => { if (!event.persisted && session) stopSession(); });
-  // Help values follow the configuration too.
-  const durationText = document.getElementById('balance-help');
-  const format = number => number.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
-  document.getElementById('poll-help').textContent = `Sondage : restez devant un Institut et payez ${format(config.balance.buildings.institut_sondage.poll_cost)} k€. Il ne s’actualise pas tout seul.`;
-  durationText.textContent = `Premier QG : ${format(config.balance.buildings.permanence.first_headquarters_capture_cost)} k€ et ${config.balance.buildings.permanence.required_presence_N1} soutiens présents. Les dons des sympathisants remontent à une permanence du même quartier. Un tract coûte ${format(config.balance.buildings.imprimerie.tract_cost_by_level[0])} k€. Au KO, ${format(config.balance.candidate_combat.ko_money_drop_ratio * 100)} % de l’argent en poche tombe au sol.`;
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset(); campaignPrediction = null;
     void keepScreenAwake();
@@ -351,7 +331,7 @@ async function start() {
   async function prepareDebate(setup, onProgress = () => {}, multiplayer = null) {
     if (!multiplayer) stopSession();
     stopDebate();
-    paused = true; help.hidden = true; input.clear(); human.reset(); debug.toggle(false); clock.reset();
+    paused = true; input.clear(); human.reset(); debug.toggle(false); clock.reset();
     debateSetup = setup;
     debateMatch = new DebateMatch(config, { ...setup, seed: Math.floor(Math.random() * 2 ** 31) || 1 }, multiplayer ? null : profile);
     if (multiplayer) {
@@ -380,7 +360,7 @@ async function start() {
   }
   function returnHome() {
     stopDebate();
-    paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false); help.hidden = true;
+    paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false);
     void keepScreenAwake();
     matchDisplay.reset();
     stylesDisplay.state = null; stylesDisplay.dialog.close();
@@ -388,7 +368,7 @@ async function start() {
   }
   async function prepare(candidateId, onProgress = () => {}) {
     stopDebate();
-    paused = true; help.hidden = true; input.clear(); debug.toggle(false);
+    paused = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
     simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
     if (session) {
@@ -530,7 +510,7 @@ async function start() {
   }
 
   function play() {
-    snapshots.reset(); sentTick = null; paused = false; help.hidden = true; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake();
+    snapshots.reset(); sentTick = null; paused = false; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake();
     // Arrivée dans la campagne : la partie attend que le menu soit effacé, l'interface glisse à sa place.
     if (debateMatch || reducedMotion()) return;
     arrivalRemaining = session ? 0 : transitionSettings.arrival_seconds;
@@ -735,7 +715,7 @@ async function start() {
 
   /** Une image du mode Débat : simulation à pas fixe, puis affichage. */
   function debateFrame(elapsed, now) {
-    const halted = paused || !help.hidden || document.hidden;
+    const halted = paused || document.hidden;
     // Un invité ne décide de rien : l’hôte arbitre. Mais pendant le combat, son téléphone
     // joue ses gestes tout de suite (prédiction), puis se recale sur chaque état de l’hôte.
     const guest = session && !session.host;
@@ -817,7 +797,7 @@ async function start() {
    * de campagne est plus lourd).
    */
   function pullTick() {
-    if (!session || paused || document.hidden || !help.hidden || menu.active || session.room?.phase !== 'playing') return;
+    if (!session || paused || document.hidden || menu.active || session.room?.phase !== 'playing') return;
     if (debateMatch) clock.pull(session.host ? hostDebateTick : prediction ? guestDebateTick : () => {});
     else if (!session.host && campaignPrediction) clock.pull(guestCampaignTick);
   }
@@ -842,6 +822,7 @@ async function start() {
       previousTime = now;
       if (wasHidden) { elapsed = 0; wasHidden = false; }
       updateNetworkPing(menu.active ? null : elapsed);
+      if (menu.active || debateMatch) respawnCountdown.update(state, null, true);
       if (menu.active) { sounds.update(state, { menu: true }); requestAnimationFrame(frame); return; }
       if (debateMatch) { debateFrame(elapsed, now); requestAnimationFrame(frame); return; }
       if (session && !session.host) {
@@ -907,8 +888,9 @@ async function start() {
       }
       moneyCounter.update(candidate.money, candidate.id, elapsed);
       const local = state.candidates.find(c => c.id === state.local_candidate_id);
+      respawnCountdown.update(state, local, paused || !!state.campaign_style_selection || !scene.draw);
       const inCombat = state.phase === 'CAMPAIGN' && !!local && !local.eliminated && combatMusic.active(local, state, config);
-      sounds.update(state, { paused: paused || !help.hidden, combat: inCombat });
+      sounds.update(state, { paused, combat: inCombat });
       if (state.phase === 'RESULTS' && !resultRecorded) {
         resultRecorded = true;
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));

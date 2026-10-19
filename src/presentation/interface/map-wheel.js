@@ -6,12 +6,8 @@ const CENTER = 160;
 const INNER_RADIUS = 72, ICON_RADIUS = 104;
 export const mapNeutralColor = '#a6aaa3';
 // Anneau du sondage, juste à l'extérieur de la bordure (rayon 145).
-const RING_RADIUS = 152, RING_GAP = 0.6, RING_SECONDS = 0.9, RING_BADGE_MIN = 5;
-// Couleur claire : chiffre foncé sur la pastille.
-const isLight = hex => {
-  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
-  return 0.299 * r + 0.587 * g + 0.114 * b > 160;
-};
+const RING_RADIUS = 152, RING_GAP = 0.6, RING_SECONDS = 0.9;
+// Mini-classement à gauche du cercle (jamais à droite : le cercle touche le bord droit de l'écran).
 const point = (radius, angle) => [CENTER + radius * Math.sin(angle), CENTER - radius * Math.cos(angle)];
 function element(tag, attributes = {}) {
   const node = document.createElementNS(NS, tag);
@@ -106,7 +102,10 @@ export class MapWheel {
     front.append(element('circle', { cx: 160, cy: 160, r: 71.1, class: 'map-center' }),
       element('circle', { cx: 160, cy: 160, r: 64.8, class: 'map-center-line' }),
       this.ring, element('path', { d: playerMark, class: 'map-player' }));
-    this.container.replaceChildren(this.svg, this.disc, front);
+    // Mini-classement en HTML (texte net à toute taille), reconstruit seulement à chaque sondage.
+    this.ranking = document.createElement('ol');
+    this.ranking.className = 'map-poll-ranking';
+    this.container.replaceChildren(this.svg, this.disc, front, this.ranking);
     this.lastRotation = null;
     this.lastLabel = '';
   }
@@ -125,12 +124,13 @@ export class MapWheel {
     for (const [id, path] of this.sectors) path.setAttribute('fill', colors[zones.get(id)] || mapNeutralColor);
   }
   /**
-   * Dessine le sondage en parts autour du cercle, du plus haut score au plus bas, depuis le haut.
-   * `shares` : [[faction, pourcentage entier]], `color(faction)` donne la couleur du candidat.
+   * Dessine le sondage en parts autour du cercle, du plus haut score au plus bas, depuis le haut,
+   * et un mini-classement à gauche : tous les candidats au-dessus de 0 %, et toujours votre ligne.
+   * `shares` : [[faction, pourcentage entier]] déjà triés, `color(faction)` donne la couleur, `names` les noms.
    * Avec `animate`, l'anneau se trace d'un trait (environ une seconde) à l'arrivée d'un nouveau sondage.
    */
-  updatePollRing(shares, color, player, animate) {
-    const parts = [], badges = [];
+  updatePollRing(shares, color, player, animate, names = {}) {
+    const parts = [];
     let start = 0;
     for (const [faction, value] of shares) {
       if (value <= 0) continue;
@@ -141,19 +141,23 @@ export class MapWheel {
         'stroke-dasharray': `${Math.max(0.1, value - RING_GAP)} 100`, 'stroke-dashoffset': -start,
         style: `--delay:${delay.toFixed(2)}s;--duration:${duration.toFixed(2)}s`,
       }));
-      // Pastille chiffrée au milieu des parts assez grandes pour la porter.
-      if (value >= RING_BADGE_MIN) {
-        const [x, y] = point(RING_RADIUS, (start + value / 2) / 100 * Math.PI * 2);
-        const badge = element('g', { class: 'map-poll-badge', transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})`,
-          style: `--delay:${(delay + duration).toFixed(2)}s` });
-        const label = element('text', { y: 1, class: isLight(color(faction)) ? 'map-poll-dark' : '' });
-        label.textContent = String(value);
-        badge.append(element('circle', { r: 19, fill: color(faction) }), label);
-        badges.push(badge);
-      }
       start += value;
     }
+    const rows = shares.map(([faction, value], rank) => ({ faction, value, rank }))
+      .filter(row => row.value > 0 || row.faction === player);
+    const lines = rows.map(({ faction, value, rank }) => {
+      const line = document.createElement('li');
+      line.className = faction === player ? 'map-poll-row map-poll-row-player' : 'map-poll-row';
+      line.style.setProperty?.('--row', color(faction));
+      const label = document.createElement('span'), score = document.createElement('b');
+      label.textContent = `${rank + 1}. ${names[faction] || faction}`;
+      score.textContent = `${value} %`;
+      line.append(label, score);
+      return line;
+    });
     this.ring.classList.toggle('map-poll-animate', !!animate);
-    this.ring.replaceChildren(...parts, ...badges);
+    this.ranking.classList.toggle('map-poll-animate', !!animate);
+    this.ring.replaceChildren(...parts);
+    this.ranking.replaceChildren(...lines);
   }
 }
