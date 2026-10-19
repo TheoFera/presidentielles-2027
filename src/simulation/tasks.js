@@ -162,8 +162,10 @@ function updateExpedition(simulation, npc, members) {
 export function updateMilitant(simulation, npc) {
   const { state, config } = simulation;
   const settings = config.balance.physical_units.militant;
+  // Membres du groupe calculés une seule fois : rien ne les modifie avant updateExpedition ci-dessous.
+  let members = null;
   if (npc.expedition) {
-    const members = expeditionMembers(state, npc);
+    members = expeditionMembers(state, npc);
     // Un groupe trop réduit se dissout : chacun rentre à sa permanence.
     if (members.length < settings.expedition_min_group_size) {
       for (const member of members) { member.expedition = null; member.task = null; }
@@ -177,7 +179,7 @@ export function updateMilitant(simulation, npc) {
       next_decision_tick: state.tick + simulation.secondsToTicks(settings.reconsider_seconds) };
     npc.moving = false; return;
   }
-  if (npc.expedition) { updateExpedition(simulation, npc, expeditionMembers(state, npc)); return; }
+  if (npc.expedition) { updateExpedition(simulation, npc, members); return; }
   const home = militantHome(state, npc);
   const target = state.npcs.find(n => n.id === npc.task?.target_id);
   const lostTarget = npc.task?.target_id && (target?.role !== 'NEUTRE' || (target.persuasion && target.persuasion.actor_id !== npc.id));
