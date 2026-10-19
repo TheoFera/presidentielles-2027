@@ -163,13 +163,13 @@ test('Feu : zone temporaire, brûlure rafraîchie et nettoyage au changement', (
   choose(sim, c, 'melenchon_universaliste'); assert.equal(sim.state.powers.length, 0); assert.equal(sim.state.projectiles.length, 0); assert.equal(c.ultimate_effect, null);
 });
 
-test('Zemmour : un PNJ intercepte la bulle et deux coups suffisent', () => {
+test('Zemmour : un PNJ intercepte la bulle et quatre coups légers suffisent', () => {
   const sim = make(), c = isolate(sim, 'le_pen', 'le_pen_zemmouriste'); c.special_charge = sim.config.balance.special_charge.required_points;
   const target = sim.state.candidates[0]; target.x = 110;
   const n = supporter(sim, 103); n.faction_id = 'melenchon'; const hp = target.resistance;
   activateUltimate(sim, c); tickCombat(sim, sim.hz); assert.ok(n.hidden_durability < sim.config.balance.physical_units.sympathisant.hidden_durability); assert.equal(target.resistance, hp);
   const summon = sim.state.temporary_units.find(t => t.role === 'ZEMMOUR');
-  for (let i = 0; i < 2; i++) hit(sim, target, summon, { damage: sim.config.balance.candidate_combat.light_hit_hidden_damage, knockback: 0 }, `test:${i}`);
+  for (let i = 0; i < 4; i++) hit(sim, target, summon, { damage: sim.config.balance.candidate_combat.light_hit_hidden_damage, knockback: 0 }, `test:${i}`);
   assert.equal(summon.expired, true);
 });
 
@@ -178,9 +178,10 @@ test('Bardellisation : une seule relève ; KO suivant et respawn sous forme Mari
   c.special_charge = sim.config.balance.special_charge.required_points;
   activateUltimate(sim, c);
   hit(sim, enemy, c, { damage: 999, knockback: 1 }, 'test:ko');
-  assert.equal(c.is_ko, false); assert.equal(c.bardella_form, true); assert.equal(c.resistance, sim.config.balance.candidate_combat.resistance_max); assert.equal(c.special_charge, 0);
+  assert.equal(c.is_ko, false); assert.equal(c.bardella_form, true); assert.equal(c.resistance, sim.config.balance.candidate_combat.resistance_max * sim.config.balance.specials.bardella.revive_resistance_ratio); assert.equal(c.special_charge, 0);
   choose(sim, c, 'le_pen_souverainiste'); choose(sim, c, 'le_pen_gouvernement'); c.special_charge = sim.config.balance.special_charge.required_points;
   activateUltimate(sim, c);
+  sim.state.tick += sim.secondsToTicks(sim.config.balance.specials.bardella.revive_invulnerable_seconds);
   hit(sim, enemy, c, { damage: 999, knockback: 1 }, 'test:second-ko'); assert.equal(c.is_ko, true);
   sim.state.tick = c.respawn_tick; updateCandidateResistance(sim); assert.equal(c.is_ko, false); assert.equal(c.bardella_form, false);
 });

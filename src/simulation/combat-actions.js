@@ -64,7 +64,7 @@ function updateDive(sim, actor) {
   actor.x = barrierBlockedPosition(sim, actor, combatPosition(state, x));
   let landed = false;
   if (state.platforms?.length) {
-    const landing = state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
+    const landing = state.platforms.filter(p => p.id !== c.drop_through_id && onPlatform(p, actor.x)
       && previousHeight >= p.height && c.height <= p.height).sort((a, b) => b.height - a.height)[0];
     if (landing) { c.height = landing.height; actor.platform_id = landing.id; landed = true; }
   } else landed = podiumLanding(sim, actor, previousHeight, c.height);
@@ -79,13 +79,16 @@ function updateDive(sim, actor) {
  * Le saut suit une parabole qui part de la hauteur courante et continue sous
  * son point de départ jusqu’à retrouver un pupitre ou le sol. */
 export const platformJump = state => state.platform_jump;
+/** Les pieds dépassent du centre du personnage : on tient sur un pupitre tant qu’un pied le touche. */
+export const PLATFORM_FOOTING = 0.3;
+export const onPlatform = (p, x) => Math.abs(x - p.x) <= p.half_width + PLATFORM_FOOTING;
 const platformJumpHeight = (sim, c) => {
   const t = (sim.state.tick - c.jump_tick) / sim.secondsToTicks(platformJump(sim.state).duration_seconds);
   const height = c.jump_base + platformJump(sim.state).height * 4 * t * (1 - t);
   return sim.state.fall_death_height != null ? height : Math.max(0, height);
 };
 export const platformUnder = (state, x, height, ignoreId = null) => state.platforms.find(p => p.id !== ignoreId
-  && Math.abs(x - p.x) <= p.half_width && Math.abs(p.height - height) < 1e-6) || null;
+  && onPlatform(p, x) && Math.abs(p.height - height) < 1e-6) || null;
 /** Faire tomber depuis le haut de la parabole : marche dans le vide, ↓ ou coup reçu. */
 export function startPlatformFall(sim, actor, ignoreId = null) {
   const c = actor.combat;
@@ -103,7 +106,7 @@ function updatePlatformHeight(sim, actor) {
   const previousHeight = c.height;
   c.height = platformJumpHeight(sim, c);
   if (c.height >= previousHeight) return;
-  const landing = sim.state.platforms.filter(p => p.id !== c.drop_through_id && Math.abs(actor.x - p.x) <= p.half_width
+  const landing = sim.state.platforms.filter(p => p.id !== c.drop_through_id && onPlatform(p, actor.x)
     && previousHeight >= p.height && c.height <= p.height).sort((a, b) => b.height - a.height)[0];
   if (landing) { c.jump_tick = null; c.height = landing.height; c.drop_through_id = null; actor.platform_id = landing.id; return; }
   if (sim.state.fall_death_height == null && c.height <= 0) { c.jump_tick = null; c.height = 0; c.drop_through_id = null; actor.platform_id = null; }

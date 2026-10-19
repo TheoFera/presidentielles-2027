@@ -180,7 +180,7 @@ function startCandidateAttack(sim, actor) {
   makeAttack(sim, actor, scarf ? 'SCARF' : 'CANDIDATE', { step: c.combo_step, strong,
     stun_seconds: !scarf && !strong ? b.candidate_combat.light_stun_seconds : b.candidate_combat.hit_stun_seconds,
     range: scarf ? b.specials.scarf.range : strong ? b.candidate_combat.finisher_range : b.candidate_combat.light_range,
-    damage: scarf ? b.specials.scarf.damage : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
+    damage: scarf ? (strong ? b.specials.scarf.finisher_damage : b.specials.scarf.damage) : strong ? b.candidate_combat.finisher_hidden_damage : b.candidate_combat.light_hit_hidden_damage,
     knockback: scarf ? b.specials.scarf.knockback : strong ? b.candidate_combat.finisher_knockback : b.candidate_combat.light_knockback,
     electoral_damage: strong ? b.candidate_combat.electoral_damage_on_finisher_percent_points : b.candidate_combat.electoral_damage_on_light_hit_percent_points });
 }

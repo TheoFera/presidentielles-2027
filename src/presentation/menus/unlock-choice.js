@@ -3,8 +3,9 @@
 // - défaite (« seconde chance ») : 1 au choix, s'il regarde une pub récompensée.
 // Les nombres viennent de unlockOffer() (src/simulation/unlock-catalog.js).
 // C'est une étape du parcours des résultats : l'écran s'ouvre au clic sur « Voir le bilan », avant le bilan.
-// En haut, un emplacement par déblocage possible (🎁 gratuit, 🎬 contre une pub) : la carte choisie y passe,
-// puis reçoit le tampon « Débloqué » seulement quand l'enregistrement est confirmé.
+// En haut, un emplacement par déblocage possible (🎁 gratuit, 🎬 contre une pub) : la carte choisie y passe
+// et elle est enregistrée aussitôt (une fermeture de l'appli pendant la pub ne la fait pas perdre) ;
+// le tampon « Débloqué » n'arrive que quand l'enregistrement est confirmé.
 import { hydrateMedallions, portraitFace } from './player-card.js';
 import { unlockLabel } from '../interface/knockout-reveal.js';
 
@@ -23,15 +24,15 @@ export function choiceStep(offer, { free = 0, rewarded = 0 } = {}, adAvailable =
 }
 
 /** Textes de l'écran : le titre dit l'étape, les emplacements montrent le reste (pas de doublon). */
-function texts(offer, step, save, picked) {
+function texts(offer, step, failed, saved) {
   const n = offer.choices.length;
   const kicker = offer.won ? 'Victoire !' : 'Élection perdue';
   if (step === 'free') return { kicker, title: 'Choisis ton candidat', text: `Tu as mis K.-O. ${n} candidats. Choisis celui que tu débloques.` };
   if (step === 'ad') return { kicker, title: offer.won ? 'Un 2ᵉ candidat ?' : 'Seconde chance',
     text: 'Regarde une pub jusqu’au bout pour en débloquer un.' };
   // Récapitulatif : le tampon des emplacements dit « Débloqué », le titre donne les noms.
-  if (save === 'failed') return { kicker, title: 'Pas enregistré', text: '' };
-  return { kicker, title: picked.map(id => { const { name, style } = unlockLabel(id); return style ? `${name} ${style}` : name; }).join(' + '), text: '' };
+  if (failed && !saved.length) return { kicker, title: 'Pas enregistré', text: '' };
+  return { kicker, title: saved.map(id => { const { name, style } = unlockLabel(id); return style ? `${name} ${style}` : name; }).join(' + '), text: '' };
 }
 
 function card(id) {
@@ -42,18 +43,20 @@ function card(id) {
 
 /**
  * Prépare l'écran de choix, caché au départ. Renvoie { done, reveal } :
- * done : promesse { ids, saved } à la fermeture ; reveal() : affiche l'écran.
+ * done : promesse { ids, saved } à la fermeture (saved : candidats bien enregistrés) ; reveal() : affiche l'écran.
  * getAd() : renvoie (ou promet) une offre de pub récompensée { available, show() } (voir ads.js).
  * ad : première offre déjà obtenue (facultatif).
- * save(ids) : enregistre les candidats choisis ; promesse rejetée avec { message, retry } en cas d'échec.
+ * save(ids) : enregistre un choix dès qu'il est fait ; promesse rejetée avec { message, retry } en cas d'échec.
  * onBack() : « ← Résultats », l'écran se cache sans rien perdre. sound() : son du tampon.
  */
 export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = async () => {}, onBack = null, sound = null, parent = document.body }) {
   const picks = { free: [], rewarded: [] };
   // Pub récompensée : 'waiting' (la régie répond), 'ready' (show() disponible) ou 'none'.
   let ad = { state: 'none' }, asks = 0, failed = false, playing = false, selected = null, closed = false, finish;
-  // Enregistrement : null (choix en cours), 'saving', 'saved' ou 'failed' (retry : un nouvel essai a un sens).
-  let saveState = null, retry = false;
+  // Enregistrement de chaque emplacement : 'saving', 'saved' ou 'failed' ; saving : un envoi est en cours.
+  // problem : dernier échec { id, retry } ; il arrête le parcours (pas de pub qui ne rapporterait rien).
+  const slotSave = [];
+  let saving = false, problem = null;
   const done = new Promise(resolve => { finish = resolve; });
   const slots = Array.from({ length: offer.free + offer.rewarded }, (_, i) => i < offer.free ? 'free' : 'ad');
   const root = document.createElement('div');
@@ -72,8 +75,10 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = asyn
   const cards = [...root.querySelectorAll('.unlock-card')], slotEls = [...root.querySelectorAll('.unlock-slot')];
   const primary = $('.unlock-choice-primary'), secondary = $('.unlock-choice-secondary'), status = $('.unlock-choice-status');
   const all = () => [...picks.free, ...picks.rewarded];
+  const savedIds = () => all().filter((_, i) => slotSave[i] === 'saved');
   // Une pub ratée garde l'étape « pub » ouverte (message, nouvel essai) au lieu de fermer l'écran.
-  const step = () => choiceStep(offer, { free: picks.free.length, rewarded: picks.rewarded.length },
+  // Un enregistrement raté arrête le parcours : récapitulatif.
+  const step = () => problem ? 'recap' : choiceStep(offer, { free: picks.free.length, rewarded: picks.rewarded.length },
     ad.state === 'waiting' ? null : ad.state === 'ready' || failed);
 
   function askAd(first = null) {
@@ -98,45 +103,50 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = asyn
           hydrateMedallions(el);
         } else { delete el.dataset.id; el.querySelectorAll('.unlock-slot-face, .unlock-slot-stamp').forEach(x => x.remove()); }
       }
-      const target = !id && saveState === null && (now === 'free' ? el.dataset.kind === 'free' : now === 'ad' && el.dataset.kind === 'ad') && i === ids.length;
-      el.dataset.state = id ? saveState ?? 'filled' : target ? 'next' : 'empty';
+      const target = !id && !saving && (now === 'free' ? el.dataset.kind === 'free' : now === 'ad' && el.dataset.kind === 'ad') && i === ids.length;
+      el.dataset.state = id ? slotSave[i] ?? 'filled' : target ? 'next' : 'empty';
+      // Récapitulatif : une case restée vide n'a plus rien à montrer.
+      el.hidden = !id && now === 'recap';
     });
   }
 
   function render() {
     if (closed) return;
-    let now = saveState ? 'done' : step();
+    let now = step();
     // Victoire, choix gratuit fait, pas de pub à l'ouverture : la régie a pu en charger une depuis (un seul nouvel essai).
-    if (!saveState && now === 'done' && ad.state === 'none' && asks < 2 && picks.free.length >= offer.free
+    if (now === 'done' && ad.state === 'none' && asks < 2 && picks.free.length >= offer.free
       && picks.rewarded.length < offer.rewarded && all().length < offer.choices.length) { askAd(); now = step(); }
-    if (now === 'done' && !saveState) {
+    if (now === 'done') {
       if (!all().length) { close(); return; }
-      void record();
-      return;
+      now = 'recap';
     }
     const remaining = offer.choices.filter(id => !all().includes(id));
     if (!remaining.includes(selected)) selected = remaining.length === 1 ? remaining[0] : null;
-    const t = texts(offer, now, saveState, all());
+    const t = texts(offer, now, !!problem, savedIds());
     $('.unlock-choice-kicker').textContent = t.kicker;
     $('h2').textContent = t.title;
     $('.unlock-choice-text').textContent = t.text;
     $('.unlock-choice-text').hidden = !t.text;
     renderSlots(now);
     // Les cartes choisies quittent la grille : elles sont dans leur emplacement, en haut.
-    $('.unlock-choice-cards').hidden = !!saveState;
+    $('.unlock-choice-cards').hidden = now === 'recap';
     for (const el of cards) {
       el.hidden = all().includes(el.dataset.id);
-      el.disabled = playing;
+      el.disabled = playing || saving;
       el.setAttribute('aria-checked', String(el.dataset.id === selected));
     }
-    $('.unlock-choice-later').hidden = !onBack || !!saveState;
+    $('.unlock-choice-later').hidden = !onBack || now === 'recap';
     const name = selected ? unlockLabel(selected).name : '';
-    secondary.hidden = now !== 'ad';
-    secondary.disabled = playing;
-    secondary.textContent = ad.state === 'none' ? 'Continuer' : 'Non merci';
-    if (saveState) {
-      primary.textContent = saveState === 'saving' ? '…' : saveState === 'failed' && retry ? 'Réessayer' : 'Voir le bilan ➜';
-      primary.disabled = saveState === 'saving';
+    // Échec réparable (connexion) : « Réessayer », et le bilan reste accessible.
+    secondary.hidden = !(now === 'ad' || now === 'recap' && problem?.retry);
+    secondary.disabled = playing || saving;
+    secondary.textContent = now === 'recap' ? 'Voir le bilan' : ad.state === 'none' ? 'Continuer' : 'Non merci';
+    if (saving) {
+      primary.textContent = '…';
+      primary.disabled = true;
+    } else if (now === 'recap') {
+      primary.textContent = problem?.retry ? 'Réessayer' : 'Voir le bilan ➜';
+      primary.disabled = false;
     } else if (now === 'free') {
       primary.textContent = selected ? `🎁 Débloquer ${name}` : 'Choisis un candidat';
       primary.disabled = !selected;
@@ -149,21 +159,23 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = asyn
     }
   }
 
-  /** Enregistre les choix ; le tampon et les confettis ne viennent qu'une fois l'enregistrement confirmé. */
-  async function record() {
-    saveState = 'saving'; status.textContent = ''; render();
+  /** Enregistre un choix tout de suite ; le tampon et les confettis ne viennent qu'une fois l'enregistrement confirmé. */
+  async function record(id) {
+    const index = all().indexOf(id);
+    saving = true; problem = null; slotSave[index] = 'saving'; status.textContent = ''; render();
     try {
-      await save(all());
-      saveState = 'saved';
+      await save([id]);
+      slotSave[index] = 'saved';
       sound?.();
       if (!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) confetti();
     } catch (error) {
-      saveState = 'failed';
-      retry = !!error?.retry;
+      slotSave[index] = 'failed';
+      problem = { id, retry: !!error?.retry };
       status.textContent = error?.message || 'Déblocage non enregistré.';
     }
+    saving = false;
     render();
-    if (!closed) primary.focus({ preventScroll: true });
+    if (!closed && !root.hidden) focus();
   }
 
   function confetti() {
@@ -185,34 +197,42 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = asyn
     closed = true;
     clearTimeout(timer);
     root.remove();
-    finish({ ids: all(), saved: saveState === 'saved' });
+    finish({ ids: all(), saved: savedIds() });
   }
 
   cards.forEach(el => { el.onclick = () => { if (!el.disabled) { selected = el.dataset.id; status.textContent = ''; render(); } }; });
   primary.onclick = async () => {
     if (primary.disabled) return;
-    if (saveState) { if (saveState === 'failed' && retry) void record(); else close(); return; }
+    const now = step();
+    if (now === 'recap' || now === 'done') { if (problem?.retry) void record(problem.id); else close(); return; }
     if (!selected) return;
-    if (step() === 'free') { picks.free.push(selected); selected = null; render(); return; }
+    const id = selected;
+    if (now === 'free') { picks.free.push(id); selected = null; void record(id); return; }
     playing = true; status.textContent = ''; render();
     // show() part dans ce clic : le site exige un geste du joueur pour lancer la pub.
     const earned = await ad.show().catch(() => false);
     playing = false;
-    if (earned) { picks.rewarded.push(selected); selected = null; failed = false; }
+    if (earned) { picks.rewarded.push(id); selected = null; failed = false; }
     else { failed = true; status.textContent = 'Pub fermée avant la fin ou indisponible : pas de déblocage. Tu peux réessayer.'; }
     // Une pub ne sert qu'une fois : on en redemande une si un autre choix reste possible.
     if (picks.rewarded.length < offer.rewarded && all().length < offer.choices.length) askAd();
-    render();
+    if (earned) void record(id); else render();
   };
-  // « Non merci » : on garde ce qui est déjà choisi (enregistré puis tamponné), ou on ferme s'il n'y a rien.
+  // « Non merci » : on garde ce qui est déjà enregistré (récapitulatif), ou on ferme s'il n'y a rien.
+  // « Voir le bilan » après un échec réparable : on renonce à réessayer.
   secondary.onclick = () => {
-    if (playing) return;
+    if (playing || saving) return;
+    if (step() === 'recap') { close(); return; }
     offer = { ...offer, rewarded: picks.rewarded.length };
     render();
   };
 
   let timer = 0;
-  function focus() { if (!closed) (cards.find(el => !el.disabled && !el.hidden) || primary).focus({ preventScroll: true }); }
+  function focus() {
+    if (closed) return;
+    const grid = !$('.unlock-choice-cards').hidden;
+    (grid && cards.find(el => !el.disabled && !el.hidden) || primary).focus({ preventScroll: true });
+  }
   function reveal() {
     if (closed) return;
     root.hidden = false;
@@ -220,7 +240,7 @@ export function openUnlockChoice({ offer, getAd, ad: firstAd = null, save = asyn
   }
   // « ← Résultats » : l'écran se cache sans rien perdre ; « Voir le bilan » le rouvre.
   $('.unlock-choice-later').onclick = () => {
-    if (closed || playing || saveState) return;
+    if (closed || playing || saving) return;
     root.hidden = true;
     onBack?.();
   };

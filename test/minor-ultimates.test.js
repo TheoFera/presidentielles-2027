@@ -18,6 +18,7 @@ import { retireMinorsForSecondRound } from '../src/simulation/minor-candidates.j
 import { minorUltimateGesture, minorBarrierPose } from '../src/presentation/effets/minor-ultimate-gestures.js';
 import { deliveryPlanePose, deliveryMissilePose } from '../src/presentation/effets/minor-delivery-flight.js';
 import { sausageFlightPose, SAUSAGE_HELD_ANGLE } from '../src/presentation/effets/minor-sausage-flight.js';
+import { candidateExtraPose } from '../src/presentation/personnages/candidate-extra-poses.js';
 import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
 
 const config = campaignConfig();
@@ -143,7 +144,7 @@ test('Glucksmann, Attal et Roussel : hauteur constante et échelle uniforme des 
     const atlas = minorUltimateAtlases[name];
     for (const height of [80, 145, 220]) for (const [index, frame] of atlas.frames.entries()) {
       const scale = characterFrameScale(atlas, index, height);
-      assert.ok(Math.abs(frame[3] * scale - height * CHARACTER_HEIGHT_RATIO) < 1e-9);
+      assert.ok(Math.abs(frame[3] * scale - height * CHARACTER_HEIGHT_RATIO * (name === 'phone' ? .92 : 1)) < 1e-9);
       assert.ok(frame[4] >= frame[0] && frame[4] <= frame[0] + frame[2]);
       assert.equal(frame[5], frame[1] + frame[3]);
     }
@@ -154,8 +155,26 @@ test('Glucksmann : une seule pose et une seule oreille pendant toute la conversa
   const { sim, owner } = setup('glucksmann'); activateUltimate(sim, owner); const p = sim.state.powers[0];
   const poses = Array.from({length: sim.secondsToTicks(config.balance.minor_ultimates.delivery.call_seconds)}, (_, n) => minorUltimateGesture(p, p.started_tick + n, sim.hz, config.balance.minor_ultimates));
   assert.equal(poses[0].index, 1); assert.equal(poses.at(-1).index, 3);
-  assert.ok(poses.slice(6, 19).every(pose => pose.index === 2));
+  assert.ok(poses.slice(Math.ceil(poses.length * .2), Math.ceil(poses.length * .82)).every(pose => pose.index === 2));
   assert.equal(minorUltimateAtlases.phone.frames.length, 4);
+});
+
+test('Glucksmann : retour direct à la garde après l’appel pendant la récupération de l’ultime', () => {
+  for (const facing of [-1, 1]) {
+    const { sim, owner } = setup('glucksmann'); owner.facing = facing;
+    activateUltimate(sim, owner); const power = sim.state.powers[0];
+    const callTicks = sim.secondsToTicks(config.balance.minor_ultimates.delivery.call_seconds);
+    tick(sim, callTicks);
+    let recoveryFrames = 0;
+    while (owner.combat.attack_id) {
+      assert.equal(minorUltimateGesture(power, sim.state.tick, sim.hz, config.balance.minor_ultimates), null);
+      const pose = candidateExtraPose(owner, sim.state, config, true);
+      assert.equal(pose?.name, 'combat_idle'); assert.equal(pose.sheet, 'guardIdle');
+      assert.equal(pose.direction, facing);
+      recoveryFrames++; tick(sim);
+    }
+    assert.ok(recoveryFrames > 0, 'La récupération doit être couverte par le contrôle du raccord.');
+  }
 });
 
 test('Retailleau : longueur constante à l’apparition, debout et pendant toute la bascule', () => {
@@ -208,19 +227,21 @@ test('Glucksmann : appel sans dégâts puis trois livraisons annoncées, chacune
     assert.equal(drop.done, true);
   }
   assert.equal(sim.state.hit_results.filter(h => h.target_id === target.id).length, 3);
-  assert.equal(target.resistance, 61);
+  assert.equal(target.resistance, 46);
 });
 
 test('Glucksmann : trois missiles plus rapides, mêmes centres et mêmes rayons d’impact', () => {
   const b = config.balance.minor_ultimates.delivery;
-  assert.equal(b.spacing, 2.4); assert.equal(b.radius, 1.3); assert.equal(b.damage, 13);
+  assert.equal(b.spacing, 2.4); assert.equal(b.radius, 1.5); assert.equal(b.damage, 18);
   for (const facing of [-1, 1]) {
     const { sim, owner, target } = setup('glucksmann'); owner.facing = facing;
     activateUltimate(sim, owner); const p = sim.state.powers[0];
     p.impacts.forEach((drop, index) => assert.ok(Math.abs(drop.x - (owner.x + facing * 2.4 * (index + 1))) < 1e-9));
     for (const [index, drop] of p.impacts.entries()) {
       assert.equal(drop.tick - drop.launch_tick, sim.secondsToTicks(b.warning_seconds));
-      assert.ok((drop.tick - drop.launch_tick) / sim.hz < .3);
+      assert.ok((drop.tick - drop.launch_tick) / sim.hz <= .18);
+      assert.ok((p.impacts[0].tick - p.started_tick) / sim.hz <= 1, 'Premier impact en moins d’une seconde.');
+      assert.ok((p.impacts.at(-1).tick - p.started_tick) / sim.hz <= 1.1, 'Salve complète en moins de 1,1 seconde.');
       if (index) assert.equal(drop.launch_tick - p.impacts[index - 1].launch_tick, sim.secondsToTicks(b.interval_seconds));
       target.x = drop.x; target.combat = combatState();
       while (sim.state.tick < drop.tick - 1) tick(sim);
@@ -247,6 +268,9 @@ test('Glucksmann : Rafale hors écran au début et à la fin, missiles reliés a
     assert.equal(plane(exit + 1).visible, false); assert.ok(planeBottom(exit) < 0);
     for (const drop of p.impacts) {
       const atLaunch = plane(drop.launch_tick);
+      // Même le bord avant du rectangle du Rafale reste derrière la verticale du lanceur.
+      assert.ok((atLaunch.x - project(p.x)) * facing + atLaunch.width * .5 < 0,
+        'Les trois missiles doivent partir avant que le Rafale dépasse Glucksmann.');
       const missile = tick => deliveryMissilePose(p, drop, tick, sim.hz, b, m, project);
       assert.equal(missile(drop.launch_tick - 1).visible, false);
       assert.equal(missile(drop.launch_tick).visible, true);
@@ -283,7 +307,8 @@ test('Glucksmann : Rafale hors écran au début et à la fin, missiles reliés a
       const direction = Math.atan2(after.y - before.y, Math.abs(after.x - before.x));
       assert.ok(Math.abs(direction - facing * pose.angle) < 1e-8, 'Le nez suit la tangente réelle de la courbe.');
     }
-    const together = p.impacts.at(-1).launch_tick + 1;
+    // Avec le vol raccourci, les trois missiles coexistent dès le départ du dernier.
+    const together = p.impacts.at(-1).launch_tick;
     assert.ok(p.impacts.every(drop => deliveryMissilePose(p, drop, together, sim.hz, b, m, project).visible), 'Les trois missiles doivent voler ensemble pendant la salve.');
   }
 });

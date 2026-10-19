@@ -8,6 +8,7 @@ import { minorCombatAtlases } from './minor-animation-sprites.js';
 import { invisibleToEnemies } from '../../simulation/minor-ultimate-catalog.js';
 import { characterFrameScale, drawCharacterAtlasFrame } from './character-scale.js';
 import { minorGuardIdleFrame } from './minor-locomotion-sprites.js';
+import { usesScarfWeapon, scarfCostumeActor } from './scarf-costume.js';
 
 export const MELENCHON_SPRITE = 'character-melenchon-combat-v4';
 // Source bounds and body pivots for independently drawn poses.
@@ -96,12 +97,14 @@ export function melenchonPose(entity, state, config, guard = false) {
 }
 
 export function drawMelenchonCombat(renderer, entity, x, state) {
+  const scarfWeapon = usesScarfWeapon(entity, state);
+  if (scarfWeapon) entity = scarfCostumeActor(entity);
   if (!usesCandidateCombat(entity, state)) return false;
   if(entity.role==='HOLOGRAMME' && state.tick < (entity.ready_tick || 0)) return false;
   renderer.combatPoseTracker ??= new CombatPoseTracker();
   // Un hologramme se met en garde en même temps que Mélenchon.
   const owner = entity.role === 'HOLOGRAMME' && state.candidates.find(c => c.id === entity.owner_id);
-  const guard = renderer.combatPoseTracker.active(owner || entity, state, renderer.config);
+  const guard = renderer.combatPoseTracker.active(owner || entity, state, renderer.config) || scarfWeapon;
   let extra=null;
   if(extraAtlasesFor(entity)) {
     renderer.melenchonMotionTracker ??= new MelenchonMotionTracker();
@@ -131,6 +134,10 @@ export function drawMelenchonCombat(renderer, entity, x, state) {
   if (idle) ctx.rotate(Math.sin(state.tick / renderer.config.balance.simulation_architecture.fixed_tick_hz * Math.PI * 2 / .7) * .018);
   const scale = definition.uniformCharacter ? characterFrameScale(definition, frame, m.characterHeight)
     : m.characterHeight / (definition.referenceHeight || (extra ? 360 : MELENCHON_REFERENCE_HEIGHT)) * (definition.frameScales?.[frame] ?? 1) * MELENCHON_HEIGHT_STRETCH;
+  if (scarfWeapon) {
+    renderer.scarfHands ??= new Map();
+    renderer.scarfHands.set(entity.id, { tick: state.tick, atlas: definition, frame, scale, x, y: feet + breathing + step, direction: pose.direction });
+  }
   if(entity.role==='HOLOGRAMME') { ctx.globalAlpha=.48; ctx.shadowColor='#6edbff';ctx.shadowBlur=8; }
   drawCharacterAtlasFrame(ctx, atlas, definition, frame, scale);
   if (pose.name === 'charge_ready') {

@@ -1,4 +1,6 @@
 import { drawUltimateEffect, scarfPose } from './ultimate-sprites.js';
+import { scarfHand, scarfGrip } from './scarf-character.js';
+import { usesScarfWeapon } from '../personnages/scarf-costume.js';
 
 export function drawStyleEffects(renderer, state) {
   const { ctx, metrics:m, config }=renderer,hz=config.balance.simulation_architecture.fixed_tick_hz;
@@ -19,6 +21,7 @@ export function drawStyleEffects(renderer, state) {
   }
   for(const c of state.candidates) {
     if(c.is_ko||c.disappeared)continue;
+    if(renderer.scarfTransitionBodies?.get(c.id)===state.tick)continue;
     const x=renderer.screenX(c.x),h=m.characterHeight,feet=m.groundY+h*.06-(c.combat?.height||0)*h;
     if(c.ultimate_effect?.kind==='EUROPE'&&c.ultimate_effect.expires_tick>state.tick) {
       // last_hit is replaced by the outgoing retaliation. Use its confirmed
@@ -32,11 +35,25 @@ export function drawStyleEffects(renderer, state) {
     }
     // The attack's lifetime remains authoritative if the power expires mid-swing.
     const attack=state.attacks.find(a=>a.owner_id===c.id&&a.kind==='SCARF'&&a.id===c.combat?.attack_id);
-    if(attack) {
-      const pose=scarfPose(attack),reach=attack.range*m.pixelsPerUnit,direction=attack.direction||1;
+    if(attack || usesScarfWeapon(c,state) || renderer.scarfTransitionHeld?.get(c.id)===state.tick) {
+      const pose=attack?scarfPose(attack):{frame:0,extension:0};
+      const direction=attack?.direction||c.facing||1;
+      const recorded=renderer.scarfHands?.get(c.id);
+      const grip=recorded?.tick===state.tick?recorded:null;
+      const hand=grip?scarfGrip(grip.atlas,grip.frame,grip.scale):scarfHand(c,h,pose.frame);
+      const floor=m.groundY+h*(m.groundOffsetRatio??.06)-(c.combat?.height||0)*h;
+      const handX=(grip?.x??x)+direction*hand.x,handY=(grip?.y??floor)+hand.y;
+      const thickness=h*.13;
       if(pose.extension>0) {
-        const hand=h*.39*1.12,length=Math.max(0,reach-hand)*pose.extension;
-        drawUltimateEffect(renderer,'scarf',pose.cloth,x+direction*hand,feet-h*.76*1.06,length,h*.18*1.06,direction);
+        const reach=attack.range*m.pixelsPerUnit;
+        const length=h*.36+(Math.max(0,reach-hand.x)-h*.36)*pose.extension;
+        drawUltimateEffect(renderer,'scarf',6,handX,handY-thickness*.43,length,thickness,direction);
+      } else {
+        // L'écharpe reste saisie entre les coups, et passe derrière le poing à l'armé.
+        const angle=attack && attack.elapsed_ticks<attack.windup_ticks?1.2+pose.frame*.8:1.2;
+        ctx.save();ctx.translate(handX,handY);ctx.scale(direction,1);ctx.rotate(angle);
+        drawUltimateEffect(renderer,'scarf',6,0,-thickness*.43,h*.36,thickness);
+        ctx.restore();
       }
     }
   }

@@ -41,8 +41,7 @@
 .select-roster { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; }
 #start-menu .select-tile { min-width: 0; position: relative; height: clamp(70px, 16cqh, 142px); padding: 0; overflow: hidden; border-radius: 2px; border: 1px solid #51627d; background: linear-gradient(150deg, color-mix(in srgb, var(--candidate-color) 32%, #142036), #080d1b); box-shadow: none; }
 #start-menu .select-tile > .select-portrait { position: absolute; inset: 3px 2px 21px; }
-#start-menu .select-tile img { height: 220%; object-fit: cover; }
-#start-menu .select-tile[data-faction='roussel'] img { width: min(100%, 120px); margin-inline: auto; object-fit: contain; }
+#start-menu .select-tile img { width: 100%; height: 100%; object-fit: contain; object-position: center top; }
 #start-menu .select-tile strong { position: absolute; inset: auto 0 0; background: #070d1bea; padding: 5px 1px; color: #dce4f1; font: 800 clamp(9px, 1.2cqw, 13px)/1 system-ui, sans-serif; text-transform: uppercase; white-space: nowrap; letter-spacing: -.03em; }
 #start-menu .select-tile[data-faction='dupont_aignan'] strong { font-size: clamp(8px, 1cqw, 12px); }
 #start-menu .select-tile[aria-pressed='true'] { border: 2px solid #f7d574; box-shadow: 0 0 0 1px #f7d574, 0 0 18px #f7d57440; }
@@ -208,3 +207,6 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
 .debate-ranking .select-portrait { width: 3.4cqw; height: 3.4cqw; min-width: 26px; min-height: 26px; border-radius: 50%; border: 2px solid var(--fighter-color); }
 .debate-fighter-ultimate[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .debate-fighter-hp .life { transition: none; } }
+
+/* Les petits portraits utilisent le même gros plan carré que les avatars. */
+.debate-fighter .select-portrait[data-closeup] img, .debate-ranking .select-portrait[data-closeup] img { width: 100%; height: 100%; object-fit: contain; }

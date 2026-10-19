@@ -1,6 +1,10 @@
 // Même calendrier que les projectiles : le changement de pose coïncide avec le lâcher.
 export function minorUltimateGesture(power, tick, hz, balance, distanceToOwner = Infinity) {
   const age = (tick - power.started_tick) / hz;
+  // Levée des deux bras, emblème croisé maintenu au-dessus de la tête, puis retour à la garde.
+  if (power.kind === 'TOOLS' && age >= 0 && age < .82) {
+    return { atlas: 'toolsRaise', index: age < .16 ? 0 : age < .64 ? 1 : 2 };
+  }
   if (power.kind === 'DELIVERY' && age < balance.delivery.call_seconds) {
     const phase = age / balance.delivery.call_seconds;
     return { atlas: 'phone', index: phase < .2 ? 1 : phase < .82 ? 2 : 3 };

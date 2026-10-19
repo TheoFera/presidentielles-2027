@@ -16,6 +16,18 @@ import { measureMinorSprites } from '../scripts/outils-images/measure-minor-spri
 import { characterFrameScale, CHARACTER_HEIGHT_RATIO } from '../src/presentation/personnages/character-scale.js';
 import { minorLocomotionAtlases, minorGuardIdleFrame } from '../src/presentation/personnages/minor-locomotion-sprites.js';
 
+test('La persuasion validée de Dupont-Aignan conserve ses découpes, ses appuis et la hauteur de Philippe', () => {
+  const atlas = minorExtraAtlases.dupont_aignan.persuasion;
+  const file = 'assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-v1.png';
+  assert.ok(visualManifest[atlas.sprite].file.endsWith(file));
+  assert.deepEqual(atlas.frames, measureMinorSprites(readPng(file), { count: 2, columns: 2, koFrames: [] }).frames);
+  for (let i = 0; i < 2; i++) {
+    const frame = atlas.frames[i], scale = characterFrameScale(atlas, i, 170);
+    assert.equal(frame[1] + frame[3], frame[5], 'Les chaussures restent sur la ligne de sol.');
+    assert.ok(Math.abs(frame[3] * scale - 170 * CHARACTER_HEIGHT_RATIO) < .001);
+  }
+});
+
 test('Les douze planches redessinées ont des découpes et points d’appui mesurés dans leurs PNG', () => {
   for (const faction of ['roussel', 'arthaud', 'attal']) {
     const single = MINOR_ATLASES[faction].frames.length === 1;
@@ -79,7 +91,9 @@ test('Pas de garde, esquive, réception, persuasion et relevé partagent les pri
     actor.moving = true; actor.axis = 1;
     for (let frame=0; frame<8; frame++) assert.deepEqual([pose(null,frame).sheet,pose(null,frame).frame],[minorLocomotionAtlases[faction]?'guardWalk':'movement',frame]);
     actor.moving = false; actor.axis = 0; actor.persuasion_target_ids = ['npc'];
-    assert.equal(pose().name,'persuade'); assert.ok([4,5].includes(pose().frame));
+    assert.equal(pose().name,'persuade');
+    assert.ok((faction === 'dupont_aignan' ? [0,1] : [4,5]).includes(pose().frame));
+    assert.equal(pose().sheet, faction === 'dupont_aignan' ? 'persuasion' : 'actions');
     actor.persuasion_target_ids = []; assert.equal(pose(0).frame,2); assert.equal(pose(5).frame,3);
     actor.dash_active = true; actor.dash_direction = -1; actor.dash_until_tick = state.tick+Math.ceil(config.balance.dash.duration_seconds*config.balance.simulation_architecture.fixed_tick_hz);
     assert.equal(pose().sheet,'movement'); assert.equal(pose().frame,8); assert.equal(pose().direction,-1);
@@ -126,7 +140,8 @@ test('Les six secondaires : garde, huit pas et persuasion à la taille de garde 
  for(const faction of Object.keys(MINOR_ANIMATION_FILES)) {
   for(const [sheet,indices]of [['combat',[0,1,2,3,4,5,6,7,9,10,11]],['movement',[0,1,2,3,4,5,6,7]],['actions',[0,1,4,5,6,7]]]) {
    const atlas=sheet==='combat'?minorCombatAtlases[faction]:minorExtraAtlases[faction][sheet];
-   for(const index of indices)for(const height of [80,150,220])assert.ok(Math.abs(atlas.frames[index][3]*characterFrameScale(atlas,index,height)-reference*height)<1e-10,faction+' '+sheet+' '+index);
+   const posture = faction === 'glucksmann' && sheet === 'combat' ? .92 : 1;
+   for(const index of indices)for(const height of [80,150,220])assert.ok(Math.abs(atlas.frames[index][3]*characterFrameScale(atlas,index,height)-reference*height*posture)<1e-10,faction+' '+sheet+' '+index);
   }
  }
 });
@@ -169,4 +184,16 @@ test('Les trois nouveaux cycles de garde utilisent des dessins distincts et une 
   }
  }
  assert.deepEqual([0,4,8,11,14].map(tick=>minorGuardIdleFrame(tick,20)),[0,1,2,1,0]);
+});
+
+test('Glucksmann : le visage conserve son gabarit entre la pose droite, la garde et les coups', () => {
+ // Hauteurs cheveux–menton relevées sur les trois dessins de référence.
+ const poses = [[minorStandingAtlases.glucksmann, 138], [minorLocomotionAtlases.glucksmann.guardIdle, 138], [minorCombatAtlases.glucksmann, 122]];
+ for (const height of [80,150,220]) {
+  const reference = poses[0][1] * characterFrameScale(poses[0][0],0,height);
+  for (const [atlas,headHeight] of poses.slice(1)) {
+   assert.ok(Math.abs(headHeight * characterFrameScale(atlas,0,height) / reference - 1) < .02, 'La garde fléchie ne doit pas agrandir la tête.');
+   assert.ok(atlas.frames[0][3] * characterFrameScale(atlas,0,height) < CHARACTER_HEIGHT_RATIO * height, 'Les genoux fléchis abaissent le personnage.');
+  }
+ }
 });

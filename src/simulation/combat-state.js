@@ -99,7 +99,8 @@ export function hit(sim, source, target, spec, attackId) {
     const damage = config.balance.first_round_debate.damage;
     const key = spec.kind === 'CHARGED' ? 'charged' : spec.kind === 'WAVE' ? 'wave' : spec.kind === 'HOLOGRAM' ? 'hologram' : spec.kind === 'CRS' ? 'crs' : spec.strong ? 'heavy' : spec.step === 2 ? 'light_2' : 'light_1';
     // Mode Débat : mêmes dégâts qu’en campagne ; premier tour et débats : barème du débat.
-    const dealt = spec.exact_damage ? spec.damage || 0 : source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1)
+    const scale = spec.retaliation || state.campaign_hit_damage ? 1 : damage.light_1 / config.balance.candidate_combat.light_hit_hidden_damage * (state.campaign_damage_multiplier || 1);
+    const dealt = spec.exact_damage ? (spec.damage || 0) * scale : source.presentation_name === 'Journaliste' ? (source.journalist_damage ?? 1)
       : state.campaign_hit_damage ? spec.damage || 0 : damage[key] * (state.campaign_damage_multiplier || 1);
     result.damage = Math.min(target.debate_hp, dealt); attackDamage = dealt;
     result.score_damage = result.damage; result.debate_hp_before = target.debate_hp;
@@ -147,7 +148,7 @@ export function hit(sim, source, target, spec, attackId) {
   if (!protectedHit) target.combat.hitstop_ticks = Math.max(target.combat.hitstop_ticks, stop);
   // Chute au sol : coup final du combo ou coup chargé sur un candidat encore debout.
   if (!protectedHit && target.role === 'CANDIDAT' && !target.is_ko && !revived && !(state.debate_bounds && target.debate_hp <= 0)
-    && spec.tool !== 'HAMMER' && (spec.kind === 'CHARGED' && !spec.partial || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind))) knockDown(sim, target);
+    && (spec.kind === 'CHARGED' && !spec.partial || spec.step === 3 && ['CANDIDATE', 'SCARF'].includes(spec.kind) || ['WAVE', 'BARRIER'].includes(spec.kind))) knockDown(sim, target);
   // Encaisser un coup d’un candidat (ou de ses invocations) remplit aussi l’ultime.
   if (target.role === 'CANDIDAT' && result.damage > 0 && !target.is_ko && (source.role === 'CANDIDAT' || source.temporary)) hitTakenCharge(sim, target, !!spec.strong);
   source.combat.hitstop_ticks = Math.max(source.combat.hitstop_ticks, stop);
@@ -160,7 +161,7 @@ export function hit(sim, source, target, spec, attackId) {
   }
   if (protectedHit) result.knockback = 0;
   if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
-  if (revived) { target.combat = combatState(); target.axis = 0; }
+  if (revived) { target.combat = { ...combatState(), invulnerable_until_tick: target.combat.invulnerable_until_tick }; target.axis = 0; }
   if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0) {
     if (target.temporary) { target.expired = true; target.combat.attack_id = null; }
     else demobilizeUnit(sim, target);

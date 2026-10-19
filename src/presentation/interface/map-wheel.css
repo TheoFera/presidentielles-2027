@@ -27,15 +27,23 @@
 #electoral-display.sprint-clock #day { color: #ffe0b1; }
 .poll-stale #electoral-circle { opacity: 1; }
 .poll-stale .map-sector { opacity: .5; }
+/* Anneau du sondage (map-wheel.js) : parts fines autour du cercle, la vôtre plus épaisse. */
+.map-poll-part { fill: none; stroke-width: 11; }
+.map-poll-player { stroke-width: 16; }
+.map-poll-badge circle { stroke: #1c2b30; stroke-width: 3; }
+.map-poll-badge text { fill: #fff; font: 700 22px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; font-variant-numeric: tabular-nums; }
+.map-poll-badge text.map-poll-dark { fill: #1c2b30; }
+.map-poll-ring { transition: opacity .3s; }
+.poll-stale .map-poll-ring { opacity: .45; }
+/* Arrivée d'un sondage : chaque part se trace à la suite de la précédente, puis son chiffre apparaît. */
+.map-poll-animate .map-poll-part { animation: map-poll-draw var(--duration) linear var(--delay) both; }
+.map-poll-animate .map-poll-badge { animation: map-poll-badge .25s ease-out var(--delay) both; }
+@keyframes map-poll-draw { from { stroke-dasharray: 0 100; } }
+@keyframes map-poll-badge { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .map-poll-animate .map-poll-part, .map-poll-animate .map-poll-badge { animation: none; } }
+/* Le bandeau chiffré reste lisible par les lecteurs d'écran, mais l'anneau le remplace à l'écran. */
 #poll-scores {
-  top: 2.5%; left: 50%; max-width: 48%; flex-wrap: wrap; justify-content: center;
-  gap: 2px 10px; font-size: clamp(8px, min(1.1vw, 1.96dvh), 14px);
-  pointer-events: none;
+  top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; pointer-events: none;
 }
-#poll-scores.poll-stale { opacity: .6; }
-#poll-scores.poll-stale::after { content: '·'; color: #8c7060; }
 #game.has-map-wheel #notice { right: 22%; }
 #electoral-display.map-clock-only { right: auto; left: 50%; transform: translateX(-50%); width: 8%; height: 14%; }
-@media (max-height: 540px), (max-width: 900px) {
-  #poll-scores { left: 29%; max-width: 35%; gap: 2px 6px; }
-}

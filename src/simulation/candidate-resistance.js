@@ -2,6 +2,7 @@ import { clearCampaignUltimate } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { distance } from './territory.js';
 import { defeatMinor } from './minor-candidates.js';
+import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 export function updateCandidateResistance(sim) {
   const { state, config, hz } = sim; const settings = config.balance.candidate_combat;
@@ -23,7 +24,8 @@ export function updateCandidateResistance(sim) {
     }
     const safe = ![...state.candidates, ...state.npcs, ...state.temporary_units].some(other => other.id !== candidate.id && other.faction_id
       && other.faction_id !== candidate.faction_id && distance(state, candidate.x, other.x) <= settings.recovery_safe_distance);
-    if (safe && state.tick - candidate.last_damage_tick >= sim.secondsToTicks(settings.recovery_delay_seconds)) {
+    // Sous les radars : la récupération commence tout de suite, même près d'un adversaire.
+    if (invisibleToEnemies(candidate, state.tick) || safe && state.tick - candidate.last_damage_tick >= sim.secondsToTicks(settings.recovery_delay_seconds)) {
       candidate.resistance = Math.min(settings.resistance_max, candidate.resistance + settings.recovery_per_second / hz);
     }
   }

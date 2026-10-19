@@ -35,7 +35,7 @@ Worker Cloudflare « presidentielles-2027-salons » (déjà utilisé pour les sa
 
 | Fichier | Rôle |
 |---|---|
-| `serveur-en-ligne/migrations/0001_comptes.sql` | Schéma D1 (migration versionnée) ; `0002`, `0003` : ajouts |
+| `serveur-en-ligne/migrations/0001_comptes.sql` | Schéma D1 (migration versionnée) ; `0002` à `0004` : ajouts |
 | `serveur-en-ligne/api/router.js` | Routes `/api/v1`, tâche planifiée (cron) |
 | `serveur-en-ligne/api/oidc.js`, `providers.js` | Vérification des jetons ; fournisseurs Google et Apple |
 | `serveur-en-ligne/api/sessions.js` | Sessions PartageTonJeu |
@@ -185,7 +185,8 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
 - **Compte = source de vérité** : `player_candidate_unlocks`, retrouvé sur tout appareil. Le jeu garde une copie pour l'affichage.
 - **Aucune route « débloquer »**. Enregistrement seulement par :
   - une **partie multijoueur confirmée** par les joueurs (K.-O. inclus dans le résultat) ;
-  - une **campagne solo déclarée** au lancement (`POST /runs`) puis terminée (`POST /runs/{id}/complete`) : une seule fois,
+  - une **campagne solo déclarée** au lancement (`POST /runs`) puis terminée (`POST /runs/{id}/complete`) : un envoi par choix (le gratuit dès le clic, le 2ᵉ après la pub),
+    au plus 2 candidats par partie (`game_runs.picks`, migration `0004_choix_par_partie.sql`), le 2ᵉ envoi dans les 15 min,
     après au moins 75 % de la durée de campagne, calculée depuis `game_balance.json` (environ 6 min 23 s pour 8 min 30 de campagne), identifiants vérifiés. Une partie où le panneau de débogage
     (F3) a été ouvert n'est pas envoyée.
   - Limite honnête : en solo, le serveur ne voit pas la partie ; un jeu entièrement modifié pourrait encore tricher sur ses

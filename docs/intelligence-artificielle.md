@@ -92,6 +92,15 @@ Au premier QG, chaque IA choisit parmi **les trois styles propres à son candida
 
 Les difficultés, les objectifs et la réflexion en cours (`ai_mind`) sont enregistrés dans l’état de la partie. En multijoueur, l’hôte calcule les IA et transmet cet état aux invités. Le contrôleur ne conserve pas de mémoire cachée et ne consomme pas le générateur aléatoire lorsqu’il consulte une décision. Une sauvegarde puis une reprise reproduisent donc la même suite d’actions. Les sauvegardes du format courant sans les nouveaux champs restent acceptées ; en l’absence de réglage, elles utilisent le niveau normal.
 
+## Débat télé : plateformes
+
+L’IA du Débat télé (`src/simulation/debate-mode.js` et `debate-navigation.js`) cherche un chemin de plateforme en plateforme jusqu’à son adversaire et rejoue la physique du saut avant chaque mouvement, pour ne jamais tomber seule dans le vide.
+
+- **Descendre** : s’approcher du bord n’est pas un danger en soi. La prévision continue la marche au-delà du bord et accepte le mouvement si l’on se pose sur une plateforme plus basse. Arrêtée au ras d’un bord, elle revient vers l’intérieur au lieu de sauter dans le vide puis de remonter en boucle.
+- **Monter** : en l’air, elle ne frappe pas tant que les pieds de l’adversaire sont au-dessus des siens. Un coup en l’air est un plongeon vers le bas : frapper trop tôt la ferait retomber avant d’atteindre la plateforme.
+
+Banc d’essai : une cible immobile placée sur chaque plateforme, l’IA partant de chaque autre (468 situations sur les quatre arènes). Avant ces réglages, l’IA ne touchait jamais la cible dans 130 cas en 12 s ; désormais elle la touche dans tous les cas, en 2,5 s en moyenne, sans chute.
+
 ## Vérification
 
 `npm run test:ia` vérifie la conquête adverse, les achats, les raids, les fermetures, les neuf pouvoirs, les différences de difficulté, l’adaptation au niveau des humains, l’observation, le choix combattre/fuir, les billets de départ et la reprise des sauvegardes. Ces tests font également partie de `npm test`.

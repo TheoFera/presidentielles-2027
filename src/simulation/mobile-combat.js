@@ -47,9 +47,11 @@ export function requestDash(sim, c, direction, buffered = false) {
 /** Super Européiste : traverser un adversaire en dash le repousse et le blesse. */
 function europeDashHits(sim, c, from) {
   const s = sim.config.balance.specials.europe, dir = c.dash_direction;
+  const power = sim.state.powers.find(p => p.owner_id === c.id && p.kind === 'EUROPE'), ready = power ? (power.dash_hit_ticks ??= {}) : {};
   for (const target of combatActors(sim.state)) {
-    if (!enemies(c, target)) continue;
-    if (combatDelta(sim.state, from, target.x) * dir >= 0 && combatDelta(sim.state, c.x, target.x) * dir < 0)
+    if (!enemies(c, target) || sim.state.tick < (ready[target.id] ?? 0)) continue;
+    if (combatDelta(sim.state, from, target.x) * dir >= 0 && combatDelta(sim.state, c.x, target.x) * dir < 0
+      && (ready[target.id] = sim.state.tick + sim.secondsToTicks(s.dash_target_cooldown_seconds)))
       hit(sim, c, target, { kind: 'EUROPE_DASH', ultimate: true, exact_damage: true, damage: s.dash_damage, knockback: s.knockback,
         stun_seconds: s.stun_seconds, direction: -dir, no_hitstop: true }, `europe-dash:${sim.state.tick}:${target.id}`);
   }

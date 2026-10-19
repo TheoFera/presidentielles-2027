@@ -76,8 +76,8 @@ function drawTurningWheels(renderer, entity, sprite, frame, h, w, distance, mode
     // restent devant la roue, comme dans l'illustration d'origine.
     ctx.beginPath(); ctx.rect(-radius, radius * .15, radius * 2, radius); ctx.clip();
     ctx.beginPath(); ctx.arc(0, 0, radius * .78, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = modern ? '#292b28' : entity.vehicle.type === 'velo' ? '#303633' : '#8f9494';
-    ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+    // Conserver le dessin et la transparence entre les rayons : un fond uni
+    // formerait un demi-disque sombre sur les vélos et masquerait les jantes des scooters.
     ctx.rotate(angle);
     ctx.strokeStyle = modern ? '#74776d' : entity.vehicle.type === 'velo' ? '#bac0b5' : '#dfe3df';
     ctx.lineWidth = Math.max(.65, radius * .045);

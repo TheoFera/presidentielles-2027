@@ -1,3 +1,4 @@
+import { onPlatform } from '../../simulation/combat-actions.js';
 /** Plateaux peints complets : décors et plateformes appartiennent à la même illustration. */
 export const DEBATE_ARENAS = {
   elysee: { asset: 'debate-elysee', title: 'Tribune de l’Élysée' },
@@ -7,7 +8,7 @@ export const DEBATE_ARENAS = {
 };
 
 export function arenaSupportHeight(state, x, height) {
-  const support = state.platforms.filter(p => Math.abs(x - p.x) <= p.half_width && p.height <= height + 1e-6)
+  const support = state.platforms.filter(p => onPlatform(p, x) && p.height <= height + 1e-6)
     .sort((a, b) => b.height - a.height)[0];
   return support?.height ?? null;
 }

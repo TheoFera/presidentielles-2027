@@ -1,0 +1,136 @@
+{
+  "outil": "ImageGen intégré",
+  "image": "assets/images/pouvoirs/arthaud-levee-outils-v4.png",
+  "source": "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-6c075360-315f-4cbc-b103-a0d31f09ee36.png",
+  "reference_symbole": "https://logowik.com/lutte-ouvriere-logo-vector-33489.html",
+  "references": [
+    "assets/images/pouvoirs/arthaud-outils-v1.png",
+    "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-1b856419-eddb-4af2-8dd3-8d81a7194bd1.png"
+  ],
+  "prompt": "Use case: precise-object-edit / identity-preserve. Fix animation body continuity, not the accepted gesture. Input 1 is the CANONICAL equipped Nathalie Arthaud sprite sheet. Use ONLY its very FIRST TOP LEFT figure for exact head, torso, legs, shoes and fighting stance. Input 2 is the three-figure raised-arms sheet to correct. KEEP the THREE raised-arm gestures, hammer and sickle, overhead X orientation and transparent layout of input2. The remaining major error is that input2 SPREADS THE LEGS MUCH TOO WIDE and makes her body appear bulkier. REPLACE THE LEGS AND STANCE of all three input2 figures with the EXACT narrow stance and leg proportions of the FIRST TOP LEFT input1 figure. Quantitative target: the leftmost-to-rightmost outside shoe span must be about 0.76 of crown-to-shoe BODY height, like input1; current input2 has about 0.93, which is TOO WIDE. Bring BOTH FEET CLOSER to center by about 18 percent of their total separation, preserving natural un-stretched leg shapes, canonical slim trouser thickness and shoe size. Do not merely shrink the whole figure: keep crown and shoes at the SAME heights and maintain limb lengths by adjusting knee angles as in the canonical reference. The torso, neck and narrow face must keep exact canonical widths and proportions too. Use canonical crisp short dark hair, black rectangular glasses, slender face and jaw, red blazer, black shirt, blue trousers and black flat shoes. NO wider cheeks or larger shoulders. The three figures must use the SAME HEAD AND BODY at the SAME SIZE; change ONLY arm articulation and tools between them. Preserve poses from input2: LEFT hands beside forehead, hammer left and sickle right moving up; CENTER both arms raised, tools crossed above crown, gray hammer head upper LEFT and crescent sickle upper RIGHT, straight wooden handles forming visible X; RIGHT hands descending beside temples into guard. All face RIGHT, full bodies uncropped, one common horizontal shoe baseline, all head crowns at the same horizontal height, same hips, knees and exact FOOT POSITIONS across three figures. ONE horizontal row of EXACTLY THREE figures with generous transparent gutters. No extras, no glow, no shadow, no text. True alpha-transparent background.",
+  "premier_essai": {
+    "source": "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-1c411a56-3156-46b1-9ea1-9d6327c1687a.png",
+    "prompt": "Use case: identity-preserve. Asset type: transparent 2D sprite sheet, FOUR full-body poses in a 2 columns by 2 rows grid with generous empty gutters. The reference is the current game sprite of Nathalie Arthaud holding a hammer and a sickle. Preserve EXACTLY her cartoon identity: oversized head, short dark hair, rectangular dark glasses, stern face looking to the RIGHT in three-quarter profile, compact body, red blazer over black top, blue trousers, black flats, same clean black outline and painted shading. Use the FIRST TOP LEFT reference figure as the body/face/feet reference for ALL FOUR frames. Keep identical head size, head height, torso, legs, camera, stance and shoes across all four poses, with feet planted at the same baseline within each row. Change ONLY the arms and held tools. Pose 1 top left: original equipped guard, hammer beside LEFT shoulder, sickle forward on RIGHT. Pose 2 top right: BOTH arms lifting the tools, elbows up beside the head, hands at forehead height, converging hammer and sickle. Pose 3 bottom left, THE MAIN POSE: BOTH ARMS raised fully overhead, TWO hands above her crown holding one hammer and one sickle with the tools crossing ABOVE her hands and head into the unmistakable hammer-and-sickle emblem as seen in the Lutte Ouvriere symbol. The hammer's straight handle runs diagonally from LOWER RIGHT to UPPER LEFT, with a clear rectangular metal hammer head at upper left. The sickle's curved steel crescent arcs around the upper RIGHT and its handle runs diagonally from LOWER LEFT to UPPER RIGHT. Their handles CROSS into an X centered directly above her head; her screen-left hand holds the sickle's lower-left handle, her screen-right hand holds the hammer's lower-right handle. Hands never obscure the crossing. Arms fully raised forming a V, and the crossed tools are large and readable. Pose 4 bottom right: BOTH arms descending from overhead, hands around temple height, tools separating toward original equipped guard. Preserve original metal gray blades and brown wood handles. ONE hammer and ONE sickle per figure, TWO arms and TWO hands per figure, no extra limbs or duplicated tools. Reference combat stance unchanged, no squashing or stretching, no changing head size, no jump or crouch. Full body and both complete tools visible, no cropping. True transparent background, no backdrop, no shadows or glow, no particles, no text, no labels or frames.",
+    "correction": "Trois poses en une seule rangée pour conserver la même hauteur de corps, y compris lorsque les outils dépassent au-dessus de la tête."
+  },
+  "mesures": {
+    "dimensions": [
+      2172,
+      724
+    ],
+    "seuil_alpha": 90,
+    "hauteur_cheveux_chaussures": 487,
+    "sommet_cheveux_y": [
+      202,
+      202,
+      201
+    ],
+    "hauteurs_corps": [
+      487,
+      487,
+      488
+    ],
+    "anatomicalScales": [
+      1,
+      1,
+      0.9979508196721312
+    ],
+    "frames": [
+      [
+        304,
+        178,
+        396,
+        511,
+        483,
+        689
+      ],
+      [
+        926,
+        29,
+        357,
+        660,
+        1104,
+        689
+      ],
+      [
+        1524,
+        193,
+        375,
+        496,
+        1704,
+        689
+      ]
+    ],
+    "largeur_chaussures": [
+      359,
+      357,
+      361
+    ],
+    "largeur_chaussures_garde": 288,
+    "hauteur_corps_garde": 377
+  },
+  "animation": {
+    "duree_secondes": 0.82,
+    "montee_jusqua": 0.16,
+    "pose_croisee_jusqua": 0.64
+  },
+  "versions_precedentes": [
+    {
+      "image": "assets/images/pouvoirs/arthaud-levee-outils-v2.png",
+      "source": "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-85b7709e-af69-4cca-90ec-988bb4377a02.png",
+      "references": [
+        "assets/images/pouvoirs/arthaud-outils-v1.png",
+        "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-1c411a56-3156-46b1-9ea1-9d6327c1687a.png"
+      ],
+      "prompt": "Use case: identity-preserve. Create a landscape transparent sprite sheet of EXACTLY THREE full-body figures in ONE HORIZONTAL ROW, evenly spaced with large empty gutters and very generous empty space ABOVE their heads, no grid or labels. Input reference 1 is the approved EXISTING Nathalie Arthaud in-game character: preserve the FIRST top-left figure's face, large-head compact body proportions, red jacket, black top, blue trousers, black flats, black glasses and short dark hair exactly. Input reference 2 shows the requested arm movement and the correct CROSSED TOOLS shape on its bottom-left pose; use that crossed overhead composition only. Correct reference 2's shortening body issue: ALL THREE new figures must have the EXACT SAME planted feet, leg lengths, torso, head size and crown-to-shoe body height as the first figure of reference1. Their head crowns must align horizontally and their shoes align on ONE shared baseline; DO NOT shrink the figure with raised arms. Allow the overhead tools to reach higher instead. All face RIGHT in three-quarter profile, same slight fighting knee bend and wide stance. Pose1 LEFT: BOTH arms raising the hammer and sickle, elbows beside head and hands at forehead level, tools angled toward each other. Pose2 CENTER: BOTH ARMS UP OVERHEAD, one hammer and one sickle crossed ABOVE THE HEAD in the familiar hammer-and-sickle emblem. Exactly like reference2 bottom-left composition: left raised hand grips lower-left sickle handle, right raised hand grips lower-right hammer handle. Straight brown hammer handle rises diagonally from lower-right to upper-left ending in rectangular gray hammer head. Sickle handle rises diagonally from lower-left to upper-right ending in the curved gray crescent blade sweeping around the upper-right. Crossed handles form a clean visible X above hands, blades completely clear of head. Pose3 RIGHT: both arms descending with hands near temples, hammer and sickle separating toward equipped guard, same arms and hands as pose1. One tool per hand, exactly TWO arms and hands per character. Tools use same steel gray and wood brown as reference. Preserve clean existing cartoon linework, face and shading; no change to costume or body, no extra objects, no particles, no glow, no shadows, no text. Entire head, arms, tools and shoes are uncropped. Background truly transparent, all space between and around figures has alpha zero.",
+      "mesures": {
+        "dimensions": [
+          2172,
+          724
+        ],
+        "seuil_alpha": 90,
+        "hauteur_cheveux_chaussures": 490,
+        "sommet_cheveux_y": [
+          212,
+          213,
+          213
+        ],
+        "frames": [
+          [
+            188,
+            175,
+            449,
+            527,
+            411,
+            702
+          ],
+          [
+            859,
+            47,
+            449,
+            656,
+            1082,
+            703
+          ],
+          [
+            1531,
+            212,
+            457,
+            491,
+            1755,
+            703
+          ]
+        ]
+      }
+    }
+  ],
+  "correction_silhouette": {
+    "source": "C:/Users/ferat/.codex/generated_images/01a150db-a995-7e41-a1d4-a75a3628c6dd/exec-1b856419-eddb-4af2-8dd3-8d81a7194bd1.png",
+    "references": [
+      "assets/images/pouvoirs/arthaud-outils-v1.png",
+      "assets/images/pouvoirs/arthaud-levee-outils-v2.png"
+    ],
+    "prompt": "Use case: identity-preserve. Correct a video-game animation continuity problem. Reference 1 is the canonical Nathalie Arthaud equipped game sprite sheet. The TOP LEFT figure in reference 1 is the EXACT identity and body proportions to preserve. Reference 2 is the accepted three-frame raised-arms animation: preserve its three arm/tool gestures and crossed hammer-and-sickle orientation, but correct its TOO WIDE face and bulky torso to match reference 1. Generate a new transparent sheet with EXACTLY THREE full-body figures in ONE HORIZONTAL ROW, all looking RIGHT in the same three-quarter profile, generous transparent gutters and room for overhead tools. Critical correction: use the SAME narrow head, slim jaw, thin neck, shoulder-to-waist proportions, narrow waist, leg thickness and shoe size as the canonical TOP LEFT figure of reference 1. Do not use reference 2's wider cheeks, broad head or larger torso. The canonical head has width about 0.35 of crown-to-shoe body height; do not widen it. Match canonical face geometry, rectangular glasses, short dark hair, red blazer with black top, blue trousers and black flats. ALL THREE share exactly the same canonical head, torso, planted legs and foot positions; ONLY the arms and the two handheld tools change. Keep hair crowns aligned horizontally, chin height identical, shoulders identical, waist and knees identical, both feet on a common baseline. Canonical posture is a slightly crouched fighting stance, with long diagonal left leg and bent right leg. Pose1 left: both arms lifting, hands beside forehead, hammer on screen LEFT and sickle on screen RIGHT angled inward. Pose2 center: both arms up, hands above crown, hammer and sickle CROSS ABOVE HER HEAD exactly as center figure of reference 2: gray rectangular hammer head upper LEFT with brown handle down to her screen-right hand; gray sickle crescent upper RIGHT, brown handle down to her screen-left hand; handles form a clear X above the two hands. Preserve that accepted symbol orientation. Pose3 right: both arms descending with hands near temples, tools separating into canonical equipped guard. Preserve original small hands and narrow forearms, not larger limbs. Tools remain clearly readable and complete. EXACTLY TWO arms, TWO hands, ONE hammer and ONE sickle per figure. The canonical head and body must NOT get larger or thicker as the arms rise. Match reference 1's clean cartoon black linework and shading; no more realistic or more rounded drawing. Full uncropped bodies, shoes and tools. True transparent background, no glow, no shadow, no labels, no text, no border.",
+    "correction": "La tête et le buste ont été affinés, puis l’écartement excessif des pieds a été corrigé dans la version retenue."
+  }
+}

@@ -67,6 +67,16 @@ export function profileUnlockIds(profile = {}) {
  */
 export const UNLOCK_PICKS = Object.freeze({ free: 1, rewarded: 1, secondChance: 1 });
 export const MAX_RUN_UNLOCKS = Math.max(UNLOCK_PICKS.free + UNLOCK_PICKS.rewarded, UNLOCK_PICKS.secondChance);
+/** Après le 1er envoi d'une campagne, délai pour envoyer le 2ᵉ choix (pub récompensée comprise). */
+export const RUN_FOLLOW_UP_SECONDS = 15 * 60;
+
+/**
+ * Durée réelle minimale d'une campagne solo pour que ses déblocages soient acceptés : 75 % de la campagne
+ * (jours × durée d'un jour, voir game_balance.json). Le jeu et le serveur utilisent le même calcul.
+ */
+export function campaignMinSeconds(time) {
+  return Math.floor(time.starting_days_before_first_round * time.real_seconds_per_game_day * 0.75);
+}
 
 /** Candidats que ce camp a lui-même mis K.-O. pendant la partie (sans doublon, dans l'ordre). */
 export function knockedOutBy(state, faction) {

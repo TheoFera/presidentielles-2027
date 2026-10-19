@@ -105,7 +105,7 @@ export class WorldRenderer {
     this.metrics = compositionMetrics(this.config, this.width, this.height);
   }
 
-  resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); }
+  resetCamera() { this.cameraX = null; this.combatPoseTracker?.clear(); this.melenchonMotionTracker?.clear(); this.scarfTransitionTracker?.clear(); this.scarfTransitionBodies?.clear(); this.scarfTransitionHeld?.clear(); }
 
   draw(state, previous, alpha, elapsed, debug = false) {
     if (state.phase === 'FIRST_ROUND_DEBATE') { drawDebate(this, state.debate, previous.debate, alpha); return; }
@@ -154,9 +154,11 @@ export class WorldRenderer {
       }
       drawCampaignScenery(this, state);
     }
-    drawInfrastructure(this, state);
+    if (!this.fixedWorldActive) drawInfrastructure(this, state);
     this.buildingShutterTick = previous.tick + (state.tick - previous.tick) * alpha;
     drawBuildingShutters(this, state);
+    // Sur la fresque, les panneaux d'information passent devant le coffre du rideau.
+    if (this.fixedWorldActive) drawInfrastructure(this, state);
     // La carte fixe dessine elle-même trottoir et chaussée.
     if (!this.fixedWorldActive) {
       ctx.fillStyle = this.p.ground_edge;

@@ -4,6 +4,8 @@ import { MelenchonMotionTracker } from '../personnages/melenchon-extra-poses.js'
 import { prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
 import { waveEffectAtlas, waveEffectBounds } from './wave-sprites.js';
 import { ultimateCharacterScale } from './ultimate-character-scale.js';
+import { scarfBody } from './scarf-character.js';
+import { drawScarfTransition } from './scarf-transition.js';
 
 const sheets = { WAVE:'wave', FIRE:'fire', SURGE:'surge', WALL:'wall', ZEMMOUR:'zemmour', SCARF:'scarf', BARDELLA:'bardella', EUROPE:'europe' };
 const hzOf = config => config.balance.simulation_architecture.fixed_tick_hz;
@@ -82,12 +84,21 @@ function ready(renderer, sheet) {
 }
 
 export function drawUltimateCharacter(renderer, entity, x, state) {
+  if (drawScarfTransition(renderer,entity,x,state)) return true;
   let pose = ultimateCharacterPose(entity,state,renderer.config);
   if (!pose) {
     renderer.ultimateMotionTracker?.walk(entity,state,renderer.config,false);
     return false;
   }
   let source = null;
+  let scarf = null;
+  if (pose.sheet === 'scarf') {
+    scarf = scarfBody(entity, pose.frame, renderer.metrics.characterHeight);
+    const image = renderer.assets.get(scarf.atlas.sprite);
+    if (!image) { void renderer.assets.load(scarf.atlas.sprite); return false; }
+    source = { atlas: scarf.atlas, image };
+    pose = { ...pose, frame: scarf.frame };
+  }
   if (['europe','bardella'].includes(pose.sheet)) {
     renderer.ultimateMotionTracker ??= new MelenchonMotionTracker();
     const walking = entity.moving && [1,2].includes(pose.frame);
@@ -113,9 +124,13 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
   }
   const baseHeight=pose.sheet==='surge'?m.characterHeight*SURGE_HEIGHT_RATIO:m.characterHeight*(entity.role==='CANDIDAT'?1:renderer.p.npc_height_multiplier);
   const height=baseHeight*surgeScale;
-  const scale = entity.role === 'CANDIDAT' ? ultimateCharacterScale(atlas, pose.frame, height, pose.sheet) : height / atlas.referenceHeight;
+  const scale = scarf?.scale ?? (entity.role === 'CANDIDAT' ? ultimateCharacterScale(atlas, pose.frame, height, pose.sheet) : height / atlas.referenceHeight);
   const scaleX=scale,scaleY=scale;
   const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
+  if (scarf) {
+    renderer.scarfHands ??= new Map();
+    renderer.scarfHands.set(entity.id, { tick: state.tick, atlas, frame: pose.frame, scale, x, y: ground - (entity.combat?.height || 0) * m.characterHeight, direction: pose.direction || entity.facing || 1 });
+  }
   ctx.save();
   ctx.globalAlpha*=surgeAlpha;
   ctx.fillStyle='#26313230';ctx.beginPath();ctx.ellipse(x,ground,height*.24,3,0,0,Math.PI*2);ctx.fill();
@@ -133,7 +148,10 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
 export function drawUltimateEffect(renderer,sheet,frame,x,y,width,height,direction=1) {
   const source=ready(renderer,sheet);
   if(!source)return false;
-  const [sx,sy,sw,sh]=source.atlas.frames[frame],ctx=renderer.ctx;
+  let [sx,sy,sw,sh]=source.atlas.frames[frame];
+  // Retirer le manchon noir de la planche : le vrai poing du personnage reste visible.
+  if(sheet==='scarf' && frame===6) { sx+=18; sw-=18; }
+  const ctx=renderer.ctx;
   ctx.save();ctx.translate(x,y);ctx.scale(direction,1);
   const clip=source.atlas.clips?.[frame];
   if(clip){ctx.beginPath();clip.forEach(([cx,cy],i)=>ctx[i?'lineTo':'moveTo']((cx-sx)*width/sw,(cy-sy)*height/sh));ctx.closePath();ctx.clip();}

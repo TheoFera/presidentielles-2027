@@ -17,8 +17,10 @@ const standingFrames = { combat: [0,1,2,3,4,5,6,7,9,10,11], movement: [0,1,2,3,4
 const groundCorrections = { arthaud: { 10: 1.2, 11: 1.25 }, retailleau: { 10: 1.3, 11: 1.18 } };
 const minorAtlas = (faction, sheet, atlas) => ({
   ...atlas, frameScales: undefined, widthScale: 1, uniformCharacter: true,
-  anatomicalScales: atlas.frames.map((frame, index) => standingFrames[sheet].includes(index)
-    ? atlas.frames[0][3] / frame[3] : (sheet === 'actions' ? groundCorrections[faction]?.[index] : null) ?? 1),
+  // Les attaques de Glucksmann reprennent le gabarit de sa garde fléchie.
+  anatomicalScales: atlas.frames.map((frame, index) => (standingFrames[sheet].includes(index)
+    ? atlas.frames[0][3] / frame[3] : (sheet === 'actions' ? groundCorrections[faction]?.[index] : null) ?? 1)
+    * (faction === 'glucksmann' && sheet === 'combat' ? .92 : 1)),
   sprite: minorAnimationId(faction, sheet), isolated: true,
 });
 
@@ -35,7 +37,14 @@ export const minorStandingAtlases = Object.fromEntries(['attal', 'dupont_aignan'
 }));
 
 export const minorCorrectionAssets = {
+  'character-minor-dupont_aignan-persuasion': { file: new URL('../../../assets/images/candidats/dupont-aignan/dupont-aignan-persuasion-v1.png', import.meta.url).href },
   'character-minor-attal-knockout': { file: new URL('../../../assets/images/candidats/attal/attal-chutes-v7.png', import.meta.url).href },
+};
+// Proposition 3 validée : explication avec les deux mains, appuis mesurés dans le PNG.
+minorExtraAtlases.dupont_aignan.persuasion = {
+  sprite: 'character-minor-dupont_aignan-persuasion', isolated: true, uniformCharacter: true,
+  anatomicalScales: [1, 934 / 925],
+  frames: [[209,45,439,934,413.5,979], [824,53,604,925,1032.5,978]],
 };
 // La première figure debout fournit l'étalon anatomique de ces quatre chutes.
 minorExtraAtlases.attal.knockout = { sprite: 'character-minor-attal-knockout', isolated: true, uniformCharacter: true,

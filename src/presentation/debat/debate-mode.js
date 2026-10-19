@@ -4,6 +4,7 @@ import { portraitContent, hydrateSelectionPortraits } from './debate-selection.j
 import { DEBATE_ARENAS, arenaSupportHeight, drawDebateArena } from './debate-arenas.js';
 import { themeColor, themeIcon, themeName } from './debate-themes.js';
 import { candidateOpacity } from '../personnages/candidate-visibility.js';
+import { onPlatform } from '../../simulation/combat-actions.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -21,7 +22,7 @@ export function fighterLabel(config, fighter) {
 /** Pupitre le plus haut sous les pieds : le personnage et son ombre s’y posent. */
 function supportHeight(state, x, height) {
   let support = 0;
-  for (const p of state.platforms || []) if (Math.abs(x - p.x) <= p.half_width && p.height <= height + 1e-6) support = Math.max(support, p.height);
+  for (const p of state.platforms || []) if (onPlatform(p, x) && p.height <= height + 1e-6) support = Math.max(support, p.height);
   return support;
 }
 

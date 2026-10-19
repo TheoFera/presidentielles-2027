@@ -222,7 +222,7 @@ export function toolsAttack(sim, actor, spec) {
 
 export function applyToolHit(sim, actor, target, attack) {
   if (attack.tool === 'SICKLE') target.combat.knockback_velocity = -(attack.direction || actor.facing) * settings(sim).tools.pull;
-  if (attack.tool === 'HAMMER') {
+  if (attack.tool === 'HAMMER' && attack.step !== 3) {
     target.combat.flatten_tick = sim.state.tick;
     target.combat.flatten_until_tick = sim.state.tick + seconds(sim, settings(sim).tools.flatten_seconds);
     target.combat.stun_ticks = Math.max(target.combat.stun_ticks, seconds(sim, .35));

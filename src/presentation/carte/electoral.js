@@ -1,6 +1,6 @@
 import { buildingAssetId } from './illustrated-buildings.js';
 import { plateSnapOffset } from './carte-plate.js';
-import { ringDelta } from '../../simulation/world.js';
+import { ringDelta, MINOR_FACTIONS } from '../../simulation/world.js';
 import { meetingWaveRadius } from '../../simulation/electoral-buildings.js';
 import { MapWheel } from '../interface/map-wheel.js';
 import { setHidden, setClass, setAttribute } from '../interface/dom-updates.js';
@@ -96,19 +96,34 @@ export function drawMeetingMicro(renderer, frame) {
 
 export const territoryColors = { melenchon: '#b94e54', le_pen: '#30496b', philippe: '#e9e9e2', contested: '#9da79e' };
 
-/** Rounding the published values preserves a displayed total of 100.0 %. */
-export function roundedPollScores(support) {
-  const entries = Object.entries(support).map(([faction, value], order) => ({ faction, order, tenths: Math.floor(value * 10), remainder: value * 10 % 1 }));
-  const missing = 1000 - entries.reduce((sum, e) => sum + e.tenths, 0);
-  const ranked = [...entries].sort((a, b) => b.remainder - a.remainder || a.order - b.order);
-  for (let i = 0; i < missing; i++) ranked[i % ranked.length].tenths++;
-  return Object.fromEntries(entries.map(e => [e.faction, e.tenths / 10]));
+/** Couleur d'un candidat dans le sondage : celle de ses territoires sur la carte, sinon celle de sa fiche. */
+export const pollColor = (factions, faction) => territoryColors[faction] || factions[faction]?.color || territoryColors.contested;
+
+/**
+ * Intentions de vote comme dans un vrai sondage : seulement parmi les électeurs qui ont choisi.
+ * Neutres et électeurs « à apparaître » forment les indécis. Pourcentages entiers dont la somme vaut 100,
+ * triés du plus haut au plus bas.
+ */
+export function pollShares(support, factions) {
+  const expressed = factions.reduce((sum, f) => sum + (support[f] || 0), 0);
+  const total = Object.values(support).reduce((sum, value) => sum + value, 0);
+  const undecided = total > 0 ? Math.round((total - expressed) / total * 100) : 0;
+  if (!expressed) return { shares: factions.map(f => [f, 0]), undecided };
+  const entries = factions.map((faction, order) => {
+    const exact = (support[faction] || 0) / expressed * 100;
+    return { faction, order, value: Math.floor(exact), remainder: exact % 1 };
+  });
+  const missing = 100 - entries.reduce((sum, e) => sum + e.value, 0);
+  [...entries].sort((a, b) => b.remainder - a.remainder || a.order - b.order).slice(0, missing).forEach(e => e.value++);
+  entries.sort((a, b) => b.value - a.value || a.order - b.order);
+  return { shares: entries.map(e => [e.faction, e.value]), undecided };
 }
 
 /** Presentation reads only measured information; it never calculates a live score. */
 export class ElectoralDisplay {
   constructor(config) {
     this.hz = config.balance.simulation_architecture.fixed_tick_hz;
+    this.factions = config.prototype.presentation.factions;
     this.day = document.getElementById('day');
     this.circle = document.getElementById('electoral-circle');
     this.scores = document.getElementById('poll-scores');
@@ -149,18 +164,26 @@ export class ElectoralDisplay {
     this.pollView = snapshot ? { support: keys.map(key => [key, snapshot.national_support[key]]), zones: snapshot.zones.map(zone => [zone.subzone_id, zone.controller]) } : null;
     this.wheel.updatePoll(snapshot, territoryColors);
     this.scores.replaceChildren();
-    if (!snapshot) return;
-    const labels = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe', neutral: 'Neutres', pending: 'À apparaître' };
-    const rounded = roundedPollScores(snapshot.national_support);
-    for (const faction of Object.keys(labels)) {
+    // L'anneau ne se trace qu'à l'arrivée d'un nouveau sondage, pas quand il vieillit.
+    const fresh = !!snapshot && snapshot.measured_tick !== this.ringTick;
+    this.ringTick = snapshot?.measured_tick;
+    if (!snapshot) { this.wheel.updatePollRing([], pollColor.bind(null, this.factions), faction, false); return; }
+    // Les trois candidats de campagne, puis les autres candidats présents dans la partie.
+    const labels = { melenchon: 'Mélenchon', le_pen: 'Le Pen', philippe: 'Philippe' };
+    const present = new Set(state.candidates.map(c => c.faction_id));
+    for (const id of MINOR_FACTIONS) if (present.has(id) && id in snapshot.national_support) labels[id] = this.factions[id]?.name || id;
+    const { shares, undecided } = pollShares(snapshot.national_support, Object.keys(labels));
+    this.wheel.updatePollRing(shares, pollColor.bind(null, this.factions), faction, fresh);
+    // Version texte (lecteurs d'écran), masquée à l'écran : l'anneau la remplace.
+    for (const [id, value] of shares) {
       const span = document.createElement('span');
-      const value = rounded[faction].toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-      span.setAttribute('aria-label', `${labels[faction]} : ${value} %`);
-      span.title = labels[faction];
-      const dot = document.createElement('i'); dot.style.background = territoryColors[faction] || territoryColors.contested;
-      span.append(dot, `${value} %`); this.scores.append(span);
+      span.title = labels[id];
+      span.textContent = `${labels[id]}${id === faction ? ' (vous)' : ''} : ${value} %`;
+      this.scores.append(span);
     }
-    this.scores.title = 'Dernier sondage acheté : les chiffres restent ceux de cette mesure.';
+    const rest = document.createElement('span');
+    rest.textContent = `Indécis : ${undecided} %`;
+    this.scores.append(rest);
   }
 }
 

@@ -32,15 +32,45 @@ function documentFor(t) {
 const descendants = node => [node, ...(node.children || []).flatMap(descendants)];
 const stateFor = () => new GameSimulation(config, 42).state;
 
-test('La planche validée est conservée sans retouche et les découpes restent dans son image', async () => {
+test('La planche verticale possède un canal transparent, les découpes restent dans son image et l’original est conservé', async () => {
   const source = await readFile(mapWheelAtlas.file);
-  assert.equal(createHash('sha256').update(source).digest('hex'), 'e34a227cfaf9ea263f2827621e7104ef28ebfe97453570e1182c5f863f69a5de');
+  const original = await readFile(new URL('../assets/images/interface/roue-quartiers-planche.png', import.meta.url));
+  assert.equal(createHash('sha256').update(original).digest('hex'), 'e34a227cfaf9ea263f2827621e7104ef28ebfe97453570e1182c5f863f69a5de');
   assert.equal(source.readUInt32BE(16), mapWheelAtlas.width);
   assert.equal(source.readUInt32BE(20), mapWheelAtlas.height);
+  assert.equal(source[25], 6, 'PNG RGBA : transparence native, sans filtre de détourage');
   for (const [x, y, width, height] of Object.values(mapWheelIcons)) {
     assert.ok(x >= 0 && y >= 0 && width > 0 && height > 0);
     assert.ok(x + width <= mapWheelAtlas.width && y + height <= mapWheelAtlas.height);
   }
+});
+
+test('Les dessins pointent vers le centre pendant toute la rotation, sans recréation ni filtre', t => {
+  const node = documentFor(t), state = stateFor();
+  const wheel = new MapWheel(node('wheel')); wheel.build(state.world);
+  const icons = descendants(wheel.rotor).filter(n => n.attributes['data-icon']);
+  const images = icons.flatMap(n => descendants(n).filter(n => n.tag === 'image'));
+  for (const fraction of [0, 0.125, 0.25, 0.5, 0.75, 0.9999, 1, -0.25]) {
+    wheel.updatePosition(state.world, state.world.length * fraction);
+    wheel.build(structuredClone(state.world));
+    const rotation = Number(wheel.disc.style.transform.match(/rotate\(([^)]+)deg\)/)[1]) * Math.PI / 180;
+    icons.forEach(icon => {
+      const [x, y] = icon.attributes.transform.match(/translate\(([^ ]+) ([^)]+)\)/).slice(1).map(Number);
+      const angle = Number(icon.attributes.transform.match(/rotate\(([^)]+)\)/)[1]) * Math.PI / 180 + rotation;
+      const dx = x - 160, dy = y - 160;
+      const inwardX = -(dx * Math.cos(rotation) - dy * Math.sin(rotation));
+      const inwardY = -(dx * Math.sin(rotation) + dy * Math.cos(rotation));
+      const bottomX = -Math.sin(angle), bottomY = Math.cos(angle);
+      assert.ok(bottomX * inwardX + bottomY * inwardY > 0, 'Le bas pointe vers le centre');
+      assert.ok(Math.abs(bottomX * inwardY - bottomY * inwardX) < 1e-8, 'Alignement radial exact');
+    });
+    const currentImages = descendants(wheel.rotor).filter(n => n.tag === 'image');
+    assert.equal(currentImages.length, images.length);
+    currentImages.forEach((image, i) => assert.equal(image, images[i]));
+  }
+  assert.equal(descendants(wheel.disc).filter(n => n.tag === 'filter').length, 0);
+  assert.ok(images.every(image => image.attributes.filter === undefined));
+  assert.equal(new Set(images.map(image => image.attributes.href)).size, 1);
 });
 
 test('Carte complète sans sondage : 18 dessins, 6 biomes et géométrie conservée', t => {
@@ -109,11 +139,28 @@ test('Seul le sondage acheté colore les secteurs, par identifiant', t => {
   display.update(state, candidate);
   const first = display.wheel.sectors.get(state.world.subzones[0].id);
   assert.equal(first.attributes.fill, territoryColors.melenchon);
-  assert.equal(node('poll-scores').children.length, 5);
+  // Texte lisible : les 3 candidats (parmi les électeurs décidés) puis les indécis.
+  assert.deepEqual(node('poll-scores').children.map(span => span.textContent),
+    ['Mélenchon (vous) : 50 %', 'Le Pen : 33 %', 'Philippe : 17 %', 'Indécis : 40 %']);
+  // Anneau : une part par candidat, la plus grande d'abord, et celle du joueur plus épaisse.
+  const parts = display.wheel.ring.children.filter(n => n.attributes.class?.startsWith('map-poll-part'));
+  assert.deepEqual(parts.map(p => p.attributes.stroke), [territoryColors.melenchon, territoryColors.le_pen, territoryColors.philippe]);
+  assert.equal(parts.filter(p => p.attributes.class.includes('map-poll-player')).length, 1);
+  assert.ok(display.wheel.ring.classes.has('map-poll-animate'));
+  // Les autres candidats de la partie figurent aussi dans le sondage affiché.
+  const autres = state.candidates.filter(c => c.minor).map(c => c.faction_id);
+  assert.equal(autres.length, 6);
+  Object.assign(poll.lastPollSnapshot.national_support, Object.fromEntries(autres.map(id => [id, 1])));
+  poll.lastPollSnapshot.measured_tick = 0.5;
+  display.update(state, candidate);
+  assert.equal(node('poll-scores').children.length, 4 + autres.length);
+  assert.ok(node('poll-scores').children.some(span => span.title === config.prototype.presentation.factions[autres[0]].name));
   poll.active = false; display.update(state, candidate);
   assert.equal(first.attributes.fill, territoryColors.melenchon);
   assert.ok(node('electoral-display').classes.has('poll-stale'));
   assert.ok(node('poll-scores').classes.has('poll-stale'));
+  // Un sondage qui vieillit pâlit sans se redessiner.
+  assert.equal(display.wheel.ring.classes.has('map-poll-animate'), false);
   poll.active = true;
   poll.lastPollSnapshot.zones.at(-1).controller = 'philippe';
   poll.lastPollSnapshot.measured_tick = 1;
@@ -173,7 +220,7 @@ test('Une image inchangée ne réécrit pas la carte et un sondage modifié au m
   poll.lastPollSnapshot.national_support.neutral = 34;
   display.update(state, candidate);
   assert.equal(display.wheel.sectors.get(state.world.subzones[0].id).attributes.fill, territoryColors.le_pen);
-  assert.match(node('poll-scores').children[1].children[1], /21/);
+  assert.equal(node('poll-scores').children[1].textContent, 'Le Pen : 35 %');
 });
 
 test('Position partagée : interpolation réseau, pause, téléportation et redémarrage', () => {

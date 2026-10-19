@@ -11,8 +11,10 @@ import {ultimateGuardAtlases} from '../src/presentation/effets/ultimate-guard-sp
 import {ultimateCharacterPose,scarfPose,drawUltimateCharacter,drawUltimateProjectile,drawUltimateEffect,molotovArcHeight,SURGE_HEIGHT_RATIO} from '../src/presentation/effets/ultimate-sprites.js';
 import {drawStyleEffects} from '../src/presentation/effets/style-effects.js';
 import {visualManifest} from '../src/presentation/rendu/visual-manifest.js';
-import {usesCandidateCombat} from '../src/presentation/personnages/melenchon-combat.js';
+import {usesCandidateCombat,drawCandidateCombat,MELENCHON_HEIGHT_STRETCH} from '../src/presentation/personnages/melenchon-combat.js';
 import {candidateExtraPose} from '../src/presentation/personnages/candidate-extra-poses.js';
+import {scarfBody,scarfHand} from '../src/presentation/effets/scarf-character.js';
+import {ScarfTransitionTracker,scarfTransitionTicks,scarfTransitionAtlas} from '../src/presentation/effets/scarf-transition.js';
 import {combatDelta} from '../src/simulation/combat-geometry.js';
 
 const config=campaignConfig();
@@ -22,6 +24,75 @@ function recordingRenderer(){
   return {ctx,calls,config,metrics:{groundY:300,characterHeight:100,pixelsPerUnit:40},p:{npc_height_multiplier:.8},screenX:x=>x*40,assets:{get:id=>({id}),load:async()=>null}};
 }
 const make=()=>new GameSimulation(config,42);
+
+test('Écharpe : retrait et remise durent exactement le geste SPECIAL commun, sans modifier le jeu',()=>{
+  const sim=make(),state=sim.state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  c.current_campaign_style='philippe_notable';c.special_charge=config.balance.special_charge.required_points;
+  activateUltimate(sim,c);
+  const attack=state.attacks.find(a=>a.id===c.combat.attack_id);
+  const duration=attack.windup_ticks+attack.active_ticks+attack.recovery_ticks;
+  assert.equal(scarfTransitionTicks(config),duration);assert.equal(duration,14);
+  const tracker=new ScarfTransitionTracker(),start=state.tick,end=c.ultimate_effect.expires_tick;
+  const frames=[];
+  for(let i=0;i<duration;i++){
+    state.tick=start+i;attack.elapsed_ticks=i;
+    const before=JSON.stringify(state),pose=tracker.pose(c,state,config);
+    assert.equal(pose.removing,true);frames.push(pose.frame);assert.equal(JSON.stringify(state),before);
+  }
+  assert.deepEqual([...new Set(frames)],[0,1,2]);
+  state.tick=start+duration;state.attacks=[];c.combat.attack_id=null;
+  assert.equal(tracker.pose(c,state,config),null);
+  c.ultimate_effect=null;
+  const reverse=[];
+  for(let i=0;i<duration;i++){state.tick=end+i;const pose=tracker.pose(c,state,config);assert.equal(pose.removing,false);reverse.push(pose.frame);}
+  assert.deepEqual([...new Set(reverse)],[2,1,0]);
+  state.tick=end+duration;assert.equal(tracker.pose(c,state,config),null);
+});
+
+test('Écharpe : remise après le dernier coup et priorité au saut, aux coups reçus et aux esquives',()=>{
+  const state=make().state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  state.tick=0;c.ultimate_effect={kind:'SCARF',expires_tick:120};
+  state.powers=[{owner_id:c.id,kind:'SCARF',started_tick:0,expires_tick:120}];state.attacks=[];
+  const tracker=new ScarfTransitionTracker();assert.ok(tracker.pose(c,state,config));
+  for(const patch of [{jump_tick:0},{stun_ticks:2},{knockback_velocity:1}]){
+    const saved={...c.combat};Object.assign(c.combat,patch);assert.equal(tracker.pose(c,state,config),null);c.combat=saved;
+  }
+  c.dash_active=true;assert.equal(tracker.pose(c,state,config),null);c.dash_active=false;
+  state.tick=120;c.ultimate_effect=null;c.combat.attack_id='last';
+  state.attacks=[{id:'last',owner_id:c.id,kind:'SCARF',windup_ticks:3,active_ticks:3,recovery_ticks:6,elapsed_ticks:8}];
+  assert.equal(tracker.pose(c,state,config),null);
+  state.tick=124;state.attacks=[];c.combat.attack_id=null;
+  assert.equal(tracker.pose(c,state,config).frame,2);
+  tracker.clear();assert.equal(tracker.pose(c,state,config),null);
+});
+
+test('Écharpe : retrait et remise dessinés sans double tissu, au même sol, dans les deux sens et à trois tailles',()=>{
+  const png=readFileSync(new URL(visualManifest[scarfTransitionAtlas.sprite].file));
+  assert.equal(png[25],6);
+  for(const [x,y,w,h]of scarfTransitionAtlas.frames)assert.ok(x>=0&&y>=0&&x+w<=png.readUInt32BE(16)&&y+h<=png.readUInt32BE(20));
+  for(const height of [80,150,220])for(const facing of [-1,1]){
+    const state=make().state,c=state.candidates.find(c=>c.faction_id==='philippe');
+    Object.assign(c,{current_campaign_style:'philippe_notable',facing});
+    c.ultimate_effect={kind:'SCARF',expires_tick:120};
+    state.candidates=[c];state.powers=[{owner_id:c.id,kind:'SCARF',started_tick:0,expires_tick:120}];state.attacks=[];
+    const r=recordingRenderer();Object.assign(r.metrics,{characterHeight:height,groundOffsetRatio:0});
+    for(const [tick,gesture]of [[0,0],[5,1],[10,2],[120,2],[125,1],[130,0]]){
+      state.tick=tick;if(tick===120){c.ultimate_effect=null;state.powers=[];}
+      r.calls.length=0;const before=JSON.stringify(state);
+      assert.equal(drawUltimateCharacter(r,c,200,state),true);drawStyleEffects(r,state);
+      const draws=r.calls.filter(call=>call[0]==='drawImage');
+      assert.equal(draws.length,gesture===2?2:1,'Une seule écharpe, dans la pose ou dans la main');
+      const draw=draws[0],generated=draw[1].id===scarfTransitionAtlas.sprite;
+      const atlas=generated?scarfTransitionAtlas:scarfBody(c,0,height).atlas;
+      const frame=generated?gesture:0;
+      const [sx,sy,sw,sh,px,py]=atlas.frames[frame],scale=draw[8]/sw;
+      assert.ok(Math.abs(draw[9]/sh-scale)<1e-9);
+      assert.ok(Math.abs(draw[7]+(py-sy)*scale)<1e-9,'Appuis fixes');
+      assert.ok(r.calls.some(call=>call[0]==='scale'&&call[1]===facing&&call[2]===1));
+      assert.equal(JSON.stringify(state),before);
+    }
+  }
+});
 test('Europe et Bardella : huit poses de marche transparentes, cadrées et à la même échelle',()=>{
   for(const key of ['europe','bardella']){
     const atlas=ultimateGuardAtlases[key+'_guard'],original=ultimateAtlases[key];
@@ -40,7 +111,7 @@ test('Déferlement : sept trajectoires distinctes, changements et choix reproduc
     assert.ok(new Set(plans.map(p=>p.direction)).size>1);paths.push(JSON.stringify(plans));
   }
   assert.equal(new Set(paths).size,7);
-  assert.equal(config.balance.specials.zemmour.knockback,0);assert.equal(config.balance.specials.zemmour.damage,4);
+  assert.equal(config.balance.specials.zemmour.knockback,0);assert.equal(config.balance.specials.zemmour.damage,6);
 });
 test('Déferlement : sortie derrière Mélenchon, trois ou quatre virages puis retour vers sa position mobile',()=>{
   const sim=make(),state=sim.state,c=state.candidates.find(c=>c.faction_id==='melenchon');
@@ -165,8 +236,10 @@ test('Écharpe : portée exacte, deux directions, hauteur du saut et annulation 
   for(const direction of [1,-1]){
     attack.direction=direction;const r=recordingRenderer();drawStyleEffects(r,state);
     const translate=r.calls.find(c=>c[0]==='translate'),draw=r.calls.find(c=>c[0]==='drawImage');
-    assert.ok(draw);assert.equal(translate[1]+direction*draw[8],r.screenX(c.x)+direction*attack.range*r.metrics.pixelsPerUnit);
-    assert.equal(translate[2],300+6-80-76*1.06);
+    assert.ok(draw);assert.ok(Math.abs(translate[1]+direction*draw[8]-(r.screenX(c.x)+direction*attack.range*r.metrics.pixelsPerUnit))<1e-9);
+    const hand=scarfHand(c,100);
+    assert.equal(translate[1],r.screenX(c.x)+direction*hand.x);
+    assert.equal(translate[2],300+6-80+hand.y-13*.43);
     assert.equal(ultimateCharacterPose(c,state,config).direction,direction);
   }
   attack.elapsed_ticks=2;assert.equal(scarfPose(attack).extension,0);
@@ -210,4 +283,64 @@ test('Hologrammes inchangés et garde habituelle conservée pendant le pouvoir �
   assert.equal(ultimateCharacterPose(hologram,state,config),null);assert.equal(usesCandidateCombat(hologram,state),true);
   const c=state.candidates.find(c=>c.faction_id==='philippe');c.current_campaign_style='philippe_notable';c.ultimate_effect={kind:'SCARF',expires_tick:100};
   assert.equal(usesCandidateCombat(c,state),true);
+});
+
+test('Écharpe : corps du skin habituel sans agrandissement, appuis stables dans les deux sens',()=>{
+  const state=make().state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  c.current_campaign_style='philippe_notable';
+  const atlas=scarfBody(c,0,100).atlas;
+  const attack={id:'scarf-scale',owner_id:c.id,kind:'SCARF',windup_ticks:4,active_ticks:3,recovery_ticks:6};
+  c.combat.attack_id=attack.id;state.attacks=[attack];
+  for(const height of [80,150,220]) for(const direction of [-1,1]) for(const elapsed of [0,2,4,10]) {
+    attack.direction=direction;attack.elapsed_ticks=elapsed;
+    const r=recordingRenderer();r.metrics.characterHeight=height;
+    assert.equal(drawUltimateCharacter(r,c,200,state),true);
+    const body=scarfBody(c,ultimateCharacterPose(c,state,config).frame,height),frame=body.frame;
+    const draw=r.calls.find(call=>call[0]==='drawImage');
+    assert.equal(draw[1].id,atlas.sprite,'Le coup conserve le dessin et les proportions du skin');
+    const scale=draw[9]/atlas.frames[frame][3];
+    const normalScale=height/(atlas.referenceHeight||340)*MELENCHON_HEIGHT_STRETCH;
+    assert.ok(Math.abs(scale/normalScale-1)<1e-9,'Même échelle que les coups ordinaires');
+    assert.ok(Math.abs(draw[8]/atlas.frames[frame][2]-scale)<1e-9,'Échelle uniforme sur les deux axes');
+    const [sx,sy,sw,sh,px,py]=atlas.frames[frame];
+    assert.ok(Math.abs(draw[6]+(px-sx)*scale)<1e-9);
+    assert.ok(Math.abs(draw[7]+(py-sy)*scale)<1e-9,'Les pieds restent sur le pivot');
+  }
+});
+
+test('Écharpe : retirée du torse et tenue entre les coups, puis remise après expiration sans modifier la sauvegarde',()=>{
+  const state=make().state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  state.candidates=[c];state.npcs=[];state.temporary_units=[];state.attacks=[];state.powers=[];
+  Object.assign(c,{current_campaign_style:'philippe_notable',moving:false,axis:0});
+  c.ultimate_effect={kind:'SCARF',expires_tick:state.tick+10};
+  const before=JSON.stringify(state),r=recordingRenderer();
+  assert.equal(drawCandidateCombat(r,c,100,state),true);
+  assert.equal(r.calls.find(call=>call[0]==='drawImage')[1].id,'character-philippe-combat-v1');
+  drawStyleEffects(r,state);
+  assert.equal(r.calls.filter(call=>call[0]==='drawImage').at(-1)[1].id,'ultimate-scarf-v1','Le tissu reste dans la main au repos');
+  assert.equal(JSON.stringify(state),before);
+  state.tick=c.ultimate_effect.expires_tick;
+  const expired=recordingRenderer();expired.combatPoseTracker={active:()=>true};
+  drawCandidateCombat(expired,c,100,state);drawStyleEffects(expired,state);
+  assert.equal(expired.calls.find(call=>call[0]==='drawImage')[1].id,'character-skin-philippe-notable-combat-v1');
+  assert.ok(!expired.calls.some(call=>call[0]==='drawImage'&&call[1].id==='ultimate-scarf-v1'));
+});
+
+test('Écharpe : tissu raccordé au poing entier, portée et sol du débat conservés',()=>{
+  const state=make().state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  c.current_campaign_style='philippe_notable';c.x=2;
+  const attack={id:'scarf-hand',owner_id:c.id,kind:'SCARF',range:5,elapsed_ticks:4,windup_ticks:4,active_ticks:3,recovery_ticks:6};
+  c.combat.attack_id=attack.id;state.attacks=[attack];state.powers=[];
+  for(const height of [80,150,220])for(const direction of [-1,1])for(const groundOffsetRatio of [0,.06])for(const jump of [0,.8]){
+    attack.direction=direction;c.combat.height=jump;
+    const r=recordingRenderer();Object.assign(r.metrics,{characterHeight:height,groundOffsetRatio});
+    drawStyleEffects(r,state);
+    const hand=scarfHand(c,height),translate=r.calls.find(call=>call[0]==='translate'),draw=r.calls.find(call=>call[0]==='drawImage');
+    assert.ok(Math.abs(translate[1]-(r.screenX(c.x)+direction*hand.x))<1e-9);
+    assert.ok(Math.abs(translate[2]+height*.13*.43-(300+height*groundOffsetRatio-jump*height+hand.y))<1e-9);
+    assert.ok(Math.abs(translate[1]+direction*draw[8]-(r.screenX(c.x)+direction*attack.range*r.metrics.pixelsPerUnit))<1e-9);
+    assert.equal(draw[2],ultimateAtlases.scarf.frames[6][0]+18,'Le manchon noir ne masque plus le poing');
+    const body=scarfBody(c,2,height),frame=body.atlas.frames[body.frame];
+    assert.ok(hand.x>=(frame[0]-frame[4])*body.scale && hand.x<(frame[0]+frame[2]-frame[4])*body.scale);
+  }
 });

@@ -1,9 +1,17 @@
 import { wrap, zoneAt } from '../../simulation/world.js';
-import { mapWheelAtlas, mapWheelIcons } from './map-wheel-icons.js';
+import { mapWheelAtlas, mapWheelIcons, mapWheelIconWidths } from './map-wheel-icons.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const CENTER = 160;
+const INNER_RADIUS = 72, ICON_RADIUS = 104;
 export const mapNeutralColor = '#a6aaa3';
+// Anneau du sondage, juste à l'extérieur de la bordure (rayon 145).
+const RING_RADIUS = 152, RING_GAP = 0.6, RING_SECONDS = 0.9, RING_BADGE_MIN = 5;
+// Couleur claire : chiffre foncé sur la pastille.
+const isLight = hex => {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 160;
+};
 const point = (radius, angle) => [CENTER + radius * Math.sin(angle), CENTER - radius * Math.cos(angle)];
 function element(tag, attributes = {}) {
   const node = document.createElementNS(NS, tag);
@@ -14,21 +22,7 @@ function arc(radius, start, end) {
   return `M${point(radius, start)} A${radius},${radius} 0 ${end - start > Math.PI ? 1 : 0} 1 ${point(radius, end)}`;
 }
 function sector(start, end) {
-  return `${arc(136, start, end)} L${point(80, end)} A80,80 0 0 0 ${point(80, start)} Z`;
-}
-
-function atlasFilter() {
-  // Seul le gris moyen de la planche devient transparent ; les pixels des
-  // dessins d'origine (encre et crème) gardent leur couleur, sans redessin.
-  const filter = element('filter', { id: 'map-wheel-cutout', filterUnits: 'userSpaceOnUse',
-    x: -15, y: -21, width: 30, height: 42, 'color-interpolation-filters': 'sRGB' });
-  filter.append(element('feColorMatrix', { type: 'matrix',
-    values: '1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  .2126 .7152 .0722 0 0' }));
-  const transfer = element('feComponentTransfer', { result: 'cutout' });
-  transfer.append(element('feFuncA', { type: 'table', tableValues: '1 1 1 1 0 0 0 0 0 1 1' }));
-  filter.append(transfer);
-  filter.append(element('feComposite', { in: 'SourceGraphic', in2: 'cutout', operator: 'in' }));
-  return filter;
+  return `${arc(136, start, end)} L${point(INNER_RADIUS, end)} A${INNER_RADIUS},${INNER_RADIUS} 0 0 0 ${point(INNER_RADIUS, start)} Z`;
 }
 
 export class MapWheel {
@@ -57,7 +51,6 @@ export class MapWheel {
     this.svg.append(element('circle', { cx: 160, cy: 160, r: 145, class: 'map-rim' }), element('path', { d: playerMark, class: 'map-player' }));
     this.disc = element('svg', { viewBox: '0 0 320 320', class: 'map-wheel-disc', 'aria-hidden': 'true' });
     const definitions = element('defs');
-    definitions.append(atlasFilter());
     this.rotor = element('g', { class: 'map-rotor' });
     this.disc.append(definitions, this.rotor);
     const boundaries = element('g', { class: 'map-boundaries' });
@@ -69,28 +62,37 @@ export class MapWheel {
       this.sectors.set(zone.id, path);
       this.rotor.append(path);
       const middle = (start + end) / 2;
-      const [x, y] = point(108, middle);
+      const [x, y] = point(ICON_RADIUS, middle);
       const icon = element('g', { class: 'map-icon', transform: `translate(${x} ${y}) rotate(${middle * 180 / Math.PI})`, 'data-icon': zone.id });
       const crop = mapWheelIcons[zone.id];
       if (crop) {
         const [left, top, width, height] = crop;
-        // Taille maximale commune et proportions d'origine conservées.
-        const scale = Math.min(28 / width, 40 / height);
+        // Même cadre maximal agrandi de 30 %, proportions naturelles conservées.
+        // La silhouette entière garde 2,5 unités de marge aux séparations.
+        const slope = Math.tan((end - start) / 2);
+        const bands = mapWheelIconWidths[zone.id];
+        let scale = Math.min(36.4 / width, 52 / height);
+        for (let i = 0; i < bands.length; i++) {
+          const innerY = height * ((i + 1) / bands.length - 0.5);
+          const extent = bands[i] + innerY * slope;
+          if (extent > 0) scale = Math.min(scale, Math.max(0, ICON_RADIUS * slope - 2.5) / extent);
+        }
         const w = width * scale, h = height * scale;
         const clipId = `map-wheel-crop-${zone.id}`;
         const clip = element('clipPath', { id: clipId, clipPathUnits: 'userSpaceOnUse' });
+        // Le rectangle isole uniquement le symbole dans la planche transparente.
         clip.append(element('rect', { x: -w / 2, y: -h / 2, width: w, height: h }));
         definitions.append(clip);
         const artwork = element('g', { 'clip-path': `url(#${clipId})` });
         artwork.append(element('image', { href: mapWheelAtlas.file.href,
           x: -w / 2 - left * scale, y: -h / 2 - top * scale,
           width: mapWheelAtlas.width * scale, height: mapWheelAtlas.height * scale,
-          filter: 'url(#map-wheel-cutout)', 'data-crop': crop.join(' ') }));
+          'data-crop': crop.join(' ') }));
         icon.append(artwork);
       }
       this.rotor.append(icon);
       const firstInBiome = !biomes.has(zone.biome_id);
-      boundaries.append(element('path', { d: `M${point(80, start)} L${point(firstInBiome ? 145 : 136, start)}`, class: firstInBiome ? 'map-biome-divider' : 'map-zone-divider' }));
+      boundaries.append(element('path', { d: `M${point(INNER_RADIUS, start)} L${point(firstInBiome ? 145 : 136, start)}`, class: firstInBiome ? 'map-biome-divider' : 'map-zone-divider' }));
       if (firstInBiome) biomes.set(zone.biome_id, { start, end });
       else biomes.get(zone.biome_id).end = end;
     }
@@ -99,9 +101,11 @@ export class MapWheel {
     }));
     this.rotor.append(boundaries);
     const front = element('svg', { viewBox: '0 0 320 320', class: 'map-wheel-front', 'aria-hidden': 'true' });
-    front.append(element('circle', { cx: 160, cy: 160, r: 79, class: 'map-center' }),
-      element('circle', { cx: 160, cy: 160, r: 72, class: 'map-center-line' }),
-      element('path', { d: playerMark, class: 'map-player' }));
+    // Anneau du sondage : fixe (il ne tourne pas avec la carte), sous le repère du joueur.
+    this.ring = element('g', { class: 'map-poll-ring' });
+    front.append(element('circle', { cx: 160, cy: 160, r: 71.1, class: 'map-center' }),
+      element('circle', { cx: 160, cy: 160, r: 64.8, class: 'map-center-line' }),
+      this.ring, element('path', { d: playerMark, class: 'map-player' }));
     this.container.replaceChildren(this.svg, this.disc, front);
     this.lastRotation = null;
     this.lastLabel = '';
@@ -119,5 +123,37 @@ export class MapWheel {
   updatePoll(snapshot, colors) {
     const zones = new Map(snapshot?.zones.map(z => [z.subzone_id, z.controller]) || []);
     for (const [id, path] of this.sectors) path.setAttribute('fill', colors[zones.get(id)] || mapNeutralColor);
+  }
+  /**
+   * Dessine le sondage en parts autour du cercle, du plus haut score au plus bas, depuis le haut.
+   * `shares` : [[faction, pourcentage entier]], `color(faction)` donne la couleur du candidat.
+   * Avec `animate`, l'anneau se trace d'un trait (environ une seconde) à l'arrivée d'un nouveau sondage.
+   */
+  updatePollRing(shares, color, player, animate) {
+    const parts = [], badges = [];
+    let start = 0;
+    for (const [faction, value] of shares) {
+      if (value <= 0) continue;
+      const delay = start / 100 * RING_SECONDS, duration = value / 100 * RING_SECONDS;
+      parts.push(element('circle', {
+        cx: CENTER, cy: CENTER, r: RING_RADIUS, pathLength: 100, transform: `rotate(-90 ${CENTER} ${CENTER})`,
+        class: faction === player ? 'map-poll-part map-poll-player' : 'map-poll-part', stroke: color(faction),
+        'stroke-dasharray': `${Math.max(0.1, value - RING_GAP)} 100`, 'stroke-dashoffset': -start,
+        style: `--delay:${delay.toFixed(2)}s;--duration:${duration.toFixed(2)}s`,
+      }));
+      // Pastille chiffrée au milieu des parts assez grandes pour la porter.
+      if (value >= RING_BADGE_MIN) {
+        const [x, y] = point(RING_RADIUS, (start + value / 2) / 100 * Math.PI * 2);
+        const badge = element('g', { class: 'map-poll-badge', transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})`,
+          style: `--delay:${(delay + duration).toFixed(2)}s` });
+        const label = element('text', { y: 1, class: isLight(color(faction)) ? 'map-poll-dark' : '' });
+        label.textContent = String(value);
+        badge.append(element('circle', { r: 19, fill: color(faction) }), label);
+        badges.push(badge);
+      }
+      start += value;
+    }
+    this.ring.classList.toggle('map-poll-animate', !!animate);
+    this.ring.replaceChildren(...parts, ...badges);
   }
 }

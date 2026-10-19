@@ -1,6 +1,6 @@
-// Planche validée, conservée sans retouche. Les rectangles excluent les légendes.
+// Compositions verticales sur fond transparent, toutes dessinées debout.
 export const mapWheelAtlas = {
-  file: new URL('../../../assets/images/interface/roue-quartiers-planche.png', import.meta.url),
+  file: new URL('../../../assets/images/interface/roue-quartiers-verticale-v1.png', import.meta.url),
   width: 1536,
   height: 1024,
 };
@@ -8,22 +8,46 @@ export const mapWheelAtlas = {
 // Coordonnées en pixels : gauche, haut, largeur, hauteur.
 // Les dessins restent de face ici ; map-wheel.js les tourne vers le centre.
 export const mapWheelIcons = {
-  paris_a: [34, 157, 232, 188],
-  paris_b: [35, 401, 221, 259],
-  paris_c: [26, 760, 238, 173],
-  banlieue_a: [305, 114, 189, 219],
-  banlieue_b: [294, 410, 198, 229],
-  banlieue_c: [289, 760, 214, 170],
-  periurbain_a: [528, 137, 214, 196],
-  periurbain_b: [527, 405, 232, 243],
-  periurbain_c: [528, 757, 239, 173],
-  campagne_a: [779, 180, 228, 169],
-  campagne_b: [778, 429, 224, 211],
-  campagne_c: [782, 716, 225, 216],
-  retraites_a: [1041, 132, 216, 200],
-  retraites_b: [1033, 433, 231, 218],
-  retraites_c: [1028, 743, 240, 188],
-  riches_a: [1306, 112, 189, 221],
-  riches_b: [1304, 395, 188, 261],
-  riches_c: [1291, 754, 223, 177],
+  paris_a: [69, 44, 170, 292],
+  paris_b: [62, 360, 183, 283],
+  paris_c: [59, 708, 188, 261],
+  banlieue_a: [317, 46, 165, 282],
+  banlieue_b: [304, 355, 182, 278],
+  banlieue_c: [308, 693, 172, 281],
+  periurbain_a: [555, 48, 171, 260],
+  periurbain_b: [559, 380, 163, 266],
+  periurbain_c: [555, 704, 178, 269],
+  campagne_a: [803, 69, 166, 267],
+  campagne_b: [801, 385, 185, 248],
+  campagne_c: [799, 676, 187, 299],
+  retraites_a: [1041, 77, 188, 240],
+  retraites_b: [1054, 379, 166, 257],
+  retraites_c: [1047, 686, 181, 289],
+  riches_a: [1307, 54, 172, 274],
+  riches_b: [1296, 358, 190, 285],
+  riches_c: [1285, 677, 204, 298],
+};
+
+// Demi-largeur de la silhouette dans cinq bandes, du haut vers le bas.
+// Mesures préparées hors du jeu : elles permettent de garder une marge sans
+// couper les dessins ni relire leurs pixels pendant une partie.
+export const mapWheelIconWidths = {
+  paris_a: [69, 84, 72, 67, 61],
+  paris_b: [24.5, 72.5, 87.5, 89.5, 77.5],
+  paris_c: [93, 93, 93, 89, 85],
+  banlieue_a: [69.5, 74.5, 74.5, 80.5, 80.5],
+  banlieue_b: [45, 52, 82, 90, 81],
+  banlieue_c: [70, 76, 85, 85, 84],
+  periurbain_a: [76.5, 78.5, 80.5, 84.5, 84.5],
+  periurbain_b: [72.5, 76.5, 71.5, 80.5, 80.5],
+  periurbain_c: [52, 82, 88, 86, 84],
+  campagne_a: [75, 82, 82, 79, 74],
+  campagne_b: [40.5, 78.5, 79.5, 91.5, 90.5],
+  campagne_c: [64.5, 87.5, 91.5, 83.5, 91.5],
+  retraites_a: [68, 93, 81, 78, 75],
+  retraites_b: [70, 82, 64, 75, 81],
+  retraites_c: [73.5, 81.5, 73.5, 89.5, 89.5],
+  riches_a: [73, 85, 76, 84, 84],
+  riches_b: [18, 22, 38, 62, 94],
+  riches_c: [77, 77, 89, 98, 101],
 };

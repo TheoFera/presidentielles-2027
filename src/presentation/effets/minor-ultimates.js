@@ -1,3 +1,4 @@
+import { drawMinorExplosion } from './minor-explosions.js';
 import { minorUltimateAtlases } from './minor-ultimate-art.js';
 import { prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
 import { minorCombatAtlases } from '../personnages/minor-animation-sprites.js';
@@ -62,6 +63,7 @@ export function drawMinorUltimateCandidate(renderer, entity, x, state) {
   const attack = state.attacks.find(a => a.id === entity.combat.attack_id);
   const power = state.powers.find(p => p.owner_id === entity.id && p.expires_tick > state.tick);
   const gesture = power && !entity.dash_active && (!attack || attack.kind === 'SPECIAL')
+    && (power.kind !== 'TOOLS' || entity.combat.jump_tick == null)
     ? minorUltimateGesture(power, state.tick, hz, renderer.config.balance.minor_ultimates, Math.abs(combatDelta(state, power.x, entity.x))) : null;
   if (gesture) {
     const atlas = minorUltimateAtlases[gesture.atlas], direction = power.kind === 'SAUSAGE' && power.returning
@@ -164,7 +166,7 @@ export function drawMinorUltimateEffects(renderer, state) {
             // Le nez est le point de trajectoire : il rejoint le sol exactement au tick des dégâts.
             prop(renderer, 0, missile.x, missile.y, length, missile.angle, 1, minorUltimateAtlases.missile, [1, .5]);
           }
-        } else if (remaining <= 0 && remaining > -.8) confetti(renderer, dx, ground - m.characterHeight * .45, -remaining / .8, b.delivery.radius * m.pixelsPerUnit);
+        } else if (remaining <= 0 && remaining > -.8) drawMinorExplosion(renderer, dx, ground - m.characterHeight * .06, -remaining / .8, b.delivery.radius * m.pixelsPerUnit);
       }
       // Les missiles sortent de sous les ailes, puis deviennent visibles en s'écartant de l'avion.
       if (plane.visible) {
@@ -183,7 +185,7 @@ export function drawMinorUltimateEffects(renderer, state) {
       const y = ground - p.height * m.characterHeight - m.characterHeight * .13;
       if (p.detonated_tick != null) {
         const progress = (state.tick - p.detonated_tick) / (hz * .7);
-        confetti(renderer, x, y, progress, b.satchel.radius * m.pixelsPerUnit, 42);
+        drawMinorExplosion(renderer, x, y, progress, b.satchel.radius * m.pixelsPerUnit, true);
       } else {
         const flightAge = (state.tick - p.launch_tick) / hz;
         let bagX = x, bagY = y;

@@ -28,9 +28,12 @@ export function tryBardellisation(sim, candidate) {
   if (activeCampaignStyle(sim.config, candidate)?.ultimate.kind !== 'BARDELLA' || candidate.bardellisation_used || !candidate.bardella_guardian_armed) return false;
   clearCampaignUltimate(sim, candidate);
   candidate.bardellisation_used = true; candidate.bardella_form = true;
-  candidate.resistance = sim.config.balance.candidate_combat.resistance_max;
-  if (sim.state.debate_bounds) candidate.debate_hp = candidate.debate_initial_hp;
+  // La relève revient avec une partie de la vie seulement, puis un court instant intouchable.
+  const b = sim.config.balance.specials.bardella;
+  candidate.resistance = sim.config.balance.candidate_combat.resistance_max * b.revive_resistance_ratio;
+  if (sim.state.debate_bounds) candidate.debate_hp = candidate.debate_initial_hp * b.revive_resistance_ratio;
   candidate.combat = combatState(); candidate.is_ko = false;
+  candidate.combat.invulnerable_until_tick = sim.state.tick + sim.secondsToTicks(b.revive_invulnerable_seconds);
   candidate.bardella_transition_tick = sim.state.tick;
   sim.emit('BardellaGuardianTriggered', { candidate_id: candidate.id });
   sim.emit('BardellisationTriggered', { candidate_id: candidate.id });
@@ -115,7 +118,13 @@ export function updateStyleTemporary(sim, unit) {
     unit.facing = unit.sweep_direction;
     for (const target of combatActors(state)) {
       if (!enemies(unit, target) || Math.abs(combatDelta(state, unit.x, target.x)) > s.range || state.tick < (unit.contact_ticks[target.id] ?? 0)) continue;
-      if (hit(sim, unit, target, { kind: 'SURGE', ultimate: true, damage: s.damage, knockback: s.knockback, stun_seconds: s.stun_seconds, direction: unit.facing }, unit.power_id)) unit.contact_ticks[target.id] = state.tick + sim.secondsToTicks(s.contact_cooldown_seconds);
+      // Les encapuchonnés se partagent un nombre limité de touches par adversaire.
+      const power = state.powers.find(p => p.id === unit.power_id), hits = power ? (power.surge_hits ??= {}) : {};
+      if ((hits[target.id] ?? 0) >= s.max_hits_per_target) continue;
+      if (hit(sim, unit, target, { kind: 'SURGE', ultimate: true, damage: s.damage, knockback: s.knockback, stun_seconds: s.stun_seconds, direction: unit.facing }, unit.power_id)) {
+        unit.contact_ticks[target.id] = state.tick + sim.secondsToTicks(s.contact_cooldown_seconds);
+        hits[target.id] = (hits[target.id] ?? 0) + 1;
+      }
     }
     return true;
   }

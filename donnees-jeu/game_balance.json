@@ -235,10 +235,11 @@
       "return_speed": 22,
       "speed": 8,
       "range": 0.7,
-      "damage": 10,
+      "damage": 8,
       "knockback": 1.5,
       "stun_seconds": 0.5,
-      "contact_cooldown_seconds": 0.8
+      "contact_cooldown_seconds": 0.8,
+      "max_hits_per_target": 4
     },
     "fire": {
       "duration_seconds": 5.5,
@@ -246,16 +247,16 @@
       "launch_delay_seconds": 0.22,
       "radius": 3,
       "burn_seconds": 2,
-      "damage_per_second": 7.5,
+      "damage_per_second": 10,
       "tick_seconds": 0.5
     },
     "zemmour": {
       "duration_seconds": 8,
-      "durability": 12,
-      "shots_per_second": 0.8,
+      "durability": 30,
+      "shots_per_second": 1,
       "projectile_speed": 9,
       "projectile_range": 35,
-      "damage": 4,
+      "damage": 6,
       "knockback": 0,
       "bubble_bottom": 0.62,
       "bubble_height": 0.14,
@@ -263,24 +264,30 @@
       "bubble_hit_radius": 0.22
     },
     "scarf": {
-      "duration_seconds": 4,
+      "duration_seconds": 5,
       "range": 5,
       "damage": 8,
+      "finisher_damage": 12,
       "knockback": 5
     },
     "europe": {
       "duration_seconds": 5,
       "dash_damage": 15,
+      "dash_target_cooldown_seconds": 0.8,
       "knockback": 11,
       "stun_seconds": 0.5
+    },
+    "bardella": {
+      "revive_resistance_ratio": 0.5,
+      "revive_invulnerable_seconds": 1
     }
   },
   "minor_ultimates": {
     "sausage": { "range": 8, "speed": 12, "damage": 10, "push": 3, "pull": 6, "height": 0.65, "launch_seconds": 0.36, "catch_seconds": 0.42, "release_offset": 1.4 },
     "invisible": { "duration_seconds": 5, "transition_seconds": 0.3 },
-    "delivery": { "call_seconds": 0.8, "entry_seconds": 0.5, "warning_seconds": 0.22, "interval_seconds": 0.06, "exit_seconds": 0.85, "spacing": 2.4, "radius": 1.3, "damage": 13, "knockback": 4 },
-    "tools": { "duration_seconds": 6, "range": 2.3, "sickle_damage": 10, "hammer_damage": 18, "pull": 4, "flatten_seconds": 0.8 },
-    "barrier": { "duration_seconds": 3.5, "fall_seconds": 0.65, "height": 1.15, "half_width": 0.3, "max_distance": 3, "fall_range": 3.2, "damage": 22, "knockback": 9 },
+    "delivery": { "call_seconds": 0.5, "entry_seconds": 0.25, "warning_seconds": 0.15, "interval_seconds": 0.06, "exit_seconds": 0.6, "spacing": 2.4, "radius": 1.5, "damage": 18, "knockback": 4 },
+    "tools": { "duration_seconds": 6, "range": 2.3, "sickle_damage": 10, "hammer_damage": 14, "pull": 4, "flatten_seconds": 0.8 },
+    "barrier": { "duration_seconds": 3.5, "fall_seconds": 0.65, "height": 1.15, "half_width": 0.3, "max_distance": 3, "fall_range": 3.2, "damage": 30, "knockback": 9 },
     "satchel": { "launch_seconds": 0.3, "speed": 9, "range": 6, "radius": 2.6, "damage": 25, "knockback": 7, "lifetime_seconds": 30, "release_offset": 1.4, "height": 0.45 }
   },
   "buildings": {
@@ -1081,7 +1088,7 @@
     "max_charges": 3,
     "recharge_seconds": 4,
     "duration_seconds": 0.24,
-    "distance": 2.3,
+    "distance": 3.6,
     "invulnerability_seconds": 0.12,
     "double_tap_window_ms": 250,
     "touch_double_tap_window_ms": 350,

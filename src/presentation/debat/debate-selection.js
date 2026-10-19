@@ -1,8 +1,10 @@
+import { framePortrait } from '../menus/portrait-framing.js';
 import { CANDIDATES, portrait } from '../menus/arcade-content.js';
 import { MINOR_FACTIONS } from '../../simulation/world.js';
 import { debateStyles, debateStyleAvailable } from '../../simulation/debate-mode.js';
+import { minorStandingAtlases, MINOR_ANIMATION_FILES } from '../personnages/minor-animation-sprites.js';
 import { MINOR_SPRITES } from '../personnages/minor-sprites.js';
-import { prepareMinorFrames, preparedMinorFrames } from '../personnages/minor-sprite-images.js';
+import { prepareMinorFrames, preparedMinorFrames, prepareAtlasFrames } from '../personnages/minor-sprite-images.js';
 
 const MINOR_NAMES = [
   ['Raphaël Glucksmann', 'Glucksmann'], ['Fabien Roussel', 'Roussel'], ['Nathalie Arthaud', 'Arthaud'],
@@ -11,6 +13,9 @@ const MINOR_NAMES = [
 export const DEBATE_CANDIDATES = [...CANDIDATES, ...MINOR_FACTIONS.map((id, i) => ({ id, name: MINOR_NAMES[i][0], short: MINOR_NAMES[i][1], minor: true }))];
 export const escape = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const portraits = new Map();
+// Visage de la référence v6 conservé sur une pose immobile dédiée aux menus.
+const ndaPortrait = new URL('../../../assets/images/candidats/dupont-aignan/dupont-aignan-portrait-repos-v1.png', import.meta.url).href;
+const ndaPortraitAtlas = { frames: [[223, 64, 531, 1487]] };
 
 /** Réutilise les silhouettes du jeu ; une seule découpe est conservée par candidat. */
 export function selectionPortrait(faction) {
@@ -18,8 +23,16 @@ export function selectionPortrait(faction) {
   if (!portraits.has(faction)) portraits.set(faction, (async () => {
     // En partie, la découpe est déjà prête (chargement) : sinon, une seule découpe pour ce portrait.
     // L'encodage en image se fait hors du fil du jeu (toBlob) : pas de gel quand un portrait apparaît.
-    const frame = (preparedMinorFrames(faction) || prepareMinorFrames(await loadImage(new URL(`../../../${MINOR_SPRITES[faction]}`, import.meta.url).href), faction))[0];
-    const blob = await new Promise((resolve, reject) => frame.toBlob(result => result ? resolve(result) : reject(new Error('Portrait indisponible.')), 'image/png'));
+    const standing = minorStandingAtlases[faction];
+    const frame = faction === 'dupont_aignan'
+      ? prepareAtlasFrames(await loadImage(ndaPortrait), ndaPortraitAtlas)[0]
+      : standing
+      ? prepareAtlasFrames(await loadImage(new URL(`../../../${MINOR_ANIMATION_FILES[faction].actions}`, import.meta.url).href), standing)[0]
+      : (preparedMinorFrames(faction) || prepareMinorFrames(await loadImage(new URL(`../../../${MINOR_SPRITES[faction]}`, import.meta.url).href), faction))[0];
+    // Les poses préparées peuvent déjà être des ImageBitmap, sans méthode toBlob.
+    const canvas = document.createElement('canvas'); canvas.width = frame.width; canvas.height = frame.height;
+    canvas.getContext('2d').drawImage(frame, 0, 0);
+    const blob = await new Promise((resolve, reject) => canvas.toBlob(result => result ? resolve(result) : reject(new Error('Portrait indisponible.')), 'image/png'));
     return URL.createObjectURL(blob);
   })());
   return portraits.get(faction);
@@ -38,8 +51,11 @@ export function portraitContent(faction) {
 }
 export function hydrateSelectionPortraits(root) {
   root.querySelectorAll('[data-portrait]').forEach(element => {
-    if (element.querySelector('img')) return;
-    void selectionPortrait(element.dataset.portrait).then(src => {
+    const closeup = Boolean(element.closest('.select-tile, .debate-fighter, .debate-ranking'));
+    if (element.dataset.portraitReady || (!closeup && element.querySelector('img'))) return;
+    element.dataset.portraitReady = 'true';
+    if (closeup) element.dataset.closeup = '';
+    void selectionPortrait(element.dataset.portrait).then(src => closeup ? framePortrait(src, element.dataset.portrait) : src).then(src => {
       const image = document.createElement('img'); image.src = src; image.alt = ''; element.replaceChildren(image);
     }).catch(() => { element.textContent = '?'; });
   });

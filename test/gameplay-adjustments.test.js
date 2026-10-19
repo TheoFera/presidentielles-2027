@@ -54,13 +54,13 @@ test('Militants : rapprochement avant de tirer et projectile expiré avant cinq 
  }
 });
 
-test('Zemmour : 0,8 tir/s, bulle basse évitable dès une hauteur de 0,8 personnage',()=>{
+test('Zemmour : 1 tir/s, bulle basse évitable dès une hauteur de 0,8 personnage',()=>{
  const {sim,c}=setup(),s=sim.config.balance.specials.zemmour;
- assert.equal(s.shots_per_second,2/2.5);
+ assert.equal(s.shots_per_second,1);
  const unit={id:'temporary:1',owner_id:c.id,power_id:'power:1',role:'ZEMMOUR',faction_id:c.faction_id,x:c.x,facing:1,next_shot_tick:0,shot_count:0,combat:combatState()};
- updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,1);assert.equal(unit.next_shot_tick,38);
- sim.state.tick=37;updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,1);
- sim.state.tick=38;updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,2);
+ updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,1);assert.equal(unit.next_shot_tick,30);
+ sim.state.tick=29;updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,1);
+ sim.state.tick=30;updateStyleTemporary(sim,unit);assert.equal(sim.state.projectiles.length,2);
  const target=sim.state.candidates[1];target.combat.height=.8;assert.equal(verticalHit(sim.config,unit,target,{kind:'BUBBLE'}),false);
  target.combat.height=0;assert.equal(verticalHit(sim.config,unit,target,{kind:'BUBBLE'}),true);
 });

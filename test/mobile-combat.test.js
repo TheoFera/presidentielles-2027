@@ -87,12 +87,23 @@ test('Combo : 1, 2, finisher fort puis retour au premier coup', () => {
   ticks(sim, sim.secondsToTicks(sim.config.balance.candidate_combat.combo_reset_seconds) + 2, true);
   requestAttack(sim, c); ticks(sim, 1, true); assert.equal(c.combat.combo_step, 1);
 });
+test('Ultis : la vague fait tomber ; en débat d’événement, les dégâts fixes suivent le barème', () => {
+  const { sim, c, enemy } = setup('le_pen');
+  hit(sim, c, enemy, { kind: 'WAVE', damage: 18, knockback: 8, ranged: true, strong: true }, 'test:vague');
+  assert.notEqual(enemy.combat.knockdown_tick ?? null, null);
+  const d = setup('philippe'); d.sim.state.debate_bounds = { min: 0, max: 28 }; d.enemy.debate_hp = 20;
+  hit(d.sim, d.c, d.enemy, { kind: 'EUROPE_DASH', exact_damage: true, ranged: true, damage: 15, knockback: 0 }, 'test:dash');
+  const k = d.sim.config.balance;
+  assert.ok(Math.abs(d.enemy.debate_hp - (20 - 15 * k.first_round_debate.damage.light_1 / k.candidate_combat.light_hit_hidden_damage)) < 1e-9);
+});
 test('Bardella : charge pleine sans activation = KO ; armé 30 s = relève ; changement annule', () => {
   const a = setup('le_pen',2); a.c.special_charge = 10;
   hit(a.sim,a.enemy,a.c,{damage:999,knockback:0},'test:ko'); assert.equal(a.c.is_ko,true); assert.equal(a.c.bardella_form,false);
   const b = setup('le_pen',2); b.c.special_charge = 10; activateUltimate(b.sim,b.c); ticks(b.sim,900,true);
   assert.equal(b.c.bardella_guardian_armed,true); assert.equal(b.c.special_charge,0);
   hit(b.sim,b.enemy,b.c,{damage:999,knockback:0},'test:ko'); assert.equal(b.c.bardella_form,true); assert.equal(b.c.is_ko,false);
+  // Relève à moitié de vie, puis un court instant intouchable.
+  assert.equal(b.c.resistance,50); assert.equal(hit(b.sim,b.enemy,b.c,{damage:10,knockback:0},'test:relève'),null);
   const c = setup('le_pen',2); c.c.special_charge = 10; activateUltimate(c.sim,c.c);
   CampaignStyleSystem.select(c.sim,c.c,CAMPAIGN_STYLES.le_pen[0].id,true); assert.equal(c.c.bardella_guardian_armed,false);
 });

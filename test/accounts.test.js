@@ -9,7 +9,7 @@ import { NEWSLETTER_CONSENT_VERSION } from '../serveur-en-ligne/api/accounts.js'
 import { unsubscribeLink } from '../serveur-en-ligne/api/newsletter.js';
 import { appleClientSecret, revokeAppleAuthorization } from '../serveur-en-ligne/api/apple.js';
 import { choiceStep } from '../src/presentation/menus/unlock-choice.js';
-import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, MAX_RUN_UNLOCKS, earnedUnlocks, recordKnockout, unlockOffer } from '../src/simulation/unlock-catalog.js';
+import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, earnedUnlocks, recordKnockout, unlockOffer } from '../src/simulation/unlock-catalog.js';
 import { CAMPAIGN_STYLES, DEFAULT_UNLOCKS } from '../src/simulation/campaign-styles.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { ACCOUNT_NEWSLETTER_VERSION } from '../src/network/account-config.js';
@@ -423,6 +423,17 @@ test('Progression solo : abandon, fin normale, durée, rejeu et requête forgée
   assert.ok(!capped.body.unlocks.includes('attal'));
   // Rejeu de la même fin : refusé, pas de doublon.
   assert.equal((await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['attal'] } })).body.error.code, 'run_closed');
+  // Choix enregistrés un par un : le gratuit au clic, le 2ᵉ après la pub ; un 3ᵉ envoi est refusé.
+  const step = await start(); ageRun(api, step, SOLO_CAMPAIGN_MIN_SECONDS + 5);
+  assert.deepEqual((await api.call('POST', `runs/${step}/complete`, { token, body: { knockouts: ['attal'] } })).body.unlocked, ['attal']);
+  assert.deepEqual((await api.call('POST', `runs/${step}/complete`, { token, body: { knockouts: ['retailleau', 'dupont_aignan'] } })).body.unlocked, ['retailleau']);
+  assert.equal((await api.call('POST', `runs/${step}/complete`, { token, body: { knockouts: ['dupont_aignan'] } })).body.error.code, 'run_closed');
+  // 2ᵉ envoi trop tard (plus de 15 min après le 1er) ou après une fin refusée : refusé.
+  const late = await start(); ageRun(api, late, SOLO_CAMPAIGN_MIN_SECONDS + 5);
+  await api.call('POST', `runs/${late}/complete`, { token, body: { knockouts: [] } });
+  api.sql('UPDATE game_runs SET completed_at = completed_at - ? WHERE id = ?', RUN_FOLLOW_UP_SECONDS + 1, late);
+  assert.equal((await api.call('POST', `runs/${late}/complete`, { token, body: { knockouts: ['dupont_aignan'] } })).body.error.code, 'run_closed');
+  assert.equal((await api.call('POST', `runs/${early}/complete`, { token, body: { knockouts: ['dupont_aignan'] } })).body.error.code, 'run_closed');
   // Déjà débloqué : pas d'erreur, pas de doublon.
   const run2 = await start(); ageRun(api, run2, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   assert.deepEqual((await api.call('POST', `runs/${run2}/complete`, { token, body: { knockouts: ['roussel'] } })).body.unlocked, []);

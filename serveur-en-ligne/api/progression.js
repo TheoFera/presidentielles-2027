@@ -8,16 +8,14 @@
 // forgées (identifiant inconnu, partie inexistante, trop courte, rejouée), pas un jeu
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
 import { ApiError, audit, nowSeconds, randomId } from './util.js';
-import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, STYLE_UNLOCKS, isUnlockable } from '../../src/simulation/unlock-catalog.js';
+import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, STYLE_UNLOCKS, campaignMinSeconds, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { titleRank } from '../../src/simulation/player-titles.js';
 
 import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
 
-// Durée réelle de la campagne, lue dans les données du jeu (365 jours × durée d'un jour) :
-// le seuil suit tout changement de durée, sans oublier de le recopier ici.
-export const CAMPAIGN_SECONDS = balance.time.starting_days_before_first_round * balance.time.real_seconds_per_game_day;
-// Le jeu n'envoie pas la fin d'une partie accélérée ; 75 % de la campagne laissent une marge.
-export const SOLO_CAMPAIGN_MIN_SECONDS = Math.floor(CAMPAIGN_SECONDS * 0.75);
+// Durée minimale lue dans les données du jeu (75 % de 365 jours × durée d'un jour) : le seuil suit tout
+// changement de durée. Le jeu fait le même calcul et ne propose pas de pub si la partie serait refusée.
+export const SOLO_CAMPAIGN_MIN_SECONDS = campaignMinSeconds(balance.time);
 export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 
 export async function listUnlocks(db, userId) {
@@ -42,30 +40,36 @@ export async function startRun(db, userId, body, now = nowSeconds()) {
 /**
  * Fin normale d'une campagne solo : enregistre les candidats CHOISIS par le joueur parmi ceux qu'il a mis K.-O.
  * (1 gratuit en cas de victoire, +1 avec une pub récompensée ; 1 avec une pub en cas de défaite).
- * Au plus MAX_RUN_UNLOCKS par partie : une ancienne version du jeu, qui envoyait tous les K.-O., n'en garde que les premiers.
+ * Chaque choix est envoyé dès qu'il est fait : le 1er envoi termine la partie (durée vérifiée), un 2ᵉ envoi
+ * est accepté dans les RUN_FOLLOW_UP_SECONDS qui suivent. Au plus MAX_RUN_UNLOCKS candidats par partie au total.
  */
 export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (typeof runId !== 'string' || !/^r_[a-f0-9]{32}$/.test(runId)) throw new ApiError(404, 'run_not_found', 'Partie introuvable.');
   const run = await db.prepare('SELECT * FROM game_runs WHERE id = ? AND user_id = ?').bind(runId, userId).first();
   if (!run) throw new ApiError(404, 'run_not_found', 'Partie introuvable.');
-  if (run.status !== 'playing') throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   const knockouts = body.knockouts ?? [];
   if (!Array.isArray(knockouts) || knockouts.length > 40 || knockouts.some(id => !isUnlockable(id))) {
     await audit(db, userId, 'run_invalid_unlock', runId).run();
     throw new ApiError(400, 'invalid_input', 'Liste de candidats invalide.');
   }
-  const elapsed = now - run.created_at;
-  if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS || elapsed > SOLO_CAMPAIGN_MAX_SECONDS) {
-    await db.batch([db.prepare('UPDATE game_runs SET status = \'rejected\', completed_at = ? WHERE id = ?').bind(now, runId), audit(db, userId, 'run_rejected', runId, `${elapsed}s`)]);
-    throw new ApiError(422, 'implausible_run', 'Fin de partie refusée : durée de campagne invalide.');
+  const picks = run.picks || 0;
+  const followUp = run.status === 'completed' && picks < MAX_RUN_UNLOCKS && now - run.completed_at <= RUN_FOLLOW_UP_SECONDS;
+  if (run.status !== 'playing' && !followUp) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
+  if (run.status === 'playing') {
+    const elapsed = now - run.created_at;
+    if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS || elapsed > SOLO_CAMPAIGN_MAX_SECONDS) {
+      await db.batch([db.prepare('UPDATE game_runs SET status = \'rejected\', completed_at = ? WHERE id = ?').bind(now, runId), audit(db, userId, 'run_rejected', runId, `${elapsed}s`)]);
+      throw new ApiError(422, 'implausible_run', 'Fin de partie refusée : durée de campagne invalide.');
+    }
   }
-  // Verrou : une seule fin acceptée, même si la requête est rejouée.
-  const closed = await db.prepare('UPDATE game_runs SET status = \'completed\', completed_at = ? WHERE id = ? AND status = \'playing\'').bind(now, runId).run();
-  if (!closed.meta.changes) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   const before = await listUnlocks(db, userId);
   const chosen = [...new Set(knockouts)];
-  const wanted = chosen.slice(0, MAX_RUN_UNLOCKS);
-  if (chosen.length > wanted.length) await audit(db, userId, 'run_too_many_unlocks', runId, `${chosen.length}`).run();
+  const wanted = chosen.slice(0, MAX_RUN_UNLOCKS - picks);
+  if (chosen.length > wanted.length) await audit(db, userId, 'run_too_many_unlocks', runId, `${picks + chosen.length}`).run();
+  // Verrou : chaque envoi part de l'état lu ci-dessus ; une requête rejouée ou simultanée ne compte qu'une fois.
+  const closed = await db.prepare('UPDATE game_runs SET status = \'completed\', completed_at = COALESCE(completed_at, ?), picks = ? WHERE id = ? AND status = ? AND picks = ?')
+    .bind(now, picks + wanted.length, runId, run.status, picks).run();
+  if (!closed.meta.changes) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   if (wanted.length) await db.batch(wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_run_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)').bind(userId, id, runId, now)));
   if (wanted.length) await updateTitleRank(db, userId);
   return { unlocked: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };

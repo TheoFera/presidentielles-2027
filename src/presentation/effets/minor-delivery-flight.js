@@ -15,8 +15,10 @@ export function deliveryPlanePose(power, tick, hz, balance, metrics, screenX) {
   const interval = (launchTick(power.impacts[1], hz, balance) - first) / hz;
   // Vitesse horizontale constante ; la courbe reste peu inclinée par sa géométrie.
   const speed = Math.max(balance.spacing * metrics.pixelsPerUnit / interval, 2 * curvature * duration / Math.tan(.52));
-  const flightSeconds = (power.impacts[0].tick - first) / hz;
-  const firingX = screenX(power.impacts[0].x) - power.direction * Math.max(h * 1.2, speed * flightSeconds * .65);
+  // Toute la salve part avant le passage au-dessus du lanceur, nez de l'avion compris.
+  // power.x conserve sa position au déclenchement, même si Glucksmann se déplace ensuite.
+  const volleyDistance = speed * (last - first) / hz;
+  const firingX = screenX(power.x) - power.direction * (volleyDistance + width * .6);
   const time = (tick - midpoint) / hz;
   const x = firingX + power.direction * speed * (tick - first) / hz, y = altitude - curvature * time * time;
   const velocity = { x: power.direction * speed, y: -2 * curvature * time };

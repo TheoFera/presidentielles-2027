@@ -19,7 +19,7 @@
 /* No cropped illustration, including on tall desktop windows or wide phones. */
 #start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) { display: grid; place-items: center; padding: 0; background: #040c1d; }
 #start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-shell { flex: none; display: block; width: min(100cqw, 177.7778cqh); height: auto; aspect-ratio: 16 / 9; max-height: 100%; container-type: size; margin: 0; background: var(--menu-home-art) center / 100% 100% no-repeat; }
-#start-menu[data-screen='candidates'] .menu-shell { background-image: url('../../../assets/images/menus/candidats-philippe-centre.png'); }
+#start-menu[data-screen='candidates'] .menu-shell { background-image: url('../../../assets/images/menus/candidats-philippe-centre-v2.png'); }
 #start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-header { position: absolute; z-index: 3; inset: max(2%, env(safe-area-inset-top)) max(1.8%, env(safe-area-inset-right)) auto max(1.8%, env(safe-area-inset-left)); pointer-events: none; }
 #start-menu:is([data-screen='home'], [data-screen='players'], [data-screen='candidates']) .menu-header button { pointer-events: auto; }
 #start-menu .menu-home { display: block; position: absolute; inset: 0; }

@@ -142,8 +142,31 @@ try {
     const player = sim.state.candidates[0]; player.x = b.x; renderer.cameraX = b.x;
     sim.state.tick = sim.hz; b.shutter_transition = { tick: 0, from: 1 };
     renderer.draw(sim.state, { ...sim.state, tick: 0 }, 0.5, 1 / 60);
-    return { fixedWorld: renderer.fixedWorldActive, sampledTick: renderer.buildingShutterTick, expectedTick: sim.hz / 2 };
+    const sampledTick = renderer.buildingShutterTick;
+    // Reproduit la cagnotte placée à la hauteur du coffre de la grande boutique.
+    const { buildingSignFrame } = await import('/src/presentation/carte/fixed-world.js');
+    const shop = sim.state.buildings.find(b => b.site_id === 'site:riches_b');
+    sim.state.local_candidate_id = player.id; player.x = shop.x; shop.owner_id = player.faction_id;
+    shop.state = 'ACTIVE'; shop.shutter_transition = null; shop.stored_money_cents = 12300;
+    renderer.cameraX = shop.x;
+    renderer.draw(sim.state, sim.state, 1, 1 / 60);
+    const sign = buildingSignFrame(renderer, shop), context = canvas.getContext('2d');
+    const t = context.getTransform();
+    const pixels = context.getImageData(Math.floor((sign.x - sign.w / 2) * t.a + t.e),
+      Math.floor((sign.y + sign.h / 2 + 5) * t.d + t.f), Math.ceil(sign.w * t.a), Math.ceil(19 * t.d)).data;
+    let moneyTextPixels = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i] > 220 && pixels[i + 1] > 200 && pixels[i + 2] < 200) moneyTextPixels++;
+    }
+    window.shutterMoneyCanvas = canvas;
+    return { fixedWorld: renderer.fixedWorldActive, sampledTick, expectedTick: sim.hz / 2, moneyTextPixels };
   });
+  await page.evaluate(() => {
+    const sheet = document.querySelector('#sheet'), source = window.shutterMoneyCanvas;
+    sheet.width = source.width; sheet.height = source.height;
+    sheet.getContext('2d').drawImage(source, 0, 0);
+  });
+  await page.locator('#sheet').screenshot({ path: path.join(output, 'cagnotte.png') });
   assert.equal(report.length, 18);
   for (const row of report) {
     assert.ok(row.differences > 500, `${row.site} : rideau fermé visible`);
@@ -153,6 +176,7 @@ try {
   }
   assert.equal(integration.fixedWorld, true);
   assert.equal(integration.sampledTick, integration.expectedTick);
+  assert.ok(integration.moneyTextPixels > 30, 'Le texte de la cagnotte reste visible devant le coffre du rideau');
   assert.deepEqual(errors, []);
   await writeFile(path.join(output, 'rapport.json'), JSON.stringify({ report, integration, errors }, null, 2));
   console.log(`18 fermetures vérifiées dans Chrome : ouvert, à mi-course, fermé ; aucun débordement. Captures : ${output}`);

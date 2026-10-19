@@ -12,7 +12,10 @@ export const MINOR_GUARD_FRAME_SECONDS = .175;
 export const minorGuardIdleFrame = (tick, hz) => [0, 1, 2, 1][Math.floor(tick / (hz * MINOR_GUARD_FRAME_SECONDS)) % 4];
 
 export const minorLocomotionAtlases = Object.fromEntries(Object.entries(MINOR_LOCOMOTION_DATA).map(([faction, data]) => {
-  const base = { sprite: `character-minor-${faction}-locomotion`, isolated: true, uniformCharacter: true, standingHeight: data.referenceHeight };
+  // Glucksmann fléchit les jambes : sa garde doit être plus basse que sa pose droite,
+  // sans agrandir son visage pour compenser cette différence de posture.
+  const standingHeight = data.referenceHeight / (faction === 'glucksmann' ? .92 : 1);
+  const base = { sprite: `character-minor-${faction}-locomotion`, isolated: true, uniformCharacter: true, standingHeight };
   return [faction, {
     guardIdle: { ...base, frames: [0, 1, 3].map(i => data.frames[i]) },
     // Quatre appuis bas, chacun tenu sur deux des huit phases de distance du moteur.

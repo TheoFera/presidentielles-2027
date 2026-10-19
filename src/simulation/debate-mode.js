@@ -293,8 +293,11 @@ function platformCommands(state, config, c, target) {
       .sort((a, b) => Math.abs(a.x - targetPlatform.x) - Math.abs(b.x - targetPlatform.x))[0]);
   if (airborne(c)) {
     // En l’air : viser le pupitre choisi, et frapper si l’adversaire passe à portée.
+    // Frapper en l’air plonge vers le bas : jamais tant que ses pieds sont au-dessus des nôtres,
+    // sinon le coup fait retomber avant d’avoir atteint son pupitre.
     const commands = [...base, move(step ? step.x : target.x)];
-    if (Math.abs(target.x - c.x) <= config.balance.candidate_combat.light_range && Math.abs(target.combat.height - c.combat.height) < 0.7) commands.push({ type: 'Attack', candidateId: c.id, direction: Math.sign(target.x - c.x) || c.facing });
+    if (Math.abs(target.x - c.x) <= config.balance.candidate_combat.light_range && target.combat.height <= c.combat.height
+      && c.combat.height - target.combat.height < 0.7) commands.push({ type: 'Attack', candidateId: c.id, direction: Math.sign(target.x - c.x) || c.facing });
     return commands;
   }
   if (Math.abs(theirs - mine) < 0.5) return null;

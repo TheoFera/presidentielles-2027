@@ -49,8 +49,11 @@ import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
 import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
-import { earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
+import { campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
 import { openUnlockChoice } from './presentation/menus/unlock-choice.js';
+
+// L'horloge du jeu démarre un peu avant celle du serveur (temps de la requête) : marge avant de proposer une pub.
+const RUN_CLOCK_MARGIN_SECONDS = 10;
 
 function setText(element, text) {
   if (element.textContent !== text) element.textContent = text;
@@ -437,7 +440,7 @@ async function start() {
   function startSoloRun(candidateId) {
     soloRun = null;
     if (session || !accounts.ready) return;
-    const run = soloRun = { id: null, tainted: false };
+    const run = soloRun = { id: null, tainted: false, startedAt: Date.now() };
     accounts.startRun(candidateId.split(':')[1]).then(result => { run.id = result.run_id; }).catch(() => { /* Hors ligne : partie jouable, déblocage non enregistré. */ });
   }
   /** K.-O. d'un candidat pas encore débloqué : félicitations, et rappel qu'il faut gagner l'élection. */
@@ -460,7 +463,7 @@ async function start() {
    */
   function finishProgress() {
     const faction = state.local_candidate_id.split(':')[1];
-    const titleBefore = playerCard(profile).title;
+    let titleBefore = playerCard(profile).title;
     // shown : l'écran de choix montre déjà les candidats débloqués (pas de message en double).
     const announce = (ids, shown = false) => {
       if (!ids.length) return;
@@ -468,6 +471,7 @@ async function start() {
       // Nouveau titre gagné grâce à ce déblocage : annoncé juste après.
       const title = playerCard(profile).title;
       if (title > titleBefore) setTimeout(() => showAccountToast(`Nouveau titre : ${titleName(title)} !`, 'knockout'), 3500);
+      titleBefore = Math.max(titleBefore, title);
     };
     const offer = unlockOffer(state, faction, profileUnlockIds(profile));
     const lost = () => { if (offer && !offer.won) showAccountToast(`Élection perdue : ${unlockNames(offer.choices)} ${offer.choices.length > 1 ? 'restent' : 'reste'} à débloquer.`, 'error'); };
@@ -481,11 +485,16 @@ async function start() {
     }
     const run = soloRun; soloRun = null;
     const signedIn = accounts.signedIn;
-    if (signedIn && (!run?.id || run.tainted)) {
-      if (offer?.won) showAccountToast('Déblocage non enregistré : partie hors ligne ou accélérée.'); else lost();
+    // Partie que le serveur refuserait (hors ligne au lancement, accélérée, trop courte) : ni choix ni pub,
+    // pour ne jamais faire regarder une pub qui ne rapporterait rien.
+    const tooShort = run && (Date.now() - run.startedAt) / 1000 < campaignMinSeconds(config.balance.time) + RUN_CLOCK_MARGIN_SECONDS;
+    if (signedIn && (!run?.id || run.tainted || tooShort)) {
+      if (offer?.won) showAccountToast('Déblocage impossible pour cette partie : hors ligne, accélérée ou trop courte.'); else lost();
       return;
     }
     const record = ids => {
+      // Rien à débloquer : rien à envoyer (pas de message d'erreur sans objet en fin de partie).
+      if (!ids.length) return;
       if (!signedIn) { announce(addDeviceUnlocks(profile, ids)); account.save(rememberTitle(profile)); return; }
       accounts.completeRun(run.id, ids).then(result => announce(result.unlocked))
         .catch(error => showAccountToast(error.offline ? 'Pas de connexion : déblocage non enregistré sur le compte.' : error.message, 'error'));
@@ -499,7 +508,9 @@ async function start() {
     // Rien à choisir (aucun K.-O. nouveau, ou un seul candidat gagné sans bonus possible) : comme avant.
     if (!offer || (offer.free === offer.choices.length && !offer.rewarded)) { record(offer?.choices ?? []); return; }
     const game = simulation;
-    const getAd = () => ads.rewarded('campaign');
+    // Hors ligne et connecté : une pub déjà chargée pourrait passer, mais le choix ne serait pas enregistré.
+    const none = { available: false, show: async () => false };
+    const getAd = () => signedIn && navigator.onLine === false ? Promise.resolve(none) : ads.rewarded('campaign');
     const open = ad => {
       // Pas d'ouverture automatique : le joueur lit les résultats, l'écran s'ouvre au clic sur « Voir le bilan ».
       const choice = unlockChoice = openUnlockChoice({ offer, getAd, ad, save, sound: () => audio.play('reveal'),

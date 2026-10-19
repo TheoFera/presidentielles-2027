@@ -158,6 +158,42 @@ test('Arène : quitter un balcon au-dessus d’une scène fait atterrir, sans K.
   assert.equal(player.debate_hp, 100);
 });
 
+test('Arène : se poser avec un pied sur le bord d’un balcon suffit, comme à l’écran', () => {
+  const match = started(duel('elysee'));
+  const player = match.state.candidates[0];
+  const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+  // Centre du personnage juste au-delà du bord dessiné, en pleine descente au-dessus du balcon.
+  Object.assign(player, { x: balcony.x + balcony.half_width + 0.2, platform_id: null });
+  Object.assign(player.combat, { height: balcony.height + 0.3, jump_tick: match.state.tick - 20, jump_base: balcony.height + 0.3 - match.state.platform_jump.height });
+  run(match, () => [{ type: 'Move', candidateId: player.id, axis: 0 }], 20);
+  assert.equal(player.platform_id, balcony.id); assert.equal(player.combat.height, balcony.height);
+});
+
+test('IA : sur un balcon au-dessus de son adversaire, elle descend au lieu de rester bloquée', () => {
+  const match = started(duel('ecologie'));
+  const [target, ai] = match.state.candidates;
+  const garden = match.state.platforms.find(p => p.id === 'jardin-gauche'), island = match.state.platforms.find(p => p.id === 'ilot-gauche');
+  Object.assign(target, { x: island.x, platform_id: island.id }); target.combat.height = 0;
+  Object.assign(ai, { x: garden.x, platform_id: garden.id }); ai.combat.height = garden.height;
+  const hp = target.debate_hp;
+  for (let i = 0; i < 300 && target.debate_hp === hp; i++) match.step(debateModeAICommands(match.state, config, ai.id));
+  assert.ok(target.debate_hp < hp); assert.equal(ai.is_ko, false);
+});
+
+test('IA : pour rejoindre un adversaire perché, elle ne frappe pas avant d’avoir atteint son niveau', () => {
+  const match = started(duel('ecologie'));
+  const [target, ai] = match.state.candidates;
+  const garden = match.state.platforms.find(p => p.id === 'jardin-gauche'), island = match.state.platforms.find(p => p.id === 'ilot-gauche');
+  Object.assign(target, { x: garden.x, platform_id: garden.id }); target.combat.height = garden.height;
+  Object.assign(ai, { x: garden.x - 0.6, platform_id: island.id }); ai.combat.height = 0;
+  for (let i = 0; i < 300 && ai.platform_id !== garden.id; i++) {
+    const commands = debateModeAICommands(match.state, config, ai.id);
+    if (ai.combat.jump_tick != null && ai.combat.height < target.combat.height) assert.equal(commands.some(c => c.type === 'Attack'), false);
+    match.step(commands);
+  }
+  assert.equal(ai.platform_id, garden.id);
+});
+
 test('Face-à-face : une plateforme sous le niveau principal rattrape une chute', () => {
   const match = started(duel('face_a_face'));
   const player = match.state.candidates[0];

@@ -5,12 +5,13 @@ import { buildingGeometry } from './illustrated-buildings.js';
 export const BUILDING_SHUTTER_ASSET = 'building-shutter-metal';
 export const BUILDING_DOORS_ASSET = 'building-barn-doors';
 export const BUILDING_DOOR_BACKDROP_ASSET = 'building-barn-door-backdrop';
-export const BUILDING_CLOSURE_ASSETS = [BUILDING_SHUTTER_ASSET, BUILDING_DOORS_ASSET, BUILDING_DOOR_BACKDROP_ASSET];
+export const BUILDING_CLOSURE_ASSETS = [BUILDING_SHUTTER_ASSET, BUILDING_DOORS_ASSET, BUILDING_DOOR_BACKDROP_ASSET, 'building-foreground-riches-b'];
 
 // Ouvertures peintes en pixels dans les tuiles 1 920 × 1 080, indépendantes des points d'achat.
 // Les grandes vitrines reçoivent un rideau large ; les autres locaux ferment seulement leur porte.
 export const BUILDING_OPENINGS = {
-  'site:paris_a': { x: 1096, y: 820, w: 342, h: 184 },
+  // Fermer la vitre seulement : les montants et le soubassement bleu restent visibles.
+  'site:paris_a': { x: 1100, y: 820, w: 334, h: 130 },
   'site:paris_b': { x: 448, y: 772, w: 313, h: 173,
     foreground: [[[441, 883], [477, 887], [490, 939], [483, 941], [484, 951], [478, 951],
       [475, 944], [443, 944], [439, 952], [433, 951], [436, 940], [436, 890]]] },
@@ -31,13 +32,8 @@ export const BUILDING_OPENINGS = {
   'site:retraites_c': { x: 1238, y: 820, w: 84, h: 184 },
   'site:riches_a': { x: 970, y: 840, w: 86, h: 92 },
   'site:riches_b': { x: 146, y: 694, w: 348, h: 305,
-    // Les arbustes et leurs pots sont devant la vitrine : on les remet devant le rideau.
-    foreground: [
-      [[269, 897], [271, 871], [283, 853], [302, 844], [322, 849], [338, 864], [348, 888],
-        [340, 921], [339, 1004], [280, 1004], [277, 924]],
-      [[483, 894], [489, 866], [508, 847], [533, 844], [554, 857], [568, 880], [568, 911],
-        [561, 931], [563, 1004], [496, 1004], [494, 928]],
-    ] },
+    // Les arbustes et leurs pots sont devant la vitrine : leur détourage (scripts/outils-images) est remis devant le rideau.
+    foregroundImage: { id: 'building-foreground-riches-b', x: 262, y: 838 } },
   'site:riches_c': { x: 241, y: 741, w: 378, h: 230 },
 };
 
@@ -154,6 +150,15 @@ function drawPanel(ctx, texture, frame, progress) {
 }
 
 function restoreForeground(renderer, opening, frame) {
+  const cutout = opening.foregroundImage && renderer.assets.get(opening.foregroundImage.id);
+  if (cutout) {
+    // Détourage exact : dessiné à sa place dans la tuile, seulement sur la partie couverte par le rideau.
+    const { ctx } = renderer, { x, y } = opening.foregroundImage;
+    ctx.save(); ctx.beginPath(); ctx.rect(frame.left, frame.top, frame.w, frame.h); ctx.clip();
+    ctx.drawImage(cutout, frame.x0 + x * frame.scaleX, frame.y0 + y * frame.scaleY,
+      (cutout.naturalWidth || cutout.width) * frame.scaleX, (cutout.naturalHeight || cutout.height) * frame.scaleY);
+    ctx.restore(); return;
+  }
   if (!opening.foreground) return;
   const image = renderer.assets.get(frame.tile);
   if (!image) return;

@@ -6,6 +6,7 @@ import { isBetatestProfile } from '../../simulation/campaign-styles.js';
 import { bestRating, cleanAvatar, cleanPlayerCard, gainedCount, ratingTier, titleName, titleRank } from '../../simulation/player-titles.js';
 import { styleSpriteId } from '../personnages/campaign-style-art.js';
 import { visualManifest } from '../rendu/visual-manifest.js';
+import { framePortrait } from './portrait-framing.js';
 import { selectionPortrait } from '../debat/debate-selection.js';
 
 const escape = text => String(text).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
@@ -59,9 +60,9 @@ export function titleContent(card) {
 }
 
 /** Image du buste : le sprite du style (candidats principaux) ou la première image du candidat mineur. */
-export function avatarImage(id) {
-  if (MINOR_UNLOCKS.includes(id)) return selectionPortrait(id);
-  return Promise.resolve(visualManifest[styleSpriteId(id)]?.file || '');
+export async function avatarImage(id) {
+  const src = MINOR_UNLOCKS.includes(id) ? await selectionPortrait(id) : visualManifest[styleSpriteId(id)]?.file;
+  return src ? framePortrait(src, avatarFaction(id)) : '';
 }
 export function hydrateMedallions(root) {
   root.querySelectorAll('.medallion-face[data-avatar]:not([data-ready])').forEach(face => {

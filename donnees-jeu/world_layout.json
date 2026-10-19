@@ -459,7 +459,7 @@
       {
         "site_id": "site:riches_b",
         "subzone_id": "riches_b",
-        "x_ratio": 0.22,
+        "x_ratio": 0.1708,
         "interaction_half_width": 2.3,
         "type": "permanence",
         "controls_zone": true

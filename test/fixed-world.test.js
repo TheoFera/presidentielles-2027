@@ -121,7 +121,7 @@ test('Le tableau définit 18 contrôles, 6 meetings centraux et 3 instituts, san
   assert.equal(sim.state.buildings.filter(b => b.type.startsWith('garage_')).length, 3);
   assert.equal(sim.state.buildings.filter(b => b.type === 'imprimerie').length, 0);
 });
-test('Les interactions des façades restaurées se trouvent devant leurs entrées peintes', () => {
+test('Les zones d’achat des façades restaurées couvrent leurs entrées peintes', () => {
   const sim = make();
   // Intervalles relevés sur les tuiles de 1 920 px, indépendamment des coordonnées du jeu.
   const entrances = [
@@ -139,8 +139,11 @@ test('Les interactions des façades restaurées se trouvent devant leurs entrée
   for (const [id, left, right] of entrances) {
     const site = sim.state.buildings.find(b => b.site_id === id);
     const zone = sim.state.world.subzones.find(z => z.id === site.subzone_id);
-    const pixelX = (site.x - zone.start) / zone.width * 1920;
-    assert.ok(pixelX >= left && pixelX <= right, `${id} : interaction hors de l’entrée (${pixelX} px)`);
+    // La zone d'achat couvre la façade : l'entrée peinte doit y être entièrement.
+    const pixelX = (site.x - zone.start) / zone.width * 1920, faction = base.balance.faction_interactions;
+    // Bâtiment de faction : achats au centre, actions sur les côtés.
+    const half = (site.type === 'faction' ? faction.side_offset + faction.side_radius : site.interaction_radius || base.balance.interaction.radius_units) * 80;
+    assert.ok(pixelX - half <= left && pixelX + half >= right, `${id} : entrée hors de la zone d’achat (${pixelX} px)`);
   }
 });
 

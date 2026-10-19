@@ -16,7 +16,7 @@ const definitions = [
   { faction: 'roussel', seconds: 3.1, name: 'Fabien Roussel', description: 'Saucisse boomerang : aller puis retour' },
   { faction: 'dupont_aignan', seconds: 5, name: 'Nicolas Dupont-Aignan', description: 'Disparition, puis réapparition en attaquant' },
   { faction: 'glucksmann', seconds: 3.8, name: 'Raphaël Glucksmann', description: 'Appel, passage du Rafale et trois missiles rapides' },
-  { faction: 'arthaud', seconds: 3.7, name: 'Nathalie Arthaud', description: 'Faucille, puis marteau qui aplatit' },
+  { faction: 'arthaud', seconds: 3.7, name: 'Nathalie Arthaud', description: 'Bras levés et outils croisés, puis faucille et marteau' },
   { faction: 'retailleau', seconds: 5.3, name: 'Bruno Retailleau', description: 'Le mur se dresse, puis bascule' },
   { faction: 'attal', seconds: 3.8, name: 'Gabriel Attal', description: 'Lancer, attente, puis second appui' },
 ].filter(definition => !process.env.CAMPAIGN_PREVIEW_FACTION || process.env.CAMPAIGN_PREVIEW_FACTION.split(',').includes(definition.faction))
@@ -30,7 +30,7 @@ function snapshots(definition) {
   if (definition.solo) state.candidates = [owner];
   const frames = [], start = state.tick, activation = Math.round(.55 * sim.hz);
   let eventIndex = 0;
-  const events = definition.faction === 'arthaud' ? [[activation + Math.round(.65 * sim.hz), 'sickle'], [activation + Math.round(1.8 * sim.hz), 'hammer']]
+  const events = definition.faction === 'arthaud' ? [[activation + Math.round(.95 * sim.hz), 'sickle'], [activation + Math.round(1.8 * sim.hz), 'hammer']]
     : definition.faction === 'attal' ? [[activation + Math.round(2.1 * sim.hz), 'detonate']]
     : definition.faction === 'dupont_aignan' ? [[activation + Math.round(2.7 * sim.hz), 'reveal']] : [];
   for (let frame = 0; frame < Math.ceil(definition.seconds * fps); frame++) {
@@ -119,7 +119,8 @@ try {
         assert.ok(frame.draws.length > 0);
         if (definition.faction !== 'arthaud') for (const draw of frame.draws) assert.ok(Math.abs(draw.scaleX / draw.scaleY - 1) < .01, `${slug}, image ${start+i} : étirement ${JSON.stringify(draw)}`);
         for (const draw of frame.draws) if (!draw.cropped && ['phone', 'satchelThrow', 'sausageThrow'].includes(draw.atlas)) {
-          assert.ok(Math.abs(draw.height - 145 * 296 / 340 * 1.1236) < .001, `${slug}, image ${start+i} : changement de hauteur pendant l'ultime.`);
+          const posture = draw.atlas === 'phone' ? .92 : 1;
+          assert.ok(Math.abs(draw.height - 145 * 296 / 340 * 1.1236 * posture) < .001, `${slug}, image ${start+i} : changement de hauteur pendant l'ultime.`);
         }
         assert.ok(!frame.texts.some(text => /Interro surprise|Ultime : faire éclater/.test(text)), 'Aucun texte ne doit entourer le cartable.');
         inspected.push({ frame: start+i, tick: states[start+i].tick, draws: frame.draws, texts: frame.texts });

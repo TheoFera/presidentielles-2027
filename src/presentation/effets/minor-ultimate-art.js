@@ -1,6 +1,7 @@
 export const minorUltimateAssets = {
   'ultimate-minor-accessoires': { file: new URL('../../../assets/images/pouvoirs/accessoires-ultimes-mineurs-v2.png', import.meta.url).href },
   'ultimate-minor-arthaud-outils': { file: new URL('../../../assets/images/pouvoirs/arthaud-outils-v1.png', import.meta.url).href },
+  'ultimate-minor-arthaud-levee-outils': { file: new URL('../../../assets/images/pouvoirs/arthaud-levee-outils-v4.png', import.meta.url).href },
   'ultimate-minor-glucksmann-appel': { file: new URL('../../../assets/images/pouvoirs/glucksmann-appel-v4.png', import.meta.url).href },
   'ultimate-minor-attal-lancer': { file: new URL('../../../assets/images/pouvoirs/attal-lancer-cartable-v2.png', import.meta.url).href },
   'ultimate-minor-roussel-lancer': { file: new URL('../../../assets/images/pouvoirs/roussel-lancer-rattraper-v3.png', import.meta.url).href },
@@ -18,7 +19,12 @@ export const minorUltimateAtlases = {
   sausage: { sprite: 'ultimate-minor-saucisse', frames: [[47,239,1443,575,768.5,814]] },
   props: { sprite: 'ultimate-minor-accessoires', frames: [[45,142,422,292,318.5,434],[486,128,629,381,943,509],[1184,46,308,497,1339,543],[73,609,439,359,203,968],[689,583,334,392,721.5,975],[1148,582,315,395,1200.5,977]] },
   tools: { sprite: 'ultimate-minor-arthaud-outils', referenceHeight: 377, frames: [[49,50,333,377,192.5,427],[468,53,335,374,617.5,427],[907,70,523,357,1168,427],[1396,54,304,373,1542,427],[36,441,354,420,187,861],[461,535,379,326,609,861],[927,560,400,298,960.5,858],[1450,497,285,310,1550.5,807]] },
-  phone: { sprite: 'ultimate-minor-glucksmann-appel', referenceHeight: 651,
+  // Hauteur du corps mesurée du sommet des cheveux aux chaussures : les outils dépassent au-dessus.
+  toolsRaise: { sprite: 'ultimate-minor-arthaud-levee-outils', standingHeight: 487,
+    anatomicalScales: [1,1,487/488],
+    frames: [[304,178,396,511,483,689],[926,29,357,660,1104,689],[1524,193,375,496,1704,689]] },
+  // Même posture fléchie et même gabarit que la garde de Glucksmann.
+  phone: { sprite: 'ultimate-minor-glucksmann-appel', referenceHeight: 651, standingHeight: 651 / .92,
     anatomicalScales: [1,651/654,651/652,651/652],
     frames: [[28,40,489,651,272,691],[569,37,492,654,814.5,691],[1111,39,493,652,1357,691],[1653,39,493,652,1899,691]] },
   satchelThrow: { sprite: 'ultimate-minor-attal-lancer', referenceHeight: 494,

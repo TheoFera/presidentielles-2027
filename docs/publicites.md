@@ -34,13 +34,16 @@ Ces chiffres se règlent dans `src/network/ads-config.js` (`AD_RULES`).
 
 - Le choix est une **étape du parcours** : résultats → clic sur « Voir le bilan » → écran de choix → bilan. « ← Résultats » le referme sans rien perdre ; « Voir le bilan » le rouvre.
 - En haut de l'écran, un emplacement par déblocage possible (🎁 gratuit, 🎬 contre une pub). La carte choisie quitte la grille et se pose dans son emplacement : rien n'est affiché en double.
-- Une fois les choix faits, l'écran les enregistre (portraits qui clignotent), puis pose le tampon « Débloqué » avec confettis et son **seulement si l'enregistrement est confirmé**. Le titre donne alors les noms ; l'écran reste ouvert jusqu'à « Voir le bilan ➜ ». En cas d'échec : portrait grisé, message, et « Réessayer » si c'est un problème de connexion.
+- **Chaque choix est enregistré aussitôt** : le gratuit dès le clic, le 2ᵉ juste après la pub (une fermeture de l'appli pendant la pub ne fait pas perdre le gratuit). Pendant l'envoi, le portrait clignote ; le tampon « Débloqué », les confettis et le son n'arrivent **que si l'enregistrement est confirmé**.
+- À la fin, le titre donne les noms débloqués ; l'écran reste ouvert jusqu'à « Voir le bilan ➜ ». En cas d'échec : portrait grisé, message, le parcours s'arrête (pas de pub proposée ensuite), et « Réessayer » si c'est un problème de connexion.
 - Un seul candidat nouveau mis K.-O. et une victoire : il est débloqué directement, sans écran (aucun bonus possible).
+- **Jamais de pub qui ne rapporterait rien** : joueur connecté dont la partie serait refusée (lancée hors ligne, accélérée avec le panneau de débogage, ou plus courte que le minimum du serveur, voir `campaignMinSeconds`) → ni écran de choix ni pub, un seul message. Connecté mais hors ligne en fin de partie → pas de pub.
+- Rien à débloquer (aucun nouveau K.-O., défaite sans pub) : le jeu n'envoie rien au serveur, donc aucun message d'erreur en fin de partie.
 - Le bouton « 🎬 Regarder une pub » ne s'affiche **que si une pub est prête**. Sans pub prête (hors ligne, bloqueur de pubs…), la victoire donne son candidat gratuit, et la défaite affiche seulement « Élection perdue : … reste à débloquer ».
 - La récompense n'est donnée que si **Google confirme que la vidéo a été regardée jusqu'au bout**. Pub fermée avant la fin : rien, le joueur peut réessayer.
 - Après une pub récompensée, l'interstitielle de « Rejouer » ou « Menu » ne passe pas (même délai de 3 min qu'après une interstitielle).
 - Jamais en multijoueur : là, le vainqueur garde tous les candidats qu'il a mis K.-O., comme avant.
-- Le serveur des comptes refuse plus de 2 candidats par campagne solo (`MAX_RUN_UNLOCKS`).
+- Le serveur des comptes refuse plus de 2 candidats par campagne solo (`MAX_RUN_UNLOCKS`), envoyés en une ou deux fois (le 2ᵉ envoi dans les 15 min qui suivent le 1er).
 
 Les nombres (1 gratuit, +1 avec pub, 1 en seconde chance) se règlent dans `src/simulation/unlock-catalog.js` (`UNLOCK_PICKS`). L'écran est dans `src/presentation/menus/unlock-choice.js`, la pub dans `src/presentation/menus/ads.js` (`rewarded()`).
 
