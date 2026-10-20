@@ -6,6 +6,7 @@ import { loadCampaignProfile, saveCampaignProfile } from './presentation/menus/c
 import { CampaignDisplay } from './presentation/interface/campaign.js';
 import { loadConfig } from './config.js';
 import { formatCarriedMoney } from './presentation/carte/money.js';
+import { warmNumberFormats } from './presentation/interface/number-format.js';
 import { MoneyCounter } from './presentation/interface/money-counter.js';
 import { GameAudio, SoundDirector } from './presentation/interface/audio.js';
 import { InterstitialAds } from './presentation/menus/ads.js';
@@ -439,6 +440,14 @@ async function start() {
         onProgress(.6 + .38 * Math.min(1, (i + 6) / ready.length), 'gpu');
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
+      // Derrière l'écran de chargement, d'abord la campagne déjà lancée (panneaux d'achat, étiquettes « soutiens »,
+      // textes des gains), puis la scène d'ouverture : formatage des nombres, polices et étiquettes sont prêts
+      // avant le début, au lieu d'être préparés au premier coup (à-coups mesurés de 35 à 50 ms sur téléphone).
+      warmNumberFormats();
+      renderer.draw({ ...state, campaign_intro: null }, state, 1, 0);
+      renderer.ctx.save();
+      for (const font of ['bold 14px system-ui', '700 10px system-ui', 'bold 13px sans-serif']) { renderer.ctx.font = font; renderer.ctx.fillText('Don : +0123456789,5 k€ soutiens', 0, 20); }
+      renderer.ctx.restore();
       renderer.draw(introScene.view(state), state, 1, 0);
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       onProgress(1);

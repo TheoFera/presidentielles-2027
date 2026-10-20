@@ -83,7 +83,10 @@ export function drawCampaignScenery(renderer,state){
  for(const [dx,dy,r]of [[0,0,23],[-18,14,18],[18,10,19]]){ctx.beginPath();ctx.arc(x+dx,y-h+dy,r,0,Math.PI*2);ctx.fill();}
  }
 }
+const MARKED_FAMILIES=new Set(['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT','CANDIDAT_FRAGILISE']);
 export function drawCampaignMarkers(renderer,state){
+ // Cas courant : aucun évènement à signaler sur la carte, rien à préparer (ni police, ni sauvegarde du dessin).
+ if(!state.campaign_events.some(e=>e.status==='ACTIVE'&&MARKED_FAMILIES.has(e.family)))return;
  const {ctx,metrics:m}=renderer;ctx.save();ctx.textAlign='center';ctx.font='bold 13px sans-serif';
  for(const e of state.campaign_events.filter(e=>e.status==='ACTIVE')){
  const b=state.buildings.find(b=>b.id===e.target_site_id);if(!['MEETING_DE_CRISE','DEBAT_THEMATIQUE','FERMETURE_BATIMENT'].includes(e.family))continue;

@@ -19,8 +19,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(({ noBitmaps }) => {
+  await page.addInitScript(({ noBitmaps, intro }) => {
     Object.defineProperty(navigator, 'standalone', { value: true });
+    // Scène d'ouverture courte (profil qui a déjà vu les deux parties d'apprentissage), sauf avec --intro.
+    if (!intro) localStorage.setItem('presidentielles2027:profile:v1', JSON.stringify({ campaign_intro_seen: 2 }));
     window.auditCanvases = [];
     const create = Document.prototype.createElement;
     Document.prototype.createElement = function (...args) {
@@ -39,7 +41,7 @@ try {
         return bitmap;
       };
     }
-  }, { noBitmaps: process.argv.includes('--no-bitmaps') });
+  }, { noBitmaps: process.argv.includes('--no-bitmaps'), intro: process.argv.includes('--intro') });
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
     const relative = decodeURIComponent(url.pathname).slice(1) || 'index.html';
@@ -79,7 +81,8 @@ try {
       auxiliaryBitmapMiB: auxiliaryBitmapBytes / 1048576, canvasMiB: canvasBytes / 1048576,
       estimatedImageMiB: (spriteBytes + canvasBytes + auxiliaryBitmapBytes) / 1048576 };
   });
-  await page.locator('#start-campaign').click();
+  // Le bouton « Jouer » pulse en continu : le clic n'attend pas qu'il soit immobile.
+  await page.locator('#start-campaign').click({ force: true });
   await page.waitForFunction(() => document.querySelector('#start-menu').hidden);
   let interfaceAudit;
   if (process.argv.includes('--audit-interface')) {
@@ -115,15 +118,32 @@ try {
       return result;
     };
   });
-  await page.keyboard.down('ArrowRight');
-  const frames = await page.evaluate(() => new Promise(resolve => {
+  const measureFrames = seconds => page.evaluate(duration => new Promise(resolve => {
     const gaps = []; let last = performance.now(), start = last;
     function frame(now) {
       gaps.push(now - last); last = now;
-      if (now - start < 8000) requestAnimationFrame(frame); else resolve(gaps);
+      if (now - start < duration) requestAnimationFrame(frame); else resolve(gaps);
     }
     requestAnimationFrame(frame);
-  }));
+  }), seconds * 1000);
+  const percentile = (values, p) => [...values].sort((a, b) => a - b)[Math.floor((values.length - 1) * p)];
+  const summary = (gaps, draws) => ({ frames: gaps.length, medianMs: percentile(gaps, .5), p95Ms: percentile(gaps, .95), over50Ms: gaps.filter(ms => ms > 50).length,
+    draws: draws.length, drawMedianMs: percentile(draws, .5), drawP95Ms: percentile(draws, .95) });
+  // Scène d'ouverture : avec --intro, on la mesure (dossier, flash info, flashs photo), puis un coup lance la campagne.
+  let intro;
+  if (process.argv.includes('--intro')) {
+    const pending = measureFrames(9);
+    await page.waitForTimeout(1500); await page.keyboard.press('Shift');
+    intro = summary(await pending, await page.evaluate(() => window.auditDraws.splice(0)));
+    await page.keyboard.down('ArrowRight'); await page.waitForTimeout(800); await page.keyboard.up('ArrowRight');
+  } else await page.waitForTimeout(700);
+  await page.keyboard.press('Space');
+  await page.waitForFunction(() => !document.getElementById('game').classList.contains('campaign-intro'), null, { timeout: 20000 });
+  // --settle=secondes : attendre avant de mesurer la marche (sépare l'après-scène d'un coût durable).
+  if (option('settle')) await page.waitForTimeout(Number(option('settle')) * 1000);
+  await page.evaluate(() => { window.auditDraws = []; });
+  await page.keyboard.down('ArrowRight');
+  const frames = await measureFrames(8);
   await page.keyboard.up('ArrowRight');
   const details = await page.evaluate(() => ({ draws: window.auditDraws, failed: window.auditRenderer.assets.status().failed,
     canvas: [window.auditRenderer.canvas.width, window.auditRenderer.canvas.height], error: document.querySelector('#error').hidden ? null : document.querySelector('#error').textContent }));
@@ -152,10 +172,8 @@ try {
     canvas.width = 0; canvas.height = 0;
     return { atlases: atlases.length, frames: checked, nativeResolution: true };
   }) : undefined;
-  const percentile = (values, p) => [...values].sort((a, b) => a - b)[Math.floor((values.length - 1) * p)];
   const report = { label, engine, cpuSlowdown: engine === 'chromium' ? 4 : 1, loadingMs, ...memory, canvas: details.canvas,
-    frames: frames.length, medianMs: percentile(frames, .5), p95Ms: percentile(frames, .95), over50Ms: frames.filter(ms => ms > 50).length,
-    draws: details.draws.length, drawMedianMs: percentile(details.draws, .5), drawP95Ms: percentile(details.draws, .95), interfaceAudit, spriteValidation, errors, failed: details.failed };
+    ...summary(frames, details.draws), intro, interfaceAudit, spriteValidation, errors, failed: details.failed };
   await page.screenshot({ path: path.join(output, `phone-${label}-${engine}.png`) });
   await writeFile(path.join(output, `phone-${label}-${engine}.json`), JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));

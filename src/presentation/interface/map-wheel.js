@@ -144,6 +144,8 @@ export class MapWheel {
     this.rotor.append(group);
     return true;
   }
+  /** Retire les noms après le dossier : le disque qui tourne garde son calque d'origine, sans texte invisible. */
+  hideBiomeNames() { this.names?.remove(); this.names = null; }
   updatePoll(snapshot, colors) {
     const zones = new Map(snapshot?.zones.map(z => [z.subzone_id, z.controller]) || []);
     for (const [id, path] of this.sectors) path.setAttribute('fill', colors[zones.get(id)] || mapNeutralColor);

@@ -71,11 +71,13 @@ export class CampaignIntroScene {
   stop() {
     this.active = false; this.opened = false; this.tutorial = false; this.t = 0; this.endedAt = null; this.strikes = new Map(); this.stages = null;
     this.moved = 0; this.step = null; this.flashesDone = 0; this.bannerShown = false; this.dossier = false; this.promptKey = null;
-    this.dossierClosedAt = null; this.closeRequested = false; this.namesShown = false; this.waitForInput(false);
+    this.dossierClosedAt = null; this.closeRequested = false; this.dossierPending = false; this.waitForInput(false);
     this.root.hidden = true; this.banner.classList.remove('shown'); this.root.classList.remove('bands-out');
     for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike']) this.setClass(name, false);
     this.showPrompt(null);
     if (this.renderer) this.renderer.zoomBoost = 1;
+    if (this.namesShown) this.wheel()?.hideBiomeNames();
+    this.namesShown = false;
   }
 
   /** Plan rapproché sur l'estrade, puis retour au cadrage du jeu après le coup (ou la fin de la scène). */
@@ -128,11 +130,12 @@ export class CampaignIntroScene {
     // au joueur ; une touche ou un appui, et chacun glisse à sa place.
     if (this.closeRequested && this.dossierClosedAt === null) { this.dossierClosedAt = t; this.waitForInput(false); }
     const dossier = this.tutorial && mine == null && this.dossierClosedAt === null;
+    // La mesure attend l'image suivante : la page est alors déjà mise en place par le navigateur, la lire
+    // ne coûte rien (mesurée tout de suite, elle forçait un recalcul complet de la page à la première image).
     if (dossier !== this.dossier) {
-      this.dossier = dossier;
-      if (dossier) { this.measureDossier(); this.waitForInput(true); }
-      this.setClass('intro-dossier', dossier);
-    }
+      this.dossier = dossier; this.dossierPending = dossier;
+      if (dossier) this.waitForInput(true); else this.setClass('intro-dossier', false);
+    } else if (dossier && this.dossierPending) { this.dossierPending = false; this.measureDossier(); this.setClass('intro-dossier', true); }
     if (dossier && !this.namesShown) this.namesShown = this.wheel()?.showBiomeNames(BIOME_NAMES) === true;
     // Flash info du journal télévisé pendant le discours : « À un an de la présidentielle, X annonce sa candidature ».
     const banner = mine == null && t >= this.bannerStart && t < this.bannerEnd;
@@ -231,6 +234,8 @@ export class CampaignIntroScene {
   /** État à dessiner : le temps de la scène anime les personnages, le public écoute, l'orateur parle. */
   view(state) {
     if (!this.active) return state;
+    // Dès le dessin préparatoire du chargement : les journalistes sont dessinés (et leurs images préparées) avant la scène.
+    this.stages ??= state.campaign_intro?.stages ?? null;
     const press = this.pressUnits(state);
     const intro = state.campaign_intro;
     if (!intro) return press.length ? { ...state, temporary_units: [...state.temporary_units, ...press] } : state;
@@ -251,7 +256,10 @@ export class CampaignIntroScene {
   /** État précédent, avec la même horloge (lissage des mouvements entre deux pas). */
   previous(previous, state) {
     if (!this.active || !state.campaign_intro) return previous;
-    return { ...previous, tick: Math.max(0, state.campaign_intro.tick - 1) };
+    // Même objet tant que l'état précédent ne change pas : le moteur de rendu ne refait pas ses repères à chaque image.
+    const tick = Math.max(0, state.campaign_intro.tick - 1);
+    if (this.previousSource !== previous || this.previousView?.tick !== tick) { this.previousSource = previous; this.previousView = { ...previous, tick }; }
+    return this.previousView;
   }
 
   /** Éclats des flashs, devant les objectifs des caméras (après le dessin du monde). */
