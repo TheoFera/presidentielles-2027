@@ -36,13 +36,13 @@ export function showDebateSetup(menu, { config, profile, setup, start, back }) {
     // « Choisissez… » figure déjà au-dessus de la grille : inutile de le répéter en bas.
     const note = fighters.some(f => !f.faction) ? '' : error;
     menu.page('debate', 'Débat télé', `<div class="debate-setup select-screen">
-      <div class="select-topline"><span>Sélection des candidats</span><span class="select-live">● En direct</span></div>
+      <div class="select-topline"><span></span><span class="select-live">● En direct</span></div>
       <div class="select-stage" data-count="${fighters.length}">${fighters.map((f, i) => fighterCardContent(config, f, i, { active: i === active, editable: true, styles: i === active ? stylesContent(config, profile, current, { taken: id => fighters.some((f, i) => i !== active && f.faction === current.faction && f.style === id) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
       <div class="select-console"><div class="select-roster-heading"><strong>${active ? `IA ${active}` : 'J1 · Vous'}</strong><span>${active ? 'Choisissez le candidat de l’IA' : 'Choisissez votre candidat'}</span></div>
       ${rosterContent(config, fighters, active, { unavailable: faction => !freeStyle(config, profile, setup, active, faction, current.faction === faction ? current.style : null) })}</div>
       <div class="debate-options"><fieldset><legend>Format</legend>${Object.keys(DEBATE_FORMATS).map(f => `<button class="debate-option" data-format="${f}" aria-pressed="${f === setup.format}">${FORMAT_NAMES[f]}</button>`).join('')}</fieldset>
       <fieldset><legend>Plateau</legend>${Object.entries(config.balance.debate_mode.maps).map(([id, m]) => `<button class="debate-option" data-map="${id}" aria-pressed="${id === setup.map}">${escape(m.name)}</button>`).join('')}</fieldset></div>
-      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(note || 'Prêts pour le direct ?')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
+      <footer class="menu-footer select-footer"><p class="menu-note" role="status">${escape(note || '')}</p><button id="debate-fight" class="menu-primary arcade-button" ${error ? 'disabled' : ''}>Combattre <span aria-hidden="true">➜</span></button></footer>
     </div>`, back);
     const root = menu.element;
     // Le plateau choisi apparaît, assombri, derrière la sélection.

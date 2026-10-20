@@ -65,16 +65,20 @@
    Fond en dégradé CSS : aucune image en plus à charger. */
 #start-menu[data-screen='loading'] { background: radial-gradient(circle at 28% 60%, #2b5bd0 0, #0f2559 42%, #060f27 78%); }
 #start-menu[data-screen='loading'] .menu-shell { max-width: 1120px; gap: clamp(6px, 1.8cqh, 18px); }
-.loading-title { text-align: center; }
-.loading-flash { display: inline-flex; margin: 0 0 clamp(4px, 1cqh, 10px); font: 900 clamp(12px, 2.2cqh, 19px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.loading-title { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 1.8cqh, 16px); text-align: center; }
+.loading-flash { display: flex; margin: 0; font: 900 clamp(12px, 2.2cqh, 19px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
 .loading-flash span { padding: .3em .8em; background: #e63946; color: #fff; border-radius: 6px 0 0 6px; }
 .loading-flash span + span { background: #fff; color: #0b1d44; border-radius: 0 6px 6px 0; }
 #start-menu[data-screen='loading'] h1 { font-size: clamp(24px, 6.2cqh, 54px); line-height: 1.05; color: #ffd84a; }
 .loading-scene { flex: 1; min-height: 0; display: grid; grid-template-columns: .8fr 1.2fr; gap: 4%; align-items: center; }
 .loading-candidate { position: relative; height: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-.loading-candidate img { flex: 1; width: 100%; min-height: 0; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 12px #79bbff55); }
-.loading-candidate img + strong { position: relative; margin-top: clamp(-18px, -2cqh, -6px); padding: .15em .8em; background: #fff; color: #0b1d44; border-bottom: 5px solid #2b5bd0; border-radius: 8px; font: 900 clamp(18px, 4cqh, 34px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; box-shadow: 0 4px 0 #020714; }
-.loading-candidate small { margin-top: 6px; color: #cfdcff; font-size: clamp(12px, 1.9cqh, 16px); }
+/* Mise en avant du candidat en CSS seul : contre-jour rond derrière lui, colonne de lumière qui monte
+   du socle (bords fondus), puis socle lumineux sous les pieds. */
+.loading-stage::before { content: ''; position: absolute; z-index: -1; left: 50%; bottom: 0; width: min(50%, 32cqh); height: 88%; transform: translateX(-50%); background: linear-gradient(to top, #8fdcff66, #8fdcff1f 45%, #8fdcff00); -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); pointer-events: none; }
+.loading-stage { position: relative; z-index: 1; flex: 1; width: 100%; min-height: 0; display: flex; justify-content: center; background: radial-gradient(circle at 50% 42%, #b5e6ff55 0, #4f8dff33 22%, #2b5bd014 40%, transparent 58%); }
+.loading-stage::after { content: ''; position: absolute; z-index: -1; left: 50%; bottom: 0; width: min(64%, 40cqh); height: clamp(16px, 6cqh, 44px); transform: translate(-50%, 45%); border: 3px solid #a5e5ff; border-radius: 50%; background: radial-gradient(#bff0ffaa, #3fa8ff55 45%, transparent 72%); box-shadow: 0 0 24px #00c8ff, inset 0 0 18px #0084ff; }
+.loading-candidate img { position: relative; width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 16px #9fd8ffaa); }
+.loading-candidate strong { position: relative; z-index: 1; margin-top: clamp(16px, 4.5cqh, 34px); padding: .15em .8em; background: #fff; color: #0b1d44; border-bottom: 5px solid #2b5bd0; border-radius: 8px; font: 900 clamp(18px, 4cqh, 34px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; box-shadow: 0 4px 0 #020714; }
 .loading-guide { display: flex; flex-direction: column; justify-content: center; gap: clamp(6px, 1.6cqh, 16px); min-height: 0; }
 .loading-guide h2 { margin: 0; font: 900 clamp(18px, 3.6cqh, 32px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: #fff; }
 .loading-tips { display: grid; gap: clamp(6px, 1.6cqh, 14px); }
@@ -83,17 +87,20 @@
 .loading-tips strong { font: 900 clamp(17px, 3.6cqh, 30px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: #ffd84a; }
 .loading-tips small { color: #e3ecff; font-size: clamp(13px, 2.5cqh, 20px); line-height: 1.35; }
 .loading-tips kbd { display: inline-block; min-width: 1.7em; padding: 0 .35em; border: 2px solid #9fc3ff; border-bottom-width: 4px; border-radius: 6px; background: #16306a; font: 700 .9em/1.4 system-ui, sans-serif; text-align: center; color: #fff; }
-.loading-strip { width: min(620px, 100%); margin: 0 auto; display: grid; justify-items: center; gap: clamp(4px, .9cqh, 8px); text-align: center; }
+.loading-strip { width: 100%; display: grid; justify-items: center; gap: clamp(4px, .9cqh, 8px); text-align: center; }
 #loading-status { margin: 0; color: #cfdcff; font-size: clamp(13px, 2.2cqh, 18px); }
-.loading-bar { position: relative; width: 100%; height: clamp(24px, 5cqh, 40px); border: 3px solid #fff; border-radius: 99px; background: #0a1430; overflow: hidden; box-shadow: 0 4px 0 #020714; }
+.loading-bar { position: relative; border: 3px solid #fff; border-radius: 99px; background: #0a1430; overflow: hidden; box-shadow: 0 4px 0 #020714; }
 .loading-fill { position: absolute; inset: 0; background: linear-gradient(90deg, #2b5bd0 0 33.3%, #f4f4f4 33.3% 66.6%, #e63946 66.6%); clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0); transition: clip-path .35s ease-out; }
 #loading-percent { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: .15em .6em; border-radius: 99px; background: #0b1d44d9; font: 900 clamp(13px, 2.6cqh, 20px)/1 Impact, 'Arial Black', sans-serif; color: #fff; letter-spacing: .04em; }
-.loading-hint { margin: 0; min-height: 2.7em; color: #a9c0ee; font-size: clamp(12px, 2cqh, 16px); line-height: 1.35; }
+/* Une seule ligne, quelle que soit l’astuce : la page ne saute pas quand elle change. */
+.loading-hint { max-width: 100%; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #a9c0ee; font-size: clamp(12px, 2cqh, 16px); line-height: 1.35; }
 .loading-hint strong { color: #ffd84a; }
-/* Pendant le chargement, le bouton reste caché (mais présent et désactivé) ; à 100 %, il prend la place de la barre. */
-.loading-strip:not(.is-ready) #start-campaign:disabled { display: none; }
-.loading-strip.is-ready .loading-bar { display: none; }
-#start-menu .loading-strip #start-campaign { width: 100%; height: clamp(44px, 7.5cqh, 64px); padding: 0 24px; font-size: clamp(20px, 4.2cqh, 34px); letter-spacing: .08em; }
+/* La barre et le bouton occupent le même emplacement, de hauteur fixe : rien ne bouge quand l’un remplace l’autre.
+   Pendant le chargement, le bouton reste invisible (mais présent et désactivé). */
+.loading-action { display: grid; width: min(620px, 100%); height: clamp(34px, 7cqh, 56px); }
+.loading-action > * { grid-area: 1 / 1; min-height: 0; }
+.loading-strip:not(.is-ready) #start-campaign:disabled, .loading-strip.is-ready .loading-bar { visibility: hidden; }
+#start-menu .loading-strip #start-campaign { width: 100%; height: 100%; min-height: 0; border-radius: 99px; padding: 0 24px; font-size: clamp(20px, 4.2cqh, 34px); letter-spacing: .08em; }
 .loading-strip.is-ready #start-campaign:not(:disabled) { animation: loading-ready 1.4s ease-in-out infinite; }
 @keyframes loading-ready { 50% { transform: scale(1.04); } }
 /* Barre du chargement du débat. */
@@ -123,21 +130,24 @@
   #start-menu #menu-back { padding: 6px 12px; }
   #start-menu #menu-fullscreen { width: 42px; font-size: 25px; }
   #start-menu[data-screen='loading'] h1 { font-size: 22px; }
-  .loading-flash { font-size: 11px; margin-bottom: 2px; }
+  .loading-flash { font-size: 11px; }
+  .loading-title { gap: 6px; }
+  .loading-scene { margin-top: 4px; }
   .loading-guide, .loading-tips { gap: 6px; }
   .loading-guide h2 { font-size: 17px; }
   .loading-tips p { padding: 6px 10px; border-radius: 10px; }
   .loading-tips p > span { width: 30px; font-size: 18px; border-radius: 8px; }
   .loading-tips strong { font-size: 16px; }
   .loading-tips small { font-size: 12px; }
-  .loading-candidate img + strong { font-size: 17px; border-bottom-width: 3px; }
-  .loading-candidate small { display: none; }
+  .loading-candidate strong { margin-top: 12px; font-size: 17px; border-bottom-width: 3px; }
+  .loading-stage::after { border-width: 2px; }
   #loading-status, .loading-hint { font-size: 11px; }
-  .loading-bar { height: 22px; border-width: 2px; }
+  .loading-action { height: 30px; }
+  .loading-bar { border-width: 2px; }
   #loading-percent { font-size: 13px; }
   #start-menu #start-campaign { min-height: 44px; padding: 8px 24px; font-size: 20px; }
   .menu-loading { height: 12px; }
-  #start-menu .loading-strip #start-campaign { height: 34px; min-height: 0; padding: 0 16px; font-size: 18px; border-radius: 99px; }
+  #start-menu .loading-strip #start-campaign { padding: 0 16px; font-size: 18px; }
   .loading-tips p { padding: 5px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .menu-loading::-webkit-progress-value, .loading-fill { transition: none; } .loading-strip.is-ready #start-campaign:not(:disabled) { animation: none; } }
@@ -147,4 +157,5 @@
   .loading-tips p > span { width: 26px; font-size: 16px; }
   .loading-tips strong { font-size: 14px; }
   .loading-flash { display: none; }
+  .loading-strip { padding-bottom: 6px; }
 }

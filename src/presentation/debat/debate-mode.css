@@ -1,7 +1,7 @@
 /* Mode Débat : réglages dans le menu, puis interface du combat. */
 
 /* Sélection : silhouettes, grille commune et repères des joueurs. */
-#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { --debate-map-art: none; background: radial-gradient(ellipse at 15% 25%, #183a6555, transparent 55%), radial-gradient(ellipse at 90% 35%, #82294444, transparent 50%), linear-gradient(#080d1bd1, #080d1bf0 70%), var(--debate-map-art) center / cover no-repeat, #080d1b; }
+#start-menu:is([data-screen='debate'], [data-screen='debate-lobby']) { --debate-map-art: none; background: radial-gradient(ellipse at 15% 25%, #183a6555, transparent 55%), radial-gradient(ellipse at 90% 35%, #82294444, transparent 50%), linear-gradient(#080d1b8c, #080d1bc4 70%), var(--debate-map-art) center / cover no-repeat, #080d1b; }
 /* Aperçu du plateau choisi : l’illustration du combat, assombrie derrière la sélection. */
 #start-menu[data-debate-map='elysee'] { --debate-map-art: url('../../../assets/images/debat/elysee-illustre-v3.png'); }
 #start-menu[data-debate-map='face_a_face'] { --debate-map-art: url('../../../assets/images/debat/face-a-face-cadrage-v3.png'); }

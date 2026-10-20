@@ -67,7 +67,7 @@ export function showDebateLobby(menu, session, leave) {
     if (sharedOptions(config, session).format === '1v1v1' && players.length === 2 && candidatesReady(session.room)) {
       fighters.push({ ...multiplayerDebateSetup(config, session.room, sharedOptions(config, session)).fighters[2], badge: 'IA' });
     }
-    root.innerHTML = `<div class="select-topline"><span>Sélection des candidats · Multijoueur</span><span class="select-live">● En direct</span></div>
+    root.innerHTML = `<div class="select-topline"><span>Multijoueur</span><span class="select-live">● En direct</span></div>
       <div class="select-stage" data-count="${fighters.length}">${fighters.map((p, i) => fighterCardContent(config, p, i, { active: p.id === session.id, styles: p.id === session.id ? stylesContent(config, profile, me, { disabled: session.choosing, taken: style => players.some(q => q.id !== session.id && q.faction === me.faction && q.style === style) }) : '' })).join('')}<span class="select-versus" aria-hidden="true">VS</span>${fighters.length === 3 ? '<span class="select-versus select-versus-second" aria-hidden="true">VS</span>' : ''}</div>
       <div class="select-console"><div class="select-roster-heading"><strong>J${me.slot} · ${escape(playerName(me))}</strong><span>Choisissez votre candidat</span></div>
       ${rosterContent(config, fighters, active, { disabled: session.choosing, unavailable: faction => !freeStyle(faction, me?.faction === faction ? me.style : null) })}</div>

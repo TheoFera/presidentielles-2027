@@ -166,11 +166,11 @@
       "subzones": [
         {
           "id": "retraites_a",
-          "concept": "Garage automobile",
+          "concept": "Bar-tabac et terrasse",
           "initial_neutral_count": 1,
           "max_npcs_by_origin": 11,
-          "wheel_symbol": "Garage automobile",
-          "scenery": "Pavillons soignés, haies, pelouses et garagiste ; mer, vergers et collines boisées.",
+          "wheel_symbol": "Bar-tabac et terrasse",
+          "scenery": "Bar-tabac avec terrasse, pavillons soignés, haies et pelouses ; vergers et collines boisées.",
           "candidate_spawns": [
             "Bruno Retailleau"
           ]
@@ -186,11 +186,11 @@
         },
         {
           "id": "retraites_c",
-          "concept": "Maison bourgeoise",
+          "concept": "Maisons en meulière",
           "initial_neutral_count": 1,
           "max_npcs_by_origin": 11,
-          "wheel_symbol": "Maison bourgeoise",
-          "scenery": "Villas et jardins aisés à la manière de Neuilly-sur-Seine.",
+          "wheel_symbol": "Maisons en meulière",
+          "scenery": "Maisons en meulière à pignons, encadrements de briques, jardins et grilles ouvragées.",
           "candidate_spawns": [
             "Gabriel Attal"
           ]
