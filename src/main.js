@@ -420,7 +420,8 @@ async function start() {
         }),
         renderer.assets.loadRequired(ids, ratio => {
           if (finished) return;
-          restartTimeout(); onProgress(ratio * .95);
+          // Les images déjà en mémoire arrivent d’un coup : cette étape n’occupe que 60 % de la barre.
+          restartTimeout(); onProgress(ratio * .6, 'images');
         }),
       ]);
       // Prepare the first complete frame behind the loading screen. In
@@ -429,10 +430,13 @@ async function start() {
       // sinon ce transfert se fait au premier affichage, en pleine partie (à-coups).
       const ready = [...new Set([...renderer.assets.cache.values()].filter(entry => entry.ready)
         .flatMap(entry => [...preparedDrawingSources(entry.image)]))];
+      // Cette étape est souvent la plus longue : elle fait avancer la barre de 60 à 98 %.
+      onProgress(.6, 'gpu');
       for (let i = 0; i < ready.length; i += 6) {
         renderer.ctx.save(); renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
         for (const image of ready.slice(i, i + 6)) renderer.ctx.drawImage(image, 0, 0, 1, 1);
         renderer.ctx.restore();
+        onProgress(.6 + .38 * Math.min(1, (i + 6) / ready.length), 'gpu');
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
       renderer.draw(introScene.view(state), state, 1, 0);

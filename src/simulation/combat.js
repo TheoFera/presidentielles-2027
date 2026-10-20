@@ -53,7 +53,9 @@ export function attackInput(sim, actor, type) {
   // Le saut interrompt un coup, sauf la réception d’un plongeon (sinon, plongeons à l’infini).
   const diveRecovery = sim.state.attacks.some(a => a.id === c.attack_id && a.kind === 'DIVE');
   if (type === 'Jump' && !airborne(actor) && !diveRecovery && Math.abs(c.knockback_velocity) <= 0.02) {
-    cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.jump_delay_ticks = 0; c.height = 0; c.jump_base = 0;
+    // Depuis l'estrade d'un meeting, le saut part de sa hauteur : pas de retour éclair au sol.
+    const base = actor.podium_site_id ? c.height : 0;
+    cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.jump_delay_ticks = 0; c.height = base; c.jump_base = base;
     // Sur un pupitre du mode Débat, le saut part de la hauteur du pupitre.
     if (sim.state.platforms?.length) { c.jump_base = actor.platform_id ? sim.state.platforms.find(p => p.id === actor.platform_id).height : 0; c.height = c.jump_base; c.drop_through_id = null; actor.platform_id = null; }
     actor.podium_site_id = null;

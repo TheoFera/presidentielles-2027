@@ -28,7 +28,7 @@ export const BUILDING_OPENINGS = {
   'site:campagne_b': { x: 375, y: 822, w: 94, h: 182 },
   'site:campagne_c': { x: 642, y: 822, w: 94, h: 182 },
   'site:retraites_a': { x: 1208, y: 824, w: 94, h: 180 },
-  'site:retraites_b': { x: 328, y: 822, w: 94, h: 182 },
+  'site:retraites_b': { x: 304, y: 810, w: 120, h: 187 },
   'site:retraites_c': { x: 1238, y: 820, w: 84, h: 184 },
   'site:riches_a': { x: 970, y: 840, w: 86, h: 92 },
   'site:riches_b': { x: 146, y: 694, w: 348, h: 305,

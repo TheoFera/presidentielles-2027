@@ -228,6 +228,9 @@ export class WorldRenderer {
       else if (entering.has(entity.id)) arrivals.push(entity);
       else street.push(entity);
     }
+    // Les rangs 2 et 3 d'une foule (meeting, rassemblement) sont plus bas, donc plus proches :
+    // ils passent devant les candidats, qui marchent sur la ligne du rang 1 (tri stable).
+    street.sort((a, b) => (rows.get(a) || 1) - (rows.get(b) || 1));
     drawEntities(stage);
     drawMeetingForeground(this, state);
     // Ceux qui arrivent passent devant : ils viennent du premier plan.

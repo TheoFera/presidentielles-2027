@@ -17,6 +17,40 @@ export function playersContent(mode) {
 export function candidatesContent(selected = null) {
   return `<div class="candidate-grid">${CANDIDATES.map(c => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge" aria-hidden="true">♛ J1</span><strong class="visually-hidden">${c.short}</strong></button>`).join('')}</div><footer class="menu-footer"><button id="prepare-game" class="menu-primary arcade-button" ${selected ? '' : 'disabled'}>Valider <span aria-hidden="true">➜</span></button></footer>`;
 }
-export function tutorialContent(candidate, combat) {
-  return `<div class="loading-scene"><div class="loading-candidate"><img src="${portrait(candidate)}" alt="${candidate.name}"></div><div class="loading-guide"><h2>À vous de jouer !</h2><div class="loading-tips"><p><span aria-hidden="true">✦</span><strong>Convainquez</strong><small>Placez-vous près d’un passant pour lui parler.</small></p><p><span aria-hidden="true">⚑</span><strong>Étendez-vous</strong><small>Restez devant un bâtiment pour l’acquérir.</small></p><p><span aria-hidden="true">⚔</span><strong>Combattez</strong><small class="keyboard-guide">← → Marcher · ↑ Sauter · Espace Frapper · R Ultime</small><small class="touch-guide">Utilisez les boutons à l’écran.</small></p></div></div></div><div class="loading-strip"><div class="loading-caption"><p id="loading-status" role="status">Chargement…</p><span id="loading-percent" aria-hidden="true">0 %</span></div><progress class="menu-loading" max="1" value="0" aria-label="Chargement de la campagne"></progress></div><footer class="menu-footer"><button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></footer>`;
+/** Astuces de l’écran de chargement : l’atout du candidat d’abord, puis des conseils de jeu. */
+const CANDIDATE_HINTS = {
+  melenchon: 'Votre atout : vous convainquez les passants plus vite que vos rivaux.',
+  philippe: 'Votre atout : vous démarrez la campagne avec plus d’argent que vos rivaux.',
+  le_pen: 'Votre atout : vos coups font 50 % de dégâts en plus aux sympathisants adverses.',
+};
+const GAME_HINTS = [
+  'Pour convaincre un passant, arrêtez-vous à côté de lui : on ne convainc personne en marchant.',
+  'Votre première permanence devient votre QG. Repassez-y souvent : les dons de vos soutiens vous y attendent.',
+  'Restez devant votre QG pour faire imprimer des tracts.',
+  'Votre style de campagne compte : on vous écoute quatre fois plus vite dans son quartier, deux fois moins vite dans le quartier opposé.',
+  'Dans un quartier que vous tenez, vos partisans résistent mieux et vos rivaux mettent plus de temps à convaincre.',
+  'Un bâtiment acquis reste à vous, même vide. Seul un raid ou une fermeture peut vous le reprendre.',
+  'Dès qu’ils sont trois, vos militants partent ensemble à la conquête de nouveaux électeurs.',
+  'Achetez un garage : à vélo ou à scooter, vous traversez la France bien plus vite.',
+  'Pour esquiver, appuyez deux fois rapidement sur une direction. Vous avez trois esquives, qui se rechargent.',
+  'Gardez la frappe enfoncée une seconde pour un coup chargé : vous êtes protégé pendant sa préparation.',
+  'Sautez pour éviter les coups bas, puis frappez en l’air pour retomber sur votre adversaire.',
+  'Un candidat mis K.-O. perd 30 % de son argent : ramassez vite les billets tombés !',
+  'Chaque coup qui touche remplit votre jauge d’ultime. Quand elle devient dorée, déclenchez-la !',
+  'En tête des sondages, des journalistes vous suivent. Sortez du champ de la caméra : elle vous ralentit.',
+];
+export const loadingHints = candidate => [CANDIDATE_HINTS[candidate.id], ...GAME_HINTS].filter(Boolean);
+export function tutorialContent(candidate) {
+  const card = (icon, title, text) => `<p><span aria-hidden="true">${icon}</span><strong>${title}</strong>${text}</p>`;
+  return `<div class="loading-title"><p class="loading-flash"><span>J-365</span><span>Premier tour</span></p><h1 tabindex="-1">Plus qu’un an avant l’élection</h1></div>`
+    + `<div class="loading-scene"><div class="loading-candidate"><img src="${portrait(candidate)}" alt=""><strong class="loading-name">${candidate.short}</strong><small>Votre candidat</small></div>`
+    + `<div class="loading-guide"><h2>À vous de jouer !</h2><div class="loading-tips">`
+    + card('✦', 'Convainquez', '<small>Arrêtez-vous près d’un passant pour lui parler.</small>')
+    + card('⚑', 'Étendez-vous', '<small>Restez devant un bâtiment pour l’acquérir.</small>')
+    + card('⚔', 'Combattez', '<small class="keyboard-guide"><kbd>←</kbd><kbd>→</kbd> marcher · <kbd>↑</kbd> sauter · <kbd>Espace</kbd> frapper · <kbd>R</kbd> ultime</small><small class="touch-guide">Utilisez les boutons à l’écran.</small>')
+    + `</div></div></div>`
+    + `<div class="loading-strip"><p id="loading-status" role="status">Chargement…</p>`
+    + `<div class="loading-bar" role="progressbar" aria-label="Chargement de la campagne" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="loading-fill"></span><span id="loading-percent" aria-hidden="true">0 %</span></div>`
+    + `<button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button>`
+    + `<p class="loading-hint"><strong>Astuce :</strong> <span id="loading-tip"></span></p></div>`;
 }

@@ -130,6 +130,27 @@ try {
     });
   });
   await page.locator('#sheet').screenshot({ path: path.join(output, 'exemples.png') });
+  // Les deux nouvelles devantures de Retraités B, avec les vraies enseignes.
+  await page.evaluate(async () => {
+    const { drawIntegratedBuilding } = await import('/src/presentation/carte/fixed-world.js');
+    const { samples, renderer, sim, sheet } = window.shutterCheck;
+    const sample = samples.find(s => s.site === 'site:retraites_b');
+    renderer.cameraX = sim.state.world.subzones.find(z => z.id === 'retraites_b').center;
+    for (const image of sample.modes.values()) {
+      const local = { ...renderer, ctx: image.getContext('2d'), p: sim.config.prototype.presentation };
+      for (const b of sim.state.buildings.filter(b => b.subzone_id === 'retraites_b' && b.type !== 'meeting')) {
+        drawIntegratedBuilding(local, sim.state, b);
+      }
+    }
+    window.paintRetraitesB = mode => {
+      sheet.width = 1920; sheet.height = 1080;
+      sheet.getContext('2d').drawImage(sample.modes.get(mode), 0, 0);
+    };
+  });
+  for (const [mode, name] of [['Fermé', 'ferme'], ['À mi-course', 'mi-course'], ['Ouvert', 'ouvert']]) {
+    await page.evaluate(mode => window.paintRetraitesB(mode), mode);
+    await page.locator('#sheet').screenshot({ path: path.join(output, `retraites-b-${name}.png`) });
+  }
   // Le moteur complet doit lui aussi dessiner le mouvement, sous les personnages.
   const integration = await page.evaluate(async () => {
     const { WorldRenderer } = await import('/src/presentation/rendu/renderer.js');

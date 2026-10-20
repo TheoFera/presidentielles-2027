@@ -1,4 +1,4 @@
-import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialContent } from './arcade-content.js';
+import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialContent, loadingHints } from './arcade-content.js';
 import { enterLandscape, syncOrientation, toggleFullscreen } from '../interface/landscape.js';
 import { profileButton, profileContent, cleanNickname, collectionCardContent } from './player-profile.js';
 import { hydrateMedallions, playerCard, rememberTitle } from './player-card.js';
@@ -195,23 +195,35 @@ export class StartMenu {
   }
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', "Plus qu'un an avant le premier tour de l'élection présidentielle", tutorialContent(candidate, this.combat), () => multiplayer ? this.home() : this.candidates());
-    if (multiplayer) {
-      const eyebrow = this.element.querySelector('.eyebrow'); if (eyebrow) eyebrow.textContent = `MULTIJOUEUR · ${candidate.short}`;
-    }
+    this.page('loading', '', tutorialContent(candidate), () => multiplayer ? this.home() : this.candidates());
+    if (multiplayer) this.element.querySelector('.loading-flash span:last-child').textContent = 'Multijoueur';
     const generation = this.generation;
+    // Une astuce au hasard, puis la suivante toutes les 7 secondes tant que l’écran reste affiché.
+    const hints = loadingHints(candidate), tip = this.element.querySelector('#loading-tip');
+    let hint = Math.floor(Math.random() * hints.length);
+    tip.textContent = hints[hint];
+    const rotation = setInterval(() => { hint = (hint + 1) % hints.length; tip.textContent = hints[hint]; }, 7000);
+    this.cleanup = () => clearInterval(rotation);
+    const strip = this.element.querySelector('.loading-strip'), bar = strip.querySelector('.loading-bar');
+    const show = ratio => {
+      const percent = Math.round(ratio * 100);
+      bar.style.setProperty('--progress', `${percent}%`); bar.setAttribute('aria-valuenow', String(percent));
+      strip.querySelector('#loading-percent').textContent = `${percent} %`;
+    };
+    const phases = { images: 'Les militants collent les affiches…', gpu: 'Installation de l’estrade…' };
     try {
       // Let the loading screen paint before constructing the world.
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (generation !== this.generation) return;
-      await this.prepare(`candidate:${this.selected}`, ratio => {
+      await this.prepare(`candidate:${this.selected}`, (ratio, phase) => {
         if (generation !== this.generation) return;
-        this.element.querySelector('progress').value = ratio;
-        this.element.querySelector('#loading-percent').textContent = `${Math.round(ratio * 100)} %`;
+        show(ratio);
+        if (phases[phase]) strip.querySelector('#loading-status').textContent = phases[phase];
       });
       if (generation !== this.generation) return;
-      const progress = this.element.querySelector('progress'); progress.max = 1; progress.value = 1;
-      this.element.querySelector('#loading-percent').textContent = '100 %';
+      show(1);
+      // À 100 %, la barre laisse sa place au bouton « Jouer ».
+      strip.classList.add('is-ready');
       this.element.querySelector('#loading-status').textContent = 'Prêt !';
       const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Jouer ➜';
       button.onclick = async () => {

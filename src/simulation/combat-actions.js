@@ -31,7 +31,8 @@ export function updateActions(sim, actor) {
     const t = (sim.state.tick - c.jump_tick - c.jump_delay_ticks) / sim.secondsToTicks(b.jump_duration_seconds);
     c.height = (c.jump_base || 0) + b.jump_height_ratio * 4 * t * (1 - t);
     if (t >= 0.5 && podiumLanding(sim, actor, previousHeight, c.height)) return;
-    if (t >= 1 || t >= 0.5 && c.height <= 0) { c.jump_tick = null; c.height = 0; c.jump_base = 0; }
+    // Parti de l'estrade, on continue de descendre sous la hauteur de départ jusqu'au sol.
+    if (t >= 0.5 && c.height <= 0) { c.jump_tick = null; c.height = 0; c.jump_base = 0; }
   }
 }
 /** Campagne : en quittant le promontoire à pied, on tombe jusqu’au sol.

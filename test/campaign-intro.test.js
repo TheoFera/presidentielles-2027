@@ -98,6 +98,23 @@ test('l’ordinateur redescend de l’estrade et part faire campagne comme sans 
   }
 });
 
+test('sauter depuis l’estrade part de sa hauteur, sans repasser par le sol', () => {
+  const { sim, human, run, me, config } = setup();
+  run(20); human.attack();
+  for (let i = 0; i < 60 && sim.state.campaign_intro; i++) run(1);
+  const podium = config.balance.buildings.meeting.podium_height;
+  for (const axis of [0, 1]) {
+    human.setAxis(axis); human.jump(); run(1);
+    const heights = [me().combat.height];
+    for (let i = 0; i < 45; i++) { run(1); heights.push(me().combat.height); }
+    assert.ok(heights[0] > podium, `départ au-dessus de l’estrade (${heights[0]})`);
+    for (let i = 1; i < heights.length; i++) assert.ok(Math.abs(heights[i] - heights[i - 1]) < 0.3, `saut de hauteur ${heights[i - 1]} → ${heights[i]}`);
+    if (axis === 0) assert.equal(me().combat.height, podium, 'sur place : retour sur l’estrade');
+    else assert.equal(me().combat.height, 0, 'de côté : descente jusqu’au sol');
+  }
+  human.setAxis(0);
+});
+
 test('multijoueur : la campagne attend tous les joueurs, au plus 5 s après le premier coup', () => {
   const { sim, human, run, config } = setup('candidate:melenchon');
   sim.state.human_candidate_ids = ['candidate:melenchon', 'candidate:philippe'];
