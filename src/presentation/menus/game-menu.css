@@ -71,7 +71,7 @@
 .loading-flash span + span { background: #fff; color: #0b1d44; border-radius: 0 6px 6px 0; }
 #start-menu[data-screen='loading'] h1 { font-size: clamp(24px, 6.2cqh, 54px); line-height: 1.05; color: #ffd84a; }
 .loading-scene { flex: 1; min-height: 0; display: grid; grid-template-columns: .8fr 1.2fr; gap: 4%; align-items: center; }
-.loading-candidate { position: relative; height: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; background: radial-gradient(ellipse at 50% 70%, #6fb6ff40, transparent 65%); }
+.loading-candidate { position: relative; height: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
 .loading-candidate img { flex: 1; width: 100%; min-height: 0; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 12px #79bbff55); }
 .loading-candidate img + strong { position: relative; margin-top: clamp(-18px, -2cqh, -6px); padding: .15em .8em; background: #fff; color: #0b1d44; border-bottom: 5px solid #2b5bd0; border-radius: 8px; font: 900 clamp(18px, 4cqh, 34px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; box-shadow: 0 4px 0 #020714; }
 .loading-candidate small { margin-top: 6px; color: #cfdcff; font-size: clamp(12px, 1.9cqh, 16px); }
@@ -87,7 +87,7 @@
 #loading-status { margin: 0; color: #cfdcff; font-size: clamp(13px, 2.2cqh, 18px); }
 .loading-bar { position: relative; width: 100%; height: clamp(24px, 5cqh, 40px); border: 3px solid #fff; border-radius: 99px; background: #0a1430; overflow: hidden; box-shadow: 0 4px 0 #020714; }
 .loading-fill { position: absolute; inset: 0; background: linear-gradient(90deg, #2b5bd0 0 33.3%, #f4f4f4 33.3% 66.6%, #e63946 66.6%); clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0); transition: clip-path .35s ease-out; }
-#loading-percent { position: absolute; inset: 0; display: grid; place-items: center; font: 900 clamp(14px, 2.8cqh, 22px)/1 Impact, 'Arial Black', sans-serif; color: #fff; text-shadow: 2px 2px 0 #050e27, -1px -1px 0 #050e27, 1px -1px 0 #050e27, -1px 1px 0 #050e27; }
+#loading-percent { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: .15em .6em; border-radius: 99px; background: #0b1d44d9; font: 900 clamp(13px, 2.6cqh, 20px)/1 Impact, 'Arial Black', sans-serif; color: #fff; letter-spacing: .04em; }
 .loading-hint { margin: 0; min-height: 2.7em; color: #a9c0ee; font-size: clamp(12px, 2cqh, 16px); line-height: 1.35; }
 .loading-hint strong { color: #ffd84a; }
 /* Pendant le chargement, le bouton reste caché (mais présent et désactivé) ; à 100 %, il prend la place de la barre. */
@@ -137,7 +137,8 @@
   #loading-percent { font-size: 13px; }
   #start-menu #start-campaign { min-height: 44px; padding: 8px 24px; font-size: 20px; }
   .menu-loading { height: 12px; }
-  #start-menu .loading-strip #start-campaign { height: 42px; font-size: 20px; }
+  #start-menu .loading-strip #start-campaign { height: 34px; min-height: 0; padding: 0 16px; font-size: 18px; border-radius: 99px; }
+  .loading-tips p { padding: 5px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .menu-loading::-webkit-progress-value, .loading-fill { transition: none; } .loading-strip.is-ready #start-campaign:not(:disabled) { animation: none; } }
 @media (max-height: 350px) {

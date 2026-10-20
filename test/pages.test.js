@@ -31,7 +31,7 @@ test('Le paquet de l\'application contient uniquement le jeu et charge ses régl
   for (const absent of ['src/vendor/README.md', 'src/AGENTS.md', image('assets/images/habitants/neutres/npc-banlieue-9.png')]) {
     await assert.rejects(stat(join(output, absent)), { code: 'ENOENT' }, absent);
   }
-  for (const included of ['src/vendor/qrcode-LICENSE.txt', 'src/vendor/jsqr-LICENSE.txt', image('assets/images/menus/accueil.png'), image('assets/images/menus/candidats.png'), image('assets/images/interface/roue-quartiers-verticale-v1.png')]) {
+  for (const included of ['src/vendor/qrcode-LICENSE.txt', 'src/vendor/jsqr-LICENSE.txt', image('assets/images/menus/accueil.png'), image('assets/images/menus/candidats.png'), image('assets/images/interface/roue-quartiers-verticale-v2.png')]) {
     assert.ok((await stat(join(output, included))).size > 0, included);
   }
   assert.match(await readFile(join(output, 'src/app-build.js'), 'utf8'), /APP_BUILD = true/);
