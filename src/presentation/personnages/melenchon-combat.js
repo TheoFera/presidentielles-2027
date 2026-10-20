@@ -83,7 +83,7 @@ export function melenchonPose(entity, state, config, guard = false) {
       attack.step === 3 ? 'attack_3_finisher' : `attack_${attack.step}`, phase);
   }
   if (c.charge_active) {
-    const ready = state.tick - c.press_tick >= Math.ceil(config.balance.candidate_combat.charge_ready_seconds * hz - 1e-9);
+    const ready = state.tick - c.press_tick - (c.press_delay_ticks || 0) >= Math.ceil(config.balance.candidate_combat.charge_ready_seconds * hz - 1e-9);
     return result(ready ? 9 : 8, ready ? 'charge_ready' : 'charge_focus');
   }
   if (inAir) {

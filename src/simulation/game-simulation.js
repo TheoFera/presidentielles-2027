@@ -1,4 +1,7 @@
 import { claimMinorHeadquarters, minorCanRecruit } from './minor-candidates.js';
+import { updatePressTeam } from './press-team.js';
+import { pressMoveFactor } from './press-rules.js';
+import { campaignIntroCommand, createCampaignIntro, stepCampaignIntro } from './campaign-intro.js';
 import { candidateTravelSpeed, updateVehicles, vehicleCommand } from './vehicles.js';
 import { hostilePersuasionMultiplier } from './zone-control.js';
 import { rallyNpcStep } from './rallies.js';
@@ -23,7 +26,7 @@ import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, canTurnDuringLightStun, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { startPodiumFall } from './combat-actions.js';
-import { updateGuard, updateRaidRecruit } from './military.js';
+import { updateGuard, updateRaidRecruit, updateGuardRecruitment } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
 import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
@@ -110,6 +113,8 @@ export class GameSimulation {
         this.spawn(zone, zone.start + zone.width * ratio, false, points[index % points.length]);
       }
     }
+    // Partie lancée depuis le menu : scène d'ouverture sur l'estrade (voir campaign-intro.js).
+    if (options.campaignIntro) createCampaignIntro(this);
     initializeMoney(this);
     for (const c of this.state.candidates) initializeMobileCombat(this, c);
     initializeCampaign(this);
@@ -209,6 +214,7 @@ export class GameSimulation {
 
   applyCommand(command) {
     if (!commandAllowed(this.state, command, this.config.prototype.debug.commands_enabled)) return;
+    if (campaignIntroCommand(this, command)) return;
     if (command.type === 'ContinueToSecondRound') { finishDebate(this); return; }
     vehicleCommand(this.state.candidates.find(c => c.id === command.candidateId), command);
     if (CampaignStyleSystem.command(this, command)) return;
@@ -366,6 +372,8 @@ export class GameSimulation {
     const state = this.state;
     if (state.phase === GamePhase.FIRST_ROUND_RESULTS) return;
     if (state.campaign_style_selection) return;
+    // Scène d'ouverture : le temps de la campagne reste gelé jusqu'au coup d'annonce.
+    if (state.campaign_intro) { stepCampaignIntro(this); return; }
     state.match_tick++;
     if (state.phase === GamePhase.FIRST_ROUND_DEBATE) {
       const debate = new DebateSimulation(this.config, state.debate); debate.step();
@@ -382,7 +390,7 @@ export class GameSimulation {
         candidate.facing = candidate.axis; candidate.turn_tick = state.tick;
       }
       if (movementBlocked(candidate)) continue;
-      candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * dt, state.world.length));
+      candidate.x = wallBlockedPosition(this, candidate, wrap(candidate.x + candidate.axis * candidateTravelSpeed(this.config, candidate) * pressMoveFactor(state, this.config, candidate) * dt, state.world.length));
       candidate.moving = candidate.axis !== 0;
       if (candidate.axis && candidate.axis !== candidate.facing) { candidate.facing = candidate.axis; candidate.turn_tick = state.tick; }
       if (candidate.podium_site_id) {
@@ -395,12 +403,14 @@ export class GameSimulation {
     }
     separateCandidates(this);
     updateSpawns(this);
+    updateGuardRecruitment(this);
     withNpcProximity(state, () => {
       for (const npc of state.npcs) {
-        if (npc.role === 'MILITANT' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
+        if (npc.role === 'MILITANT' && npc.task?.kind !== 'JOIN_GUARD' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
         if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
       }
     });
+    updatePressTeam(this);
     updateCombat(this);
     updateCandidateResistance(this);
     updateCampaignEvents(this);
@@ -516,7 +526,7 @@ export class GameSimulation {
         if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
         if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
         if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }
-        if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'JOIN_RAID') { updateRaidRecruit(this, npc); continue; }
+        if (['SYMPATHISANT', 'MILITANT'].includes(npc.role) && ['JOIN_RAID', 'JOIN_GUARD'].includes(npc.task?.kind)) { updateRaidRecruit(this, npc); continue; }
         if (npc.role === 'MILITANT') { updateMilitant(this, npc); continue; }
         if (npc.role === 'DEMOBILISE') {
           const delta = ringDelta(npc.x, npc.roam_target_x, state.world.length);

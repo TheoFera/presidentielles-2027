@@ -10,7 +10,7 @@ export function drawCombatEffects(renderer, state, debug) {
     if (candidateOpacity(c, state, config) < .99) continue;
     if (c.combat?.charge_active) {
       const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * 1.1;
-      const progress = Math.min(1, (state.tick - c.combat.press_tick) / (hz * config.balance.candidate_combat.charge_ready_seconds));
+      const progress = Math.min(1, (state.tick - c.combat.press_tick - (c.combat.press_delay_ticks || 0)) / (hz * config.balance.candidate_combat.charge_ready_seconds));
       ctx.fillStyle = '#203940'; ctx.fillRect(x - 22, y, 44, 6);
       ctx.fillStyle = progress >= 1 ? '#c5f8ff' : '#63bed1'; ctx.fillRect(x - 21, y + 1, 42 * progress, 4);
     }

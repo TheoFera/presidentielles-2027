@@ -32,7 +32,7 @@ export function buildingOffer(state, config, candidate, building) {
     kind = 'POLL'; cost = settings.poll_cost;
   } else if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {
     kind = 'CAPTURE'; cost = building.type === 'permanence' && !candidate.headquarters_site_id
-      ? settings.first_headquarters_capture_cost : settings.capture_cost;
+      ? settings.first_headquarters_capture_cost : settings.capture_cost_by_site?.[building.site_id] ?? settings.capture_cost;
     const presence = localPoliticalPresence(state, building.subzone_id, candidate.faction_id);
     const required = settings.required_presence_N1;
     if (presence < required) { available = false; reason = 'INSUFFICIENT_PRESENCE'; }
@@ -161,7 +161,7 @@ function transact(simulation, candidate, offer) {
 /** Disponibilité de l’interaction, commune aux achats et à leurs indications à l’écran. */
 export function purchaseInteractionAvailable(state, candidate) {
   return !!candidate && !candidate.eliminated && ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)
-    && !candidate.vehicle && !state.campaign_style_selection && !candidate.style_interaction_held && !candidate.style_hold
+    && !state.campaign_intro && !candidate.vehicle && !state.campaign_style_selection && !candidate.style_interaction_held && !candidate.style_hold
     && candidate.campaign_active && candidate.interaction_active && canCampaign(candidate)
     && state.tick >= (candidate.interaction_pause_until_tick || 0);
 }

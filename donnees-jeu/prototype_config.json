@@ -35,6 +35,27 @@
   "time": {
     "minimum_days_remaining_for_milestone": 0
   },
+  "campaign_intro": {
+    "strike_min_seconds": 0.4,
+    "multiplayer_wait_seconds": 5,
+    "stage_edge_margin_units": 0.3,
+    "crowd_max": 6,
+    "crowd_gap_units": 0.7,
+    "crowd_spacing_units": 0.8,
+    "crowd_home_wait_seconds": [0.3, 1.8],
+    "press_offsets_units": [[-2, -2.7], [2, 2.7], [3.4, 4.1]],
+    "camera_zoom": 1.2,
+    "zoom_release_seconds": 0.9,
+    "tutorial_games": 2,
+    "dossier_min_seconds": 0.8,
+    "banner_delay_seconds": 0.6,
+    "short_banner_start_seconds": 0.25,
+    "banner_hold_seconds": 3.6,
+    "flash_offsets_seconds": [0.55, 0.85, 1.2, 1.65],
+    "move_seconds_before_strike": 0.5,
+    "idle_hint_seconds": 5,
+    "objectives_farewell_seconds": 7
+  },
   "presentation": {
     "reference_width": 960,
     "reference_height": 540,
@@ -133,10 +154,10 @@
         "color": "#ba9450"
       },
       "glucksmann": { "name": "Glucksmann", "symbol": "G", "color": "#d9719f" },
-      "roussel": { "name": "Roussel", "symbol": "R", "color": "#8e2436" },
-      "arthaud": { "name": "Arthaud", "symbol": "A", "color": "#d8312b" },
-      "dupont_aignan": { "name": "Dupont-Aignan", "symbol": "D", "color": "#6a4c93" },
-      "retailleau": { "name": "Retailleau", "symbol": "B", "color": "#2d8fcf" },
+      "roussel": { "name": "Roussel", "symbol": "R", "color": "#9b59b6" },
+      "arthaud": { "name": "Arthaud", "symbol": "A", "color": "#e8231c" },
+      "dupont_aignan": { "name": "Dupont-Aignan", "symbol": "D", "color": "#179c94" },
+      "retailleau": { "name": "Retailleau", "symbol": "B", "color": "#5bbbe8" },
       "attal": { "name": "Attal", "symbol": "T", "color": "#ee9322" }
     },
     "infrastructure": {

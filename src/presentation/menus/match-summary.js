@@ -6,11 +6,11 @@ import { formatCarriedMoney } from '../carte/money.js';
 const CAMPAIGN_SHARE = 0.8; // Part de la largeur du graphique réservée à la campagne ; le reste montre le sprint.
 const CHART = { width: 640, height: 250, left: 40, right: 92, top: 14, bottom: 30 };
 const FEMININE = new Set(['le_pen']);
-// Nom et couleur des autres candidats (reprend l'accent de leur tenue, voir minor-characters.js).
+// Nom et couleur des autres candidats (mêmes couleurs que dans prototype_config.json et le sondage).
 const MINORS = {
-  glucksmann: { name: 'Glucksmann', color: '#d9719f' }, roussel: { name: 'Roussel', color: '#d8404b' },
-  arthaud: { name: 'Arthaud', color: '#b3342c' }, dupont_aignan: { name: 'Dupont-Aignan', color: '#9a7cc9' },
-  retailleau: { name: 'Retailleau', color: '#2d8fcf' }, attal: { name: 'Attal', color: '#ee9322' },
+  glucksmann: { name: 'Glucksmann', color: '#d9719f' }, roussel: { name: 'Roussel', color: '#9b59b6' },
+  arthaud: { name: 'Arthaud', color: '#e8231c' }, dupont_aignan: { name: 'Dupont-Aignan', color: '#179c94' },
+  retailleau: { name: 'Retailleau', color: '#5bbbe8' }, attal: { name: 'Attal', color: '#ee9322' },
 };
 const person = id => CANDIDATES.find(c => c.id === id);
 const escape = text => String(text).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);

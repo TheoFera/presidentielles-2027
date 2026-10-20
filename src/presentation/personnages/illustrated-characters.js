@@ -6,80 +6,17 @@ import { specialCharacterAssetId } from './campaign-style-art.js';
 import { meetingCrowdPlace } from '../../simulation/electoral-buildings.js';
 import { militantSpriteForFaction } from './militant-sprites.js';
 import { npcSpriteFrame } from './npc-sprite-geometry.js';
-import { standingSpriteMotion, drawStandingSprite } from './standing-sprite-motion.js';
+import { standingSpriteMotion, drawStandingSprite, applyNpcStandingMotion } from './standing-sprite-motion.js';
 import { zoneAt } from '../../simulation/world.js';
 import { drawMinorCandidate } from './minor-characters.js';
 import { conversionBadgeLanded, conversionHop, conversionProgress } from '../effets/persuasion-feedback.js';
 import { drawMinorUltimateCandidate } from '../effets/minor-ultimates.js';
+import { drawServiceOrderCharacter } from './service-order-sprites.js';
+import { drawPressCharacter } from './press-sprites.js';
 
-export const biomeArtId = id => ({ paris_19e: 'bobo', periurbain_usine: 'periurbain', quartiers_riches: 'riches' }[id] || id);
-// Même résultat que [...texte].reduce(...), sans créer de tableau (appelé pour chaque personnage dessiné).
+import { biomeArtId, npcAppearanceAssetId } from '../../simulation/npc-appearance.js';
+export { biomeArtId, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../../simulation/npc-appearance.js';
 const hash = value => { let sum = 0; for (const c of String(value)) sum = (sum * 31 + c.charCodeAt(0)) >>> 0; return sum; };
-export const npcVariantCounts = Object.freeze({bobo:20,banlieue:20,periurbain:20,campagne:20,retraites:20,riches:20});
-export const npcBiomeOrder = Object.freeze(['bobo', 'banlieue', 'periurbain', 'campagne', 'retraites', 'riches']);
-
-export function npcVisualBiome(entity, homeBiome) {
-  const index = npcBiomeOrder.indexOf(homeBiome);
-  if (index < 0) return 'bobo';
-  const neighborRoll = hash(`${entity.id}:biome`) % 8;
-  if (neighborRoll > 1) return homeBiome;
-  const direction = neighborRoll === 0 ? -1 : 1;
-  return npcBiomeOrder[(index + direction + npcBiomeOrder.length) % npcBiomeOrder.length];
-}
-
-const npcSequence = entity => {
-  const match = /^npc:(\d+)$/.exec(entity.id);
-  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
-};
-
-// Rang de chaque habitant dans son quartier d'origine, calculé une fois par pas de simulation :
-// avant, chaque personnage dessiné filtrait et triait tous les habitants de son quartier à chaque image.
-let zoneRanks = { npcs: null, length: -1, tick: null, byZone: new Map(), results: new Map() };
-function zoneRank(state, zoneId, homeBiome, id) {
-  const npcs = state.npcs || [];
-  if (zoneRanks.npcs !== npcs || zoneRanks.length !== npcs.length || zoneRanks.tick !== state.tick) {
-    zoneRanks = { npcs, length: npcs.length, tick: state.tick, byZone: new Map(), results: new Map() };
-  }
-  const key = `${zoneId}\n${homeBiome}`;
-  let ranks = zoneRanks.byZone.get(key);
-  if (!ranks) {
-    ranks = new Map();
-    npcs.filter(npc => (npc.origin_subzone_id || homeBiome) === zoneId)
-      .sort((a, b) => npcSequence(a) - npcSequence(b) || String(a.id).localeCompare(String(b.id)))
-      .forEach((npc, i) => { if (!ranks.has(npc.id)) ranks.set(npc.id, i); });
-    zoneRanks.byZone.set(key, ranks);
-  }
-  return ranks.get(id) ?? -1;
-}
-
-export function npcAppearanceAssetId(entity, state, homeBiome) {
-  const zoneId = entity.origin_subzone_id || homeBiome;
-  const position = zoneRank(state, zoneId, homeBiome, entity.id);
-  // Même pas de simulation, même habitant : même apparence (zoneRank vient de valider le cache).
-  const key = `${entity.id}\n${zoneId}\n${homeBiome}`;
-  let id = zoneRanks.results.get(key);
-  if (id === undefined) { id = appearanceFor(entity, zoneId, homeBiome, position); zoneRanks.results.set(key, id); }
-  return id;
-}
-
-function appearanceFor(entity, zoneId, homeBiome, position) {
-  const count = npcVariantCounts[homeBiome] || 20;
-  const cyclePosition = position >= 0 ? position % count : hash(`${entity.id}:slot`) % count;
-
-  // Chaque sous-zone possède un cycle fixe de vingt apparences : quinze
-  // locales et cinq empruntées aux deux biomes voisins. Le pas 7 mélange le
-  // cycle tout en visitant exactement une fois chacun des vingt emplacements.
-  const slot = (cyclePosition * 7 + hash(`${zoneId}:skin-order`)) % count;
-  const homeIndex = npcBiomeOrder.indexOf(homeBiome);
-  let biome = homeBiome;
-  if (homeIndex >= 0 && slot >= 15) {
-    const previousShare = 2 + (hash(zoneId) % 2);
-    const direction = slot < 15 + previousShare ? -1 : 1;
-    biome = npcBiomeOrder[(homeIndex + direction + npcBiomeOrder.length) % npcBiomeOrder.length];
-  }
-  const variant = (slot + hash(`${zoneId}:skin-variant`)) % (npcVariantCounts[biome] || count);
-  return `npc-${biome}-${variant}`;
-}
 
 export function characterAssetId(entity, state) {
   const variation = hash(entity.id);
@@ -127,6 +64,8 @@ export function meetingCrowdRow(entity, state) {
 }
 
 export function drawIllustratedCharacter(renderer, entity, x, state) {
+  if (drawPressCharacter(renderer, entity, x, state)) return true;
+  if (drawServiceOrderCharacter(renderer, entity, x, state)) return true;
   if (drawMinorUltimateCandidate(renderer, entity, x, state)) return true;
   if (drawMinorCandidate(renderer, entity, x, state)) return true;
   if (drawMountedCandidate(renderer, entity, x, state)) return true;
@@ -177,11 +116,14 @@ export function drawIllustratedCharacter(renderer, entity, x, state) {
   ctx.scale(entity.facing < 0 ? -1 : 1, 1);
   if (animation === 'ko') ctx.translate(0, -width * .48);
   const sway = rally && !entity.moving ? Math.sin(time * 2.4 + seed) * 0.035 : 0;
-  ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + stride * 0.025 + sway);
+  ctx.rotate(animation === 'ko' ? -Math.PI / 2 : action + (candidate ? stride * .025 : 0) + sway);
   ctx.globalAlpha = entity.role === 'DEMOBILISE' ? 0.5 : entity.role === 'HOLOGRAMME' ? 0.48 : 1;
   if (entity.role === 'HOLOGRAMME') { ctx.globalAlpha *= Math.min(1, (state.tick - (entity.spawn_tick || 0)) / Math.max(1, (entity.ready_tick || 1) - (entity.spawn_tick || 0))); ctx.shadowColor = '#6edbff'; ctx.shadowBlur = 12; }
   // Les PNJ restent statiques au repos ; seule la marche reçoit un léger mouvement procédural.
-  if (!candidate) ctx.scale(1 / breathing, breathing);
+  if (!candidate) {
+    // La chute garde sa rotation propre, sans ajouter le balancement de la marche.
+    applyNpcStandingMotion(ctx, animation === 'ko' ? { ...motion, stride: 0 } : motion);
+  }
   // Deform the two leg regions around a fixed hip seam, reusing the master identity.
   drawStandingSprite(ctx, sprite, frame, height, width, { ...motion, rigid: candidate });
   ctx.shadowBlur = 0;

@@ -1,0 +1,98 @@
+<div id="reportage-demo">
+  <style>
+    #reportage-demo {font-family:system-ui,sans-serif;color:#f8f1dd}
+    #reportage-demo .jeu {background:#18262d;border-radius:14px;overflow:hidden}
+    #reportage-demo .entete {display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:14px 18px;background:#24373e;font-size:14px}
+    #reportage-demo canvas {display:block;width:100%;height:auto}
+    #reportage-demo .etapes {display:flex;flex-wrap:wrap;gap:7px;padding:12px}
+    #reportage-demo button {font:inherit;font-size:14px;color:#f8f1dd;background:#34494f;border:1px solid #778a8b;border-radius:7px;padding:10px 12px;cursor:inherit}
+    #reportage-demo button[aria-pressed="true"] {background:#e8bf66;color:#19282d;border-color:#e8bf66}
+    #reportage-demo .detail {margin:0;padding:0 16px 15px;font-size:14px;min-height:42px}
+    @media(max-width:440px){#reportage-demo .entete {padding:10px;font-size:12px}#reportage-demo button{font-size:12px;padding:9px}#reportage-demo .detail{font-size:13px}}
+  </style>
+  <div class="jeu">
+    <div class="entete"><span>ÉQUIPE DE REPORTAGE · aperçu du combat</span><span>Philippe 34 % · adversaires 26 % et 23 %</span></div>
+    <canvas width="1000" height="610" role="img" aria-label="Une journaliste et son cameraman arrivent par le bas, poursuivent Philippe en groupe, puis attaquent. Le cameraman reste derrière la journaliste."></canvas>
+    <div class="etapes" role="group" aria-label="Étapes du combat">
+      <button type="button" data-step="0" aria-pressed="true">Arrivée</button>
+      <button type="button" data-step="1" aria-pressed="false">Poursuite</button>
+      <button type="button" data-step="2" aria-pressed="false">Combat</button>
+      <button type="button" data-step="3" aria-pressed="false">L’un des deux est vaincu</button>
+    </div>
+    <p class="detail" aria-live="polite"></p>
+  </div>
+  <script type="application/json" class="images">__ASSETS__</script>
+  <script>
+  (()=>{
+    const root=document.getElementById('reportage-demo');
+    const canvas=root.querySelector('canvas'), ctx=canvas.getContext('2d');
+    const data=JSON.parse(root.querySelector('.images').textContent), images={};
+    const states=[
+      {cam:[390,580],mic:[520,540],candidat:[750,445],text:'Le duo apparaît par le bas, près du candidat en tête. La journaliste ouvre la marche ; le cameraman suit en retrait.'},
+      {cam:[420,490],mic:[555,455],candidat:[750,445],text:'Ils poursuivent la même cible en restant groupés. Le cameraman conserve sa place derrière la journaliste.'},
+      {cam:[445,445],mic:[615,445],candidat:[750,445],text:'La journaliste encaisse et frappe avec le micro. Derrière elle, le cameraman filme : le candidat est ralenti tant qu’il reste dans le champ.'},
+      {cam:[510,790],mic:[615,830],candidat:[790,445],text:'Dès que l’un des deux est vaincu, les deux cessent d’attaquer et repartent ensemble par le bas. Le filmage et le ralentissement s’arrêtent immédiatement.'}
+    ];
+    let current=0, generation=0;
+    const mix=(a,b,t)=>a+(b-a)*t;
+    function label(text,x,y,color='#21373e'){
+      ctx.font='500 18px system-ui';const w=ctx.measureText(text).width+20;
+      ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x-w/2,y-22,w,30,7);ctx.fill();ctx.fillStyle='#fff8e7';ctx.textAlign='center';ctx.fillText(text,x,y);
+    }
+    function sprite(key,x,y,h,flip=false,opacity=1){
+      const im=images[key], w=im.width/im.height*h;
+      ctx.save();ctx.globalAlpha=opacity;ctx.translate(x,y);if(flip)ctx.scale(-1,1);
+      ctx.fillStyle='#15282640';ctx.beginPath();ctx.ellipse(0,-2,w*.36,8,0,0,Math.PI*2);ctx.fill();
+      ctx.drawImage(im,-w/2,-h,w,h);ctx.restore();
+    }
+    function health(x,y,w,ratio,color){
+      ctx.fillStyle='#24373ed9';ctx.fillRect(x-w/2,y,w,9);ctx.fillStyle=color;ctx.fillRect(x-w/2,y,w*ratio,9);
+    }
+    function draw(stage, positions){
+      ctx.clearRect(0,0,1000,610);
+      const bg=images.fond;
+      ctx.drawImage(bg,0,0,bg.width,bg.height*.92,0,0,1000,360);
+      for(let y=360;y<610;y+=32)for(let x=0;x<1000;x+=300)
+        ctx.drawImage(bg,350,bg.height*.91,300,32,x,y,300,32);
+      ctx.fillStyle='#152a3660';ctx.fillRect(0,0,1000,85);
+      label('CIBLE : LE CANDIDAT EN TÊTE',500,39);
+      const c=positions.cam,m=positions.mic,p=positions.candidat;
+      if(stage===2){
+        ctx.fillStyle='#f2c95d3d';ctx.beginPath();ctx.moveTo(c[0]+42,c[1]-94);ctx.lineTo(p[0]+62,p[1]-160);ctx.lineTo(p[0]+62,p[1]-12);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#e7c45b';ctx.setLineDash([7,7]);ctx.beginPath();ctx.moveTo(c[0]+42,c[1]-94);ctx.lineTo(p[0]+62,p[1]-160);ctx.moveTo(c[0]+42,c[1]-94);ctx.lineTo(p[0]+62,p[1]-12);ctx.stroke();ctx.setLineDash([]);
+      }
+      if(stage<2){
+        ctx.strokeStyle='#f9e1a8';ctx.lineWidth=3;ctx.setLineDash([9,9]);ctx.beginPath();ctx.moveTo(c[0],c[1]+5);ctx.lineTo(m[0],m[1]+5);ctx.stroke();ctx.setLineDash([]);
+      }
+      sprite(stage===2?'candidat-garde':'candidat',p[0],p[1],148,true);
+      sprite(stage===2?'mic-frappe':'mic-marche',m[0],m[1],145);
+      sprite(stage===2?'cam-filme':'cam-marche',c[0],c[1],145);
+      label('Philippe · 1er',p[0],p[1]-178);health(p[0],p[1]-163,100,stage===2?.72:.9,'#6cc5dc');
+      if(stage!==3){label('Journaliste · résistante',m[0],m[1]-210);health(m[0],m[1]-191,130,.94,'#e87665');}
+      if(stage!==3){label('Cameraman · fragile',c[0]-20,c[1]-178);health(c[0]-20,c[1]-160,52,stage===2?.55:1,'#e87665');}
+      if(stage===0){label('↑ Arrivée par le bas',220,563);}
+      if(stage===1){label('Groupe compact →',295,390);}
+      if(stage===2){label('Micro : coup au contact',665,495,'#8d3c36');label('Filmage : déplacement ralenti',515,555,'#655322');}
+      if(stage===3){label('Ralentissement terminé',745,525);label('↓ Retrait du duo par le bas',330,563);}
+    }
+    function select(step,animate=true){
+      const previous=states[current], next=states[step];current=step;
+      root.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.step)===step)));
+      root.querySelector('.detail').textContent=next.text;
+      const token=++generation,start=performance.now();
+      const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function frame(now){if(token!==generation)return;const t=animate&&!reduce?Math.min(1,(now-start)/(step===3?1600:650)):1;const eased=t*t*(3-2*t), pos={};
+        for(const key of ['cam','mic','candidat'])pos[key]=previous[key].map((v,i)=>mix(v,next[key][i],eased));
+        draw(step,pos);if(t<1)requestAnimationFrame(frame);
+      }requestAnimationFrame(frame);
+      if(animate&&window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{etape:step},privateContent:null}).catch(()=>{});
+    }
+    Promise.all(Object.entries(data).map(([key,url])=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{images[key]=im;resolve()};im.onerror=reject;im.src=url}))).then(()=>{
+      const saved=window.openai?.widgetState?.modelContent?.etape;
+      select(Number.isInteger(saved)&&saved>=0&&saved<4?saved:0,false);
+      root.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>select(Number(b.dataset.step))));
+      window.addEventListener('openai:set_globals',event=>{const s=event.detail?.globals?.widgetState?.modelContent?.etape;if(Number.isInteger(s)&&s>=0&&s<4)select(s,false)});
+    }).catch(()=>{root.querySelector('.detail').textContent='Impossible de charger les personnages.'});
+  })();
+  </script>
+</div>

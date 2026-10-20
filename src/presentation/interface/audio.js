@@ -121,6 +121,8 @@ export function soundCues(events = [], since, localId, faction) {
     else if (['BuildingUpgraded', 'TractOrdered'].includes(event.type) && mine) cues.push('purchase');
     else if (event.type === 'PollPurchased' && event.faction_id === faction) cues.push('poll');
     else if (event.type === 'MeetingStarted' && mine) cues.push('cheer');
+    // Coup d'annonce de la scène d'ouverture : la foule acclame, les journalistes détalent.
+    else if (event.type === 'CampaignIntroStrike' && mine) cues.push('hit', 'cheer');
     else if (event.type === 'HitResolved' && event.source_id === localId) cues.push('hit');
     else if (event.type === 'HitResolved' && event.target_id === localId) cues.push('hurt');
     else if (event.type === 'DashUnavailable' && mine) cues.push('dash-empty');
@@ -304,6 +306,8 @@ export class GameAudio {
       case 'news': ['G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.07, 0.09, 'square', 0.07, bus, 4000)); this.kick(t + 0.22, bus, 0.35); [0.22, 0.42].forEach(delay => ['C5', 'G5', 'C6'].forEach(note => this.tone(f(n(note)), t + delay, 0.16, 'square', 0.045, bus, 3200))); break;
       // Carte d'un candidat à débloquer qui surgit : arpège montant joyeux et petite clameur.
       case 'reveal': ['C5', 'E5', 'G5', 'C6', 'E6'].forEach((note, i) => this.tone(f(n(note)), t + i * 0.06, 0.14, 'square', 0.065, bus, 4200)); this.burst(t + 0.28, 0.5, 0.08, bus, 'bandpass', 1400, 0.12); break;
+      // Déclic d'appareil photo (scène d'ouverture) : clic sec puis petit retour du rideau.
+      case 'shutter': this.burst(t, 0.025, 0.14, bus, 'highpass', 5200); this.burst(t + 0.045, 0.04, 0.08, bus, 'bandpass', 2400); break;
       case 'tick': this.tone(1000, t, 0.05, 'sine', 0.16, bus); break;
       case 'tick-final': this.tone(1500, t, 0.08, 'sine', 0.2, bus); break;
       default: break;

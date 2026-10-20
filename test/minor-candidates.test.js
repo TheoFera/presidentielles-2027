@@ -21,7 +21,7 @@ const knockOut = (sim, target) => {
   assert.equal(target.is_ko, true);
 };
 
-test('Six candidats mineurs : QG imprenable, contrôle de leur sous-zone, ni argent ni style', () => {
+test('Six candidats mineurs : QG imprenable de leur vivant, contrôle de leur sous-zone, ni argent ni style', () => {
   const sim = make(), config = sim.config;
   assert.deepEqual(sim.state.candidates.filter(c => c.minor).map(c => c.faction_id), MINOR_FACTIONS);
   for (const entry of config.layout.minor_candidates) {
@@ -49,22 +49,40 @@ test('L’IA d’un mineur reste sur son territoire et plafonne à 10 sympathisa
   assert.ok(sim.state.candidates.filter(c => c.minor).some(c => minorSympathisantCount(sim.state, c.faction_id) > 0), 'les mineurs recrutent');
 });
 
-test('Battu, un mineur ne revient pas : QG neutre, sympathisants conservés, sauvegarde fidèle', () => {
-  const sim = make(), c = minor(sim, 'glucksmann'), hq = sim.state.buildings.find(b => b.owner_id === 'glucksmann');
+test('Battu, un secondaire lâche ses billets et revient 80 jours plus tard tant que sa permanence tient', () => {
+  const sim = make(), c = minor(sim, 'attal'), hq = sim.state.buildings.find(b => b.owner_id === 'attal');
   completePopulation(sim);
-  const fans = sim.state.npcs.filter(n => n.role === 'NEUTRE').slice(0, 3); fans.forEach(n => convertNeutral(sim, n, 'glucksmann'));
+  const fans = sim.state.npcs.filter(n => n.role === 'NEUTRE').slice(0, 3); fans.forEach(n => convertNeutral(sim, n, 'attal'));
+  const before = sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0);
   knockOut(sim, c);
+  assert.equal(sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0) - before, 5 * 100000, '5 k€ lâchés par Attal');
   for (let i = 0; i < sim.secondsToTicks(8); i++) sim.step();
-  assert.equal(c.eliminated, true); assert.equal(hq.owner_id, null); assert.equal(hq.state, 'NEUTRAL');
-  assert.ok(fans.every(n => n.faction_id === 'glucksmann'), 'ses sympathisants restent les siens');
-  refreshElectoralState(sim.state); assert.ok(sim.state.actualGameState.national_counts.glucksmann >= 3);
+  assert.equal(c.eliminated, false); assert.equal(hq.owner_id, 'attal'); assert.equal(hq.state, 'ACTIVE');
+  assert.ok(fans.every(n => n.faction_id === 'attal'), 'ses sympathisants restent les siens');
   const rival = sim.state.candidates[0]; rival.x = hq.x; rival.money = 100;
-  assert.ok(buildingOffers(sim.state, sim.config, rival, hq).length > 0, 'le QG libéré s’achète normalement');
-  for (let i = 0; i < sim.secondsToTicks(20); i++) sim.step();
-  assert.equal(c.eliminated, true, 'aucune réapparition');
+  assert.deepEqual(buildingOffers(sim.state, sim.config, rival, hq), [], 'la permanence ne s’achète pas, elle se ferme');
+  const days = sim.config.balance.minor_candidates.respawn_days * sim.config.balance.time.real_seconds_per_game_day;
+  while (c.is_ko && sim.state.tick < c.ko_started_tick + sim.secondsToTicks(days + 1)) sim.step();
+  assert.equal(c.is_ko, false, 'réapparition'); assert.equal(c.x, hq.x);
+  assert.ok(sim.state.tick - c.ko_started_tick >= sim.secondsToTicks(days) - 1);
   const copy = make(); copy.importSnapshot(sim.exportSnapshot());
   for (let i = 0; i < 30; i++) { sim.step(); copy.step(); }
   assert.deepEqual(copy.state, sim.state);
+});
+
+test('Permanence d’un secondaire fermée par un raid pendant son absence : retrait définitif', () => {
+  const sim = make(), c = minor(sim, 'arthaud'), hq = sim.state.buildings.find(b => b.owner_id === 'arthaud');
+  completePopulation(sim);
+  const before = sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0);
+  knockOut(sim, c);
+  assert.equal(sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0) - before, 1.5 * 100000, '1,5 k€ lâchés par Arthaud');
+  const guards = sim.state.npcs.filter(n => n.role === 'NEUTRE').slice(0, 4);
+  for (const n of guards) Object.assign(n, { role: 'SERVICE_D_ORDRE', faction_id: 'le_pen', raid: { id: 'test', phase: 'OUTBOUND', direction: 1 }, pressure_target_id: hq.id, x: hq.x });
+  for (let i = 0; i < sim.secondsToTicks(20) && !c.eliminated; i++) {
+    for (const n of guards) n.pressure_target_id = hq.id;
+    sim.step();
+  }
+  assert.equal(c.eliminated, true, 'aucune réapparition'); assert.equal(hq.owner_id, null); assert.equal(hq.state, 'NEUTRAL');
 });
 
 test('Élection : scores des mineurs affichés, seuls les principaux se qualifient, report libre au second tour', () => {

@@ -11,8 +11,10 @@ import { clearCampaignUltimate } from './campaign-styles.js';
  * - QG = la permanence de leur sous-zone, imprenable tant qu'ils vivent (elle leur donne le contrôle de la zone) ;
  * - ils restent dans leur sous-zone (débordant un peu sur les voisines), convainquent jusqu'à 10 sympathisants
  *   et se battent avec le même système de combat que les autres candidats ;
- * - pas d'économie, pas de conquête ; battus, ils ne reviennent pas : le QG redevient neutre et
- *   leurs sympathisants restent les leurs jusqu'à être battus à leur tour ;
+ * - pas d'économie, pas de conquête ; à chaque K.-O., ils lâchent une somme fixe (ko_money_drop_k) ;
+ * - battus, ils reviennent au bout de respawn_days jours de campagne. Pendant leur absence, leur QG
+ *   n'est plus protégé : si un raid le ferme, ils quittent définitivement la campagne ;
+ * - leurs sympathisants restent les leurs jusqu'à être battus à leur tour ;
  * - au second tour, ils quittent la campagne et leurs sympathisants redeviennent neutres (report libre).
  */
 export const minorSettings = config => config.balance.minor_candidates;
@@ -40,7 +42,7 @@ export function minorTerritory(state, config, c) {
   return { zone, inside: x => Math.abs(ringDelta(zone.center, x, state.world.length)) <= reach };
 }
 
-/** Battu (K.-O.) : le mineur quitte définitivement la campagne et son QG redevient neutre. */
+/** Retrait définitif (QG fermé pendant son absence, ou second tour) : son QG redevient neutre. */
 export function defeatMinor(sim, candidate, reason = 'KO') {
   if (candidate.eliminated) return;
   clearCampaignUltimate(sim, candidate, true);
@@ -105,6 +107,7 @@ export function validateMinorConfig(config) {
     if (!config.prototype.presentation.factions[entry.faction_id]) throw new Error(`Configuration : couleur du candidat ${entry.faction_id} absente.`);
   }
   if (typeof minorSettings(config).enabled !== 'boolean') throw new Error('Configuration : candidats, enabled invalide.');
-  for (const [key, value] of Object.entries(minorSettings(config))) if (key !== 'enabled' && (!Number.isFinite(value) || value <= 0)) throw new Error(`Configuration : candidats, ${key} invalide.`);
+  for (const [key, value] of Object.entries(minorSettings(config))) if (!['enabled', 'ko_money_drop_k'].includes(key) && (!Number.isFinite(value) || value <= 0)) throw new Error(`Configuration : candidats, ${key} invalide.`);
+  for (const faction of MINOR_FACTIONS) if (!(minorSettings(config).ko_money_drop_k?.[faction] >= 0)) throw new Error(`Configuration : billets lâchés par ${faction} invalides.`);
   if (ALL_FACTIONS.length !== new Set(ALL_FACTIONS).size) throw new Error('Configuration : camps en double.');
 }

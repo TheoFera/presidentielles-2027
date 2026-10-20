@@ -190,6 +190,7 @@ test('Le contrôle persiste sans soutiens ; une pression hostile peut le neutral
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo'); own(sim, site);
   for (let i = 0; i < 600; i++) updateStrategicSites(sim); assert.equal(site.state, 'ACTIVE');
   const guard = sim.state.npcs[0]; guard.role='SERVICE_D_ORDRE'; guard.faction_id='le_pen'; guard.pressure_target_id=site.id;
+  guard.raid = { id: 'test' };
   for (let i = 0; i < 600; i++) updateStrategicSites(sim); assert.equal(site.state, 'NEUTRAL');
 });
 test('Les dons vont à la permanence et sa cagnotte tombe au sol si elle est perdue', () => {

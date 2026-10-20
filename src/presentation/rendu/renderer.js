@@ -24,6 +24,8 @@ import { minorCombatAtlases, minorExtraAtlases, minorStandingAtlases } from '../
 import { ultimateGuardAtlases } from '../effets/ultimate-guard-sprites.js';
 import { minorUltimateAtlases } from '../effets/minor-ultimate-art.js';
 import { candidateOpacity, flattenScale } from '../personnages/candidate-visibility.js';
+import { PRESS_ATLASES } from '../personnages/press-atlases.js';
+import { drawPressCone, drawPressWarning } from '../personnages/press-sprites.js';
 
 async function prepareImage(id, image, bitmaps = true) {
   // Let the browser paint and handle input between preparation jobs.
@@ -31,6 +33,8 @@ async function prepareImage(id, image, bitmaps = true) {
   // Sans bitmaps (?bitmaps=0) : découpes en canevas et planche gardée, comme avant le 15/10.
   const prepareAtlas = bitmaps ? prepareAtlasBitmaps : prepareAtlasFrames;
   let preparedOnly = false;
+  const pressAtlas = PRESS_ATLASES.find(atlas => atlas.sprite === id);
+  if (pressAtlas) { await prepareAtlas(image, pressAtlas); preparedOnly = true; }
   if (id.startsWith('minor-')) { prepareMinorFrames(image, id.slice(6)); preparedOnly = true; }
   const ultimateGuard = Object.values(ultimateGuardAtlases).find(atlas => atlas.sprite === id);
   if (ultimateGuard) { await prepareAtlas(image, ultimateGuard); preparedOnly = true; }
@@ -123,7 +127,8 @@ export class WorldRenderer {
     this.cameraX = wrap(this.cameraX + ringDelta(this.cameraX, playerX + lookAhead, state.world.length) * smoothing, state.world.length);
     this.screenX = x => m.anchorX + ringDelta(this.cameraX, x, state.world.length) * m.pixelsPerUnit;
     // Crop the whole scene around the player and ground, preserving their screen anchors.
-    const zoom = this.config.balance.camera.framing_zoom ?? 1;
+    // `zoomBoost` : plan rapproché de la scène d'ouverture (presentation/interface/campaign-intro.js).
+    const zoom = (this.config.balance.camera.framing_zoom ?? 1) * (this.zoomBoost || 1);
     const scaleX = this.canvas.width / this.width;
     const scaleY = this.canvas.height / this.height;
     ctx.setTransform(scaleX * zoom, 0, 0, scaleY * zoom,
@@ -174,15 +179,18 @@ export class WorldRenderer {
       this.oldPositionsOf = previous;
       this.oldPositions = new Map();
       for (const n of previous.npcs) this.oldPositions.set(n.id, n);
+      for (const unit of previous.temporary_units || []) this.oldPositions.set(unit.id, unit);
       for (const c of previous.candidates) if (!this.oldPositions.has(c.id)) this.oldPositions.set(c.id, c);
     }
     const oldPositions = this.oldPositions;
+    this.pressAlpha = alpha;
+    drawPressCone(this, state);
     // La foule d'un meeting est dessinée du fond vers l'avant pour que les rangs se chevauchent proprement.
     const visible = entity => Math.abs(ringDelta(this.cameraX, entity.x, state.world.length)) <= screenUnits * 0.6;
     const rows = new Map();
     // Une recrue de raid entrée dans le local n'est plus visible jusqu'à sa sortie en service d'ordre.
     const npcs = state.npcs.filter(npc => {
-      if (!visible(npc) || (npc.task?.kind === 'JOIN_RAID' && npc.task.phase === 'INSIDE')) return false;
+      if (!visible(npc) || (['JOIN_RAID', 'JOIN_GUARD'].includes(npc.task?.kind) && npc.task.phase === 'INSIDE')) return false;
       rows.set(npc, meetingCrowdRow(npc, state));
       return true;
     }).sort((a, b) => rows.get(a) - rows.get(b));
@@ -225,6 +233,7 @@ export class WorldRenderer {
     // Ceux qui arrivent passent devant : ils viennent du premier plan.
     drawEntities(street);
     drawEntities(arrivals);
+    drawPressWarning(this, state);
     drawPersuasionFeedback(this, state);
     drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);

@@ -1,5 +1,6 @@
 import { ALL_FACTIONS } from './world.js';
 import { ULTIMATE_KINDS, MINOR_ULTIMATE_KINDS } from './minor-ultimate-catalog.js';
+import { isPress } from './press-rules.js';
 
 export function validateCombatSnapshot(state, sim, fail) {
   const integer = n => Number.isInteger(n) && n >= 0;
@@ -39,6 +40,17 @@ export function validateCombatSnapshot(state, sim, fail) {
     }
   }
   for (const unit of state.temporary_units) {
+    if (isPress(unit)) {
+      if (!state.press_team || !counterId(unit.id, 'temporary', 'next_temporary_id') || unit.faction_id !== 'press'
+        || unit.temporary !== true || unit.expired !== false || !position(unit.x) || ![-1, 1].includes(unit.facing)
+        || !finite(unit.hidden_durability) || !finite(unit.initial_durability) || unit.hidden_durability > unit.initial_durability
+        || unit.initial_durability !== sim.config.balance.press_team[unit.role === 'PRESS_CAMERA' ? 'camera_hp' : 'reporter_hp']
+        || !integer(unit.variant) || unit.variant > 2 || typeof unit.filming !== 'boolean' || typeof unit.press_ready !== 'boolean'
+        || !integer(unit.aim_ticks) || !integer(unit.entry_tick) || unit.entry_tick > state.tick || !integer(unit.ready_tick)
+        || unit.press_ready !== (state.press_team.phase === 'ACTIVE') || state.press_team.phase !== 'LEAVING' && unit.hidden_durability <= 0
+        || !integer(unit.expires_tick) || unit.expires_tick <= state.tick || unit.owner_id !== state.press_team.target_id) fail('journaliste invalide');
+      continue;
+    }
     if (!counterId(unit.id, 'temporary', 'next_temporary_id') || !['HOLOGRAMME', 'CRS', 'ENCAPUCHONNE', 'ZEMMOUR'].includes(unit.role) || unit.temporary !== true || unit.expired !== false
       || !(unit.role === 'HOLOGRAMME' ? Number.isFinite(unit.x) : position(unit.x)) || ![-1, 1].includes(unit.facing) || !finite(unit.hidden_durability) || !Number.isFinite(unit.follow_offset)
       || !integer(unit.expires_tick) || unit.expires_tick <= state.tick || !state.powers.some(p => p.id === unit.power_id && p.owner_id === unit.owner_id)
@@ -46,12 +58,35 @@ export function validateCombatSnapshot(state, sim, fail) {
   }
   for (const attack of state.attacks) {
     if (!counterId(attack.id, 'attack', 'next_attack_id') || !actors.some(a => a.id === attack.owner_id && a.faction_id === attack.faction_id && a.combat.attack_id === attack.id)
-      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF', 'DIVE'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
+      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF', 'DIVE', 'MICROPHONE'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
       || ['elapsed_ticks', 'windup_ticks', 'active_ticks', 'recovery_ticks'].some(k => !integer(attack[k]))
       || attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks + attack.recovery_ticks
       || ['range', 'damage', 'knockback', 'electoral_damage'].some(k => !finite(attack[k]))
       || !Array.isArray(attack.hit_ids) || new Set(attack.hit_ids).size !== attack.hit_ids.length) fail('attaque invalide');
   }
+  const press = state.temporary_units.filter(isPress), group = state.press_team, director = state.press_director;
+  if (group) {
+    if (!director || press.length !== 2 || !['ENTRY', 'ACTIVE', 'LEAVING'].includes(group.phase)
+      || !state.candidates.some(c => c.id === group.target_id && !c.minor)
+      || !press.some(u => u.id === group.camera_id && u.role === 'PRESS_CAMERA')
+      || !press.some(u => u.id === group.reporter_id && u.role === 'PRESS_REPORTER')
+      || ![-1, 1].includes(group.direction) || !integer(group.started_tick) || group.started_tick > state.tick
+      || group.phase === 'ACTIVE' && (!integer(group.active_tick) || group.active_tick > state.tick)
+      || group.phase === 'LEAVING' && (!integer(group.leave_tick) || group.leave_tick > state.tick)) fail('groupe de reportage invalide');
+  } else if (press.length) fail('journalistes sans groupe');
+  if (director && (!integer(director.count) || director.count > sim.config.balance.press_team.max_interventions
+    || !integer(director.next_tick) || !integer(director.next_check_tick) || !integer(director.eligible_since)
+    || !director.by_candidate || Object.entries(director.by_candidate).some(([id,count]) => !state.candidates.some(c => c.id === id && !c.minor)
+      || !integer(count) || count > sim.config.balance.press_team.max_per_candidate)
+    || director.warning && (!state.candidates.some(c => c.id === director.warning.target_id) || !integer(director.warning.tick)
+      || !integer(director.warning.spawn_tick) || director.warning.spawn_tick < director.warning.tick))) fail('calendrier des reportages invalide');
+  for (const actor of actors) {
+    for (const value of [actor.combat.jump_delay_ticks, actor.combat.press_delay_ticks, actor.dash_delay_fraction])
+      if (value != null && !finite(value)) fail('horloge de ralentissement invalide');
+  }
+  for (const attack of state.attacks) if (attack.speed_fraction != null && (!finite(attack.speed_fraction) || attack.speed_fraction >= 1)) fail('cadence de frappe invalide');
+  for (const attack of state.attacks) if (attack.micro_hold_until_tick != null
+    && (attack.kind !== 'MICROPHONE' || !integer(attack.micro_hold_until_tick))) fail('maintien du micro invalide');
   for (const projectile of state.projectiles) {
     if (!counterId(projectile.id, 'projectile', 'next_projectile_id') || !['VERBAL', 'WAVE', 'BUBBLE', 'MOLOTOV'].includes(projectile.kind) || !ALL_FACTIONS.includes(projectile.faction_id)
       || !actors.some(a => a.id === projectile.owner_id) || !position(projectile.x) || ![-1, 1].includes(projectile.direction)

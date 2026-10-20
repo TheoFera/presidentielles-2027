@@ -162,7 +162,8 @@ test('Offensive complète : affaiblir les soutiens, puis reprendre un site du jo
   assert.ok(neutralized, 'Les soutiens du joueur doivent être retournés ou neutralisés.');
   assert.ok(defenders.some(n => n.faction_id === c.faction_id), 'Les anciens soutiens sont recrutés après leur retour.');
   assert.equal(site.owner_id, c.faction_id);
-  assert.ok(c.spending.CAPTURE >= sim.config.balance.buildings.tour_communication.capture_cost);
+  const tower = sim.config.balance.buildings.tour_communication;
+  assert.ok(c.spending.CAPTURE >= (tower.capture_cost_by_site?.[site.site_id] ?? tower.capture_cost));
 });
 
 test('Le cabinet administratif de Philippe cible une fermeture adverse', () => {
@@ -221,10 +222,12 @@ test('L’IA épargne pour son local de faction puis fait le trajet pour le pren
   c.x = slot.x - 20; c.money = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.capture_cost;
   const target = aiEconomicTarget(sim.state, config, c, { subzone_id: hq.subzone_id, purpose: 'CONQUER' });
   assert.equal(target.id, slot.id); assert.equal(target.offer.kind, 'CAPTURE'); assert.equal(target.decisive, true);
-  // Sans local, une rédaction à 15 k€ qui entamerait l’épargne est écartée ; une fois le local pris, elle redevient un achat.
+  // Sans local, une rédaction qui entamerait l’épargne est écartée ; une fois le local pris, elle redevient un achat.
   const tower = sim.state.buildings.find(b => b.type === 'tour_communication');
   for (let i = 0; i < 3; i++) supporter(sim, c.faction_id, tower.x + 0.3 * i);
-  c.x = tower.x; c.money = 20;
+  // Juste de quoi payer la rédaction, mais plus le local ensuite.
+  const towerSettings = config.balance.buildings.tour_communication;
+  c.x = tower.x; c.money = (towerSettings.capture_cost_by_site?.[tower.site_id] ?? towerSettings.capture_cost) + config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.capture_cost - 1;
   const towerObjective = { subzone_id: tower.subzone_id, purpose: 'CONQUER' };
   assert.notEqual(aiEconomicTarget(sim.state, config, c, towerObjective)?.id, tower.id);
   captureSite(sim, slot, c);

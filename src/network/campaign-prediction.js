@@ -2,6 +2,7 @@ import { movementBlocked, canTurnDuringLightStun } from '../simulation/combat-st
 import { candidateTravelSpeed } from '../simulation/vehicles.js';
 import { ringDelta, wrap } from '../simulation/world.js';
 import { barrierBlockedPosition } from '../simulation/minor-ultimates.js';
+import { pressMoveFactor } from '../simulation/press-rules.js';
 
 /**
  * Prédiction de la Campagne chez un invité : seulement le déplacement de son propre candidat.
@@ -79,12 +80,13 @@ export class CampaignPrediction {
 
   get length() { return this.base?.state?.world?.length || 1; }
   canMove(state, c) {
-    return MOVING_PHASES.has(state.phase) && !c.eliminated && !c.is_ko && !c.campaign_debate_id && !movementBlocked(c);
+    // Scène d'ouverture : quelques pas sur l'estrade seulement, laissés à l'hôte.
+    return MOVING_PHASES.has(state.phase) && !state.campaign_intro && !c.eliminated && !c.is_ko && !c.campaign_debate_id && !movementBlocked(c);
   }
   move(x, axis) {
     const c = this.base?.candidate;
     if (!c || !axis) return x;
-    const desired = wrap(x + axis * candidateTravelSpeed(this.config, c) / this.hz, this.length);
+    const desired = wrap(x + axis * candidateTravelSpeed(this.config, c) * pressMoveFactor(this.base.state, this.config, c, x) / this.hz, this.length);
     return barrierBlockedPosition({ state: this.base.state, config: this.config }, c, desired, x);
   }
 }

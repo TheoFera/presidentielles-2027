@@ -8,17 +8,18 @@ export function characterFrameScale(atlas, frame, height) {
   return height * CHARACTER_HEIGHT_RATIO / (atlas.standingHeight || atlas.frames[0][3]) * (atlas.anatomicalScales?.[frame] ?? 1);
 }
 
-/** Dessin commun au jeu et au contrôle des planches : un seul coefficient pour les deux axes. */
+/** Dessin commun au jeu et au contrôle des planches ; proportions natives par défaut. */
 export function drawCharacterAtlasFrame(ctx, image, atlas, index, scale) {
   const [sx, sy, sw, sh, px, py] = atlas.frames[index];
   const clip = atlas.clips?.[index];
+  const scaleX = scale * (atlas.frameWidthScales?.[index] ?? 1);
   ctx.save();
   if (clip) {
     ctx.beginPath();
-    clip.forEach(([x, y], i) => ctx[i ? 'lineTo' : 'moveTo']((x - px) * scale, (y - py) * scale));
+    clip.forEach(([x, y], i) => ctx[i ? 'lineTo' : 'moveTo']((x - px) * scaleX, (y - py) * scale));
     ctx.closePath(); ctx.clip();
   }
-  if (atlas.isolated) ctx.drawImage(prepareAtlasFrames(image, atlas)[index], (sx-px)*scale, (sy-py)*scale, sw*scale, sh*scale);
-  else ctx.drawImage(image, sx, sy, sw, sh, (sx-px)*scale, (sy-py)*scale, sw*scale, sh*scale);
+  if (atlas.isolated) ctx.drawImage(prepareAtlasFrames(image, atlas)[index], (sx-px)*scaleX, (sy-py)*scale, sw*scaleX, sh*scale);
+  else ctx.drawImage(image, sx, sy, sw, sh, (sx-px)*scaleX, (sy-py)*scale, sw*scaleX, sh*scale);
   ctx.restore();
 }

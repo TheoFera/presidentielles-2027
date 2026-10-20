@@ -14,6 +14,8 @@ import { recordMatchResult } from './presentation/menus/player-profile.js';
 import { playerCard, rememberTitle, setCandidateColors } from './presentation/menus/player-card.js';
 import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interface/knockout-reveal.js';
 import { RespawnCountdown } from './presentation/interface/respawn-countdown.js';
+import { CampaignIntroScene } from './presentation/interface/campaign-intro.js';
+import { CampaignObjectives } from './presentation/interface/campaign-objectives.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
@@ -30,6 +32,7 @@ import { interpolatedPlayerX } from './presentation/rendu/player-position.js';
 import { MatchDisplay } from './presentation/debat/match.js';
 import { StartMenu } from './presentation/menus/start-menu.js';
 import { showLegalNotice, warmUpBehindNotice } from './presentation/menus/legal-notice.js';
+import { warmElectionPortraits } from './presentation/menus/election-results.js';
 import { worldAssetIds } from './presentation/carte/illustrated-world.js';
 import { installLandscape } from './presentation/interface/landscape.js';
 import { SceneTransitions, campaignScene } from './presentation/interface/transitions.js';
@@ -188,6 +191,19 @@ async function start() {
   const curtain = document.getElementById('phase-fade'), voteInterlude = document.getElementById('vote-interlude');
   // K.-O. en campagne : monde en gris et décompte avant la réapparition.
   const respawnCountdown = new RespawnCountdown(document.getElementById('game'), canvas, config.balance.simulation_architecture.fixed_tick_hz);
+  // Scène d'ouverture de la Campagne, puis post-it des objectifs (deux premières parties du joueur).
+  const introSettings = config.prototype.campaign_intro;
+  const objectives = new CampaignObjectives(document.getElementById('game'), { farewellSeconds: introSettings.objectives_farewell_seconds });
+  const introScene = new CampaignIntroScene(document.getElementById('game'), config, {
+    renderer, wheel: () => electoralDisplay.wheel, play: cue => audio.play(cue),
+    ended: () => {
+      // Une partie de plus avec la scène : consignes et objectifs ne reviennent qu'aux deux premières.
+      account.save({ campaign_intro_seen: (profile.campaign_intro_seen || 0) + 1 });
+      // L'horloge des animations repasse au temps de la campagne : les suivis de poses repartent de zéro.
+      renderer.resetCamera();
+      enterHud();
+    },
+  });
   voteInterlude.style.setProperty('--vote', `${transitionSettings.vote_seconds}s`);
   sounds.resultsLead = transitionSettings.vote_seconds;
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -236,6 +252,7 @@ async function start() {
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
     knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear(); clearKnockoutReveals();
+    introScene.stop(); objectives.reset(false);
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
@@ -274,6 +291,8 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
     if (!debateMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
+    // Scène d'ouverture (deux premières parties) : le coup attend la consigne « Frapper ».
+    if (!debateMatch && ['attack-press', 'attack-release', ' ', 'j', 'attack'].includes(key) && introScene.blocksAttack(state)) return;
     if (key === 'attack-cancel') { human.cancelAttack(); }
     else if (key === 'attack-press') { if (!paused) human.pressAttack(); }
     else if (key === 'attack-release') { if (!paused) human.releaseAttack(); }
@@ -362,7 +381,7 @@ async function start() {
     stopDebate();
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false);
     void keepScreenAwake();
-    matchDisplay.reset();
+    matchDisplay.reset(); introScene.stop(); objectives.reset(false);
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
@@ -370,7 +389,7 @@ async function start() {
     stopDebate();
     paused = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
-    simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile);
+    simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile, { campaignIntro: true });
     if (session) {
       simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
       campaignPrediction = session.host ? null : new CampaignPrediction(config, session.candidateId);
@@ -381,8 +400,12 @@ async function start() {
     }
     startSoloRun(candidateId);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
+    // `?tutoriel` dans l'adresse : revoir les consignes et les objectifs des deux premières parties.
+    const tutorial = (profile.campaign_intro_seen || 0) < introSettings.tutorial_games || new URLSearchParams(location.search).has('tutoriel');
+    introScene.start({ tutorial }); objectives.reset(tutorial);
     renderer.artZone = null;
-    renderer.draw(state, state, 1, 0);
+    // Premier dessin avec la scène d'ouverture (journalistes et public) : rien à charger en pleine scène.
+    renderer.draw(introScene.view(state), state, 1, 0);
     const ids = [...renderer.assets.protectedIds];
     let timeout, finished = false, restartTimeout;
     onProgress(0);
@@ -412,9 +435,11 @@ async function start() {
         renderer.ctx.restore();
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
-      renderer.draw(state, state, 1, 0);
+      renderer.draw(introScene.view(state), state, 1, 0);
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       onProgress(1);
+      // Les portraits de la soirée électorale arrivent pendant la campagne, sans retarder son lancement.
+      setTimeout(warmElectionPortraits, 3000);
     } finally { finished = true; clearTimeout(timeout); }
   }
   function startSoloRun(candidateId) {
@@ -514,6 +539,12 @@ async function start() {
     // Arrivée dans la campagne : la partie attend que le menu soit effacé, l'interface glisse à sa place.
     if (debateMatch || reducedMotion()) return;
     arrivalRemaining = session ? 0 : transitionSettings.arrival_seconds;
+    // Avec la scène d'ouverture, l'interface n'arrive qu'au début de la campagne (introScene.ended).
+    if (!introScene.active) enterHud();
+  }
+  /** L'interface (argent, carte, boutons) glisse à sa place. */
+  function enterHud() {
+    if (reducedMotion()) return;
     const game = document.getElementById('game');
     game.classList.remove('hud-entering'); void game.offsetWidth; game.classList.add('hud-entering');
     setTimeout(() => game.classList.remove('hud-entering'), (transitionSettings.arrival_seconds + 0.9) * 1000);
@@ -875,6 +906,9 @@ async function start() {
       const networkStatus = document.getElementById('network-status'); setHidden(networkStatus, !waiting);
       if (waiting) networkStatus.textContent = 'Un autre joueur choisit son style. La campagne reprendra dès qu’il aura terminé.';
       setClass(document.body, 'campaign-studio', state.campaign_events.some(e => e.status === 'ACTIVE' && e.debate && e.participants.includes(state.local_candidate_id)));
+      // Post-it d'abord : la scène mesure sa place pour le dossier de départ.
+      objectives.update(state, paused ? 0 : elapsed, document.body.classList.contains('campaign-studio') || !!state.candidates.find(c => c.id === state.local_candidate_id)?.eliminated);
+      introScene.update(state, paused ? 0 : elapsed);
       const candidate = matchDisplay.viewedCandidate(state);
       const combatView = state.phase === 'FIRST_ROUND_DEBATE' ? state.debate : state.campaign_events.find(e => e.debate && e.status === 'ACTIVE' && e.participants.includes(state.local_candidate_id))?.debate || state;
       const fighter = combatView.candidates.find(c => c.id === state.local_candidate_id);
@@ -889,7 +923,7 @@ async function start() {
       moneyCounter.update(candidate.money, candidate.id, elapsed);
       const local = state.candidates.find(c => c.id === state.local_candidate_id);
       respawnCountdown.update(state, local, paused || !!state.campaign_style_selection || !scene.draw);
-      const inCombat = state.phase === 'CAMPAIGN' && !!local && !local.eliminated && combatMusic.active(local, state, config);
+      const inCombat = state.phase === 'CAMPAIGN' && !state.campaign_intro && !!local && !local.eliminated && combatMusic.active(local, state, config);
       sounds.update(state, { paused, combat: inCombat });
       if (state.phase === 'RESULTS' && !resultRecorded) {
         resultRecorded = true;
@@ -905,7 +939,12 @@ async function start() {
       const renderAlpha = session && !session.host ? guestAlpha : clock.alpha;
       electoralDisplay.update(state, candidate, interpolatedPlayerX(viewState, paused ? viewState : previous, candidate, paused ? 1 : renderAlpha));
       // Rideau en train de se fermer (image figée) ou résultats à l'écran (carte cachée) : rien à redessiner.
-      if (scene.draw) renderer.draw(viewState, paused ? viewState : previous, paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+      if (scene.draw) {
+        // Scène d'ouverture : journalistes du décor, public à l'écoute, horloge de la scène pour les animations.
+        const drawn = introScene.view(viewState);
+        renderer.draw(drawn, paused ? drawn : introScene.previous(previous, viewState), paused ? 1 : renderAlpha, Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), debug.visible);
+        introScene.drawOverlay(renderer, drawn);
+      }
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
       requestAnimationFrame(frame);

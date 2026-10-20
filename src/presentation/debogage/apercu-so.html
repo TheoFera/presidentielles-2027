@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Services d’ordre — Mélenchon et Le Pen</title>
+<style>
+body{margin:0;background:#e9e1d2;color:#223440;font:16px system-ui}main{max-width:1200px;margin:auto;padding:20px}h1{font-size:25px}p{line-height:1.5}nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button,select{font:inherit;padding:9px 12px;border:1px solid #8e998f;border-radius:7px;background:#fff9ec;color:inherit}button[aria-pressed=true]{background:#223440;color:#fff}canvas{width:100%;height:auto;background:#e9e1d2;border:1px solid #b4a88b}#statut{min-height:24px}
+</style>
+<main><h1>Les services d’ordre de Mélenchon et Le Pen</h1>
+<p>Douze personnages par camp : six hommes et six femmes, sans logos. Les syndicalistes et les ruraux défendent vos quartiers. Les cagoulés sont réservés aux raids et à la fermeture des bâtiments.</p>
+<nav><select id="camp" aria-label="Camp"><option value="melenchon">Jean-Luc Mélenchon</option><option value="le_pen">Marine Le Pen</option></select><button data-mode="idle" aria-pressed="true">À l’arrêt</button><button data-mode="walk">En marche</button><button data-mode="punch">Coup au corps à corps</button><button data-mode="building">Coups de pied à la porte</button><button data-mode="defense">Recrutement et garde</button><button data-mode="raid">Raid sur la carte</button></nav>
+<nav><select id="sens" aria-label="Orientation"><option value="1">Vers la droite</option><option value="-1">Vers la gauche</option></select><select id="vitesse" aria-label="Vitesse"><option value="1">Vitesse normale</option><option value=".5">Ralenti × 2</option><option value=".25">Ralenti × 4</option></select><button id="pause">Mettre en pause</button><button id="image">Avancer d’une image</button><button id="recommencer">Recommencer</button></nav>
+<p id="statut">Chargement des images…</p><canvas width="1200" height="640"></canvas></main>
+<script type="module" src="./apercu-so.js"></script>
+</html>

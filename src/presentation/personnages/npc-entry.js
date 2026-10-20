@@ -12,11 +12,13 @@ export { NPC_ENTRY_SECONDS };
 export function npcEntryProgress(state, tickHz, alpha = 0, seconds = NPC_ENTRY_SECONDS) {
   const progress = new Map();
   const duration = Math.max(1, seconds * tickHz);
-  for (const npc of state.npcs || []) {
-    if (npc.entry_tick == null) continue;
+  const include = npc => {
+    if (npc.entry_tick == null) return;
     const elapsed = state.tick + alpha - npc.entry_tick;
     if (elapsed < duration) progress.set(npc.id, Math.max(0, elapsed / duration));
-  }
+  };
+  for (const npc of state.npcs || []) include(npc);
+  for (const unit of state.temporary_units || []) if (unit.role === 'PRESS_CAMERA' || unit.role === 'PRESS_REPORTER') include(unit);
   return progress;
 }
 

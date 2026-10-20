@@ -9,7 +9,7 @@ const STEPPING = 0.12;      // au-dessus de cette vitesse, le PNJ immobile est d
 export function crowdTargets(state, gap) {
   const targets = new Map();
   const still = state.npcs
-    .filter(n => !n.moving && !n.meeting_target_id && !n.rally_event_id)
+    .filter(n => n.role !== 'SERVICE_D_ORDRE' && !n.moving && !n.meeting_target_id && !n.rally_event_id)
     .sort((a, b) => a.x - b.x || (a.id < b.id ? -1 : 1));
   let cluster = [];
   const spread = () => {
@@ -34,7 +34,7 @@ export class CrowdSpacing {
   }
 
   targetsFor(state, gap) {
-    const still = npc => !npc.moving && !npc.meeting_target_id && !npc.rally_event_id;
+    const still = npc => npc.role !== 'SERVICE_D_ORDRE' && !npc.moving && !npc.meeting_target_id && !npc.rally_event_id;
     if (!this.targets || gap !== this.gap || this.layout.length !== state.npcs.length || state.npcs.some((npc, i) => {
       const before = this.layout[i], eligible = still(npc);
       return before.id !== npc.id || before.still !== eligible || eligible && before.x !== npc.x;

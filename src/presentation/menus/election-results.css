@@ -3,9 +3,11 @@
 
 #results > .election-stage { width: auto; margin: 0; }
 .election-stage { --gold: #ffd35a; --ink: #071433; --party: #2f6fe4; --party-dark: #0c2a78; position: absolute; inset: 0; overflow: hidden; isolation: isolate; container-type: size; color: #fff; font-family: system-ui, sans-serif; }
-.election-stage [data-faction='melenchon'] { --party: #e3363f; --party-dark: #7a0d18; }
-.election-stage [data-faction='le_pen'] { --party: #2f6fe4; --party-dark: #0c2a78; }
-.election-stage [data-faction='philippe'] { --party: #e2a53a; --party-dark: #6f420b; }
+/* Mêmes couleurs que les PNJ de chaque candidat (factions de donnees-jeu/prototype_config.json), assombries pour le fond. */
+.election-stage [data-faction] { --party-dark: color-mix(in srgb, var(--party) 55%, #0a1430); }
+.election-stage [data-faction='melenchon'] { --party: #bb4c51; }
+.election-stage [data-faction='le_pen'] { --party: #426594; }
+.election-stage [data-faction='philippe'] { --party: #ba9450; }
 .election-screen { --u: min(1cqw, 1.78cqh); position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: calc(var(--u) * .9); padding-bottom: calc(var(--u) * .9); }
 .election-stage :is(h1, h2, strong, .election-score, .election-stamp, .election-countdown strong, .election-ticker > b) { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 900; letter-spacing: .02em; }
 .election-stage sup { font-size: .55em; line-height: 0; }

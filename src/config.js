@@ -8,6 +8,16 @@ export function validateConfig(config) {
     if (!Number.isFinite(value) || value <= 0) throw new Error(`Configuration : ${label} doit être un nombre positif.`);
   };
   positive(config.balance.simulation_architecture.fixed_tick_hz, 'fixed_tick_hz');
+  const press = config.balance.press_team;
+  if (!press || typeof press.enabled !== 'boolean') throw new Error('Configuration : équipe de reportage invalide.');
+  for (const key of ['camera_hp', 'reporter_hp', 'movement_multiplier', 'attack_speed_multiplier', 'move_speed', 'reposition_speed', 'spacing', 'max_spacing',
+    'turn_seconds', 'turn_deadzone', 'camera_range', 'camera_height', 'cone_start_radius', 'cone_slope', 'aim_seconds', 'micro_range', 'micro_damage',
+    'micro_windup_seconds', 'micro_active_seconds', 'micro_recovery_seconds', 'micro_cooldown_seconds', 'micro_stun_seconds', 'grace_seconds', 'minimum_score', 'lead_points', 'confirm_seconds',
+    'warning_seconds', 'spawn_distance', 'duration_seconds', 'release_lead_points', 'release_seconds', 'exit_seconds', 'cooldown_seconds',
+    'max_interventions', 'max_per_candidate', 'check_seconds']) positive(press[key], `reportage : ${key}`);
+  if (press.movement_multiplier > 1 || press.attack_speed_multiplier > 1 || press.max_spacing < press.spacing
+    || press.release_lead_points >= press.lead_points || press.reporter_hp < press.camera_hp
+    || !Number.isInteger(press.max_interventions) || !Number.isInteger(press.max_per_candidate)) throw new Error('Configuration : équilibrage des journalistes incohérent.');
   const combat = config.balance.candidate_combat;
   positive(combat.light_stun_seconds, 'étourdissement des coups légers');
   positive(combat.ko_ground_seconds, 'maintien au sol après KO');
@@ -50,7 +60,7 @@ export function validateConfig(config) {
     || initial.zone_edge_margin_ratio >= 0.5) throw new Error('Configuration : montant ou placement des billets initiaux invalides.');
   for (const kind of ['default', 'philippe']) if (!Number.isInteger(initial[`${kind}_count`]) || initial[`${kind}_count`] < 3
     || !Number.isInteger(initial[`${kind}_total_eur`] / 50) || initial[`${kind}_total_eur`] < 50 * (initial[`${kind}_count`] + 9)) throw new Error('Configuration : répartition initiale impossible.');
-  for (const key of ['pickup_radius_units', 'pickup_height_tolerance_ratio', 'drop_spread_units', 'pickup_sprite_base_width_px',
+  for (const key of ['pickup_radius_units', 'pickup_height_tolerance_ratio', 'drop_spacing_units', 'drop_eur_per_extra_pickup', 'drop_rounding_eur', 'pickup_sprite_base_width_px',
     'pickup_sprite_width_per_tier_px', 'ground_pickup_visual_offset_px', 'elevated_pickup_visual_offset_px',
     'pickup_hover_amplitude_px', 'pickup_hover_period_seconds']) positive(money[key], `argent.${key}`);
   if (!Number.isFinite(money.pickup_halo_opacity) || money.pickup_halo_opacity < 0 || money.pickup_halo_opacity > 1)
@@ -163,7 +173,7 @@ export function validateConfig(config) {
   for (const [section, fields] of [
     [config.balance.candidate_combat, ['charge_activation_seconds', 'charge_ready_seconds', 'charged_damage', 'charged_partial_max_ratio', 'charged_stun_seconds', 'jump_height_ratio', 'jump_duration_seconds', 'hit_stun_seconds', 'light_hit_hidden_damage', 'finisher_hidden_damage', 'finisher_knockback', 'combo_reset_seconds', 'light_range', 'finisher_range', 'light_windup_seconds', 'finisher_windup_seconds', 'active_seconds', 'light_recovery_seconds', 'finisher_recovery_seconds', 'input_buffer_seconds', 'knockback_decay_per_second', 'combo_cancel_seconds', 'body_width', 'knockdown_fall_seconds', 'knockdown_ground_seconds', 'knockdown_rise_seconds', 'wakeup_invulnerability_seconds', 'dive_min_height', 'dive_vertical_speed', 'dive_horizontal_speed', 'dive_range', 'dive_damage', 'dive_knockback', 'dive_landing_recovery_seconds']],
     [config.balance.physical_units.militant, ['verbal_range', 'preferred_distance', 'retreat_speed', 'verbal_cooldown_seconds', 'verbal_damage', 'projectile_speed', 'projectile_range']],
-    [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_cooldown_seconds', 'spacing_units', 'engage_range', 'candidate_focus_range']],
+    [config.balance.physical_units.service_ordre, ['hidden_durability', 'move_speed', 'attack_range', 'attack_cooldown_seconds', 'attack_damage', 'raid_cost', 'raid_cooldown_seconds', 'spacing_units', 'engage_range', 'candidate_focus_range', 'defense_detection_range', 'defense_calm_seconds']],
     [config.balance.special_charge, ['required_points', 'points_per_light_hit', 'points_per_finisher_hit', 'points_per_hit_taken', 'points_per_strong_hit_taken']],
   ]) for (const field of fields) positive(section[field], field);
   if (!Number.isFinite(config.balance.candidate_combat.light_knockback) || config.balance.candidate_combat.light_knockback < 0) throw new Error('Le recul léger doit être positif ou nul.');
@@ -171,6 +181,7 @@ export function validateConfig(config) {
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
   if (!Number.isInteger(config.balance.physical_units.service_ordre.raid_recruits) || config.balance.physical_units.service_ordre.raid_recruits < 1) throw new Error('Configuration : nombre de recrues du raid invalide.');
+  if (!Number.isInteger(config.balance.physical_units.service_ordre.recruit_subzone_radius) || config.balance.physical_units.service_ordre.recruit_subzone_radius < 0) throw new Error('Configuration : rayon de recrutement du service d’ordre invalide.');
   positive(so.pickup_seconds, 'entrée au local SO');
   for (const settings of Object.values(config.balance.specials)) for (const [key, value] of Object.entries(settings)) if (typeof value === 'number') {
     if(key==='knockback'){if(!Number.isFinite(value)||value<0)throw new Error('Configuration : recul du pouvoir invalide.');}

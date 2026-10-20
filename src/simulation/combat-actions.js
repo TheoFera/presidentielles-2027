@@ -1,10 +1,11 @@
 import { combatPosition } from './combat-geometry.js';
 import { barrierBlockedPosition } from './minor-ultimates.js';
+import { pressMoveFactor, pressAttackFactor } from './press-rules.js';
 
 // All durations and heights belong to the authoritative simulation, never the browser.
 export const actionState = () => ({ press_tick: null, charge_active: false, press_airborne: false, jump_tick: null, height: 0, dive_tick: null });
 export function cancelCharge(actor) {
-  Object.assign(actor.combat, { press_tick: null, charge_active: false, press_airborne: false });
+  Object.assign(actor.combat, { press_tick: null, press_delay_ticks: 0, charge_active: false, press_airborne: false });
 }
 export const airborne = actor => actor.combat?.jump_tick != null;
 export const charging = actor => !!actor.combat?.charge_active;
@@ -17,15 +18,17 @@ export function armored(state, actor) {
 export function updateActions(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
   if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState()); return; }
+  if (c.press_tick != null) c.press_delay_ticks = (c.press_delay_ticks || 0) + 1 - pressAttackFactor(sim.state, sim.config, actor);
   if (c.press_tick != null && !c.press_airborne && !airborne(actor) && !c.attack_id && !c.stun_ticks && Math.abs(c.knockback_velocity) <= 0.02 && !actor.dash_active
-    && sim.state.tick - c.press_tick >= sim.secondsToTicks(b.charge_activation_seconds)) {
+    && sim.state.tick - c.press_tick - (c.press_delay_ticks || 0) >= sim.secondsToTicks(b.charge_activation_seconds)) {
     c.charge_active = true; actor.purchase_hold = null; actor.style_hold = null; actor.style_interaction_held = false;
   }
   if (diving(actor)) { updateDive(sim, actor); return; }
   if (sim.state.platforms?.length) { updatePlatformHeight(sim, actor); return; }
   if (airborne(actor)) {
     const previousHeight = c.height;
-    const t = (sim.state.tick - c.jump_tick) / sim.secondsToTicks(b.jump_duration_seconds);
+    c.jump_delay_ticks = (c.jump_delay_ticks || 0) + 1 - pressMoveFactor(sim.state, sim.config, actor);
+    const t = (sim.state.tick - c.jump_tick - c.jump_delay_ticks) / sim.secondsToTicks(b.jump_duration_seconds);
     c.height = (c.jump_base || 0) + b.jump_height_ratio * 4 * t * (1 - t);
     if (t >= 0.5 && podiumLanding(sim, actor, previousHeight, c.height)) return;
     if (t >= 1 || t >= 0.5 && c.height <= 0) { c.jump_tick = null; c.height = 0; c.jump_base = 0; }
@@ -36,6 +39,7 @@ export function updateActions(sim, actor) {
 export function startPodiumFall(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
   c.jump_tick = sim.state.tick - Math.round(sim.secondsToTicks(b.jump_duration_seconds) / 2);
+  c.jump_delay_ticks = 0;
   c.jump_base = c.height - b.jump_height_ratio;
 }
 /** Campagne : on se pose sur le promontoire d’un meeting actif en redescendant. */
@@ -58,9 +62,10 @@ export function startDive(sim, actor) {
 function updateDive(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat, state = sim.state, hz = sim.config.balance.simulation_architecture.fixed_tick_hz;
   const previousHeight = c.height;
-  const nextHeight = c.height - b.dive_vertical_speed / hz;
+  const speed = pressMoveFactor(state, sim.config, actor);
+  const nextHeight = c.height - b.dive_vertical_speed * speed / hz;
   c.height = state.fall_death_height != null ? nextHeight : Math.max(0, nextHeight);
-  const x = actor.x + actor.facing * b.dive_horizontal_speed / hz;
+  const x = actor.x + actor.facing * b.dive_horizontal_speed * speed / hz;
   actor.x = barrierBlockedPosition(sim, actor, combatPosition(state, x));
   let landed = false;
   if (state.platforms?.length) {

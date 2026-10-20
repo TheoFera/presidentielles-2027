@@ -12,17 +12,33 @@ export function addMoneyPickup(sim, x, height_ratio, amount_cents) {
   return pickup;
 }
 
-// Découpe une somme en plusieurs billets au sol. La somme des billets vaut exactement amountCents.
+// Liasses lâchées pour une somme : 1, plus 1 par tranche de drop_eur_per_extra_pickup, au plus max_drop_pickups.
+// Les parts décroissent (1, 1/2, 1/3…) : plus la somme est grosse, plus il tombe de liasses, et plus elles sont grosses.
+// Chaque part est arrondie à drop_rounding_eur ; le reste va à la plus grosse. Le total vaut exactement amountCents.
+export function dropAmounts(config, amountCents) {
+  const money = config.balance.money;
+  const count = Math.min(money.max_drop_pickups, 1 + Math.floor(amountCents / (money.drop_eur_per_extra_pickup * 100)));
+  const weights = Array.from({ length: count }, (_, i) => 1 / (i + 1)), total = weights.reduce((a, b) => a + b, 0);
+  const step = money.drop_rounding_eur * 100;
+  const amounts = weights.map(w => Math.floor(amountCents * w / total / step) * step);
+  amounts[0] += amountCents - amounts.reduce((a, b) => a + b, 0);
+  return amounts.filter(amount => amount > 0);
+}
+
+// Pose des billets au sol (par défaut, les liasses de dropAmounts ; count = 1 pour un seul billet).
+// Les liasses occupent d'abord les places les plus proches du point de chute (au milieu, puis de part et
+// d'autre, tous les drop_spacing_units) : elles ne s'éloignent que si elles sont nombreuses. La plus grosse tombe au milieu.
 // Avec toss, chaque billet part de x, vole jusqu'à sa place et n'est ramassable qu'à l'atterrissage.
-export function scatterMoney(sim, x, amountCents, count = sim.config.balance.money.max_drop_pickups, { toss = false } = {}) {
+export function scatterMoney(sim, x, amountCents, count = null, { toss = false } = {}) {
   if (!(amountCents > 0)) return [];
-  const number = Math.min(count, amountCents);
-  const spread = sim.config.balance.money.drop_spread_units;
+  const amounts = count === 1 ? [amountCents] : dropAmounts(sim.config, amountCents);
+  const number = amounts.length;
+  const spacing = sim.config.balance.money.drop_spacing_units;
   const tossTicks = Math.max(1, sim.secondsToTicks(sim.config.balance.money.donation.handoff_toss_seconds));
   const pickups = [];
   for (let i = 0; i < number; i++) {
-    const amount = Math.floor(amountCents / number) + (i < amountCents % number ? 1 : 0);
-    const pickup = addMoneyPickup(sim, x + (number === 1 ? 0 : (i / (number - 1) - 0.5) * spread * 2), 0, amount);
+    const offset = Math.ceil(i / 2) * (i % 2 ? 1 : -1) * spacing;
+    const pickup = addMoneyPickup(sim, x + offset, 0, amounts[i]);
     if (toss && number > 1) {
       pickup.toss_origin_x = wrap(x, sim.state.world.length);
       pickup.toss_started_tick = sim.state.tick;
@@ -183,6 +199,13 @@ export function settleMoney(sim) {
     sim.emit('MoneyPickedUp', { candidate_id: candidate.id, pickup_id: pickup.id, amount_cents: pickup.amount_cents });
     state.money_pickups.splice(i, 1);
   }
+}
+
+/** Un candidat secondaire n'a pas de caisse : à chaque K.-O., il lâche une somme fixe (game_balance.json). */
+export function dropMinorMoney(sim, candidate) {
+  const amount = cents(sim.config.balance.minor_candidates.ko_money_drop_k[candidate.faction_id] || 0);
+  scatterMoney(sim, candidate.x, amount, undefined, { toss: true });
+  return amount;
 }
 
 export function dropCandidateMoney(sim, candidate) {

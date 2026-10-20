@@ -1,0 +1,63 @@
+{
+  "outil": "ImageGen intégré",
+  "usage": "Planches additionnelles, apparences des syndicalistes et des ruraux conservées.",
+  "poses": [
+    "attente étalon",
+    "genou droit levé",
+    "coup de pied droit"
+  ],
+  "personnages": [
+    {
+      "id": "melenchon-cgt-h",
+      "faction": "melenchon",
+      "label": "Syndicaliste — homme",
+      "source": "melenchon-cgt-h-v2.png",
+      "filename": "melenchon-cgt-h-coups-pied-v1.png",
+      "buildingMotion": "kick",
+      "buildingOnly": true,
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/secondaires/so/melenchon-cgt-h-v2.png"
+      ],
+      "prompt": "Use case: identity-preserve. Create an ADDITIONAL animation sprite sheet for this exact existing game character. The supplied six-pose image is the identity, clothing, proportions and drawing-style reference. Preserve the same person, same age, same face, hair, clothing, colors, native sturdy body build and cartoon proportions. Do not redesign or slim this character. Draw ONE character in exactly THREE full body poses in ONE ROW, THREE columns, landscape 1536x1024 on true transparent background. All figures facing RIGHT in the same three quarter side view. Same head size across every pose, full shoes visible, generous clear gaps and padding, no overlap. LEFT pose: original standing idle as an anatomical scale reference, both shoes on ground, arms lowered. CENTER pose: prepare a frontal kick at a door: weight on planted LEFT leg, RIGHT knee bent and lifted at waist level, both empty hands apart near chest for balance. RIGHT pose: deliver that same RIGHT leg FRONT KICK horizontally forward toward RIGHT at lower door height, left foot firmly planted, right shoe sole towards invisible door, natural slight lean backwards, arms apart for balance. A simple believable kick, not martial arts acrobatics. Preserve the same kicking leg between preparation and strike. Same height baseline for planted left foot in all poses. Empty hands, NO joined hands, NO raised arms overhead, NO baton, NO weapons or other props. No environment, no door drawn, no effects, no captions, no grid. Completely plain clothing with NO logos, NO inscriptions, NO symbols or patches anywhere. Keep original game illustration style exactly."
+    },
+    {
+      "id": "melenchon-cgt-f",
+      "faction": "melenchon",
+      "label": "Syndicaliste — femme",
+      "source": "melenchon-cgt-f-v2.png",
+      "filename": "melenchon-cgt-f-coups-pied-v1.png",
+      "buildingMotion": "kick",
+      "buildingOnly": true,
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/secondaires/so/melenchon-cgt-f-v2.png"
+      ],
+      "prompt": "Use case: identity-preserve. Create an ADDITIONAL animation sprite sheet for this exact existing game character. The supplied six-pose image is the identity, clothing, proportions and drawing-style reference. Preserve the same person, same age, same face, hair, clothing, colors, native sturdy body build and cartoon proportions. Do not redesign or slim this character. Draw ONE character in exactly THREE full body poses in ONE ROW, THREE columns, landscape 1536x1024 on true transparent background. All figures facing RIGHT in the same three quarter side view. Same head size across every pose, full shoes visible, generous clear gaps and padding, no overlap. LEFT pose: original standing idle as an anatomical scale reference, both shoes on ground, arms lowered. CENTER pose: prepare a frontal kick at a door: weight on planted LEFT leg, RIGHT knee bent and lifted at waist level, both empty hands apart near chest for balance. RIGHT pose: deliver that same RIGHT leg FRONT KICK horizontally forward toward RIGHT at lower door height, left foot firmly planted, right shoe sole towards invisible door, natural slight lean backwards, arms apart for balance. A simple believable kick, not martial arts acrobatics. Preserve the same kicking leg between preparation and strike. Same height baseline for planted left foot in all poses. Empty hands, NO joined hands, NO raised arms overhead, NO baton, NO weapons or other props. No environment, no door drawn, no effects, no captions, no grid. Completely plain clothing with NO logos, NO inscriptions, NO symbols or patches anywhere. Keep original game illustration style exactly."
+    },
+    {
+      "id": "le-pen-rural-h",
+      "faction": "le_pen",
+      "label": "Rural chasseur — homme",
+      "source": "le-pen-rural-h-v1.png",
+      "filename": "le-pen-rural-h-coups-pied-v1.png",
+      "buildingMotion": "kick",
+      "buildingOnly": true,
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/secondaires/so/le-pen-rural-h-v1.png"
+      ],
+      "prompt": "Use case: identity-preserve. Create an ADDITIONAL animation sprite sheet for this exact existing game character. The supplied six-pose image is the identity, clothing, proportions and drawing-style reference. Preserve the same person, same age, same face, hair, clothing, colors, native sturdy body build and cartoon proportions. Do not redesign or slim this character. Draw ONE character in exactly THREE full body poses in ONE ROW, THREE columns, landscape 1536x1024 on true transparent background. All figures facing RIGHT in the same three quarter side view. Same head size across every pose, full shoes visible, generous clear gaps and padding, no overlap. LEFT pose: original standing idle as an anatomical scale reference, both shoes on ground, arms lowered. CENTER pose: prepare a frontal kick at a door: weight on planted LEFT leg, RIGHT knee bent and lifted at waist level, both empty hands apart near chest for balance. RIGHT pose: deliver that same RIGHT leg FRONT KICK horizontally forward toward RIGHT at lower door height, left foot firmly planted, right shoe sole towards invisible door, natural slight lean backwards, arms apart for balance. A simple believable kick, not martial arts acrobatics. Preserve the same kicking leg between preparation and strike. Same height baseline for planted left foot in all poses. Empty hands, NO joined hands, NO raised arms overhead, NO baton, NO weapons or other props. No environment, no door drawn, no effects, no captions, no grid. Completely plain clothing with NO logos, NO inscriptions, NO symbols or patches anywhere. Keep original game illustration style exactly."
+    },
+    {
+      "id": "le-pen-rural-f",
+      "faction": "le_pen",
+      "label": "Rurale chasseuse — femme",
+      "source": "le-pen-rural-f-v1.png",
+      "filename": "le-pen-rural-f-coups-pied-v1.png",
+      "buildingMotion": "kick",
+      "buildingOnly": true,
+      "references": [
+        "C:/Users/ferat/Documents/Programmation/Presidentielles 2027/assets/images/secondaires/so/le-pen-rural-f-v1.png"
+      ],
+      "prompt": "Use case: identity-preserve. Create an ADDITIONAL animation sprite sheet for this exact existing game character. The supplied six-pose image is the identity, clothing, proportions and drawing-style reference. Preserve the same person, same age, same face, hair, clothing, colors, native sturdy body build and cartoon proportions. Do not redesign or slim this character. Draw ONE character in exactly THREE full body poses in ONE ROW, THREE columns, landscape 1536x1024 on true transparent background. All figures facing RIGHT in the same three quarter side view. Same head size across every pose, full shoes visible, generous clear gaps and padding, no overlap. LEFT pose: original standing idle as an anatomical scale reference, both shoes on ground, arms lowered. CENTER pose: prepare a frontal kick at a door: weight on planted LEFT leg, RIGHT knee bent and lifted at waist level, both empty hands apart near chest for balance. RIGHT pose: deliver that same RIGHT leg FRONT KICK horizontally forward toward RIGHT at lower door height, left foot firmly planted, right shoe sole towards invisible door, natural slight lean backwards, arms apart for balance. A simple believable kick, not martial arts acrobatics. Preserve the same kicking leg between preparation and strike. Same height baseline for planted left foot in all poses. Empty hands, NO joined hands, NO raised arms overhead, NO baton, NO weapons or other props. No environment, no door drawn, no effects, no captions, no grid. Completely plain clothing with NO logos, NO inscriptions, NO symbols or patches anywhere. Keep original game illustration style exactly."
+    }
+  ]
+}

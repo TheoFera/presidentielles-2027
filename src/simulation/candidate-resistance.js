@@ -10,8 +10,11 @@ export function updateCandidateResistance(sim) {
     if (candidate.eliminated || candidate.campaign_debate_id) continue;
     if (candidate.is_ko) {
       candidate.axis = 0; candidate.moving = false; candidate.campaign_active = false; candidate.interaction_active = false;
-      // Un candidat mineur battu ne revient pas.
-      if (candidate.minor) { if (state.tick >= candidate.disappear_tick) defeatMinor(sim, candidate); continue; }
+      // Un candidat secondaire dont la permanence a été fermée pendant son absence ne revient pas.
+      if (candidate.minor && !state.buildings.some(b => b.id === candidate.headquarters_site_id && b.owner_id === candidate.faction_id)) {
+        if (state.tick >= candidate.disappear_tick) defeatMinor(sim, candidate);
+        continue;
+      }
       if (state.tick >= candidate.respawn_tick) {
         const hq = state.buildings.find(b => b.id === candidate.headquarters_site_id && b.headquarters && b.owner_id === candidate.faction_id);
         candidate.x = hq?.x ?? candidate.last_hq_x ?? candidate.start_x;

@@ -13,6 +13,7 @@ import {drawStyleEffects} from '../src/presentation/effets/style-effects.js';
 import {visualManifest} from '../src/presentation/rendu/visual-manifest.js';
 import {usesCandidateCombat,drawCandidateCombat,MELENCHON_HEIGHT_STRETCH} from '../src/presentation/personnages/melenchon-combat.js';
 import {candidateExtraPose} from '../src/presentation/personnages/candidate-extra-poses.js';
+import {skinAnimationFor} from '../src/presentation/personnages/skin-animation-atlases.js';
 import {scarfBody,scarfHand} from '../src/presentation/effets/scarf-character.js';
 import {ScarfTransitionTracker,scarfTransitionTicks,scarfTransitionAtlas} from '../src/presentation/effets/scarf-transition.js';
 import {combatDelta} from '../src/simulation/combat-geometry.js';
@@ -127,6 +128,38 @@ test('Déferlement : sortie derrière Mélenchon, trois ou quatre virages puis r
   assert.equal(candidateExtraPose(c,state,config,false)?.name,'ultimate');
   assert.equal(SURGE_HEIGHT_RATIO,.84);
 });
+test('Déferlante : les gestes de départ et de retour gardent le gabarit du combat et leurs appuis',()=>{
+  for(const height of [80,150,220])for(const facing of [-1,1]){
+    const sim=make(),state=sim.state,c=state.candidates.find(c=>c.faction_id==='melenchon');
+    Object.assign(c,{current_campaign_style:'melenchon_communautariste',facing});
+    c.special_charge=config.balance.special_charge.required_points;
+    activateUltimate(sim,c);
+    const skin=skinAnimationFor(c),atlas=skin.extras.actions;
+    const power=state.powers.find(p=>p.owner_id===c.id&&p.kind==='SURGE');
+    const attack=state.attacks.find(a=>a.id===c.combat.attack_id);
+    const appearance=Math.ceil(config.balance.specials.surge.appearance_seconds*config.balance.simulation_architecture.fixed_tick_hz);
+    for(const [tick,elapsed,frame]of [[power.started_tick,0,15],[power.started_tick+appearance,0,14],[power.started_tick+appearance,attack.windup_ticks,15],[power.return_tick,null,15]]){
+      state.tick=tick;
+      if(elapsed===null){state.attacks=[];c.combat.attack_id=null;}else attack.elapsed_ticks=elapsed;
+      assert.equal(candidateExtraPose(c,state,config,false)?.frame,frame);
+      const r=recordingRenderer();Object.assign(r.metrics,{characterHeight:height,groundOffsetRatio:0});
+      const before=JSON.stringify(state);
+      assert.equal(drawCandidateCombat(r,c,200,state),true);
+      const draw=r.calls.find(call=>call[0]==='drawImage');
+      assert.equal(draw[1].id,atlas.sprite);
+      const [sx,sy,sw,sh,px,py]=atlas.frames[frame],scale=draw[8]/sw;
+      assert.ok(Math.abs(draw[9]-height/skin.combat.referenceHeight*MELENCHON_HEIGHT_STRETCH*skin.combat.frames[0][3])<1e-9,'Même hauteur visible que la garde');
+      assert.ok(Math.abs(scale/(draw[9]/sh)-.9)<1e-9,'Largeur affinée de 10 %, hauteur conservée');
+      assert.ok(Math.abs(draw[6]+(px-sx)*scale)<1e-9);
+      assert.ok(Math.abs(draw[7]+(py-sy)*draw[9]/sh)<1e-9,'Appuis fixes');
+      assert.ok(r.calls.some(call=>call[0]==='scale'&&call[1]===facing&&call[2]===1));
+      assert.equal(JSON.stringify(state),before);
+    }
+    assert.ok(atlas.frameScales.slice(0,14).every(scale=>scale===1),'Les autres actions gardent leur calage');
+    assert.ok(atlas.frameWidthScales.slice(0,14).every(scale=>scale===1),'Les autres actions gardent leur largeur');
+  }
+});
+
 test('Molotov : priorité aux candidats, repli sur une unité et trajectoire en cloche',()=>{
   const launch=({candidates=true,npc=true}={})=>{
     const sim=make(),state=sim.state,actor=state.candidates.find(c=>c.faction_id==='melenchon');

@@ -95,6 +95,7 @@ export class MapWheel {
     for (const [id, biome] of biomes) boundaries.append(element('path', {
       d: arc(141, biome.start + 0.025, biome.end - 0.025), class: 'map-biome-arc', 'data-biome': id,
     }));
+    this.biomes = biomes; this.names = null;
     this.rotor.append(boundaries);
     const front = element('svg', { viewBox: '0 0 320 320', class: 'map-wheel-front', 'aria-hidden': 'true' });
     // Anneau du sondage : fixe (il ne tourne pas avec la carte), sous le repère du joueur.
@@ -118,6 +119,30 @@ export class MapWheel {
     const label = `Carte : ${zone.biome_name}, ${zone.concept}. Position du joueur en haut. 6 biomes, 18 sous-zones.`;
     if (label !== this.lastLabel) this.svg.setAttribute('aria-label', label);
     this.lastLabel = label;
+  }
+  /**
+   * Noms des quartiers en arc autour de la roue (dossier du début de partie : campaign-intro.css les
+   * affiche puis les efface en fondu). Ils tournent avec le disque ; calculés pour sa rotation actuelle,
+   * un nom placé en bas suit l'arc dans l'autre sens pour se lire à l'endroit.
+   */
+  showBiomeNames(names) {
+    if (!this.biomes || !this.rotor || this.lastRotation == null) return false;
+    this.names?.remove();
+    const rotation = (this.lastRotation || 0) * Math.PI / 180, group = element('g', { class: 'map-wheel-names' });
+    for (const [id, { start, end }] of this.biomes) {
+      if (!names[id]) continue;
+      const upper = Math.cos((start + end) / 2 + rotation) >= 0, pathId = `map-wheel-name-${id}`;
+      // Lettres toujours hors de l'anneau du sondage : ligne de base dedans en haut, dehors en bas.
+      const r = upper ? 167 : 180;
+      const d = upper ? `M${point(r, start)} A${r},${r} 0 0 1 ${point(r, end)}` : `M${point(r, end)} A${r},${r} 0 0 0 ${point(r, start)}`;
+      const text = element('text', { class: 'map-wheel-name' }), along = element('textPath', { href: `#${pathId}`, startOffset: '50%', 'text-anchor': 'middle' });
+      along.textContent = names[id];
+      text.append(along);
+      group.append(element('path', { id: pathId, d, fill: 'none' }), text);
+    }
+    this.names = group;
+    this.rotor.append(group);
+    return true;
   }
   updatePoll(snapshot, colors) {
     const zones = new Map(snapshot?.zones.map(z => [z.subzone_id, z.controller]) || []);

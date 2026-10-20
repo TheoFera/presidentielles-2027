@@ -1,4 +1,5 @@
 import { airborne } from './combat-actions.js';
+import { pressMoveFactor } from './press-rules.js';
 import { attackInput, cancelCurrentAttack } from './combat.js';
 import { combatActors, enemies, europeActive, hit, interrupted } from './combat-state.js';
 import { activeCampaignStyle } from './campaign-styles.js';
@@ -38,6 +39,7 @@ export function requestDash(sim, c, direction, buffered = false) {
   cancelCurrentAttack(sim, c);
   if (!free) c.dash_charges--;
   c.dash_active = true; c.dash_direction = direction; c.facing = direction;
+  c.dash_delay_fraction = 0;
   c.dash_until_tick = sim.state.tick + sim.secondsToTicks(d.duration_seconds);
   c.dash_invulnerable_until_tick = sim.state.tick + sim.secondsToTicks(d.invulnerability_seconds);
   c.combat.buffer_until_tick = -1;
@@ -92,7 +94,10 @@ export function updateMobileCombat(sim) {
         c.dash_active = false; c.dash_invulnerable_until_tick = 0; sim.emit('DashEnded', { candidate_id: c.id });
       } else {
         const from = c.x;
-        c.x = wallBlockedPosition(sim, c, combatPosition(sim.state, c.x + c.dash_direction * d.distance / sim.secondsToTicks(d.duration_seconds)));
+        const speed = pressMoveFactor(sim.state, sim.config, c);
+        c.dash_delay_fraction = (c.dash_delay_fraction || 0) + 1 - speed;
+        if (c.dash_delay_fraction >= 1) { c.dash_until_tick++; c.dash_delay_fraction--; }
+        c.x = wallBlockedPosition(sim, c, combatPosition(sim.state, c.x + c.dash_direction * d.distance * speed / sim.secondsToTicks(d.duration_seconds)));
         c.moving = true;
         if (europeActive(sim.state, c)) europeDashHits(sim, c, from);
       }

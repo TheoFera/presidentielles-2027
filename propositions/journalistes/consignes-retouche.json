@@ -1,0 +1,7 @@
+{
+  "outil": "ImageGen intégré",
+  "cibles": ["variante-1-kaki-rouge.png", "variante-3-bleu-vert.png"],
+  "resultats": ["variante-1-kaki-rouge-marges-v2.png", "variante-3-bleu-vert-marges-v2.png"],
+  "prompt": "Edit this sprite sheet to correct clipping and insufficient margins. Preserve exactly the same two characters, identity, outfits, colors, style, equipment, twelve poses in two rows of six. Redraw any clipped extremities completely. Re-layout with generous genuinely transparent gutters between ALL figures and at least 5% fully transparent outer padding on ALL FOUR SIDES. Each character including the full camera, hair, fingers and shoes must be entirely visible, never touching another cell or canvas edge. Make each sprite slightly smaller to fit comfortably. No text, no additional figures, no checkerboard. Do not crop the sheet. This is a full-body game sprite layout correction only.",
+  "note": "Les marges obtenues sont positives mais inférieures aux 5 % demandés sur certains côtés. Les mesures réelles figurent dans verification-bords.json."
+}

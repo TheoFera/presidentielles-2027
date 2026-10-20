@@ -57,8 +57,10 @@
     "pickup_hover_amplitude_px": 3,
     "pickup_hover_period_seconds": 1.8,
     "pickup_halo_opacity": 0.22,
-    "drop_spread_units": 3,
-    "max_drop_pickups": 12,
+    "drop_spacing_units": 0.7,
+    "drop_eur_per_extra_pickup": 1000,
+    "drop_rounding_eur": 50,
+    "max_drop_pickups": 8,
     "sprite_tiers_eur": [
       100,
       500,
@@ -107,6 +109,9 @@
       "hidden_durability": 90,
       "move_speed": 3,
       "raid_recruits": 3,
+      "recruit_subzone_radius": 1,
+      "defense_detection_range": 8,
+      "defense_calm_seconds": 3,
       "engage_range": 3,
       "candidate_focus_range": 8,
       "raid_cost": 2,
@@ -121,6 +126,45 @@
     "demobilized": {
       "move_speed": 2.1
     }
+  },
+  "press_team": {
+    "enabled": true,
+    "camera_hp": 30,
+    "reporter_hp": 60,
+    "movement_multiplier": 0.5,
+    "attack_speed_multiplier": 0.75,
+    "move_speed": 4.8,
+    "reposition_speed": 4.8,
+    "spacing": 1.5,
+    "max_spacing": 2.5,
+    "turn_seconds": 0.15,
+    "turn_deadzone": 0.6,
+    "camera_range": 4.5,
+    "camera_height": 0.72,
+    "cone_start_radius": 0.16,
+    "cone_slope": 0.3,
+    "aim_seconds": 0.6,
+    "micro_range": 1.2,
+    "micro_damage": 6,
+    "micro_windup_seconds": 0.3,
+    "micro_active_seconds": 0.2,
+    "micro_recovery_seconds": 0.2,
+    "micro_cooldown_seconds": 1.1,
+    "micro_stun_seconds": 0.18,
+    "grace_seconds": 60,
+    "minimum_score": 20,
+    "lead_points": 6,
+    "confirm_seconds": 12,
+    "warning_seconds": 2,
+    "spawn_distance": 5.5,
+    "duration_seconds": 25,
+    "release_lead_points": 3,
+    "release_seconds": 8,
+    "exit_seconds": 1.6,
+    "cooldown_seconds": 75,
+    "max_interventions": 3,
+    "max_per_candidate": 2,
+    "check_seconds": 0.5
   },
   "candidate_combat": {
     "resistance_max": 100,
@@ -359,8 +403,8 @@
       "max_per_candidate": 6,
       "max_per_biome": 1,
       "max_per_subzone": 1,
-      "capture_cost": 15,
-      "build_cost": 15,
+      "capture_cost": 5,
+      "build_cost": 5,
       "capture_seconds": 2,
       "required_presence_N1": 3,
       "required_presence_N2": 4,
@@ -441,6 +485,10 @@
       "max_per_biome": 1,
       "max_per_subzone": 1,
       "capture_cost": 15,
+      "capture_cost_by_site": {
+        "site:banlieue_a": 10,
+        "site:riches_a": 20
+      },
       "build_cost": 15,
       "capture_seconds": 2,
       "required_presence_N1": 3,
@@ -1122,6 +1170,15 @@
     "max_sympathisants": 10,
     "border_units": 3,
     "detection_range_units": 7,
-    "roam_pause_seconds": 2.5
+    "roam_pause_seconds": 2.5,
+    "respawn_days": 80,
+    "ko_money_drop_k": {
+      "glucksmann": 4,
+      "roussel": 2.5,
+      "arthaud": 1.5,
+      "dupont_aignan": 2,
+      "retailleau": 4,
+      "attal": 5
+    }
   }
 }

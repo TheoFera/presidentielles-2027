@@ -1,4 +1,6 @@
 import { airborne, charging, cancelCharge, diving, startDive, updateActions, verticalHit } from './combat-actions.js';
+import { isPress, pressAttackFactor } from './press-rules.js';
+import { defensiveGuard, guardDefendsPosition } from './service-order-rules.js';
 import { updateMobileCombat, successfulNormalHit, changeCharge } from './mobile-combat.js';
 import { activeCampaignStyle } from './campaign-styles.js';
 import { startStyleUltimate, updateStyleTemporary, updateMolotov, updateStyleEffects } from './style-ultimates.js';
@@ -31,7 +33,7 @@ export function attackInput(sim, actor, type) {
   if (type === 'ReleaseAttack') {
     if (c.press_tick == null) return;
     if (c.press_airborne) { cancelCharge(actor); return; }
-    const held = sim.state.tick - c.press_tick, readyTicks = sim.secondsToTicks(b.charge_ready_seconds);
+    const held = sim.state.tick - c.press_tick - (c.press_delay_ticks || 0), readyTicks = sim.secondsToTicks(b.charge_ready_seconds);
     const wasCharging = charging(actor), full = held >= readyTicks;
     cancelCharge(actor);
     // Le coup léger est parti à l’appui : relâcher avant le début de la charge ne fait rien de plus.
@@ -51,7 +53,7 @@ export function attackInput(sim, actor, type) {
   // Le saut interrompt un coup, sauf la réception d’un plongeon (sinon, plongeons à l’infini).
   const diveRecovery = sim.state.attacks.some(a => a.id === c.attack_id && a.kind === 'DIVE');
   if (type === 'Jump' && !airborne(actor) && !diveRecovery && Math.abs(c.knockback_velocity) <= 0.02) {
-    cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.height = 0; c.jump_base = 0;
+    cancelCurrentAttack(sim, actor); c.jump_tick = sim.state.tick; c.jump_delay_ticks = 0; c.height = 0; c.jump_base = 0;
     // Sur un pupitre du mode Débat, le saut part de la hauteur du pupitre.
     if (sim.state.platforms?.length) { c.jump_base = actor.platform_id ? sim.state.platforms.find(p => p.id === actor.platform_id).height : 0; c.height = c.jump_base; c.drop_through_id = null; actor.platform_id = null; }
     actor.podium_site_id = null;
@@ -62,7 +64,7 @@ export function attackInput(sim, actor, type) {
   if (type === 'PressAttack' && !actor.dash_active && c.press_tick == null) {
     if (airborne(actor)) { c.press_tick = sim.state.tick; c.press_airborne = true; requestAttack(sim, actor); return; }
     // Frappe dès l’appui ; garder le bouton enfoncé enchaîne ensuite sur la charge.
-    c.press_tick = sim.state.tick; c.press_airborne = false; requestAttack(sim, actor);
+    c.press_tick = sim.state.tick; c.press_delay_ticks = 0; c.press_airborne = false; requestAttack(sim, actor);
   }
 }
 
@@ -262,7 +264,7 @@ function triggerSpecial(sim, actor) {
 // Hors du débat, la rue fait le tour du monde ; sur un plateau, la copie peut dépasser le bord.
 const hologramX = (state, owner, offset) => state.debate_bounds ? owner.x + offset : combatPosition(state, owner.x + offset);
 const MIRRORED_ATTACKS = ['CANDIDATE', 'CHARGED', 'SCARF', 'DIVE'];
-const MIRRORED_POSE = ['press_tick', 'charge_active', 'press_airborne', 'jump_tick', 'height', 'jump_base', 'dive_tick', 'drop_through_id',
+const MIRRORED_POSE = ['press_tick', 'press_delay_ticks', 'charge_active', 'press_airborne', 'jump_tick', 'jump_delay_ticks', 'height', 'jump_base', 'dive_tick', 'drop_through_id',
   'stun_ticks', 'hitstop_ticks', 'knockdown_tick', 'combo_step', 'combo_expires_tick', 'knockback_velocity'];
 // Dates recopiées : décalées du retard de l’hologramme pour que l’animation se joue en différé.
 const MIRRORED_TICKS = ['press_tick', 'jump_tick', 'dive_tick', 'knockdown_tick', 'combo_expires_tick'];
@@ -322,6 +324,8 @@ function meleeTargets(sim, owner, attack, targets) {
   visitNearbyCombatActors(sim.state, owner.x, attack.range + radius, t => {
     if (distance(sim.state, owner.x, t.x) <= attack.range + radius
       && combatDelta(sim.state, owner.x, t.x) * attack.direction >= -radius
+      && (attack.kind !== 'MICROPHONE' || t.id === attack.target_id)
+      && (!defensiveGuard(owner) || t.role !== 'SYMPATHISANT' && guardDefendsPosition(sim.state, owner, owner.x) && guardDefendsPosition(sim.state, owner, t.x))
       && enemies(owner, t) && !attack.hit_ids.includes(t.id) && verticalHit(sim.config, owner, t, attack)) targets.push(t);
   });
   return targets.sort((a, b) => distance(sim.state, owner.x, a.x) - distance(sim.state, owner.x, b.x) || stableIdOrder(a, b));
@@ -336,6 +340,11 @@ function updateAttacks(sim, work) {
     const actor = findCombatActor(sim.state, attack.owner_id);
     if (!actor || actor.combat.attack_id !== attack.id || !actor.faction_id || actor.expired) continue;
     if (actor.combat.hitstop_ticks > 0) continue;
+    // Horloge entière pour les sauvegardes ; l'accumulateur ralentit aussi un coup déjà engagé.
+    const speed = actor.role === 'CANDIDAT' ? pressAttackFactor(sim.state, sim.config, actor) : 1;
+    attack.speed_fraction = (attack.speed_fraction || 0) + speed;
+    if (attack.speed_fraction < 1) continue;
+    attack.speed_fraction--;
     attack.elapsed_ticks++;
     if (attack.elapsed_ticks >= attack.windup_ticks && attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks) {
       if (attack.kind === 'VERBAL' && !attack.launched) {
@@ -353,6 +362,7 @@ function updateAttacks(sim, work) {
           const target = targets[index];
           if (target && hit(sim, actor, target, attack, attack.id)) {
             attack.hit_ids.push(target.id);
+            if (attack.kind === 'MICROPHONE') attack.micro_hold_until_tick = sim.state.tick + target.combat.stun_ticks;
             applyToolHit(sim, actor, target, attack);
             if (['CANDIDATE', 'CHARGED', 'DIVE'].includes(attack.kind) && !attack.charged) { successfulNormalHit(sim, actor, target, attack); attack.charged = true; }
           }
@@ -422,6 +432,7 @@ function updateTemporaryUnits(sim) {
   const { state, config } = sim;
   recordHologramTrail(sim);
   for (const unit of state.temporary_units) {
+    if (isPress(unit)) continue; // Le directeur de reportage gère leur arrivée, combat et départ.
     if (state.tick >= unit.expires_tick) unit.expired = true;
     const owner = state.candidates.find(c => c.id === unit.owner_id);
     if (!owner || owner.is_ko || owner.eliminated) { unit.expired = true; continue; }

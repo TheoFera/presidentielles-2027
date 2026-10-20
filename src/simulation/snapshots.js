@@ -84,6 +84,9 @@ export function validateSnapshot(next, simulation, nested = false) {
   for (const building of next.buildings) {
     const expected = infrastructure.buildings.find(b => b.id === building.id);
     if (!expected) fail('bâtiment inconnu');
+    const recruitment = building.guard_recruitment;
+    if (recruitment && (!['melenchon', 'le_pen'].includes(recruitment.owner_id) || !Array.isArray(recruitment.slots)
+      || new Set(recruitment.slots).size !== recruitment.slots.length || recruitment.slots.some(slot => ![0, 1, 2].includes(slot)))) fail('recrutement de garde invalide');
     for (const field of ['type', 'slot_id', 'x', 'subzone_id', 'biome_id', 'ownership_model', 'controls_zone', 'fixed_variant', 'label']) if (building[field] !== expected[field]) fail('bâtiment déplacé ou altéré');
     if (!Array.isArray(building.queue) || !integer(building.delivered_count) || !Number.isInteger(building.last_action_tick) || building.last_action_tick > next.tick) fail('état du bâtiment invalide');
     // Champ facultatif : une ancienne sauvegarde affiche directement le bon état du rideau.
@@ -136,6 +139,7 @@ export function validateSnapshot(next, simulation, nested = false) {
     if (!['NEUTRE', 'SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE', 'DEMOBILISE'].includes(npc.role)) fail('rôle PNJ inconnu');
     if (['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) ? !ALL_FACTIONS.includes(npc.faction_id) : npc.faction_id !== null) fail('faction PNJ invalide');
     if (npc.role === 'SERVICE_D_ORDRE' && (!config.layout.biomes.some(b => b.id === npc.guard_biome_id) || !validPosition(npc.guard_anchor_x))) fail('Service d’ordre invalide');
+    if (npc.so_assignment && (!['h', 'f'].includes(npc.so_assignment.gender) || ![0, 1, 2].includes(npc.so_assignment.style))) fail('tenue de service d’ordre invalide');
     if (!finite(npc.hidden_durability) || !Number.isInteger(npc.converted_tick) || npc.converted_tick > next.tick || !Number.isInteger(npc.promoted_tick) || npc.promoted_tick > next.tick) fail('état PNJ invalide');
     if (!integer(npc.donation_cents) || (npc.role === 'SYMPATHISANT'
       ? !integer(npc.next_donation_tick) || npc.donation_cents > Math.round(config.balance.money.donation.base_eur * config.balance.money.donation.biome_multipliers[npc.origin_biome_id] * 100)
@@ -158,12 +162,17 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (npc.role !== 'SYMPATHISANT' || !['TRAVEL'].includes(task.phase)
         || task.kind === 'DELIVER_DONATION' && (!npc.donation_cents || !next.buildings.some(b => b.id === task.service_id && b.type === 'permanence'))
         || task.kind === 'RETURN_DONATION' && npc.donation_cents) fail('trajet de don invalide');
-    } else if (task.kind === 'JOIN_RAID') {
-      if (npc.role !== 'SYMPATHISANT' || !/^raid:\d+$/.test(task.raid_id) || Number(task.raid_id.slice(5)) >= next.next_raid_id || ![-1, 1].includes(task.direction)
+    } else if (['JOIN_RAID', 'JOIN_GUARD'].includes(task.kind)) {
+      if (!(task.kind === 'JOIN_RAID' ? npc.role === 'SYMPATHISANT' : ['SYMPATHISANT', 'MILITANT'].includes(npc.role))
+        || task.kind === 'JOIN_RAID' && (!/^raid:\d+$/.test(task.raid_id) || Number(task.raid_id.slice(5)) >= next.next_raid_id || ![-1, 1].includes(task.direction))
+        || task.kind === 'JOIN_GUARD' && (!['h', 'f'].includes(task.gender) || ![0, 1, 2].includes(task.style))
         || task.target_id !== task.service_id || !next.buildings.some(b => b.id === task.service_id && b.type === 'faction')
         || !['TRAVEL', 'INSIDE'].includes(task.phase) || !integer(task.elapsed_ticks)) fail('recrue de raid invalide');
     } else if (task.kind === 'GUARD') {
-      if (npc.role !== 'SERVICE_D_ORDRE' || !['GATHER', 'DEFEND', 'RAID', 'PRESSURE'].includes(task.phase)) fail('garde invalide');
+      if (npc.role !== 'SERVICE_D_ORDRE' || !['GATHER', 'DEFEND', 'RAID', 'PRESSURE', 'POST', 'RETURN'].includes(task.phase)) fail('garde invalide');
+      if (task.alert_until_tick !== undefined && !integer(task.alert_until_tick)) fail('alerte de garde invalide');
+      if (task.formation_index !== undefined && !integer(task.formation_index)) fail('place de garde invalide');
+      if (task.combat_side != null && ![-1, 1].includes(task.combat_side)) fail('approche de garde invalide');
     } else fail('tâche inconnue');
   }
   if (next.electorate.length !== next.world.subzones.length) fail('électorat incomplet');

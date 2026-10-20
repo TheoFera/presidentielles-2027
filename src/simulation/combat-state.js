@@ -7,12 +7,13 @@ import { leadership, refreshElectoralState } from './electoral-state.js';
 import { applyOpinionDelta } from './npc-votes.js';
 import { localUnitDamageMultiplier } from './strategic-sites.js';
 import { npcHomeX, random } from './world.js';
-import { releaseDonation, dropCandidateMoney } from './money.js';
+import { releaseDonation, dropCandidateMoney, dropMinorMoney } from './money.js';
 import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
 import { recordKnockout } from './unlock-catalog.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 import { visitNearbyNpcs } from './npc-proximity.js';
+import { isPress, pressHit } from './press-rules.js';
 
 export const combatState = () => ({ ...actionState(), attack_id: null, stun_ticks: 0, hitstop_ticks: 0, cooldown_ticks: 0, knockback_velocity: 0,
   combo_step: 0, combo_expires_tick: 0, buffer_until_tick: -1, requested_direction: null, target_id: null, engaged: false, last_hit: null,
@@ -30,7 +31,8 @@ export function findCombatActor(state, id) {
   for (const npc of state.npcs) if (npc.id === id) return npc;
   for (const unit of state.temporary_units) if (unit.id === id) return unit;
 }
-export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_debate_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired;
+export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated && !actor.campaign_debate_id && !actor.is_ko && !['NEUTRE', 'DEMOBILISE'].includes(actor.role) && !actor.expired
+  && !(actor.task?.phase === 'INSIDE' && ['JOIN_GUARD', 'JOIN_RAID'].includes(actor.task.kind)) && (!isPress(actor) || actor.press_ready);
 // En mode Débat, deux copies d’un même candidat s’affrontent : chacune a sa propre équipe.
 const team = actor => actor.team_id ?? actor.faction_id;
 // Les hologrammes de Mélenchon ne sont que des images : personne ne peut les viser ni les toucher.
@@ -43,7 +45,7 @@ export const movementBlocked = actor => actor.combat && (actor.combat.charge_act
 export const canTurnDuringLightStun = (actor, tick) => actor.combat?.stun_ticks > 0 && actor.combat.last_hit?.strong === false
   && (actor.combat.knockdown_tick == null || tick >= actor.combat.invulnerable_until_tick) && !actor.combat.hitstop_ticks && !actor.combat.charge_active
   && !actor.dash_active && !actor.combat.attack_id && actor.combat.dive_tick == null;
-export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_debate_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT'].includes(actor.task?.kind);
+export const canCampaign = actor => actor.combat?.jump_tick == null && !actor.style_hold && !actor.style_interaction_held && !actor.campaign_debate_id && !actor.crisis_meeting_id && !actor.is_ko && !interrupted(actor) && !actor.combat?.engaged && !['COLLECT_EQUIPMENT', 'JOIN_GUARD', 'JOIN_RAID'].includes(actor.task?.kind);
 
 export function controlledZones(state, config, faction) {
   return state.electorate.filter(e => e.controller === faction);
@@ -129,10 +131,11 @@ export function hit(sim, source, target, spec, attackId) {
       target.ko_started_tick = state.tick; target.disappear_tick = state.tick + sim.secondsToTicks(config.balance.candidate_combat.ko_fall_seconds + config.balance.candidate_combat.ko_ground_seconds);
       const progress = Math.max(0, Math.min(1, state.campaign_progress_01));
       const combat = config.balance.candidate_combat;
-      const respawnSeconds = combat.ko_respawn_min_seconds + (combat.ko_respawn_max_seconds - combat.ko_respawn_min_seconds)
-        * Math.pow(progress, combat.ko_respawn_progress_exponent);
+      // Un candidat secondaire revient après un nombre fixe de jours de campagne, si sa permanence tient encore.
+      const respawnSeconds = target.minor ? config.balance.minor_candidates.respawn_days * config.balance.time.real_seconds_per_game_day
+        : combat.ko_respawn_min_seconds + (combat.ko_respawn_max_seconds - combat.ko_respawn_min_seconds) * Math.pow(progress, combat.ko_respawn_progress_exponent);
       target.respawn_tick = state.tick + sim.secondsToTicks(respawnSeconds);
-      const dropped_cents = dropCandidateMoney(sim, target);
+      const dropped_cents = target.minor ? dropMinorMoney(sim, target) : dropCandidateMoney(sim, target);
       sim.emit('CandidateKO', { candidate_id: target.id, electoral_damage: koLoss, dropped_cents });
     }
   } else {
@@ -163,7 +166,8 @@ export function hit(sim, source, target, spec, attackId) {
   if (protectedHit) result.knockback = 0;
   if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
   if (revived) { target.combat = { ...combatState(), invulnerable_until_tick: target.combat.invulnerable_until_tick }; target.axis = 0; }
-  if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0) {
+  pressHit(sim, target);
+  if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0 && !isPress(target)) {
     if (target.temporary) { target.expired = true; target.combat.attack_id = null; }
     else demobilizeUnit(sim, target);
   }

@@ -35,7 +35,7 @@ export function triggerMeeting(sim, building, faction, candidateId = `candidate:
   building.meeting_hold_ticks = 0;
   building.meeting_pause_ticks = 0;
   building.meeting_until_tick = sim.state.tick + sim.secondsToTicks(sim.config.balance.buildings.meeting.hold_seconds + sim.config.balance.buildings.meeting.pause_grace_seconds);
-  for (const npc of sim.state.npcs.filter(n => !n.rally_event_id && n.rally_return_x == null)) {
+  for (const npc of sim.state.npcs.filter(n => !n.rally_event_id && n.rally_return_x == null && !['JOIN_GUARD', 'JOIN_RAID'].includes(n.task?.kind))) {
     if (['NEUTRE', 'SYMPATHISANT'].includes(npc.role) && zoneAt(sim.state.world, npc.x).biome_id === building.biome_id) {
       npc.meeting_target_id = building.id;
     }

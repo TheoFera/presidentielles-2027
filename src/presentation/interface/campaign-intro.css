@@ -1,0 +1,116 @@
+/* Scène d'ouverture de la Campagne (campaign-intro.js) et post-it des objectifs (campaign-objectives.js).
+   Pour garder la fluidité, seules la transformation et l'opacité bougent : la carte graphique
+   s'en charge sans redessiner la page. Aucune ombre ni flou animés. */
+#campaign-intro { position: absolute; inset: 0; z-index: 17; pointer-events: none; overflow: hidden; }
+#campaign-intro[hidden] { display: none; }
+
+/* Bandes de cinéma : elles se retirent pour les consignes, ou au coup d'annonce. */
+.intro-band { position: absolute; left: 0; right: 0; height: 6.5%; background: #070d1f; transition: transform .55s cubic-bezier(.4, 0, .2, 1); }
+.intro-band-top { top: 0; }
+.intro-band-bottom { bottom: 0; }
+#campaign-intro.bands-out .intro-band-top { transform: translateY(-101%); }
+#campaign-intro.bands-out .intro-band-bottom { transform: translateY(101%); }
+
+/* Flash photo : un voile blanc très bref (opacité seulement). Ouverture : un fondu au noir qui s'ouvre sur la scène. */
+.intro-flash, .intro-fade { position: absolute; inset: 0; opacity: 0; }
+.intro-flash { background: #fff; }
+.intro-fade { background: #070d1f; }
+
+/* Dossier de campagne : le décor s'assombrit derrière la grande carte et le post-it. */
+#campaign-intro::before { content: ''; position: absolute; inset: 0; background: #070d1f; opacity: 0; transition: opacity .5s ease-out; }
+#game.intro-dossier #campaign-intro::before { opacity: .55; }
+
+/* Flash info du journal télévisé : titre sur fond blanc, pastille rouge « FLASH INFO »,
+   filet bleu-blanc-rouge, et brèves qui défilent sous le titre. */
+.intro-news {
+  position: absolute; left: 3%; right: 9%; bottom: 3.2%; display: grid;
+  font-size: clamp(12px, min(1.75vw, 3.1dvh), 25px); line-height: 1.15;
+  transform: translateX(-112%); transition: transform .5s cubic-bezier(.2, 1, .3, 1);
+}
+.intro-news.shown { transform: none; }
+.intro-news-head { display: flex; align-items: stretch; box-shadow: 0 .18em 0 #04081499; }
+.intro-news-flash {
+  display: flex; align-items: center; padding: .3em 1.1em .3em .7em; margin-right: -.55em; z-index: 1;
+  background: linear-gradient(#ef3f45, #b5161c); color: #fff; font: 400 1.05em/1 Impact, 'Arial Black', sans-serif;
+  letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; clip-path: polygon(0 0, 100% 0, calc(100% - .55em) 100%, 0 100%);
+}
+.intro-news-title {
+  flex: 1; min-width: 0; margin: 0; padding: .35em .8em .35em 1.1em; background: linear-gradient(#ffffff, #e6ebf5); color: #0c1f4e;
+  font-weight: 750; border-top: .14em solid; border-image: linear-gradient(90deg, #2457d6 0 33%, #fff 33% 66%, #e5333b 66%) 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.intro-news-title strong { font-weight: 950; text-transform: uppercase; letter-spacing: .01em; }
+.intro-news-ticker { display: flex; height: 1.55em; margin-right: 6%; overflow: hidden; background: #0c1f4e; color: #f2f5fb; font-size: .62em; font-weight: 700; }
+.intro-news-live { display: flex; align-items: center; gap: .4em; padding: 0 .8em; background: #ffc94a; color: #0c1f4e; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.intro-news-live i { width: .55em; height: .55em; border-radius: 50%; background: #e5333b; animation: intro-live 1s steps(2) infinite; }
+.intro-news-scroll { flex: 1; display: flex; align-items: center; overflow: hidden; }
+.intro-news-track { padding-left: 1em; white-space: pre; animation: intro-ticker 22s linear infinite; }
+.intro-news:not(.shown) .intro-news-track, .intro-news:not(.shown) .intro-news-live i { animation-play-state: paused; }
+@keyframes intro-ticker { to { transform: translateX(-50%); } }
+@keyframes intro-live { 50% { opacity: .2; } }
+
+/* Consignes : touches à l'écran, au-dessus du candidat. */
+.intro-prompt {
+  position: absolute; left: 50%; top: 55%; display: flex; align-items: center; gap: .55em; margin: 0;
+  color: #fff5df; font: 800 clamp(13px, min(1.8vw, 3.2dvh), 24px)/1.2 system-ui, sans-serif; white-space: nowrap;
+  text-shadow: 0 2px #2c3c40, 1px 0 #2c3c40, -1px 0 #2c3c40;
+  transform: translate(-50%, 10px); opacity: 0; transition: transform .3s ease-out, opacity .3s;
+}
+.intro-prompt.shown { transform: translate(-50%, 0); opacity: 1; }
+.intro-prompt[data-step="waiting"], .intro-prompt[data-step="idle"] { top: 72%; font-size: clamp(11px, min(1.3vw, 2.3dvh), 17px); }
+/* Dossier : l'invitation à continuer clignote doucement sous la carte et les objectifs. */
+.intro-prompt[data-step="dossier"] { top: 86%; font-size: clamp(11px, min(1.45vw, 2.6dvh), 19px); }
+.intro-prompt[data-step="dossier"].shown { animation: intro-blink 1.6s ease-in-out infinite; }
+@keyframes intro-blink { 50% { opacity: .45; } }
+.intro-keys { display: flex; gap: .3em; }
+.intro-prompt kbd {
+  display: inline-grid; place-items: center; min-width: 1.9em; padding: .12em .45em; border: 2px solid #253438; border-bottom-width: 5px; border-radius: 7px;
+  background: #fff5df; color: #253438; font: inherit; text-shadow: none; animation: intro-key 1s ease-in-out infinite;
+}
+.intro-prompt kbd.wide { min-width: 4.5em; }
+.touch-only { display: none; }
+@media (any-pointer: coarse) { .keyboard-only { display: none; } .touch-only { display: flex; } }
+@keyframes intro-key { 50% { transform: scale(1.08); } }
+
+/* Pendant la scène, l'interface attend le début de la campagne. */
+#game.campaign-intro :is(#funds, #campaign-events, #notice, #poll-scores) { visibility: hidden; }
+#game.campaign-intro:not(.intro-tutorial) #electoral-display { visibility: hidden; }
+#game.campaign-intro:not(.intro-tuto-move):not(.intro-tuto-strike) #touch-controls { visibility: hidden; }
+#game.intro-tuto-move .touch-directions button, #game.intro-tuto-strike #attack-touch { animation: intro-key 1s ease-in-out infinite; outline: 3px solid #ffc94a; outline-offset: 2px; }
+/* Dossier : la carte et le post-it partent agrandis au centre, puis glissent à leur place. */
+#game.campaign-intro :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
+#game.intro-dossier :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
+/* Noms des six quartiers en arc autour de la grande roue (map-wheel.js) : visibles seulement dans le dossier. */
+.map-wheel-names { opacity: 0; transition: opacity .4s ease-out; pointer-events: none; }
+#game.intro-dossier .map-wheel-names { opacity: 1; }
+.map-wheel-name { font: 900 16px system-ui, sans-serif; letter-spacing: .03em; text-transform: uppercase; fill: #fff5df; stroke: #253438; stroke-width: 3.4px; stroke-linejoin: round; paint-order: stroke fill; }
+
+/* Post-it des objectifs (deux premières parties). Il tient dans la colonne de gauche, aussi large que
+   la carte : les annonces d'évènements, centrées, laissent toujours cette colonne libre. Placé sous l'argent. */
+#campaign-objectives {
+  position: absolute; left: var(--map-margin, 8px); top: calc(3.4% + clamp(30px, 3.6vw, 48px)); z-index: 19;
+  width: var(--map-size, 150px); pointer-events: none;
+  font: 650 clamp(9px, calc(var(--map-size, 150px) * .068), 15px)/1.25 system-ui, sans-serif; transform-origin: 50% 50%;
+}
+#campaign-objectives[hidden] { display: none; }
+.postit {
+  position: relative; padding: .6em .65em .55em; border-radius: 2px 2px 16px 2px; color: #2b3436;
+  background: linear-gradient(170deg, #fff6b0, #ffe36e 88%); box-shadow: 0 3px 0 #1d2a2d3d; transform: rotate(-1.5deg);
+}
+.postit h2 { margin: 0 0 .3em; font-size: 1.05em; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #5c4a12; }
+.postit ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .28em; }
+.postit li { position: relative; padding-left: 1.2em; }
+.postit li::before { content: ''; position: absolute; left: .2em; top: .42em; width: .48em; height: .48em; border-radius: 50%; background: #2b3436; }
+.postit li small { font-size: .9em; font-weight: 800; color: #8a6a12; }
+.postit li.done { color: #6a6f5c; text-decoration: line-through 2px #c8322b99; }
+.postit li.done::before { content: '✓'; top: -.05em; left: .05em; width: auto; height: auto; background: none; color: #2f7d4a; font-weight: 900; }
+.postit li.just-done::before { animation: postit-check .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+.postit-note { margin: .1em 0 0; font-weight: 750; }
+.postit-note:empty { display: none; }
+.postit-done .postit h2 { color: #2f7d4a; font-size: 1.3em; }
+@keyframes postit-check { from { transform: scale(2.4); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-band, .intro-news, .intro-prompt, .map-wheel-names, #campaign-intro::before, #game.campaign-intro :is(#electoral-display, #campaign-objectives) { transition: none; }
+  .intro-prompt kbd, .intro-prompt[data-step="dossier"].shown, .intro-news-track, .intro-news-live i, .postit li.just-done::before, #game.intro-tuto-move .touch-directions button, #game.intro-tuto-strike #attack-touch { animation: none; }
+}

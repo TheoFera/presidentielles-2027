@@ -55,7 +55,7 @@ export function managementReport(state, config, candidate, npc, building) {
   if (building) {
     const settings = buildingSettings(config, building, candidate.faction_id);
     const offer = buildingOffer(state, config, candidate, building);
-    const price = offer?.cost ?? (building.state === 'NEUTRAL' ? settings.capture_cost : null);
+    const price = offer?.cost ?? (building.state === 'NEUTRAL' ? (settings.capture_cost_by_site?.[building.site_id] ?? settings.capture_cost) : null);
     lines.push('', '— BÂTIMENT INSPECTÉ —', `${buildingLabel(building, candidate.faction_id)} · ${building.id}`,
       `${building.subzone_id} · x=${f(building.x)}`,
       `Propriétaire : ${building.owner_id ? names[building.owner_id].name : building.ownership_model === 'neutral_service' ? 'Service neutre, jamais possédé' : 'Aucun'}`,

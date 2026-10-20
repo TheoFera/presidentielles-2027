@@ -10,7 +10,7 @@ import { updateCollector } from '../src/simulation/tasks.js';
 import { chooseAIObjective, strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { formatCarriedMoney, moneyTier } from '../src/presentation/carte/money.js';
 import { zoneAt } from '../src/simulation/world.js';
-import { addMoneyPickup } from '../src/simulation/money.js';
+import { addMoneyPickup, dropAmounts } from '../src/simulation/money.js';
 
 const root = new URL('../donnees-jeu/', import.meta.url);
 const load = async name => JSON.parse(await readFile(new URL(`${name}.json`, root), 'utf8'));
@@ -106,14 +106,21 @@ test('KO : 30 % au sol, cagnotte intacte et attente minimale puis maximale', () 
   }
 });
 
-test('KO : l’argent perdu tombe en plusieurs billets ramassables un par un', () => {
+test('KO : l’argent perdu tombe en liasses de tailles mélangées (8 au plus), ramassables une par une', () => {
   const sim = make(), victim = sim.state.candidates[0], attacker = sim.state.candidates[1];
   victim.x = attacker.x; victim.money = 12.34567;
   const before = new Set(sim.state.money_pickups.map(p => p.id));
   hit(sim, attacker, victim, { kind: 'CANDIDATE', step: 3, damage: 100, knockback: 0, electoral_damage: 0 }, 'test');
   const lost = sim.state.events.find(e => e.type === 'CandidateKO').dropped_cents;
   const bills = sim.state.money_pickups.filter(p => !before.has(p.id));
-  assert.equal(bills.length, config.balance.money.max_drop_pickups);
+  // 3,7 k€ perdus : 4 liasses de valeurs décroissantes, au plus 8 même pour une très grosse somme.
+  assert.equal(bills.length, 4);
+  // Les liasses restent près du candidat : milieu, puis une place de chaque côté, puis plus loin.
+  const spacing = config.balance.money.drop_spacing_units;
+  assert.deepEqual(bills.map(p => Math.round((p.x - victim.x) / spacing)), [0, 1, -1, 2]);
+  assert.deepEqual(dropAmounts(config, lost).slice(1), [85000, 55000, 40000]);
+  assert.equal(dropAmounts(config, 9000 * 100).length, 8); assert.equal(dropAmounts(config, 50000 * 100).length, 8);
+  assert.deepEqual(dropAmounts(config, 900 * 100), [90000]);
   assert.equal(bills.reduce((sum, p) => sum + p.amount_cents, 0), lost);
   assert.ok(bills.every(p => Number.isInteger(p.amount_cents) && p.amount_cents > 0 && p.collect_after_tick > sim.state.tick));
   const copy = make(); copy.importSnapshot(sim.exportSnapshot());
@@ -127,7 +134,7 @@ test('KO : l’argent perdu tombe en plusieurs billets ramassables un par un', (
     const tick = sim.state.tick;
     sim.step();
     assert.ok(!sim.state.money_pickups.includes(bill));
-    collected += sim.state.events.filter(e => e.tick === tick).filter(e => e.type === 'MoneyPickedUp' && e.candidate_id === attacker.id)
+      collected += sim.state.events.filter(e => e.tick > tick).filter(e => e.type === 'MoneyPickedUp' && e.candidate_id === attacker.id)
       .reduce((sum, e) => sum + e.amount_cents, 0);
   }
   assert.equal(collected, lost);

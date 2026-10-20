@@ -239,7 +239,8 @@ function drawPresenceRow(ctx, x, y, need, color, ok, text) {
 export function drawSiteRequirements(renderer, state) {
   const { ctx, config, p, metrics: m, width } = renderer;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
-  if (!candidate || candidate.eliminated || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return;
+  // Scène d'ouverture : pas de conditions d'achat à l'écran, la campagne n'a pas commencé.
+  if (!candidate || candidate.eliminated || state.campaign_intro || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return;
   const color = p.factions[candidate.faction_id]?.color;
   const focus = purchaseInteractionAvailable(state, candidate) ? nearestOffer(state, config, candidate) : null;
   ctx.save();

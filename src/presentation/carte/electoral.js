@@ -94,7 +94,7 @@ export function drawMeetingMicro(renderer, frame) {
   renderer.ctx.drawImage(micro, centerX - w / 2, baseY - h, w, h);
 }
 
-export const territoryColors = { melenchon: '#b94e54', le_pen: '#30496b', philippe: '#e9e9e2', contested: '#9da79e' };
+export const territoryColors = { melenchon: '#b94e54', le_pen: '#4a74b4', philippe: '#e9e9e2', contested: '#9da79e' };
 
 /** Couleur d'un candidat dans le sondage : celle de ses territoires sur la carte, sinon celle de sa fiche. */
 export const pollColor = (factions, faction) => territoryColors[faction] || factions[faction]?.color || territoryColors.contested;

@@ -53,7 +53,7 @@ export function aiCombatCommands(state, config, c, target, tempo = 1) {
     return result;
   }
   if (c.combat.press_tick != null) {
-    if (state.tick - c.combat.press_tick >= Math.ceil(config.balance.candidate_combat.charge_ready_seconds * hz)) result.push({ type: 'ReleaseAttack', candidateId: c.id });
+    if (state.tick - c.combat.press_tick - (c.combat.press_delay_ticks || 0) >= Math.ceil(config.balance.candidate_combat.charge_ready_seconds * hz)) result.push({ type: 'ReleaseAttack', candidateId: c.id });
     return result;
   }
   if (c.is_ko || c.combat.attack_id || c.combat.stun_ticks || c.combat.hitstop_ticks || c.dash_active) return result;

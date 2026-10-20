@@ -20,7 +20,7 @@ export function startRally(sim, event) {
   const direction = random(state.campaign_director) < 0.5 ? 1 : -1;
   const start = zones[direction > 0 ? 0 : 2].center, end = zones[direction > 0 ? 2 : 0].center;
   const eligible = state.npcs.filter(n => zoneAt(state.world, n.x).biome_id === event.target_biome_id
-    && !['DEMOBILISE', 'SERVICE_D_ORDRE'].includes(n.role) && n.task?.kind !== 'JOIN_RAID' && !n.rally_event_id).sort(stableIdOrder);
+    && !['DEMOBILISE', 'SERVICE_D_ORDRE'].includes(n.role) && !['JOIN_RAID', 'JOIN_GUARD'].includes(n.task?.kind) && !n.rally_event_id).sort(stableIdOrder);
   // Un mélange déterministe évite de choisir toujours les mêmes identités.
   for (let i = eligible.length - 1; i > 0; i--) {
     const j = Math.floor(random(state.campaign_director) * (i + 1));

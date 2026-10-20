@@ -48,6 +48,8 @@ export class AIController extends Controller {
     return withAIObservation(state, () => this.decide(state, candidateId));
   }
   decide(state, candidateId) {
+    // Scène d'ouverture : l'ordinateur attend le début de la campagne (rien à décider).
+    if (state.campaign_intro) return [];
     if (state.campaign_style_selection?.candidate_id === candidateId) return state.ai_enabled
       ? [{ type: 'SelectCampaignStyle', candidateId, styleId: DEFAULT_UNLOCKS[state.candidates.find(c => c.id === candidateId).faction_id][0] }] : [];
     if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
@@ -57,7 +59,7 @@ export class AIController extends Controller {
     if (candidate.combat.press_tick != null && !candidate.campaign_debate_id) {
       if (!state.ai_enabled) return [{ type: 'CancelAttack', candidateId }];
       const readyTicks = Math.ceil(this.config.balance.candidate_combat.charge_ready_seconds * this.config.balance.simulation_architecture.fixed_tick_hz);
-      return state.tick - candidate.combat.press_tick >= readyTicks
+      return state.tick - candidate.combat.press_tick - (candidate.combat.press_delay_ticks || 0) >= readyTicks
         ? [{ type: 'ReleaseAttack', candidateId }] : [{ type: 'Move', candidateId, axis: 0 }];
     }
     // Hors combat, l’IA peut réfléchir moins souvent : entre deux réflexions, elle n’envoie rien et garde sa direction.

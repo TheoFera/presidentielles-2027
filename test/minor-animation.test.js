@@ -166,9 +166,10 @@ test('La marche générale conserve le mouvement discret commun et alterne les a
   for (const time of [Math.PI/26,3*Math.PI/26]) {
     calls.length = 0;
     drawStandingSprite(ctx,image,{x:0,y:0,width:100,height:200},200,100,standingSpriteMotion('walk',time));
-    assert.equal(calls.length,3); assert.equal(calls[0][4],150);
-    assert.ok(calls.slice(1).every(args=>args[8]>=47&&args[8]<=50));
-    assert.ok(calls[1][8]!==calls[2][8]);
+    assert.equal(calls.length,3); assert.equal(calls[2][4],150);
+    assert.ok(calls.slice(0,2).every(args=>args[8]>=49&&args[8]<=52));
+    assert.ok(calls[0][8]!==calls[1][8]);
+    assert.ok(calls.slice(0,2).every(args=>args[6]<-50&&args[6]+args[8]>=-3),'Les jambes recouvrent la jonction du genou.');
   }
 });
 

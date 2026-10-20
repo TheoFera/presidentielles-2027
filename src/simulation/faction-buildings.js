@@ -2,14 +2,14 @@ import { wrap } from './world.js';
 import { distance, stableIdOrder } from './territory.js';
 import { buildingSettings, factionVariant } from './building-rules.js';
 import { paymentStatus } from './campaign-budget.js';
-import { captureLimitReason, captureSite, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
+import { captureLimitReason, captureSite, headquartersProtected, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
 import { cancelMeeting } from './electoral-buildings.js';
 import { raidRecruits, startRaid } from './military.js';
 import { demobilizeUnit } from './combat-state.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
-  return state.buildings.filter(b => b.state === 'ACTIVE' && !b.headquarters
+  return state.buildings.filter(b => b.state === 'ACTIVE' && !headquartersProtected(state, b)
     && (b.type === 'meeting' ? b.meeting_until_tick > state.tick && b.meeting_faction_id && b.meeting_faction_id !== cabinet.owner_id
       : b.owner_id && b.owner_id !== cabinet.owner_id && allowed.includes(b.type === 'faction' ? b.variant : b.type)))
     .map(b => ({ b, distance: wrap((b.x - cabinet.x) * direction, state.world.length) }))
@@ -69,7 +69,7 @@ export function commitFactionAction(sim, candidate, building, offer) {
   }
   if (offer.kind === 'CLOSE') {
     const victim = state.buildings.find(b => b.id === offer.victim_id);
-    if (!victim || victim.headquarters) return false;
+    if (!victim || headquartersProtected(state, victim)) return false;
     const targetFaction = victim.type === 'meeting' ? victim.meeting_faction_id : victim.owner_id;
     if (victim.type === 'meeting') {
       const targeted = victim.meeting_faction_id;

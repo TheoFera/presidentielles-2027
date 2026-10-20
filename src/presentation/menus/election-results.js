@@ -14,6 +14,21 @@ const CONFETTI_COLORS = ['#2457d6', '#ffffff', '#e5333b', '#ffd35a'];
 const format = (n, digits = 1) => n.toLocaleString('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const reducedMotion = () => !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const person = id => CANDIDATES.find(c => c.id === id);
+// Portraits du face-à-face (fonds CSS) : chargés pendant la campagne pour apparaître dès 20 h, puis gardés en mémoire.
+const PORTRAITS = [
+  new URL('../../../assets/images/resultats/portrait-melenchon.png', import.meta.url).href,
+  new URL('../../../assets/images/resultats/portrait-le-pen.png', import.meta.url).href,
+  new URL('../../../assets/images/resultats/portrait-philippe.png', import.meta.url).href,
+];
+const warmedPortraits = [];
+export function warmElectionPortraits() {
+  if (warmedPortraits.length) return;
+  for (const src of PORTRAITS) {
+    const image = new Image(); image.decoding = 'async'; image.src = src;
+    image.decode?.().catch(() => { /* Hors ligne : l’écran chargera l’image à l’affichage. */ });
+    warmedPortraits.push(image);
+  }
+}
 const fem = id => FEMININE.has(id) ? 'e' : '';
 
 export function expressedScores(scores, factions) {

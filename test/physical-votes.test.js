@@ -294,7 +294,7 @@ test('un bâtiment sans partisans reste à son propriétaire ; seul un raid plus
   advance(sim, sim.secondsToTicks(20));
   assert.equal(site.owner_id, 'le_pen');
   // Un garde adverse en raid fait pression sur le bâtiment, plus fort que la présence locale (nulle).
-  Object.assign(sim.state.npcs[0], { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', pressure_target_id: site.id });
+  Object.assign(sim.state.npcs[0], { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', raid: { id: 'test' }, pressure_target_id: site.id });
   for (let tick = 0; tick <= sim.secondsToTicks(sim.config.balance.buildings.tour_communication.closure_delay_seconds); tick++) updateStrategicSites(sim);
   assert.equal(site.owner_id, null);
 });
@@ -304,6 +304,7 @@ test('raid : les gardes prennent en chasse un candidat adverse à environ un tie
   const s = sim.config.balance.physical_units.service_ordre;
   const guard = sim.state.npcs[0];
   Object.assign(guard, { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', guard_biome_id: sim.state.world.subzones[0].biome_id,
+    raid: { id: 'raid:1', phase: 'OUTBOUND', direction: 1 },
     guard_anchor_x: guard.x, task: null, facing: 1, hidden_durability: s.hidden_durability, next_donation_tick: null, donation_cents: 0 });
   const rival = sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen');
   for (const candidate of sim.state.candidates) if (candidate !== rival) candidate.x = (guard.x + sim.state.world.length / 2) % sim.state.world.length;
