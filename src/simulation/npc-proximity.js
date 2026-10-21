@@ -2,6 +2,8 @@ import { wrap } from './world.js';
 
 // Index de travail, absent des sauvegardes. Les rôles et les équipes restent lus dans l'état vivant.
 const activeIndexes = new WeakMap();
+// Rangés par liste d'habitants : la vue d'affichage, lue par l'IA, partage cette liste avec l'état de la simulation.
+// L'index du pas est donc remis à jour pour l'IA au lieu d'être reconstruit à chaque pas.
 const reusableIndexes = new WeakMap();
 const CELL_SIZE = 8;
 
@@ -24,6 +26,7 @@ class NpcProximity {
 
   refresh(state) {
     if (this.length !== (state.debate_bounds ? null : state.world.length) || this.population.length !== state.npcs.length) return false;
+    this.state = state;
     for (let i = 0; i < state.npcs.length; i++) {
       if (this.population[i] !== state.npcs[i]) return false;
       this.update(state.npcs[i]);
@@ -93,8 +96,8 @@ function indexFor(state, radius) {
   if (!scope) return null;
   if (!scope.index && (state.npcs.length < 64 || ++scope.queries < 4 || radius * 2 >= state.world.length)) return null;
   if (!scope.index) {
-    let index = reusableIndexes.get(state);
-    if (!index?.refresh(state)) { index = new NpcProximity(state); reusableIndexes.set(state, index); }
+    let index = reusableIndexes.get(state.npcs);
+    if (!index?.refresh(state)) { index = new NpcProximity(state); reusableIndexes.set(state.npcs, index); }
     scope.index = index;
   }
   return scope.index;

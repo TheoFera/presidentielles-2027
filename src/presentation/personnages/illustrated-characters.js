@@ -16,7 +16,26 @@ import { drawPressCharacter } from './press-sprites.js';
 
 import { biomeArtId, npcAppearanceAssetId } from '../../simulation/npc-appearance.js';
 export { biomeArtId, npcAppearanceAssetId, npcBiomeOrder, npcVariantCounts, npcVisualBiome } from '../../simulation/npc-appearance.js';
-const hash = value => { let sum = 0; for (const c of String(value)) sum = (sum * 31 + c.charCodeAt(0)) >>> 0; return sum; };
+const hashes = new Map();
+const hash = value => {
+  let sum = hashes.get(value);
+  if (sum !== undefined) return sum;
+  sum = 0; for (const c of String(value)) sum = (sum * 31 + c.charCodeAt(0)) >>> 0;
+  // Gardé par identifiant (les unités temporaires en créent sans cesse : mémoire bornée).
+  if (hashes.size > 4096) hashes.clear();
+  hashes.set(value, sum); return sum;
+};
+// Sous-zones rangées par identifiant, une fois par carte.
+const subzoneIndexes = new WeakMap();
+function subzoneById(world, id) {
+  let index = subzoneIndexes.get(world.subzones);
+  if (!index) {
+    index = new Map();
+    for (const zone of world.subzones) if (!index.has(zone.id)) index.set(zone.id, zone);
+    subzoneIndexes.set(world.subzones, index);
+  }
+  return index.get(id);
+}
 
 export function characterAssetId(entity, state) {
   const variation = hash(entity.id);
@@ -26,7 +45,7 @@ export function characterAssetId(entity, state) {
   if (entity.role === 'CANDIDAT' || entity.role === 'HOLOGRAMME') return `character-${entity.faction_id}`;
   if (entity.role === 'CRS') return `crs-${variation % 2}`;
   if (entity.role === 'SERVICE_D_ORDRE') return `security-${variation % 2}`;
-  const origin = state.world?.subzones.find(z => z.id === entity.origin_subzone_id)
+  const origin = (state.world?.subzones && subzoneById(state.world, entity.origin_subzone_id))
     || (state.world?.subzones.length ? zoneAt(state.world, entity.x) : null);
   const homeBiome = biomeArtId(origin?.biome_id || 'bobo');
   const appearance = npcAppearanceAssetId(entity, state, homeBiome);
