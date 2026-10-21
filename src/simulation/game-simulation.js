@@ -11,7 +11,7 @@ import { aiPersuasionMultiplier } from './ai-balance.js';
 import { MIND_STANCES } from './ai-mind.js';
 import { CampaignStyleSystem, stylePersuasionTimeMultiplier } from './campaign-styles.js';
 import { initializeCampaign, campaignCommand, updateCampaignEvents, CampaignEventDirector, resolveCampaignEvent } from './campaign-events.js';
-import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, wrap, zoneAt } from './world.js';
+import { FACTIONS, buildWorld, fingerprint, npcHomeX, random, ringDelta, socialPointById, wrap, zoneAt } from './world.js';
 import { createInfrastructure, updateEconomy, updateProduction } from './economy.js';
 import { chooseHomeX, createSpawnTimers, updateSpawns, completePopulation } from './spawns.js';
 import { npcHasArrived } from './npc-entry.js';
@@ -522,7 +522,7 @@ export class GameSimulation {
         if (npc.role === 'SERVICE_D_ORDRE' || npc.combat.engaged || interrupted(npc)) continue;
         npc.moving = false;
         if (npc.role === 'SYMPATHISANT' && npc.handoff_until_tick > state.tick) continue;
-        const origin = state.world.socialPoints.find(p => p.id === npc.origin_social_point_id);
+        const origin = socialPointById(state.world, npc.origin_social_point_id);
         if (npc.meeting_target_id && meetingAttendeeStep(this, npc)) continue;
         if (npc.role === 'SYMPATHISANT' && npc.task?.kind === 'COLLECT_TRACT') { updateCollector(this, npc); continue; }
         if (npc.role === 'SYMPATHISANT' && ['DELIVER_DONATION', 'RETURN_DONATION'].includes(npc.task?.kind)) { updateDonationCourier(this, npc); continue; }

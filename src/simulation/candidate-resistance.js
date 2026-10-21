@@ -4,6 +4,13 @@ import { distance } from './territory.js';
 import { defeatMinor } from './minor-candidates.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
+// Un adversaire assez proche pour empêcher la récupération (parcours direct, sans liste temporaire).
+function threatNear(state, list, candidate, settings) {
+  for (const other of list) if (other.id !== candidate.id && other.faction_id && other.faction_id !== candidate.faction_id
+    && distance(state, candidate.x, other.x) <= settings.recovery_safe_distance) return true;
+  return false;
+}
+
 export function updateCandidateResistance(sim) {
   const { state, config, hz } = sim; const settings = config.balance.candidate_combat;
   for (const candidate of state.candidates) {
@@ -25,8 +32,8 @@ export function updateCandidateResistance(sim) {
       } else if (state.tick >= candidate.disappear_tick) candidate.disappeared = true;
       continue;
     }
-    const safe = ![...state.candidates, ...state.npcs, ...state.temporary_units].some(other => other.id !== candidate.id && other.faction_id
-      && other.faction_id !== candidate.faction_id && distance(state, candidate.x, other.x) <= settings.recovery_safe_distance);
+    const safe = !(threatNear(state, state.candidates, candidate, settings) || threatNear(state, state.npcs, candidate, settings)
+      || threatNear(state, state.temporary_units, candidate, settings));
     // Sous les radars : la récupération commence tout de suite, même près d'un adversaire.
     if (invisibleToEnemies(candidate, state.tick) || safe && state.tick - candidate.last_damage_tick >= sim.secondsToTicks(settings.recovery_delay_seconds)) {
       candidate.resistance = Math.min(settings.resistance_max, candidate.resistance + settings.recovery_per_second / hz);

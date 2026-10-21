@@ -47,6 +47,13 @@ export function raidRecruits(state, building, faction) {
     .sort((a, b) => distance(state, a.x, building.x) - distance(state, b.x, building.x) || stableIdOrder(a, b));
 }
 
+/** Nombre de recrues possibles d'un raid (même règle que raidRecruits, sans liste ni tri). */
+export function raidRecruitCount(state, faction) {
+  let count = 0;
+  for (const n of state.npcs) if (n.role === 'SYMPATHISANT' && availableRecruit(state, n, faction) && !n.task) count++;
+  return count;
+}
+
 /** Achat d'un raid : les sympathisants les plus proches viennent au local pour en ressortir en service d'ordre. */
 export function startRaid(sim, building, faction, direction) {
   const { state, config } = sim;

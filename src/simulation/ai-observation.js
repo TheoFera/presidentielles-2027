@@ -39,6 +39,11 @@ export function withAIObservation(state, operation) {
   try { return withNpcProximity(state, operation); } finally { active.delete(state); }
 }
 
+/** Observation des décisions en cours, ou null en dehors (pendant un pas, l'état change : rien n'est réutilisé). */
+export function sharedAIObservation(state) {
+  return active.has(state) ? aiObservation(state) : null;
+}
+
 /** Groupement paresseux : aucune préparation si l'IA se contente de combattre ou d'attendre. */
 export function aiObservation(state) {
   const scope = active.get(state);

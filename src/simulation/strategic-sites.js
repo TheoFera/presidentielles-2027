@@ -5,6 +5,7 @@ import { buildingSettings, siteVariant, acceptsDonations, isCapturable } from '.
 import { stableIdOrder } from './territory.js';
 import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { recruitDefensiveGuards } from './military.js';
+import { sharedAIObservation } from './ai-observation.js';
 
 const neutralTypes = new Set(['imprimerie', 'meeting', 'institut_sondage']);
 
@@ -41,8 +42,13 @@ export function createInfrastructure(world, config, _rngState) {
 }
 
 export function localPoliticalPresence(state, subzoneId, faction) {
-  return state.npcs.filter(n => n.faction_id === faction && zoneAt(state.world, n.x).id === subzoneId
-    && ['SYMPATHISANT', 'MILITANT'].includes(n.role)).length;
+  // Pendant les décisions de l'IA, l'état ne bouge pas : les soutiens sont déjà comptés par quartier
+  // (ai-observation.js), au lieu de parcourir tous les habitants pour chaque bâtiment examiné.
+  const observation = sharedAIObservation(state);
+  if (observation) return observation.zones.get(subzoneId)?.readyByFaction.get(faction) || 0;
+  let count = 0;
+  for (const n of state.npcs) if (n.faction_id === faction && (n.role === 'SYMPATHISANT' || n.role === 'MILITANT') && zoneAt(state.world, n.x).id === subzoneId) count++;
+  return count;
 }
 
 export function activeOwnedSites(state, type, faction) {
@@ -111,11 +117,26 @@ export function neutralizeSite(sim, building, reason = 'PRESENCE_LOST') {
 
 export function updateStrategicSites(sim) {
   const { state, config, hz } = sim;
+  // Soutiens par quartier et raids comptés en un passage, puis refaits seulement après une fermeture (qui peut les changer).
+  let presence = null, raiders = null;
   for (const building of state.buildings) {
     if (!isCapturable(building) || building.state !== 'ACTIVE') continue;
-    building.current_political_presence = localPoliticalPresence(state, building.subzone_id, building.owner_id);
-    building.hostile_pressure = state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.raid && n.faction_id !== building.owner_id
-      && n.pressure_target_id === building.id).reduce((sum, n) => sum + config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.hostile_pressure_per_SO, 0);
+    if (!presence) {
+      presence = new Map(); raiders = [];
+      for (const n of state.npcs) {
+        if (n.role === 'SYMPATHISANT' || n.role === 'MILITANT') {
+          const zoneId = zoneAt(state.world, n.x).id;
+          let counts = presence.get(zoneId);
+          if (!counts) presence.set(zoneId, counts = new Map());
+          counts.set(n.faction_id, (counts.get(n.faction_id) || 0) + 1);
+        } else if (n.role === 'SERVICE_D_ORDRE' && n.raid) raiders.push(n);
+      }
+    }
+    building.current_political_presence = presence.get(building.subzone_id)?.get(building.owner_id) || 0;
+    let pressure = 0;
+    for (const n of raiders) if (n.faction_id !== building.owner_id && n.pressure_target_id === building.id)
+      pressure += config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.hostile_pressure_per_SO;
+    building.hostile_pressure = pressure;
     // Un bâtiment ne se perd plus faute de partisans : seul un raid plus nombreux que la présence locale le ferme.
     building.required_presence = building.hostile_pressure > 0 ? Math.floor(building.hostile_pressure) + 1 : 0;
     building.current_effective_presence = Math.max(0, building.current_political_presence - building.hostile_pressure);
@@ -123,7 +144,7 @@ export function updateStrategicSites(sim) {
     const s = buildingSettings(config, building);
     if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
-    if (building.closure_progress >= 1 - 1e-9) neutralizeSite(sim, building);
+    if (building.closure_progress >= 1 - 1e-9) { neutralizeSite(sim, building); presence = null; }
   }
 }
 

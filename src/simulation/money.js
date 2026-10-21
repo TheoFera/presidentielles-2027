@@ -117,6 +117,10 @@ const usableFunding = (state, npc) => state.buildings.filter(b => b.type === 'pe
   && b.owner_id === npc.faction_id && b.biome_id === zoneAt(state.world, npc.x).biome_id).sort((a, b) =>
     Math.abs(ringDelta(npc.x, a.x, state.world.length)) - Math.abs(ringDelta(npc.x, b.x, state.world.length)) || ordered(a, b));
 
+// Même règle que usableFunding, quand seule l'existence d'une permanence compte.
+const hasUsableFunding = (state, npc) => state.buildings.some(b => b.type === 'permanence' && b.state === 'ACTIVE'
+  && b.owner_id === npc.faction_id && b.biome_id === zoneAt(state.world, npc.x).biome_id);
+
 export function prepareDonations(sim) {
   for (const npc of sim.state.npcs) {
     // Les sympathisants d'un candidat mineur votent mais ne donnent pas.
@@ -160,7 +164,7 @@ export function updateDonationCourier(sim, npc) {
 export function settleMoney(sim) {
   const { state, config } = sim;
   for (const npc of state.npcs) {
-    if (npc.role !== 'SYMPATHISANT' || !npc.donation_cents || usableFunding(state, npc).length) continue;
+    if (npc.role !== 'SYMPATHISANT' || !npc.donation_cents || hasUsableFunding(state, npc)) continue;
     const candidate = state.candidates.find(c => c.faction_id === npc.faction_id && !c.eliminated && !c.is_ko && !c.campaign_debate_id
       && Math.abs(ringDelta(c.x, npc.x, state.world.length)) <= config.balance.money.donation.handoff_radius_units);
     if (!candidate) continue;

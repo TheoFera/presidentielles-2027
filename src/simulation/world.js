@@ -26,9 +26,21 @@ export function buildWorld(config) {
   return { length: subzones.length * width, subzones, socialPoints, scenery };
 }
 
+// Points d'origine rangés par identifiant (le premier en cas de doublon, comme find), une fois par liste.
+const socialPointIndexes = new WeakMap();
+export function socialPointById(world, id) {
+  let index = socialPointIndexes.get(world.socialPoints);
+  if (!index) {
+    index = new Map();
+    for (const point of world.socialPoints) if (!index.has(point.id)) index.set(point.id, point);
+    socialPointIndexes.set(world.socialPoints, index);
+  }
+  return index.get(id);
+}
+
 /** Place personnelle d'un PNJ dans sa sous-zone (ancien état sans place : le point d'origine). */
 export function npcHomeX(state, npc) {
-  return npc.home_x ?? state.world.socialPoints.find(p => p.id === npc.origin_social_point_id).x;
+  return npc.home_x ?? socialPointById(state.world, npc.origin_social_point_id).x;
 }
 
 export function zoneAt(world, x) {

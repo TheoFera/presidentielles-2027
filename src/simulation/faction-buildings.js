@@ -4,7 +4,7 @@ import { buildingSettings, factionVariant } from './building-rules.js';
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, headquartersProtected, localPoliticalPresence, neutralizeSite } from './strategic-sites.js';
 import { cancelMeeting } from './electoral-buildings.js';
-import { raidRecruits, startRaid } from './military.js';
+import { raidRecruitCount, startRaid } from './military.js';
 import { demobilizeUnit } from './combat-state.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
@@ -45,7 +45,7 @@ export function factionOffers(state, config, candidate, building) {
     const recruits = config.balance.physical_units.service_ordre.raid_recruits;
     for (const direction of [-1, 1]) {
       const blocked = building.level < s.raid_unlock_level ? 'LEVEL_REQUIRED' : state.tick < building.raid_ready_tick ? 'COOLDOWN'
-        : raidRecruits(state, building, candidate.faction_id).length < recruits ? 'NO_SUPPORTER' : null;
+        : raidRecruitCount(state, candidate.faction_id) < recruits ? 'NO_SUPPORTER' : null;
       offers.push(quote(state, config, candidate, building, 'RAID', config.balance.physical_units.service_ordre.raid_cost, building.x + direction * p.side_offset, p.side_radius, blocked, { direction, label: direction < 0 ? '← RAID' : 'RAID →' }));
     }
   } else {

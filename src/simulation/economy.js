@@ -7,7 +7,7 @@ import { candidateOnMeetingStage, meetingOffers, triggerMeeting } from './electo
 import { paymentStatus } from './campaign-budget.js';
 import { captureLimitReason, captureSite, createInfrastructure, localPoliticalPresence } from './strategic-sites.js';
 import { publishPoll } from './electoral-state.js';
-import { raidRecruits } from './military.js';
+import { raidRecruitCount } from './military.js';
 import { factionPressure } from './ai-balance.js';
 import { militantPlan, momentActive, momentSettings, supporterSpread } from './ai-moments.js';
 
@@ -326,7 +326,7 @@ export function aiEconomicTarget(state, config, candidate, objective = null, ada
         if (!enemy) continue;
         aim = aimAt(enemy);
         // Un raid consomme des sympathisants : en garder quelques-uns pour les tracts et les dons.
-        if (raidRecruits(state, building, candidate.faction_id).length - config.balance.physical_units.service_ordre.raid_recruits
+        if (raidRecruitCount(state, candidate.faction_id) - config.balance.physical_units.service_ordre.raid_recruits
           < settings.reserve_sympathisants_per_biome) continue;
       }
       // Coups décisifs, qui valent un long trajet : le local de faction, ses raids et fermetures,
