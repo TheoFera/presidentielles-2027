@@ -19,6 +19,7 @@ import { CampaignIntroScene } from './presentation/interface/campaign-intro.js';
 import { CampaignObjectives } from './presentation/interface/campaign-objectives.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
+import { warmUpSimulation } from './simulation/warm-up.js';
 import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
 import { withAIObservation } from './simulation/ai-observation.js';
@@ -440,6 +441,9 @@ async function start() {
         onProgress(.6 + .38 * Math.min(1, (i + 6) / ready.length), 'gpu');
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
+      // Partie d'essai jetable (simulation/warm-up.js) : le code de l'ordinateur et des événements est prêt
+      // avant la vraie partie, qui reste identique.
+      await warmUpSimulation(config, { pause: () => new Promise(resolve => requestAnimationFrame(resolve)) });
       // Derrière l'écran de chargement, d'abord la campagne déjà lancée (panneaux d'achat, étiquettes « soutiens »,
       // textes des gains), puis la scène d'ouverture : formatage des nombres, polices et étiquettes sont prêts
       // avant le début, au lieu d'être préparés au premier coup (à-coups mesurés de 35 à 50 ms sur téléphone).

@@ -11,6 +11,7 @@ import { combatActors, findCombatActor, nearestEnemy, enemies, combatState } fro
 import { updateCombat } from '../src/simulation/combat.js';
 import { verticalHit } from '../src/simulation/combat-actions.js';
 import { AIController, collectCommands } from '../src/simulation/controllers.js';
+import { warmUpSimulation } from '../src/simulation/warm-up.js';
 import { chooseAIObjective } from '../src/simulation/ai-strategy.js';
 import { withAIObservation, aiObservation } from '../src/simulation/ai-observation.js';
 import { combatDelta } from '../src/simulation/combat-geometry.js';
@@ -40,6 +41,18 @@ test('Les voix restent celles des PNJ après mutations au même tick', () => {
         state.npcs.filter(npc => npc.role === 'SYMPATHISANT' && npc.faction_id === faction).length);
     }
   }
+});
+
+test('La partie d’essai du chargement ne change rien à la vraie partie', async () => {
+  const play = () => {
+    const config = campaignConfig(), sim = new GameSimulation(config, 2027, 'candidate:le_pen'), ai = new AIController(config);
+    const idle = { commands: () => [] };
+    for (let i = 0; i < 400; i++) sim.step(collectCommands(sim.state, idle, ai));
+    return sim.exportSnapshot();
+  };
+  const before = play();
+  await warmUpSimulation(campaignConfig(), { pause: async () => {} });
+  assert.equal(play(), before);
 });
 
 test('Les formatages réutilisés conservent tous les nombres français affichés', () => {
