@@ -51,7 +51,11 @@ test('La partie d’essai du chargement ne change rien à la vraie partie', asyn
     return sim.exportSnapshot();
   };
   const before = play();
-  await warmUpSimulation(campaignConfig(), { pause: async () => {} });
+  // La partie d'essai passe bien par les « premières fois » qu'elle doit préparer.
+  const seen = new Set();
+  await warmUpSimulation(campaignConfig(), { pause: async () => {}, onEvent: type => seen.add(type) });
+  for (const type of ['NpcConverted', 'HeadquartersEstablished', 'CampaignStyleChanged', 'StartCampaignEvent', 'HitResolved', 'CandidateKnockedDown'])
+    assert.ok(seen.has(type), `partie d’essai sans ${type}`);
   assert.equal(play(), before);
 });
 

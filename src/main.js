@@ -411,6 +411,10 @@ async function start() {
     const ids = [...renderer.assets.protectedIds];
     let timeout, finished = false, restartTimeout;
     onProgress(0);
+    // Partie d'essai jetable (simulation/warm-up.js), jouée par petites tranches pendant que les images arrivent :
+    // le code de l'ordinateur, de la persuasion, du QG, du rassemblement et des coups est prêt avant la vraie
+    // partie, qui reste identique, sans allonger le chargement.
+    const warming = warmUpSimulation(config, { yieldEvery: 5 });
     try {
       await Promise.race([
         new Promise((_, reject) => {
@@ -441,9 +445,7 @@ async function start() {
         onProgress(.6 + .38 * Math.min(1, (i + 6) / ready.length), 'gpu');
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
-      // Partie d'essai jetable (simulation/warm-up.js) : le code de l'ordinateur et des événements est prêt
-      // avant la vraie partie, qui reste identique.
-      await warmUpSimulation(config, { pause: () => new Promise(resolve => requestAnimationFrame(resolve)) });
+      await warming;
       // Derrière l'écran de chargement, d'abord la campagne déjà lancée (panneaux d'achat, étiquettes « soutiens »,
       // textes des gains), puis la scène d'ouverture : formatage des nombres, polices et étiquettes sont prêts
       // avant le début, au lieu d'être préparés au premier coup (à-coups mesurés de 35 à 50 ms sur téléphone).
