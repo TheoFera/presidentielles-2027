@@ -129,6 +129,18 @@ test('Permanence : les commandes de tracts s’enchaînent tant qu’on reste de
   assert.ok(sim.state.transactions.filter(t => t.candidate_id === actor.id && t.kind === 'PRINT').length >= 2);
 });
 
+test('Permanence : la barre des tracts ne se remplit qu’à l’arrêt', () => {
+  const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
+  const printer = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, printer, actor); actor.x = printer.x;
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
+  unit(sim, 'SYMPATHISANT', actor.faction_id, printer.x);
+  // Va-et-vient devant la permanence : le candidat bouge sans jamais s’arrêter.
+  for (let i = 0; i < sim.secondsToTicks(1.5); i++) { actor.axis = i % 4 < 2 ? 1 : -1; advance(sim, 1); }
+  assert.ok(!actor.purchase_hold?.elapsed_ticks); assert.equal(actor.spending.PRINT || 0, 0);
+  actor.axis = 0; advance(sim, sim.secondsToTicks(1.1));
+  assert.equal(actor.spending.PRINT, 0.1);
+});
+
 test('Résistance cachée : récupération, KO, perte électorale et respawn au QG', () => {
   const sim = new GameSimulation(config); const target = candidate(sim); const attacker = candidate(sim, 'le_pen');
   const hq = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, hq, target);

@@ -186,6 +186,9 @@ export function updateEconomy(simulation) {
     }
     if (!offer?.enabled) { candidate.purchase_hold = null; continue; }
     if (candidate.purchase_hold?.key !== offer.key) candidate.purchase_hold = { ...offer, elapsed_ticks: 0 };
+    // L'impression de tracts n'avance que si le candidat est à l'arrêt devant la permanence.
+    const stopped = !candidate.axis && !candidate.moving && Math.abs(candidate.combat?.knockback_velocity || 0) <= 0.02;
+    if (offer.kind === 'PRINT' && !stopped) continue;
     candidate.purchase_hold.elapsed_ticks++;
     const heldBuilding = state.buildings.find(b => b.id === candidate.purchase_hold.target_id);
     if (heldBuilding && candidate.purchase_hold.kind === 'CAPTURE') heldBuilding.capture_progress = candidate.purchase_hold.elapsed_ticks / candidate.purchase_hold.required_ticks;

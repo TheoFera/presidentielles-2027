@@ -179,7 +179,6 @@ body.debate-mode #notice, body.debate-mode #network-status { display: none !impo
   .select-roster-heading { margin-bottom: 4px; font-size: 10px; }
   .select-roster { gap: 4px; }
   #start-menu .select-tile { height: 72px; }
-  #start-menu .select-tile img { object-fit: contain; height: 225%; }
   #start-menu .select-slot { min-height: 25px; top: 5px; left: 6px; padding: 3px 8px; font-size: 10px; }
   .select-name { padding: 16px 10px 6px; }
   .select-name strong { font-size: 24px; }
