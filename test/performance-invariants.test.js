@@ -10,7 +10,7 @@ import { formatNumber } from '../src/presentation/interface/number-format.js';
 import { combatActors, findCombatActor, nearestEnemy, enemies, combatState } from '../src/simulation/combat-state.js';
 import { updateCombat } from '../src/simulation/combat.js';
 import { verticalHit } from '../src/simulation/combat-actions.js';
-import { AIController, collectCommands } from '../src/simulation/controllers.js';
+import { AIController, collectCommands, prepareAICommands } from '../src/simulation/controllers.js';
 import { warmUpSimulation } from '../src/simulation/warm-up.js';
 import { chooseAIObjective } from '../src/simulation/ai-strategy.js';
 import { withAIObservation, aiObservation } from '../src/simulation/ai-observation.js';
@@ -57,6 +57,22 @@ test('La partie d’essai du chargement ne change rien à la vraie partie', asyn
   for (const type of ['NpcConverted', 'HeadquartersEstablished', 'CampaignStyleChanged', 'StartCampaignEvent', 'HitResolved', 'CandidateKnockedDown'])
     assert.ok(seen.has(type), `partie d’essai sans ${type}`);
   assert.equal(play(), before);
+});
+
+test('Les décisions de l’ordinateur préparées à l’avance sont celles du pas et ne changent pas la partie', () => {
+  const config = campaignConfig(), ai = new AIController(config), idle = { commands: () => [] };
+  const direct = new GameSimulation(config, 2027, 'candidate:le_pen'), ahead = new GameSimulation(campaignConfig(), 2027, 'candidate:le_pen');
+  for (let i = 0; i < 900; i++) {
+    // Comme le jeu : préparées sur la vue d'affichage, une image avant le pas.
+    const view = ahead.presentationView(), before = JSON.stringify(ahead.state);
+    const prepared = prepareAICommands(view, ai);
+    assert.equal(JSON.stringify(ahead.state), before, `préparation sans effet sur l’état, pas ${i}`);
+    const expected = collectCommands(direct.presentationView(), idle, ai);
+    const commands = collectCommands(view, idle, ai, prepared);
+    assert.deepEqual(commands, expected, `mêmes commandes, pas ${i}`);
+    direct.step(expected); ahead.step(commands);
+  }
+  assert.equal(ahead.exportSnapshot(), direct.exportSnapshot());
 });
 
 test('Les formatages réutilisés conservent tous les nombres français affichés', () => {

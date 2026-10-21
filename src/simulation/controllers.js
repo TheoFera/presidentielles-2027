@@ -104,12 +104,31 @@ function steadyTurns(state, config, candidate, result) {
   return result;
 }
 
-export function collectCommands(state, human, ai) {
+/**
+ * `prepared` : décisions de l'ordinateur déjà calculées sur ce même état (prepareAICommands), sinon calculées ici.
+ * Les décisions ne dépendent que de l'état : préparées à l'avance, elles sont identiques.
+ */
+export function collectCommands(state, human, ai, prepared = null) {
   if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return [];
   return withAIObservation(state, () => {
     const commands = [];
     for (const candidate of state.candidates) if (!candidate.eliminated)
-      commands.push(...(candidate.id === state.local_candidate_id ? human : ai).commands(state, candidate.id));
+      commands.push(...(candidate.id === state.local_candidate_id ? human.commands(state, candidate.id)
+        : prepared?.get(candidate.id) ?? ai.commands(state, candidate.id)));
     return commands;
   });
+}
+
+/**
+ * Décisions de l'ordinateur pour le prochain pas, calculées pendant une image sans pas de simulation :
+ * l'image qui joue le pas n'a plus à les faire (moins d'à-coups). L'état ne doit pas changer entre les deux.
+ */
+export function prepareAICommands(state, ai) {
+  const prepared = new Map();
+  if ([GamePhase.FIRST_ROUND_RESULTS, GamePhase.RESULTS].includes(state.phase)) return prepared;
+  withAIObservation(state, () => {
+    for (const candidate of state.candidates) if (!candidate.eliminated && candidate.id !== state.local_candidate_id)
+      prepared.set(candidate.id, ai.commands(state, candidate.id));
+  });
+  return prepared;
 }

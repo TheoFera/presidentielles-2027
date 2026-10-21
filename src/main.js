@@ -186,6 +186,7 @@ async function start() {
   let noticeRemaining = 0;
   let previousTime = performance.now();
   let lastDrawnTime = -Infinity;
+  let stepped = false; // un pas de simulation joué pendant cette image
   let debugElapsed = 0;
   // Transitions de la campagne : rideau entre carte et débats, « Place au vote… » avant les résultats.
   const transitionSettings = config.prototype.presentation.transitions;
@@ -667,9 +668,12 @@ async function start() {
     void requireAccount(menu, accounts, { resume: () => showMultiplayerSetup(menu, connectRoom), back: () => menu.home(), suggestion: profile.nickname });
   }
 
+  // Décisions de l'ordinateur préparées pendant l'image précédente, sans pas de simulation (voir la fin de frame) :
+  // valables seulement pour ce même état, donc identiques à celles calculées au moment du pas.
+  let preparedAI = null;
   function matchCommands() {
     if (['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase)) return [];
-    if (!session) return collectCommands(state, human, ai);
+    if (!session) return collectCommands(state, human, ai, preparedAI?.state === state ? preparedAI.commands : null);
     const frame = ++campaignFrame;
     return withAIObservation(state, () => state.candidates.filter(c => !c.eliminated).flatMap(candidate => {
       if (candidate.id === state.local_candidate_id) return human.commands(state, candidate.id);
@@ -881,6 +885,7 @@ async function start() {
         campaignPrediction?.decay(paused ? 0 : elapsed);
         guestView();
       }
+      stepped = false;
       if (arrivalRemaining > 0) arrivalRemaining -= elapsed;
       if (!paused && !document.hidden && (!session || session.host) && !sceneFreeze && arrivalRemaining <= 0) {
         const frameStart = state;
@@ -896,7 +901,7 @@ async function start() {
           changedCamera ||= pending.some(c => ['DebugSelectCandidate', 'DebugTeleport', 'DebugTeleportTarget'].includes(c.type));
           pending = [];
           if (lastTick) previous = simulation.motionSnapshot();
-          simulation.step(commands);
+          simulation.step(commands); stepped = true;
           // Vue à jour après chaque pas : l’IA du pas suivant lit le bon numéro de pas et la bonne phase.
           state = simulation.presentationView();
         }, { maxTicks: catchUpTicks(clock, frameSeconds, simulationSpeed),
@@ -966,6 +971,10 @@ async function start() {
       }
       debugElapsed += elapsed;
       if (debugElapsed >= config.prototype.debug.refresh_seconds) { debug.update(state, elapsed > 0 ? 1 / elapsed : 0); debugElapsed = 0; }
+      // À 60 images par seconde, un pas de simulation (30 par seconde) tombe une image sur deux. L'image sans pas
+      // prépare les décisions de l'ordinateur du pas suivant : le travail est réparti sur les deux images.
+      if (!session && !stepped && !paused && !document.hidden && preparedAI?.state !== state && ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase))
+        preparedAI = { state, commands: prepareAICommands(state, ai) };
       requestAnimationFrame(frame);
     } catch (error) { showError(error, true); }
   }
