@@ -31,6 +31,9 @@ try {
   await page.waitForFunction(() => window.controleSO?.ready, { timeout: 90000 });
   await page.evaluate(() => {
     window.controleSO.pause();
+    for (const actors of Object.values(window.controleSO.actors)) {
+      if (new Set(actors.map(n => n.id)).size !== actors.length) throw Error('Chaque personnage de l’aperçu doit avoir une identité différente.');
+    }
     const ctx = document.querySelector('canvas').getContext('2d'), native = ctx.drawImage.bind(ctx);
     window.soDraws = [];
     ctx.drawImage = (image, ...args) => {
@@ -114,7 +117,7 @@ try {
     for (const facing of [-1, 1]) {
       const states = await page.evaluate(({ camp, facing }) => {
         const api = window.controleSO; api.render('raid', 0, camp, facing);
-        return [0, 2, 6, 10, 13].map(t => { const state = api.sceneAt(t); return { seconds: t, building: state.buildings[0].state, progress: state.buildings[0].closure_progress, guards: state.npcs.map(n => ({ x: n.x, pressure: n.pressure_target_id })) }; });
+        return [0, 2, 6, 10, 19].map(t => { const state = api.sceneAt(t); return { seconds: t, building: state.buildings[0].state, progress: state.buildings[0].closure_progress, guards: state.npcs.map(n => ({ x: n.x, pressure: n.pressure_target_id })) }; });
       }, { camp, facing });
       assert.ok(states.some(s => s.progress > 0));
       assert.notEqual(states.at(-1).building, 'ACTIVE', 'Le raid doit fermer le bâtiment.');
@@ -122,8 +125,10 @@ try {
       await page.evaluate(({ camp, facing }) => window.controleSO.render('raid', 180, camp, facing), { camp, facing });
       await page.locator('canvas').screenshot({ path: path.join(output, `${camp}-facade-${facing}.png`) });
     }
+    await page.evaluate(camp => window.controleSO.render('raid', 60, camp, 1), camp);
+    await page.locator('canvas').screenshot({path: path.join(output, camp + '-bande-marche.png')});
     const raidDir = path.join(output, `${camp}-raid`); await mkdir(raidDir, { recursive: true });
-    for (let i = 0; i < 140; i++) {
+    for (let i = 0; i < 200; i++) {
       const image = await page.evaluate(({ camp, tick }) => {
         window.controleSO.render('raid', tick, camp, 1);
         return document.querySelector('canvas').toDataURL('image/png').split(',')[1];

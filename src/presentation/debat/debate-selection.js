@@ -49,13 +49,15 @@ export function portraitContent(faction) {
   const candidate = DEBATE_CANDIDATES.find(c => c.id === faction);
   return candidate ? `<span class="select-portrait" data-portrait="${faction}">${candidate.minor ? '' : `<img src="${portrait(candidate)}" alt="">`}</span>` : '<span class="select-empty" aria-hidden="true">?</span>';
 }
+/** Gros plan d'une case (sélection, bandeau du débat), préparé une seule fois par candidat. */
+export const selectionCloseup = faction => selectionPortrait(faction).then(src => framePortrait(src, faction));
 export function hydrateSelectionPortraits(root) {
   root.querySelectorAll('[data-portrait]').forEach(element => {
     const closeup = Boolean(element.closest('.select-tile, .debate-fighter, .debate-ranking'));
     if (element.dataset.portraitReady || (!closeup && element.querySelector('img'))) return;
     element.dataset.portraitReady = 'true';
     if (closeup) element.dataset.closeup = '';
-    void selectionPortrait(element.dataset.portrait).then(src => closeup ? framePortrait(src, element.dataset.portrait) : src).then(src => {
+    void (closeup ? selectionCloseup(element.dataset.portrait) : selectionPortrait(element.dataset.portrait)).then(src => {
       const image = document.createElement('img'); image.src = src; image.alt = ''; element.replaceChildren(image);
     }).catch(() => { element.textContent = '?'; });
   });

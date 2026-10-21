@@ -227,6 +227,40 @@ test('Raid : les trois coups de pied sont espacés par des pauses et ne partent 
   assert.equal(kicked.size, 3); assert.ok(mixed > 80 && paused > 180);
 });
 
+test('Raid : une bande reste proche avec des écarts irréguliers et variables, sans croisement, même autour de la carte', () => {
+  for (const direction of [-1, 1]) {
+    const sim = new GameSimulation(campaignConfig(), 42), state = sim.state, length = state.world.length;
+    state.buildings = []; state.candidates = []; state.temporary_units = [];
+    const origin = direction > 0 ? length - 2 : 2;
+    state.npcs = Array.from({ length: 3 }, (_, i) => ({ ...guard('npc:' + i),
+      x: (origin + direction * i * .8 + length) % length, facing: direction,
+      raid: { id: 'test', phase: 'OUTBOUND', direction },
+    }));
+    const replay = new GameSimulation(sim.config, 42); replay.state = structuredClone(state);
+    const gaps = [[], []]; let different = 0;
+    for (let tick = 0; tick < 900; tick++) {
+      state.tick++; replay.state.tick++;
+      const before = state.npcs.map(n => n.x);
+      for (const n of state.npcs) updateGuard(sim, n);
+      for (const n of replay.state.npcs) updateGuard(replay, n);
+      for (let i = 0; i < 3; i++) {
+        const step = ringDelta(before[i], state.npcs[i].x, length) * direction;
+        assert.ok(step >= -1e-8 && step <= sim.config.balance.physical_units.service_ordre.move_speed / sim.hz + 1e-8);
+      }
+      if (tick > 90) {
+        const a = ringDelta(state.npcs[0].x, state.npcs[1].x, length) * direction;
+        const b = ringDelta(state.npcs[1].x, state.npcs[2].x, length) * direction;
+        assert.ok(a >= 1.079 && b >= 1.079 && a + b < 4.1, 'Le trio reste compact et chaque silhouette garde sa place.');
+        gaps[0].push(a); gaps[1].push(b);
+        if (Math.abs(a - b) > .08) different++;
+      }
+    }
+    assert.ok(different > 200, 'Le groupe ne retrouve pas deux intervalles identiques.');
+    assert.ok(gaps.every(values => Math.max(...values) - Math.min(...values) > .12), 'Les distances varient pendant la marche.');
+    assert.deepEqual(replay.state, state, 'Le même déplacement est reproduit sur une autre simulation.');
+  }
+});
+
 test('Garde : près d’une frontière, les trois combattants restent espacés du côté autorisé', () => {
   const { sim, local, candidate } = defenseScene(); captureSite(sim, local, candidate);
   const zone = sim.state.world.subzones.find(z => z.id === local.subzone_id), guards = sim.state.npcs.slice(0, 3);

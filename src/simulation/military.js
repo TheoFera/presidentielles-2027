@@ -9,7 +9,7 @@ import { nearbyNpcs } from './npc-proximity.js';
 import { headquartersProtected } from './strategic-sites.js';
 import { npcGender } from './npc-appearance.js';
 import { defensiveGuard, guardDefendsPosition } from './service-order-rules.js';
-import { serviceOrderPostOffset, serviceOrderFacadeOffset, serviceOrderCombatPlace, serviceOrderSeed } from './service-order-formation.js';
+import { serviceOrderPostOffset, serviceOrderFacadeOffset, serviceOrderCombatPlace, serviceOrderSeed, serviceOrderMarchOffsets, serviceOrderMarchSpeed } from './service-order-formation.js';
 
 const availableRecruit = (state, n, faction) => n.faction_id === faction && targetable(n) && !interrupted(n) && !n.combat?.engaged
   && !n.meeting_target_id && !n.rally_event_id && n.rally_return_x == null && !(n.handoff_until_tick > state.tick);
@@ -90,7 +90,17 @@ function guardSlot(state, npc, spacing) {
 }
 
 /** Place d'attente devant la porte, côté raid. */
-const gatherX = (state, npc, spacing) => npc.guard_anchor_x + npc.raid.direction * spacing * 2 + guardSlot(state, npc, spacing).offset;
+const gatherX = (state, npc, spacing, hz) => {
+  const members = squad(state, npc.raid), index = members.indexOf(npc);
+  const offsets = serviceOrderMarchOffsets(members, npc.raid, npc.raid.started_tick ?? 0, hz);
+  return npc.guard_anchor_x + npc.raid.direction * (spacing * 2 + offsets[index]);
+};
+
+function moveRaidTowards(sim, npc, destination, settings) {
+  const speed = serviceOrderMarchSpeed(sim.state, npc, squad(sim.state, npc.raid), settings, sim.hz);
+  if (speed < .001) { npc.moving = false; npc.facing = npc.raid.direction; return; }
+  moveNpcTowards(sim, npc, destination, speed);
+}
 
 /** Trois sentinelles fixes au local ; une sortie seulement en cas d'affrontement. */
 function updateDefensiveGuard(sim, npc) {
@@ -153,9 +163,9 @@ export function updateGuard(sim, npc) {
   if (!npc.raid) { updateDefensiveGuard(sim, npc); return; }
   const raid = npc.raid;
   npc.pressure_target_id = null;
-  // Le groupe part quand toutes les recrues sont sorties et que chacun a pris sa place : ils marchent alors côte à côte.
+  // Le groupe attend ses recrues puis avance ensemble, avec des écarts irréguliers.
   if (raid.phase === 'GATHER' && !state.npcs.some(n => n.role === 'SYMPATHISANT' && n.task?.kind === 'JOIN_RAID' && n.task.raid_id === raid.id)
-    && squad(state, raid).every(g => g.raid.phase !== 'GATHER' || distance(state, g.x, gatherX(state, g, s.spacing_units)) <= config.prototype.world.arrival_epsilon_units)) {
+    && squad(state, raid).every(g => g.raid.phase !== 'GATHER' || distance(state, g.x, gatherX(state, g, s.spacing_units, sim.hz)) <= config.prototype.world.arrival_epsilon_units)) {
     raid.phase = 'OUTBOUND';
   }
   const near = (t, range) => t.id !== npc.id && targetable(t) && t.faction_id !== npc.faction_id && Math.abs(ringDelta(npc.x, t.x, state.world.length)) <= range;
@@ -182,7 +192,7 @@ export function updateGuard(sim, npc) {
       electoral_damage: s.electoral_damage, cooldown_seconds: s.attack_cooldown_seconds });
   } else if (raid.phase === 'GATHER') {
     // Devant la porte, côté raid, en attendant les dernières recrues.
-    phase = 'GATHER'; destination = gatherX(state, npc, s.spacing_units);
+    phase = 'GATHER'; destination = gatherX(state, npc, s.spacing_units, sim.hz);
     if (moveNpcTowards(sim, npc, destination, s.move_speed)) npc.facing = raid.direction;
   } else {
     const hostileSite = state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== npc.faction_id && !headquartersProtected(state, b)
@@ -194,14 +204,16 @@ export function updateGuard(sim, npc) {
       // Chacun rejoint une place devant la façade avant de commencer à la frapper.
       // La portée de combat ne sert pas à fermer un bâtiment à distance.
       phase = 'PRESSURE'; destination = wrap(hostileSite.x + serviceOrderFacadeOffset(npc, slot.index, squad(state, raid).length, state.tick, sim.hz), state.world.length);
-      if (moveNpcTowards(sim, npc, destination, s.move_speed)) {
+      const approaching = distance(state, npc.x, destination) > 4;
+      if (approaching) moveRaidTowards(sim, npc, destination, s);
+      else if (moveNpcTowards(sim, npc, destination, s.move_speed)) {
         npc.moving = false; npc.pressure_target_id = hostileSite.id;
         // Les côtés convergent vers la porte, en restant sur la ligne de marche.
         npc.facing = Math.sign(ringDelta(npc.x, hostileSite.x, state.world.length)) || raid.direction;
       }
     } else {
       phase = 'RAID'; destination = wrap(npc.x + raid.direction * s.move_speed, state.world.length);
-      moveNpcTowards(sim, npc, destination, s.move_speed);
+      moveRaidTowards(sim, npc, destination, s);
     }
   }
   npc.task = { kind: 'GUARD', phase, target_id: target?.id || pressureSite?.id || null, formation_index: formation?.index ?? slot.index, combat_side: formation?.side ?? null,

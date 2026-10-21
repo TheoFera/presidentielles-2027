@@ -28,10 +28,8 @@ const loaded = new Map(await Promise.all(ids.map(async id => {
 })));
 let faction = 'melenchon', mode = 'idle', direction = 1, paused = false, speed = 1, clock = 0, previous = performance.now();
 function actorsFor(camp) {
-  return SERVICE_ORDER_VARIANTS[camp].map(variant => {
-    let actor;
-    for (let i = 0; i < 1000; i++) {
-      actor = { id: `npc:${i}`, role: 'SERVICE_D_ORDRE', faction_id: camp, x: 30, facing: 1, combat: combatState(), converted_tick: -100, persuasion_target_ids: [] };
+  return SERVICE_ORDER_VARIANTS[camp].map((variant, i) => {
+      const actor = { id: `npc:${i}`, role: 'SERVICE_D_ORDRE', faction_id: camp, x: 30, facing: 1, combat: combatState(), converted_tick: -100, persuasion_target_ids: [] };
       for (const duty of ['DEFENSE', 'RAID']) {
         const style = SERVICE_ORDER_STYLES[camp][duty].indexOf(variant.slice(0, -2));
         if (style < 0) continue;
@@ -39,7 +37,6 @@ function actorsFor(camp) {
         actor.raid = duty === 'RAID' ? { id: 'apercu', phase: 'OUTBOUND', direction: 1 } : null;
         if (serviceOrderVariant(actor) === variant) return actor;
       }
-    }
     throw Error('Apparence introuvable : ' + variant);
   });
 }
@@ -76,8 +73,8 @@ function resetScene() {
   Object.assign(building, { state: 'ACTIVE', active: true, neutral: false, owner_id: faction === 'melenchon' ? 'le_pen' : 'melenchon', headquarters: false, closure_progress: 0, shutter_transition: null });
   s.candidates = []; s.temporary_units = []; s.buildings = [building];
   s.powers = []; s.attacks = []; s.hit_results = []; s.projectiles = []; s.tick = 600;
-  s.npcs = catalogs[faction].filter(actor => actor.raid).slice(0, 3).map((actor, i) => ({ ...structuredClone(actor), x: building.x - direction * (5 + i * .8), facing: direction, hidden_durability: 90,
-    guard_anchor_x: building.x - direction * 5, raid: { id: 'apercu', phase: 'OUTBOUND', direction } }));
+  s.npcs = catalogs[faction].filter(actor => actor.raid).slice(0, 3).map((actor, i) => ({ ...structuredClone(actor), x: building.x - direction * (12 + (2 - i) * .8), facing: direction, hidden_durability: 90,
+    guard_anchor_x: building.x - direction * 12, raid: { id: 'apercu', phase: 'OUTBOUND', direction } }));
   sceneFrames = [structuredClone(s)];
 }
 resetScene();
@@ -114,9 +111,13 @@ function render(nextMode = mode, tick = Math.floor(clock * hz), camp = faction, 
   ctx.fillStyle = '#e9e1d2'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   const records = [];
   if (onMap) {
-    const seconds = (tick / hz) % (mode === 'defense' ? 20 : 14), state = sceneAt(seconds), building = state.buildings[0];
+    const seconds = (tick / hz) % 20, state = sceneAt(seconds), building = state.buildings[0];
     renderer.metrics = { groundY: 565, characterHeight: 188, pixelsPerUnit: 90, groundOffsetRatio: .06, anchorX: 600 };
-    const shift = mode === 'defense' ? direction * 1.5 * Math.max(0, Math.min(1, (seconds - 7.5) / 1.5, (16 - seconds) / 2)) : 0;
+    const first = state.npcs[0];
+    const center = first.x + state.npcs.reduce((sum, n) => sum + ringDelta(first.x, n.x, state.world.length), 0) / state.npcs.length;
+    const away = ringDelta(building.x, center, state.world.length);
+    const shift = mode === 'defense' ? direction * 1.5 * Math.max(0, Math.min(1, (seconds - 7.5) / 1.5, (16 - seconds) / 2))
+      : Math.sign(away) * Math.max(0, Math.abs(away) - 3);
     renderer.cameraX = building.x + shift; renderer.screenX = x => 600 + ringDelta(renderer.cameraX, x, state.world.length) * 90;
     renderer.fixedWorldActive = drawFixedWorld(renderer, state); renderer.buildingShutterTick = state.tick;
     drawBuildingShutters(renderer, state);

@@ -1,5 +1,6 @@
 import { syncOrientation } from '../interface/landscape.js';
 import { avatarImage } from './player-card.js';
+import { DEBATE_CANDIDATES, selectionCloseup } from '../debat/debate-selection.js';
 import { ALL_CANDIDATE_IDS } from '../../simulation/unlock-catalog.js';
 
 // Images de fond des écrans du menu (fichiers CSS) : gardées ici pour rester en mémoire.
@@ -37,8 +38,8 @@ export function warmUpBehindNotice(assets, ids) {
     const image = new Image(); image.decoding = 'async'; image.src = src;
     warmedMenuImages.push(image);
   }
-  // Avatars (profil, débat, lobby) avant les grandes planches de la campagne : sinon, sur un réseau lent,
+  // Gros plans du débat et avatars (profil, lobby) avant les grandes planches de la campagne : sinon, sur un réseau lent,
   // ils attendent derrière plusieurs Mo d'images et les cases restent vides. Au plus 4 s d'attente.
-  const avatars = Promise.allSettled(ALL_CANDIDATE_IDS.map(id => avatarImage(id)));
+  const avatars = Promise.allSettled([...DEBATE_CANDIDATES.map(({ id }) => selectionCloseup(id)), ...ALL_CANDIDATE_IDS.map(id => avatarImage(id))]);
   void Promise.race([avatars, new Promise(resolve => setTimeout(resolve, 4000))]).then(() => assets.warmUp(ids));
 }
