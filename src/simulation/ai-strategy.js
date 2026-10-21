@@ -13,6 +13,8 @@ import { rideGarage, tactics } from './ai-moments.js';
 import { biomeSympathisants } from './territory.js';
 import { aiObservation } from './ai-observation.js';
 import { nearbyNpcs } from './npc-proximity.js';
+import { filmed, pressMember } from './press-rules.js';
+import { airborne } from './combat-actions.js';
 
 const distance = (state, a, b) => Math.abs(ringDelta(a, b, state.world.length));
 const hostile = (c, n) => canBeHit(n) && n.faction_id !== c.faction_id;
@@ -225,6 +227,29 @@ function moneyPickup(state, config, c, rival, stance) {
   return best ?? null;
 }
 
+/**
+ * Reportage aux trousses : sortir du champ de la caméra (esquive qui traverse le duo jusque dans le dos
+ * du cadreur, sinon saut au-dessus du faisceau), puis abattre le cadreur (30 PV), ce qui renvoie le duo.
+ * Un seul test tant qu’aucun reportage ne vise ce candidat : rien à calculer le reste du temps.
+ */
+function pressAICommands(state, config, c, settings) {
+  const group = state.press_team, t = tactics(config);
+  if (!t.press_reaction || group?.phase !== 'ACTIVE' || group.target_id !== c.id) return null;
+  const camera = pressMember(state, 'PRESS_CAMERA');
+  if (!canBeHit(camera)) return null;
+  const d = ringDelta(c.x, camera.x, state.world.length), toward = Math.sign(d) || c.facing;
+  // À portée, frapper suffit : un coup reçu interrompt le tournage.
+  if (Math.abs(d) <= aiAttackRange(config, c) || !filmed(state, config, c)
+    || airborne(c) || c.dash_active || c.combat.attack_id || c.combat.stun_ticks || c.combat.press_tick != null)
+    return aiCombatCommands(state, config, c, camera, t.press_attack_tempo);
+  const result = [{ type: 'SetCampaignActive', candidateId: c.id, active: true },
+    { type: 'InteractionPresence', candidateId: c.id, active: false }, { type: 'Move', candidateId: c.id, axis: toward }];
+  if (settings.dash && c.dash_charges > 0 && Math.abs(d) <= config.balance.dash.distance - t.press_dash_margin_units)
+    result.push({ type: 'Dash', candidateId: c.id, direction: toward });
+  else if (c.combat.jump_tick == null) result.push({ type: 'Jump', candidateId: c.id });
+  return result;
+}
+
 export function strategicAICommands(state, config, c) {
   const settings = aiSettings(state, config);
   const commands = (axis, purchase = false) => [{ type: 'SetCampaignActive', candidateId: c.id, active: state.ai_enabled },
@@ -255,6 +280,9 @@ export function strategicAICommands(state, config, c) {
       result.push({ type: 'Jump', candidateId: c.id });
     return result;
   }
+  // 0. Une équipe de reportage filme ce candidat : s’en débarrasser passe avant tout le reste.
+  const press = pressAICommands(state, config, c, settings);
+  if (press) return press;
   const adaptation = aiAdaptation(state, config, c);
   const notes = [];
   const note = mind => { if (mind !== c.ai_mind) notes.push({ type: 'SetAIMind', candidateId: c.id, mind }); };

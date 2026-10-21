@@ -5,6 +5,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { CampaignEventDirector, resolveCampaignEvent } from '../src/simulation/campaign-events.js';
 import { captureSite } from '../src/simulation/strategic-sites.js';
 import { CampaignDisplay } from '../src/presentation/interface/campaign.js';
+import { BIOME_NAMES } from '../src/presentation/interface/campaign-intro.js';
 import { rallyPlacard } from '../src/presentation/personnages/rally-sprites.js';
 import { completePopulation } from '../src/simulation/spawns.js';
 
@@ -87,7 +88,7 @@ test('Toutes les variantes du catalogue s’affichent au déclenchement et à la
     const display = new CampaignDisplay(sim.config);
     assert.doesNotThrow(() => display.update(sim.state), variant.event_id);
     const headline = display.cards.get(event.id).children[1].textContent;
-    assert.ok(variant.headlines ? variant.headlines.includes(headline) : textOf(display, event).includes(variant.title));
+    assert.ok(variant.headlines ? variant.headlines.some(text => headline === `${BIOME_NAMES[event.target_biome_id]} : ${text}`) : textOf(display, event).includes(variant.title));
     assert.doesNotMatch(textOf(display, event), /undefined|NaN|Infinity/, variant.event_id);
     if (event.family === 'MEETING_DE_CRISE') {
       event.attempt = { candidate_id: sim.state.candidates[0].id, start_tick: sim.state.tick, hits: 0 };
@@ -109,7 +110,7 @@ test('Le flash complet devient seulement EN DIRECT et le nom court, puis dispara
     display.update(sim.state);
     const card = display.cards.get(event.id), nodes = [...card.children];
     assert.equal(card.parentNode, display.flashes);
-    assert.ok(variant.headlines.includes(card.children[1].textContent));
+    assert.ok(variant.headlines.some(text => card.children[1].textContent === `${BIOME_NAMES[event.target_biome_id]} : ${text}`));
     assert.deepEqual(card.children.slice(2).map(node => node.textContent), ['', '', '']);
     display.seen.set(event.id, performance.now() - config.balance.campaign_events.notification_display_seconds * 1000 - 1);
     display.update(sim.state);

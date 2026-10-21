@@ -30,10 +30,10 @@ function setup(population = false) {
 function ticks(sim,n) { for(let i=0;i<n;i++){sim.state.tick++;beginCombatTick(sim);updatePressTeam(sim);updateCombat(sim);} }
 function aim(f) { ticks(f.sim,20); assert.equal(filmed(f.sim.state,f.sim.config,f.c),true); }
 
-test('Filmage : marche et saut à 50 %, coups à 75 %, sans masquer par invisibilité ou PNJ',()=>{
+test('Filmage : marche et saut à 50 %, coups à 50 %, sans masquer par invisibilité ou PNJ',()=>{
   const f=setup(); aim(f);
   assert.equal(pressMoveFactor(f.sim.state,f.sim.config,f.c),.5);
-  assert.equal(pressAttackFactor(f.sim.state,f.sim.config,f.c),.75);
+  assert.equal(pressAttackFactor(f.sim.state,f.sim.config,f.c),.5);
   f.c.ultimate_effect={kind:'INVISIBLE',expires_tick:10000}; f.c.disappeared=true;
   assert.equal(filmed(f.sim.state,f.sim.config,f.c),true);
   f.c.ultimate_effect={kind:'EUROPE',expires_tick:10000};
@@ -65,10 +65,10 @@ test('Un saut sort du cône sans arrêter la caméra et conserve une parabole co
   assert.equal(escaped,true);assert.equal(f.c.combat.height,0);
 });
 
-test('Un coup engagé ralentit de 25 % ; les durées de sauvegarde restent entières',()=>{
+test('Un coup engagé ralentit de 50 % ; les durées de sauvegarde restent entières',()=>{
   const f=setup();aim(f); f.c.facing=-1;requestAttack(f.sim,f.c);
   ticks(f.sim,1);const a=f.sim.state.attacks.find(a=>a.owner_id===f.c.id);assert.ok(a);
-  ticks(f.sim,3);assert.equal(a.elapsed_ticks,3);
+  ticks(f.sim,6);assert.equal(a.elapsed_ticks,3);
   assert.ok(Number.isInteger(a.elapsed_ticks));
 });
 
@@ -150,7 +150,7 @@ test('La charge complète demande réellement plus de temps pendant le filmage',
   const f=setup();aim(f);f.c.facing=1;attackInput(f.sim,f.c,'PressAttack');ticks(f.sim,31);
   assert.ok(f.c.combat.charge_active);
   assert.ok(f.sim.state.tick-f.c.combat.press_tick-f.c.combat.press_delay_ticks<30);
-  ticks(f.sim,10);attackInput(f.sim,f.c,'ReleaseAttack');
+  ticks(f.sim,30);attackInput(f.sim,f.c,'ReleaseAttack');
   const attack=f.sim.state.attacks.find(a=>a.owner_id===f.c.id);
   assert.equal(attack.kind,'CHARGED');assert.equal(attack.partial,false);assert.equal(attack.damage,21);
 });

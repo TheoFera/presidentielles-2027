@@ -162,7 +162,7 @@ export function validateConfig(config) {
     for (const cost of building.upgrade_costs) positive(cost, `amélioration ${type}`);
   }
   const printer = config.balance.buildings.imprimerie;
-  for (const field of ['purchase_hold_seconds', 'pickup_seconds']) positive(printer[field], `imprimerie.${field}`);
+  for (const field of ['purchase_hold_seconds', 'pickup_seconds', 'max_waiting_tracts']) positive(printer[field], `imprimerie.${field}`);
   positive(printer.tract_cost_by_level[0], 'prix du tract'); positive(printer.equipment_seconds_by_level[0], 'durée d’impression');
   const funding = config.balance.buildings.financement;
   for (const field of ['upgrade_offset', 'upgrade_radius', 'completion_feedback_seconds']) positive(funding[field], `financement.${field}`);

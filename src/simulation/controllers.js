@@ -87,7 +87,7 @@ function enPause(state, config, c) {
   if ((state.tick + state.candidates.indexOf(c)) % toutes === 0) return false;
   const hz = config.balance.simulation_architecture.fixed_tick_hz;
   return !(c.combat.attack_id || c.combat.charge_active || c.combat.stun_ticks || c.dash_active || c.combat.jump_tick != null
-    || c.ai_mind?.opponent_id || c.purchase_hold || c.campaign_debate_id || c.crisis_meeting_id || c.ai_objective?.purpose === 'RECOVER'
+    || c.ai_mind?.opponent_id || state.press_team?.target_id === c.id || c.purchase_hold || c.campaign_debate_id || c.crisis_meeting_id || c.ai_objective?.purpose === 'RECOVER'
     || state.tick - (c.combat.last_hit?.tick ?? -Infinity) < 2 * hz
     || nearestEnemy(state, c, aiSettings(state, config).detection_range));
 }

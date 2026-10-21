@@ -84,6 +84,8 @@ export function drawIntegratedBuilding(renderer, state, building) {
   const { ctx } = renderer, { x, y, w, h } = sign;
   if (x + w < 0 || x - w > renderer.width) return true;
   const faction = renderer.p.factions[building.owner_id];
+  // Atelier visuel : compare les propositions avec le vrai rendu, sans changer la partie normale.
+  if (renderer.buildingAppearancePreview?.(renderer, state, building, sign, faction)) return true;
   ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const label = building.headquarters ? 'QG · PERMANENCE' : buildingLabel(building).toUpperCase();
   // Enseigne déjà peinte sur la devanture : seul le texte est ajouté.

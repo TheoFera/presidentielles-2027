@@ -53,7 +53,8 @@ export function meetingSpriteFrame(renderer, state, building) {
   const baseHeight = width * sprite.naturalHeight / sprite.naturalWidth;
   // Les pieds d'un candidat sur scène sont au milieu du dessus du plancher, et le bas de l'estrade
   // reste juste derrière les pieds des personnages au sol : le devant est tassé (k) pour tenir entre les deux.
-  const feetY = m.groundY - settings.podium_height * m.characterHeight;
+  // Même sol que les sprites des candidats (décalage groundOffsetRatio) : sinon les pieds s'enfoncent dans le plancher.
+  const feetY = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06) - settings.podium_height * m.characterHeight;
   const visibleBottom = m.groundY - m.characterHeight * MEETING_BEHIND_FEET;
   const k = (visibleBottom - feetY) / (baseHeight * (bottom - deckSplit - surface / 2));
   const deckY = feetY - baseHeight * surface / 2 * k;

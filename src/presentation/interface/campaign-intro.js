@@ -28,7 +28,7 @@ const PROMPTS = {
   dossier: '<span class="intro-key-text keyboard-only">Appuyez sur une touche pour continuer</span><span class="intro-key-text touch-only">Touchez l’écran pour continuer</span>',
 };
 // Noms des six quartiers autour de la grande roue du dossier (dans l'ordre du tour de la carte).
-const BIOME_NAMES = { paris_19e: 'Péricentre', banlieue: 'Banlieue', periurbain_usine: 'Périurbain', campagne: 'Campagne',
+export const BIOME_NAMES = { paris_19e: 'Péricentre', banlieue: 'Banlieue', periurbain_usine: 'Périurbain', campagne: 'Campagne',
   retraites: 'Littoral', quartiers_riches: 'Beaux-quartiers' };
 
 export class CampaignIntroScene {

@@ -64,6 +64,8 @@ Quand un candidat rival entre dans son champ de vision, l’IA **l’observe** d
 
 L’avis peut changer : frappée, l’IA riposte ; acculée, elle se retourne ; bloquée trop longtemps, elle force le passage ; un rival qui détale n’est poursuivi que s’il en vaut la peine. Y aller ou non se décide une fois par événement, pour éviter les allers-retours entre l’événement et le travail en cours. Les événements de campagne sont pesés **après** les rivaux proches : l’IA ne passe plus devant un adversaire sans réagir pour courir vers un événement. Elle tient compte du territoire où il a lieu, des rivaux déjà sur place et de son coût.
 
+**Équipe de reportage** : une IA poursuivie par le duo de journalistes s’en occupe avant tout le reste (sauf pendant son meeting). Filmée, elle sort du champ de la caméra : une esquive qui traverse le duo et finit dans le dos du cadreur si elle a une charge et qu’il est assez près, sinon un saut au-dessus du faisceau. Ensuite, elle frappe le cadreur jusqu’au K.-O. (30 PV), ce qui renvoie le duo. Dans le test de référence, elle s’en débarrasse en 1,3 s, dont 0,2 s filmée. Sans cette réaction, elle restait filmée 2,5 s. Ce comportement ne coûte qu’un test par image tant qu’aucun reportage ne la vise. Réglages dans `ai_tactics` : `press_reaction` (marche/arrêt), `press_attack_tempo` (rythme des coups) et `press_dash_margin_units` (marge pour finir l’esquive derrière le cadreur).
+
 ## Difficulté
 
 Le jeu utilise toujours le niveau **normal** : aucun choix de difficulté n’est proposé dans les menus. Trois profils existent dans le code, centralisés dans `src/simulation/ai-settings.js` :

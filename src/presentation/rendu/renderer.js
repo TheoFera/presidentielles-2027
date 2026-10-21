@@ -5,6 +5,7 @@ import { ringDelta, wrap, zoneAt } from '../../simulation/world.js';
 import { interpolatedPlayerX } from './player-position.js';
 import { drawInfrastructure, drawBanknote, drawSiteRequirements } from '../carte/infrastructure.js';
 import { drawBuildingShutters } from '../carte/building-shutters.js';
+import { drawTractPiles } from '../carte/tract-pile.js';
 import { drawCombatEffects } from '../effets/combat-effects.js';
 import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from '../carte/electoral.js';
 import { drawDebate } from '../debat/match.js';
@@ -162,6 +163,7 @@ export class WorldRenderer {
     if (!this.fixedWorldActive) drawInfrastructure(this, state);
     this.buildingShutterTick = previous.tick + (state.tick - previous.tick) * alpha;
     drawBuildingShutters(this, state);
+    drawTractPiles(this, state);
     // Sur la fresque, les panneaux d'information passent devant le coffre du rideau.
     if (this.fixedWorldActive) drawInfrastructure(this, state);
     // La carte fixe dessine elle-même trottoir et chaussée.

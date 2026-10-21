@@ -28,6 +28,10 @@ export function buildingOffer(state, config, candidate, building) {
     if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
       available = false; reason = 'NO_SYMPATHISANT';
     }
+    // Pile de tracts limitée : un tract en attente compte jusqu'à ce qu'un sympathisant l'emporte.
+    if (building.queue.filter(order => order.faction_id === candidate.faction_id).length >= settings.max_waiting_tracts) {
+      available = false; reason = 'QUEUE_FULL';
+    }
   } else if (building.type === 'institut_sondage') {
     kind = 'POLL'; cost = settings.poll_cost;
   } else if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {

@@ -141,6 +141,20 @@ test('Permanence : la barre des tracts ne se remplit qu’à l’arrêt', () => 
   assert.equal(actor.spending.PRINT, 0.1);
 });
 
+test('Permanence : pas plus de 5 tracts en attente, une place se libère quand un sympathisant en emporte un', () => {
+  const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
+  const printer = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, printer, actor); actor.x = printer.x;
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
+  unit(sim, 'SYMPATHISANT', actor.faction_id, printer.x);
+  const max = config.balance.buildings.imprimerie.max_waiting_tracts;
+  printer.queue = Array.from({ length: max }, (_, i) => ({ id: `order:test${i}`, service_id: printer.id, faction_id: actor.faction_id,
+    purchased_tick: 0, cost: 0.1, assigned_npc_id: null, state: 'READY', production_elapsed_ticks: 0 }));
+  const offer = () => buildingOffers(sim.state, config, actor, printer)[0];
+  assert.equal(offer().kind, 'PRINT'); assert.equal(offer().enabled, false); assert.equal(offer().reason, 'QUEUE_FULL');
+  printer.queue.pop();
+  assert.equal(offer().enabled, true);
+});
+
 test('Résistance cachée : récupération, KO, perte électorale et respawn au QG', () => {
   const sim = new GameSimulation(config); const target = candidate(sim); const attacker = candidate(sim, 'le_pen');
   const hq = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, hq, target);

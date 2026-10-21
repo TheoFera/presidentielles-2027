@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Permanences — atelier visuel</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e9dec6;color:#302e29;font:16px system-ui}header{padding:16px 24px;background:#f8f0dd;border-bottom:2px solid #74664d}h1{font-size:22px;margin:0 0 6px}p{margin:6px 0 12px}nav,.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select,a{font:inherit}button,select{border:1px solid #827154;border-radius:5px;background:#fff8e9;color:#302e29;padding:8px 12px}button[aria-pressed=true]{background:#423e34;color:#fff8e9}button{cursor:pointer}a{color:#514a36}.controls{margin-top:12px}main{max-width:1600px;margin:auto}canvas{display:block;width:100%;aspect-ratio:16/9}#description{padding:12px 24px;background:#f8f0dd;margin:0}small{display:block;margin-top:8px}
+</style>
+<header><h1>Permanences : trois pistes dans le décor du jeu</h1>
+<p>Compare l’enseigne, les affiches et la cagnotte sur une même scène de campagne.</p>
+<nav aria-label="Propositions"><button data-style="original" aria-pressed="false">Avant</button><button data-style="enseigne" aria-pressed="true">1 · Enseigne peinte</button><button data-style="affiches" aria-pressed="false">2 · Affiches de campagne</button><button data-style="combine" aria-pressed="false">3 · Enseigne + affiches</button></nav>
+<div class="controls"><label>Candidat <select id="candidate"><option value="melenchon">Mélenchon</option><option value="le_pen">Le Pen</option><option value="philippe">Philippe</option></select></label><label>Façade <select id="site"></select></label><label>Cagnotte <select id="money"><option value="125000">1 250 €</option><option value="0">0 €</option><option value="12345600">123 456 €</option></select></label><button id="move">Se déplacer dans la scène</button><a href="/">Retour au jeu</a></div>
+<small>Atelier de comparaison : les propositions ne modifient pas l’apparence des parties normales. Déplacement avec ← et →.</small></header>
+<main><p id="description" role="status">Chargement du décor…</p><canvas aria-label="Aperçu réel de la campagne" tabindex="0"></canvas></main>
+<script type="module" src="./propositions-permanence.js"></script>
+</html>

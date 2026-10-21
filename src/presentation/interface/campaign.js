@@ -2,6 +2,7 @@ import { seasonAt } from '../../simulation/campaign-events.js';
 import { ringDelta, wrap } from '../../simulation/world.js';
 import { candidateOpacity } from '../personnages/candidate-visibility.js';
 import { setClass, setStyle } from './dom-updates.js';
+import { BIOME_NAMES } from './campaign-intro.js';
 const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 const siteNames={permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'};
 
@@ -11,7 +12,8 @@ function rallyHeadline(event,seed,catalog){
  if(!headlines?.length)return event.title;
  let hash=2166136261;
  for(const char of `${seed}:${event.id}`)hash=Math.imul(hash^char.charCodeAt(0),16777619);
- return headlines[(hash>>>0)%headlines.length];
+ const headline=headlines[(hash>>>0)%headlines.length],biome=BIOME_NAMES[event.target_biome_id];
+ return biome?`${biome} : ${headline}`:headline;
 }
 
 // Consigne courte, tournée vers le joueur. Les noms de candidats n'apparaissent que lorsqu'ils changent quelque chose.

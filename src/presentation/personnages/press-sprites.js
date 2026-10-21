@@ -63,26 +63,39 @@ export function drawPressCharacter(renderer, entity, x, state) {
     ctx.restore();
   } else drawCharacterAtlasFrame(ctx, image, atlas, pose, scale);
   ctx.restore();
-  if (entity.press_ready) {
-    const width = height * (entity.role === 'PRESS_CAMERA' ? .4 : .65), y = floor - height - 10;
-    ctx.fillStyle = '#23343bd9'; ctx.fillRect(x-width/2, y, width, 4);
-    ctx.fillStyle = '#d98662'; ctx.fillRect(x-width/2, y, width * entity.hidden_durability / entity.initial_durability, 4);
-  }
   renderer.personMarks?.set(entity.id, { x, feetY: floor, height, facing: entity.facing });
   return true;
 }
+
+// Avant de l'objectif sur l'image « filme » (pose 2) de chaque duo, en pixels de l'atlas
+// depuis le point d'appui des pieds : [avance, hauteur, demi-hauteur de l'objectif].
+const LENS = [[83.5, 142, 14], [79.5, 136, 13], [72.5, 132, 13.5]];
 
 export function drawPressCone(renderer, state) {
   if (state.press_team?.phase !== 'ACTIVE') return;
   const camera = pressMember(state, 'PRESS_CAMERA');
   if (!camera?.filming || camera.moving) return;
-  const { ctx, metrics: m } = renderer, s = renderer.config.balance.press_team;
-  const x = renderer.screenX(camera.x), y = m.groundY + m.characterHeight * ((m.groundOffsetRatio ?? .06) - s.camera_height);
-  const range = pressCone(state, renderer.config, camera), far = x + camera.facing * range * m.pixelsPerUnit;
-  const half = (s.cone_start_radius + range*s.cone_slope) * m.characterHeight;
-  ctx.save(); ctx.fillStyle = '#a8dceb24'; ctx.strokeStyle = '#b7e4ef70'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(x, y-s.cone_start_radius*m.characterHeight); ctx.lineTo(far,y-half);
-  ctx.lineTo(far,y+half); ctx.lineTo(x,y+s.cone_start_radius*m.characterHeight); ctx.closePath(); ctx.fill(); ctx.stroke();
+  const { ctx, metrics: m, p } = renderer, s = renderer.config.balance.press_team;
+  const atlas = PRESS_ATLASES[camera.variant || 0], [ahead, rise, aperture] = LENS[camera.variant || 0];
+  const scale = m.characterHeight * p.npc_height_multiplier * (atlas.sizeScale || 1) / atlas.referenceHeight;
+  const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
+  // Le faisceau sort de l'objectif dessiné ; son extrémité reste la zone réellement filmée par la règle.
+  const lensX = renderer.screenX(camera.x) + camera.facing * ahead * scale * (atlas.widthScale || 1);
+  const lensY = ground - (camera.combat.height || 0) * m.characterHeight - rise * scale, open = aperture * scale;
+  const range = pressCone(state, renderer.config, camera);
+  const far = renderer.screenX(camera.x) + camera.facing * range * m.pixelsPerUnit;
+  const farY = ground - s.camera_height * m.characterHeight, half = (s.cone_start_radius + range * s.cone_slope) * m.characterHeight;
+  const light = ctx.createLinearGradient(lensX, 0, far, 0);
+  light.addColorStop(0, '#fffbe8d0'); light.addColorStop(.3, '#fff4d078'); light.addColorStop(1, '#fff4d02a');
+  const edge = ctx.createLinearGradient(lensX, 0, far, 0);
+  edge.addColorStop(0, '#ffffffe0'); edge.addColorStop(1, '#ffffff40');
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(lensX, lensY - open); ctx.lineTo(far, farY - half);
+  ctx.lineTo(far, farY + half); ctx.lineTo(lensX, lensY + open); ctx.closePath();
+  ctx.fillStyle = light; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(lensX, lensY - open); ctx.lineTo(far, farY - half);
+  ctx.moveTo(lensX, lensY + open); ctx.lineTo(far, farY + half);
+  ctx.strokeStyle = edge; ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]); ctx.stroke();
   ctx.restore();
 }
 

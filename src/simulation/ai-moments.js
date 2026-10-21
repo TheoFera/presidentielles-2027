@@ -25,6 +25,8 @@ const TACTICS = Object.freeze({
   swarm_retreat_ratio: 0.85, mission_detour_units: 10,
   // Fréquence de réflexion hors combat : 1 = à chaque image ; 3 = une image sur trois (10 fois par seconde).
   think_every_ticks: 1,
+  // Reportage aux trousses : sortir du champ puis abattre le cadreur (tempo > 1 : frappes plus serrées).
+  press_reaction: true, press_attack_tempo: 1.5, press_dash_margin_units: 0.5,
 });
 export const tactics = config => ({ ...TACTICS, ...config.balance.ai_tactics });
 

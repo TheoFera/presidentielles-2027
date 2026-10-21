@@ -88,7 +88,8 @@ test('les bords visibles des six estrades correspondent aux limites physiques, m
       assert.ok(frame.upperHeight > frame.baseHeight * frame.deckSplit, 'les poteaux et la banderole sont relevés');
       assert.ok(frame.top >= 0, 'la partie haute de la scène reste visible');
       assert.ok(frame.deckY < frame.feetY, `${id} : les pieds sont sur le dessus du plancher, pas derrière son bord`);
-      assert.ok(Math.abs(frame.feetY - (metrics.groundY - cfg.balance.buildings.meeting.podium_height * metrics.characterHeight)) < 1e-8);
+      const spriteFloor = metrics.groundY + metrics.characterHeight * (metrics.groundOffsetRatio ?? .06);
+      assert.ok(Math.abs(frame.feetY - (spriteFloor - cfg.balance.buildings.meeting.podium_height * metrics.characterHeight)) < 1e-8, 'pieds des sprites posés sur le plancher');
     }
   }
 });
