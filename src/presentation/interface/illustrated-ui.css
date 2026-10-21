@@ -27,16 +27,18 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 0 #857661; }
 .touch-actions { display: flex; align-items: center; gap: 8px; position: relative; }
 #touch-controls #ultimate-touch { position: relative; overflow: hidden; background: linear-gradient(to right, #e7b842 var(--charge, 0%), #e5e0cded var(--charge, 0%)); color: #253337; opacity: 1; }
 /* Ultime prêt : bouton doré et lumineux, pour que le joueur ne passe pas à côté (le texte reste fixe). */
-#touch-controls #ultimate-touch.ready { overflow: visible; background: linear-gradient(160deg, #fff1a8, #f2b630 55%, #e08a1c); border-color: #7a4a0c; color: #3a2205; font-weight: 800; text-shadow: 0 1px #fff6c8; box-shadow: 0 3px 0 #7a4a0c, 0 0 12px 3px #ffd75acc; }
-/* Déblocage : le bouton surgit, un anneau lumineux s'élargit et « PRÊT ! » s'envole au-dessus, puis le halo pulse. */
+/* --glow (0 à 1) : battement de la lueur, avancé par la boucle du jeu (ultimate-pulse.js) au rythme des images du jeu. */
+#touch-controls #ultimate-touch.ready { overflow: visible; background: linear-gradient(160deg, #fff1a8, #f2b630 55%, #e08a1c); color: #3a2205; font-weight: 800; text-shadow: 0 1px #fff6c8;
+  border-color: color-mix(in srgb, #7a4a0c, #fff3b0 calc(var(--glow, 0) * 100%));
+  box-shadow: 0 3px 0 #7a4a0c, 0 0 calc(12px + 12px * var(--glow, 0)) calc(3px + 6px * var(--glow, 0)) rgb(255 215 90 / calc((204 + 34 * var(--glow, 0)) / 255)); }
+/* Déblocage : le bouton surgit, un anneau lumineux s'élargit et « PRÊT ! » s'envole au-dessus, puis le halo pulse (--glow). */
 /* Calque à part : la lueur qui pulse ne repeint que le bouton, pas les grandes tuiles de l'interface. */
-#ultimate-touch.ready { will-change: transform; animation: ultimate-unlock .6s cubic-bezier(.2, 1.6, .4, 1) both, ultimate-ready 1.1s ease-in-out .6s infinite; }
+#ultimate-touch.ready { will-change: transform; animation: ultimate-unlock .6s cubic-bezier(.2, 1.6, .4, 1) both; }
 #ultimate-touch.ready::after { content: ''; position: absolute; inset: -4px; border: 3px solid #ffe27a; border-radius: 16px; pointer-events: none; animation: ultimate-ring .8s ease-out forwards; }
 #ultimate-touch.ready::before { content: 'PRÊT !'; position: absolute; left: 50%; bottom: 100%; color: #fff3b0; font-size: 15px; font-weight: 900; white-space: nowrap; pointer-events: none;
   text-shadow: 0 2px #2c3c40, 1px 0 #2c3c40, -1px 0 #2c3c40, 0 -1px #2c3c40; animation: ultimate-label 1.2s ease-out forwards; }
 #ultimate-touch[hidden], #bardella-armed[hidden] { display: none; }
 #bardella-armed { position: absolute; bottom: 110%; right: 0; white-space: nowrap; color: #fff3b0; font-size: 12px; }
-@keyframes ultimate-ready { 50% { border-color: #fff3b0; box-shadow: 0 3px 0 #7a4a0c, 0 0 24px 9px #ffd75aee; } }
 @keyframes ultimate-unlock { 0% { transform: scale(.7); } 60% { transform: scale(1.2); } 100% { transform: none; } }
 @keyframes ultimate-ring { to { transform: scale(2.2); opacity: 0; } }
 @keyframes ultimate-label { 0% { transform: translate(-50%, 10px) scale(.6); opacity: 0; } 20% { transform: translate(-50%, -4px) scale(1.15); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -22px); opacity: 0; } }

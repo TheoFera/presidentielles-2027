@@ -21,11 +21,12 @@ import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { warmUpSimulation } from './simulation/warm-up.js';
 import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
-import { AIController, LocalHumanController, collectCommands } from './simulation/controllers.js';
+import { AIController, LocalHumanController, collectCommands, prepareAICommands } from './simulation/controllers.js';
 import { withAIObservation } from './simulation/ai-observation.js';
 import { zoneAt, ringDelta, wrap } from './simulation/world.js';
 import { WorldRenderer } from './presentation/rendu/renderer.js';
 import { setHidden, setClass, setStyle, setAttribute } from './presentation/interface/dom-updates.js';
+import { ultimateGlow } from './presentation/interface/ultimate-pulse.js';
 import { preparedDrawingSources } from './presentation/personnages/minor-sprite-images.js';
 import { BrowserInput } from './presentation/interface/input.js';
 import { DebugPanel } from './presentation/debogage/debug.js';
@@ -719,6 +720,7 @@ async function start() {
     // Invité : ses pas numérotés partent depuis la boucle de jeu (voir sendGuestFrame).
   }
 
+  let ultimateReadySince = null;
   /** Boutons tactiles de combat : jauge d’ultime et charge du coup. */
   function updateCombatButtons(combatView, fighter) {
     const ultimateButton = document.getElementById('ultimate-touch');
@@ -734,7 +736,11 @@ async function start() {
     setStyle(attackButton, '--focus', `${chargeRatio * 100}%`);
     setText(attackButton, chargeRatio >= 1 ? 'Prête !' : chargeRatio > 0 ? 'Charge…' : 'Frapper');
     setText(ultimateButton, satchel ? 'Faire éclater' : 'Ultime');
-    setClass(ultimateButton, 'ready', !!satchel?.launched || ratio >= 1);
+    const ready = !!satchel?.launched || ratio >= 1;
+    setClass(ultimateButton, 'ready', ready);
+    // Lueur qui pulse : avancée ici, à chaque image dessinée, plutôt que par une animation CSS (voir ultimate-pulse.js).
+    if (!ready) ultimateReadySince = null; else ultimateReadySince ??= performance.now();
+    setStyle(ultimateButton, '--glow', ready && !reducedMotion() ? ultimateGlow((performance.now() - ultimateReadySince) / 1000).toFixed(3) : '0');
     setStyle(ultimateButton, '--charge', `${ratio * 100}%`);
     setAttribute(ultimateButton, 'aria-label', satchel ? 'Faire éclater le cartable' : `Ultime : ${Math.round(ratio * 100)} %${ratio >= 1 ? ', prêt' : ''}`);
     setHidden(document.getElementById('bardella-armed'), !fighter.bardella_guardian_armed);
