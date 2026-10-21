@@ -15,6 +15,8 @@ const SIGN = { top: 764, bottom: 808, width: 220 };
 const NATURAL_SIGNS = {
   'site:paris_b': { x: 450, y: 710, w: 306, h: 39 },
   'site:banlieue_b': { x: 284, y: 715, w: 267, h: 32 },
+  'site:periurbain_b': { x: 163, y: 760, w: 304, h: 41 },
+  'site:campagne_a': { x: 1410, y: 740, w: 256, h: 35 },
   'site:retraites_b': { x: 255, y: 728, w: 211, h: 33 },
   'site:retraites_b:institut_sondage': { x: 1470, y: 728, w: 177, h: 32 },
   'site:retraites_c': { x: 1195, y: 758, w: 188, h: 30 },

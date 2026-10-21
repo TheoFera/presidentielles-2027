@@ -41,7 +41,7 @@ try {
       const sw = crop ? args[2] : image.width, sh = crop ? args[3] : image.height;
       const dw = args[crop ? 6 : 2], dh = args[crop ? 7 : 3];
       const ratio = Math.hypot(t.a, t.b) * dw / sw / (Math.hypot(t.c, t.d) * dh / sh);
-      window.soDraws.push({ source: image.src, rect: crop ? args.slice(0, 4) : [0, 0, image.width, image.height], ratio });
+      window.soDraws.push({ source: image.src, rect: crop ? args.slice(0, 4) : [0, 0, image.width, image.height], ratio, sway: t.b });
       native(image, ...args);
     };
   });
@@ -56,6 +56,7 @@ try {
       }, { mode, tick, camp, facing });
       assert.equal(result.poses.length, 12);
       assert.ok(result.draws.length >= 12, 'Les douze dessins doivent réellement être affichés.');
+      if (mode === 'walk') assert.ok(result.draws.some(draw => Math.abs(draw.sway) > .002), 'La marche doit faire bouger le corps, comme celui des autres PNJ.');
       for (const pose of result.poses) {
         if (!seen.has(pose.variant)) seen.set(pose.variant, new Set());
         seen.get(pose.variant).add(pose.frame);

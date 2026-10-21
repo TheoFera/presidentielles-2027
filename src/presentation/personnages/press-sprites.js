@@ -32,22 +32,24 @@ export function drawPressCharacter(renderer, entity, x, state) {
   if (!image) { void renderer.assets.load(atlas.sprite); return false; }
   const { ctx, metrics: m, p } = renderer, hz = renderer.config.balance.simulation_architecture.fixed_tick_hz;
   const height = m.characterHeight * p.npc_height_multiplier * (atlas.sizeScale || 1), scale = height / atlas.referenceHeight;
-  let floor = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
-  if (entity.leave_progress != null) {
-    // Journalistes de la scène d'ouverture : l'arrivée des habitants jouée à l'envers,
-    // quelques pas de côté vers l'extérieur, puis la descente en diagonale vers le bas de l'écran.
-    const path = entryPath(1 - entity.leave_progress, state.tick / hz), zoom = (renderer.config.balance.camera.framing_zoom ?? 1) * (renderer.zoomBoost || 1);
+  let floor = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06), facing = entity.facing;
+  let leave = entity.leave_progress;
+  if (leave == null && state.press_team?.phase === 'LEAVING') {
+    // Équipe de reportage vaincue ou repartie : elle tourne le dos au candidat et sort comme celle de l'ouverture.
+    leave = Math.min(1, (state.tick + (renderer.pressAlpha || 0) - state.press_team.leave_tick) / (hz * renderer.config.balance.press_team.exit_seconds));
+    facing = -entity.facing;
+  }
+  if (leave != null) {
+    // L'arrivée des habitants jouée à l'envers : quelques pas de côté vers l'extérieur,
+    // puis la descente en diagonale vers le bas de l'écran.
+    const path = entryPath(1 - leave, state.tick / hz), zoom = (renderer.config.balance.camera.framing_zoom ?? 1) * (renderer.zoomBoost || 1);
     floor += ((renderer.height - m.groundY) / zoom + height * 1.2) * path.lift - height * .035 * path.bob;
-    x += (entity.facing < 0 ? -1 : 1) * height * 1.6 * path.side;
-  } else if (state.press_team?.phase === 'LEAVING') {
-    // Équipe de reportage qui s'en va : elle sort par le bas de l'écran.
-    const t = Math.min(1, (state.tick + (renderer.pressAlpha || 0) - state.press_team.leave_tick) / (hz * renderer.config.balance.press_team.exit_seconds));
-    floor += (renderer.height - m.groundY + height * 1.25) * t;
+    x += (facing < 0 ? -1 : 1) * height * 1.6 * path.side;
   }
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, height * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, floor - (entity.combat.height || 0) * m.characterHeight);
-  ctx.scale((entity.facing < 0 ? -1 : 1) * (atlas.widthScale || 1), 1);
+  ctx.scale((facing < 0 ? -1 : 1) * (atlas.widthScale || 1), 1);
   if (entity.combat.stun_ticks > 0) ctx.rotate(-.08);
   const pose = pressPose(entity, state, hz);
   if (pressWalking(entity, state)) {
@@ -63,7 +65,7 @@ export function drawPressCharacter(renderer, entity, x, state) {
     ctx.restore();
   } else drawCharacterAtlasFrame(ctx, image, atlas, pose, scale);
   ctx.restore();
-  renderer.personMarks?.set(entity.id, { x, feetY: floor, height, facing: entity.facing });
+  renderer.personMarks?.set(entity.id, { x, feetY: floor, height, facing });
   return true;
 }
 

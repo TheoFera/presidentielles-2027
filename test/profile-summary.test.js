@@ -64,8 +64,9 @@ test('le bilan classe les camps, trace le sprint à part et arrête la courbe du
   assert.equal(model.max, 15);
   assert.equal(model.sprintStart, 0.8);
   const lePen = model.series.find(s => s.faction === 'le_pen');
-  assert.equal(lePen.points.length, 4);
-  assert.equal(lePen.points.at(-1).value, 0);
+  assert.equal(lePen.points.length, 3);
+  assert.equal(lePen.points.at(-1).value, 4.5);
+  assert.equal(lePen.points.at(-1).x, 0.8);
   assert.equal(model.series.find(s => s.faction === 'philippe').points.at(-1).x, 1);
   assert.deepEqual(model.ticks.map(t => t.label), ['J-30', 'J-20', 'J-10', '1er tour', 'Fin']);
   const html = summaryMarkup(model);

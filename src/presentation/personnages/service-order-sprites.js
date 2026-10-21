@@ -1,6 +1,6 @@
 import { SERVICE_ORDER_ATLASES } from './service-order-atlases.js';
 import { drawCharacterAtlasFrame } from './character-scale.js';
-import { standingSpriteMotion, drawStandingSprite } from './standing-sprite-motion.js';
+import { standingSpriteMotion, drawStandingSprite, applyNpcStandingMotion } from './standing-sprite-motion.js';
 import { SERVICE_ORDER_STYLES } from '../../simulation/service-order-rules.js';
 import { npcGender } from '../../simulation/npc-appearance.js';
 import { serviceOrderKickCycle, serviceOrderSeed } from '../../simulation/service-order-formation.js';
@@ -44,6 +44,11 @@ export function serviceOrderPose(entity, state, hz) {
   if (combat?.stun_ticks > 0) return { frame: 3, mode: 'hurt' };
   const attack = state.attacks?.find(a => a.owner_id === entity.id);
   if (attack) {
+    if (attack.kind === 'RAID_DASH') {
+      const active = attack.elapsed_ticks >= attack.windup_ticks
+        && attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks;
+      return { frame: active ? 5 : 4, mode: 'dash', rushing: active && !attack.hit_ids.length };
+    }
     const frame = attack.elapsed_ticks < attack.windup_ticks ? 1
       : attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks ? 2 : 3;
     return { frame, mode: 'punch' };
@@ -98,7 +103,7 @@ export function drawServiceOrderCharacter(renderer, entity, x, state) {
   const frameIndex = definition === atlas ? pose.frame : pose.frame - 3;
   const image = renderer.assets.get(definition.sprite);
   if (!image) { void renderer.assets.load(definition.sprite); return false; }
-  const height = m.characterHeight * p.npc_height_multiplier;
+  const height = m.characterHeight * p.npc_height_multiplier * 1.03;
   const scale = height / definition.referenceHeight;
   const floor = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   const feet = floor - (entity.combat?.height || 0) * m.characterHeight;
@@ -106,7 +111,15 @@ export function drawServiceOrderCharacter(renderer, entity, x, state) {
   ctx.save(); ctx.imageSmoothingEnabled = true;
   ctx.fillStyle = '#26313230'; ctx.beginPath(); ctx.ellipse(x, floor, height * .24, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(x, feet); ctx.scale(entity.facing < 0 ? -1 : 1, 1);
-  if (pose.mode === 'building' && pose.frame >= 4) ctx.translate(height * (definition.kickFootOffset || 0), 0);
+  if ((pose.mode === 'building' || pose.mode === 'dash') && pose.frame >= 4) ctx.translate(height * (definition.kickFootOffset || 0), 0);
+  if (pose.rushing) {
+    ctx.save(); ctx.strokeStyle = '#fff1d3b0'; ctx.lineWidth = Math.max(1.5, height * .012);
+    for (let i = 0; i < 3; i++) {
+      const y = -height * (.35 + i * .12);
+      ctx.beginPath(); ctx.moveTo(-height * (.7 + i * .06), y); ctx.lineTo(-height * .36, y); ctx.stroke();
+    }
+    ctx.restore();
+  }
   if (pose.mode === 'ko') { ctx.translate(0, -height * .2); ctx.rotate(-Math.PI / 2); }
   else if (pose.mode === 'hurt') ctx.rotate(-.12);
   else if (pose.mode === 'idle' || pose.mode === 'ready') {
@@ -116,9 +129,11 @@ export function drawServiceOrderCharacter(renderer, entity, x, state) {
   }
   if (pose.mode === 'walk') {
     const [sx, sy, sw, sh, px] = frame;
+    const motion = standingSpriteMotion(entity.task?.phase === 'RAID' || entity.combat?.engaged ? 'run' : 'walk',
+      state.tick / hz + serviceOrderSeed(entity.id) % 101 / 13);
+    applyNpcStandingMotion(ctx, motion);
     ctx.save(); ctx.translate((sx - px) * scale + width / 2, 0);
-    drawStandingSprite(ctx, image, { x: sx, y: sy, width: sw, height: sh }, sh * scale, width,
-      standingSpriteMotion(entity.task?.phase === 'RAID' || entity.combat?.engaged ? 'run' : 'walk', state.tick / hz + serviceOrderSeed(entity.id) % 101 / 13));
+    drawStandingSprite(ctx, image, { x: sx, y: sy, width: sw, height: sh }, sh * scale, width, motion);
     ctx.restore();
   } else drawCharacterAtlasFrame(ctx, image, definition, frameIndex, scale);
   const faction = p.factions[entity.faction_id];

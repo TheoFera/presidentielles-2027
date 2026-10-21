@@ -8,7 +8,7 @@ import { combatDelta, combatPosition } from './combat-geometry.js';
 import { distance, stableIdOrder } from './territory.js';
 import { moveNpcTowards } from './tasks.js';
 import { canBeHit, combatActors, findCombatActor, combatState, enemies, hit, interrupted, nearestEnemy, visitNearbyCombatActors } from './combat-state.js';
-import { withNpcProximity } from './npc-proximity.js';
+import { withNpcProximity, updateNpcProximity } from './npc-proximity.js';
 import { truceFilter } from './ai-balance.js';
 import { FACTIONS } from './world.js';
 import { isHumanCandidate } from './human-candidates.js';
@@ -145,8 +145,25 @@ function makeAttack(sim, actor, kind, spec) {
 
 export function startNpcAttack(sim, actor, kind, settings) {
   if (interrupted(actor) || actor.combat.cooldown_ticks > 0) return;
-  makeAttack(sim, actor, kind, settings);
+  const attack = makeAttack(sim, actor, kind, settings);
   actor.combat.cooldown_ticks = sim.secondsToTicks(settings.cooldown_seconds);
+  return attack;
+}
+
+/** Le dash de raid reste une attaque au sol : pas de téléportation ni d’invulnérabilité. */
+function moveRaidDash(sim, actor, attack) {
+  const age = attack.elapsed_ticks - attack.windup_ticks;
+  if (age < 0 || age >= attack.dash_ticks || attack.hit_ids.length) return;
+  const target = findCombatActor(sim.state, attack.target_id);
+  const ahead = target && combatDelta(sim.state, actor.x, target.x) * attack.direction;
+  const room = target && canBeHit(target) ? Math.max(0, ahead - attack.contact_range) : 0;
+  const step = Math.min(attack.dash_distance / attack.dash_ticks, attack.dash_remaining, room);
+  if (step <= 0) return;
+  const before = actor.x;
+  actor.x = wallBlockedPosition(sim, actor, combatPosition(sim.state, actor.x + attack.direction * step));
+  attack.dash_remaining = Math.max(0, attack.dash_remaining - Math.abs(combatDelta(sim.state, before, actor.x)));
+  actor.facing = attack.direction; actor.moving = actor.x !== before;
+  updateNpcProximity(sim.state, actor);
 }
 
 /** Un coup léger qui a touché peut être interrompu dès la fin de l’arrêt sur image
@@ -348,6 +365,7 @@ function updateAttacks(sim, work) {
     if (attack.speed_fraction < 1) continue;
     attack.speed_fraction--;
     attack.elapsed_ticks++;
+    if (attack.kind === 'RAID_DASH') moveRaidDash(sim, actor, attack);
     if (attack.elapsed_ticks >= attack.windup_ticks && attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks) {
       if (attack.kind === 'VERBAL' && !attack.launched) {
         const s = sim.config.balance.physical_units.militant;
@@ -489,8 +507,8 @@ export function updateCombat(sim) {
   updateTemporaryUnits(sim);
   const work = combatWork.get(sim.state) || { attacks: [], targets: [] };
   combatWork.set(sim.state, work);
-  // Les habitants ne changent pas de position dans ces deux traitements. Les unités temporaires,
-  // déjà déplacées, sont lues directement ; les ultimes qui déplacent des cibles passent ensuite.
+  // Les dashs de raid actualisent l’index de proximité pendant leur déplacement.
+  // Les unités temporaires sont lues directement ; les ultimes passent ensuite.
   try {
     withNpcProximity(sim.state, () => { updateAttacks(sim, work); updateProjectiles(sim, work.targets); });
   } finally { work.attacks.length = 0; work.targets.length = 0; }

@@ -178,7 +178,7 @@ try{
   }
   const escaped=await page.evaluate(async()=>{const a=window.pressCheck;a.requestDash(a.sim,a.c,-1);await a.sample(30,'dash');return a.c.x<a.pressMember(a.sim.state,'PRESS_CAMERA').x;});assert.equal(escaped,true);
   await page.locator('canvas').screenshot({path:path.join(output,'dash-repositionnement.png')});
-  await page.evaluate(()=>{const a=window.pressCheck,r=a.pressMember(a.sim.state,'PRESS_REPORTER');a.c.x=r.x+.3;a.hit(a.sim,a.c,r,{kind:'CANDIDATE',damage:60,direction:-1,knockback:0,stun_seconds:.18},'verification');});
+  await page.evaluate(()=>{const a=window.pressCheck,r=a.pressMember(a.sim.state,'PRESS_REPORTER');a.c.x=r.x+.3;a.hit(a.sim,a.c,r,{kind:'CANDIDATE',damage:90,direction:-1,knockback:0,stun_seconds:.18},'verification');});
   await page.evaluate(()=>window.pressCheck.sample(25,'retrait'));
   await page.locator('canvas').screenshot({path:path.join(output,'retrait.png')});
   await page.evaluate(()=>window.pressCheck.sample(30,'sortie'));

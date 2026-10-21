@@ -20,6 +20,78 @@ import { measureMinorSprites } from '../scripts/outils-images/measure-minor-spri
 const guard = (id = 'npc:10', faction_id = 'melenchon') => ({ id, faction_id, role: 'SERVICE_D_ORDRE', moving: false, combat: combatState() });
 const state = () => ({ tick: 120, attacks: [], buildings: [{ id: 'local', owner_id: 'le_pen', state: 'ACTIVE' }] });
 
+function raidDashScene(direction = 1, gap = 3) {
+  const sim = new GameSimulation(campaignConfig(), 42);
+  sim.state.ai_enabled = false;
+  for (const c of sim.state.candidates) { c.x = 12; c.campaign_active = false; }
+  const [npc, target] = sim.state.npcs;
+  convertNeutral(sim, npc, 'melenchon'); convertNeutral(sim, target, 'le_pen');
+  Object.assign(npc, guard(npc.id), { x: 50, facing: direction, hidden_durability: 90, task: null,
+    raid: { id: 'raid:1', phase: 'OUTBOUND', direction, started_tick: 0, building_id: null },
+    guard_biome_id: npc.origin_biome_id, guard_anchor_x: 45, donation_cents: 0, next_donation_tick: null });
+  Object.assign(target, { x: 50 + direction * gap, role: 'MILITANT', faction_id: 'le_pen', hidden_durability: 100,
+    combat: combatState(), task: null, donation_cents: 0, next_donation_tick: null });
+  sim.state.next_raid_id = 2;
+  return { sim, npc, target };
+}
+
+test('Raid : dash au pied dans les deux sens, distance bornée et une seule touche de 15 dégâts', () => {
+  for (const direction of [-1, 1]) {
+    const { sim, npc, target } = raidDashScene(direction);
+    const origin = npc.x;
+    updateGuard(sim, npc);
+    assert.equal(sim.state.attacks[0]?.kind, 'RAID_DASH');
+    assert.equal(serviceOrderPose(npc, sim.state, sim.hz).frame, 4);
+    assert.equal(npc.x, origin, 'Le genou monte avant le déplacement.');
+    const poses = new Set();
+    for (let tick = 0; tick < sim.secondsToTicks(1.1); tick++) {
+      sim.state.tick++; beginCombatTick(sim); updateCombat(sim);
+      poses.add(serviceOrderPose(npc, sim.state, sim.hz).frame);
+      assert.ok(Math.abs(ringDelta(origin, npc.x, sim.state.world.length)) <= 2.1 + 1e-8);
+      assert.equal(npc.combat.height, 0);
+    }
+    assert.ok(poses.has(5)); assert.ok(poses.has(4));
+    assert.equal(target.hidden_durability, 85);
+    assert.ok(Math.abs(ringDelta(origin, npc.x, sim.state.world.length)) > 1.5);
+    assert.equal(npc.combat.attack_id, null);
+  }
+});
+
+test('Raid : dash réservé à la distance, aux raids et à un rechargement de cinq secondes', () => {
+  for (const gap of [1, 1.8, 2.19, 3.11, 5]) {
+    const { sim, npc } = raidDashScene(1, gap); updateGuard(sim, npc);
+    assert.ok(!sim.state.attacks.some(a => a.kind === 'RAID_DASH'), `Distance ${gap}`);
+  }
+  const { sim, npc, target } = raidDashScene();
+  updateGuard(sim, npc);
+  const ready = npc.combat.raid_dash_ready_tick;
+  assert.equal(ready - sim.state.tick, sim.secondsToTicks(5));
+  for (const tick of [ready - 1, ready]) {
+    sim.state.tick = tick; sim.state.attacks = []; npc.combat.attack_id = null; npc.combat.cooldown_ticks = 0;
+    npc.x = 50; target.x = 53; updateGuard(sim, npc);
+    assert.equal(sim.state.attacks.some(a => a.kind === 'RAID_DASH'), tick === ready);
+  }
+  npc.raid = null; npc.combat.attack_id = null; npc.combat.cooldown_ticks = 0; npc.combat.raid_dash_ready_tick = 0;
+  npc.guard_biome_id = sim.state.world.subzones[0].biome_id; sim.state.attacks = [];
+  updateGuard(sim, npc);
+  assert.ok(!sim.state.attacks.some(a => a.kind === 'RAID_DASH'));
+});
+
+test('Raid : dash interrompu par un coup reçu et conservé à l’identique après sauvegarde', () => {
+  const { sim, npc } = raidDashScene(); updateGuard(sim, npc);
+  const replay = new GameSimulation(sim.config, 42); replay.importSnapshot(sim.exportSnapshot());
+  for (let tick = 0; tick < sim.secondsToTicks(.85); tick++) {
+    for (const run of [sim, replay]) { run.state.tick++; beginCombatTick(run); updateCombat(run); }
+  }
+  assert.deepEqual(replay.state, sim.state);
+  const other = raidDashScene(); updateGuard(other.sim, other.npc);
+  other.npc.combat.attack_id = null; other.npc.combat.stun_ticks = 10;
+  const x = other.npc.x;
+  for (let i = 0; i < 30; i++) { other.sim.state.tick++; beginCombatTick(other.sim); updateCombat(other.sim); }
+  assert.equal(other.npc.x, x);
+  assert.equal(other.target.hidden_durability, 100);
+});
+
 function defenseScene(faction = 'melenchon') {
   const sim = new GameSimulation(campaignConfig(), 42);
   sim.state.ai_enabled = false;

@@ -78,10 +78,15 @@ Nom de la version dans la Play Console : **1.0.5**. Notes de mise à jour à cop
 
 ```text
 <fr-FR>
+Nouvelle scène d’ouverture : estrade, journalistes et flash info.
 Nouveaux ultimes animés pour tous les candidats.
-Transitions entre les scènes, pancartes dans les cortèges et flashs de campagne.
-Jeu plus fluide sur téléphone et tablette, iPhone compris.
+Nouvel écran des résultats et nouveaux portraits.
+Sondages affichés en anneau autour de la carte.
+Décompte avant le retour en jeu après un K.-O.
+Raids du service d’ordre, équipe de reportage et cortèges plus vivants.
+Tracts imprimés deux fois plus vite.
 Nouveau parcours de déblocage des candidats.
+Jeu plus fluide sur téléphone.
 Rééquilibrage du combat et de la campagne.
 </fr-FR>
 ```

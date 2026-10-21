@@ -10,6 +10,7 @@ export function validateCombatSnapshot(state, sim, fail) {
   const counterId = (id, prefix, counter) => typeof id === 'string' && new RegExp(`^${prefix}:[1-9]\\d*$`).test(id) && Number(id.split(':')[1]) < state[counter];
   for (const actor of actors) {
     const c = actor.combat;
+    if (c?.raid_dash_ready_tick != null && !integer(c.raid_dash_ready_tick)) fail('rechargement de raid invalide');
     if (!c || ['stun_ticks', 'hitstop_ticks', 'cooldown_ticks', 'combo_expires_tick'].some(k => !integer(c[k]))
       || !Number.isInteger(c.combo_step) || c.combo_step < 0 || c.combo_step > 3 || !Number.isInteger(c.buffer_until_tick)
       || !Number.isFinite(c.knockback_velocity) || typeof c.engaged !== 'boolean' || ![null, -1, 1].includes(c.requested_direction)
@@ -58,7 +59,7 @@ export function validateCombatSnapshot(state, sim, fail) {
   }
   for (const attack of state.attacks) {
     if (!counterId(attack.id, 'attack', 'next_attack_id') || !actors.some(a => a.id === attack.owner_id && a.faction_id === attack.faction_id && a.combat.attack_id === attack.id)
-      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF', 'DIVE', 'MICROPHONE'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
+      || !['CANDIDATE', 'CHARGED', 'VERBAL', 'GUARD', 'RAID_DASH', 'HOLOGRAM', 'CRS', 'SPECIAL', 'SCARF', 'DIVE', 'MICROPHONE'].includes(attack.kind) || ![-1, 1].includes(attack.direction)
       || ['elapsed_ticks', 'windup_ticks', 'active_ticks', 'recovery_ticks'].some(k => !integer(attack[k]))
       || attack.elapsed_ticks >= attack.windup_ticks + attack.active_ticks + attack.recovery_ticks
       || ['range', 'damage', 'knockback', 'electoral_damage'].some(k => !finite(attack[k]))
@@ -87,6 +88,13 @@ export function validateCombatSnapshot(state, sim, fail) {
   for (const attack of state.attacks) if (attack.speed_fraction != null && (!finite(attack.speed_fraction) || attack.speed_fraction >= 1)) fail('cadence de frappe invalide');
   for (const attack of state.attacks) if (attack.micro_hold_until_tick != null
     && (attack.kind !== 'MICROPHONE' || !integer(attack.micro_hold_until_tick))) fail('maintien du micro invalide');
+  for (const attack of state.attacks) if (attack.kind === 'RAID_DASH') {
+    const owner = actors.find(a => a.id === attack.owner_id);
+    if (owner.role !== 'SERVICE_D_ORDRE' || !owner.raid || typeof attack.target_id !== 'string'
+      || !integer(attack.dash_ticks) || attack.dash_ticks < 1
+      || !finite(attack.dash_distance) || attack.dash_distance <= 0 || !finite(attack.dash_remaining)
+      || attack.dash_remaining > attack.dash_distance || !finite(attack.contact_range) || attack.contact_range <= 0) fail('dash de raid invalide');
+  }
   for (const projectile of state.projectiles) {
     if (!counterId(projectile.id, 'projectile', 'next_projectile_id') || !['VERBAL', 'WAVE', 'BUBBLE', 'MOLOTOV'].includes(projectile.kind) || !ALL_FACTIONS.includes(projectile.faction_id)
       || !actors.some(a => a.id === projectile.owner_id) || !position(projectile.x) || ![-1, 1].includes(projectile.direction)

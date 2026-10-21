@@ -116,7 +116,7 @@ test('Le flash complet devient seulement EN DIRECT et le nom court, puis dispara
     display.update(sim.state);
     assert.equal(card.parentNode, display.live);
     assert.ok(card.classes.has('compact'));
-    assert.equal(textOf(display, event), `EN DIRECT\n${variant.title}\n\n\n`);
+    assert.equal(textOf(display, event), `EN DIRECT\n${BIOME_NAMES[event.target_biome_id]} : ${variant.title}\n\n\n`);
     assert.deepEqual(card.children, nodes, 'Les éléments sont déplacés sans être recréés');
     resolveCampaignEvent(sim, event, 'RESOLVED');
     display.update(sim.state);

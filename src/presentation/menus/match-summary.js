@@ -47,9 +47,8 @@ export function summaryModel(state) {
   const max = Math.min(100, niceMax(Math.max(0, ...history.flatMap(p => [...factions, ...minors].map(f => support(p, f))))));
   const line = (faction, points) => ({ faction, points: points.map(p => ({ x: x(p), y: support(p, faction) / max, value: support(p, faction), voters: voters(p, faction) })) });
   const series = order.map(faction => {
-    // Le camp éliminé s'arrête au début du sprint, quand ses électeurs redeviennent neutres.
-    const points = history.filter((p, i) => faction !== state.eliminated_faction || !p.sprint || !history.slice(0, i).some(q => q.sprint));
-    return line(faction, points);
+    // Le camp éliminé s'arrête sur son score du premier tour (ses électeurs redeviennent neutres ensuite).
+    return line(faction, faction === state.eliminated_faction ? campaign : history);
   });
   const minorSeries = minors.map(faction => ({ ...line(faction, campaign), minor: true }));
   const moment = p => p.sprint ? 'au second tour' : p.days_remaining > 0 ? `à J-${p.days_remaining}` : 'le jour du premier tour';

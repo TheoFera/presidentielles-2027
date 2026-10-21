@@ -102,6 +102,30 @@ function moveRaidTowards(sim, npc, destination, settings) {
   moveNpcTowards(sim, npc, destination, speed);
 }
 
+function startRaidDash(sim, npc, target, formation, s) {
+  const d = ringDelta(npc.x, target.x, sim.state.world.length), gap = Math.abs(d);
+  if (!formation.attacking || gap < s.raid_dash_min_range || gap > s.raid_dash_distance + s.raid_dash_contact_range
+    || sim.state.tick < (npc.combat.raid_dash_ready_tick ?? 0)
+    // Le garde rejoint son côté de combat, sans traverser la cible ni ses camarades.
+    || Math.sign(ringDelta(target.x, formation.destination, sim.state.world.length)) !== -Math.sign(d)
+    || sim.state.npcs.some(n => n !== npc && n.role === 'SERVICE_D_ORDRE' && n.faction_id === npc.faction_id
+      && ringDelta(npc.x, n.x, sim.state.world.length) * Math.sign(d) > 0
+      && ringDelta(npc.x, n.x, sim.state.world.length) * Math.sign(d) < gap)) return false;
+  const dashTicks = sim.secondsToTicks(s.raid_dash_seconds);
+  const attack = startNpcAttack(sim, npc, 'RAID_DASH', {
+    target_id: target.id, range: s.raid_dash_contact_range, contact_range: s.raid_dash_contact_range,
+    damage: s.raid_dash_damage, knockback: s.knockback, electoral_damage: s.electoral_damage,
+    windup_ticks: sim.secondsToTicks(s.raid_dash_windup_seconds), active_ticks: dashTicks,
+    recovery_ticks: sim.secondsToTicks(s.raid_dash_recovery_seconds),
+    dash_ticks: dashTicks, dash_distance: s.raid_dash_distance, dash_remaining: s.raid_dash_distance,
+    cooldown_seconds: s.attack_cooldown_seconds,
+  });
+  if (!attack) return false;
+  npc.combat.raid_dash_ready_tick = sim.state.tick + sim.secondsToTicks(s.raid_dash_cooldown_seconds);
+  npc.moving = false;
+  return true;
+}
+
 /** Trois sentinelles fixes au local ; une sortie seulement en cas d'affrontement. */
 function updateDefensiveGuard(sim, npc) {
   const { state, config } = sim, s = config.balance.physical_units.service_ordre;
@@ -172,13 +196,15 @@ export function updateGuard(sim, npc) {
   const closest = (a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b);
   // Un candidat adverse à portée (environ un tiers de sous-zone) attire tous les gardes, avant tout le reste.
   const candidate = state.candidates.filter(c => near(c, s.candidate_focus_range)).sort(closest)[0];
-  const target = candidate || nearbyNpcs(state, npc.x, s.engage_range).concat(state.temporary_units).filter(t => t.role !== 'SYMPATHISANT' && near(t, s.engage_range))
+  const engageRange = Math.max(s.engage_range, s.raid_dash_distance + s.raid_dash_contact_range);
+  const target = candidate || nearbyNpcs(state, npc.x, engageRange).concat(state.temporary_units).filter(t => t.role !== 'SYMPATHISANT' && near(t, engageRange))
     .sort((a, b) => {
       const priority = unit => unit.combat?.attack_id || unit.combat?.engaged ? 0 : unit.role === 'MILITANT' ? 1 : 2;
       return priority(a) - priority(b) || closest(a, b);
     })[0] || null;
   npc.combat.target_id = target?.id || null;
   npc.combat.engaged = !!target;
+  npc.moving = false;
   if (interrupted(npc)) return;
   const slot = guardSlot(state, npc, s.spacing_units);
   let destination; let phase; let formation = null, pressureSite = null;
@@ -186,6 +212,7 @@ export function updateGuard(sim, npc) {
     formation = serviceOrderCombatPlace(state, npc, target, s, sim.hz);
     destination = formation.destination; phase = 'DEFEND';
     const d = ringDelta(npc.x, target.x, state.world.length); npc.facing = Math.sign(d) || npc.facing;
+    if (startRaidDash(sim, npc, target, formation, s)) return;
     const arrived = moveNpcTowards(sim, npc, destination, s.move_speed);
     npc.facing = Math.sign(ringDelta(npc.x, target.x, state.world.length)) || npc.facing;
     if (arrived && formation.attacking && distance(state, npc.x, target.x) <= s.attack_range) startNpcAttack(sim, npc, 'GUARD', { range: s.attack_range, damage: s.attack_damage, knockback: s.knockback,

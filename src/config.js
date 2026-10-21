@@ -180,6 +180,11 @@ export function validateConfig(config) {
   for (const value of Object.values(config.balance.faction_interactions)) positive(value, 'zone d’interaction factionnelle');
   for (const type of ['faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif']) positive(config.balance.buildings[type].purchase_hold_seconds, type);
   const so = config.balance.buildings.faction_slot_melenchon_lepen_service_ordre;
+  const raid = config.balance.physical_units.service_ordre;
+  for (const field of ['raid_dash_distance', 'raid_dash_min_range', 'raid_dash_contact_range', 'raid_dash_damage',
+    'raid_dash_cooldown_seconds', 'raid_dash_windup_seconds', 'raid_dash_seconds', 'raid_dash_recovery_seconds']) positive(raid[field], field);
+  if (raid.raid_dash_cooldown_seconds < 5 || raid.raid_dash_min_range <= raid.attack_range + config.balance.candidate_combat.target_radius
+    || raid.raid_dash_min_range > raid.raid_dash_distance + raid.raid_dash_contact_range) throw new Error('Configuration : distance ou rechargement du dash de raid invalide.');
   if (!Number.isInteger(config.balance.physical_units.service_ordre.raid_recruits) || config.balance.physical_units.service_ordre.raid_recruits < 1) throw new Error('Configuration : nombre de recrues du raid invalide.');
   if (!Number.isInteger(config.balance.physical_units.service_ordre.recruit_subzone_radius) || config.balance.physical_units.service_ordre.recruit_subzone_radius < 0) throw new Error('Configuration : rayon de recrutement du service d’ordre invalide.');
   positive(so.pickup_seconds, 'entrée au local SO');

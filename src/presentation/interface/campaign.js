@@ -6,14 +6,20 @@ import { BIOME_NAMES } from './campaign-intro.js';
 const labels={RASSEMBLEMENT:'Rassemblement · conversion rapide',MEETING_DE_CRISE:'Meeting exceptionnel',CHOC_OPINION:'Choc d’opinion',CANDIDAT_FRAGILISE:'Candidat fragilisé — prime au KO',PIEGE_MEDIATIQUE:'Piège médiatique',DEBAT_THEMATIQUE:'Débat thématique',FERMETURE_BATIMENT:'Fermeture de bâtiment'};
 const siteNames={permanence:'Permanence',financement:'Financement',faction:'Local de faction',tour_communication:'Tour de communication'};
 
+// Préfixe le titre du cortège par le nom du biome affiché sur la roue (« Littoral : … »).
+function withBiome(event,text){
+ const biome=BIOME_NAMES[event.target_biome_id];
+ return biome?`${biome} : ${text}`:text;
+}
+
 // Même titre chez tous les joueurs et après une reconnexion, sans toucher au hasard de la simulation.
 function rallyHeadline(event,seed,catalog){
  const headlines=catalog.get(event.variant_id)?.headlines;
  if(!headlines?.length)return event.title;
  let hash=2166136261;
  for(const char of `${seed}:${event.id}`)hash=Math.imul(hash^char.charCodeAt(0),16777619);
- const headline=headlines[(hash>>>0)%headlines.length],biome=BIOME_NAMES[event.target_biome_id];
- return biome?`${biome} : ${headline}`:headline;
+ const headline=headlines[(hash>>>0)%headlines.length];
+ return withBiome(event,headline);
 }
 
 // Consigne courte, tournée vers le joueur. Les noms de candidats n'apparaissent que lorsqu'ils changent quelque chose.
@@ -56,7 +62,7 @@ export class CampaignDisplay {
  // Le cortège affiche un grand titre puis son nom court ; les autres familles gardent leurs consignes.
  const live=e.status==='ACTIVE',zone=state.world.subzones.find(z=>z.id===e.target_subzone_id);
  const tag=!live?'TERMINÉ':e.category==='INSTANT'?'FLASH INFO':'EN DIRECT';
- const title=rally?(compact?e.title:rallyHeadline(e,state.seed,this.catalog)):`${e.title} · ${zone.biome_name}`;
+ const title=rally?(compact?withBiome(e,e.title):rallyHeadline(e,state.seed,this.catalog)):`${e.title} · ${zone.biome_name}`;
  const time=!rally&&live&&e.category!=='INSTANT'&&e.end_tick!==null?Math.max(0,Math.ceil((e.end_tick-state.tick)/hz))+' s':'';
  const order=rally?'':eventOrder(e,state,this.config,hz);
  const texts=[tag,title,time,order,''],contentKey=texts.join('\n');
