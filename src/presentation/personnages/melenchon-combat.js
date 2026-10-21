@@ -44,8 +44,6 @@ export class CombatPoseTracker {
   clear() { this.actors.clear(); }
   active(entity, state, config) {
     const previous = this.actors.get(entity.id);
-    // Déjà évalué pour ce pas (deux images par pas, plusieurs lecteurs) : même réponse, sans reparcourir la foule.
-    if (previous?.answeredTick === state.tick) return previous.answer;
     const entry = previous && previous.tick <= state.tick ? previous : { until: -1, tick: state.tick };
     const active = state.tick <= entry.until;
     const radius = config.balance.candidate_combat.ai_detection_range * (active ? 1.3 : 1);
@@ -56,8 +54,7 @@ export class CombatPoseTracker {
     const recentHit = entity.combat?.last_hit?.tick === state.tick;
     if (threat || attack || recentHit || entity.combat?.charge_active) entry.until = state.tick + Math.ceil(2 * config.balance.simulation_architecture.fixed_tick_hz);
     entry.tick = state.tick; this.actors.set(entity.id, entry);
-    entry.answeredTick = state.tick; entry.answer = state.tick <= entry.until;
-    return entry.answer;
+    return state.tick <= entry.until;
   }
 }
 
