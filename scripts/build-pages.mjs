@@ -10,6 +10,11 @@ const webpCache = resolve(root, '.cache/webp');
 // La qualité 90 (application trois fois plus légère) a été essayée le 05/10/2026, puis abandonnée :
 // sur téléphone, la carte devenait saccadée (images avec perte, plus coûteuses à dessiner sur Android).
 export const APP_WEBP_QUALITY = null;
+// Grandes illustrations des menus (fond fixe, dessiné une fois) : avec perte, environ dix fois plus légères,
+// pour que l'écran des candidats s'affiche vite sur téléphone. Ne concerne pas la carte.
+export const MENU_WEBP_QUALITY = 90;
+const webpOptions = (image, app) => image.startsWith('assets/images/menus/') ? { quality: MENU_WEBP_QUALITY }
+  : app && APP_WEBP_QUALITY ? { quality: APP_WEBP_QUALITY } : {};
 const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
 
 // Fichiers réellement chargés par le jeu : on suit les <script>, <link>, import et @import
@@ -91,7 +96,7 @@ export async function buildPages(output = defaultTarget, { webp = true, app = fa
   const converted = new Map();
   if (useWebp) {
     const list = [...images];
-    const outputs = await eachLimited(list, image => cachedWebp(resolve(root, image), webpCache, app && APP_WEBP_QUALITY ? { quality: APP_WEBP_QUALITY } : {}));
+    const outputs = await eachLimited(list, image => cachedWebp(resolve(root, image), webpCache, webpOptions(image, app)));
     list.forEach((image, index) => converted.set(image, outputs[index]));
   }
   const exportedName = image => useWebp ? image.replace(/\.png$/, '.webp') : image;

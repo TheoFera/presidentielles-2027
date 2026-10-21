@@ -1,9 +1,11 @@
 import { syncOrientation } from '../interface/landscape.js';
 
 // Images de fond des écrans du menu (fichiers CSS) : gardées ici pour rester en mémoire.
+// D'abord le choix du candidat (les portraits sont dessinés dans l'image), puis le fond des résultats.
+// Doit suivre l'image de game-menu.css : sinon l'écran des candidats reste vide sur un réseau lent.
 const MENU_IMAGES = [
+  new URL('../../../assets/images/menus/candidats-philippe-centre-v2.png', import.meta.url).href,
   new URL('../../../assets/images/menus/candidats.png', import.meta.url).href,
-  new URL('../../../assets/images/menus/candidats-philippe-centre.png', import.meta.url).href,
 ];
 const warmedMenuImages = [];
 
