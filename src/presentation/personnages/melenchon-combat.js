@@ -44,16 +44,19 @@ export class CombatPoseTracker {
   clear() { this.actors.clear(); }
   active(entity, state, config) {
     const previous = this.actors.get(entity.id);
+    // Deuxième image du même pas, sur le même état : la réponse et la mémoire seraient recalculées à l'identique.
+    if (previous && previous.state === state && previous.tick === state.tick) return state.tick <= previous.until;
     const entry = previous && previous.tick <= state.tick ? previous : { until: -1, tick: state.tick };
     const active = state.tick <= entry.until;
     const radius = config.balance.candidate_combat.ai_detection_range * (active ? 1.3 : 1);
-    const threatens = target => dangerousRoles.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick)
-      && Math.abs(combatDelta(state, entity.x, target.x)) <= radius;
+    // La distance d'abord : la plupart des personnages sont loin (mêmes tests, sans effet de bord).
+    const threatens = target => Math.abs(combatDelta(state, entity.x, target.x)) <= radius
+      && dangerousRoles.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick);
     const threat = state.candidates.some(threatens) || state.npcs.some(threatens) || state.temporary_units.some(threatens);
     const attack = state.attacks.some(a => a.owner_id === entity.id);
     const recentHit = entity.combat?.last_hit?.tick === state.tick;
     if (threat || attack || recentHit || entity.combat?.charge_active) entry.until = state.tick + Math.ceil(2 * config.balance.simulation_architecture.fixed_tick_hz);
-    entry.tick = state.tick; this.actors.set(entity.id, entry);
+    entry.tick = state.tick; entry.state = state; this.actors.set(entity.id, entry);
     return state.tick <= entry.until;
   }
 }
