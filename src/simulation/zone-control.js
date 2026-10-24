@@ -1,8 +1,18 @@
 import { zoneAt } from './world.js';
 
+// Le local de chaque sous-zone, rangé une fois par liste de bâtiments (la liste et ces deux champs ne changent pas
+// en cours de partie ; une partie chargée a sa propre liste). Le premier trouvé, comme `find`.
+const controllingSites = new WeakMap();
+
 /** Seul le local désigné par le tableau détermine le contrôle, indépendamment des votes. */
 export function controllingSite(state, subzoneId) {
-  return state.buildings.find(site => site.controls_zone && site.subzone_id === subzoneId) || null;
+  let sites = controllingSites.get(state.buildings);
+  if (!sites) {
+    sites = new Map();
+    for (const site of state.buildings) if (site.controls_zone && !sites.has(site.subzone_id)) sites.set(site.subzone_id, site);
+    controllingSites.set(state.buildings, sites);
+  }
+  return sites.get(subzoneId) || null;
 }
 
 export function zoneController(state, subzoneId) {

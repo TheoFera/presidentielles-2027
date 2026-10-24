@@ -21,7 +21,7 @@ import { createElectorate, localPersuasionMultiplier, populationByOrigin } from 
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
 import { triggerMeeting, updateElectoralBuildings, meetingAttendeeStep } from './electoral-buildings.js';
-import { updateCollector, updateMilitant } from './tasks.js';
+import { updateCollector, updateMilitant, withPersuasionListeners } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, canTurnDuringLightStun, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
@@ -419,7 +419,7 @@ export class GameSimulation {
     updateEconomy(this);
     updateProduction(this);
     prepareDonations(this);
-    withNpcProximity(state, () => this.updateNpcs());
+    withNpcProximity(state, () => withPersuasionListeners(state, () => this.updateNpcs()));
     updateElectoralBuildings(this);
     updateStrategicSites(this);
     settleMoney(this);

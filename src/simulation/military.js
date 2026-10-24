@@ -150,10 +150,12 @@ function updateDefensiveGuard(sim, npc) {
   const noiseTick = t => t.combat?.engaged || t.combat?.attack_id || state.attacks.some(a => a.owner_id === t.id)
     ? state.tick : t.combat?.last_hit?.tick ?? -Infinity;
   const noisy = t => state.tick - noiseTick(t) <= calmTicks;
-  const target = candidates.filter(t => t.id !== npc.id && targetable(t) && t.faction_id !== npc.faction_id && t.role !== 'SYMPATHISANT'
+  // Tests sans effet de bord : les moins chers d'abord (distance, puis poste tenu, calculé une fois).
+  const holdsPost = guardDefendsPosition(state, npc, npc.x);
+  const target = !holdsPost ? undefined : candidates.filter(t => t.id !== npc.id && distance(state, npc.x, t.x) <= s.defense_detection_range
+    && targetable(t) && t.faction_id !== npc.faction_id && t.role !== 'SYMPATHISANT'
+    && guardDefendsPosition(state, npc, t.x)
     && (noisy(t) || npc.task?.target_id === t.id && state.tick <= (npc.task.alert_until_tick ?? -1))
-    && guardDefendsPosition(state, npc, t.x) && guardDefendsPosition(state, npc, npc.x)
-    && distance(state, npc.x, t.x) <= s.defense_detection_range
     // Pas de poursuite au travers d'une sous-zone neutre ou ennemie.
     && state.world.subzones.every(z => {
       const delta = ringDelta(npc.x, t.x, state.world.length), along = ringDelta(npc.x, z.center, state.world.length) * Math.sign(delta);

@@ -159,6 +159,33 @@ function updateExpedition(simulation, npc, members) {
   moveNpcTowards(simulation, npc, npc.task.destination_x, settings.move_speed * pace);
 }
 
+// Pendant updateNpcs, une persuasion peut s'arrêter (conversion, rassemblement), jamais commencer :
+// les auditeurs de chaque militant sont rangés une fois, puis relus dans l'état vivant.
+const listenerScopes = new WeakMap();
+export function withPersuasionListeners(state, operation) {
+  if (listenerScopes.has(state)) return operation();
+  listenerScopes.set(state, { byActor: null });
+  try { return operation(); } finally { listenerScopes.delete(state); }
+}
+
+/** Premier habitant, dans l'ordre de la population, que ce militant est en train de convaincre. */
+function listenerOf(state, npc) {
+  const scope = listenerScopes.get(state);
+  if (!scope) return state.npcs.find(n => n.persuasion?.actor_id === npc.id);
+  if (!scope.byActor) {
+    scope.byActor = new Map();
+    for (const n of state.npcs) {
+      const actor = n.persuasion?.actor_id;
+      if (actor === undefined) continue;
+      const list = scope.byActor.get(actor);
+      if (list) list.push(n); else scope.byActor.set(actor, [n]);
+    }
+  }
+  const list = scope.byActor.get(npc.id);
+  if (list) for (const n of list) if (n.persuasion?.actor_id === npc.id) return n;
+  return undefined;
+}
+
 export function updateMilitant(simulation, npc) {
   const { state, config } = simulation;
   const settings = config.balance.physical_units.militant;
@@ -172,7 +199,7 @@ export function updateMilitant(simulation, npc) {
       simulation.emit('MilitantGroupDisbanded', { faction_id: npc.faction_id, npc_ids: members.map(n => n.id) });
     }
   }
-  const talking = state.npcs.find(n => n.persuasion?.actor_id === npc.id);
+  const talking = listenerOf(state, npc);
   if (talking) {
     npc.task = { kind: 'EXPAND', phase: 'RECRUIT', target_id: talking.id, destination_x: talking.x,
       destination_subzone_id: zoneAt(state.world, talking.x).id,
