@@ -248,8 +248,7 @@ export class WorldRenderer {
     drawPersuasionFeedback(this, state);
     drawMeetingWaves(this, state, alpha);
     drawMoneyPickups(this, state);
-    drawSiteRequirements(this, state);
-    drawBanknote(this, state);
+    drawBanknote(this, state, drawSiteRequirements(this, state));
     drawVehiclePrompts(this, state);
     drawMoneyFeedback(this, state);
     drawCombatEffects(this, state, debug);
