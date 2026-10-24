@@ -26,6 +26,7 @@ import { ultimateGuardAtlases } from '../effets/ultimate-guard-sprites.js';
 import { minorUltimateAtlases } from '../effets/minor-ultimate-art.js';
 import { candidateOpacity, flattenScale } from '../personnages/candidate-visibility.js';
 import { PRESS_ATLASES } from '../personnages/press-atlases.js';
+import { SERVICE_ORDER_ATLASES } from '../personnages/service-order-atlases.js';
 import { drawPressCone, drawPressWarning } from '../personnages/press-sprites.js';
 
 async function prepareImage(id, image, bitmaps = true) {
@@ -50,6 +51,11 @@ async function prepareImage(id, image, bitmaps = true) {
     } else await prepareAtlas(image, sheet === 'combat' ? minorCombatAtlases[faction] : minorExtraAtlases[faction]?.[sheet]);
     if (minorStandingAtlases[faction]?.sprite === id) await prepareAtlas(image, minorStandingAtlases[faction]);
     preparedOnly = true;
+  }
+  // Service d'ordre : découpes isolées préparées au chargement, et non à la première apparition d'une tenue
+  // en pleine partie (à-coup). La planche reste gardée : la marche la dessine directement.
+  if (id.startsWith('security-so-')) for (const atlas of Object.values(SERVICE_ORDER_ATLASES)) {
+    for (const sheet of [atlas, atlas.building]) if (sheet?.isolated && sheet.sprite === id) await prepareAtlas(image, sheet);
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);

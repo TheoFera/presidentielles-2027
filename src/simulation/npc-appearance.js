@@ -18,13 +18,24 @@ const npcSequence = entity => {
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
 };
 
-// Rang de chaque habitant dans son quartier d'origine, calculé une fois par pas de simulation :
-// avant, chaque personnage dessiné filtrait et triait tous les habitants de son quartier à chaque image.
-let zoneRanks = { npcs: null, length: -1, tick: null, byZone: new Map(), results: new Map() };
+// Rang de chaque habitant dans son quartier d'origine. Il ne dépend que de la liste des habitants, de leurs
+// identifiants et de leurs quartiers d'origine : les rangs (et les apparences déjà choisies) sont gardés tant
+// que ces trois choses restent les mêmes, vérifiées une fois par pas de simulation (avant : refaits à chaque pas).
+let zoneRanks = { npcs: null, tick: null, members: [], ids: [], origins: [], byZone: new Map(), results: new Map() };
+const sameResidents = (ranks, npcs) => {
+  if (ranks.npcs !== npcs || ranks.members.length !== npcs.length) return false;
+  for (let i = 0; i < npcs.length; i++) {
+    const npc = npcs[i];
+    if (ranks.members[i] !== npc || ranks.ids[i] !== npc.id || ranks.origins[i] !== npc.origin_subzone_id) return false;
+  }
+  return true;
+};
 function zoneRank(state, zoneId, homeBiome, id) {
   const npcs = state.npcs || [];
-  if (zoneRanks.npcs !== npcs || zoneRanks.length !== npcs.length || zoneRanks.tick !== state.tick) {
-    zoneRanks = { npcs, length: npcs.length, tick: state.tick, byZone: new Map(), results: new Map() };
+  if (zoneRanks.npcs !== npcs || zoneRanks.tick !== state.tick || zoneRanks.members.length !== npcs.length) {
+    if (!sameResidents(zoneRanks, npcs)) zoneRanks = { npcs, tick: state.tick, members: [...npcs], ids: npcs.map(npc => npc.id),
+      origins: npcs.map(npc => npc.origin_subzone_id), byZone: new Map(), results: new Map() };
+    zoneRanks.tick = state.tick;
   }
   const key = `${zoneId}\n${homeBiome}`;
   let ranks = zoneRanks.byZone.get(key);
@@ -41,7 +52,7 @@ function zoneRank(state, zoneId, homeBiome, id) {
 export function npcAppearanceAssetId(entity, state, homeBiome) {
   const zoneId = entity.origin_subzone_id || homeBiome;
   const position = zoneRank(state, zoneId, homeBiome, entity.id);
-  // Même pas de simulation, même habitant : même apparence (zoneRank vient de valider le cache).
+  // Mêmes habitants, même habitant : même apparence (zoneRank vient de valider le cache).
   const key = `${entity.id}\n${zoneId}\n${homeBiome}`;
   let id = zoneRanks.results.get(key);
   if (id === undefined) { id = appearanceFor(entity, zoneId, homeBiome, position); zoneRanks.results.set(key, id); }
