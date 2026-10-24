@@ -87,8 +87,25 @@ export function updateRaidRecruit(sim, npc) {
   sim.emit('GuardEquipped', { npc_id: npc.id, target_id: building.id, raid_id: task.raid_id });
 }
 
+// Passage des gardes et des militants (pas de simulation) : personne n'y devient garde, ne quitte ce rôle ni ne change
+// de raid, de camp ou de local ; les groupes sont donc rangés une fois par passage (listes de travail, hors sauvegardes).
+const guardPasses = new WeakMap();
+export function withGuardPass(state, operation) {
+  if (guardPasses.has(state)) return operation();
+  guardPasses.set(state, new Map());
+  try { return operation(); } finally { guardPasses.delete(state); }
+}
+function passGroup(state, key, build) {
+  const groups = guardPasses.get(state);
+  if (!groups) return build();
+  let group = groups.get(key);
+  if (!group) { group = build(); groups.set(key, group); }
+  return group;
+}
+
 /** Chaque garde a sa propre place dans son groupe de raid : jamais tous au même point. */
-const squad = (state, raid) => state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.raid?.id === raid.id).sort(stableIdOrder);
+const squad = (state, raid) => passGroup(state, `raid\n${raid.id}`,
+  () => state.npcs.filter(n => n.role === 'SERVICE_D_ORDRE' && n.raid?.id === raid.id).sort(stableIdOrder));
 
 function guardSlot(state, npc, spacing) {
   const members = squad(state, npc.raid);
@@ -137,10 +154,12 @@ function startRaidDash(sim, npc, target, formation, s) {
 function updateDefensiveGuard(sim, npc) {
   const { state, config } = sim, s = config.balance.physical_units.service_ordre;
   npc.pressure_target_id = null;
-  const members = state.npcs.filter(n => defensiveGuard(n) && n.faction_id === npc.faction_id
-    && (npc.source_site_id ? n.source_site_id === npc.source_site_id : n.guard_biome_id === npc.guard_biome_id)).sort(stableIdOrder);
+  const members = passGroup(state, `post\n${npc.faction_id}\n${npc.source_site_id ? `site\n${npc.source_site_id}` : `biome\n${npc.guard_biome_id}`}`,
+    () => state.npcs.filter(n => defensiveGuard(n) && n.faction_id === npc.faction_id
+      && (npc.source_site_id ? n.source_site_id === npc.source_site_id : n.guard_biome_id === npc.guard_biome_id)).sort(stableIdOrder));
   const index = Math.max(0, members.indexOf(npc));
-  const sites = state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id === npc.faction_id && b.biome_id === npc.guard_biome_id);
+  const sites = passGroup(state, `sites\n${npc.faction_id}\n${npc.guard_biome_id}`,
+    () => state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id === npc.faction_id && b.biome_id === npc.guard_biome_id));
   const post = sites.find(b => b.id === npc.source_site_id) || sites.filter(b => b.variant === 'service_ordre')
     .sort((a, b) => distance(state, npc.guard_anchor_x, a.x) - distance(state, npc.guard_anchor_x, b.x) || stableIdOrder(a, b))[0];
   const zone = post && zoneAt(state.world, post.x), margin = config.prototype.world.arrival_epsilon_units;

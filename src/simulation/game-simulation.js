@@ -26,7 +26,7 @@ import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, canTurnDuringLightStun, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { startPodiumFall } from './combat-actions.js';
-import { updateGuard, updateRaidRecruit, updateGuardRecruitment } from './military.js';
+import { updateGuard, updateRaidRecruit, updateGuardRecruitment, withGuardPass } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
 import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
@@ -404,12 +404,12 @@ export class GameSimulation {
     separateCandidates(this);
     updateSpawns(this);
     updateGuardRecruitment(this);
-    withNpcProximity(state, () => {
+    withNpcProximity(state, () => withGuardPass(state, () => {
       for (const npc of state.npcs) {
         if (npc.role === 'MILITANT' && npc.task?.kind !== 'JOIN_GUARD' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
         if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
       }
-    });
+    }));
     updatePressTeam(this);
     updateCombat(this);
     updateCandidateResistance(this);
