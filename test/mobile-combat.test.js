@@ -240,3 +240,16 @@ test('Hologrammes : copies intouchables qui imitent Mélenchon (position, saut, 
   const restored = setup('melenchon', 0).sim; restored.importSnapshot(sim.exportSnapshot());
   ticks(sim, 20, true); ticks(restored, 20, true); assert.deepEqual(restored.state, sim.state);
 });
+
+test('Hologrammes : un dash vers la gauche est dessiné vers la gauche, en différé', async () => {
+  const { melenchonExtraPose } = await import('../src/presentation/personnages/melenchon-extra-poses.js');
+  const { sim, c } = setup('melenchon', 0); c.special_charge = 10; activateUltimate(sim, c); ticks(sim, 40, true);
+  const holograms = sim.state.temporary_units.filter(u => u.role === 'HOLOGRAMME');
+  requestDash(sim, c, -1); ticks(sim, 6, true);
+  for (const h of holograms.filter(h => h.dash_active)) {
+    const pose = melenchonExtraPose(h, sim.state, sim.config, true);
+    assert.equal(pose.name, 'dash'); assert.equal(pose.direction, -1);
+    assert.equal(h.dash_until_tick, c.dash_until_tick + h.mirror_delay_ticks);
+  }
+  assert.ok(holograms.some(h => h.dash_active));
+});

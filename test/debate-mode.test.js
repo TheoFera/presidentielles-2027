@@ -545,3 +545,21 @@ test('Débat multijoueur : un combattant par joueur, une IA libre pour compléte
   const match = new DebateMatch(config, { ...withAI, seed: 3 });
   assert.deepEqual(match.state.candidates.map(c => c.id), debateFighterIds(withAI.fighters));
 });
+
+test('K.-O. sur un balcon : le candidat reste couché sur le balcon, pas sur la ligne de marche', () => {
+  const match = started(trio('elysee'));
+  const [player, other] = match.state.candidates;
+  const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+  Object.assign(player, { x: balcony.x, platform_id: balcony.id }); player.combat.height = balcony.height;
+  other.x = balcony.x + 8;
+  player.debate_hp = 0;
+  run(match, () => [], 30);
+  assert.equal(player.is_ko, true); assert.equal(player.combat.height, balcony.height);
+  // Mis K.-O. en plein saut au-dessus du balcon : il retombe sur le balcon, pas au sol.
+  const second = match.state.candidates[2];
+  Object.assign(second, { x: balcony.x, platform_id: null });
+  Object.assign(second.combat, { height: balcony.height + 0.5, jump_tick: match.state.tick - 5, jump_base: balcony.height });
+  second.debate_hp = 0;
+  run(match, () => [], 30);
+  assert.equal(second.is_ko, true); assert.equal(second.combat.height, balcony.height);
+});
