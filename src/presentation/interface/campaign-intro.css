@@ -75,8 +75,8 @@
 /* Pendant la scène, l'interface attend le début de la campagne. */
 #game.campaign-intro :is(#funds, #campaign-events, #notice, #poll-scores) { visibility: hidden; }
 #game.campaign-intro:not(.intro-tutorial) #electoral-display { visibility: hidden; }
-#game.campaign-intro:not(.intro-tuto-move):not(.intro-tuto-strike) #touch-controls { visibility: hidden; }
-#game.intro-tuto-move .touch-directions button, #game.intro-tuto-strike #attack-touch { animation: intro-key 1s ease-in-out infinite; outline: 3px solid #ffc94a; outline-offset: 2px; }
+#game.campaign-intro:not(.intro-tuto-move):not(.intro-tuto-strike):not(.intro-controls) #touch-controls { visibility: hidden; }
+#game.intro-tuto-move .touch-directions button, :is(#game.intro-tuto-strike, #game.intro-controls) #attack-touch { animation: intro-key 1s ease-in-out infinite; outline: 3px solid #ffc94a; outline-offset: 2px; }
 /* Dossier : la carte et le post-it partent agrandis au centre, puis glissent à leur place. */
 #game.campaign-intro :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
 #game.intro-dossier :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
@@ -112,5 +112,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .intro-band, .intro-news, .intro-prompt, .map-wheel-names, #campaign-intro::before, #game.campaign-intro :is(#electoral-display, #campaign-objectives) { transition: none; }
-  .intro-prompt kbd, .intro-prompt[data-step="dossier"].shown, .intro-news-track, .intro-news-live i, .postit li.just-done::before, #game.intro-tuto-move .touch-directions button, #game.intro-tuto-strike #attack-touch { animation: none; }
+  .intro-prompt kbd, .intro-prompt[data-step="dossier"].shown, .intro-news-track, .intro-news-live i, .postit li.just-done::before, #game.intro-tuto-move .touch-directions button, :is(#game.intro-tuto-strike, #game.intro-controls) #attack-touch { animation: none; }
 }
