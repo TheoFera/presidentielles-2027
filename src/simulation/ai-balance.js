@@ -36,10 +36,14 @@ function calculerForce(state, config) {
   const zones = state.electorate.length || 1;
   const strength = {};
   const alive = state.candidates.filter(c => !c.eliminated && !c.minor);
+  // Quartiers tenus et bâtiments actifs comptés en un seul passage pour tous les camps (mêmes comptes).
+  const held = new Map(), active = new Map();
+  for (const e of state.electorate) held.set(e.controller, (held.get(e.controller) || 0) + 1);
+  for (const b of state.buildings) if (b.state === 'ACTIVE') active.set(b.owner_id, (active.get(b.owner_id) || 0) + 1);
   for (const c of alive) {
     const f = c.faction_id;
-    const territory = state.electorate.filter(e => e.controller === f).length / zones;
-    const sites = state.buildings.filter(b => b.owner_id === f && b.state === 'ACTIVE').length;
+    const territory = (held.get(f) || 0) / zones;
+    const sites = active.get(f) || 0;
     strength[f] = national[f] + territory * s.territory_weight + sites * s.building_weight + Math.min(100, Math.max(0, c.money)) * s.money_weight;
   }
   const ranking = alive.map(c => c.faction_id).sort((a, b) => strength[b] - strength[a] || a.localeCompare(b));

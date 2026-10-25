@@ -494,7 +494,8 @@ export class GameSimulation {
     // so overlapping actors can never convert the same person twice in a tick.
     claims.sort((a, b) => Number(b.retained) - Number(a.retained) || a.distance - b.distance || byId(a.actor, b.actor) || byId(a.npc, b.npc));
     const assigned = new Map();
-    for (const actor of [...state.candidates, ...state.npcs]) actor.persuasion_target_ids = [];
+    for (const actor of state.candidates) actor.persuasion_target_ids = [];
+    for (const actor of state.npcs) actor.persuasion_target_ids = [];
     for (const { actor, npc } of claims) {
       if (assigned.has(npc.id) || actor.persuasion_target_ids.length >= maxTargets) continue;
       assigned.set(npc.id, actor);
