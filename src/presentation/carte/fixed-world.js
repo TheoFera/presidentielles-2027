@@ -2,6 +2,9 @@ import { ringDelta } from '../../simulation/world.js';
 import { buildingLabel } from '../../simulation/building-rules.js';
 import { formatEuros } from './money.js';
 import { drawPlateWorld, plateSignFrame } from './carte-plate.js';
+import { cleanGeneratedPixels } from '../personnages/atlas-pixels.js';
+
+export { cleanGeneratedPixels };
 
 /**
  * Décor de la carte : la « carte plate », une fresque peinte d'un seul plan en 18 tuiles (carte-plate.js).
@@ -13,9 +16,6 @@ const imageHeight = image => image.naturalHeight || image.height;
 /* ---------- Préparation des images ---------- */
 
 const cleaned = new WeakMap();
-export function cleanGeneratedPixels(data) {
-  for (let i = 3; i < data.length; i += 4) data[i] = data[i] < 90 ? 0 : data[i] > 200 ? 255 : Math.round((data[i] - 90) / 110 * 255);
-}
 /** Retire le halo sombre semi-transparent des images générées (alpha faible → transparent, bords nets). */
 export function cleanGeneratedImage(image) {
   if (cleaned.has(image)) return cleaned.get(image);

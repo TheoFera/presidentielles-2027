@@ -19,7 +19,8 @@ const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog
 
 // Fichiers réellement chargés par le jeu : on suit les <script>, <link>, import et @import
 // depuis index.html. Les pages et modules d'outils (aperçus, maquettes) ne sont pas exportés.
-const dependencyPatterns = [/\bfrom\s*['"]([^'"\n]+)['"]/g, /\bimport\s*\(?\s*['"]([^'"\n]+)['"]/g, /<script[^>\n]*\bsrc="([^"]+)"/g,
+// Les modules d'arrière-plan (new Worker(new URL(...))) sont suivis comme les imports.
+const dependencyPatterns = [/\bfrom\s*['"]([^'"\n]+)['"]/g, /\bimport\s*\(?\s*['"]([^'"\n]+)['"]/g, /\bnew\s+Worker\(\s*new\s+URL\(\s*['"]([^'"\n]+)['"]/g, /<script[^>\n]*\bsrc="([^"]+)"/g,
   /<link[^>\n]*rel="stylesheet"[^>\n]*href="([^"]+)"/g, /@import\s+(?:url\()?['"]([^'"\n]+)['"]/g];
 async function reachableFiles(entry = 'index.html') {
   const seen = new Set();

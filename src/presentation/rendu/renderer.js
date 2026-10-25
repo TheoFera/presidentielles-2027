@@ -20,7 +20,7 @@ import { drawMoneyPickups, drawMoneyFeedback } from '../carte/money.js';
 import { CrowdSpacing } from './crowd-spacing.js';
 import { npcEntryProgress, entryPath } from '../personnages/npc-entry.js';
 import { drawPersuasionFeedback } from '../effets/persuasion-feedback.js';
-import { prepareMinorFrames, prepareAtlasFrames, prepareAtlasBitmaps, releasePreparedAtlasSource } from '../personnages/minor-sprite-images.js';
+import { prepareMinorFrames, prepareAtlasFrames, prepareAtlasBitmaps, prepareAtlasFramesInBackground, releasePreparedAtlasSource } from '../personnages/minor-sprite-images.js';
 import { minorCombatAtlases, minorExtraAtlases, minorStandingAtlases } from '../personnages/minor-animation-sprites.js';
 import { ultimateGuardAtlases } from '../effets/ultimate-guard-sprites.js';
 import { minorUltimateAtlases } from '../effets/minor-ultimate-art.js';
@@ -52,10 +52,11 @@ async function prepareImage(id, image, bitmaps = true) {
     if (minorStandingAtlases[faction]?.sprite === id) await prepareAtlas(image, minorStandingAtlases[faction]);
     preparedOnly = true;
   }
-  // Service d'ordre : découpes isolées préparées au chargement, et non à la première apparition d'une tenue
-  // en pleine partie (à-coup). La planche reste gardée : la marche la dessine directement.
-  if (id.startsWith('security-so-')) for (const atlas of Object.values(SERVICE_ORDER_ATLASES)) {
-    for (const sheet of [atlas, atlas.building]) if (sheet?.isolated && sheet.sprite === id) await prepareAtlas(image, sheet);
+  // Service d'ordre : découpes préparées en arrière-plan dès le chargement, et non à la première apparition
+  // d'une tenue en pleine partie (0,2 à 0,5 s de gel sur un téléphone lent). Sans arrière-plan possible : comme avant.
+  // La planche reste gardée : la marche la dessine directement.
+  if (bitmaps && id.startsWith('security-so-')) for (const atlas of Object.values(SERVICE_ORDER_ATLASES)) {
+    for (const sheet of [atlas, atlas.building]) if (sheet?.isolated && sheet.sprite === id) void prepareAtlasFramesInBackground(image, sheet);
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
