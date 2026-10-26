@@ -77,7 +77,7 @@ export function commitFactionAction(sim, candidate, building, offer) {
       cancelMeeting(sim, victim);
       victim.meeting_banned_until_by_faction[targeted] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
     } else {
-      if (victim.type === 'permanence' && targetFaction !== candidate.faction_id) recordFeat(state, candidate.faction_id, 'permanences_closed');
+      if (targetFaction !== candidate.faction_id) recordFeat(state, candidate.faction_id, 'buildings_closed');
       neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
     }
     for (const order of victim.queue) {

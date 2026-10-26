@@ -146,9 +146,9 @@ export function updateStrategicSites(sim) {
     if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
     if (building.closure_progress >= 1 - 1e-9) {
-      // Permanence fermée par un raid : comptée pour chaque camp qui la pressait.
-      if (building.type === 'permanence') for (const faction of new Set(raiders.filter(n => n.pressure_target_id === building.id && n.faction_id !== building.owner_id).map(n => n.faction_id)))
-        recordFeat(state, faction, 'permanences_closed');
+      // Bâtiment fermé par un raid : compté pour chaque camp qui le pressait.
+      for (const faction of new Set(raiders.filter(n => n.pressure_target_id === building.id && n.faction_id !== building.owner_id).map(n => n.faction_id)))
+        recordFeat(state, faction, 'buildings_closed');
       neutralizeSite(sim, building); presence = null;
     }
   }

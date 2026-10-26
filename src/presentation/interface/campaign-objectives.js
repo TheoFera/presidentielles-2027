@@ -14,8 +14,8 @@ const GROUPS = [
     { id: 'batiment', label: 'Prendre un autre bâtiment', goal: 1 },
   ],
   [
-    { id: 'sympathisant', label: 'Mettre K.-O. un sympathisant adverse', goal: 1 },
-    { id: 'fermeture', label: 'Fermer la permanence d’un autre candidat', goal: 1 },
+    { id: 'sympathisants', label: 'Mettre K.-O. 3 sympathisants adverses', goal: 3 },
+    { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1 },
     { id: 'ultime', label: 'Déclencher votre ultime', goal: 1 },
   ],
 ];
@@ -36,7 +36,7 @@ export function objectiveProgress(state, faction, pickups = 0, ultimates = 0) {
   return {
     billets: pickups, habitants: supporters, permanence: local?.headquarters_site_id ? 1 : 0, militant,
     ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, batiment: owned >= 2 ? 1 : 0,
-    sympathisant: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'permanences_closed'), ultime: ultimates,
+    sympathisants: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'buildings_closed'), ultime: ultimates,
   };
 }
 
