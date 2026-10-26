@@ -2,6 +2,7 @@
 // Les progrès sont lus dans l'état de la partie (quelques fois par seconde, jamais à chaque image) ;
 // le post-it ne change que lorsqu'un objectif avance.
 
+// Bases, puis développement, combat et conquête : chaque série prépare la suivante.
 const GROUPS = [
   [
     { id: 'billets', label: 'Ramasser 3 billets', goal: 3 },
@@ -10,18 +11,18 @@ const GROUPS = [
   ],
   [
     { id: 'militant', label: 'Recruter votre premier militant', goal: 1 },
-    { id: 'ko', label: 'Mettre K.-O. un candidat adverse', goal: 1 },
-    { id: 'batiment', label: 'Prendre un autre bâtiment', goal: 1 },
+    { id: 'garage', label: 'Débloquer un garage', goal: 1 },
+    { id: 'meeting', label: 'Tenir un meeting', goal: 1 },
   ],
   [
     { id: 'sympathisants', label: 'Mettre K.-O. 3 sympathisants adverses', goal: 3 },
-    { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1 },
-    { id: 'permanence2', label: 'Prendre une autre permanence', goal: 1 },
+    { id: 'local', label: 'Prendre le local de votre camp', goal: 1 },
+    { id: 'ko', label: 'Mettre K.-O. un candidat adverse', goal: 1 },
   ],
   [
-    { id: 'meeting', label: 'Tenir un meeting', goal: 1 },
-    { id: 'garage', label: 'Débloquer un garage', goal: 1 },
     { id: 'sondage', label: 'Acheter un sondage', goal: 1 },
+    { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1 },
+    { id: 'permanence2', label: 'Prendre une deuxième permanence', goal: 1 },
   ],
 ];
 const CHECK_SECONDS = 0.25, NEXT_GROUP_SECONDS = 1.3;
@@ -38,17 +39,17 @@ export function objectiveProgress(state, faction, pickups = 0) {
     supporters++;
     if (npc.role === 'MILITANT') militant = 1;
   }
-  let owned = 0, permanences = 0, garage = 0, meeting = 0;
+  let factionSite = 0, permanences = 0, garage = 0, meeting = 0;
   for (const b of state.buildings) {
     if (b.meeting_faction_id === faction) meeting = 1;
     if (b.owner_id !== faction || b.state !== 'ACTIVE') continue;
-    owned++;
+    if (b.type === 'faction') factionSite = 1;
     if (b.type === 'permanence') permanences++;
     if (b.type === 'garage_velo' || b.type === 'garage_scooter') garage = 1;
   }
   return {
     billets: pickups, habitants: supporters, permanence: local?.headquarters_site_id ? 1 : 0, militant,
-    ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, batiment: owned >= 2 ? 1 : 0,
+    ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, local: factionSite,
     sympathisants: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'buildings_closed'),
     permanence2: permanences >= 2 ? 1 : 0, meeting, garage, sondage: state.polls?.[faction]?.lastPollSnapshot ? 1 : 0,
   };
