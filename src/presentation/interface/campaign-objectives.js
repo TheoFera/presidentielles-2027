@@ -1,21 +1,42 @@
-// Objectifs des deux premières parties : un post-it à gauche de l'écran, trois objectifs à la fois.
+// Objectifs des deux premières parties : un post-it à gauche de l'écran, une série de trois ou quatre objectifs à la fois.
 // Les progrès sont lus dans l'état de la partie (quelques fois par seconde, jamais à chaque image) ;
 // le post-it ne change que lorsqu'un objectif avance.
+import { siteVariant } from '../../simulation/building-rules.js';
 
+// Bases, développement, combat, puis fin de campagne : chaque série prépare la suivante.
+// La série de combat suit le bâtiment du camp : service d'ordre et raid (Mélenchon, Le Pen), ou cabinet (Philippe).
+const SERVICE_ORDER = ['melenchon', 'le_pen'];
 const GROUPS = [
   [
     { id: 'billets', label: 'Ramasser 3 billets', goal: 3 },
     { id: 'habitants', label: 'Convaincre 3 habitants', goal: 3 },
-    { id: 'permanence', label: 'Prendre une permanence', goal: 1 },
+    { id: 'permanence', label: 'Créer votre permanence QG', goal: 1 },
   ],
   [
     { id: 'militant', label: 'Recruter votre premier militant', goal: 1 },
+    { id: 'sympathisants', label: 'Mettre K.-O. 3 sympathisants adverses', goal: 3 },
+    { id: 'permanence2', label: 'Prendre une deuxième permanence', goal: 1 },
+  ],
+  [
     { id: 'ko', label: 'Mettre K.-O. un candidat adverse', goal: 1 },
-    { id: 'batiment', label: 'Prendre un autre bâtiment', goal: 1 },
+    { id: 'local', label: faction => faction === 'philippe' ? 'Prendre un cabinet administratif' : 'Acheter un local pour votre service d’ordre', goal: 1 },
+    { id: 'raid', label: 'Lancer un raid', goal: 1, factions: SERVICE_ORDER },
+    { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1 },
+  ],
+  [
+    { id: 'sondage', label: 'Acheter un sondage', goal: 1 },
+    { id: 'meeting', label: 'Tenir un meeting', goal: 1 },
+    { id: 'garage', label: 'Acheter un garage', goal: 1 },
   ],
 ];
+
+/** Objectifs de chaque série pour ce camp (libellés adaptés, raid seulement avec un service d'ordre). */
+export const objectiveGroups = faction => GROUPS.map(group => group.filter(o => !o.factions || o.factions.includes(faction))
+  .map(o => typeof o.label === 'function' ? { ...o, label: o.label(faction) } : o));
 const CHECK_SECONDS = 0.25, NEXT_GROUP_SECONDS = 1.3;
 const SUPPORTERS = new Set(['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']);
+const feat = (state, faction, key) => state.campaign_feats?.[faction]?.[key] || 0;
+
 
 /** Progrès de chaque objectif, d'après l'état de la partie (sauf les billets, comptés à part). */
 export function objectiveProgress(state, faction, pickups = 0) {
@@ -26,10 +47,20 @@ export function objectiveProgress(state, faction, pickups = 0) {
     supporters++;
     if (npc.role === 'MILITANT') militant = 1;
   }
-  const owned = state.buildings.reduce((n, b) => n + (b.owner_id === faction && b.state === 'ACTIVE' ? 1 : 0), 0);
+  let factionSite = 0, permanences = 0, garage = 0, meeting = 0;
+  for (const b of state.buildings) {
+    if (b.meeting_faction_id === faction) meeting = 1;
+    if (b.owner_id !== faction || b.state !== 'ACTIVE') continue;
+    // Le local demandé dépend du camp ; la carte fixe la fonction de chaque local (service d'ordre ou cabinet).
+    if (b.type === 'faction' && siteVariant(b) === (faction === 'philippe' ? 'cabinet_administratif' : 'service_ordre')) factionSite = 1;
+    if (b.type === 'permanence') permanences++;
+    if (b.type === 'garage_velo' || b.type === 'garage_scooter') garage = 1;
+  }
   return {
     billets: pickups, habitants: supporters, permanence: local?.headquarters_site_id ? 1 : 0, militant,
-    ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, batiment: owned >= 2 ? 1 : 0,
+    ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, local: factionSite,
+    sympathisants: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'buildings_closed'),
+    permanence2: permanences >= 2 ? 1 : 0, meeting, garage, raid: feat(state, faction, 'raids'), sondage: state.polls?.[faction]?.lastPollSnapshot ? 1 : 0,
   };
 }
 
@@ -47,7 +78,7 @@ export class CampaignObjectives {
 
   /** Nouvelle partie : `active` pour les deux premières parties du joueur. */
   reset(active) {
-    this.active = active; this.group = 0; this.best = {}; this.pickups = 0; this.lastEvent = null;
+    this.active = active; this.faction = null; this.groups = objectiveGroups(null); this.group = 0; this.best = {}; this.pickups = 0; this.lastEvent = null;
     this.wait = 0; this.nextIn = null; this.doneAt = null; this.key = '';
     this.root.classList.remove('postit-done');
     this.title.textContent = 'Objectifs'; this.message.textContent = '';
@@ -73,11 +104,12 @@ export class CampaignObjectives {
     }
     if ((this.wait -= elapsed) > 0 || !faction) return;
     this.wait = CHECK_SECONDS;
+    if (this.faction !== faction) { this.faction = faction; this.groups = objectiveGroups(faction); this.key = ''; }
     const progress = objectiveProgress(state, faction, this.pickups);
     // Un objectif atteint le reste : perdre un soutien ne décoche rien.
     for (const [id, value] of Object.entries(progress)) this.best[id] = Math.max(this.best[id] || 0, value);
     this.render();
-    if (GROUPS[this.group].every(o => this.best[o.id] >= o.goal)) this.nextIn = NEXT_GROUP_SECONDS;
+    if (this.groups[this.group].every(o => this.best[o.id] >= o.goal)) this.nextIn = NEXT_GROUP_SECONDS;
   }
 
   /** Billets ramassés par le joueur : lus dans les nouveaux événements de la partie. */
@@ -93,9 +125,9 @@ export class CampaignObjectives {
   }
 
   nextGroup() {
-    if (this.group + 1 < GROUPS.length) {
+    if (this.group + 1 < this.groups.length) {
       this.group++; this.render(true);
-      if (GROUPS[this.group].every(o => this.best[o.id] >= o.goal)) this.nextIn = NEXT_GROUP_SECONDS;
+      if (this.groups[this.group].every(o => this.best[o.id] >= o.goal)) this.nextIn = NEXT_GROUP_SECONDS;
       return;
     }
     this.doneAt = 0; this.key = 'done';
@@ -108,7 +140,7 @@ export class CampaignObjectives {
 
   /** Le post-it ne change que si un objectif a avancé. */
   render(fresh = false) {
-    const items = GROUPS[this.group].map(o => {
+    const items = this.groups[this.group].map(o => {
       const value = Math.min(o.goal, this.best[o.id] || 0);
       return { ...o, value, done: value >= o.goal };
     });

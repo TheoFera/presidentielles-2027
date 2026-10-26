@@ -550,9 +550,9 @@
       "meeting_max_level": 1,
       "upgrade_costs": [],
       "activation_cost_by_level": [
-        10
+        8
       ],
-      "activation_cost": 10,
+      "activation_cost": 8,
       "hold_seconds": 7,
       "pause_grace_seconds": 5,
       "cooldown_seconds": 30,

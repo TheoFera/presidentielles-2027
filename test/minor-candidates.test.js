@@ -4,6 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController } from '../src/simulation/controllers.js';
 import { buildingOffers } from '../src/simulation/economy.js';
+import { captureSite } from '../src/simulation/strategic-sites.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
 import { completePopulation } from '../src/simulation/spawns.js';
@@ -49,7 +50,7 @@ test('L’IA d’un mineur reste sur son territoire et plafonne à 10 sympathisa
   assert.ok(sim.state.candidates.filter(c => c.minor).some(c => minorSympathisantCount(sim.state, c.faction_id) > 0), 'les mineurs recrutent');
 });
 
-test('Battu, un secondaire lâche ses billets et revient 80 jours plus tard tant que sa permanence tient', () => {
+test('Battu, un secondaire lâche ses billets, sa permanence ferme, puis il revient 80 jours plus tard et la rouvre', () => {
   const sim = make(), c = minor(sim, 'attal'), hq = sim.state.buildings.find(b => b.owner_id === 'attal');
   completePopulation(sim);
   const fans = sim.state.npcs.filter(n => n.role === 'NEUTRE').slice(0, 3); fans.forEach(n => convertNeutral(sim, n, 'attal'));
@@ -57,32 +58,32 @@ test('Battu, un secondaire lâche ses billets et revient 80 jours plus tard tant
   knockOut(sim, c);
   assert.equal(sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0) - before, 5 * 100000, '5 k€ lâchés par Attal');
   for (let i = 0; i < sim.secondsToTicks(8); i++) sim.step();
-  assert.equal(c.eliminated, false); assert.equal(hq.owner_id, 'attal'); assert.equal(hq.state, 'ACTIVE');
+  assert.equal(c.eliminated, false); assert.equal(hq.owner_id, null); assert.equal(hq.state, 'NEUTRAL');
   assert.ok(fans.every(n => n.faction_id === 'attal'), 'ses sympathisants restent les siens');
   const rival = sim.state.candidates[0]; rival.x = hq.x; rival.money = 100;
-  assert.deepEqual(buildingOffers(sim.state, sim.config, rival, hq), [], 'la permanence ne s’achète pas, elle se ferme');
+  assert.ok(buildingOffers(sim.state, sim.config, rival, hq).some(o => o.kind === 'CAPTURE'), 'la permanence fermée s’achète');
   const days = sim.config.balance.minor_candidates.respawn_days * sim.config.balance.time.real_seconds_per_game_day;
   while (c.is_ko && sim.state.tick < c.ko_started_tick + sim.secondsToTicks(days + 1)) sim.step();
   assert.equal(c.is_ko, false, 'réapparition'); assert.equal(c.x, hq.x);
+  assert.equal(hq.owner_id, 'attal'); assert.equal(hq.state, 'ACTIVE'); assert.equal(c.headquarters_site_id, hq.id);
   assert.ok(sim.state.tick - c.ko_started_tick >= sim.secondsToTicks(days) - 1);
   const copy = make(); copy.importSnapshot(sim.exportSnapshot());
   for (let i = 0; i < 30; i++) { sim.step(); copy.step(); }
   assert.deepEqual(copy.state, sim.state);
 });
 
-test('Permanence d’un secondaire fermée par un raid pendant son absence : retrait définitif', () => {
+test('Permanence d’un secondaire achetée pendant son absence : retrait définitif', () => {
   const sim = make(), c = minor(sim, 'arthaud'), hq = sim.state.buildings.find(b => b.owner_id === 'arthaud');
   completePopulation(sim);
   const before = sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0);
   knockOut(sim, c);
   assert.equal(sim.state.money_pickups.reduce((sum, p) => sum + p.amount_cents, 0) - before, 1.5 * 100000, '1,5 k€ lâchés par Arthaud');
-  const guards = sim.state.npcs.filter(n => n.role === 'NEUTRE').slice(0, 4);
-  for (const n of guards) Object.assign(n, { role: 'SERVICE_D_ORDRE', faction_id: 'le_pen', raid: { id: 'test', phase: 'OUTBOUND', direction: 1 }, pressure_target_id: hq.id, x: hq.x });
-  for (let i = 0; i < sim.secondsToTicks(20) && !c.eliminated; i++) {
-    for (const n of guards) n.pressure_target_id = hq.id;
-    sim.step();
-  }
-  assert.equal(c.eliminated, true, 'aucune réapparition'); assert.equal(hq.owner_id, null); assert.equal(hq.state, 'NEUTRAL');
+  sim.step();
+  assert.equal(hq.owner_id, null, 'fermée dès la chute');
+  const buyer = sim.state.candidates.find(x => x.faction_id === 'le_pen');
+  captureSite(sim, hq, buyer);
+  for (let i = 0; i < sim.secondsToTicks(20) && !c.eliminated; i++) sim.step();
+  assert.equal(c.eliminated, true, 'aucune réapparition'); assert.equal(hq.owner_id, 'le_pen'); assert.equal(hq.state, 'ACTIVE');
 });
 
 test('Élection : scores des mineurs affichés, seuls les principaux se qualifient, report libre au second tour', () => {
