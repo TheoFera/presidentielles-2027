@@ -73,7 +73,7 @@ export class CampaignIntroScene {
     this.moved = 0; this.step = null; this.flashesDone = 0; this.bannerShown = false; this.dossier = false; this.promptKey = null;
     this.dossierClosedAt = null; this.closeRequested = false; this.dossierPending = false; this.waitForInput(false);
     this.root.hidden = true; this.banner.classList.remove('shown'); this.root.classList.remove('bands-out');
-    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike']) this.setClass(name, false);
+    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
     this.showPrompt(null);
     if (this.renderer) this.renderer.zoomBoost = 1;
     if (this.namesShown) this.wheel()?.hideBiomeNames();
@@ -159,10 +159,14 @@ export class CampaignIntroScene {
     let step = null;
     if (mine == null && this.tutorial && t >= this.bannerEnd) step = this.moved >= s.move_seconds_before_strike ? 'strike' : 'move';
     if (step !== this.step) { this.step = step; this.setClass('intro-tuto-move', step === 'move'); this.setClass('intro-tuto-strike', step === 'strike'); }
-    // Les bandes noires laissent la place aux boutons pendant les consignes, et partent au coup.
-    this.root.classList.toggle('bands-out', mine != null || !!step);
     const waiting = mine != null && t - mine > 0.6;
     const idle = !this.tutorial && mine == null && t >= s.idle_hint_seconds;
+    // Sans consignes, les boutons tactiles restent à l'écran jusqu'au coup : sur téléphone, c'est le
+    // seul moyen de frapper pour lancer la campagne.
+    const controls = !this.tutorial && mine == null;
+    this.setClass('intro-controls', controls);
+    // Les bandes noires laissent la place aux boutons, et partent au coup.
+    this.root.classList.toggle('bands-out', mine != null || !!step || controls);
     const reading = dossier && t >= s.dossier_min_seconds;
     this.showPrompt(step || (reading ? 'dossier' : waiting ? 'waiting' : idle ? 'idle' : null));
   }
@@ -170,7 +174,7 @@ export class CampaignIntroScene {
   finish() {
     this.waitForInput(false);
     this.banner.classList.remove('shown'); this.showPrompt(null); this.root.classList.add('bands-out');
-    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike']) this.setClass(name, false);
+    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
     this.ended({ tutorial: this.tutorial });
   }
 
