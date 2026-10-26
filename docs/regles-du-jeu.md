@@ -125,7 +125,7 @@ Six autres candidats tiennent chacun une sous-zone dès le début, avec leur QG 
 
 - Leur QG est imprenable tant qu'ils sont debout. Ils restent dans leur sous-zone, convainquent jusqu'à 10 Sympathisants et se battent avec le même système de combat : ils frappent aussi les Sympathisants adverses qui entrent sur leur territoire, puis peuvent convaincre ces habitants une fois redevenus Neutres.
 - K.-O., ils lâchent des billets (`ko_money_drop_k`) : 1,5 k€ pour Arthaud, 2 k€ pour Dupont-Aignan, 2,5 k€ pour Roussel, 4 k€ pour Glucksmann et Retailleau, 5 k€ pour Attal.
-- Ils reviennent à leur QG au bout de 80 jours de campagne (`respawn_days`). Pendant leur absence, leur QG reste à eux mais n'est plus protégé : un raid du service d'ordre (ou le cabinet administratif) peut le fermer. Dans ce cas, ils quittent définitivement la campagne et le QG s'achète normalement.
+- K.-O., leur QG **ferme aussitôt** et s'achète comme une permanence libre. Ils reviennent au bout de 80 jours de campagne (`respawn_days`) et le rouvrent, s'il est encore libre. Si un candidat l'a acheté entre-temps, ils quittent définitivement la campagne.
 - Leurs voix comptent au premier tour, mais seuls les deux meilleurs des trois candidats principaux se qualifient. Au second tour, ils se retirent et leurs électeurs redeviennent Neutres.
 - Réglages : `minor_candidates` dans `game_balance.json` et `world_layout.json`.
 

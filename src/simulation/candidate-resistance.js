@@ -1,7 +1,9 @@
 import { clearCampaignUltimate } from './campaign-styles.js';
 import { combatState } from './combat-state.js';
 import { distance } from './territory.js';
-import { defeatMinor } from './minor-candidates.js';
+import { claimMinorHeadquarters, defeatMinor, minorSiteId } from './minor-candidates.js';
+import { neutralizeSite } from './strategic-sites.js';
+import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 // Un adversaire assez proche pour empêcher la récupération (parcours direct, sans liste temporaire).
@@ -23,12 +25,16 @@ export function updateCandidateResistance(sim) {
     if (candidate.eliminated || candidate.campaign_debate_id) continue;
     if (candidate.is_ko) {
       candidate.axis = 0; candidate.moving = false; candidate.campaign_active = false; candidate.interaction_active = false;
-      // Un candidat secondaire dont la permanence a été fermée pendant son absence ne revient pas.
-      if (candidate.minor && !state.buildings.some(b => b.id === candidate.headquarters_site_id && b.owner_id === candidate.faction_id)) {
+      // Candidat secondaire à terre : sa permanence ferme et s'achète. Prise par un autre, il ne revient pas.
+      const site = candidate.minor ? state.buildings.find(b => b.id === minorSiteId(config, candidate)) : null;
+      if (site?.owner_id === candidate.faction_id) neutralizeSite(sim, site, 'MINOR_KO');
+      else if (site?.owner_id) {
         if (state.tick >= candidate.disappear_tick) defeatMinor(sim, candidate);
         continue;
       }
       if (state.tick >= candidate.respawn_tick) {
+        // Le rideau de son QG se relève comme après un achat.
+        if (site) { prepareBuildingShutterTransition(site, 'ACTIVE', state.tick, hz); claimMinorHeadquarters(sim, candidate, site.id); }
         const hq = state.buildings.find(b => b.id === candidate.headquarters_site_id && b.headquarters && b.owner_id === candidate.faction_id);
         candidate.x = hq?.x ?? candidate.last_hq_x ?? candidate.start_x;
         candidate.resistance = settings.resistance_max; candidate.is_ko = false; candidate.disappeared = false;

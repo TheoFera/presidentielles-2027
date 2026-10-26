@@ -12,8 +12,9 @@ import { clearCampaignUltimate } from './campaign-styles.js';
  * - ils restent dans leur sous-zone (débordant un peu sur les voisines), convainquent jusqu'à 10 sympathisants
  *   et se battent avec le même système de combat que les autres candidats ;
  * - pas d'économie, pas de conquête ; à chaque K.-O., ils lâchent une somme fixe (ko_money_drop_k) ;
- * - battus, ils reviennent au bout de respawn_days jours de campagne. Pendant leur absence, leur QG
- *   n'est plus protégé : si un raid le ferme, ils quittent définitivement la campagne ;
+ * - battus, leur QG ferme aussitôt et s'achète comme une permanence libre. Ils reviennent au bout de
+ *   respawn_days jours de campagne et le rouvrent, sauf si quelqu'un l'a pris entre-temps : ils quittent
+ *   alors définitivement la campagne ;
  * - leurs sympathisants restent les leurs jusqu'à être battus à leur tour ;
  * - au second tour, ils quittent la campagne et leurs sympathisants redeviennent neutres (report libre).
  */
@@ -28,12 +29,15 @@ export function minorSympathisantCount(state, faction) {
 /** Un mineur a-t-il encore de la place pour un nouveau sympathisant ? */
 export const minorCanRecruit = (state, config, c) => !c.minor || minorSympathisantCount(state, c.faction_id) < minorSettings(config).max_sympathisants;
 
-/** Donne son QG au mineur au début de la partie (sans passer par l'achat). */
+/** Donne son QG au mineur, au début de la partie et à son retour (sans passer par l'achat). */
 export function claimMinorHeadquarters(sim, candidate, siteId) {
   const building = sim.state.buildings.find(b => b.id === siteId);
   Object.assign(building, { owner_id: candidate.faction_id, level: 1, state: 'ACTIVE', active: true, neutral: false, headquarters: true, capture_progress: 0, closure_progress: 0 });
   candidate.headquarters_site_id = building.id; candidate.last_hq_x = building.x;
 }
+
+/** Permanence attribuée au mineur par la carte (son QG, même fermé pendant un K.-O.). */
+export const minorSiteId = (config, c) => config.layout.minor_candidates.find(e => e.faction_id === c.faction_id)?.site_id;
 
 /** Territoire d'un mineur : sa sous-zone, plus une petite marge chez les voisins. */
 export function minorTerritory(state, config, c) {
