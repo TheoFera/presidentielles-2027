@@ -65,6 +65,7 @@ export function commitFactionAction(sim, candidate, building, offer) {
   if (offer.kind === 'CAPTURE' && building.type === 'faction') { captureSite(sim, building, candidate); return true; }
   if (offer.kind === 'RAID') {
     startRaid(sim, building, candidate.faction_id, offer.direction);
+    recordFeat(state, candidate.faction_id, 'raids');
     building.raid_ready_tick = state.tick + sim.secondsToTicks(config.balance.physical_units.service_ordre.raid_cooldown_seconds);
     return true;
   }

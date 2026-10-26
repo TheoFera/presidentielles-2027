@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
 import { ringDelta } from '../src/simulation/world.js';
-import { objectiveProgress } from '../src/presentation/interface/campaign-objectives.js';
+import { objectiveGroups, objectiveProgress } from '../src/presentation/interface/campaign-objectives.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { commitFactionAction } from '../src/simulation/faction-buildings.js';
 import { updateStrategicSites } from '../src/simulation/strategic-sites.js';
@@ -138,19 +138,23 @@ test('l’ordinateur ne joue pas pendant la scène', () => {
 test('objectifs : progrès lus dans l’état de la partie', () => {
   const { sim, me } = setup();
   const faction = me().faction_id;
-  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, local: 0, sympathisants: 0, fermeture: 0, permanence2: 0, meeting: 0, sondage: 0 });
+  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, local: 0, sympathisants: 0, fermeture: 0, permanence2: 0, meeting: 0, garage: 0, raid: 0, sondage: 0 });
   const [a, b] = sim.state.npcs;
   Object.assign(a, { role: 'SYMPATHISANT', faction_id: faction }); Object.assign(b, { role: 'MILITANT', faction_id: faction });
   me().headquarters_site_id = 'site:x';
   sim.state.knockouts = [{ tick: 1, by_faction: faction, candidate_id: 'candidate:philippe' }];
-  Object.assign(sim.state.buildings.find(x => x.type === 'faction'), { owner_id: faction, state: 'ACTIVE' });
-  sim.state.campaign_feats = { [faction]: { supporters_ko: 3, buildings_closed: 1 } };
+  // Le Pen : le local demandé est celui d'un service d'ordre, pas le cabinet.
+  Object.assign(sim.state.buildings.find(x => x.fixed_variant === 'cabinet_administratif'), { owner_id: faction, state: 'ACTIVE' });
+  assert.equal(objectiveProgress(sim.state, faction).local, 0);
+  Object.assign(sim.state.buildings.find(x => x.fixed_variant === 'service_ordre'), { owner_id: faction, state: 'ACTIVE' });
+  sim.state.campaign_feats = { [faction]: { supporters_ko: 3, buildings_closed: 1, raids: 1 } };
   assert.equal(objectiveProgress(sim.state, faction).permanence2, 0);
   const take = b => Object.assign(b, { owner_id: faction, state: 'ACTIVE' });
   sim.state.buildings.filter(b => b.type === 'permanence').slice(0, 2).forEach(take);
   sim.state.buildings.find(b => b.type === 'meeting').meeting_faction_id = faction;
+  take(sim.state.buildings.find(b => b.type === 'garage_velo'));
   sim.state.polls[faction].lastPollSnapshot = { measured_tick: 1 };
-  assert.deepEqual(objectiveProgress(sim.state, faction), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, local: 1, sympathisants: 3, fermeture: 1, permanence2: 1, meeting: 1, sondage: 1 });
+  assert.deepEqual(objectiveProgress(sim.state, faction), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, local: 1, sympathisants: 3, fermeture: 1, permanence2: 1, meeting: 1, garage: 1, raid: 1, sondage: 1 });
 });
 
 test('objectifs : sympathisant adverse mis K.-O. par le candidat, pas par ses militants', () => {
@@ -184,4 +188,11 @@ test('objectifs : bâtiment adverse fermé par un cabinet administratif ou par u
   assert.equal(second.owner_id, null);
   assert.equal(sim.state.campaign_feats.melenchon.buildings_closed, 1);
   assert.equal(sim.state.campaign_feats[faction].buildings_closed, 1);
+});
+
+test('objectifs : la série de combat suit le bâtiment du camp', () => {
+  const labels = faction => objectiveGroups(faction)[2].map(o => o.label);
+  for (const faction of ['melenchon', 'le_pen'])
+    assert.deepEqual(labels(faction), ['Mettre K.-O. un candidat adverse', 'Acheter un local pour votre service d’ordre', 'Lancer un raid', 'Fermer un bâtiment adverse']);
+  assert.deepEqual(labels('philippe'), ['Mettre K.-O. un candidat adverse', 'Prendre un cabinet administratif', 'Fermer un bâtiment adverse']);
 });

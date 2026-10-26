@@ -1,4 +1,4 @@
-// Exploits d'un camp pendant la campagne (sympathisants adverses mis K.-O., bâtiments adverses fermés),
+// Exploits d'un camp pendant la campagne (sympathisants adverses mis K.-O., raids lancés, bâtiments adverses fermés),
 // comptés dans l'état de la partie pour les objectifs du tutoriel : l'affichage d'un invité les reçoit aussi.
 
 export function recordFeat(state, faction, key) {
