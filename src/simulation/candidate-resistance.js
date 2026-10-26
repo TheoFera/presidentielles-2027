@@ -5,9 +5,15 @@ import { defeatMinor } from './minor-candidates.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 
 // Un adversaire assez proche pour empêcher la récupération (parcours direct, sans liste temporaire).
+// Un simple écart de positions écarte d'abord les personnages loin dans les deux sens du tour de carte.
 function threatNear(state, list, candidate, settings) {
-  for (const other of list) if (other.id !== candidate.id && other.faction_id && other.faction_id !== candidate.faction_id
-    && distance(state, candidate.x, other.x) <= settings.recovery_safe_distance) return true;
+  const x = candidate.x, range = settings.recovery_safe_distance, far = range + 1e-6, length = state.world.length;
+  for (const other of list) {
+    const gap = Math.abs(other.x - x);
+    if (gap > far && length - gap > far) continue;
+    if (other.id !== candidate.id && other.faction_id && other.faction_id !== candidate.faction_id
+      && distance(state, x, other.x) <= range) return true;
+  }
   return false;
 }
 

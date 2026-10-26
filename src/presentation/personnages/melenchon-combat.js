@@ -47,8 +47,14 @@ export class CombatPoseTracker {
     const entry = previous && previous.tick <= state.tick ? previous : { until: -1, tick: state.tick };
     const active = state.tick <= entry.until;
     const radius = config.balance.candidate_combat.ai_detection_range * (active ? 1.3 : 1);
-    const threatens = target => dangerousRoles.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick)
-      && Math.abs(combatDelta(state, entity.x, target.x)) <= radius;
+    // La distance d'abord : la plupart des personnages sont loin (mêmes tests, sans effet de bord).
+    // Tri rapide par simple soustraction, comme nearestEnemy : seuls les proches passent au calcul exact.
+    const x = entity.x, length = state.debate_bounds ? Infinity : state.world.length, far = radius + 1e-6;
+    const threatens = target => {
+      const gap = Math.abs(target.x - x);
+      return (gap <= far || length - gap <= far) && Math.abs(combatDelta(state, x, target.x)) <= radius
+        && dangerousRoles.has(target.role) && enemies(entity, target) && !invisibleToEnemies(target, state.tick);
+    };
     const threat = state.candidates.some(threatens) || state.npcs.some(threatens) || state.temporary_units.some(threatens);
     const attack = state.attacks.some(a => a.owner_id === entity.id);
     const recentHit = entity.combat?.last_hit?.tick === state.tick;

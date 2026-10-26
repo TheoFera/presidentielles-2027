@@ -3,7 +3,7 @@ import { npcHomeX, ringDelta, subzoneGap, wrap, zoneAt } from './world.js';
 import { distance, stableIdOrder } from './territory.js';
 import { releaseDonation } from './money.js';
 import { barrierBlockedPosition } from './minor-ultimates.js';
-import { nearbyNpcs, updateNpcProximity } from './npc-proximity.js';
+import { visitNearbyNpcs, updateNpcProximity } from './npc-proximity.js';
 
 export function moveNpcTowards(simulation, npc, destination, speed) {
   if (npc.role === 'MILITANT') speed = Math.min(speed, simulation.config.prototype.movement.candidate_speed_units_per_second * Math.min(2, simulation.config.balance.physical_units.militant.max_player_speed_multiplier));
@@ -36,6 +36,7 @@ export function updateCollector(simulation, npc) {
   if (task.elapsed_ticks < simulation.secondsToTicks(config.balance.buildings.imprimerie.pickup_seconds)) return;
   releaseDonation(simulation, npc);
   npc.role = 'MILITANT';
+  passScopes.get(state)?.militants?.push(npc);
   npc.hidden_durability = config.balance.physical_units.militant.hidden_durability;
   npc.promoted_tick = state.tick;
   npc.task = null;
@@ -52,20 +53,23 @@ const freeNeutral = (npc, reserved) => n => n.role === 'NEUTRE' && !n.rally_even
 
 function reservedTargets(state, npc) {
   const reserved = new Set();
-  for (const other of state.npcs) if (other.id !== npc.id && other.role === 'MILITANT') reserved.add(other.task?.target_id);
+  for (const other of passMilitants(state)) if (other.id !== npc.id && other.role === 'MILITANT') reserved.add(other.task?.target_id);
   return reserved;
 }
 
+// Le plus proche, à égalité le plus petit identifiant : le résultat ne dépend pas de l'ordre de visite.
 function closestNeutral(state, npc, x, reserved, accept, population = state.npcs) {
   const free = freeNeutral(npc, reserved);
   let best = null, bestDistance = Infinity;
-  for (const target of population) {
-    if (!free(target) || !accept(target)) continue;
+  const consider = target => {
+    if (!free(target) || !accept(target)) return;
     const gap = distance(state, x, target.x);
     if (gap < bestDistance || gap === bestDistance && (!best || stableIdOrder(target, best) < 0)) {
       best = target; bestDistance = gap;
     }
-  }
+  };
+  if (typeof population === 'function') population(consider);
+  else for (const target of population) consider(target);
   return best;
 }
 
@@ -98,7 +102,7 @@ function chooseLocalTask(simulation, npc, home) {
   const reach = homeZone.width * (config.balance.physical_units.militant.nearby_zone_radius + 1);
   const target = closestNeutral(state, npc, npc.x, reservedTargets(state, npc),
     n => subzoneGap(state.world, zoneAt(state.world, n.x), homeZone) <= config.balance.physical_units.militant.nearby_zone_radius,
-    nearbyNpcs(state, anchorX, reach));
+    consider => visitNearbyNpcs(state, anchorX, reach, consider));
   return expandTask(simulation, target, target?.x ?? (home ? anchorX + idleOffset(simulation, npc) : anchorX));
 }
 
@@ -114,7 +118,7 @@ function tryFormExpedition(simulation, npc, home) {
   const { state, config } = simulation;
   const settings = config.balance.physical_units.militant;
   if (!home) return;
-  const waiting = state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === npc.faction_id && !n.expedition && n.home_site_id === home.id
+  const waiting = passMilitants(state).filter(n => n.role === 'MILITANT' && n.faction_id === npc.faction_id && !n.expedition && n.home_site_id === home.id
     && n.task?.kind === 'EXPAND' && n.task.phase === 'WAIT' && !n.task.target_id && !n.rally_event_id && n.rally_return_x == null && !n.combat?.engaged)
     .sort(stableIdOrder);
   if (waiting.length < settings.expedition_min_group_size || !waiting.includes(npc)) return;
@@ -126,11 +130,22 @@ function tryFormExpedition(simulation, npc, home) {
   const expedition = { id: `expedition:${npc.faction_id}:${state.tick}`, direction: ringDelta(home.x, nearest.x, state.world.length) < 0 ? -1 : 1,
     home_site_id: home.id, formed_tick: state.tick };
   for (const member of waiting) { member.expedition = { ...expedition }; member.task = null; }
+  passScopes.get(state)?.expeditions?.clear();
   simulation.emit('MilitantGroupFormed', { faction_id: npc.faction_id, npc_ids: waiting.map(n => n.id), direction: expedition.direction });
 }
 
 function expeditionMembers(state, npc) {
-  return state.npcs.filter(n => n.role === 'MILITANT' && n.faction_id === npc.faction_id && n.expedition?.id === npc.expedition.id).sort(stableIdOrder);
+  const faction = npc.faction_id, id = npc.expedition.id;
+  const member = n => n.role === 'MILITANT' && n.faction_id === faction && n.expedition?.id === id;
+  const scope = passScopes.get(state);
+  if (!scope) return state.npcs.filter(member).sort(stableIdOrder);
+  // Un groupe ne gagne des membres qu'à sa formation (qui vide cette mémoire) ; il peut en perdre :
+  // la liste gardée est donc refiltrée dans l'état vivant, dans le même ordre d'identifiants.
+  scope.expeditions ??= new Map();
+  const key = `${faction}\n${id}`, known = scope.expeditions.get(key);
+  const members = known ? known.filter(member) : state.npcs.filter(member).sort(stableIdOrder);
+  scope.expeditions.set(key, members);
+  return members;
 }
 
 /** Le groupe avance dans sa direction sans faire demi-tour et convainc les neutres qu'il croise. */
@@ -145,7 +160,7 @@ function updateExpedition(simulation, npc, members) {
   const reach = state.world.subzones[0].width;
   const target = closestNeutral(state, npc, npc.x, reservedTargets(state, npc),
     n => { const ahead = ringDelta(center, n.x, length) * direction; return ahead >= -radius && ahead <= reach; },
-    nearbyNpcs(state, center, Math.max(radius, reach)));
+    consider => visitNearbyNpcs(state, center, Math.max(radius, reach), consider));
   // Sans cible, chacun garde sa place dans la file, juste devant le centre du groupe :
   // les membres marchent ensemble, côte à côte, sans jamais se superposer.
   const slot = (members.indexOf(npc) - (members.length - 1) / 2) * settings.expedition_spacing_units;
@@ -157,6 +172,42 @@ function updateExpedition(simulation, npc, members) {
   const ahead = target ? 0 : ringDelta(center + slot, npc.x, length) * direction;
   const pace = Math.max(0.3, Math.min(1, 1 - ahead / settings.expedition_spacing_units));
   moveNpcTowards(simulation, npc, npc.task.destination_x, settings.move_speed * pace);
+}
+
+// Passage des habitants (updateNpcs) : listes de travail, hors sauvegardes, relues dans l'état vivant.
+// - auditeurs : une persuasion peut s'arrêter pendant ce passage (conversion, rassemblement), jamais commencer ;
+// - militants : on ne le devient pendant ce passage qu'en retirant un tract (updateCollector, qui l'ajoute) ;
+// - groupes d'expédition : voir expeditionMembers.
+const passScopes = new WeakMap();
+export function withMilitantPass(state, operation) {
+  if (passScopes.has(state)) return operation();
+  passScopes.set(state, { byActor: null, militants: null, expeditions: null });
+  try { return operation(); } finally { passScopes.delete(state); }
+}
+
+/** Tous les militants actuels (et peut-être d'anciens) : l'appelant vérifie toujours le rôle. */
+function passMilitants(state) {
+  const scope = passScopes.get(state);
+  if (!scope) return state.npcs;
+  return scope.militants ??= state.npcs.filter(n => n.role === 'MILITANT');
+}
+
+/** Premier habitant, dans l'ordre de la population, que ce militant est en train de convaincre. */
+function listenerOf(state, npc) {
+  const scope = passScopes.get(state);
+  if (!scope) return state.npcs.find(n => n.persuasion?.actor_id === npc.id);
+  if (!scope.byActor) {
+    scope.byActor = new Map();
+    for (const n of state.npcs) {
+      const actor = n.persuasion?.actor_id;
+      if (actor === undefined) continue;
+      const list = scope.byActor.get(actor);
+      if (list) list.push(n); else scope.byActor.set(actor, [n]);
+    }
+  }
+  const list = scope.byActor.get(npc.id);
+  if (list) for (const n of list) if (n.persuasion?.actor_id === npc.id) return n;
+  return undefined;
 }
 
 export function updateMilitant(simulation, npc) {
@@ -172,7 +223,7 @@ export function updateMilitant(simulation, npc) {
       simulation.emit('MilitantGroupDisbanded', { faction_id: npc.faction_id, npc_ids: members.map(n => n.id) });
     }
   }
-  const talking = state.npcs.find(n => n.persuasion?.actor_id === npc.id);
+  const talking = listenerOf(state, npc);
   if (talking) {
     npc.task = { kind: 'EXPAND', phase: 'RECRUIT', target_id: talking.id, destination_x: talking.x,
       destination_subzone_id: zoneAt(state.world, talking.x).id,

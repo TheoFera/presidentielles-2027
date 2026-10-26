@@ -339,13 +339,16 @@ export function strategicAICommands(state, config, c) {
   const previousRetreat = c.ai_objective?.purpose === 'RECOVER';
   const fragile = c.resistance < config.balance.candidate_combat.resistance_max * settings.retreat_ratio * (1 + risk * 0.5);
   if (recovering || !previousRetreat && danger && (cautious && fragile || swarmed && c.resistance < config.balance.candidate_combat.resistance_max * tactics(config).swarm_retreat_ratio)) {
-    const safeZones = state.world.subzones.map(z => ({ z, danger: [...state.candidates, ...state.npcs, ...state.temporary_units]
-      .filter(n => hostile(c, n) && distance(state, z.center, n.x) <= config.balance.candidate_combat.recovery_safe_distance + z.width / 2).length }))
+    // Adversaires listés une fois (et non recopiés pour chaque quartier) ; mêmes comptes, même tri.
+    const hostiles = [];
+    for (const units of [state.candidates, state.npcs, state.temporary_units]) for (const n of units) if (hostile(c, n)) hostiles.push(n);
+    const count = accept => { let total = 0; for (const n of hostiles) if (accept(n)) total++; return total; };
+    const safeZones = state.world.subzones.map(z => ({ z, danger: count(n => distance(state, z.center, n.x) <= config.balance.candidate_combat.recovery_safe_distance + z.width / 2) }))
       .sort((a, b) => a.danger - b.danger || distance(state, c.x, a.z.center) - distance(state, c.x, b.z.center));
     const safe = safeZones[0].z;
     // Fuir du côté où les ennemis sont les moins nombreux, pas seulement à l’opposé du plus proche.
-    const pressureOn = side => [...state.candidates, ...state.npcs, ...state.temporary_units].filter(n => hostile(c, n) && (FIGHTERS.includes(n.role) || n.role === 'CANDIDAT')
-      && Math.sign(ringDelta(c.x, n.x, state.world.length)) === side && distance(state, c.x, n.x) <= settings.detection_range * 2).length;
+    const pressureOn = side => count(n => (FIGHTERS.includes(n.role) || n.role === 'CANDIDAT')
+      && Math.sign(ringDelta(c.x, n.x, state.world.length)) === side && distance(state, c.x, n.x) <= settings.detection_range * 2);
     const away = -(Math.sign(ringDelta(c.x, danger?.x ?? c.x, state.world.length)) || c.facing);
     const result = danger ? commands(pressureOn(-away) < pressureOn(away) ? -away : away) : go(safe.center, 1);
     if (danger && settings.dash && c.dash_charges > 0) result.push({ type: 'Dash', candidateId: c.id, direction: result[2].axis });

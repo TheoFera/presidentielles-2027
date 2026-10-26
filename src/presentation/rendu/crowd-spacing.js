@@ -55,6 +55,8 @@ export class CrowdSpacing {
     for (const npc of state.npcs) {
       const current = this.offsets.get(npc.id) || 0;
       const goal = targets.get(npc.id) || 0;
+      // Ni décalage ni place visée : rien ne bouge (le cas courant).
+      if (!current && !goal) continue;
       const limit = (npc.moving ? WALKER_SPEED : STEP_SPEED) * dt;
       const change = Math.max(-limit, Math.min(limit, goal - current));
       const value = current + change;

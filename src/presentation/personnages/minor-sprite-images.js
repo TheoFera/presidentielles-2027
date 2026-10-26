@@ -1,4 +1,4 @@
-import { cleanGeneratedPixels } from '../carte/fixed-world.js';
+import { cutAtlasFrame, isolateMinorFigure } from './atlas-pixels.js';
 import { MINOR_ATLASES } from './minor-sprite-atlases.js';
 
 const cache = new WeakMap();
@@ -20,27 +20,7 @@ export function releasePreparedAtlasSource(image) {
   return atlas;
 }
 
-/** Isole la silhouette principale d'une découpe dont le rectangle croise une pose voisine. */
-export function isolateMinorFigure(data, width, height) {
-  const seen = new Uint8Array(width * height), queue = new Int32Array(width * height);
-  let largest = new Int32Array();
-  for (let start = 0; start < seen.length; start++) {
-    if (seen[start] || data[start * 4 + 3] === 0) continue;
-    let head = 0, tail = 1; seen[start] = 1; queue[0] = start;
-    while (head < tail) {
-      const pixel = queue[head++], x = pixel % width, y = Math.floor(pixel / width);
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-        if (!(dx || dy) || x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) continue;
-        const next = pixel + dy * width + dx;
-        if (!seen[next] && data[next * 4 + 3] > 0) { seen[next] = 1; queue[tail++] = next; }
-      }
-    }
-    if (tail > largest.length) largest = queue.slice(0, tail);
-  }
-  const keep = new Uint8Array(seen.length);
-  for (const pixel of largest) keep[pixel] = 1;
-  for (let pixel = 0; pixel < keep.length; pixel++) if (!keep[pixel]) data[pixel * 4 + 3] = 0;
-}
+export { isolateMinorFigure };
 
 // Découpes déjà préparées (pendant l'écran de chargement) par candidat : les portraits les réutilisent.
 const preparedByFaction = new Map();
@@ -64,21 +44,72 @@ export function prepareAtlasFrames(image, atlas) {
   const frames = atlas.frames.map(([sx, sy, sw, sh]) => {
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(sw * scaleX)); canvas.height = Math.max(1, Math.round(sh * scaleY));
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    cleanGeneratedPixels(pixels.data);
-    isolateMinorFigure(pixels.data, canvas.width, canvas.height);
-    ctx.putImageData(pixels, 0, 0);
+    // Coordonnées de la planche d'origine : le dessin des planches réduites les convertit (sprite-bitmaps.js).
+    cutAtlasFrame(canvas.getContext('2d', { willReadFrequently: true }), image, [sx, sy, sw, sh], canvas.width, canvas.height);
     return canvas;
   });
-  const entries = byAtlas || new WeakMap();
+  return keepPreparedFrames(image, atlas, frames);
+}
+
+function keepPreparedFrames(image, atlas, frames) {
+  let entries = cache.get(image);
+  if (!entries) { entries = new WeakMap(); cache.set(image, entries); }
   entries.set(atlas.frames, frames);
-  if (!byAtlas) cache.set(image, entries);
   let sources = drawingSources.get(image);
   if (!sources) { sources = new Set(); drawingSources.set(image, sources); }
   for (const frame of frames) sources.add(frame);
   return frames;
+}
+
+// Préparation hors du fil du jeu (atlas-worker.js) : découpes identiques, rendues en ImageBitmap.
+let worker = null, workerJobs = null, nextJob = 0;
+const backgroundJobs = new WeakMap();
+function atlasWorker() {
+  if (worker !== null) return worker;
+  worker = false;
+  if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function' || typeof createImageBitmap !== 'function') return worker;
+  try {
+    worker = new Worker(new URL('./atlas-worker.js', import.meta.url), { type: 'module' });
+    workerJobs = new Map();
+    worker.onmessage = ({ data: { id, frames } }) => { workerJobs.get(id)?.(frames); workerJobs.delete(id); };
+    worker.onerror = () => { for (const done of workerJobs.values()) done(null); workerJobs.clear(); worker.terminate(); worker = false; };
+  } catch { worker = false; }
+  return worker;
+}
+
+/**
+ * Prépare les découpes d'une planche en arrière-plan. Si le jeu les dessine avant la fin, elles sont faites
+ * sur place comme avant (prepareAtlasFrames) et le résultat de l'arrière-plan est abandonné.
+ * Renvoie les découpes, ou null si ce navigateur ne sait pas les préparer en arrière-plan.
+ */
+export function prepareAtlasFramesInBackground(image, atlas) {
+  if (!atlas) return Promise.resolve(null);
+  const ready = cache.get(image)?.get(atlas.frames);
+  if (ready) return Promise.resolve(ready);
+  let jobs = backgroundJobs.get(image);
+  if (jobs?.has(atlas.frames)) return jobs.get(atlas.frames);
+  const target = atlasWorker();
+  if (!target) return Promise.resolve(null);
+  const scaleX = image.spriteScaleX ?? 1, scaleY = image.spriteScaleY ?? 1;
+  // Mêmes tailles et mêmes coordonnées que prepareAtlasFrames (y compris la conversion des planches réduites).
+  const frames = atlas.frames.map(([sx, sy, sw, sh]) => ({
+    source: image.spriteScaleX === undefined ? [sx, sy, sw, sh] : [sx * scaleX, sy * scaleY, sw * scaleX, sh * scaleY],
+    width: Math.max(1, Math.round(sw * scaleX)), height: Math.max(1, Math.round(sh * scaleY)) }));
+  const job = createImageBitmap(image).then(copy => new Promise(resolve => {
+    // Arrière-plan indisponible entre-temps (script refusé) : découpe au premier dessin, comme avant.
+    if (worker !== target) { copy.close(); resolve(null); return; }
+    const id = ++nextJob;
+    workerJobs.set(id, resolve);
+    target.postMessage({ id, image: copy, frames }, [copy]);
+  })).then(bitmaps => {
+    if (!bitmaps) return null;
+    const existing = cache.get(image)?.get(atlas.frames);
+    if (existing) { for (const bitmap of bitmaps) bitmap.close(); return existing; }
+    return keepPreparedFrames(image, atlas, bitmaps);
+  }, () => null);
+  if (!jobs) { jobs = new Map(); backgroundJobs.set(image, jobs); }
+  jobs.set(atlas.frames, job);
+  return job;
 }
 
 /** Convertit les découpes avant de jouer et libère immédiatement leurs canevas de travail. */

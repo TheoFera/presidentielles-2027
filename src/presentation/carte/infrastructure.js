@@ -97,11 +97,12 @@ export function drawInfrastructure(renderer, state) {
   }
 }
 
-export function drawBanknote(renderer, state) {
+/** `known` : l'offre la plus proche déjà calculée sur ce même état par drawSiteRequirements (sinon calculée ici). */
+export function drawBanknote(renderer, state, known = undefined) {
   const { ctx, config, p } = renderer;
   const candidate = state.candidates.find(c => c.id === state.local_candidate_id);
   if (!purchaseInteractionAvailable(state, candidate)) return;
-  const offer = nearestOffer(state, config, candidate);
+  const offer = known !== undefined ? known : nearestOffer(state, config, candidate);
   if (!offer) return;
   const building = state.buildings.find(b => b.id === offer.target_id);
   // Pendant un meeting, l'applaudimètre remplace le billet.
@@ -242,7 +243,8 @@ export function drawSiteRequirements(renderer, state) {
   // Scène d'ouverture : pas de conditions d'achat à l'écran, la campagne n'a pas commencé.
   if (!candidate || candidate.eliminated || state.campaign_intro || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return;
   const color = p.factions[candidate.faction_id]?.color;
-  const focus = purchaseInteractionAvailable(state, candidate) ? nearestOffer(state, config, candidate) : null;
+  const available = purchaseInteractionAvailable(state, candidate);
+  const focus = available ? nearestOffer(state, config, candidate) : null;
   ctx.save();
   for (const building of state.buildings) {
     if (building.ownership_model !== 'capturable' || building.id === focus?.target_id) continue;
@@ -264,4 +266,6 @@ export function drawSiteRequirements(renderer, state) {
     } else drawPresenceRow(ctx, x, y, need, color, current >= required, `${current}/${required} soutiens`);
   }
   ctx.restore();
+  // Le billet affiché juste après reprend cette offre (même état, rien n'a bougé entre les deux).
+  return available ? focus : undefined;
 }

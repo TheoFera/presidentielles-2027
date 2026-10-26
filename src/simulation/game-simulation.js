@@ -21,12 +21,12 @@ import { createElectorate, localPersuasionMultiplier, populationByOrigin } from 
 import { createPolls, refreshElectoralState, updatePolls } from './electoral-state.js';
 import { convertNeutral, neutralizeSupporter, applyOpinionDelta } from './npc-votes.js';
 import { triggerMeeting, updateElectoralBuildings, meetingAttendeeStep } from './electoral-buildings.js';
-import { updateCollector, updateMilitant } from './tasks.js';
+import { updateCollector, updateMilitant, withMilitantPass } from './tasks.js';
 import { validateSnapshot } from './snapshots.js';
 import { movementBlocked, canTurnDuringLightStun, combatState, canCampaign, demobilizeUnit, interrupted } from './combat-state.js';
 import { beginCombatTick, activateUltimate, requestAttack, separateCandidates, updateCombat, updateMilitantCombat, wallBlockedPosition } from './combat.js';
 import { startPodiumFall } from './combat-actions.js';
-import { updateGuard, updateRaidRecruit, updateGuardRecruitment } from './military.js';
+import { updateGuard, updateRaidRecruit, updateGuardRecruitment, withGuardPass } from './military.js';
 import { GamePhase, commandAllowed } from './phases.js';
 import { DebateSimulation } from './debate-simulation.js';
 import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchDebug } from './match-lifecycle.js';
@@ -404,12 +404,12 @@ export class GameSimulation {
     separateCandidates(this);
     updateSpawns(this);
     updateGuardRecruitment(this);
-    withNpcProximity(state, () => {
+    withNpcProximity(state, () => withGuardPass(state, () => {
       for (const npc of state.npcs) {
         if (npc.role === 'MILITANT' && npc.task?.kind !== 'JOIN_GUARD' && !npc.rally_event_id && npc.rally_return_x == null) updateMilitantCombat(this, npc);
         if (npc.role === 'SERVICE_D_ORDRE' && !npc.rally_event_id && npc.rally_return_x == null) updateGuard(this, npc);
       }
-    });
+    }));
     updatePressTeam(this);
     updateCombat(this);
     updateCandidateResistance(this);
@@ -419,7 +419,7 @@ export class GameSimulation {
     updateEconomy(this);
     updateProduction(this);
     prepareDonations(this);
-    withNpcProximity(state, () => this.updateNpcs());
+    withNpcProximity(state, () => withMilitantPass(state, () => this.updateNpcs()));
     updateElectoralBuildings(this);
     updateStrategicSites(this);
     settleMoney(this);
@@ -494,7 +494,8 @@ export class GameSimulation {
     // so overlapping actors can never convert the same person twice in a tick.
     claims.sort((a, b) => Number(b.retained) - Number(a.retained) || a.distance - b.distance || byId(a.actor, b.actor) || byId(a.npc, b.npc));
     const assigned = new Map();
-    for (const actor of [...state.candidates, ...state.npcs]) actor.persuasion_target_ids = [];
+    for (const actor of state.candidates) actor.persuasion_target_ids = [];
+    for (const actor of state.npcs) actor.persuasion_target_ids = [];
     for (const { actor, npc } of claims) {
       if (assigned.has(npc.id) || actor.persuasion_target_ids.length >= maxTargets) continue;
       assigned.set(npc.id, actor);
