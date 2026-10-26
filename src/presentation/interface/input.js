@@ -53,18 +53,15 @@ export class BrowserInput {
     canvas.addEventListener('pointerdown', event => {
       if (event.pointerType === 'mouse') { canvas.focus(); return; }
       event.preventDefault(); canvas.setPointerCapture(event.pointerId);
-      const rect = canvas.getBoundingClientRect();
-      const relative = (event.clientX - rect.left) / rect.width;
+      // Seules les flèches font marcher : un appui ailleurs (par exemple à côté de « Sauter » ou « Frapper »)
+      // ne doit ni déplacer ni, avec une flèche enfoncée en même temps, déclencher un dash par erreur.
       const nearArrow = this.nearestArrow(event.clientX, event.clientY);
       if (nearArrow) { this.pointers.set(event.pointerId, nearArrow); this.updatePointers(); }
-      // Près du personnage, l’appui ne fait rien : il n’ouvre plus l’aide (un glissement depuis le bas l’ouvrait par erreur).
-      else if (Math.abs(relative - anchorRatio) < touchPauseRadius) return;
-      else { this.pointers.set(event.pointerId, relative < anchorRatio ? -1 : 1); this.updatePointers(); }
     });
     bindRelease(canvas);
   }
-  /** Un appui qui rate de peu une flèche tactile compte pour la flèche la plus proche,
-   *  au lieu de suivre la règle « gauche du personnage = gauche ». */
+  /** Un appui qui rate de peu une flèche tactile compte pour la flèche la plus proche ;
+   *  loin des flèches, l’appui ne fait pas marcher. */
   nearestArrow(x, y) {
     const arrows = [['move-left', -1], ['move-right', 1]].map(([id, axis]) => [document.getElementById(id)?.getBoundingClientRect(), axis]).filter(([rect]) => rect?.width);
     let best = null;

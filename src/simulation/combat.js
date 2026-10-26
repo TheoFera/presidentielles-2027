@@ -301,7 +301,7 @@ function recordHologramTrail(sim) {
     const pose = {};
     for (const key of MIRRORED_POSE) if (c[key] !== undefined) pose[key] = c[key];
     power.trail.push({ tick: state.tick, x: owner.x, facing: owner.facing, moving: !!owner.moving, axis: owner.axis || 0,
-      dash_active: !!owner.dash_active, turn_tick: owner.turn_tick ?? null, pose,
+      dash_active: !!owner.dash_active, dash_direction: owner.dash_direction ?? owner.facing, dash_until_tick: owner.dash_until_tick ?? 0, turn_tick: owner.turn_tick ?? null, pose,
       attack: attack ? Object.fromEntries(MIRRORED_ATTACK_FIELDS.filter(k => attack[k] !== undefined).map(k => [k, attack[k]])) : null });
     const longest = Math.max(0, ...state.temporary_units.filter(u => u.power_id === power.id).map(u => u.mirror_delay_ticks || 0));
     if (power.trail.length > longest + 1) power.trail.splice(0, power.trail.length - longest - 1);
@@ -318,7 +318,9 @@ function mirrorHologram(sim, unit, power) {
   const frame = trail[Math.max(0, trail.length - 1 - unit.mirror_delay_ticks)], delay = state.tick - frame.tick;
   unit.x = state.debate_bounds ? frame.x + unit.follow_offset : combatPosition(state, frame.x + unit.follow_offset);
   unit.facing = frame.facing; unit.moving = frame.moving; unit.axis = frame.axis;
-  unit.dash_active = frame.dash_active; unit.turn_tick = frame.turn_tick == null ? frame.turn_tick : frame.turn_tick + delay;
+  // Le dash se dessine dans son propre sens : sans cette copie, l’hologramme regarderait toujours à droite.
+  unit.dash_active = frame.dash_active; unit.dash_direction = frame.dash_direction; unit.dash_until_tick = frame.dash_until_tick + delay;
+  unit.turn_tick = frame.turn_tick == null ? frame.turn_tick : frame.turn_tick + delay;
   const to = unit.combat;
   for (const key of MIRRORED_POSE) { if (frame.pose[key] === undefined) delete to[key]; else to[key] = frame.pose[key]; }
   for (const key of MIRRORED_TICKS) if (to[key] != null) to[key] += delay;

@@ -15,9 +15,17 @@ export function armored(state, actor) {
   const attack = state.attacks.find(a => a.id === actor.combat.attack_id);
   return attack?.kind === 'CHARGED' && attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks;
 }
+/** K.-O. : on reste couché là où l’on est tombé (pupitre du débat, promontoire), pas sur la ligne de marche.
+ * Mis K.-O. en l’air, on retombe sur le pupitre juste en dessous, ou au sol. */
+function knockoutHeight(state, actor) {
+  const c = actor.combat;
+  if (!airborne(actor) && !diving(actor)) return c.height || 0;
+  const below = (state.platforms || []).filter(p => onPlatform(p, actor.x) && p.height <= c.height).sort((a, b) => b.height - a.height)[0];
+  return below ? below.height : state.fall_death_height != null ? c.height : 0;
+}
 export function updateActions(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
-  if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState()); return; }
+  if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState(), { height: actor.is_ko ? knockoutHeight(sim.state, actor) : 0 }); return; }
   if (c.press_tick != null) c.press_delay_ticks = (c.press_delay_ticks || 0) + 1 - pressAttackFactor(sim.state, sim.config, actor);
   if (c.press_tick != null && !c.press_airborne && !airborne(actor) && !c.attack_id && !c.stun_ticks && Math.abs(c.knockback_velocity) <= 0.02 && !actor.dash_active
     && sim.state.tick - c.press_tick - (c.press_delay_ticks || 0) >= sim.secondsToTicks(b.charge_activation_seconds)) {

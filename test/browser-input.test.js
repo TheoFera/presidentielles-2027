@@ -91,7 +91,25 @@ test('Tactile : rater de peu la flèche droite (à gauche de l’écran) va quan
   assert.equal(human.axis, 1, 'Juste à droite de la flèche droite');
   canvas.send('pointerup', { pointerId: 1 });
   canvas.send('pointerdown', { pointerId: 2, clientX: 300, clientY: 200 });
-  assert.equal(human.axis, -1, 'Loin des flèches : la gauche de l’écran garde son sens');
+  assert.equal(human.axis, 0, 'Loin des flèches : l’appui ne fait pas marcher');
+});
+
+test('Tactile : un appui à côté de Sauter ou Frapper ne fait ni marcher ni dasher', t => {
+  const { get, canvas, human, actions, input } = setup(t);
+  let now = 0; input.now = () => now;
+  get('move-left').getBoundingClientRect = () => ({ left: 20, top: 400, right: 70, bottom: 450, width: 50, height: 50 });
+  get('move-right').getBoundingClientRect = () => ({ left: 80, top: 400, right: 130, bottom: 450, width: 50, height: 50 });
+  for (const clientX of [900, 600, 400]) {
+    canvas.send('pointerdown', { pointerId: 2, clientX, clientY: 410 });
+    assert.equal(human.axis, 0); now += 50;
+    canvas.send('pointerup', { pointerId: 2 }); now += 50;
+  }
+  // Avec la flèche droite enfoncée juste après, aucun double appui n’est reconnu.
+  canvas.send('pointerdown', { pointerId: 2, clientX: 900, clientY: 410 }); now += 50;
+  canvas.send('pointerup', { pointerId: 2 }); now += 50;
+  get('move-right').send('pointerdown', { pointerId: 1 });
+  assert.equal(human.axis, 1);
+  assert.deepEqual(actions, []);
 });
 
 test('Frapper au clavier : maintien sans répétition et un seul relâchement pour Espace/J', t => {
@@ -146,14 +164,14 @@ test('Aide, changement d’onglet et perte de focus libèrent les commandes', t 
   assert.deepEqual(actions, ['h', 'f']);
 });
 
-test('Le clavier et le déplacement tactile sur le monde restent disponibles', t => {
+test('Le clavier reste disponible ; toucher le monde ne fait plus marcher', t => {
   const { canvas, win, human } = setup(t);
   win.send('keydown', { key: 'd' });
   assert.equal(human.axis, 1);
   win.send('keyup', { key: 'd' });
   assert.equal(human.axis, 0);
   canvas.send('pointerdown', { clientX: 100 });
-  assert.equal(human.axis, -1);
+  assert.equal(human.axis, 0);
   canvas.send('pointercancel');
   assert.equal(human.axis, 0);
 });
