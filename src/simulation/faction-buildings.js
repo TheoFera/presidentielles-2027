@@ -6,6 +6,7 @@ import { captureLimitReason, captureSite, headquartersProtected, localPoliticalP
 import { cancelMeeting } from './electoral-buildings.js';
 import { raidRecruitCount, startRaid } from './military.js';
 import { demobilizeUnit } from './combat-state.js';
+import { recordFeat } from './campaign-feats.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
@@ -75,7 +76,10 @@ export function commitFactionAction(sim, candidate, building, offer) {
       const targeted = victim.meeting_faction_id;
       cancelMeeting(sim, victim);
       victim.meeting_banned_until_by_faction[targeted] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
-    } else neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
+    } else {
+      if (victim.type === 'permanence' && targetFaction !== candidate.faction_id) recordFeat(state, candidate.faction_id, 'permanences_closed');
+      neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
+    }
     for (const order of victim.queue) {
       const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
       if (worker) worker.task = null;

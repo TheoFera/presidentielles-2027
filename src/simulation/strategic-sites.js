@@ -6,6 +6,7 @@ import { stableIdOrder } from './territory.js';
 import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { recruitDefensiveGuards } from './military.js';
 import { sharedAIObservation } from './ai-observation.js';
+import { recordFeat } from './campaign-feats.js';
 
 const neutralTypes = new Set(['imprimerie', 'meeting', 'institut_sondage']);
 
@@ -144,7 +145,12 @@ export function updateStrategicSites(sim) {
     const s = buildingSettings(config, building);
     if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
-    if (building.closure_progress >= 1 - 1e-9) { neutralizeSite(sim, building); presence = null; }
+    if (building.closure_progress >= 1 - 1e-9) {
+      // Permanence fermée par un raid : comptée pour chaque camp qui la pressait.
+      if (building.type === 'permanence') for (const faction of new Set(raiders.filter(n => n.pressure_target_id === building.id && n.faction_id !== building.owner_id).map(n => n.faction_id)))
+        recordFeat(state, faction, 'permanences_closed');
+      neutralizeSite(sim, building); presence = null;
+    }
   }
 }
 

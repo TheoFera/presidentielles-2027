@@ -1,4 +1,4 @@
-// Objectifs des deux premières parties : un post-it à gauche de l'écran, trois objectifs à la fois.
+// Objectifs des deux premières parties : un post-it à gauche de l'écran, trois objectifs à la fois (trois séries).
 // Les progrès sont lus dans l'état de la partie (quelques fois par seconde, jamais à chaque image) ;
 // le post-it ne change que lorsqu'un objectif avance.
 
@@ -13,12 +13,18 @@ const GROUPS = [
     { id: 'ko', label: 'Mettre K.-O. un candidat adverse', goal: 1 },
     { id: 'batiment', label: 'Prendre un autre bâtiment', goal: 1 },
   ],
+  [
+    { id: 'sympathisant', label: 'Mettre K.-O. un sympathisant adverse', goal: 1 },
+    { id: 'fermeture', label: 'Fermer la permanence d’un autre candidat', goal: 1 },
+    { id: 'ultime', label: 'Déclencher votre ultime', goal: 1 },
+  ],
 ];
 const CHECK_SECONDS = 0.25, NEXT_GROUP_SECONDS = 1.3;
 const SUPPORTERS = new Set(['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']);
+const feat = (state, faction, key) => state.campaign_feats?.[faction]?.[key] || 0;
 
-/** Progrès de chaque objectif, d'après l'état de la partie (sauf les billets, comptés à part). */
-export function objectiveProgress(state, faction, pickups = 0) {
+/** Progrès de chaque objectif, d'après l'état de la partie (sauf les billets et l'ultime, comptés à part). */
+export function objectiveProgress(state, faction, pickups = 0, ultimates = 0) {
   const local = state.candidates.find(c => c.id === state.local_candidate_id);
   let supporters = 0, militant = 0;
   for (const npc of state.npcs) {
@@ -30,6 +36,7 @@ export function objectiveProgress(state, faction, pickups = 0) {
   return {
     billets: pickups, habitants: supporters, permanence: local?.headquarters_site_id ? 1 : 0, militant,
     ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, batiment: owned >= 2 ? 1 : 0,
+    sympathisant: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'permanences_closed'), ultime: ultimates,
   };
 }
 
@@ -47,7 +54,7 @@ export class CampaignObjectives {
 
   /** Nouvelle partie : `active` pour les deux premières parties du joueur. */
   reset(active) {
-    this.active = active; this.group = 0; this.best = {}; this.pickups = 0; this.lastEvent = null;
+    this.active = active; this.group = 0; this.best = {}; this.pickups = 0; this.ultimates = 0; this.lastEvent = null;
     this.wait = 0; this.nextIn = null; this.doneAt = null; this.key = '';
     this.root.classList.remove('postit-done');
     this.title.textContent = 'Objectifs'; this.message.textContent = '';
@@ -73,14 +80,14 @@ export class CampaignObjectives {
     }
     if ((this.wait -= elapsed) > 0 || !faction) return;
     this.wait = CHECK_SECONDS;
-    const progress = objectiveProgress(state, faction, this.pickups);
+    const progress = objectiveProgress(state, faction, this.pickups, this.ultimates);
     // Un objectif atteint le reste : perdre un soutien ne décoche rien.
     for (const [id, value] of Object.entries(progress)) this.best[id] = Math.max(this.best[id] || 0, value);
     this.render();
     if (GROUPS[this.group].every(o => this.best[o.id] >= o.goal)) this.nextIn = NEXT_GROUP_SECONDS;
   }
 
-  /** Billets ramassés par le joueur : lus dans les nouveaux événements de la partie. */
+  /** Billets ramassés et ultimes déclenchés par le joueur : lus dans les nouveaux événements de la partie. */
   countPickups(events = [], localId) {
     let newest = this.lastEvent ?? -1;
     for (const event of events) {
@@ -88,6 +95,7 @@ export class CampaignObjectives {
       if (!(number > (this.lastEvent ?? -1))) continue;
       newest = Math.max(newest, number);
       if (event.type === 'MoneyPickedUp' && event.candidate_id === localId) this.pickups++;
+      if (event.type === 'UltimateActivated' && event.candidate_id === localId) this.ultimates++;
     }
     this.lastEvent = newest;
   }

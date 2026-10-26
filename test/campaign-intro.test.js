@@ -5,6 +5,9 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
 import { ringDelta } from '../src/simulation/world.js';
 import { objectiveProgress } from '../src/presentation/interface/campaign-objectives.js';
+import { hit } from '../src/simulation/combat-state.js';
+import { commitFactionAction } from '../src/simulation/faction-buildings.js';
+import { updateStrategicSites } from '../src/simulation/strategic-sites.js';
 
 function setup(candidateId = 'candidate:le_pen') {
   const config = campaignConfig();
@@ -135,12 +138,46 @@ test('l’ordinateur ne joue pas pendant la scène', () => {
 test('objectifs : progrès lus dans l’état de la partie', () => {
   const { sim, me } = setup();
   const faction = me().faction_id;
-  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, batiment: 0 });
+  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, batiment: 0, sympathisant: 0, fermeture: 0, ultime: 0 });
   const [a, b] = sim.state.npcs;
   Object.assign(a, { role: 'SYMPATHISANT', faction_id: faction }); Object.assign(b, { role: 'MILITANT', faction_id: faction });
   me().headquarters_site_id = 'site:x';
   sim.state.knockouts = [{ tick: 1, by_faction: faction, candidate_id: 'candidate:philippe' }];
   const owned = sim.state.buildings.filter(x => x.ownership_model === 'capturable').slice(0, 2);
   owned.forEach(x => Object.assign(x, { owner_id: faction, state: 'ACTIVE' }));
-  assert.deepEqual(objectiveProgress(sim.state, faction), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, batiment: 1 });
+  sim.state.campaign_feats = { [faction]: { supporters_ko: 1, permanences_closed: 1 } };
+  assert.deepEqual(objectiveProgress(sim.state, faction, 0, 1), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, batiment: 1, sympathisant: 1, fermeture: 1, ultime: 1 });
+});
+
+test('objectifs : sympathisant adverse mis K.-O. par le candidat, pas par ses militants', () => {
+  const { sim, me } = setup();
+  const faction = me().faction_id, rival = 'philippe';
+  const [target, other, militant] = sim.state.npcs;
+  for (const npc of [target, other]) Object.assign(npc, { role: 'SYMPATHISANT', faction_id: rival, hidden_durability: 1, x: me().x });
+  Object.assign(militant, { role: 'MILITANT', faction_id: faction, x: me().x });
+  assert.ok(hit(sim, me(), target, { damage: 50, knockback: 0 }, 'test:1'));
+  assert.equal(target.role, 'DEMOBILISE');
+  assert.equal(sim.state.campaign_feats[faction].supporters_ko, 1);
+  assert.ok(hit(sim, militant, other, { damage: 50, knockback: 0 }, 'test:2'));
+  assert.equal(other.role, 'DEMOBILISE');
+  assert.equal(sim.state.campaign_feats[faction].supporters_ko, 1);
+});
+
+test('objectifs : permanence adverse fermée par un cabinet administratif ou par un raid', () => {
+  const { sim, me } = setup('candidate:philippe');
+  const faction = me().faction_id;
+  const [first, second] = sim.state.buildings.filter(b => b.type === 'permanence');
+  for (const b of [first, second]) Object.assign(b, { owner_id: 'le_pen', state: 'ACTIVE', active: true, neutral: false, level: 1, headquarters: false });
+  const cabinet = sim.state.buildings.find(b => b.type === 'faction');
+  assert.ok(commitFactionAction(sim, me(), cabinet, { kind: 'CLOSE', victim_id: first.id }));
+  assert.equal(first.owner_id, null);
+  assert.equal(sim.state.campaign_feats[faction].permanences_closed, 1);
+  // Raid : deux gardes de Mélenchon pressent la seconde permanence, que personne ne défend.
+  const raiders = sim.state.npcs.slice(0, 2);
+  for (const npc of raiders) Object.assign(npc, { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', raid: { id: 'raid:0' }, pressure_target_id: second.id, x: second.x });
+  for (const npc of sim.state.npcs) if (npc.faction_id === 'le_pen' && npc.role !== 'CANDIDAT') Object.assign(npc, { role: 'NEUTRE', faction_id: null });
+  for (let i = 0; i < 100 * 60 && second.owner_id; i++) { sim.state.tick++; updateStrategicSites(sim); }
+  assert.equal(second.owner_id, null);
+  assert.equal(sim.state.campaign_feats.melenchon.permanences_closed, 1);
+  assert.equal(sim.state.campaign_feats[faction].permanences_closed, 1);
 });

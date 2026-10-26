@@ -10,7 +10,8 @@ import { npcHomeX, random } from './world.js';
 import { releaseDonation, dropCandidateMoney, dropMinorMoney } from './money.js';
 import { dismountVehicle } from './vehicles.js';
 import { hitTakenCharge } from './mobile-combat.js';
-import { recordKnockout } from './unlock-catalog.js';
+import { ownKnockout, recordKnockout } from './unlock-catalog.js';
+import { recordFeat } from './campaign-feats.js';
 import { invisibleToEnemies } from './minor-ultimate-catalog.js';
 import { visitNearbyNpcs } from './npc-proximity.js';
 import { isPress, pressHit } from './press-rules.js';
@@ -169,7 +170,12 @@ export function hit(sim, source, target, spec, attackId) {
   pressHit(sim, target);
   if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0 && !isPress(target)) {
     if (target.temporary) { target.expired = true; target.combat.attack_id = null; }
-    else demobilizeUnit(sim, target);
+    else {
+      // Sympathisant ou militant adverse mis K.-O. par le candidat lui-même (ou son ultime) : objectif du tutoriel.
+      if (['SYMPATHISANT', 'MILITANT'].includes(target.role) && ownKnockout(source) && target.faction_id && target.faction_id !== source.faction_id)
+        recordFeat(state, source.faction_id, 'supporters_ko');
+      demobilizeUnit(sim, target);
+    }
   }
   state.hit_results.push(result);
   if (state.debate_bounds) state.hit_count++;
