@@ -138,7 +138,7 @@ test('l’ordinateur ne joue pas pendant la scène', () => {
 test('objectifs : progrès lus dans l’état de la partie', () => {
   const { sim, me } = setup();
   const faction = me().faction_id;
-  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, batiment: 0, sympathisants: 0, fermeture: 0, quartier: 0 });
+  assert.deepEqual(objectiveProgress(sim.state, faction, 2), { billets: 2, habitants: 0, permanence: 0, militant: 0, ko: 0, batiment: 0, sympathisants: 0, fermeture: 0, permanence2: 0, meeting: 0, garage: 0, sondage: 0 });
   const [a, b] = sim.state.npcs;
   Object.assign(a, { role: 'SYMPATHISANT', faction_id: faction }); Object.assign(b, { role: 'MILITANT', faction_id: faction });
   me().headquarters_site_id = 'site:x';
@@ -146,13 +146,13 @@ test('objectifs : progrès lus dans l’état de la partie', () => {
   const owned = sim.state.buildings.filter(x => x.ownership_model === 'capturable').slice(0, 2);
   owned.forEach(x => Object.assign(x, { owner_id: faction, state: 'ACTIVE' }));
   sim.state.campaign_feats = { [faction]: { supporters_ko: 3, buildings_closed: 1 } };
-  // Quartier : les trois sous-zones d'un même biome, pas seulement deux.
-  const [first] = sim.state.world.subzones, quarter = sim.state.world.subzones.filter(z => z.biome_id === first.biome_id);
-  const zone = id => sim.state.electorate.find(z => z.subzone_id === id);
-  quarter.slice(0, 2).forEach(z => { zone(z.id).controller = faction; });
-  assert.equal(objectiveProgress(sim.state, faction).quartier, 0);
-  zone(quarter[2].id).controller = faction;
-  assert.deepEqual(objectiveProgress(sim.state, faction), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, batiment: 1, sympathisants: 3, fermeture: 1, quartier: 1 });
+  assert.equal(objectiveProgress(sim.state, faction).permanence2, 0);
+  const take = b => Object.assign(b, { owner_id: faction, state: 'ACTIVE' });
+  sim.state.buildings.filter(b => b.type === 'permanence').slice(0, 2).forEach(take);
+  take(sim.state.buildings.find(b => b.type === 'garage_velo'));
+  sim.state.buildings.find(b => b.type === 'meeting').meeting_faction_id = faction;
+  sim.state.polls[faction].lastPollSnapshot = { measured_tick: 1 };
+  assert.deepEqual(objectiveProgress(sim.state, faction), { billets: 0, habitants: 2, permanence: 1, militant: 1, ko: 1, batiment: 1, sympathisants: 3, fermeture: 1, permanence2: 1, meeting: 1, garage: 1, sondage: 1 });
 });
 
 test('objectifs : sympathisant adverse mis K.-O. par le candidat, pas par ses militants', () => {

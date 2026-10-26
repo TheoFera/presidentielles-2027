@@ -1,4 +1,4 @@
-// Objectifs des deux premières parties : un post-it à gauche de l'écran, trois objectifs à la fois (trois séries).
+// Objectifs des deux premières parties : un post-it à gauche de l'écran, trois objectifs à la fois (quatre séries).
 // Les progrès sont lus dans l'état de la partie (quelques fois par seconde, jamais à chaque image) ;
 // le post-it ne change que lorsqu'un objectif avance.
 
@@ -16,20 +16,18 @@ const GROUPS = [
   [
     { id: 'sympathisants', label: 'Mettre K.-O. 3 sympathisants adverses', goal: 3 },
     { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1 },
-    { id: 'quartier', label: 'Gagner le contrôle d’un quartier', goal: 1 },
+    { id: 'permanence2', label: 'Prendre une autre permanence', goal: 1 },
+  ],
+  [
+    { id: 'meeting', label: 'Tenir un meeting', goal: 1 },
+    { id: 'garage', label: 'Débloquer un garage', goal: 1 },
+    { id: 'sondage', label: 'Acheter un sondage', goal: 1 },
   ],
 ];
 const CHECK_SECONDS = 0.25, NEXT_GROUP_SECONDS = 1.3;
 const SUPPORTERS = new Set(['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE']);
 const feat = (state, faction, key) => state.campaign_feats?.[faction]?.[key] || 0;
 
-/** Un quartier (biome) est contrôlé quand le camp tient le drapeau de ses trois sous-zones. */
-function controlsQuarter(state, faction) {
-  const held = new Set((state.electorate || []).filter(z => z.controller === faction).map(z => z.subzone_id));
-  const biomes = new Map();
-  for (const zone of state.world?.subzones || []) biomes.set(zone.biome_id, (biomes.get(zone.biome_id) ?? true) && held.has(zone.id));
-  return [...biomes.values()].some(Boolean);
-}
 
 /** Progrès de chaque objectif, d'après l'état de la partie (sauf les billets, comptés à part). */
 export function objectiveProgress(state, faction, pickups = 0) {
@@ -40,12 +38,19 @@ export function objectiveProgress(state, faction, pickups = 0) {
     supporters++;
     if (npc.role === 'MILITANT') militant = 1;
   }
-  const owned = state.buildings.reduce((n, b) => n + (b.owner_id === faction && b.state === 'ACTIVE' ? 1 : 0), 0);
+  let owned = 0, permanences = 0, garage = 0, meeting = 0;
+  for (const b of state.buildings) {
+    if (b.meeting_faction_id === faction) meeting = 1;
+    if (b.owner_id !== faction || b.state !== 'ACTIVE') continue;
+    owned++;
+    if (b.type === 'permanence') permanences++;
+    if (b.type === 'garage_velo' || b.type === 'garage_scooter') garage = 1;
+  }
   return {
     billets: pickups, habitants: supporters, permanence: local?.headquarters_site_id ? 1 : 0, militant,
     ko: (state.knockouts || []).some(k => k?.by_faction === faction) ? 1 : 0, batiment: owned >= 2 ? 1 : 0,
     sympathisants: feat(state, faction, 'supporters_ko'), fermeture: feat(state, faction, 'buildings_closed'),
-    quartier: controlsQuarter(state, faction) ? 1 : 0,
+    permanence2: permanences >= 2 ? 1 : 0, meeting, garage, sondage: state.polls?.[faction]?.lastPollSnapshot ? 1 : 0,
   };
 }
 
