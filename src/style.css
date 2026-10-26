@@ -87,7 +87,7 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 #debug-tools summary { cursor: pointer; margin-bottom: 8px; color: #4f6658; }
 .file-button input { margin-top: 5px; font-size: 0.8em; }
 #error { inset: 10%; }
-#touch-controls { display: none; position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); justify-content: space-between; pointer-events: none; }
+#touch-controls { touch-action: none; display: none; position: absolute; bottom: max(12px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); justify-content: space-between; pointer-events: none; }
 .touch-directions { display: flex; gap: 12px; }
 #touch-controls button { min-width: 60px; min-height: 56px; font-size: 18px; font-weight: 650; background: #f0eddbed; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; pointer-events: auto; }
 #touch-controls button:active { background: #344e41; color: white; }

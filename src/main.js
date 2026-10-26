@@ -17,6 +17,7 @@ import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interfa
 import { RespawnCountdown } from './presentation/interface/respawn-countdown.js';
 import { CampaignIntroScene } from './presentation/interface/campaign-intro.js';
 import { CampaignObjectives } from './presentation/interface/campaign-objectives.js';
+import { guardGameZoom } from './presentation/interface/zoom-guard.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
 import { warmUpSimulation } from './simulation/warm-up.js';
@@ -99,6 +100,7 @@ async function start() {
   const audio = new GameAudio();
   // Le navigateur n'autorise le son qu'après un geste de l'utilisateur.
   for (const type of ['pointerdown', 'keydown', 'touchend']) document.addEventListener(type, () => audio.unlock(), { capture: true, passive: true });
+  guardGameZoom();
   document.addEventListener('click', event => { if (event.target.closest?.('#start-menu button, #results button, #campaign-styles button, .unlock-choice button')) audio.play('ui'); }, true);
   const sounds = new SoundDirector(audio, config.balance.simulation_architecture.fixed_tick_hz);
   // Pub plein écran au clic de fin de partie, en solo seulement (voir docs/publicites.md).
