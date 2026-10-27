@@ -6,6 +6,7 @@ import { waveEffectAtlas, waveEffectBounds } from './wave-sprites.js';
 import { ultimateCharacterScale } from './ultimate-character-scale.js';
 import { scarfBody } from './scarf-character.js';
 import { drawScarfTransition } from './scarf-transition.js';
+import { standingSpriteMotion, applyNpcStandingMotion, drawStandingSprite } from '../personnages/standing-sprite-motion.js';
 
 const sheets = { WAVE:'wave', FIRE:'fire', SURGE:'surge', WALL:'wall', ZEMMOUR:'zemmour', SCARF:'scarf', BARDELLA:'bardella', EUROPE:'europe' };
 const hzOf = config => config.balance.simulation_architecture.fixed_tick_hz;
@@ -40,7 +41,9 @@ export function ultimateCharacterPose(entity, state, config) {
     const strideTick=state.tick+(Number(entity.id.split(':').at(-1))||0)*2;
     return { sheet:'surge', frame:state.tick < entity.ready_tick ? 4 : recent ? 5 + cycle(strideTick,hz,3,12) : !entity.moving ? 7 : cycle(strideTick,hz,4,12) };
   }
-  if (entity.role === 'CRS') return { sheet:'wall', frame:attack ? (phase === 'windup' ? 4 : phase === 'active' ? 5 : 7) : c.stun_ticks > 0 ? 3 : entity.moving ? 1 + cycle(state.tick,hz,2,8) : 0 };
+  // Les vignettes 1 et 2 avancent la même jambe : alternées, elles faisaient piétiner le CRS.
+  // Il marche donc comme le service d’ordre, sur sa pose debout aux jambes animées.
+  if (entity.role === 'CRS') return { sheet:'wall', frame:attack ? (phase === 'windup' ? 4 : phase === 'active' ? 5 : 7) : c.stun_ticks > 0 ? 3 : 0, walking:!attack && !(c.stun_ticks > 0) && !!entity.moving };
   if (entity.role === 'ZEMMOUR') {
     const interval = Math.ceil(hz / config.balance.specials.zemmour.shots_per_second);
     const since = state.tick - (entity.next_shot_tick - interval);
@@ -137,8 +140,14 @@ export function drawUltimateCharacter(renderer, entity, x, state) {
   ctx.translate(x,ground-(entity.combat?.height||0)*m.characterHeight);
   ctx.scale(pose.direction || entity.facing || 1,1);
   const clip=atlas.clips?.[pose.frame];
+  // Le balancement de la marche tourne aussi la découpe : le fond de la planche reste caché.
+  const motion=pose.walking ? standingSpriteMotion('walk',state.tick/hzOf(renderer.config)+(Number(entity.id?.split(':').at(-1))||0)*.37) : null;
+  if(motion) applyNpcStandingMotion(ctx,motion);
   if(clip){ctx.beginPath();clip.forEach(([cx,cy],i)=>ctx[i?'lineTo':'moveTo']((cx-px)*scaleX,(cy-py)*scaleY));ctx.closePath();ctx.clip();}
-  if (atlas.isolated) ctx.drawImage(prepareAtlasFrames(image,atlas)[pose.frame],(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
+  if (motion) {
+    ctx.translate((sx-px)*scaleX+sw*scaleX/2,(sy+sh-py)*scaleY);
+    drawStandingSprite(ctx,image,{x:sx,y:sy,width:sw,height:sh},sh*scaleY,sw*scaleX,motion);
+  } else if (atlas.isolated) ctx.drawImage(prepareAtlasFrames(image,atlas)[pose.frame],(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
   else ctx.drawImage(image,sx,sy,sw,sh,(sx-px)*scaleX,(sy-py)*scaleY,sw*scaleX,sh*scaleY);
   ctx.restore();
   return true;

@@ -377,3 +377,26 @@ test('Écharpe : tissu raccordé au poing entier, portée et sol du débat conse
     assert.ok(hand.x>=(frame[0]-frame[4])*body.scale && hand.x<(frame[0]+frame[2]-frame[4])*body.scale);
   }
 });
+
+test('CRS : ils marchent dans le sens de Philippe et sur la pose debout animée, sans piétiner',()=>{
+  const sim=make(),state=sim.state,c=state.candidates.find(c=>c.faction_id==='philippe');
+  c.current_campaign_style='philippe_gestionnaire';c.special_charge=config.balance.special_charge.required_points;
+  state.npcs=[];state.candidates=[c];activateUltimate(sim,c);
+  const guards=state.temporary_units.filter(u=>u.role==='CRS');
+  assert.equal(guards.length,2);
+  const step=config.prototype.movement.candidate_speed_units_per_second/config.balance.simulation_architecture.fixed_tick_hz;
+  for(const direction of [1,-1]) for(let i=0;i<30;i++){
+    c.x+=direction*step;c.facing=direction;state.tick++;beginCombatTick(sim);updateCombat(sim);
+    for(const g of guards){
+      assert.equal(g.facing,direction,`CRS ${g.id} au tick ${state.tick}`);
+      const pose=ultimateCharacterPose(g,state,config);
+      assert.deepEqual([pose.sheet,pose.frame,pose.walking],['wall',0,true]);
+    }
+  }
+  // Arrêtés, ils gardent le sens de leur dernière marche.
+  state.tick++;beginCombatTick(sim);updateCombat(sim);
+  for(const g of guards){assert.equal(g.facing,-1);assert.equal(ultimateCharacterPose(g,state,config).walking,false);}
+  const r=recordingRenderer();guards[0].moving=true;
+  assert.equal(drawUltimateCharacter(r,guards[0],100,state),true);
+  assert.equal(r.calls.filter(c=>c[0]==='drawImage').length,3);
+});

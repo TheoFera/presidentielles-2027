@@ -463,10 +463,13 @@ function updateTemporaryUnits(sim) {
     if (interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;
     if (updateStyleTemporary(sim, unit)) continue;
     const s = config.balance.specials.philippe_crs_wall;
+    const fromX = unit.x;
     moveNpcTowards(sim, unit, combatPosition(state, owner.x + unit.follow_offset), s.follow_speed);
     const target = nearestEnemy(state, unit, s.attack_range + config.balance.candidate_combat.target_radius);
     unit.combat.target_id = target?.id || null;
-    if (!target) continue;
+    // Sans adversaire, un CRS regarde où il marche (comme Philippe) et garde ce sens à l’arrêt :
+    // sinon celui de gauche avançait à reculons quand le candidat partait à droite.
+    if (!target) { unit.facing = Math.sign(combatDelta(state, fromX, unit.x)) || unit.facing; continue; }
     const d = combatDelta(state, unit.x, target.x);
     unit.facing = Math.sign(d) || unit.facing;
     if (Math.abs(d) <= s.attack_range + config.balance.candidate_combat.target_radius) startNpcAttack(sim, unit, 'CRS', {

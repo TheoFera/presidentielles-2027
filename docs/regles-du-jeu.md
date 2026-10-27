@@ -102,7 +102,7 @@ En prenant son premier QG, chaque candidat choisit **un style**, définitif pour
 | Philippe | Européiste | Paris | Super Européiste |
 
 - **Hologrammes** : quatre copies transparentes apparaissent de part et d'autre de Mélenchon. Ce sont des copies exactes : elles rejouent tout ce que fait Mélenchon (marche, saut, charge, coups) avec un léger retard : 0,1 s pour les deux plus proches, 0,2 s pour les deux plus éloignées (`echo_delay_seconds`), toujours à sa hauteur (elles ne tombent pas au-dessus du vide). On ne peut ni les viser ni les toucher, elles n'ont pas de points de vie, traversent tout et peuvent sortir du plateau si Mélenchon est au bord. Leurs coups font exactement les mêmes dégâts que ceux de Mélenchon.
-- **Protection CRS** : deux CRS encadrent Philippe, bloquent les adversaires et les repoussent loin, avec des coups assez lents et peu puissants (`philippe_crs_wall`).
+- **Protection CRS** : deux CRS encadrent Philippe, bloquent les adversaires et les repoussent loin, avec des coups assez lents et peu puissants (`philippe_crs_wall`). Sans adversaire, ils marchent tournés dans le sens où ils avancent, comme Philippe, et gardent ce sens à l’arrêt.
 - **Super Européiste** : pendant 5 s, chaque coup reçu au corps à corps, ainsi que les piques des militants, est renvoyé à l'attaquant avec les mêmes dégâts, un fort recul et un court étourdissement. Le dash devient illimité, et traverser un adversaire en dash le repousse de la même façon et lui inflige 15 dégâts, au plus une fois toutes les 0,8 s pour un même adversaire (`specials.europe`).
 
 ### Équilibrage des ultimes
