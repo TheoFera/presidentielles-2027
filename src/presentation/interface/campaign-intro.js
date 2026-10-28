@@ -5,9 +5,11 @@
 // HTML dont seules la position et l'opacité changent (calcul fait par la carte graphique). Les éclats
 // des flashs viennent d'une seule petite image préparée une fois.
 //
-// Deux premières parties (`tutorial`) : grand dossier « carte + objectifs », puis consignes
-// « ← → » et « Frapper ». Ensuite : la scène seule, qu'un coup écourte.
+// Tant que le tutoriel n'est pas terminé (`briefing`) : grand dossier « carte + objectifs », où chaque
+// appui fait défiler les séries d'objectifs déjà terminées. Deux premières parties (`tutorial`) :
+// consignes « ← → » et « Frapper ». Sinon : la scène seule, qu'un coup écourte.
 import { CANDIDATES } from '../menus/arcade-content.js';
+import { placeDossier } from './dossier-layout.js';
 import { ringDelta, wrap } from '../../simulation/world.js';
 
 // Après le coup, les journalistes sortent par le bas de l'écran, comme une équipe de reportage qui
@@ -32,11 +34,17 @@ export const BIOME_NAMES = { paris_19e: 'Péricentre', banlieue: 'Banlieue', per
   retraites: 'Littoral', quartiers_riches: 'Beaux-quartiers' };
 
 export class CampaignIntroScene {
-  constructor(game, config, { renderer = null, wheel = () => null, play = () => {}, ended = () => {} } = {}) {
+  /** `advance()` : fait défiler le post-it (vrai s'il a changé) ; `explain(on)` : explications du post-it en grand. */
+  constructor(game, config, { renderer = null, wheel = () => null, play = () => {}, ended = () => {}, advance = () => false, explain = () => {} } = {}) {
     this.game = game; this.config = config; this.settings = config.prototype.campaign_intro; this.renderer = renderer;
     this.hz = config.balance.simulation_architecture.fixed_tick_hz; this.wheel = wheel; this.play = play; this.ended = ended;
-    // Le dossier reste affiché jusqu'à une touche ou un appui sur l'écran.
-    this.listen = () => { this.closeRequested = this.t >= this.settings.dossier_min_seconds; };
+    this.advance = advance; this.explain = explain;
+    // Le dossier reste affiché jusqu'à une touche ou un appui sur l'écran ; tant qu'il reste des séries
+    // d'objectifs déjà terminées, l'appui fait défiler le post-it (mesuré de nouveau à l'image suivante).
+    this.listen = () => {
+      if (this.t < this.settings.dossier_min_seconds || this.closeRequested) return;
+      if (this.advance()) this.dossierPending = true; else this.closeRequested = true;
+    };
     this.root = document.createElement('div'); this.root.id = 'campaign-intro'; this.root.hidden = true;
     this.root.innerHTML = '<div class="intro-fade"></div><div class="intro-band intro-band-top"></div><div class="intro-band intro-band-bottom"></div><div class="intro-flash"></div>'
       + '<div class="intro-news" role="status"><div class="intro-news-head"><span class="intro-news-flash">Flash info</span><p class="intro-news-title"></p></div>'
@@ -50,11 +58,14 @@ export class CampaignIntroScene {
     this.stop();
   }
 
-  /** Nouvelle partie lancée depuis le menu. `tutorial` : une des deux premières parties du joueur. */
-  start({ tutorial }) {
+  /**
+   * Nouvelle partie lancée depuis le menu. `tutorial` : une des deux premières parties du joueur (consignes) ;
+   * `briefing` : tutoriel pas terminé (dossier de départ).
+   */
+  start({ tutorial, briefing = tutorial }) {
     this.stop();
-    this.active = true; this.tutorial = tutorial;
-    this.setClass('campaign-intro', true); this.setClass('intro-tutorial', tutorial);
+    this.active = true; this.tutorial = tutorial; this.briefing = briefing;
+    this.setClass('campaign-intro', true); this.setClass('intro-tutorial', tutorial || briefing);
   }
   /**
    * Ouverture, une fois la partie à l'écran (pas derrière l'écran de chargement) : un fondu au noir
@@ -69,9 +80,10 @@ export class CampaignIntroScene {
     this.root.querySelector('.intro-band-bottom').animate([{ transform: 'translateY(101%)' }, { transform: 'none' }], timing);
   }
   stop() {
-    this.active = false; this.opened = false; this.tutorial = false; this.t = 0; this.endedAt = null; this.strikes = new Map(); this.stages = null;
+    this.active = false; this.opened = false; this.tutorial = false; this.briefing = false; this.t = 0; this.endedAt = null; this.strikes = new Map(); this.stages = null;
     this.moved = 0; this.step = null; this.flashesDone = 0; this.bannerShown = false; this.dossier = false; this.promptKey = null;
     this.dossierClosedAt = null; this.closeRequested = false; this.dossierPending = false; this.waitForInput(false);
+    clearTimeout(this.foldTimer); this.explain(false);
     this.root.hidden = true; this.banner.classList.remove('shown'); this.root.classList.remove('bands-out');
     for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
     this.showPrompt(null);
@@ -92,17 +104,19 @@ export class CampaignIntroScene {
     for (const type of ['keydown', 'pointerdown']) globalThis[on ? 'addEventListener' : 'removeEventListener'](type, this.listen, true);
   }
 
-  /** Le discours commence après le dossier (deux premières parties), sinon presque tout de suite. */
+  /** Le discours commence après le dossier (tutoriel pas terminé), sinon presque tout de suite. */
   get bannerStart() {
-    if (!this.tutorial) return this.settings.short_banner_start_seconds;
+    if (!this.briefing) return this.settings.short_banner_start_seconds;
     return this.dossierClosedAt === null ? Infinity : this.dossierClosedAt + this.settings.banner_delay_seconds;
   }
+  /** Le dossier de départ est-il encore à l'écran (ou sur le point de s'ouvrir) ? */
+  get dossierOpen() { return this.briefing && this.dossierClosedAt === null; }
   get bannerEnd() { return this.bannerStart + this.settings.banner_hold_seconds; }
 
   /** Le coup du joueur est-il encore retenu (consignes pas encore affichées) ? */
   blocksAttack(state) {
     if (!state.campaign_intro || !this.active) return false;
-    return this.tutorial && this.step !== 'strike';
+    return this.dossierOpen || this.tutorial && this.step !== 'strike';
   }
 
   /** Une image : horloge de la scène, chorégraphie de l'interface, sons. */
@@ -129,13 +143,13 @@ export class CampaignIntroScene {
     // Dossier de campagne : grande carte (noms des quartiers autour) et objectifs, le temps qu'il faut
     // au joueur ; une touche ou un appui, et chacun glisse à sa place.
     if (this.closeRequested && this.dossierClosedAt === null) { this.dossierClosedAt = t; this.waitForInput(false); }
-    const dossier = this.tutorial && mine == null && this.dossierClosedAt === null;
+    const dossier = this.dossierOpen && mine == null;
     // La mesure attend l'image suivante : la page est alors déjà mise en place par le navigateur, la lire
     // ne coûte rien (mesurée tout de suite, elle forçait un recalcul complet de la page à la première image).
     if (dossier !== this.dossier) {
       this.dossier = dossier; this.dossierPending = dossier;
-      if (dossier) this.waitForInput(true); else this.setClass('intro-dossier', false);
-    } else if (dossier && this.dossierPending) { this.dossierPending = false; this.measureDossier(); this.setClass('intro-dossier', true); }
+      if (dossier) { this.waitForInput(true); this.explain(true); } else { this.setClass('intro-dossier', false); this.foldExplanations(); }
+    } else if (dossier && this.dossierPending) { this.dossierPending = false; placeDossier(this.game); this.setClass('intro-dossier', true); }
     if (dossier && !this.namesShown) this.namesShown = this.wheel()?.showBiomeNames(BIOME_NAMES) === true;
     // Flash info du journal télévisé pendant le discours : « À un an de la présidentielle, X annonce sa candidature ».
     const banner = mine == null && t >= this.bannerStart && t < this.bannerEnd;
@@ -160,10 +174,10 @@ export class CampaignIntroScene {
     if (mine == null && this.tutorial && t >= this.bannerEnd) step = this.moved >= s.move_seconds_before_strike ? 'strike' : 'move';
     if (step !== this.step) { this.step = step; this.setClass('intro-tuto-move', step === 'move'); this.setClass('intro-tuto-strike', step === 'strike'); }
     const waiting = mine != null && t - mine > 0.6;
-    const idle = !this.tutorial && mine == null && t >= s.idle_hint_seconds;
+    const idle = !this.tutorial && mine == null && !dossier && t >= (this.dossierClosedAt ?? 0) + s.idle_hint_seconds;
     // Sans consignes, les boutons tactiles restent à l'écran jusqu'au coup : sur téléphone, c'est le
     // seul moyen de frapper pour lancer la campagne.
-    const controls = !this.tutorial && mine == null;
+    const controls = !this.tutorial && mine == null && !dossier;
     this.setClass('intro-controls', controls);
     // Les bandes noires laissent la place aux boutons, et partent au coup.
     this.root.classList.toggle('bands-out', mine != null || !!step || controls);
@@ -171,8 +185,15 @@ export class CampaignIntroScene {
     this.showPrompt(step || (reading ? 'dossier' : waiting ? 'waiting' : idle ? 'idle' : null));
   }
 
+  /** Les explications du post-it partent une fois qu'il a regagné sa place (fin de la transition). */
+  foldExplanations() {
+    clearTimeout(this.foldTimer);
+    this.foldTimer = setTimeout(() => { if (!this.game.classList.contains('intro-dossier')) this.explain(false); }, 650);
+  }
+
   finish() {
     this.waitForInput(false);
+    if (this.dossier) { this.dossier = false; this.foldExplanations(); }
     this.banner.classList.remove('shown'); this.showPrompt(null); this.root.classList.add('bands-out');
     for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
     this.ended({ tutorial: this.tutorial });
@@ -189,27 +210,6 @@ export class CampaignIntroScene {
   flashScreen() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     this.whiteFlash.animate([{ opacity: 0.38 }, { opacity: 0 }], { duration: 220, easing: 'ease-out' });
-  }
-
-  /**
-   * Position de départ du dossier, mesurée une fois : la carte au centre de la moitié droite,
-   * le post-it des objectifs au centre de la moitié gauche, agrandis. Ils reviennent ensuite à
-   * leur place par une simple transition de transformation.
-   */
-  measureDossier() {
-    const game = this.game.getBoundingClientRect();
-    const place = (selector, x, y, fit) => {
-      const element = this.game.querySelector(selector);
-      if (!element) return;
-      element.style.removeProperty('--dossier');
-      const box = element.getBoundingClientRect();
-      if (!box.width || !box.height) return;
-      const scale = Math.max(1, Math.min(fit(box), 2.4));
-      const dx = game.left + game.width * x - (box.left + box.width / 2), dy = game.top + game.height * y - (box.top + box.height / 2);
-      element.style.setProperty('--dossier', `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(3)})`);
-    };
-    place('#electoral-display', 0.73, 0.47, box => game.height * 0.62 / box.height);
-    place('#campaign-objectives', 0.29, 0.47, box => Math.min(game.width * 0.34 / box.width, game.height * 0.56 / box.height));
   }
 
   /** Journalistes du décor : trois duos autour de chaque estrade, tournés vers l'orateur. */

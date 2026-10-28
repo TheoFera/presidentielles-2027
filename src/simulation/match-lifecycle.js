@@ -111,6 +111,11 @@ export function finishSprint(sim) {
   const [a, b] = s.finalists;
   // Equality at floating-point precision only, never equality of the displayed rounded poll.
   const tied = Math.abs(scores[a] - scores[b]) <= 1e-10;
+  // Mort subite : le chrono reste à zéro et la partie continue ; elle s'arrête au premier pas sans égalité.
+  if (tied && sim.config.balance.second_round.tie_rule === 'SUDDEN_DEATH') {
+    if (!s.extensions) { s.extensions = 1; sim.emit('OvertimeStarted', { sudden_death: true, extension: 1 }); }
+    return;
+  }
   if (tied && sim.config.balance.second_round.tie_rule === 'REPEAT_OVERTIME') {
     s.extensions++; s.sprint_remaining_ticks = sim.secondsToTicks(sim.config.balance.second_round.extension_seconds);
     s.phase_started_match_tick = s.match_tick;

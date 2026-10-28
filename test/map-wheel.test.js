@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
-import { ElectoralDisplay, territoryColors } from '../src/presentation/carte/electoral.js';
+import { ElectoralDisplay, campaignClock, formatRealClock, territoryColors } from '../src/presentation/carte/electoral.js';
 import { MapWheel, mapNeutralColor } from '../src/presentation/interface/map-wheel.js';
 import { mapWheelAtlas, mapWheelIcons } from '../src/presentation/interface/map-wheel-icons.js';
 import { interpolatedPlayerX } from '../src/presentation/rendu/player-position.js';
@@ -196,10 +196,18 @@ test('Compteur et visibilité en campagne, studio, débat et second tour', t => 
     assert.equal(node('poll-scores').hidden, true);
     assert.equal(node('game').classes.has('has-map-wheel'), false);
   }
-  state.phase = 'SECOND_ROUND_SPRINT'; state.sprint_remaining_ticks = 2.5 * display.hz;
+  // Second tour : 7 jours plus longs que ceux du premier tour, et le temps réel restant en dessous.
+  const sprintDay = config.balance.time.second_round_sprint_seconds / config.balance.time.second_round_days;
+  state.phase = 'SECOND_ROUND_SPRINT'; state.sprint_remaining_ticks = (sprintDay * 5 + 1) * display.hz;
   display.update(state, candidate);
-  assert.equal(node('day').textContent, '3');
+  assert.equal(node('day').textContent, 'J-6');
+  assert.equal(node('real-clock').textContent, formatRealClock(sprintDay * 5 + 1));
   assert.equal(node('electoral-circle').hidden, false);
+  // Égalité à la fin du chrono : la partie continue, la date reste sur J-1.
+  state.sprint_remaining_ticks = 0; state.extensions = 1;
+  display.update(state, candidate);
+  assert.equal(node('day').textContent, 'J-1');
+  assert.equal(node('real-clock').textContent, 'égalité');
 });
 
 test('Une image inchangée ne réécrit pas la carte et un sondage modifié au même tick reste visible', t => {
@@ -256,4 +264,19 @@ test('Mini-classement : tous les candidats au-dessus de 0 %, et toujours le joue
   wheel.updatePollRing(shares, () => '#123456', 'dupont_aignan', false, {});
   assert.equal(wheel.ranking.children.length, 9);
   assert.equal(wheel.ranking.classes.has('map-poll-animate'), false);
+});
+
+test('Temps réel restant avant le vote : premier tour, puis second tour en jours plus longs', () => {
+  const time = config.balance.time, hz = config.balance.simulation_architecture.fixed_tick_hz;
+  const dayTicks = Math.ceil(time.real_seconds_per_game_day * hz - 1e-9);
+  const start = { phase: 'CAMPAIGN', days_remaining: time.starting_days_before_first_round, tick: 0 };
+  assert.equal(campaignClock(start, time, hz).seconds, time.starting_days_before_first_round * dayTicks / hz);
+  // Au milieu d'un jour, le temps réel continue de baisser alors que la date ne bouge pas.
+  const later = campaignClock({ phase: 'CAMPAIGN', days_remaining: 10, tick: 5 * dayTicks + 3 }, time, hz);
+  assert.equal(later.days, 10);
+  assert.equal(later.seconds, (10 * dayTicks - 3) / hz);
+  const sprint = campaignClock({ phase: 'SECOND_ROUND_SPRINT', sprint_remaining_ticks: time.second_round_sprint_seconds * hz, extensions: 0 }, time, hz);
+  assert.deepEqual(sprint, { days: time.second_round_days, seconds: time.second_round_sprint_seconds, tied: false });
+  assert.equal(formatRealClock(730), '12:10');
+  assert.equal(formatRealClock(59.2), '1:00');
 });

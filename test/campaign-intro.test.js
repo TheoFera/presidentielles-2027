@@ -4,7 +4,7 @@ import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { AIController, LocalHumanController, collectCommands } from '../src/simulation/controllers.js';
 import { ringDelta } from '../src/simulation/world.js';
-import { objectiveGroups, objectiveProgress } from '../src/presentation/interface/campaign-objectives.js';
+import { objectiveGroups, objectiveProgress, tutorialProgress } from '../src/presentation/interface/campaign-objectives.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { commitFactionAction } from '../src/simulation/faction-buildings.js';
 import { updateStrategicSites } from '../src/simulation/strategic-sites.js';
@@ -195,4 +195,20 @@ test('objectifs : la série de combat suit le bâtiment du camp', () => {
   for (const faction of ['melenchon', 'le_pen'])
     assert.deepEqual(labels(faction), ['Mettre K.-O. un candidat adverse', 'Acheter un local pour votre service d’ordre', 'Lancer un raid', 'Fermer un bâtiment adverse']);
   assert.deepEqual(labels('philippe'), ['Mettre K.-O. un candidat adverse', 'Prendre un cabinet administratif', 'Fermer un bâtiment adverse']);
+});
+
+test('tutoriel : il reprend à la première série pas terminée, jusqu’à ce que tout soit atteint', () => {
+  assert.deepEqual([tutorialProgress('le_pen').target, tutorialProgress('le_pen').complete], [0, false]);
+  // Un objectif d'une série suivante, atteint plus tôt, ne fait pas sauter la série en cours.
+  assert.equal(tutorialProgress('le_pen', ['billets', 'habitants', 'ko']).target, 0);
+  const all = objectiveGroups('le_pen').flat().map(o => o.id);
+  assert.equal(tutorialProgress('le_pen', all.slice(0, 6)).target, 2);
+  assert.equal(tutorialProgress('le_pen', all).complete, true);
+  // Le raid n'existe qu'avec un service d'ordre : fini avec Philippe, il reste à faire avec Le Pen.
+  const philippe = objectiveGroups('philippe').flat().map(o => o.id);
+  assert.equal(tutorialProgress('philippe', philippe).complete, true);
+  assert.deepEqual([tutorialProgress('le_pen', philippe).target, tutorialProgress('le_pen', philippe).complete], [2, false]);
+  // Chaque objectif a son explication, adaptée au camp.
+  for (const faction of ['melenchon', 'le_pen', 'philippe']) assert.ok(objectiveGroups(faction).flat().every(o => typeof o.help === 'string' && o.help.length > 20));
+  assert.notEqual(objectiveGroups('philippe')[2].find(o => o.id === 'fermeture').help, objectiveGroups('le_pen')[2].find(o => o.id === 'fermeture').help);
 });

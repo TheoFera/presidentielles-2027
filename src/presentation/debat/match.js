@@ -92,7 +92,7 @@ export class MatchDisplay {
     const eliminated = state.candidates.find(c => c.id === state.local_candidate_id).eliminated;
     setHidden(this.spectator, !sprint || !eliminated);
     if (this.phase !== state.phase || this.extensions !== state.extensions) {
-      this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? `+${this.config.balance.second_round.extension_seconds} s · Égalité` : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
+      this.banner.textContent = debate ? 'J0 · Premier tour' : sprint ? state.extensions > this.extensions ? (this.config.balance.second_round.tie_rule === 'SUDDEN_DEATH' ? 'Égalité · Le premier qui passe devant l’emporte' : `+${this.config.balance.second_round.extension_seconds} s · Égalité`) : `Élimination de ${names[state.eliminated_faction].name} · Convainquez les PNJ restants` : '';
       this.phase = state.phase; this.extensions = state.extensions;
       if (debate) {
         this.hud.replaceChildren(); this.cards.clear();

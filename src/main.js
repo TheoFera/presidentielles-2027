@@ -16,7 +16,8 @@ import { playerCard, rememberTitle, setCandidateColors } from './presentation/me
 import { clearKnockoutReveals, showKnockoutReveal } from './presentation/interface/knockout-reveal.js';
 import { RespawnCountdown } from './presentation/interface/respawn-countdown.js';
 import { CampaignIntroScene } from './presentation/interface/campaign-intro.js';
-import { CampaignObjectives } from './presentation/interface/campaign-objectives.js';
+import { CampaignObjectives, tutorialProgress } from './presentation/interface/campaign-objectives.js';
+import { MapPause } from './presentation/interface/map-pause.js';
 import { guardGameZoom } from './presentation/interface/zoom-guard.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
@@ -197,11 +198,21 @@ async function start() {
   const curtain = document.getElementById('phase-fade'), voteInterlude = document.getElementById('vote-interlude');
   // K.-O. en campagne : monde en gris et décompte avant la réapparition.
   const respawnCountdown = new RespawnCountdown(document.getElementById('game'), canvas, config.balance.simulation_architecture.fixed_tick_hz);
-  // Scène d'ouverture de la Campagne, puis post-it des objectifs (deux premières parties du joueur).
+  // Scène d'ouverture de la Campagne, puis post-it des objectifs (tant que le tutoriel n'est pas terminé).
   const introSettings = config.prototype.campaign_intro;
-  const objectives = new CampaignObjectives(document.getElementById('game'), { farewellSeconds: introSettings.objectives_farewell_seconds });
+  // Objectifs atteints : gardés dans le profil, ils ne sont pas à refaire dans les parties suivantes.
+  const objectives = new CampaignObjectives(document.getElementById('game'), { farewellSeconds: introSettings.objectives_farewell_seconds,
+    onDone: ids => account.save({ tutorial_objectives: ids }) });
+  // Pause en touchant la carte. En multijoueur, elle passe par le salon : elle vaut pour tous les joueurs.
+  const mapPause = new MapPause(document.getElementById('game'), { objectives, wheel: () => electoralDisplay.wheel,
+    request: on => {
+      if (session) { session.request('pause', { paused: on }).catch(error => notify(error.message, 3)); return; }
+      paused = on; input.clear(); human.reset(); clock.reset();
+      if (on) mapPause.show(); else { mapPause.hide(); previousTime = performance.now(); canvas.focus(); }
+    } });
   const introScene = new CampaignIntroScene(document.getElementById('game'), config, {
     renderer, wheel: () => electoralDisplay.wheel, play: cue => audio.play(cue),
+    advance: () => objectives.advance(), explain: on => objectives.setExplain(on || mapPause.open),
     ended: () => {
       // Une partie de plus avec la scène : consignes et objectifs ne reviennent qu'aux deux premières.
       account.save({ campaign_intro_seen: (profile.campaign_intro_seen || 0) + 1 });
@@ -249,6 +260,10 @@ async function start() {
     home: () => { if (session) returnHome(); else void ads.afterGame('debate', returnHome); },
   });
 
+  /** La carte peut-elle ouvrir la pause : partie en cours, sans scène, choix de style, débat télé ni élimination ? */
+  const canMapPause = () => !menu?.active && !debateMatch && !paused && !sceneFreeze && ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)
+    && !state.campaign_intro && !state.campaign_style_selection && !document.body.classList.contains('campaign-studio')
+    && !state.candidates.find(c => c.id === state.local_candidate_id)?.eliminated;
   const notify = (text, seconds = config.prototype.presentation.zone_flash_seconds) => { notice.textContent = text; noticeRemaining = seconds; };
   const queue = command => { pending.push(command); canvas.focus(); };
   const resetPresentation = () => {
@@ -258,7 +273,7 @@ async function start() {
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
     resultRecorded = state.phase === 'RESULTS';
     knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear(); clearKnockoutReveals();
-    introScene.stop(); objectives.reset(false);
+    introScene.stop(); objectives.reset(false); mapPause.reset();
     currentDay = state.days_remaining;
     currentZone = zoneAt(state.world, state.candidates.find(c => c.id === state.local_candidate_id).x).id;
   };
@@ -297,6 +312,8 @@ async function start() {
   const input = new BrowserInput(canvas, human, async key => {
     if (menu?.active) return;
     if (!debateMatch && (state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase))) return;
+    // Pause de la carte : Échap ou P l'ouvrent ; pendant la pause, les touches ne servent qu'à la lever.
+    if (!debateMatch && mapPause.key(key, canMapPause())) return;
     // Scène d'ouverture (deux premières parties) : le coup attend la consigne « Frapper ».
     if (!debateMatch && ['attack-press', 'attack-release', ' ', 'j', 'attack'].includes(key) && introScene.blocksAttack(state)) return;
     if (key === 'attack-cancel') { human.cancelAttack(); }
@@ -387,7 +404,7 @@ async function start() {
     stopDebate();
     paused = true; input.clear(); pending = []; clock.reset(); debug.toggle(false);
     void keepScreenAwake();
-    matchDisplay.reset(); introScene.stop(); objectives.reset(false);
+    matchDisplay.reset(); introScene.stop(); objectives.reset(false); mapPause.reset();
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
@@ -406,9 +423,14 @@ async function start() {
     }
     startSoloRun(candidateId);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
-    // `?tutoriel` dans l'adresse : revoir les consignes et les objectifs des deux premières parties.
-    const tutorial = (profile.campaign_intro_seen || 0) < introSettings.tutorial_games || new URLSearchParams(location.search).has('tutoriel');
-    introScene.start({ tutorial }); objectives.reset(tutorial);
+    // `?tutoriel` dans l'adresse : revoir les consignes et tous les objectifs, comme à la première partie.
+    // Consignes « ← → » et « Frapper » : deux premières parties. Objectifs (et dossier du départ) : tant
+    // que tous ne sont pas atteints avec ce candidat ; ceux des parties précédentes restent cochés.
+    const replay = new URLSearchParams(location.search).has('tutoriel');
+    const tutorial = (profile.campaign_intro_seen || 0) < introSettings.tutorial_games || replay;
+    const faction = candidateId.split(':')[1], done = replay ? [] : profile.tutorial_objectives || [];
+    const briefing = !tutorialProgress(faction, done).complete;
+    introScene.start({ tutorial, briefing }); objectives.reset(briefing, { done, faction });
     renderer.artZone = null;
     // Premier dessin avec la scène d'ouverture (journalistes et public) : rien à charger en pleine scène.
     renderer.draw(introScene.view(state), state, 1, 0);
@@ -597,6 +619,9 @@ async function start() {
       }
       const changed = paused !== room.paused;
       paused = room.paused;
+      // Pause de la carte : affichée chez tous ; seul celui qui l'a lancée peut la lever.
+      if (room.paused && !debateMatch) mapPause.show({ mine: room.paused_by === session.id, by: room.players.find(p => p.id === room.paused_by)?.name });
+      else mapPause.hide();
       void keepScreenAwake();
       if (changed) { input.clear(); clock.reset(); remote.clear(); pending = []; canvas.focus(); }
     }
@@ -963,6 +988,7 @@ async function start() {
         finishProgress();
       }
       announceKnockouts();
+      mapPause.arm(canMapPause());
       setHidden(funds, !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       setHidden(document.getElementById('touch-controls'), paused || !!state.campaign_style_selection || ['FIRST_ROUND_RESULTS', 'RESULTS'].includes(state.phase) || state.candidates.find(c => c.id === state.local_candidate_id).eliminated);
       if (noticeRemaining <= 0) setText(notice, '');

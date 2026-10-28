@@ -1,0 +1,63 @@
+/* Pause en touchant la carte (map-pause.js). Comme le dossier du départ (campaign-intro.css), la carte et
+   le post-it glissent en grand par une simple transformation ; le reste de l'écran s'assombrit. */
+#game.map-pausable #electoral-display:not(.map-clock-only) { pointer-events: auto; cursor: pointer; }
+#game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
+#game.map-pause :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
+#game.map-pause .map-wheel-names { opacity: 1; }
+
+/* Sous la carte et le post-it (z-index 19), au-dessus des annonces d'évènements (18, placées avant). */
+#map-pause { position: absolute; inset: 0; z-index: 18; }
+#map-pause[hidden] { display: none; }
+.pause-veil { position: absolute; inset: 0; background: #070d1f; opacity: .6; animation: pause-fade .3s ease-out both; }
+@keyframes pause-fade { from { opacity: 0; } }
+
+/* Symbole pause en haut au centre : deux barres, puis le mot. */
+.pause-title {
+  position: absolute; left: 50%; top: 3%; display: flex; align-items: center; gap: .45em; margin: 0; transform: translateX(-50%);
+  color: #fff5df; font: 900 clamp(15px, min(2.4vw, 4.3dvh), 34px)/1 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase;
+  text-shadow: 0 2px #14272b;
+}
+.pause-icon { display: flex; gap: .2em; height: 1em; }
+.pause-icon::before, .pause-icon::after { content: ''; width: .3em; border-radius: .08em; background: currentColor; box-shadow: 0 2px #14272b; }
+.pause-prompt {
+  position: absolute; left: 50%; bottom: 4.5%; margin: 0; transform: translateX(-50%); white-space: nowrap;
+  color: #fff5df; font: 800 clamp(11px, min(1.45vw, 2.6dvh), 19px)/1.2 system-ui, sans-serif; text-shadow: 0 2px #2c3c40;
+  animation: intro-blink 1.6s ease-in-out infinite;
+}
+
+/* Post-it en grand : une explication sous chaque objectif. Le post-it s'élargit pour qu'elles tiennent. */
+.postit-help { display: none; }
+#campaign-objectives.postit-explain { width: calc(var(--map-size, 150px) * 1.7); }
+.postit-explain .postit ul { gap: .5em; }
+.postit-explain .postit-help { display: block; margin-top: .12em; font-size: .8em; font-weight: 550; line-height: 1.3; color: #5b5233; text-decoration: none; }
+.postit-explain li.done .postit-help { opacity: .7; }
+.postit h2 small { margin-left: .3em; font-size: .7em; letter-spacing: .02em; color: #8a6a12; }
+
+/* Mémo (tutoriel terminé) : une fiche à gauche, à la place du post-it. */
+.pause-memo {
+  position: absolute; left: 3%; top: 13%; bottom: 13%; width: 40%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box;
+  padding: .8em 1em; border-radius: 4px 4px 18px 4px; background: linear-gradient(170deg, #fffaf0, #f3e9cf); color: #2b3436;
+  box-shadow: 0 3px 0 #1d2a2d3d; font: 600 clamp(9px, min(1.15vw, 2.1dvh), 15px)/1.3 system-ui, sans-serif;
+  animation: pause-fade .3s ease-out both;
+}
+.pause-memo[hidden] { display: none; }
+.pause-memo h2 { margin: 0 0 .35em; font-size: 1.2em; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #5c4a12; }
+.pause-memo section + section { margin-top: .6em; }
+.pause-memo h3 { margin: 0 0 .25em; font-size: .95em; font-weight: 900; color: #8a6a12; }
+/* Glossaire : le nom à gauche, l'explication à droite. */
+.pause-memo dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: .35em .7em; }
+.pause-memo dt { font-weight: 850; }
+.pause-memo dd { margin: 0; font-weight: 550; color: #45473c; }
+
+/* Temps réel restant avant le vote, sous la date de la carte : petit et discret. */
+#real-clock {
+  position: absolute; left: 0; right: 0; top: calc(50% + clamp(9px, min(1.5vw, 2.7dvh), 24px)); text-align: center; pointer-events: none;
+  font: 600 max(8px, calc(var(--map-size, 150px) * .06))/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .03em;
+  color: #c9d3cf; opacity: .75;
+}
+#real-clock:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: none; }
+  .pause-veil, .pause-memo, .pause-prompt { animation: none; }
+}

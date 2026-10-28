@@ -2,8 +2,9 @@
   "prototype_version": "0.3",
   "time": {
     "starting_days_before_first_round": 365,
-    "real_seconds_per_game_day": 1.4,
-    "second_round_sprint_seconds": 60
+    "real_seconds_per_game_day": 2,
+    "second_round_sprint_seconds": 120,
+    "second_round_days": 7
   },
   "camera": {
     "framing_zoom": 1.25,
@@ -527,7 +528,7 @@
       "closure_delay_seconds": 0,
       "max_level": 1,
       "upgrade_costs": [],
-      "poll_cost": 5,
+      "poll_cost": 1,
       "purchase_hold_seconds": 2,
       "unlock_circle": true,
       "unlock_national_percentages": true,
@@ -930,7 +931,7 @@
     "poll_refresh_seconds": 2.5,
     "meeting_cooldown_seconds": 22,
     "extension_seconds": 15,
-    "tie_rule": "REPEAT_OVERTIME",
+    "tie_rule": "SUDDEN_DEATH",
     "ai_opponent_detection_range": 8,
     "ai_meeting_distance": 28,
     "ai_recruit_distance": 48,
