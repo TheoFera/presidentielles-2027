@@ -278,6 +278,11 @@ test('cabinet : les CRS repartent après la fermeture ; cible reprise entre-temp
   run(sim.secondsToTicks(CLOSURE_ARRIVAL_SECONDS));
   assert.equal(victim.owner_id, null);
   assert.equal(sim.state.closure_squads.length, 1, 'les CRS gardent l’entrée pendant le rideau');
+  // Sauvegarde pendant la garde : l'escouade est reprise ; une escouade mal formée est refusée.
+  const saved = sim.exportSnapshot();
+  const restored = make(); restored.importSnapshot(saved);
+  assert.equal(restored.state.closure_squads.length, 1);
+  assert.throws(() => restored.importSnapshot(JSON.stringify({ ...JSON.parse(saved), closure_squads: [null] })), /escouade/);
   run(sim.secondsToTicks(CLOSURE_HOLD_SECONDS + CLOSURE_EXIT_SECONDS));
   assert.equal(sim.state.closure_squads.length, 0, 'puis ils repartent');
   // Second ordre : la cible change de camp avant l'arrivée des CRS.

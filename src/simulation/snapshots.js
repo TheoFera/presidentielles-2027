@@ -12,6 +12,7 @@ import { GamePhase } from './phases.js';
 import { validateMatchSnapshot } from './match-snapshots.js';
 import { populationByOrigin } from './territory.js';
 import { spawnIntervalBoundsTicks } from './spawns.js';
+import { CLOSURE_HOLD_SECONDS } from './closure-squads.js';
 
 /** Validate the entire snapshot before committing anything to the running simulation. */
 export function validateSnapshot(next, simulation, nested = false) {
@@ -125,6 +126,20 @@ export function validateSnapshot(next, simulation, nested = false) {
         if (!npc || npc.role !== 'SYMPATHISANT' || npc.faction_id !== order.faction_id || npc.task?.order_id !== order.id || assigned.has(npc.id)) fail('affectation incohérente');
         assigned.add(npc.id);
       }
+    }
+  }
+  // Champ facultatif : CRS envoyés par un cabinet administratif (anciennes sauvegardes : aucun).
+  if (next.closure_squads !== undefined) {
+    if (!Array.isArray(next.closure_squads)) fail('escouades de CRS invalides');
+    const targets = new Set();
+    for (const squad of next.closure_squads) {
+      const cabinet = next.buildings.find(b => b.id === squad?.cabinet_id);
+      if (!squad || typeof squad !== 'object' || typeof squad.id !== 'string' || !next.buildings.some(b => b.id === squad.target_id) || !cabinet
+        || !ALL_FACTIONS.includes(squad.faction_id) || squad.target_faction_id !== null && !ALL_FACTIONS.includes(squad.target_faction_id)
+        || !finite(squad.cost) || !integer(squad.started_tick) || squad.started_tick > next.tick || !integer(squad.close_tick) || squad.close_tick < squad.started_tick
+        || typeof squad.closed !== 'boolean' || (squad.closed ? !integer(squad.leave_tick) || squad.leave_tick > next.tick + simulation.secondsToTicks(CLOSURE_HOLD_SECONDS) : squad.leave_tick !== null)
+        || !squad.closed && targets.has(squad.target_id)) fail('escouade de CRS invalide');
+      if (!squad.closed) targets.add(squad.target_id);
     }
   }
   for (const zone of next.world.subzones) if (populationByOrigin(next, zone.id) > zone.max_npcs_by_origin) fail(`population d’origine supérieure au plafond de ${zone.id}`);
