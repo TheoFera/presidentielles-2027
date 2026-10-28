@@ -7,10 +7,11 @@ import { cancelMeeting } from './electoral-buildings.js';
 import { raidRecruitCount, startRaid } from './military.js';
 import { demobilizeUnit } from './combat-state.js';
 import { recordFeat } from './campaign-feats.js';
+import { CLOSURE_ARRIVAL_SECONDS, CLOSURE_EXIT_SECONDS, CLOSURE_HOLD_SECONDS } from './closure-squads.js';
 
 export function cabinetTarget(state, config, cabinet, direction) {
   const allowed = buildingSettings(config, cabinet).allowed_targets_by_level[cabinet.level - 1];
-  return state.buildings.filter(b => b.state === 'ACTIVE' && !headquartersProtected(state, b)
+  return state.buildings.filter(b => b.state === 'ACTIVE' && !headquartersProtected(state, b) && !pendingClosure(state, b)
     && (b.type === 'meeting' ? b.meeting_until_tick > state.tick && b.meeting_faction_id && b.meeting_faction_id !== cabinet.owner_id
       : b.owner_id && b.owner_id !== cabinet.owner_id && allowed.includes(b.type === 'faction' ? b.variant : b.type)))
     .map(b => ({ b, distance: wrap((b.x - cabinet.x) * direction, state.world.length) }))
@@ -71,41 +72,76 @@ export function commitFactionAction(sim, candidate, building, offer) {
   }
   if (offer.kind === 'CLOSE') {
     const victim = state.buildings.find(b => b.id === offer.victim_id);
-    if (!victim || headquartersProtected(state, victim)) return false;
+    if (!victim || headquartersProtected(state, victim) || pendingClosure(state, victim)) return false;
+    // Les CRS du cabinet arrivent d'abord du bas de l'écran ; le bâtiment ferme à leur arrivée.
     const targetFaction = victim.type === 'meeting' ? victim.meeting_faction_id : victim.owner_id;
-    if (victim.type === 'meeting') {
-      const targeted = victim.meeting_faction_id;
-      cancelMeeting(sim, victim);
-      victim.meeting_banned_until_by_faction[targeted] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
-    } else {
-      if (targetFaction !== candidate.faction_id) recordFeat(state, candidate.faction_id, 'buildings_closed');
-      neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
-    }
-    for (const order of victim.queue) {
-      const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
-      if (worker) worker.task = null;
-      // Undelivered equipment is refunded; the closed building keeps no active queue.
-      const payer = state.candidates.find(c => c.faction_id === order.faction_id);
-      payer.money += order.cost; payer.refunds_received += order.cost;
-      sim.emit('EquipmentRefunded', { order_id: order.id, candidate_id: payer.id, amount: order.cost });
-    }
-    victim.queue = [];
-    for (const c of state.candidates) {
-      if (c.purchase_hold?.target_id === victim.id) c.purchase_hold = null;
-      if (c.interaction_chain_site_id === victim.id) c.interaction_chain_site_id = null;
-    }
-    // « Dossiers » : la fermeture renvoie chez eux les soutiens du camp visé autour du bâtiment ; ils redeviennent neutres.
-    const radius = buildingSettings(config, building).close_demobilize_radius_units ?? 0;
-    let sentHome = 0;
-    if (radius > 0 && targetFaction) for (const npc of state.npcs) {
-      if (npc.faction_id !== targetFaction || !['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) || distance(state, npc.x, victim.x) > radius) continue;
-      demobilizeUnit(sim, npc); sentHome++;
-    }
+    (state.closure_squads ||= []).push({ id: `closure:${victim.id}:${state.tick}`, target_id: victim.id, cabinet_id: building.id,
+      faction_id: candidate.faction_id, target_faction_id: targetFaction, cost: offer.cost || 0, started_tick: state.tick,
+      close_tick: state.tick + sim.secondsToTicks(CLOSURE_ARRIVAL_SECONDS), leave_tick: null, closed: false });
     building.closure_ready_tick = state.tick + sim.secondsToTicks(buildingSettings(config, building).closure_cooldown_seconds);
-    sim.emit('BuildingClosed', { target_id: victim.id, cabinet_id: building.id, owner_id: victim.owner_id, sent_home: sentHome });
+    sim.emit('ClosureSquadSent', { target_id: victim.id, cabinet_id: building.id });
     return true;
   }
   return false;
+}
+
+/** Une escouade de CRS est-elle déjà en route ou sur place pour fermer ce bâtiment ? */
+export function pendingClosure(state, building) {
+  return state.closure_squads?.some(squad => squad.target_id === building.id && !squad.closed) || false;
+}
+
+function closeBuilding(sim, building, victim, factionId, targetFaction) {
+  const { state, config } = sim;
+  if (victim.type === 'meeting') {
+    cancelMeeting(sim, victim);
+    victim.meeting_banned_until_by_faction[targetFaction] = state.tick + sim.secondsToTicks(buildingSettings(config, building).meeting_ban_seconds);
+  } else {
+    if (targetFaction !== factionId) recordFeat(state, factionId, 'buildings_closed');
+    neutralizeSite(sim, victim, 'CABINET_ADMINISTRATIF');
+  }
+  for (const order of victim.queue) {
+    const worker = state.npcs.find(n => n.id === order.assigned_npc_id);
+    if (worker) worker.task = null;
+    // Undelivered equipment is refunded; the closed building keeps no active queue.
+    const payer = state.candidates.find(c => c.faction_id === order.faction_id);
+    payer.money += order.cost; payer.refunds_received += order.cost;
+    sim.emit('EquipmentRefunded', { order_id: order.id, candidate_id: payer.id, amount: order.cost });
+  }
+  victim.queue = [];
+  for (const c of state.candidates) {
+    if (c.purchase_hold?.target_id === victim.id) c.purchase_hold = null;
+    if (c.interaction_chain_site_id === victim.id) c.interaction_chain_site_id = null;
+  }
+  // « Dossiers » : la fermeture renvoie chez eux les soutiens du camp visé autour du bâtiment ; ils redeviennent neutres.
+  const radius = buildingSettings(config, building).close_demobilize_radius_units ?? 0;
+  let sentHome = 0;
+  if (radius > 0 && targetFaction) for (const npc of state.npcs) {
+    if (npc.faction_id !== targetFaction || !['SYMPATHISANT', 'MILITANT', 'SERVICE_D_ORDRE'].includes(npc.role) || distance(state, npc.x, victim.x) > radius) continue;
+    demobilizeUnit(sim, npc); sentHome++;
+  }
+  sim.emit('BuildingClosed', { target_id: victim.id, cabinet_id: building.id, owner_id: victim.owner_id, sent_home: sentHome });
+}
+
+/** Escouades de CRS : fermeture à l'arrivée, courte garde le temps du rideau, puis départ. */
+export function updateClosureSquads(sim) {
+  const { state } = sim;
+  if (!state.closure_squads?.length) return;
+  for (const squad of state.closure_squads) {
+    if (squad.closed || state.tick < squad.close_tick) continue;
+    squad.closed = true; squad.leave_tick = state.tick + sim.secondsToTicks(CLOSURE_HOLD_SECONDS);
+    const building = state.buildings.find(b => b.id === squad.cabinet_id), victim = state.buildings.find(b => b.id === squad.target_id);
+    // Entre l'ordre et l'arrivée, la cible a pu changer de main ou le meeting finir : rien à fermer, l'ordre est remboursé.
+    const still = victim && victim.state === 'ACTIVE' && !headquartersProtected(state, victim) && (victim.type === 'meeting'
+      ? victim.meeting_until_tick > state.tick && victim.meeting_faction_id === squad.target_faction_id
+      : victim.owner_id === squad.target_faction_id);
+    if (still) { closeBuilding(sim, building, victim, squad.faction_id, squad.target_faction_id); continue; }
+    squad.cancelled = true;
+    const payer = state.candidates.find(c => c.faction_id === squad.faction_id);
+    if (payer && squad.cost) { payer.money += squad.cost; payer.refunds_received = (payer.refunds_received || 0) + squad.cost; }
+    sim.emit('ClosureSquadCancelled', { target_id: squad.target_id, cabinet_id: squad.cabinet_id, refund: squad.cost });
+  }
+  const gone = sim.secondsToTicks(CLOSURE_EXIT_SECONDS);
+  state.closure_squads = state.closure_squads.filter(squad => !squad.closed || state.tick - squad.leave_tick < gone);
 }
 
 export function nearestFactionOffer(state, config, candidate, building) {

@@ -33,6 +33,7 @@ import { initialMatchState, startDebate, finishDebate, finishSprint, applyMatchD
 import { recordMatchHistory } from './match-history.js';
 import { copyStateSharing } from '../network/state-stream.js';
 import { updateStrategicSites } from './strategic-sites.js';
+import { updateClosureSquads } from './faction-buildings.js';
 import { updateCandidateResistance } from './candidate-resistance.js';
 import { initializeMoney, prepareDonations, scheduleNextDonation, settleMoney, updateDonationCourier } from './money.js';
 
@@ -421,6 +422,7 @@ export class GameSimulation {
     prepareDonations(this);
     withNpcProximity(state, () => withMilitantPass(state, () => this.updateNpcs()));
     updateElectoralBuildings(this);
+    updateClosureSquads(this);
     updateStrategicSites(this);
     settleMoney(this);
     refreshElectoralState(state);

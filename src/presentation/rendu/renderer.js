@@ -5,6 +5,7 @@ import { ringDelta, wrap, zoneAt } from '../../simulation/world.js';
 import { interpolatedPlayerX } from './player-position.js';
 import { drawInfrastructure, drawBanknote, drawSiteRequirements } from '../carte/infrastructure.js';
 import { drawBuildingShutters } from '../carte/building-shutters.js';
+import { drawClosureSquads } from '../personnages/closure-squads.js';
 import { drawTractPiles } from '../carte/tract-pile.js';
 import { drawCombatEffects } from '../effets/combat-effects.js';
 import { drawMeetingForeground, drawMeetingWaves, drawTerritoryFlags, isOnMeetingStage } from '../carte/electoral.js';
@@ -244,6 +245,7 @@ export class WorldRenderer {
     drawMeetingForeground(this, state);
     // Ceux qui arrivent passent devant : ils viennent du premier plan.
     drawEntities(street);
+    drawClosureSquads(this, state, screenUnits);
     drawEntities(arrivals);
     drawPressWarning(this, state);
     drawPersuasionFeedback(this, state);
