@@ -120,10 +120,27 @@ export function pollShares(support, factions) {
   return { shares: entries.map(e => [e.faction, e.value]), undecided };
 }
 
+/**
+ * Jours affichés et temps réel restant avant le vote, en secondes. Au second tour, le sprint se compte
+ * aussi en jours (`second_round_days`, plus longs que ceux du premier tour). Chrono à zéro et finalistes
+ * à égalité : la partie continue, le décompte reste à 0:00.
+ */
+export function campaignClock(state, time, hz) {
+  if (state.phase === 'SECOND_ROUND_SPRINT') {
+    const seconds = Math.max(0, state.sprint_remaining_ticks || 0) / hz, day = time.second_round_sprint_seconds / time.second_round_days;
+    return { days: Math.max(1, Math.ceil(seconds / day - 1e-9)), seconds };
+  }
+  const dayTicks = Math.ceil(time.real_seconds_per_game_day * hz - 1e-9);
+  return { days: state.days_remaining, seconds: Math.max(0, state.days_remaining * dayTicks - state.tick % dayTicks) / hz };
+}
+/** Temps réel « 12:10 ». */
+export const formatRealClock = seconds => { const s = Math.ceil(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
 /** Presentation reads only measured information; it never calculates a live score. */
 export class ElectoralDisplay {
   constructor(config) {
-    this.hz = config.balance.simulation_architecture.fixed_tick_hz;
+    this.hz = config.balance.simulation_architecture.fixed_tick_hz; this.time = config.balance.time;
+    this.realClock = document.getElementById('real-clock');
     this.factions = config.prototype.presentation.factions;
     this.day = document.getElementById('day');
     this.circle = document.getElementById('electoral-circle');
@@ -142,9 +159,13 @@ export class ElectoralDisplay {
     setClass(this.element, 'map-clock-only', studio);
     setClass(this.game, 'has-map-wheel', visible && !studio);
     setClass(this.element, 'sprint-clock', sprint);
-    const dayText = sprint ? `${Math.ceil(state.sprint_remaining_ticks / this.hz)}` : `J-${state.days_remaining}`;
+    const clock = campaignClock(state, this.time, this.hz);
+    const dayText = `J-${clock.days}`;
     if (this.day.textContent !== dayText) this.day.textContent = dayText;
-    setAttribute(this.day, 'aria-label', sprint ? `${this.day.textContent} secondes avant le second tour` : `J-${state.days_remaining}`);
+    // Sous la date, en petit : le temps réel qu'il reste à jouer avant le vote.
+    const realText = formatRealClock(clock.seconds);
+    if (this.realClock && this.realClock.textContent !== realText) this.realClock.textContent = realText;
+    setAttribute(this.day, 'aria-label', `${dayText} avant le ${sprint ? 'second' : 'premier'} tour`);
     const poll = state.polls[faction];
     const snapshot = poll.lastPollSnapshot;
     setHidden(this.circle, studio);

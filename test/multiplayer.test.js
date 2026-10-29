@@ -12,7 +12,7 @@ import { outgoingCommands } from '../src/network/shared-commands.js';
 import { LocalHumanController, AIController } from '../src/simulation/controllers.js';
 import { startDebate, finishDebate, finishSprint } from '../src/simulation/match-lifecycle.js';
 import { qrFrames, QrCollector } from '../src/network/qr-transfer.js';
-import { chooseCandidate, candidatesReady, closeRoom, startRoom, joinable, setDebateOptions } from '../src/network/lobby.js';
+import { chooseCandidate, candidatesReady, closeRoom, startRoom, joinable, setDebateOptions, setRoomPause } from '../src/network/lobby.js';
 
 test('Les vues partagent uniquement une géométrie immuable et restent isolées de la simulation', () => {
   const sim = new GameSimulation(campaignConfig(), 2027);
@@ -308,6 +308,10 @@ test('Salons : candidats uniques, autorisations, préparation de tous les joueur
   assert.equal((await request('commands', { ...guestAuth, commands: [{ type: 'Move', axis: 1 }] })).status, 200);
   assert.equal((await request('snapshot', { ...guestAuth, state: { tick: 1, candidates: [] } })).status, 400);
   assert.equal((await request('pause', { ...guestAuth, paused: true })).status, 200);
+  // La pause vaut pour tous ; seul le joueur qui l'a lancée peut la lever.
+  assert.equal((await request('pause', { ...auth, paused: false })).status, 400);
+  assert.equal((await request('pause', { ...guestAuth, paused: false })).status, 200);
+  assert.equal((await request('pause', { ...thirdAuth, paused: true })).status, 200);
   await request('leave', guestAuth);
   assert.equal((await request('heartbeat', auth)).status, 400);
 });
@@ -678,4 +682,22 @@ test('Flux d’états : les passants loin de l’écran d’un invité ne sont r
   // À son tour, le passant lointain est rafraîchi.
   const refreshed = Array.from({ length: 15 }, (_, round) => cullDistantNpcs(after, before, 0, round).npcs[1].x);
   assert.equal(refreshed.filter(x => x === 501).length, 1);
+});
+
+test('Pause de la carte : pour tout le salon, levée seulement par celui qui l’a lancée', () => {
+  const room = { mode: 'campaign', phase: 'lobby', paused: false, players: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] };
+  assert.throws(() => setRoomPause(room, 'a', true), /pas commencé/);
+  room.phase = 'playing';
+  setRoomPause(room, 'b', true);
+  assert.deepEqual([room.paused, room.paused_by], [true, 'b']);
+  // Une seconde demande ne change pas qui a la main.
+  setRoomPause(room, 'a', true);
+  assert.equal(room.paused_by, 'b');
+  assert.throws(() => setRoomPause(room, 'a', false), /Seul le joueur/);
+  setRoomPause(room, 'b', false);
+  assert.deepEqual([room.paused, room.paused_by], [false, null]);
+  // Le joueur qui avait mis la pause est parti : n'importe qui peut la lever.
+  setRoomPause(room, 'c', true); room.players.pop();
+  setRoomPause(room, 'a', false);
+  assert.equal(room.paused, false);
 });
