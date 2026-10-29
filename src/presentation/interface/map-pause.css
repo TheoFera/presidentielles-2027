@@ -6,6 +6,8 @@
 #game.map-pause .map-wheel-names { opacity: 1; }
 /* Le classement du sondage, agrandi avec la carte, se resserre pour tenir entre elle et le post-it (téléphone). */
 #game.map-pause .map-poll-ranking { font-size: max(5.5px, calc(var(--map-size) * .036)); }
+/* Un sondage ancien reste estompé en jeu, mais la pause sert à le lire : il y est affiché bien net. */
+#game.map-pause .poll-stale :is(.map-poll-ring, .map-poll-ranking, .map-sector) { opacity: 1; }
 
 /* Sous la carte et le post-it (z-index 19), au-dessus des annonces d'évènements (18, placées avant). */
 #map-pause { position: absolute; inset: 0; z-index: 18; }
@@ -35,21 +37,30 @@
 .postit-explain li.done .postit-help { opacity: .7; }
 .postit h2 small { margin-left: .3em; font-size: .7em; letter-spacing: .02em; color: #8a6a12; }
 
-/* Mémo (tutoriel terminé) : une fiche à gauche, à la place du post-it. */
+/* Mémo (tutoriel terminé) : deux post-its à gauche, à la place de celui des objectifs (habitants en jaune,
+   bâtiments en bleu), et leurs onglets collés au-dessus. Le post-it défile au doigt s'il est trop long. */
 .pause-memo {
-  position: absolute; left: 3%; top: 13%; bottom: 13%; width: 40%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; box-sizing: border-box;
-  padding: .8em 1em; border-radius: 4px 4px 18px 4px; background: linear-gradient(170deg, #fffaf0, #f3e9cf); color: #2b3436;
-  box-shadow: 0 3px 0 #1d2a2d3d; font: 600 clamp(9px, min(1.15vw, 2.1dvh), 15px)/1.3 system-ui, sans-serif;
-  animation: pause-fade .3s ease-out both;
+  position: absolute; left: 4%; top: 12%; bottom: 13%; width: 40%; display: flex; flex-direction: column;
+  font: 650 clamp(9px, min(1.15vw, 2.1dvh), 15px)/1.3 system-ui, sans-serif; animation: pause-fade .3s ease-out both;
 }
 .pause-memo[hidden] { display: none; }
-.pause-memo h2 { margin: 0 0 .35em; font-size: 1.2em; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #5c4a12; }
-.pause-memo section + section { margin-top: .6em; }
-.pause-memo h3 { margin: 0 0 .25em; font-size: .95em; font-weight: 900; color: #8a6a12; }
-/* Glossaire : le nom à gauche, l'explication à droite. */
-.pause-memo dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: .35em .7em; }
-.pause-memo dt { font-weight: 850; }
-.pause-memo dd { margin: 0; font-weight: 550; color: #45473c; }
+.memo-tabs { display: flex; gap: .4em; padding-left: .8em; }
+.memo-tabs button {
+  padding: .35em .9em .45em; border: 0; border-radius: 4px 4px 0 0; cursor: pointer; transform: translateY(.25em);
+  font: 900 .9em/1 system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #5c4a12; opacity: .7;
+}
+.memo-tabs button[data-memo="0"] { background: #ffe36e; }
+.memo-tabs button[data-memo="1"] { background: #9fd3f2; color: #1f4a63; }
+.memo-tabs button[aria-selected="true"] { opacity: 1; transform: none; }
+.memo-note { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: .7em .9em .8em; }
+.memo-note[hidden] { display: none; }
+.memo-note-1 { background: linear-gradient(170deg, #cdeafc, #9fd3f2 88%); color: #20343d; }
+.memo-note-1 h2 { color: #1f4a63; }
+/* Petit glossaire : le nom en gras, l'explication dessous. */
+.memo-note dl { margin: 0; display: grid; grid-template-columns: 1fr; gap: .1em; }
+.memo-note dd + dt { margin-top: .45em; }
+.memo-note dt { font-weight: 900; }
+.memo-note dd { margin: .05em 0 0; font-weight: 550; }
 
 /* Temps réel restant avant le vote, sous la date de la carte : petit et discret. */
 #real-clock {

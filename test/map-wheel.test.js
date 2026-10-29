@@ -203,11 +203,11 @@ test('Compteur et visibilité en campagne, studio, débat et second tour', t => 
   assert.equal(node('day').textContent, 'J-6');
   assert.equal(node('real-clock').textContent, formatRealClock(sprintDay * 5 + 1));
   assert.equal(node('electoral-circle').hidden, false);
-  // Égalité à la fin du chrono : la partie continue, la date reste sur J-1.
+  // Égalité à la fin du chrono : la partie continue, sans annonce ; la date reste sur J-1.
   state.sprint_remaining_ticks = 0; state.extensions = 1;
   display.update(state, candidate);
   assert.equal(node('day').textContent, 'J-1');
-  assert.equal(node('real-clock').textContent, 'égalité');
+  assert.equal(node('real-clock').textContent, '0:00');
 });
 
 test('Une image inchangée ne réécrit pas la carte et un sondage modifié au même tick reste visible', t => {
@@ -276,7 +276,7 @@ test('Temps réel restant avant le vote : premier tour, puis second tour en jour
   assert.equal(later.days, 10);
   assert.equal(later.seconds, (10 * dayTicks - 3) / hz);
   const sprint = campaignClock({ phase: 'SECOND_ROUND_SPRINT', sprint_remaining_ticks: time.second_round_sprint_seconds * hz, extensions: 0 }, time, hz);
-  assert.deepEqual(sprint, { days: time.second_round_days, seconds: time.second_round_sprint_seconds, tied: false });
+  assert.deepEqual(sprint, { days: time.second_round_days, seconds: time.second_round_sprint_seconds });
   assert.equal(formatRealClock(730), '12:10');
   assert.equal(formatRealClock(59.2), '1:00');
 });

@@ -122,16 +122,16 @@ export function pollShares(support, factions) {
 
 /**
  * Jours affichés et temps réel restant avant le vote, en secondes. Au second tour, le sprint se compte
- * aussi en jours (`second_round_days`, plus longs que ceux du premier tour) ; `tied` : chrono à zéro,
- * la partie continue tant que les finalistes sont à égalité.
+ * aussi en jours (`second_round_days`, plus longs que ceux du premier tour). Chrono à zéro et finalistes
+ * à égalité : la partie continue, le décompte reste à 0:00.
  */
 export function campaignClock(state, time, hz) {
   if (state.phase === 'SECOND_ROUND_SPRINT') {
     const seconds = Math.max(0, state.sprint_remaining_ticks || 0) / hz, day = time.second_round_sprint_seconds / time.second_round_days;
-    return { days: Math.max(1, Math.ceil(seconds / day - 1e-9)), seconds, tied: seconds === 0 && state.extensions > 0 };
+    return { days: Math.max(1, Math.ceil(seconds / day - 1e-9)), seconds };
   }
   const dayTicks = Math.ceil(time.real_seconds_per_game_day * hz - 1e-9);
-  return { days: state.days_remaining, seconds: Math.max(0, state.days_remaining * dayTicks - state.tick % dayTicks) / hz, tied: false };
+  return { days: state.days_remaining, seconds: Math.max(0, state.days_remaining * dayTicks - state.tick % dayTicks) / hz };
 }
 /** Temps réel « 12:10 ». */
 export const formatRealClock = seconds => { const s = Math.ceil(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -163,7 +163,7 @@ export class ElectoralDisplay {
     const dayText = `J-${clock.days}`;
     if (this.day.textContent !== dayText) this.day.textContent = dayText;
     // Sous la date, en petit : le temps réel qu'il reste à jouer avant le vote.
-    const realText = clock.tied ? 'égalité' : formatRealClock(clock.seconds);
+    const realText = formatRealClock(clock.seconds);
     if (this.realClock && this.realClock.textContent !== realText) this.realClock.textContent = realText;
     setAttribute(this.day, 'aria-label', `${dayText} avant le ${sprint ? 'second' : 'premier'} tour`);
     const poll = state.polls[faction];

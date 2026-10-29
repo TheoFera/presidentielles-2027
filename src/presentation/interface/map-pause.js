@@ -1,27 +1,25 @@
 // Pause : toucher la carte (ou Échap, P) met le jeu en pause. La carte s'ouvre en grand, comme au début
 // du tutoriel, avec à gauche le post-it des objectifs et leurs explications ; une fois le tutoriel
-// terminé, un mémo des habitants et des bâtiments prend sa place.
+// terminé, un mémo des habitants et des bâtiments (deux post-its) prend sa place.
 // En multijoueur, la pause vaut pour tout le monde, et seul le joueur qui l'a lancée peut la lever.
 import { BIOME_NAMES } from './campaign-intro.js';
 import { placeDossier } from './dossier-layout.js';
 
-// Mémo de la pause : les mêmes explications que celles des objectifs, rangées par sujet.
+// Mémo de la pause : deux post-its, les habitants et les bâtiments ; un onglet passe de l'un à l'autre.
 const MEMO = [
   ['Les habitants', [
-    ['Neutre', 'Ne soutient personne. Arrêtez-vous à côté de lui pour le convaincre.'],
-    ['Sympathisant', 'Une voix pour son candidat le jour du vote. Il dépose des dons au QG. Mis K.-O., il redevient neutre.'],
-    ['Militant', 'Un sympathisant qui a pris un tract à la permanence : il convainc les habitants et se bat tout seul.'],
-    ['Service d’ordre', 'Les gros bras d’un local : ils gardent les zones voisines, ou partent en raid fermer les bâtiments adverses.'],
+    ['Neutre', 'Ne soutient personne et votera blanc ou s’abstiendra. Arrêtez-vous à côté de lui pour le convaincre.'],
+    ['Sympathisant', 'Il vaut une voix pour son candidat le jour du vote. Il dépose régulièrement des dons à la permanence de sa zone, ou les donne à son candidat quand il le voit. Mis K.-O., il redevient neutre.'],
+    ['Militant', 'Un sympathisant qui a récupéré un tract imprimé à sa permanence : il convainc les habitants neutres de son quartier. Il peut aussi former un groupe de 3 et partir convertir ou attaquer d’autres quartiers.'],
+    ['Service d’ordre', 'Défensifs, ils gardent les zones voisines.'],
+    ['Raideurs', 'Quand un raid est déclenché, certains sympathisants deviennent raideurs. Un groupe de raideurs envoyé dans une direction peut faire fermer un bâtiment adverse.'],
   ]],
   ['Les bâtiments', [
-    ['Permanence', 'La première est votre QG : dons à ramasser, tracts pour recruter des militants. Chaque permanence contrôle sa zone.'],
-    ['Local du camp', 'Service d’ordre et raids pour Mélenchon et Le Pen ; cabinet administratif pour Philippe, qui paie pour fermer un bâtiment adverse.'],
-    ['Institut de sondage', 'Payez pour voir les intentions de vote : l’anneau de la carte montre qui mène et qui tient chaque zone.'],
-    ['Estrade de meeting', 'Payez et restez jusqu’au bout : les neutres de la zone vous rejoignent.'],
-    ['Garage', 'Restez devant pour partir à vélo ou en scooter, bien plus vite qu’à pied.'],
-  ]],
-  ['L’argent', [
-    ['Billets', 'Ramassez-les par terre et au QG. Un candidat mis K.-O. lâche une partie des siens.'],
+    ['Permanence', 'Les sympathisants y apportent leurs dons, que vous venez ramasser. C’est aussi là qu’on imprime des tracts pour recruter des militants. Chaque permanence contrôle sa zone.'],
+    ['Local du service d’ordre ou cabinet', 'Il renforce la défense de son territoire : utile pour tenir le quartier et fermer les bâtiments adverses.'],
+    ['Institut de sondage', 'Payez pour voir les intentions de vote : la carte est mise à jour pour vous montrer qui mène et qui tient chaque quartier.'],
+    ['Estrade de meeting', 'Payez pour lancer un meeting et restez jusqu’au bout pour le finaliser : les neutres du quartier vous rejoignent et les adversaires redeviennent neutres.'],
+    ['Garage', 'Une fois acheté, ses véhicules sont utilisables sans limite. Restez devant pour partir à vélo ou en scooter : vous irez bien plus vite qu’à pied.'],
   ]],
 ];
 // Un appui qui ouvre la pause ne doit pas la refermer aussitôt (second doigt, rebond).
@@ -38,7 +36,10 @@ export class MapPause {
     this.root.innerHTML = '<div class="pause-veil"></div><p class="pause-title" role="status"><span class="pause-icon" aria-hidden="true"></span>Pause</p>'
       + '<aside class="pause-memo" aria-label="Mémo" hidden></aside><p class="pause-prompt"></p>';
     this.memo = this.root.querySelector('.pause-memo'); this.prompt = this.root.querySelector('.pause-prompt');
-    this.memo.innerHTML = '<h2>Mémo</h2>' + MEMO.map(([title, items]) => `<section><h3>${title}</h3><dl>${items.map(([name, text]) => `<dt>${name}</dt><dd>${text}</dd>`).join('')}</dl></section>`).join('');
+    this.memo.innerHTML = `<div class="memo-tabs" role="tablist">${MEMO.map(([title], i) => `<button type="button" role="tab" data-memo="${i}">${title}</button>`).join('')}</div>`
+      + MEMO.map(([title, items], i) => `<section class="postit memo-note memo-note-${i}" role="tabpanel"><h2>${title}</h2><dl>${items.map(([name, text]) => `<dt>${name}</dt><dd>${text}</dd>`).join('')}</dl></section>`).join('');
+    this.memo.addEventListener('click', event => { const tab = event.target.closest('[data-memo]'); if (tab) this.showMemo(Number(tab.dataset.memo)); });
+    this.showMemo(0);
     game.append(this.root);
     this.open = false; this.mine = false; this.openedAt = 0;
     // Pendant la pause, tout appui sur l'écran est pour elle (et ne fait pas marcher le candidat).
@@ -55,6 +56,12 @@ export class MapPause {
       event.preventDefault(); event.stopPropagation();
       this.request(true);
     });
+  }
+
+  /** Post-it du mémo affiché (0 : habitants, 1 : bâtiments). */
+  showMemo(index) {
+    this.memo.querySelectorAll('[data-memo]').forEach(tab => tab.setAttribute('aria-selected', String(Number(tab.dataset.memo) === index)));
+    this.memo.querySelectorAll('.memo-note').forEach((note, i) => { note.hidden = i !== index; if (i === index) note.scrollTop = 0; });
   }
 
   /** La carte accepte-t-elle d'ouvrir la pause (partie en cours, rien d'autre à l'écran) ? */
