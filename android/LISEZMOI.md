@@ -66,30 +66,30 @@ Le fichier signé est `android/app/build/outputs/bundle/release/app-release.aab`
 2. Relance `npm run android`.
 3. Dans la Play Console, crée une nouvelle version et envoie le nouveau `.aab`.
 
-### Mise à jour 1.0.6 (code 7)
+### Mise à jour 1.0.7 (code 8)
 
-La version précédente publiée est **1.0.5 (code 6)**. La prochaine est **1.0.6 (code 7)**. L’identifiant de l’application reste `fr.presidentielles2027.jeu`.
+La version précédente publiée est **1.0.6 (code 7)**. La prochaine est **1.0.7 (code 8)**. L’identifiant de l’application reste `fr.presidentielles2027.jeu`.
 
 Réutilise la clé de téléversement des versions précédentes : **ne crée pas une nouvelle clé**. Sur cet ordinateur, elle se trouve dans `C:/Users/ferat/Documents/AndroidKeys/presidentielle2027-upload.jks`, avec l’alias `presidentielle2027`. Le fichier local `android/keystore.properties` doit contenir ce chemin, cet alias et les deux mots de passe. Il est exclu de Git. `npm run android` refuse désormais de construire une version Play Store si ce fichier manque.
 
 Après la construction, envoie `android/app/build/outputs/bundle/release/app-release.aab`. Garde aussi `android/app/build/outputs/mapping/release/mapping.txt` : il permet de rendre lisibles les rapports de plantage du code Android optimisé. Le fichier AAB produit par Gradle inclut normalement cette correspondance.
 
-Nom de la version dans la Play Console : **1.0.6**. Notes de mise à jour à copier dans le champ français :
+Nom de la version dans la Play Console : **1.0.7**. Notes de mise à jour à copier dans le champ français :
 
 ```text
 <fr-FR>
-Tutoriel enrichi : quatre séries d’objectifs pour apprendre combat, raids et conquête.
-Candidats secondaires : leur permanence ferme et s’achète pendant leur K.-O.
-Meeting moins cher : 8 k€.
-Raids du service d’ordre : nouveau dash au pied.
-Tracts en pile et équipe de reportage améliorée.
-Chargement plus rapide et jeu plus fluide.
-Corrections de combat : hologrammes, tactile, K.-O. en hauteur.
-Boutons tactiles affichés dès la scène d’ouverture.
+Pause : touchez la carte (ou Échap/P) pour l’afficher en grand. En multijoueur, la pause vaut pour tous.
+Mémo des habitants et des bâtiments dans la pause, une fois le tutoriel fini.
+Tutoriel conservé jusqu’à ce que tous les objectifs soient atteints.
+Décompte du temps réel sous la date.
+Parties plus longues : 2 s par jour, second tour de 2 minutes.
+Égalité : mort subite jusqu’à ce qu’un candidat passe devant.
+Sondage à 1 k€.
+Fermeture par le cabinet : les CRS viennent fermer le bâtiment.
 </fr-FR>
 ```
 
-Avant le déploiement, utilise une piste de test interne pour essayer cette version finale sur téléphone : ouverture, menu affichant 1.0.6, campagne jusqu’aux résultats, débat, son, retour, connexion Google, publicités et multijoueur. Vérifie aussi la mise à jour depuis la version Play Store précédente, avec conservation de la progression. Un APK de débogage ne remplace pas cet essai, car sa signature et ses publicités sont différentes.
+Avant le déploiement, utilise une piste de test interne pour essayer cette version finale sur téléphone : ouverture, menu affichant 1.0.7, campagne jusqu’aux résultats, débat, son, retour, connexion Google, publicités et multijoueur. Vérifie aussi la mise à jour depuis la version Play Store précédente, avec conservation de la progression. Un APK de débogage ne remplace pas cet essai, car sa signature et ses publicités sont différentes.
 
 Dans la Play Console, ouvre la piste utilisée par ton application (test fermé ou production), crée une version, ajoute l’AAB, colle les notes, puis vérifie le résumé et les messages de Google avant de lancer le déploiement. Conserve les déclarations de confidentialité, de sécurité des données et de publicités à jour si les fonctionnalités changent. La préparation locale ne publie rien automatiquement. [Procédure officielle Google](https://support.google.com/googleplay/android-developer/answer/9859348?hl=fr).
 

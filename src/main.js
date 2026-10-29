@@ -205,6 +205,7 @@ async function start() {
     onDone: ids => account.save({ tutorial_objectives: ids }) });
   // Pause en touchant la carte. En multijoueur, elle passe par le salon : elle vaut pour tous les joueurs.
   const mapPause = new MapPause(document.getElementById('game'), { objectives, wheel: () => electoralDisplay.wheel,
+    hint: !profile.map_pause_used, onUsed: () => account.save({ map_pause_used: true }),
     request: on => {
       if (session) { session.request('pause', { paused: on }).catch(error => notify(error.message, 3)); return; }
       paused = on; input.clear(); human.reset(); clock.reset();

@@ -1,6 +1,17 @@
 /* Pause en touchant la carte (map-pause.js). Comme le dossier du départ (campaign-intro.css), la carte et
    le post-it glissent en grand par une simple transformation ; le reste de l'écran s'assombrit. */
 #game.map-pausable #electoral-display:not(.map-clock-only) { pointer-events: auto; cursor: pointer; }
+/* Tant que le joueur n'a jamais mis la pause : un symbole ⏸ pulse en bas à droite de la carte. */
+.map-pause-hint {
+  position: absolute; right: -4%; bottom: -4%; width: 26%; aspect-ratio: 1; border-radius: 50%; display: none; place-items: center;
+  background: #fff5df; box-shadow: 0 0 0 2px #253438, 0 3px 0 #14272b; pointer-events: none;
+}
+.map-pause-hint::before {
+  content: ''; width: 38%; height: 42%;
+  background: linear-gradient(90deg, #253438 0 36%, transparent 36% 64%, #253438 64%); border-radius: 1px;
+}
+#game.map-pause-hinted:not(.map-pause) #electoral-display:not(.map-clock-only) .map-pause-hint { display: grid; animation: map-pause-hint 1.3s ease-in-out infinite; }
+@keyframes map-pause-hint { 50% { transform: scale(1.18); } }
 #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
 #game.map-pause :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
 #game.map-pause .map-wheel-names { opacity: 1; }
@@ -74,5 +85,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: none; }
-  .pause-veil, .pause-memo, .pause-prompt { animation: none; }
+  .pause-veil, .pause-memo, .pause-prompt, #game.map-pause-hinted:not(.map-pause) #electoral-display:not(.map-clock-only) .map-pause-hint { animation: none; }
 }

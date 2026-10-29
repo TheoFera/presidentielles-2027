@@ -29,9 +29,10 @@ export class MapPause {
   /**
    * `objectives` : le post-it (campaign-objectives.js) ; `wheel()` : la roue de la carte ;
    * `request(paused)` : demande la pause ou sa fin (solo : tout de suite ; multijoueur : au salon).
+   * `hint` : un symbole ⏸ pulse sur la carte jusqu'à la première pause du joueur, puis `onUsed()` est appelé.
    */
-  constructor(game, { objectives, wheel = () => null, request = () => {} } = {}) {
-    this.game = game; this.objectives = objectives; this.wheel = wheel; this.request = request;
+  constructor(game, { objectives, wheel = () => null, request = () => {}, hint = false, onUsed = () => {} } = {}) {
+    this.game = game; this.objectives = objectives; this.wheel = wheel; this.request = request; this.hint = hint; this.onUsed = onUsed;
     this.root = document.createElement('div'); this.root.id = 'map-pause'; this.root.hidden = true;
     this.root.innerHTML = '<div class="pause-veil"></div><p class="pause-title" role="status"><span class="pause-icon" aria-hidden="true"></span>Pause</p>'
       + '<aside class="pause-memo" aria-label="Mémo" hidden></aside><p class="pause-prompt"></p>';
@@ -51,6 +52,9 @@ export class MapPause {
     }, true);
     // La carte est un bouton pendant la partie (voir `armed`).
     this.map = game.querySelector('#electoral-display');
+    // Symbole pause sur la carte, sans texte : il montre qu'on peut la toucher (voir `arm`).
+    const badge = document.createElement('span'); badge.className = 'map-pause-hint'; badge.setAttribute('aria-hidden', 'true');
+    this.map?.append(badge);
     this.map?.addEventListener('pointerdown', event => {
       if (this.open || !this.game.classList.contains('map-pausable')) return;
       event.preventDefault(); event.stopPropagation();
@@ -65,7 +69,11 @@ export class MapPause {
   }
 
   /** La carte accepte-t-elle d'ouvrir la pause (partie en cours, rien d'autre à l'écran) ? */
-  arm(on) { if (this.game.classList.contains('map-pausable') !== on) this.game.classList.toggle('map-pausable', on); }
+  arm(on) {
+    if (this.game.classList.contains('map-pausable') !== on) this.game.classList.toggle('map-pausable', on);
+    const hinted = on && this.hint;
+    if (this.game.classList.contains('map-pause-hinted') !== hinted) this.game.classList.toggle('map-pause-hinted', hinted);
+  }
 
   /** Touche du clavier : Échap ou P ouvrent ; pendant la pause, Échap, P, Espace ou Entrée la lèvent. Rend vrai si la touche est prise. */
   key(key, allowed) {
@@ -79,6 +87,8 @@ export class MapPause {
   /** Affiche la pause. `mine` : ce joueur l'a lancée (lui seul la lève) ; sinon `by` nomme celui qui l'a lancée. */
   show({ mine = true, by = '' } = {}) {
     this.mine = mine;
+    // Première pause lancée par le joueur : il a compris, le symbole de la carte ne revient plus.
+    if (mine && this.hint) { this.hint = false; this.game.classList.remove('map-pause-hinted'); this.onUsed(); }
     const touch = matchMedia('(any-pointer: coarse)').matches;
     this.prompt.textContent = mine ? (touch ? 'Touchez l’écran pour reprendre' : 'Cliquez ou appuyez sur Échap pour reprendre')
       : `Pause demandée par ${by || 'un autre joueur'}`;
