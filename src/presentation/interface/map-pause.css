@@ -85,5 +85,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: none; }
-  .pause-veil, .pause-memo, .pause-prompt, #game.map-pause-hinted #electoral-display .map-pause-hint { animation: none; }
+  .pause-veil, .pause-memo, .pause-prompt, #game.map-pause-hinted:not(.map-pause) #electoral-display:not(.map-clock-only) .map-pause-hint { animation: none; }
 }
