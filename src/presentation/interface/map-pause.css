@@ -1,0 +1,78 @@
+/* Pause en touchant la carte (map-pause.js). Comme le dossier du départ (campaign-intro.css), la carte et
+   le post-it glissent en grand par une simple transformation ; le reste de l'écran s'assombrit. */
+#game.map-pausable #electoral-display:not(.map-clock-only) { pointer-events: auto; cursor: pointer; }
+#game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
+#game.map-pause :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
+#game.map-pause .map-wheel-names { opacity: 1; }
+/* Le classement du sondage, agrandi avec la carte, se resserre pour tenir entre elle et le post-it (téléphone). */
+#game.map-pause .map-poll-ranking { font-size: max(5.5px, calc(var(--map-size) * .036)); }
+/* Un sondage ancien reste estompé en jeu, mais la pause sert à le lire : il y est affiché bien net. */
+#game.map-pause .poll-stale :is(.map-poll-ring, .map-poll-ranking, .map-sector) { opacity: 1; }
+
+/* Sous la carte et le post-it (z-index 19), au-dessus des annonces d'évènements (18, placées avant). */
+#map-pause { position: absolute; inset: 0; z-index: 18; }
+#map-pause[hidden] { display: none; }
+.pause-veil { position: absolute; inset: 0; background: #070d1f; opacity: .6; animation: pause-fade .3s ease-out both; }
+@keyframes pause-fade { from { opacity: 0; } }
+
+/* Symbole pause en haut au centre : deux barres, puis le mot. */
+.pause-title {
+  position: absolute; left: 50%; top: 3%; display: flex; align-items: center; gap: .45em; margin: 0; transform: translateX(-50%);
+  color: #fff5df; font: 900 clamp(15px, min(2.4vw, 4.3dvh), 34px)/1 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase;
+  text-shadow: 0 2px #14272b;
+}
+.pause-icon { display: flex; gap: .2em; height: 1em; }
+.pause-icon::before, .pause-icon::after { content: ''; width: .3em; border-radius: .08em; background: currentColor; box-shadow: 0 2px #14272b; }
+.pause-prompt {
+  position: absolute; left: 50%; bottom: 4.5%; margin: 0; transform: translateX(-50%); white-space: nowrap;
+  color: #fff5df; font: 800 clamp(11px, min(1.45vw, 2.6dvh), 19px)/1.2 system-ui, sans-serif; text-shadow: 0 2px #2c3c40;
+  animation: intro-blink 1.6s ease-in-out infinite;
+}
+
+/* Post-it en grand : une explication sous chaque objectif. Le post-it s'élargit pour qu'elles tiennent. */
+.postit-help { display: none; }
+#campaign-objectives.postit-explain { width: calc(var(--map-size, 150px) * 1.7); }
+.postit-explain .postit ul { gap: .5em; }
+.postit-explain .postit-help { display: block; margin-top: .12em; font-size: .8em; font-weight: 550; line-height: 1.3; color: #5b5233; text-decoration: none; }
+.postit-explain li.done .postit-help { opacity: .7; }
+.postit h2 small { margin-left: .3em; font-size: .7em; letter-spacing: .02em; color: #8a6a12; }
+
+/* Mémo (tutoriel terminé) : deux post-its à gauche, à la place de celui des objectifs (habitants en jaune,
+   bâtiments en bleu), et leurs onglets collés au-dessus. Le post-it défile au doigt s'il est trop long. */
+.pause-memo {
+  position: absolute; left: 4%; top: 12%; bottom: 13%; width: 40%; display: flex; flex-direction: column;
+  font: 650 clamp(9px, min(1.15vw, 2.1dvh), 15px)/1.3 system-ui, sans-serif; animation: pause-fade .3s ease-out both;
+  /* Onglets et post-it penchent ensemble : les onglets restent collés au bord du post-it. */
+  transform: rotate(-1.5deg); transform-origin: 0 0;
+}
+.pause-memo[hidden] { display: none; }
+.memo-tabs { display: flex; gap: .4em; padding-left: .8em; }
+.memo-tabs button {
+  padding: .35em .9em .45em; border: 0; border-radius: 4px 4px 0 0; cursor: pointer; transform: translateY(.25em);
+  font: 900 .9em/1 system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #5c4a12; opacity: .7;
+}
+.memo-tabs button[data-memo="0"] { background: #ffe36e; }
+.memo-tabs button[data-memo="1"] { background: #9fd3f2; color: #1f4a63; }
+.memo-tabs button[aria-selected="true"] { opacity: 1; transform: none; }
+.memo-note { transform: none; flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: .7em .9em .8em; }
+.memo-note[hidden] { display: none; }
+.memo-note-1 { background: linear-gradient(170deg, #cdeafc, #9fd3f2 88%); color: #20343d; }
+.memo-note-1 h2 { color: #1f4a63; }
+/* Petit glossaire : le nom en gras, l'explication dessous. */
+.memo-note dl { margin: 0; display: grid; grid-template-columns: 1fr; gap: .1em; }
+.memo-note dd + dt { margin-top: .45em; }
+.memo-note dt { font-weight: 900; }
+.memo-note dd { margin: .05em 0 0; font-weight: 550; }
+
+/* Temps réel restant avant le vote, sous la date de la carte : petit et discret. */
+#real-clock {
+  position: absolute; left: 0; right: 0; top: calc(50% + clamp(9px, min(1.5vw, 2.7dvh), 24px)); text-align: center; pointer-events: none;
+  font: 600 max(8px, calc(var(--map-size, 150px) * .06))/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .03em;
+  color: #c9d3cf; opacity: .75;
+}
+#real-clock:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: none; }
+  .pause-veil, .pause-memo, .pause-prompt { animation: none; }
+}

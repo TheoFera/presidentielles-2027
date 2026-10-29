@@ -79,9 +79,21 @@ export function voteRematch(room, playerId) {
   if (!room.players.some(p => p.id === playerId)) throw new Error('Joueur introuvable.');
   room.rematch = [...new Set([...(room.rematch || []), playerId])].filter(id => room.players.some(p => p.id === id));
   if (room.players.every(p => room.rematch.includes(p.id))) {
-    room.rematch = []; room.paused = false;
+    room.rematch = []; room.paused = false; room.paused_by = null;
     room.phase = 'loading'; room.players.forEach(p => { p.ready = false; });
   }
+}
+
+/**
+ * Pause d'une partie en cours (carte touchée) : elle vaut pour tout le salon, et seul le joueur qui l'a
+ * lancée peut la lever (ou n'importe qui, s'il a quitté le salon).
+ */
+export function setRoomPause(room, playerId, paused) {
+  if (room.phase !== 'playing') throw new Error('La partie n’a pas commencé.');
+  if (paused) { if (!room.paused) { room.paused = true; room.paused_by = playerId; } return; }
+  if (!room.paused) return;
+  if (room.paused_by && room.paused_by !== playerId && room.players.some(p => p.id === room.paused_by)) throw new Error('Seul le joueur qui a mis la pause peut la lever.');
+  room.paused = false; room.paused_by = null;
 }
 
 /**
@@ -90,6 +102,6 @@ export function voteRematch(room, playerId) {
  */
 export function returnToLobby(room) {
   if (room.mode !== 'debate' || room.phase !== 'playing') throw new Error('Le changement de combattants n’est pas disponible.');
-  room.phase = 'lobby'; room.rematch = []; room.paused = false;
+  room.phase = 'lobby'; room.rematch = []; room.paused = false; room.paused_by = null;
   room.players.forEach(p => { p.ready = false; });
 }

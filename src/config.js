@@ -72,6 +72,7 @@ export function validateConfig(config) {
   if (ko.ko_respawn_max_seconds < ko.ko_respawn_min_seconds || !Number.isFinite(ko.ko_money_drop_ratio) || ko.ko_money_drop_ratio < 0 || ko.ko_money_drop_ratio > 1) throw new Error('Configuration : perte d’argent au KO invalide.');
   if (!Number.isInteger(config.balance.time.starting_days_before_first_round) || config.balance.time.starting_days_before_first_round < 1) throw new Error('Configuration : nombre de jours initial invalide.');
   positive(config.balance.time.second_round_sprint_seconds, 'durée du second tour');
+  positive(config.balance.time.second_round_days, 'jours du second tour');
   for (const [key, value] of Object.entries(config.prototype.presentation.transitions)) positive(value, `transition ${key}`);
   const debate = config.balance.first_round_debate;
   for (const key of ['width_units', 'edge_margin', 'ai_retarget_seconds', 'ai_variation_units']) positive(debate[key], `débat ${key}`);
@@ -95,7 +96,7 @@ export function validateConfig(config) {
   }
   const sprint = config.balance.second_round;
   for (const key of ['poll_refresh_seconds', 'meeting_cooldown_seconds', 'extension_seconds', 'ai_opponent_detection_range', 'ai_meeting_distance', 'ai_recruit_distance', 'ai_former_third_priority', 'ai_neutral_zone_priority']) positive(sprint[key], `second tour ${key}`);
-  if (!['REPEAT_OVERTIME', 'J0_THEN_SEED'].includes(sprint.tie_rule)) throw new Error('Configuration : règle d’égalité inconnue.');
+  if (!['SUDDEN_DEATH', 'REPEAT_OVERTIME', 'J0_THEN_SEED'].includes(sprint.tie_rule)) throw new Error('Configuration : règle d’égalité inconnue.');
   positive(config.balance.persuasion.militant_base_seconds, 'temps de persuasion des Militants');
   positive(config.balance.interaction.radius_units, 'portée des interactions');
   if (!Number.isInteger(config.layout.social_points_per_subzone) || config.layout.social_points_per_subzone < 1) throw new Error('Configuration : au moins un point social par sous-zone.');

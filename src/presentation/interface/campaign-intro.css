@@ -85,7 +85,7 @@
 #game.intro-dossier .map-wheel-names { opacity: 1; }
 .map-wheel-name { font: 900 16px system-ui, sans-serif; letter-spacing: .03em; text-transform: uppercase; fill: #fff5df; stroke: #253438; stroke-width: 3.4px; stroke-linejoin: round; paint-order: stroke fill; }
 
-/* Post-it des objectifs (deux premières parties). Il tient dans la colonne de gauche, aussi large que
+/* Post-it des objectifs (tant que le tutoriel n'est pas terminé). Il tient dans la colonne de gauche, aussi large que
    la carte : les annonces d'évènements, centrées, laissent toujours cette colonne libre. Placé sous l'argent. */
 #campaign-objectives {
   position: absolute; left: var(--map-margin, 8px); top: calc(3.4% + clamp(30px, 3.6vw, 48px)); z-index: 19;
@@ -102,7 +102,8 @@
 .postit li { position: relative; padding-left: 1.2em; }
 .postit li::before { content: ''; position: absolute; left: .2em; top: .42em; width: .48em; height: .48em; border-radius: 50%; background: #2b3436; }
 .postit li small { font-size: .9em; font-weight: 800; color: #8a6a12; }
-.postit li.done { color: #6a6f5c; text-decoration: line-through 2px #c8322b99; }
+.postit li.done { color: #6a6f5c; }
+.postit li.done .postit-label { text-decoration: line-through 2px #c8322b99; }
 .postit li.done::before { content: '✓'; top: -.05em; left: .05em; width: auto; height: auto; background: none; color: #2f7d4a; font-weight: 900; }
 .postit li.just-done::before { animation: postit-check .45s cubic-bezier(.2, 1.6, .4, 1) both; }
 .postit-note { margin: .1em 0 0; font-weight: 750; }

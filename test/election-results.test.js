@@ -43,6 +43,24 @@ test('Premier tour : classement réel, monde figé et aucun débat', () => {
   copy.importSnapshot(sim.exportSnapshot());
   assert.deepEqual(sim.state.first_round_result, votes);
 });
+test('Second tour à égalité : la partie continue et s’arrête dès que l’égalité est rompue', () => {
+  const sim = firstRound([6, 12]);
+  sim.step([{ type: 'ContinueToSecondRound' }]);
+  assert.equal(sim.state.phase, 'SECOND_ROUND_SPRINT');
+  // Mélenchon et Le Pen à 6 voix chacun, chrono à zéro : mort subite.
+  sim.state.sprint_remaining_ticks = 1;
+  sim.step([]);
+  assert.equal(sim.state.phase, 'SECOND_ROUND_SPRINT');
+  assert.equal(sim.state.extensions, 1);
+  for (let i = 0; i < 30; i++) sim.step([]);
+  assert.equal(sim.state.phase, 'SECOND_ROUND_SPRINT');
+  assert.equal(sim.state.sprint_remaining_ticks, 0);
+  convertNeutral(sim, sim.state.npcs.find(n => n.role === 'NEUTRE'), 'le_pen');
+  sim.step([]);
+  assert.equal(sim.state.phase, 'RESULTS');
+  assert.equal(sim.state.result.winner, 'le_pen');
+  assert.equal(sim.state.result.tie_break, false);
+});
 test('Plus de 50 % des voix exprimées au premier tour : élu sans second tour', () => {
   const sim = firstRound([8, 13]);
   assert.equal(sim.state.first_round_result.majority, true);

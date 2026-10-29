@@ -25,7 +25,7 @@ async function inflate(bytes, limit = 2_000_000) {
   }
   return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
 }
-import { chooseCandidate, setDebateOptions, factions, roomMode, startRoom, voteRematch, returnToLobby, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
+import { chooseCandidate, setDebateOptions, factions, roomMode, startRoom, voteRematch, returnToLobby, setRoomPause, closeRoom, leaveRoom, joinable, cleanName } from './lobby.js';
 import { cleanPlayerCard } from '../simulation/player-titles.js';
 
 const id = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => x.toString(16).padStart(2, '0')).join('');
@@ -332,7 +332,7 @@ export class PeerSession {
       }
       if (packet.type === 'commands' && this.room.phase === 'playing') this.callbacks.commands({ playerId: player.id, commands: sanitizeCommands(packet.data.commands, player.faction), seq: cleanSeq(packet.data.seq), seen: cleanSeq(packet.data.seen) });
       else if (packet.type === 'ready' && this.room.phase === 'loading') this.setReady(player);
-      else if (packet.type === 'pause' && this.room.phase === 'playing') { this.room.paused = packet.data.paused === true; this.publishRoom(); }
+      else if (packet.type === 'pause' && this.room.phase === 'playing') { try { setRoomPause(this.room, player.id, packet.data.paused === true); this.publishRoom(); } catch { /* Pause d'un autre joueur : ignoré. */ } }
       else if (packet.type === 'rematch' && this.room.phase === 'playing') { try { voteRematch(this.room, player.id); this.publishRoom(); } catch { /* Vote hors d’un débat : ignoré. */ } }
       else if (packet.type === 'lobby' && this.room.phase === 'playing') { try { returnToLobby(this.room); this.publishRoom(); } catch { /* Hors d’un débat : ignoré. */ } }
     } else {
@@ -422,7 +422,7 @@ export class PeerSession {
       startRoom(this.room, data.setup);
       this.cancelInvite(); this.publishRoom();
     } else if (action === 'ready' && this.room.phase === 'loading') this.setReady(this.room.players[0]);
-    else if (action === 'pause' && this.room.phase === 'playing') { this.room.paused = data.paused === true; this.publishRoom(); }
+    else if (action === 'pause' && this.room.phase === 'playing') { setRoomPause(this.room, this.id, data.paused === true); this.publishRoom(); }
     else if (action === 'rematch') { voteRematch(this.room, this.id); this.publishRoom(); }
     else if (action === 'lobby') { returnToLobby(this.room); this.publishRoom(); }
     else if (action === 'snapshot' && this.room.phase === 'playing') this.broadcast('snapshot', data.state);
