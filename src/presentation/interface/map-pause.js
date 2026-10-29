@@ -15,7 +15,7 @@ const MEMO = [
     ['Raideurs', 'Quand un raid est déclenché, certains sympathisants deviennent raideurs. Un groupe de raideurs envoyé dans une direction peut faire fermer un bâtiment adverse.'],
   ]],
   ['Les bâtiments', [
-    ['Permanence', 'Les sympathisants y apportent leurs dons, que vous venez ramasser. C’est aussi là qu’on imprime des tracts pour recruter des militants. Chaque permanence contrôle sa zone.'],
+    ['Permanence', 'Les sympathisants viennent y apporter leurs dons et constituent une cagnotte que vous pouvez venir collecter. C’est aussi le lieu où l’on imprime des tracts pour recruter des militants. Chaque permanence contrôle son quartier : vos partisans y sont plus résistants et les tentatives de conversion adverses y sont plus longues.'],
     ['Local du service d’ordre ou cabinet', 'Il renforce la défense de son territoire : utile pour tenir le quartier et fermer les bâtiments adverses.'],
     ['Institut de sondage', 'Payez pour voir les intentions de vote : la carte est mise à jour pour vous montrer qui mène et qui tient chaque quartier.'],
     ['Estrade de meeting', 'Payez pour lancer un meeting et restez jusqu’au bout pour le finaliser : les neutres du quartier vous rejoignent et les adversaires redeviennent neutres.'],

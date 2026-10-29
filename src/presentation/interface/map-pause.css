@@ -42,6 +42,8 @@
 .pause-memo {
   position: absolute; left: 4%; top: 12%; bottom: 13%; width: 40%; display: flex; flex-direction: column;
   font: 650 clamp(9px, min(1.15vw, 2.1dvh), 15px)/1.3 system-ui, sans-serif; animation: pause-fade .3s ease-out both;
+  /* Onglets et post-it penchent ensemble : les onglets restent collés au bord du post-it. */
+  transform: rotate(-1.5deg); transform-origin: 0 0;
 }
 .pause-memo[hidden] { display: none; }
 .memo-tabs { display: flex; gap: .4em; padding-left: .8em; }
@@ -52,7 +54,7 @@
 .memo-tabs button[data-memo="0"] { background: #ffe36e; }
 .memo-tabs button[data-memo="1"] { background: #9fd3f2; color: #1f4a63; }
 .memo-tabs button[aria-selected="true"] { opacity: 1; transform: none; }
-.memo-note { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: .7em .9em .8em; }
+.memo-note { transform: none; flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: .7em .9em .8em; }
 .memo-note[hidden] { display: none; }
 .memo-note-1 { background: linear-gradient(170deg, #cdeafc, #9fd3f2 88%); color: #20343d; }
 .memo-note-1 h2 { color: #1f4a63; }
