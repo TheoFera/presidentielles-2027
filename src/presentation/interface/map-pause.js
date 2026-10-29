@@ -11,7 +11,7 @@ const MEMO = [
     ['Neutre', 'Ne soutient personne et votera blanc ou s’abstiendra. Arrêtez-vous à côté de lui pour le convaincre.'],
     ['Sympathisant', 'Il vaut une voix pour son candidat le jour du vote. Il dépose régulièrement des dons à la permanence de sa zone, ou les donne à son candidat quand il le voit. Mis K.-O., il redevient neutre.'],
     ['Militant', 'Un sympathisant qui a récupéré un tract imprimé à sa permanence : il convainc les habitants neutres de son quartier. Il peut aussi former un groupe de 3 et partir convertir ou attaquer d’autres quartiers.'],
-    ['Service d’ordre', 'Défensifs, ils gardent les zones voisines.'],
+    ['Service d’ordre', 'Une fois le local du service d’ordre acheté, 3 membres du service d’ordre sont recrutés parmi vos sympathisants et militants pour garder votre quartier.'],
     ['Raideurs', 'Quand un raid est déclenché, certains sympathisants deviennent raideurs. Un groupe de raideurs envoyé dans une direction peut faire fermer un bâtiment adverse.'],
   ]],
   ['Les bâtiments', [
