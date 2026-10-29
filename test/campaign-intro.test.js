@@ -6,7 +6,7 @@ import { AIController, LocalHumanController, collectCommands } from '../src/simu
 import { ringDelta } from '../src/simulation/world.js';
 import { objectiveGroups, objectiveProgress, tutorialProgress } from '../src/presentation/interface/campaign-objectives.js';
 import { hit } from '../src/simulation/combat-state.js';
-import { commitFactionAction } from '../src/simulation/faction-buildings.js';
+import { commitFactionAction, updateClosureSquads } from '../src/simulation/faction-buildings.js';
 import { updateStrategicSites } from '../src/simulation/strategic-sites.js';
 
 function setup(candidateId = 'candidate:le_pen') {
@@ -178,6 +178,8 @@ test('objectifs : bâtiment adverse fermé par un cabinet administratif ou par u
   for (const b of [first, second]) Object.assign(b, { owner_id: 'le_pen', state: 'ACTIVE', active: true, neutral: false, level: 1, headquarters: false });
   const cabinet = sim.state.buildings.find(b => b.type === 'faction');
   assert.ok(commitFactionAction(sim, me(), cabinet, { kind: 'CLOSE', victim_id: first.id }));
+  // Le bâtiment ferme à l'arrivée des CRS.
+  for (let i = 0; i < 100 * 3 && first.owner_id; i++) { sim.state.tick++; updateClosureSquads(sim); }
   assert.equal(first.owner_id, null);
   assert.equal(sim.state.campaign_feats[faction].buildings_closed, 1);
   // Raid : deux gardes de Mélenchon pressent la seconde permanence, que personne ne défend.

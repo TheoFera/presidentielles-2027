@@ -8,7 +8,8 @@ import { convertNeutral, neutralizeSupporter } from '../src/simulation/npc-votes
 import { triggerMeeting, updateElectoralBuildings } from '../src/simulation/electoral-buildings.js';
 import { startDebate, finishDebate } from '../src/simulation/match-lifecycle.js';
 import { aiEconomicTarget, buildingOffers, nearestOffer } from '../src/simulation/economy.js';
-import { commitFactionAction } from '../src/simulation/faction-buildings.js';
+import { cabinetTarget, commitFactionAction, updateClosureSquads } from '../src/simulation/faction-buildings.js';
+import { CLOSURE_ARRIVAL_SECONDS, CLOSURE_EXIT_SECONDS, CLOSURE_HOLD_SECONDS } from '../src/simulation/closure-squads.js';
 import { strategicAICommands } from '../src/simulation/ai-strategy.js';
 import { zoneAt } from '../src/simulation/world.js';
 import { captureSite, updateStrategicSites } from '../src/simulation/strategic-sites.js';
@@ -252,10 +253,46 @@ test('cabinet : une fermeture renvoie chez eux les soutiens du camp visé autour
   const offer = buildingOffers(sim.state, sim.config, philippe, cabinet).find(o => o.kind === 'CLOSE' && o.victim_id === victim.id);
   assert.ok(offer?.enabled, 'fermeture disponible');
   assert.ok(commitFactionAction(sim, philippe, cabinet, offer));
+  // Les CRS montent d'abord jusqu'au bâtiment : rien ne ferme avant leur arrivée.
+  const arrival = sim.secondsToTicks(CLOSURE_ARRIVAL_SECONDS);
+  for (let i = 1; i < arrival; i++) { sim.state.tick++; updateClosureSquads(sim); }
+  assert.equal(victim.state, 'ACTIVE'); assert.equal(proche.role, 'SYMPATHISANT');
+  assert.equal(cabinetTarget(sim.state, sim.config, cabinet, 1)?.id === victim.id || cabinetTarget(sim.state, sim.config, cabinet, -1)?.id === victim.id, false, 'cible déjà visée');
+  sim.state.tick++; updateClosureSquads(sim);
   assert.notEqual(victim.state, 'ACTIVE');
   assert.equal(proche.role, 'DEMOBILISE'); assert.equal(militant.role, 'DEMOBILISE');
   assert.equal(loin.role, 'SYMPATHISANT', 'hors du rayon : non touché');
   assert.equal(autreCamp.faction_id, 'melenchon', 'un autre camp n’est pas touché');
+});
+
+test('cabinet : les CRS repartent après la fermeture ; cible reprise entre-temps = ordre remboursé', () => {
+  const sim = make();
+  const philippe = sim.state.candidates.find(candidate => candidate.faction_id === 'philippe');
+  const lePen = sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen');
+  const cabinet = sim.state.buildings.find(building => building.fixed_variant === 'cabinet_administratif');
+  captureSite(sim, cabinet, philippe); philippe.money = 1000;
+  const victim = sim.state.buildings.find(building => building.type === 'tour_communication');
+  captureSite(sim, victim, lePen);
+  const run = ticks => { for (let i = 0; i < ticks; i++) { sim.state.tick++; updateClosureSquads(sim); } };
+  assert.ok(commitFactionAction(sim, philippe, cabinet, { kind: 'CLOSE', victim_id: victim.id, cost: 50 }));
+  run(sim.secondsToTicks(CLOSURE_ARRIVAL_SECONDS));
+  assert.equal(victim.owner_id, null);
+  assert.equal(sim.state.closure_squads.length, 1, 'les CRS gardent l’entrée pendant le rideau');
+  // Sauvegarde pendant la garde : l'escouade est reprise ; une escouade mal formée est refusée.
+  const saved = sim.exportSnapshot();
+  const restored = make(); restored.importSnapshot(saved);
+  assert.equal(restored.state.closure_squads.length, 1);
+  assert.throws(() => restored.importSnapshot(JSON.stringify({ ...JSON.parse(saved), closure_squads: [null] })), /escouade/);
+  run(sim.secondsToTicks(CLOSURE_HOLD_SECONDS + CLOSURE_EXIT_SECONDS));
+  assert.equal(sim.state.closure_squads.length, 0, 'puis ils repartent');
+  // Second ordre : la cible change de camp avant l'arrivée des CRS.
+  captureSite(sim, victim, lePen); cabinet.closure_ready_tick = 0;
+  const money = philippe.money;
+  assert.ok(commitFactionAction(sim, philippe, cabinet, { kind: 'CLOSE', victim_id: victim.id, cost: 50 }));
+  victim.owner_id = 'melenchon';
+  run(sim.secondsToTicks(CLOSURE_ARRIVAL_SECONDS));
+  assert.equal(victim.owner_id, 'melenchon');
+  assert.equal(philippe.money, money + 50);
 });
 
 test('raid : 3 sympathisants entrent au local, ressortent en SO côte à côte, puis partent sans jamais revenir', () => {
