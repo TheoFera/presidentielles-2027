@@ -41,7 +41,7 @@ android {
         minSdk = 24
         targetSdk = 36
         // À augmenter de 1 à chaque nouvelle version envoyée sur le Play Store.
-        versionCode = 7
+        versionCode = 8
         // Le numéro lisible (ex. 1.0.1) se change dans src/version.js.
         versionName = gameVersion
         // Mesure de fluidité sur une version finale : « -PwebDebug=true » rend la page du jeu inspectable

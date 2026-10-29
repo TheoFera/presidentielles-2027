@@ -10,7 +10,7 @@
 | `npm run android:test` | idem, avec un `.apk` d'essai à installer sur un téléphone |
 | `npm run start:appli` | sert `dist/` sur <http://localhost:2028> pour l'essayer |
 
-Pour le Play Store, la prochaine version est **1.0.6**, avec **`versionCode = 7`**, après la version publiée 1.0.5 (code 6). Le numéro affiché vient de `src/version.js` et le code de `android/app/build.gradle`. La construction finale nécessite `android/keystore.properties` et la clé de téléversement existante ; les secrets restent locaux et exclus de Git. Les notes de mise à jour et la procédure sont dans [le guide Android](../android/LISEZMOI.md#mise-à-jour-106-code-7).
+Pour le Play Store, la prochaine version est **1.0.7**, avec **`versionCode = 8`**, après la version publiée 1.0.6 (code 7). Le numéro affiché vient de `src/version.js` et le code de `android/app/build.gradle`. La construction finale nécessite `android/keystore.properties` et la clé de téléversement existante ; les secrets restent locaux et exclus de Git. Les notes de mise à jour et la procédure sont dans [le guide Android](../android/LISEZMOI.md#mise-à-jour-107-code-8).
 
 L'export part de `index.html` et suit les `<script>`, `<link>` et `import` : seuls les fichiers réellement chargés par le jeu sont copiés, avec les cinq fichiers de `donnees-jeu/`, les pages légales et les licences des bibliothèques. Les documents, tests, scripts et outils ne sont jamais exportés. Ne jamais modifier `dist/` à la main : il est recréé à chaque export.
 
