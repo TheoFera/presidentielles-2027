@@ -12,8 +12,11 @@ function layoutBox(element, game) {
 /**
  * Carte au centre de la moitié droite et post-it au centre de la moitié gauche, agrandis.
  * Sans post-it (`objectives` faux), la moitié gauche reste libre (mémo de la pause).
+ * Avec un sondage, la carte est un peu plus petite et plus à droite : son classement, collé à sa
+ * gauche, passe entre elle et le post-it.
  */
 export function placeDossier(game, { objectives = true } = {}) {
+  const ranking = !!game.querySelector('#electoral-display .map-poll-ranking')?.childElementCount;
   const width = game.clientWidth, height = game.clientHeight;
   const place = (selector, x, y, fit) => {
     const element = game.querySelector(selector);
@@ -24,6 +27,6 @@ export function placeDossier(game, { objectives = true } = {}) {
     const dx = width * x - (box.left + box.width / 2), dy = height * y - (box.top + box.height / 2);
     element.style.setProperty('--dossier', `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(3)})`);
   };
-  place('#electoral-display', 0.73, 0.47, box => height * 0.62 / box.height);
-  if (objectives) place('#campaign-objectives', 0.29, 0.47, box => Math.min(width * 0.34 / box.width, height * 0.56 / box.height));
+  place('#electoral-display', ranking ? 0.775 : 0.73, 0.47, box => height * (ranking ? 0.5 : 0.62) / box.height);
+  if (objectives) place('#campaign-objectives', ranking ? 0.255 : 0.29, 0.47, box => Math.min(width * 0.34 / box.width, height * 0.56 / box.height));
 }

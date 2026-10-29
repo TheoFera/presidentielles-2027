@@ -4,6 +4,8 @@
 #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }
 #game.map-pause :is(#electoral-display, #campaign-objectives) { transform: var(--dossier, none); }
 #game.map-pause .map-wheel-names { opacity: 1; }
+/* Le classement du sondage, agrandi avec la carte, se resserre pour tenir entre elle et le post-it (téléphone). */
+#game.map-pause .map-poll-ranking { font-size: max(5.5px, calc(var(--map-size) * .036)); }
 
 /* Sous la carte et le post-it (z-index 19), au-dessus des annonces d'évènements (18, placées avant). */
 #map-pause { position: absolute; inset: 0; z-index: 18; }

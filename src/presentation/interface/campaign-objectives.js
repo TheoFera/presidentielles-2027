@@ -13,41 +13,41 @@ const SERVICE_ORDER = ['melenchon', 'le_pen'];
 const GROUPS = [
   [
     { id: 'billets', label: 'Ramasser 3 billets', goal: 3,
-      help: 'Passez sur les liasses posées par terre. L’argent sert à acheter des bâtiments.' },
+      help: 'Passez sur les liasses pour les ramasser. L’argent sert à prendre des bâtiments ou à faire des actions, comme imprimer des tracts.' },
     { id: 'habitants', label: 'Convaincre 3 habitants', goal: 3,
-      help: 'Arrêtez-vous à côté d’un habitant qui ne soutient personne : il devient votre sympathisant. Chaque sympathisant est une voix pour vous le jour du vote.' },
+      help: 'Arrêtez-vous près d’un habitant neutre pour le convaincre : il deviendra votre sympathisant. Chaque sympathisant est une voix pour vous le jour du vote.' },
     { id: 'permanence', label: 'Créer votre permanence QG', goal: 1,
-      help: 'Une permanence est un local de campagne : restez devant son prix pour l’acheter. La première devient votre QG, où vos sympathisants déposent des dons à ramasser en passant.' },
+      help: 'Pour acquérir une permanence, réunissez l’argent demandé et 2 sympathisants proches, puis placez-vous devant. Votre première permanence vous permet de choisir votre style de campagne parmi ceux débloqués.' },
   ],
   [
     { id: 'militant', label: 'Recruter votre premier militant', goal: 1,
-      help: 'Restez à l’arrêt devant votre permanence pour imprimer un tract. Un sympathisant vient le chercher et devient militant : il convainc les habitants et se bat pour vous, tout seul.' },
+      help: 'Arrêtez-vous devant une permanence pour imprimer des tracts. Vos sympathisants viendront les chercher et deviendront militants. Un militant peut convaincre d’autres habitants neutres.' },
     { id: 'sympathisants', label: 'Mettre K.-O. 3 sympathisants adverses', goal: 3,
       help: 'Frappez les sympathisants d’un adversaire : mis K.-O., ils redeviennent neutres, prêts à être convaincus.' },
     { id: 'permanence2', label: 'Prendre une deuxième permanence', goal: 1,
-      help: 'Un bâtiment à drapeau donne le contrôle de sa zone : vos soutiens y résistent mieux et vos adversaires y convainquent plus lentement.' },
+      help: 'Prendre un bâtiment, comme une permanence, permet de contrôler sa zone : vos soutiens y résistent mieux et vos adversaires y convainquent plus lentement.' },
   ],
   [
     { id: 'ko', label: 'Mettre K.-O. un candidat adverse', goal: 1,
-      help: 'Videz sa jauge à coups de poing : il perd des points dans les sondages, lâche une partie de son argent et disparaît quelques secondes.' },
+      help: 'Une fois mis K.-O., un candidat lâche une partie de son argent et ne réapparaît qu’après plusieurs secondes.' },
     { id: 'local', label: faction => faction === 'philippe' ? 'Prendre un cabinet administratif' : 'Acheter un local pour votre service d’ordre', goal: 1,
       help: faction => faction === 'philippe'
-        ? 'Le cabinet administratif sert à faire fermer les bâtiments de vos adversaires.'
-        : 'Le local du service d’ordre envoie des gros bras garder vos zones voisines, et permet de lancer des raids.' },
+        ? 'Le cabinet administratif permet de lancer des procédures qui font fermer les bâtiments de vos adversaires.'
+        : 'Le local du service d’ordre recrute des gros bras parmi vos sympathisants pour défendre votre territoire. Il permet aussi de lancer des raids.' },
     { id: 'raid', label: 'Lancer un raid', goal: 1, factions: SERVICE_ORDER,
-      help: 'Dans votre local, achetez « RAID » : trois sympathisants deviennent des gros bras cagoulés qui partent fermer les bâtiments adverses.' },
+      help: 'Depuis votre local du service d’ordre, lancez un « RAID » : trois de vos sympathisants iront provoquer la fermeture des bâtiments adverses.' },
     { id: 'fermeture', label: 'Fermer un bâtiment adverse', goal: 1,
       help: faction => faction === 'philippe'
-        ? 'Depuis votre cabinet, payez pour fermer un bâtiment adverse : il redevient libre et ses partisans autour rentrent chez eux.'
-        : 'Vos gros bras du raid ferment les bâtiments adverses à coups de pied dans la porte : le bâtiment redevient libre.' },
+        ? 'Fermer un bâtiment adverse grâce au cabinet permet ensuite de le reconquérir.'
+        : 'Fermer un bâtiment adverse grâce à un raid permet ensuite de le reconquérir.' },
   ],
   [
     { id: 'sondage', label: 'Acheter un sondage', goal: 1,
-      help: 'Dans un institut de sondage, payez pour connaître les intentions de vote : l’anneau de la carte montre qui mène, et ses couleurs qui tient chaque zone.' },
+      help: 'Payez un institut de sondage pour connaître les intentions de vote : la carte vous montre aussi qui tient chaque zone.' },
     { id: 'meeting', label: 'Tenir un meeting', goal: 1,
-      help: 'Payez sur une estrade de meeting et restez-y jusqu’au bout : les habitants neutres de la zone vous rejoignent, les sympathisants adverses redeviennent neutres.' },
+      help: 'Lancez un meeting depuis une estrade et restez-y jusqu’au bout : les habitants neutres de la zone vous rejoignent, les sympathisants adverses redeviennent neutres.' },
     { id: 'garage', label: 'Acheter un garage', goal: 1,
-      help: 'Achetez un garage, puis restez devant : vous repartez à vélo ou en scooter, bien plus vite qu’à pied.' },
+      help: 'Une fois le garage acheté, revenez-y autant que vous voulez pour récupérer un véhicule bien plus rapide qu’à pied.' },
   ],
 ];
 
