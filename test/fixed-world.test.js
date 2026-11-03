@@ -82,7 +82,7 @@ test('Les indications d’achat suivent la disponibilité réelle du candidat', 
   assert.ok(c.purchase_hold);
   const initial = structuredClone(c);
   for (const block of [
-    () => { c.vehicle = { type: 'velo' }; }, () => { c.interaction_active = false; },
+    () => { c.interaction_active = false; },
     () => { c.campaign_active = false; }, () => { c.style_interaction_held = true; },
     () => { c.combat.attack_id = 'attaque'; }, () => { c.combat.jump_tick = 1; },
     () => { c.combat.stun_ticks = 3; }, () => { c.is_ko = true; },
@@ -208,6 +208,18 @@ test('Tracts à la permanence ; aucun bâtiment de financement sur la carte', ()
   assert.equal(buildingOffers(sim.state,sim.config,c,site)[0].kind,'PRINT');
   assert.equal(sim.state.buildings.filter(b=>b.type==='financement').length,0);
 });
+test('À vélo, on interagit avec les bâtiments (tracts compris) sans pouvoir reprendre un véhicule', () => {
+  const sim=make(), site=sim.state.buildings.find(b=>b.type==='permanence'), c=own(sim,site);
+  c.money=10;const npc=sim.state.npcs.find(n=>n.origin_subzone_id===site.subzone_id);convertNeutral(sim,npc,c.faction_id);
+  const garage=sim.state.buildings.find(b=>b.type==='garage_velo');
+  c.x=site.x;c.vehicle={type:'velo',site_id:garage.id};
+  updateEconomy(sim);
+  assert.equal(c.purchase_hold?.kind,'PRINT');assert.equal(c.vehicle?.type,'velo');
+  own(sim,sim.state.buildings.find(b=>b.type==='garage_scooter'),c);
+  const scooter=sim.state.buildings.find(b=>b.type==='garage_scooter');c.x=scooter.x;c.vehicle={type:'velo',site_id:garage.id};
+  for(let i=0;i<sim.secondsToTicks(sim.config.balance.vehicles.mount_seconds)+2;i++)updateVehicles(sim);
+  assert.equal(c.vehicle.type,'velo');assert.equal(c.vehicle_hold,null);
+});
 test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et abandon sur action', () => {
   for (const type of ['garage_velo','garage_scooter']) {
     const sim=make(),site=sim.state.buildings.find(b=>b.type===type),c=sim.state.candidates[0];c.x=site.x;
@@ -217,9 +229,13 @@ test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et aban
     c.axis=1;updateVehicles(sim);assert.equal(c.vehicle_hold,null);c.axis=0;
     for(let i=0;i<duration;i++)updateVehicles(sim);
     assert.equal(c.vehicle.type,type==='garage_velo'?'velo':'scooter');assert.ok(candidateTravelSpeed(sim.config,c)>sim.config.prototype.movement.candidate_speed_units_per_second);
-    for(const action of ['Jump','Attack','PressAttack','Dash','ActivateUltimate','HoldCampaignStyle']) {
+    for(const action of ['Jump','Attack','PressAttack','ActivateUltimate','HoldCampaignStyle']) {
       c.vehicle={type:'velo',site_id:site.id};sim.applyCommand({type:action,candidateId:c.id,active:true});assert.equal(c.vehicle,null,action);
     }
+    // Un double appui (dash) sur un véhicule est ignoré : on reste en selle, sans dépenser de charge.
+    c.vehicle={type:'velo',site_id:site.id};const charges=c.dash_charges;
+    sim.applyCommand({type:'Dash',candidateId:c.id,direction:1});
+    assert.equal(c.vehicle?.type,'velo');assert.equal(c.dash_active,false);assert.equal(c.dash_charges,charges);
   }
 });
 test('Une attente de garage et un véhicule reprennent à l’identique après sauvegarde', () => {

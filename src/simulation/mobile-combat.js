@@ -23,6 +23,8 @@ const clearDashBuffer = c => { c.dash_buffer_direction = 0; c.dash_buffer_until_
 export function requestDash(sim, c, direction, buffered = false) {
   const d = sim.config.balance.dash;
   if (!c || ![-1, 1].includes(direction) || sim.state.debate_bounds && !d.allowed_in_debate || c.eliminated || c.is_ko) return;
+  // Pas de dash sur un véhicule : un double appui involontaire ne doit pas faire tomber.
+  if (c.vehicle) { clearDashBuffer(c); return; }
   // Plus de charge : un petit son « à vide » prévient le joueur.
   // Super Européiste : dash illimité pendant l’ultime.
   const free = europeActive(sim.state, c);

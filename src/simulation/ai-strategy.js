@@ -263,8 +263,6 @@ export function strategicAICommands(state, config, c) {
   }
   const go = (x, radius, purchase = false) => {
     const d = ringDelta(c.x, x, state.world.length), arrived = Math.abs(d) <= radius;
-    // On n’achète rien à vélo ou en scooter : sauter pour en descendre.
-    if (arrived && purchase && c.vehicle) return [...commands(0), { type: 'Jump', candidateId: c.id }];
     // Long trajet : passer d’abord prendre son véhicule s’il est tout près (immobile devant le garage).
     const garage = !arrived && rideGarage(state, config, c, x);
     if (garage) {

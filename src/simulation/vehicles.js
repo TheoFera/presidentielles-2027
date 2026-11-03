@@ -10,7 +10,9 @@ export function vehicleMountSite(state, config, candidate) {
   return state.buildings.find(b => garageVehicle(b.type) && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id
     && Math.abs(ringDelta(candidate.x, b.x, state.world.length)) <= config.balance.vehicles.garage_radius_units) || null;
 }
-const actions = new Set(['Attack', 'PressAttack', 'Jump', 'Dash', 'ActivateUltimate', 'SelectCampaignStyle']);
+// Le dash ne fait pas descendre : à vélo ou en scooter, un double appui sur une flèche est ignoré
+// (on accélère souvent en rappuyant, ce qui faisait tomber du véhicule sans le vouloir).
+const actions = new Set(['Attack', 'PressAttack', 'Jump', 'ActivateUltimate', 'SelectCampaignStyle']);
 
 export function dismountVehicle(candidate) {
   if (!candidate) return;
