@@ -1,5 +1,6 @@
 import { SERVICE_ORDER_ATLASES } from './service-order-atlases.js';
 import { drawCharacterAtlasFrame } from './character-scale.js';
+import { prepareAtlasFrames } from './minor-sprite-images.js';
 import { standingSpriteMotion, drawStandingSprite, applyNpcStandingMotion } from './standing-sprite-motion.js';
 import { SERVICE_ORDER_STYLES } from '../../simulation/service-order-rules.js';
 import { npcGender } from '../../simulation/npc-appearance.js';
@@ -133,7 +134,11 @@ export function drawServiceOrderCharacter(renderer, entity, x, state) {
       state.tick / hz + serviceOrderSeed(entity.id) % 101 / 13);
     applyNpcStandingMotion(ctx, motion);
     ctx.save(); ctx.translate((sx - px) * scale + width / 2, 0);
-    drawStandingSprite(ctx, image, { x: sx, y: sy, width: sw, height: sh }, sh * scale, width, motion);
+    // Planche libérée après découpe (renderer.js) : la marche part de la première découpe, même cadrage.
+    if (image.preparedOnly) {
+      const cut = prepareAtlasFrames(image, definition)[0];
+      drawStandingSprite(ctx, cut, { x: 0, y: 0, width: sw, height: sh }, sh * scale, width, motion, cut.width / sw, cut.height / sh);
+    } else drawStandingSprite(ctx, image, { x: sx, y: sy, width: sw, height: sh }, sh * scale, width, motion);
     ctx.restore();
   } else drawCharacterAtlasFrame(ctx, image, definition, frameIndex, scale);
   const faction = p.factions[entity.faction_id];

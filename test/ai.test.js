@@ -142,7 +142,9 @@ test('L’IA capture son QG par maintien et paie le prix normal dès qu’elle a
 });
 
 test('Offensive complète : affaiblir les soutiens, puis reprendre un site du joueur neutralisé', () => {
-  const { sim, ai } = make(); const c = isolate(sim); c.money = 200;
+  const { sim, ai, config } = make(); const c = isolate(sim); c.money = 200;
+  // Seul le moment de la Rédaction : la permanence voisine, à portée des mêmes soutiens, n'attire pas l'IA.
+  moments(config, 'tour_communication');
   const player = sim.state.candidates.find(c => c.faction_id === 'melenchon');
   const site = sim.state.buildings.find(b => b.type === 'tour_communication');
   captureSite(sim, sim.state.buildings.find(b => b.type === 'permanence'), c);

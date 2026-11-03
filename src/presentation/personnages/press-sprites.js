@@ -69,9 +69,9 @@ export function drawPressCharacter(renderer, entity, x, state) {
   return true;
 }
 
-// Avant de l'objectif sur l'image « filme » (pose 2) de chaque duo, en pixels de l'atlas
-// depuis le point d'appui des pieds : [avance, hauteur, demi-hauteur de l'objectif].
-const LENS = [[83.5, 142, 14], [79.5, 136, 13], [72.5, 132, 13.5]];
+// Avant de l'objectif sur l'image « filme » (pose 2) de chaque duo, depuis le point d'appui des pieds :
+// [avance, hauteur, demi-hauteur de l'objectif], mesurés pour une silhouette de LENS_REFERENCE pixels.
+const LENS = [[83.5, 142, 14], [79.5, 136, 13], [72.5, 132, 13.5]], LENS_REFERENCE = 196;
 
 export function drawPressCone(renderer, state) {
   if (state.press_team?.phase !== 'ACTIVE') return;
@@ -79,7 +79,7 @@ export function drawPressCone(renderer, state) {
   if (!camera?.filming || camera.moving) return;
   const { ctx, metrics: m, p } = renderer, s = renderer.config.balance.press_team;
   const atlas = PRESS_ATLASES[camera.variant || 0], [ahead, rise, aperture] = LENS[camera.variant || 0];
-  const scale = m.characterHeight * p.npc_height_multiplier * (atlas.sizeScale || 1) / atlas.referenceHeight;
+  const scale = m.characterHeight * p.npc_height_multiplier * (atlas.sizeScale || 1) / LENS_REFERENCE;
   const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   // Le faisceau sort de l'objectif dessiné ; son extrémité reste la zone réellement filmée par la règle.
   const lensX = renderer.screenX(camera.x) + camera.facing * ahead * scale * (atlas.widthScale || 1);

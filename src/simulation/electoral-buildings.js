@@ -16,7 +16,7 @@ export function meetingOffers(state, config, candidate, building) {
   const reason = building.meeting_candidate_id ? 'COOLDOWN'
     : state.tick < building.meeting_banned_until_by_faction[candidate.faction_id] ? 'ADMINISTRATIVE_BAN'
       : state.tick < building.meeting_ready_by_faction[candidate.faction_id] ? 'COOLDOWN'
-        : localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
+        : localPoliticalPresence(state, config, building, candidate.faction_id) < settings.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
           : !candidateOnMeetingStage(state, config, candidate, building) ? 'NOT_ON_STAGE' : null;
   const cost = settings.activation_cost;
   return [{ target_id: building.id, kind: 'MEETING', key: `${building.id}:MEETING:${candidate.faction_id}`,

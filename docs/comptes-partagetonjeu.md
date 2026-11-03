@@ -187,12 +187,17 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
   - une **partie multijoueur confirmée** par les joueurs (K.-O. inclus dans le résultat) ;
   - une **campagne solo déclarée** au lancement (`POST /runs`) puis terminée (`POST /runs/{id}/complete`) : un envoi par choix (le gratuit dès le clic, le 2ᵉ après la pub),
     au plus 2 candidats par partie (`game_runs.picks`, migration `0004_choix_par_partie.sql`), le 2ᵉ envoi dans les 15 min,
-    après au moins 75 % de la durée de campagne, calculée depuis `game_balance.json` (environ 9 min 07 s pour 12 min 10 de campagne), identifiants vérifiés. Une partie où le panneau de débogage
+    après au moins 75 % de la durée de campagne, calculée depuis `game_balance.json` (environ 9 min 07 s pour 12 min 10 de campagne), sans durée maximale (une campagne sauvegardée peut être reprise des jours plus tard), identifiants vérifiés. Une partie où le panneau de débogage
     (F3) a été ouvert n'est pas envoyée.
   - Limite honnête : en solo, le serveur ne voit pas la partie ; un jeu entièrement modifié pourrait encore tricher sur ses
     propres déblocages (pas sur ceux des autres, ni sur le classement).
 - **Sans compte** : la progression reste sur l'appareil, comme avant (mise de côté pendant la connexion, retrouvée à la
-  déconnexion, jamais importée dans le compte car falsifiable). Le profil « betatest » ne s'applique pas quand on est connecté.
+  déconnexion). Le profil « betatest » ne s'applique pas quand on est connecté.
+- **Reprise de l'appareil à la connexion** (`POST /api/v1/progression/import`) : pour ne pas repartir de zéro en créant son
+  compte après avoir joué, les candidats débloqués sur l'appareil sont ajoutés au compte, **une seule fois par compte**
+  (`users.device_import_at`, méthode `device_import`, ligne `device_import` dans `audit_log`). Cette progression est
+  invérifiable (stockage local modifiable) : c'est un compromis assumé, limité à une reprise par compte. Les identifiants
+  inconnus ou de départ sont refusés ; une 2ᵉ reprise (autre appareil, requête rejouée) répond `409 already_imported`.
 
 ## Multijoueur ↔ compte
 

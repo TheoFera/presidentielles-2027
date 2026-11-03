@@ -85,7 +85,7 @@ export class CampaignIntroScene {
     this.dossierClosedAt = null; this.closeRequested = false; this.dossierPending = false; this.waitForInput(false);
     clearTimeout(this.foldTimer); this.explain(false);
     this.root.hidden = true; this.banner.classList.remove('shown'); this.root.classList.remove('bands-out');
-    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
+    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls', 'intro-news-on']) this.setClass(name, false);
     this.showPrompt(null);
     if (this.renderer) this.renderer.zoomBoost = 1;
     if (this.namesShown) this.wheel()?.hideBiomeNames();
@@ -162,6 +162,8 @@ export class CampaignIntroScene {
         this.play('news');
       }
       this.banner.classList.toggle('shown', banner);
+      // Le temps du flash info, les boutons tactiles s'effacent : ils dépassaient de la barre, qui semblait coupée.
+      this.setClass('intro-news-on', banner);
     }
     const offsets = s.flash_offsets_seconds;
     while (mine == null && this.flashesDone < offsets.length && t >= this.bannerStart + offsets[this.flashesDone]) {
@@ -195,7 +197,7 @@ export class CampaignIntroScene {
     this.waitForInput(false);
     if (this.dossier) { this.dossier = false; this.foldExplanations(); }
     this.banner.classList.remove('shown'); this.showPrompt(null); this.root.classList.add('bands-out');
-    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls']) this.setClass(name, false);
+    for (const name of ['campaign-intro', 'intro-tutorial', 'intro-dossier', 'intro-tuto-move', 'intro-tuto-strike', 'intro-controls', 'intro-news-on']) this.setClass(name, false);
     this.ended({ tutorial: this.tutorial });
   }
 

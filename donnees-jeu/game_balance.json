@@ -138,8 +138,8 @@
   },
   "press_team": {
     "enabled": true,
-    "camera_hp": 30,
-    "reporter_hp": 80,
+    "camera_hp": 60,
+    "reporter_hp": 160,
     "movement_multiplier": 0.5,
     "attack_speed_multiplier": 0.5,
     "move_speed": 4.8,
@@ -148,7 +148,7 @@
     "max_spacing": 2.5,
     "turn_seconds": 0.15,
     "turn_deadzone": 0.6,
-    "camera_range": 4.5,
+    "camera_range": 6,
     "camera_height": 0.72,
     "cone_start_radius": 0.16,
     "cone_slope": 0.3,
@@ -399,7 +399,6 @@
         1
       ],
       "preexisting_in_world": true,
-      "required_local_sympathisants_to_use": 1,
       "max_waiting_tracts": 5,
       "can_be_targeted_by_philippe": false,
       "pay_per_use": true,
@@ -829,6 +828,7 @@
     "requires_button": false,
     "insufficient_funds_visual": "disabled_banknote",
     "radius_units": 1.15,
+    "presence_radius_units": 24,
     "owned_purchase_requires_reentry": true,
     "printer_repeat_purchase": true
   },

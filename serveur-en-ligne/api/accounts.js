@@ -167,7 +167,7 @@ function newsletterProvider(chosen, identities) {
 /** Données du joueur connecté (consultation du profil). */
 export async function getMe(db, userId) {
   const [user, identities, unlocks, ratings, newsletter] = await Promise.all([
-    db.prepare('SELECT id, username, status, created_at, newsletter_provider, avatar, title_rank FROM users WHERE id = ?').bind(userId).first(),
+    db.prepare('SELECT id, username, status, created_at, newsletter_provider, avatar, title_rank, device_import_at FROM users WHERE id = ?').bind(userId).first(),
     db.prepare('SELECT provider, email, email_is_private_relay, created_at, last_login_at FROM auth_identities WHERE user_id = ? ORDER BY created_at').bind(userId).all(),
     db.prepare('SELECT candidate_id, unlock_method, unlocked_at FROM player_candidate_unlocks WHERE user_id = ? ORDER BY unlocked_at, candidate_id').bind(userId).all(),
     db.prepare('SELECT ladder, rating, games, wins, losses FROM player_ratings WHERE user_id = ? AND season = \'global\'').bind(userId).all(),
@@ -176,7 +176,8 @@ export async function getMe(db, userId) {
   const unlocked = [...new Set([...DEFAULT_UNLOCKED, ...unlocks.results.map(u => u.candidate_id)])];
   return {
     user: { id: user.id, username: user.username, status: user.status, created_at: user.created_at,
-      avatar: user.avatar && cleanAvatar(user.avatar, unlocked) === user.avatar ? user.avatar : null, title_rank: titleRank(unlocked, user.title_rank) },
+      avatar: user.avatar && cleanAvatar(user.avatar, unlocked) === user.avatar ? user.avatar : null, title_rank: titleRank(unlocked, user.title_rank),
+      device_imported: user.device_import_at != null },
     identities: identities.results.map(i => ({ provider: i.provider, email: i.email, email_is_private_relay: i.email_is_private_relay === 1, linked_at: i.created_at, last_login_at: i.last_login_at })),
     newsletter: { ...newsletter, provider: newsletterProvider(user.newsletter_provider, identities.results) },
     unlocks: unlocked,

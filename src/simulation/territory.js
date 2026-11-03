@@ -1,5 +1,5 @@
 import { combatDelta } from './combat-geometry.js';
-import { FACTIONS, zoneAt } from './world.js';
+import { FACTIONS, ringDelta, zoneAt } from './world.js';
 import { emptySupport } from './electoral-state.js';
 
 export const stableIdOrder = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
@@ -8,6 +8,14 @@ export const factionRecord = value => Object.fromEntries(FACTIONS.map(f => [f, v
 
 export function localUnits(state, subzoneId, factionId = null) {
   return state.npcs.filter(n => (!factionId || n.faction_id === factionId) && zoneAt(state.world, n.x).id === subzoneId);
+}
+
+/** Sympathisants et militants d'un camp, parmi `units`, à moins de `radius` d'un bâtiment. */
+export function presenceAmong(state, units, building, faction, radius) {
+  let count = 0;
+  for (const n of units) if (n.faction_id === faction && (n.role === 'SYMPATHISANT' || n.role === 'MILITANT')
+    && Math.abs(ringDelta(building.x, n.x, state.world.length)) <= radius) count++;
+  return count;
 }
 
 export function localSympathisants(state, subzoneId, factionId) {

@@ -13,8 +13,17 @@ export const APP_WEBP_QUALITY = null;
 // Grandes illustrations des menus (fond fixe, dessiné une fois) : avec perte, environ dix fois plus légères,
 // pour que l'écran des candidats s'affiche vite sur téléphone. Ne concerne pas la carte.
 export const MENU_WEBP_QUALITY = 90;
+// Version web : personnages, effets, véhicules, bâtiments… avec perte en qualité 92 (environ trois fois plus légers,
+// chargement d'une campagne 175 → environ 85 Mio). Sur téléphone, ces images sont décodées une fois en bitmaps
+// (sprite-bitmaps.js) : aucun coût de dessin en plus. Comparé en jeu le 03/11/2026 : différence invisible
+// (scènes à 2×, écarts de texture fine seulement). Restent sans perte : les tuiles de la carte et les décors du
+// débat (images ordinaires dessinées en plein écran, voir la note de l'application ci-dessus), et l'application,
+// dont les images sont dans le paquet et ne sont pas téléchargées.
+export const WEB_WEBP_QUALITY = 92;
+const LOSSLESS_ON_WEB = /^assets\/images\/(carte|debat)\//;
 const webpOptions = (image, app) => image.startsWith('assets/images/menus/') ? { quality: MENU_WEBP_QUALITY }
-  : app && APP_WEBP_QUALITY ? { quality: APP_WEBP_QUALITY } : {};
+  : app ? (APP_WEBP_QUALITY ? { quality: APP_WEBP_QUALITY } : {})
+  : WEB_WEBP_QUALITY && !LOSSLESS_ON_WEB.test(image) ? { quality: WEB_WEBP_QUALITY } : {};
 const configNames = ['game_balance.json', 'world_layout.json', 'building_catalog.json', 'prototype_config.json', 'campaign_events.json'];
 
 // Fichiers réellement chargés par le jeu : on suit les <script>, <link>, import et @import
@@ -141,8 +150,17 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const started = Date.now();
   const report = await buildPages(defaultTarget, { webp: !process.argv.includes('--png'), app: process.argv.includes('--app') });
   const mib = bytes => (bytes / 1024 ** 2).toFixed(2);
-  if (!report.webp) console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
-  const format = !report.webp ? '' : report.app && APP_WEBP_QUALITY ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)';
+  if (!report.webp) {
+    // Publication automatique (GitHub Actions) : un export en PNG fait environ 300 Mio à télécharger au lieu de 95.
+    // Il est refusé plutôt que publié en silence (c'était le cas jusqu'au 03/11/2026).
+    if (process.env.CI && !process.argv.includes('--png')) {
+      console.error('ffmpeg (avec libwebp) est introuvable : export refusé, les images resteraient en PNG (environ 3 fois plus lourdes).');
+      process.exit(1);
+    }
+    console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
+  }
+  const format = !report.webp ? '' : report.app ? (APP_WEBP_QUALITY ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)')
+    : ` (WebP qualité ${WEB_WEBP_QUALITY}, carte et débat sans perte)`;
   console.log(`Jeu prêt dans dist/ : ${report.files} fichiers, ${mib(report.bytes)} Mio, dont ${mib(report.imageBytes)} Mio d'images${format}, en ${Math.round((Date.now() - started) / 1000)} s.`);
   if (!report.app) console.log("Version web. L'application Android se construit avec npm run android.");
 }
