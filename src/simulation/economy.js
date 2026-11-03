@@ -24,10 +24,8 @@ export function buildingOffer(state, config, candidate, building) {
   const settings = printing ? config.balance.buildings.imprimerie : buildingSettings(config, building, candidate.faction_id);
   let kind; let cost; let available = true; let reason = null;
   if (printing) {
+    // Imprimer ne demande aucun sympathisant sur place : le tract attend dans la pile qu'un sympathisant vienne le chercher.
     kind = 'PRINT'; cost = settings.tract_cost_by_level[building.level - 1];
-    if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
-      available = false; reason = 'NO_SYMPATHISANT';
-    }
     // Pile de tracts limitée : un tract en attente compte jusqu'à ce qu'un sympathisant l'emporte.
     if (building.queue.filter(order => order.faction_id === candidate.faction_id).length >= settings.max_waiting_tracts) {
       available = false; reason = 'QUEUE_FULL';
@@ -37,13 +35,13 @@ export function buildingOffer(state, config, candidate, building) {
   } else if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {
     kind = 'CAPTURE'; cost = building.type === 'permanence' && !candidate.headquarters_site_id
       ? settings.first_headquarters_capture_cost : settings.capture_cost_by_site?.[building.site_id] ?? settings.capture_cost;
-    const presence = localPoliticalPresence(state, building.subzone_id, candidate.faction_id);
+    const presence = localPoliticalPresence(state, config, building, candidate.faction_id);
     const required = settings.required_presence_N1;
     if (presence < required) { available = false; reason = 'INSUFFICIENT_PRESENCE'; }
     reason ||= captureLimitReason(state, config, building, candidate.faction_id);
   } else if (building.owner_id === candidate.faction_id && building.level < settings.max_level) {
     kind = 'UPGRADE'; cost = settings.upgrade_costs[building.level - 1];
-    if (localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]) {
+    if (localPoliticalPresence(state, config, building, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]) {
       available = false; reason = 'INSUFFICIENT_PRESENCE';
     }
   } else return null;
@@ -73,7 +71,7 @@ export function buildingOffers(state, config, candidate, building) {
   if (building.type === 'financement' && building.state === 'ACTIVE' && building.owner_id === candidate.faction_id
     && building.level < config.balance.buildings.financement.max_level) {
     const settings = config.balance.buildings.financement;
-    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]
+    const reason = localPoliticalPresence(state, config, building, candidate.faction_id) < settings[`required_presence_N${building.level + 1}`]
       ? 'INSUFFICIENT_PRESENCE' : null;
     const cost = settings.upgrade_costs[building.level - 1];
     offers.push({ target_id: building.id, key: `${building.id}:UPGRADE:${building.level}`, kind: 'UPGRADE', cost,

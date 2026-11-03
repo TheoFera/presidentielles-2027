@@ -399,7 +399,6 @@
         1
       ],
       "preexisting_in_world": true,
-      "required_local_sympathisants_to_use": 1,
       "max_waiting_tracts": 5,
       "can_be_targeted_by_philippe": false,
       "pay_per_use": true,
@@ -829,6 +828,7 @@
     "requires_button": false,
     "insufficient_funds_visual": "disabled_banknote",
     "radius_units": 1.15,
+    "presence_radius_units": 24,
     "owned_purchase_requires_reentry": true,
     "printer_repeat_purchase": true
   },

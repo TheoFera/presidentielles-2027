@@ -30,14 +30,14 @@ export function factionOffers(state, config, candidate, building) {
   const s = buildingSettings(config, building, candidate.faction_id);
   const p = config.balance.faction_interactions;
   if (['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state)) {
-    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < s.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
+    const reason = localPoliticalPresence(state, config, building, candidate.faction_id) < s.required_presence_N1 ? 'INSUFFICIENT_PRESENCE'
       : captureLimitReason(state, config, building, candidate.faction_id);
     return [quote(state, config, candidate, building, 'CAPTURE', s.capture_cost, building.x, p.center_radius, reason)];
   }
   if (building.owner_id !== candidate.faction_id) return [];
   const offers = [];
   if (building.level < s.max_level) {
-    const reason = localPoliticalPresence(state, building.subzone_id, candidate.faction_id) < s[`required_presence_N${building.level + 1}`] ? 'INSUFFICIENT_PRESENCE' : null;
+    const reason = localPoliticalPresence(state, config, building, candidate.faction_id) < s[`required_presence_N${building.level + 1}`] ? 'INSUFFICIENT_PRESENCE' : null;
     const chained = candidate.interaction_chain_site_id === building.id;
     offers.push(quote(state, config, candidate, building, 'UPGRADE', s.upgrade_costs[building.level - 1], chained ? building.x : building.x + p.upgrade_offset,
       chained ? p.center_radius : p.upgrade_radius, reason, { label: 'AMÉLIORER' }));

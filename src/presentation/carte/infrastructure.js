@@ -142,7 +142,7 @@ export function drawBanknote(renderer, state, known = undefined) {
   const need = presenceNeed(state, config, candidate, building, offer);
   if (need) {
     const ok = need.current >= need.required;
-    drawPresenceRow(ctx, infoX, rowY, need, p.factions[candidate.faction_id]?.color, ok, `${ok ? '✓' : '✗'} ${need.current}/${need.required} soutiens dans ce quartier`);
+    drawPresenceRow(ctx, infoX, rowY, need, p.factions[candidate.faction_id]?.color, ok, `${ok ? '✓' : '✗'} ${need.current}/${need.required} soutiens autour`);
     rowY += 24;
   }
   const other = offer.reason && !['INSUFFICIENT_FUNDS', 'INSUFFICIENT_PRESENCE'].includes(offer.reason) ? reasonTexts[offer.reason] || 'Indisponible pour le moment' : null;
@@ -153,7 +153,7 @@ export function drawBanknote(renderer, state, known = undefined) {
 const reasonTexts = {
   CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de dépenses de campagne atteint', CANDIDATE_LIMIT: 'Vous en possédez déjà le maximum',
   GLOBAL_LIMIT: 'Vous avez déjà le maximum de tours', QUEUE_FULL: 'Pile de tracts pleine : attendez un sympathisant',
-  NO_SYMPATHISANT: 'Il faut un de vos sympathisants dans ce biome', NO_MILITANT: 'Aucun de vos militants dans ce biome',
+  NO_MILITANT: 'Aucun de vos militants dans ce biome',
   NO_SUPPORTER: 'Il faut 3 sympathisants libres',
   COOLDOWN: 'Pas encore prêt : patientez un peu', ADMINISTRATIVE_BAN: 'Meeting interdit pour vous (temporaire)',
   NOT_ON_STAGE: 'Sautez sur la scène pour lancer le meeting', NO_BUILDING: 'Aucune cible à portée',
@@ -172,12 +172,12 @@ function formatCost(config, cost) {
     : `${formatNumber(cost, config.balance.display.currency_precision_decimals)} ${config.balance.display.currency_label}`;
 }
 
-/** Soutiens exigés dans le quartier pour prendre ou améliorer ce bâtiment ; null si la règle ne s'applique pas. */
+/** Soutiens exigés autour du bâtiment pour prendre ou améliorer ce bâtiment ; null si la règle ne s'applique pas. */
 function presenceNeed(state, config, candidate, building, offer) {
   if (!['CAPTURE', 'UPGRADE', 'MEETING'].includes(offer.kind)) return null;
   const settings = buildingSettings(config, building, candidate.faction_id);
   const required = settings[`required_presence_N${offer.kind === 'UPGRADE' ? building.level + 1 : 1}`] || 0;
-  return required > 0 ? { required, current: localPoliticalPresence(state, building.subzone_id, candidate.faction_id) } : null;
+  return required > 0 ? { required, current: localPoliticalPresence(state, config, building, candidate.faction_id) } : null;
 }
 
 /** Étiquette papier centrée, avec une éventuelle barre de progression intégrée. */
@@ -234,8 +234,7 @@ function drawPresenceRow(ctx, x, y, need, color, ok, text) {
 }
 
 /**
- * Repères permanents sur les bâtiments libres ou menacés : combien de soutiens il faut dans le quartier.
- * Près d'une offre, vos soutiens qui comptent dans le quartier sont entourés.
+ * Repères permanents sur les bâtiments libres ou menacés : combien de soutiens il faut autour du bâtiment.
  */
 export function drawSiteRequirements(renderer, state) {
   const { ctx, config, p, metrics: m, width } = renderer;
@@ -253,8 +252,9 @@ export function drawSiteRequirements(renderer, state) {
     const open = ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state);
     const threatened = building.state === 'ACTIVE' && building.owner_id === candidate.faction_id && !building.headquarters && building.closure_progress > 0;
     if (!open && !threatened) continue;
-    const current = localPoliticalPresence(state, building.subzone_id, candidate.faction_id);
-    // Un raid ferme le bâtiment quel que soit le nombre de partisans : l'alerte ne montre plus de seuil.
+    // Un bâtiment libre se prend avec les soutiens qui l'entourent ; un raid ferme le bâtiment quel que soit
+    // le nombre de partisans : l'alerte d'un bâtiment menacé ne montre plus de seuil.
+    const current = open ? localPoliticalPresence(state, config, building, candidate.faction_id) : 0;
     const required = open ? buildingSettings(config, building, candidate.faction_id).required_presence_N1 : 0;
     if (!required && !threatened) continue;
     const sprite = renderer.assets?.get(buildingAssetId(building, state.world));
