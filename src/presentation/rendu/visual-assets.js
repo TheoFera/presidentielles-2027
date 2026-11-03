@@ -14,6 +14,7 @@ export class VisualAssets {
     this.queue = [];
     // Images chargées en avance (pendant l'avertissement) : elles passent après les demandes du jeu.
     this.backgroundQueue = [];
+    this.deferred = new Set();
     this.active = 0;
   }
 
@@ -128,7 +129,17 @@ export class VisualAssets {
   keep(ids) {
     this.protectedIds = new Set(ids);
     this.trim();
-    return this.preload(ids);
+    return this.preload(ids.filter(id => !this.deferred.has(id)));
+  }
+
+  /**
+   * Images gardées en mémoire mais qui passent après toutes les autres (tuiles éloignées pendant le chargement
+   * d'une campagne) : keep() ne les rend plus prioritaires. defer([]) lève ce report ; load() les demande alors.
+   */
+  defer(ids) {
+    this.deferred = new Set(ids);
+    const later = this.backgroundQueue.filter(task => this.deferred.has(task.id));
+    this.backgroundQueue = [...this.backgroundQueue.filter(task => !this.deferred.has(task.id)), ...later];
   }
 
   trim() {

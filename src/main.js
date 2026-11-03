@@ -40,6 +40,7 @@ import { StartMenu } from './presentation/menus/start-menu.js';
 import { showLegalNotice, warmUpBehindNotice } from './presentation/menus/legal-notice.js';
 import { warmElectionPortraits } from './presentation/menus/election-results.js';
 import { worldAssetIds } from './presentation/carte/illustrated-world.js';
+import { deferredPlateTiles } from './presentation/carte/carte-plate.js';
 import { installLandscape } from './presentation/interface/landscape.js';
 import { SceneTransitions, campaignScene } from './presentation/interface/transitions.js';
 import { MultiplayerSession, showMultiplayerSetup, updateLobby, showPeerAnswer } from './presentation/multijoueur/multiplayer.js';
@@ -478,10 +479,16 @@ async function start() {
     // Reprise : pas de scène d'ouverture, le post-it des objectifs revient tel quel.
     if (!saved) introScene.start({ tutorial, briefing });
     objectives.reset(briefing, { done, faction });
+    // Tuiles de la carte : seules celles du quartier de départ et de ses voisines retiennent l'écran de chargement
+    // (près de la moitié des octets d'une campagne sur le web). Les autres arrivent juste après, des plus proches aux
+    // plus lointaines, pendant la préparation et la scène d'ouverture ; carte-plate.js garde le même voisinage décodé.
+    const start = simulation.state.candidates.find(c => c.id === simulation.state.local_candidate_id) || simulation.state.candidates[0];
+    const laterTiles = deferredPlateTiles(simulation.state.world, start.x);
+    renderer.assets.defer(laterTiles);
     renderer.artZone = null;
     // Premier dessin avec la scène d'ouverture (journalistes et public) : rien à charger en pleine scène.
     renderer.draw(introScene.view(state), state, 1, 0);
-    const ids = [...renderer.assets.protectedIds];
+    const ids = [...renderer.assets.protectedIds].filter(id => !laterTiles.includes(id));
     let timeout, finished = false, restartTimeout;
     onProgress(0);
     // Partie d'essai jetable (simulation/warm-up.js), jouée par petites tranches pendant que les images arrivent :
@@ -503,6 +510,8 @@ async function start() {
           restartTimeout(); onProgress(ratio * .6, 'images');
         }),
       ]);
+      renderer.assets.defer([]);
+      for (const id of laterTiles) void renderer.assets.load(id);
       // Prepare the first complete frame behind the loading screen. In
       // particular, texture uploads must not become simulation catch-up time.
       // Chaque image est envoyée une fois à la carte graphique derrière l’écran de chargement :
@@ -532,7 +541,7 @@ async function start() {
       onProgress(1);
       // Les portraits de la soirée électorale arrivent pendant la campagne, sans retarder son lancement.
       setTimeout(warmElectionPortraits, 3000);
-    } finally { finished = true; clearTimeout(timeout); }
+    } finally { finished = true; clearTimeout(timeout); renderer.assets.defer([]); }
   }
   function startSoloRun(candidateId) {
     soloRun = null;

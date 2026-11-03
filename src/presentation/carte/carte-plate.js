@@ -1,4 +1,4 @@
-import { ringDelta } from '../../simulation/world.js';
+import { ringDelta, zoneAt } from '../../simulation/world.js';
 
 /**
  * Décor « Carte plate », décor par défaut du jeu : la fresque peinte d'un seul plan, découpée en 18 tuiles.
@@ -75,6 +75,18 @@ function keepNearbyTilesDecoded(visibleIndexes) {
       // En cas d'échec, la tuile reste dessinée depuis l'image chargée par le jeu.
       .catch(() => { if (decodedTiles.get(index) === entry) decodedTiles.delete(index); });
   }
+}
+
+/**
+ * Tuiles qui peuvent arriver après le lancement d'une campagne : toutes sauf celle du point de départ et ses
+ * NEIGHBOR_TILES voisines de chaque côté (un écran couvre au plus deux tuiles). Triées de la plus proche à la plus
+ * lointaine, pour être chargées dans cet ordre. Sans tuile chargée, une sous-zone garde le décor de secours.
+ */
+export function deferredPlateTiles(world, x) {
+  const count = world.subzones.length, here = zoneAt(world, x).index;
+  const distance = index => { const d = Math.abs(index - here) % count; return Math.min(d, count - d); };
+  const zones = world.subzones.map(z => z.index).filter(index => distance(index) > NEIGHBOR_TILES);
+  return [...new Set(zones.sort((a, b) => distance(a) - distance(b)).map(index => tileId(index % TILE_COUNT)))];
 }
 
 /**
