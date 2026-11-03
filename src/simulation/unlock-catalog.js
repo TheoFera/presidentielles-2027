@@ -74,8 +74,6 @@ export const RUN_FOLLOW_UP_SECONDS = 15 * 60;
  * Durée réelle minimale d'une campagne solo pour que ses déblocages soient acceptés : 75 % de la campagne
  * (jours × durée d'un jour, voir game_balance.json). Le jeu et le serveur utilisent le même calcul.
  */
-/** Durée maximale (temps réel) entre le début d'une campagne solo déclarée au compte et sa fin, pauses comprises. */
-export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 export function campaignMinSeconds(time) {
   return Math.floor(time.starting_days_before_first_round * time.real_seconds_per_game_day * 0.75);
 }
