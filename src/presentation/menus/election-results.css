@@ -93,6 +93,8 @@
 .election-ticker-track span { display: inline-flex; align-items: center; }
 .election-ticker-track span::after { content: '◆'; margin: 0 1.1em; color: #e5333b; font-size: .8em; }
 .election-ticker-copy span::after { content: '◆'; }
+/* La copie de boucle est elle-même un span : pas de losange en plus du sien, sinon deux se suivent. */
+.election-ticker-track > .election-ticker-copy::after { content: none; }
 .election-actions { display: flex; align-items: center; gap: calc(var(--u) * .9); flex: none; }
 /* Verrou après l’annonce : boutons grisés, puis une barre se remplit jusqu’à leur activation. */
 #results .election-actions button:disabled { opacity: .45; filter: grayscale(.7); cursor: not-allowed; box-shadow: none; }
