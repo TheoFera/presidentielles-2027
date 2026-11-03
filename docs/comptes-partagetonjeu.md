@@ -192,7 +192,12 @@ Se connecter avec Google/Apple **n'est pas** un consentement. Si le texte change
   - Limite honnête : en solo, le serveur ne voit pas la partie ; un jeu entièrement modifié pourrait encore tricher sur ses
     propres déblocages (pas sur ceux des autres, ni sur le classement).
 - **Sans compte** : la progression reste sur l'appareil, comme avant (mise de côté pendant la connexion, retrouvée à la
-  déconnexion, jamais importée dans le compte car falsifiable). Le profil « betatest » ne s'applique pas quand on est connecté.
+  déconnexion). Le profil « betatest » ne s'applique pas quand on est connecté.
+- **Reprise de l'appareil à la connexion** (`POST /api/v1/progression/import`) : pour ne pas repartir de zéro en créant son
+  compte après avoir joué, les candidats débloqués sur l'appareil sont ajoutés au compte, **une seule fois par compte**
+  (`users.device_import_at`, méthode `device_import`, ligne `device_import` dans `audit_log`). Cette progression est
+  invérifiable (stockage local modifiable) : c'est un compromis assumé, limité à une reprise par compte. Les identifiants
+  inconnus ou de départ sont refusés ; une 2ᵉ reprise (autre appareil, requête rejouée) répond `409 already_imported`.
 
 ## Multijoueur ↔ compte
 

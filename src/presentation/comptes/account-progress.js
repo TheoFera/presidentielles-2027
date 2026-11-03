@@ -1,9 +1,10 @@
 // Progression affichée par le jeu (candidats débloqués) selon la situation :
 //   - connecté : la liste du compte PartageTonJeu (le serveur fait foi, copie locale pour l'affichage) ;
 //   - sans compte : la progression de cet appareil, comme avant.
-// La progression de l'appareil est mise de côté pendant la connexion et retrouvée à la déconnexion
-// (elle n'est jamais envoyée au compte : elle serait falsifiable).
-import { unlocksToProfile, profileUnlockIds } from '../../simulation/unlock-catalog.js';
+// La progression de l'appareil est mise de côté pendant la connexion et retrouvée à la déconnexion.
+// Une seule fois par compte, elle est reprise sur le compte (deviceUnlocksToImport) : on ne repart pas
+// de zéro en créant son compte après avoir joué. Le serveur refuse toute reprise suivante.
+import { unlocksToProfile, profileUnlockIds, isUnlockable } from '../../simulation/unlock-catalog.js';
 import { CAMPAIGN_STYLES } from '../../simulation/campaign-styles.js';
 import { DEBATE_CANDIDATES } from '../debat/debate-selection.js';
 
@@ -19,6 +20,17 @@ export function applyAccountProgress(profile, accounts) {
     delete profile.account; delete profile.device_unlocks;
   }
   return profile;
+}
+
+/**
+ * Candidats de cet appareil absents du compte, à reprendre sur le compte connecté ;
+ * [] si rien à reprendre ou si ce compte a déjà repris la progression d'un appareil.
+ */
+export function deviceUnlocksToImport(profile, accounts) {
+  const me = accounts.signedIn ? accounts.me : null;
+  if (!me?.user || me.user.device_imported) return [];
+  const owned = me.unlocks || [];
+  return (profile.device_unlocks || []).filter(id => isUnlockable(id) && !owned.includes(id));
 }
 
 /** Sans compte : les candidats gagnés en fin de partie restent sur cet appareil. */

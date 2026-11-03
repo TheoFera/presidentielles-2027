@@ -57,7 +57,7 @@ import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
-import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
+import { applyAccountProgress, addDeviceUnlocks, deviceUnlocksToImport, unlockNames } from './presentation/comptes/account-progress.js';
 import { campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
 import { openUnlockChoice } from './presentation/menus/unlock-choice.js';
 
@@ -89,7 +89,20 @@ async function start() {
   };
   // Compte PartageTonJeu (facultatif) : jamais demandé au lancement ni pour le solo.
   const accounts = new AccountClient({ platform: globalThis.PTJNativeAuth?.platform?.() || (APP_BUILD ? 'android' : 'web') });
-  const syncProgress = () => { applyAccountProgress(profile, accounts); account.save({}); };
+  // 1re connexion d'un compte : les candidats gagnés sur cet appareil sans compte sont repris sur le compte (une fois par compte).
+  let importing = false, importRefused = false;
+  const importDeviceProgress = () => {
+    if (!accounts.signedIn) { importRefused = false; return; }
+    const ids = deviceUnlocksToImport(profile, accounts);
+    if (!ids.length || importing || importRefused) return;
+    importing = true;
+    accounts.importDeviceUnlocks(ids)
+      .then(result => { if (result.imported.length) showAccountToast(`Progression de cet appareil ajoutée à ton compte : ${unlockNames(result.imported)} !`, 'ok'); })
+      // Hors ligne : nouvel essai au prochain changement du compte. Refus (déjà repris, ancien serveur) : plus d'essai.
+      .catch(error => { if (!error.offline) { importRefused = true; void accounts.refresh().catch(() => {}); } })
+      .finally(() => { importing = false; });
+  };
+  const syncProgress = () => { applyAccountProgress(profile, accounts); account.save({}); importDeviceProgress(); };
   accounts.onChange(syncProgress); syncProgress();
   // Session retrouvée : le profil du compte se met à jour en arrière-plan (hors ligne, la copie locale sert).
   void accounts.refresh().catch(() => {});

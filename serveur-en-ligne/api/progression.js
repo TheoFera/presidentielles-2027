@@ -4,6 +4,9 @@
 //   - multijoueur : résultat confirmé par les joueurs (matches.js) ;
 //   - campagne solo : partie déclarée au serveur au lancement (game_runs), puis
 //     terminée après une durée plausible, une seule fois.
+// Seule exception : la reprise, UNE fois par compte, des candidats gagnés sur l'appareil avant de se
+// connecter (importDeviceUnlocks). Cette progression est invérifiable ; elle est acceptée pour ne pas
+// faire repartir de zéro un joueur qui crée son compte après avoir joué, et notée dans le journal.
 // En solo, le serveur ne voit pas la partie : ces contrôles empêchent les requêtes
 // forgées (identifiant inconnu, partie inexistante, trop courte, rejouée), pas un jeu
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
@@ -73,4 +76,24 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (wanted.length) await db.batch(wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_run_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)').bind(userId, id, runId, now)));
   if (wanted.length) await updateTitleRank(db, userId);
   return { unlocked: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
+}
+
+/**
+ * Reprise des candidats débloqués sur l'appareil sans compte : une seule fois par compte (la 1re connexion
+ * d'un appareil qui a de la progression). Les identifiants inconnus ou de départ sont refusés.
+ */
+export async function importDeviceUnlocks(db, userId, body, now = nowSeconds()) {
+  const ids = body.unlocks;
+  if (!Array.isArray(ids) || !ids.length || ids.length > 40 || ids.some(id => !isUnlockable(id))) throw new ApiError(400, 'invalid_input', 'Liste de candidats invalide.');
+  // Verrou : deux requêtes simultanées ne passent pas toutes les deux.
+  const claimed = await db.prepare('UPDATE users SET device_import_at = ? WHERE id = ? AND device_import_at IS NULL').bind(now, userId).run();
+  if (!claimed.meta.changes) throw new ApiError(409, 'already_imported', 'La progression d’un appareil a déjà été reprise sur ce compte.');
+  const before = await listUnlocks(db, userId);
+  const wanted = [...new Set(ids)];
+  await db.batch([
+    ...wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, unlocked_at) VALUES (?, ?, \'device_import\', ?)').bind(userId, id, now)),
+    audit(db, userId, 'device_import', null, wanted.join(',')),
+  ]);
+  await updateTitleRank(db, userId);
+  return { imported: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
 }

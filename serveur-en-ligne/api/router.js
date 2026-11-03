@@ -5,7 +5,7 @@ import { enabledProviders, providerFor } from './providers.js';
 import { createSession, findSession, requireSession, revokeAllSessions, revokeSession } from './sessions.js';
 import { deleteAccount, getMe, linkIdentity, NEWSLETTER_CONSENT_VERSION, signInWithIdentity, unlinkIdentity, updateProfile, usernameAvailable, USERNAME_MAX, USERNAME_MIN } from './accounts.js';
 import { createMatch, joinMatch, matchStatus, reportResult, settleStaleMatches } from './matches.js';
-import { completeRun, listUnlocks, startRun } from './progression.js';
+import { completeRun, importDeviceUnlocks, listUnlocks, startRun } from './progression.js';
 import { LADDERS, leaderboard, myRank } from './ratings.js';
 import { ipKey, rateLimit } from './rate-limit.js';
 import { revokeAppleAuthorization } from './apple.js';
@@ -112,6 +112,10 @@ const ROUTES = [
   ['GET', /^progression$/, async ({ env, request }) => {
     const session = await requireSession(request, env.DB);
     return json({ unlocks: await listUnlocks(env.DB, session.userId) });
+  }],
+  ['POST', /^progression\/import$/, async ({ env, request, body, now }) => {
+    const session = await requireSession(request, env.DB);
+    return json(await importDeviceUnlocks(env.DB, session.userId, body, now));
   }],
   ['POST', /^runs$/, async ({ env, request, body, now }) => {
     const session = await requireSession(request, env.DB, { active: true });
