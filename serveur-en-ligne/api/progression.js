@@ -8,7 +8,7 @@
 // forgées (identifiant inconnu, partie inexistante, trop courte, rejouée), pas un jeu
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
 import { ApiError, audit, nowSeconds, randomId } from './util.js';
-import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, STYLE_UNLOCKS, campaignMinSeconds, isUnlockable } from '../../src/simulation/unlock-catalog.js';
+import { DEFAULT_UNLOCKED, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, SOLO_CAMPAIGN_MAX_SECONDS, STYLE_UNLOCKS, campaignMinSeconds, isUnlockable } from '../../src/simulation/unlock-catalog.js';
 import { titleRank } from '../../src/simulation/player-titles.js';
 
 import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
@@ -16,7 +16,7 @@ import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
 // Durée minimale lue dans les données du jeu (75 % de 365 jours × durée d'un jour) : le seuil suit tout
 // changement de durée. Le jeu fait le même calcul et ne propose pas de pub si la partie serait refusée.
 export const SOLO_CAMPAIGN_MIN_SECONDS = campaignMinSeconds(balance.time);
-export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
+export { SOLO_CAMPAIGN_MAX_SECONDS };
 
 export async function listUnlocks(db, userId) {
   const rows = (await db.prepare('SELECT candidate_id FROM player_candidate_unlocks WHERE user_id = ?').bind(userId).all()).results;

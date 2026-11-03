@@ -101,3 +101,12 @@ test('la sauvegarde n’est jamais écrite pendant le jeu : seulement à la paus
   const frame = main.slice(main.indexOf('function frame(now)'));
   assert.doesNotMatch(frame, /saveGame\(|saveCampaign\(/);
 });
+
+test('une campagne reprise trop tard (plus de 8 h) ne propose ni choix ni pub : même limite que le serveur', async () => {
+  const { SOLO_CAMPAIGN_MAX_SECONDS } = await import('../src/simulation/unlock-catalog.js');
+  const server = await import('../serveur-en-ligne/api/progression.js');
+  assert.equal(server.SOLO_CAMPAIGN_MAX_SECONDS, SOLO_CAMPAIGN_MAX_SECONDS);
+  const main = fs.readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /const tooLong = run && runSeconds > SOLO_CAMPAIGN_MAX_SECONDS - RUN_CLOCK_MARGIN_SECONDS;/);
+  assert.match(main, /run\.tainted \|\| tooShort \|\| tooLong\)/);
+});

@@ -58,7 +58,7 @@ import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
 import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
-import { campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
+import { SOLO_CAMPAIGN_MAX_SECONDS, campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
 import { openUnlockChoice } from './presentation/menus/unlock-choice.js';
 import { canSaveCampaign, clearSavedCampaign, loadSavedCampaign, saveCampaign, savedCampaignSummary } from './presentation/menus/saved-campaign.js';
 
@@ -567,9 +567,12 @@ async function start() {
     const signedIn = accounts.signedIn;
     // Partie que le serveur refuserait (hors ligne au lancement, accélérée, trop courte) : ni choix ni pub,
     // pour ne jamais faire regarder une pub qui ne rapporterait rien.
-    const tooShort = run && (Date.now() - run.startedAt) / 1000 < campaignMinSeconds(config.balance.time) + RUN_CLOCK_MARGIN_SECONDS;
-    if (signedIn && (!run?.id || run.tainted || tooShort)) {
-      if (offer?.won) showAccountToast('Déblocage impossible pour cette partie : hors ligne, accélérée ou trop courte.'); else lost();
+    const runSeconds = run ? (Date.now() - run.startedAt) / 1000 : 0;
+    const tooShort = run && runSeconds < campaignMinSeconds(config.balance.time) + RUN_CLOCK_MARGIN_SECONDS;
+    // Campagne sauvegardée puis reprise trop tard : le serveur refuserait la fin de partie (après une pub regardée).
+    const tooLong = run && runSeconds > SOLO_CAMPAIGN_MAX_SECONDS - RUN_CLOCK_MARGIN_SECONDS;
+    if (signedIn && (!run?.id || run.tainted || tooShort || tooLong)) {
+      if (offer?.won) showAccountToast(tooLong ? 'Déblocage impossible : partie reprise plus de 8 h après son début.' : 'Déblocage impossible pour cette partie : hors ligne, accélérée ou trop courte.'); else lost();
       return;
     }
     const record = ids => {
