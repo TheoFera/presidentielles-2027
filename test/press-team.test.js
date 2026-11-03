@@ -156,7 +156,7 @@ test('La charge complète demande réellement plus de temps pendant le filmage',
 });
 
 test('La caméra ne se tourne pas seule : sortir de sa portée la fait se déplacer et recadrer',()=>{
-  const f=setup();aim(f);f.c.x=f.camera.x+5;
+  const f=setup();aim(f);f.c.x=f.camera.x+f.sim.config.balance.press_team.camera_range+.5;
   const before=f.camera.x;ticks(f.sim,1);
   assert.ok(f.camera.x>before);assert.equal(f.camera.filming,false);assert.equal(filmed(f.sim.state,f.sim.config,f.c),false);
 });
