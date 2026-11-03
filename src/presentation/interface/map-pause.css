@@ -38,8 +38,8 @@
 }
 .pause-icon { display: flex; gap: .2em; height: 1em; }
 .pause-icon::before, .pause-icon::after { content: ''; width: .3em; border-radius: .08em; background: currentColor; box-shadow: 0 2px #14272b; }
-/* Solo : « Retour au menu » en haut à droite, et la confirmation de la sauvegarde dessous. */
-.pause-actions { position: absolute; right: 2.5%; top: 3%; display: flex; flex-direction: column; align-items: flex-end; gap: .35em; animation: pause-fade .3s ease-out both; }
+/* Solo : « Retour au menu » en haut à gauche, et la confirmation de la sauvegarde dessous. */
+.pause-actions { position: absolute; left: 2.5%; top: 3%; display: flex; flex-direction: column; align-items: flex-start; gap: .35em; animation: pause-fade .3s ease-out both; }
 .pause-actions[hidden] { display: none; }
 .pause-home {
   padding: .55em 1em; border: 0; border-radius: 6px; cursor: pointer; background: #fff5df; color: #14272b;

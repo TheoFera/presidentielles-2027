@@ -38,7 +38,7 @@ export class MapPause {
     this.root = document.createElement('div'); this.root.id = 'map-pause'; this.root.hidden = true;
     this.root.innerHTML = '<div class="pause-veil"></div><p class="pause-title" role="status"><span class="pause-icon" aria-hidden="true"></span>Pause</p>'
       + '<aside class="pause-memo" aria-label="Mémo" hidden></aside><p class="pause-prompt"></p>'
-      + '<div class="pause-actions" hidden><button type="button" class="pause-home">Retour au menu</button><p class="pause-saved" role="status"></p></div>';
+      + '<div class="pause-actions" hidden><button type="button" class="pause-home" aria-label="Retour au menu (la partie est sauvegardée)">Menu</button><p class="pause-saved" role="status"></p></div>';
     this.memo = this.root.querySelector('.pause-memo'); this.prompt = this.root.querySelector('.pause-prompt');
     this.actions = this.root.querySelector('.pause-actions'); this.saved = this.root.querySelector('.pause-saved');
     this.actions.querySelector('.pause-home').addEventListener('click', () => { if (this.open && this.mine) this.home(); });
