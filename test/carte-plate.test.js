@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { config } from '../scripts/game-config.mjs';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { ringDelta } from '../src/simulation/world.js';
-import { plateSignFrame } from '../src/presentation/carte/carte-plate.js';
+import { plateSignFrame, deferredPlateTiles, plateAssetIds } from '../src/presentation/carte/carte-plate.js';
 import { readPng } from '../scripts/lib/png.mjs';
 
 test('Les textes des devantures restaurées restent dans leurs panneaux peints, au zoom et sur la boucle', () => {
@@ -57,4 +57,16 @@ test('Les autres bâtiments conservent leur placement de panneau habituel', () =
   assert.deepEqual(plateSignFrame(renderer, building), {
     x: renderer.screenX(building.x), y: 482, w: 220, h: 44, painted: true,
   });
+});
+
+test('Au lancement, seules les tuiles du départ et de ses voisines sont attendues ; les autres suivent, des plus proches aux plus lointaines', () => {
+  const { world } = new GameSimulation(structuredClone(config), 42).state;
+  const later = deferredPlateTiles(world, world.subzones[0].center);
+  assert.deepEqual(plateAssetIds().filter(id => !later.includes(id)), ['plate-01', 'plate-02', 'plate-03', 'plate-17', 'plate-18']);
+  assert.equal(later.length, 13);
+  assert.deepEqual(later.slice(0, 2).sort(), ['plate-04', 'plate-16']);
+  assert.equal(later.at(-1), 'plate-10');
+  // Bord de la boucle : la dernière sous-zone a pour voisines les premières.
+  const end = deferredPlateTiles(world, world.length - 0.1);
+  for (const id of ['plate-16', 'plate-17', 'plate-18', 'plate-01', 'plate-02']) assert.ok(!end.includes(id));
 });
