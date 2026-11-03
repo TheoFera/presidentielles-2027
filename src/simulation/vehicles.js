@@ -2,13 +2,15 @@ import { canCampaign } from './combat-state.js';
 import { ringDelta } from './world.js';
 
 export const garageVehicle = type => ({ garage_velo: 'velo', garage_scooter: 'scooter' })[type] || null;
+/** Demi-largeur de la zone de montée : toute la façade peinte du garage (mesurée dans sa tuile), sinon le rayon par défaut. */
+export const garageRadius = (config, building) => config.balance.vehicles.garage_half_width_units?.[building?.site_id] ?? config.balance.vehicles.garage_radius_units;
 /** Garage où la montée peut réellement progresser, pour la simulation et l’affichage. */
 export function vehicleMountSite(state, config, candidate) {
   if (!candidate || candidate.eliminated || candidate.vehicle || candidate.axis || !candidate.interaction_active
     || state.campaign_style_selection || !canCampaign(candidate) || candidate.combat?.height > 0
     || !['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)) return null;
   return state.buildings.find(b => garageVehicle(b.type) && b.state === 'ACTIVE' && b.owner_id === candidate.faction_id
-    && Math.abs(ringDelta(candidate.x, b.x, state.world.length)) <= config.balance.vehicles.garage_radius_units) || null;
+    && Math.abs(ringDelta(candidate.x, b.x, state.world.length)) <= garageRadius(config, b)) || null;
 }
 // Le dash ne fait pas descendre : à vélo ou en scooter, un double appui sur une flèche est ignoré
 // (on accélère souvent en rappuyant, ce qui faisait tomber du véhicule sans le vouloir).

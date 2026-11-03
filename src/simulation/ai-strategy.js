@@ -1,3 +1,4 @@
+import { garageRadius } from './vehicles.js';
 import { FACTIONS, isMinorFaction, ringDelta, zoneAt } from './world.js';
 import { aiNoise, aiSettings } from './ai-settings.js';
 import { aiCombatCommands, aiAttackRange } from './ai-combat.js';
@@ -266,7 +267,7 @@ export function strategicAICommands(state, config, c) {
     // Long trajet : passer d’abord prendre son véhicule s’il est tout près (immobile devant le garage).
     const garage = !arrived && rideGarage(state, config, c, x);
     if (garage) {
-      const g = ringDelta(c.x, garage.x, state.world.length), atGarage = Math.abs(g) <= config.balance.vehicles.garage_radius_units * 0.6;
+      const g = ringDelta(c.x, garage.x, state.world.length), atGarage = Math.abs(g) <= garageRadius(config, garage) * 0.6;
       return commands(atGarage ? 0 : Math.sign(g), atGarage);
     }
     return commands(arrived ? 0 : Math.sign(d), arrived && purchase);

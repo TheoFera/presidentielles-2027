@@ -1175,6 +1175,11 @@
   "vehicles": {
     "mount_seconds": 1,
     "garage_radius_units": 0.7,
+    "garage_half_width_units": {
+      "site:paris_b": 2,
+      "site:periurbain_b": 2.5,
+      "site:campagne_a": 3
+    },
     "velo_speed_multiplier": 2.8,
     "scooter_speed_multiplier": 3.3
   },

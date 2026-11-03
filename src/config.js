@@ -151,7 +151,10 @@ export function validateConfig(config) {
     || slot.controls_zone && ['meeting', 'institut_sondage', 'imprimerie', 'financement'].includes(slot.type)
     || slot.type === 'faction' && !['service_ordre', 'cabinet_administratif'].includes(slot.fixed_variant)) throw new Error('Fonction de bâtiment invalide.');
   validateMinorConfig(config);
-  for (const [key, value] of Object.entries(config.balance.vehicles)) positive(value, key);
+  for (const [key, value] of Object.entries(config.balance.vehicles)) {
+    if (key === 'garage_half_width_units') for (const [site, width] of Object.entries(value)) positive(width, `${key}.${site}`);
+    else positive(value, key);
+  }
   for (const [key, value] of Object.entries(config.balance.zone_control)) positive(value, key);
   const capturableConfigs = ['garage_velo', 'garage_scooter', 'permanence', 'financement', 'tour_communication', 'faction_slot_melenchon_lepen_service_ordre', 'faction_slot_philippe_cabinet_administratif'];
   for (const type of [...capturableConfigs, 'imprimerie', 'meeting', 'institut_sondage']) {
