@@ -120,8 +120,10 @@ export function drawMoneyFeedback(renderer, state) {
     const age = state.tick - event.tick;
     if (age < 0 || age >= duration) continue;
     if (!MONEY_FEEDBACK_EVENTS.has(event.type)) continue;
-    const entity = state.npcs.find(n => n.id === event.npc_id) || state.candidates.find(c => c.id === event.candidate_id)
-      || state.buildings.find(b => b.id === event.target_id);
+    // Identifiant absent : inutile de parcourir toute la population (des centaines d'habitants en fin de campagne).
+    const entity = (event.npc_id != null && state.npcs.find(n => n.id === event.npc_id))
+      || (event.candidate_id != null && state.candidates.find(c => c.id === event.candidate_id))
+      || (event.target_id != null && state.buildings.find(b => b.id === event.target_id));
     if (!entity) continue;
     const x = renderer.screenX(entity.x);
     ctx.save(); ctx.globalAlpha = 1 - age / duration;

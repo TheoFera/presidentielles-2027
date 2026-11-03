@@ -77,6 +77,16 @@ function keepNearbyTilesDecoded(visibleIndexes) {
   }
 }
 
+/**
+ * Image d'une tuile pour un dessin de détail (premier plan remis devant un rideau) : la copie déjà décodée
+ * hors du fil du jeu si elle existe. L'image chargée par le jeu peut avoir été jetée de la mémoire par le
+ * navigateur (surtout dans l'application) : la redessiner forcerait un décodage complet de la tuile en pleine partie.
+ */
+export function plateTileImage(renderer, tile) {
+  const index = Number(tile.slice(6)) - 1;
+  return decodedTiles.get(index)?.bitmap || renderer.assets.get(tile);
+}
+
 /** Bord gauche d'une tuile à l'écran, avant l'arrondi au pixel entier. */
 function tileLeft(renderer, world, zone) {
   return renderer.metrics.anchorX + (ringDelta(renderer.cameraX, zone.center, world.length) - zone.width / 2) * renderer.metrics.pixelsPerUnit;

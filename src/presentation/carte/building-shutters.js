@@ -1,5 +1,5 @@
 import { buildingShutterProgress } from '../../simulation/building-shutters.js';
-import { plateFeatureFrame } from './carte-plate.js';
+import { plateFeatureFrame, plateTileImage } from './carte-plate.js';
 import { buildingGeometry } from './illustrated-buildings.js';
 
 export const BUILDING_SHUTTER_ASSET = 'building-shutter-metal';
@@ -160,7 +160,7 @@ function restoreForeground(renderer, opening, frame) {
     ctx.restore(); return;
   }
   if (!opening.foreground) return;
-  const image = renderer.assets.get(frame.tile);
+  const image = plateTileImage(renderer, frame.tile);
   if (!image) return;
   const sw = image.naturalWidth || image.width, sh = image.naturalHeight || image.height;
   const { ctx } = renderer;
