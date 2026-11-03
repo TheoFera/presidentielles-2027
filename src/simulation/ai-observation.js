@@ -1,5 +1,6 @@
-import { zoneAt } from './world.js';
+import { wrap, zoneAt } from './world.js';
 import { withNpcProximity } from './npc-proximity.js';
+import { presenceAmong } from './territory.js';
 
 // Une observation est partagée uniquement pendant la production de commandes, avant leur application.
 // Aucune donnée de travail n'entre dans les sauvegardes ou les états multijoueurs.
@@ -7,9 +8,30 @@ const active = new WeakMap();
 const reusable = new WeakMap();
 
 class AIObservation {
-  constructor() { this.zones = new Map(); }
+  constructor() { this.zones = new Map(); this.presence = new Map(); }
+
+  /** Soutiens d'un camp autour d'un bâtiment : seuls les quartiers à portée sont parcourus, une fois par décision. */
+  presenceAround(state, building, faction, radius) {
+    const key = `${building.id}|${faction}|${radius}`;
+    let count = this.presence.get(key);
+    if (count !== undefined) return count;
+    const zones = state.world.subzones; const width = zones[0].width;
+    const first = Math.floor((wrap(building.x, state.world.length) - radius) / width);
+    const last = Math.floor((wrap(building.x, state.world.length) + radius) / width);
+    count = 0;
+    const seen = new Set();
+    for (let i = first; i <= last; i++) {
+      const zone = zones[((i % zones.length) + zones.length) % zones.length];
+      if (seen.has(zone.id)) continue;
+      seen.add(zone.id);
+      count += presenceAmong(state, this.zones.get(zone.id).units, building, faction, radius);
+    }
+    this.presence.set(key, count);
+    return count;
+  }
 
   refresh(state) {
+    this.presence.clear();
     if (this.world !== state.world || this.zones.size !== state.world.subzones.length) this.zones.clear();
     this.world = state.world;
     for (const zone of state.world.subzones) {

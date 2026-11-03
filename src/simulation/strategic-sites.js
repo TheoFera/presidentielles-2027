@@ -2,7 +2,7 @@ import { CampaignStyleSystem } from './campaign-styles.js';
 import { scatterMoney } from './money.js';
 import { random, ringDelta, zoneAt } from './world.js';
 import { buildingSettings, siteVariant, acceptsDonations, isCapturable } from './building-rules.js';
-import { stableIdOrder } from './territory.js';
+import { presenceAmong, stableIdOrder } from './territory.js';
 import { prepareBuildingShutterTransition } from './building-shutters.js';
 import { recruitDefensiveGuards } from './military.js';
 import { sharedAIObservation } from './ai-observation.js';
@@ -42,14 +42,17 @@ export function createInfrastructure(world, config, _rngState) {
   return { buildings, slots };
 }
 
-export function localPoliticalPresence(state, subzoneId, faction) {
-  // Pendant les décisions de l'IA, l'état ne bouge pas : les soutiens sont déjà comptés par quartier
-  // (ai-observation.js), au lieu de parcourir tous les habitants pour chaque bâtiment examiné.
+/**
+ * Soutiens (sympathisants et militants) d'un camp qui comptent pour prendre ou améliorer un bâtiment :
+ * ceux à moins de `interaction.presence_radius_units` de sa façade, de part et d'autre, frontières de quartier ignorées.
+ */
+export function localPoliticalPresence(state, config, building, faction) {
+  const radius = config.balance.interaction.presence_radius_units;
+  // Pendant les décisions de l'IA, l'état ne bouge pas : les habitants sont déjà rangés par quartier
+  // (ai-observation.js), seuls les quartiers à portée sont parcourus, et chaque résultat est gardé.
   const observation = sharedAIObservation(state);
-  if (observation) return observation.zones.get(subzoneId)?.readyByFaction.get(faction) || 0;
-  let count = 0;
-  for (const n of state.npcs) if (n.faction_id === faction && (n.role === 'SYMPATHISANT' || n.role === 'MILITANT') && zoneAt(state.world, n.x).id === subzoneId) count++;
-  return count;
+  if (observation) return observation.presenceAround(state, building, faction, radius);
+  return presenceAmong(state, state.npcs, building, faction, radius);
 }
 
 export function activeOwnedSites(state, type, faction) {

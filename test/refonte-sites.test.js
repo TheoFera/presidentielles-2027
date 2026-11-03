@@ -193,3 +193,29 @@ test('Permanence : imprimer des tracts ne demande aucun sympathisant dans le qua
   assert.equal(actor.spending.PRINT, 0.1);
   assert.equal(printer.queue.filter(o => o.faction_id === actor.faction_id).length, 1);
 });
+
+test('Construction : les soutiens comptent à un écran de part et d’autre du bâtiment, quartier voisin compris', async () => {
+  const { localPoliticalPresence } = await import('../src/simulation/strategic-sites.js');
+  const { withAIObservation } = await import('../src/simulation/ai-observation.js');
+  const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
+  sim.state.npcs = sim.state.npcs.filter(n => n.faction_id !== actor.faction_id);
+  const radius = config.balance.interaction.presence_radius_units;
+  const site = sim.state.buildings.find(b => b.type === 'tour_communication' && b.state !== 'ACTIVE');
+  actor.x = site.x;
+  const width = sim.state.world.subzones[0].width;
+  // Un soutien dans le quartier voisin, à portée ; un autre juste hors de portée.
+  const near = unit(sim, 'SYMPATHISANT', actor.faction_id, site.x + radius - 0.5);
+  unit(sim, 'MILITANT', actor.faction_id, site.x - radius - 0.5);
+  assert.notEqual(zoneAt(sim.state.world, near.x).id, site.subzone_id);
+  assert.ok(radius >= width);
+  const count = () => localPoliticalPresence(sim.state, config, site, actor.faction_id);
+  assert.equal(count(), 1);
+  // L'IA compte par quartier rangé à l'avance : même résultat.
+  assert.equal(withAIObservation(sim.state, count), 1);
+  const required = config.balance.buildings.tour_communication.required_presence_N1;
+  for (let i = 1; i < required; i++) unit(sim, 'MILITANT', actor.faction_id, site.x - radius + 1 + i);
+  assert.equal(count(), required);
+  assert.equal(withAIObservation(sim.state, count), required);
+  const offer = buildingOffers(sim.state, config, actor, site)[0];
+  assert.equal(offer.kind, 'CAPTURE'); assert.notEqual(offer.reason, 'INSUFFICIENT_PRESENCE');
+});

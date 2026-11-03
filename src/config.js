@@ -99,6 +99,7 @@ export function validateConfig(config) {
   if (!['SUDDEN_DEATH', 'REPEAT_OVERTIME', 'J0_THEN_SEED'].includes(sprint.tie_rule)) throw new Error('Configuration : règle d’égalité inconnue.');
   positive(config.balance.persuasion.militant_base_seconds, 'temps de persuasion des Militants');
   positive(config.balance.interaction.radius_units, 'portée des interactions');
+  positive(config.balance.interaction.presence_radius_units, 'portée des soutiens autour d’un bâtiment');
   if (!Number.isInteger(config.layout.social_points_per_subzone) || config.layout.social_points_per_subzone < 1) throw new Error('Configuration : au moins un point social par sous-zone.');
   if (config.layout.neutral_spawn_capacity_policy !== 'skip_and_reschedule_when_full') throw new Error('Configuration : politique de capacité inconnue.');
   const populationGrowth = config.layout.neutral_population_growth;

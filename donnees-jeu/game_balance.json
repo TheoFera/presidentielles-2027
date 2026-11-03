@@ -828,6 +828,7 @@
     "requires_button": false,
     "insufficient_funds_visual": "disabled_banknote",
     "radius_units": 1.15,
+    "presence_radius_units": 24,
     "owned_purchase_requires_reentry": true,
     "printer_repeat_purchase": true
   },
