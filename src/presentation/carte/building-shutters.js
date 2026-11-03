@@ -24,7 +24,7 @@ export const BUILDING_OPENINGS = {
   'site:periurbain_c': { x: 890, y: 822, w: 94, h: 182 },
   'site:campagne_a': { x: 1434, y: 785, w: 195, h: 195, kind: 'doors',
     // Retire uniquement les battants peints dans la tuile ; l'intérieur et le reste du décor restent d'origine.
-    repair: [{ x: 1379, y: 780, w: 55, h: 209 }, { x: 1629, y: 780, w: 67, h: 211 }] },
+    repair: [{ x: 1376, y: 778, w: 58, h: 213 }, { x: 1629, y: 778, w: 72, h: 215 }] },
   'site:campagne_b': { x: 375, y: 822, w: 94, h: 182 },
   'site:campagne_c': { x: 642, y: 822, w: 94, h: 182 },
   'site:retraites_a': { x: 1208, y: 824, w: 94, h: 180 },
