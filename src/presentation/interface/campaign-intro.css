@@ -23,7 +23,7 @@
 /* Flash info du journal télévisé : titre sur fond blanc, pastille rouge « FLASH INFO »,
    filet bleu-blanc-rouge, et brèves qui défilent sous le titre. */
 .intro-news {
-  position: absolute; left: 3%; right: 0; bottom: 3.2%; display: grid;
+  position: absolute; left: 0; right: 0; bottom: 3.2%; display: grid;
   font-size: clamp(12px, min(1.75vw, 3.1dvh), 25px); line-height: 1.15;
   transform: translateX(-112%); transition: transform .5s cubic-bezier(.2, 1, .3, 1);
 }
