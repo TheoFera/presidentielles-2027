@@ -35,6 +35,12 @@ Toucher la carte (ou Échap, P au clavier) met la partie en pause (`presentation
 
 En **multijoueur**, la pause vaut pour tous les joueurs ; seul celui qui l'a lancée peut la lever (`setRoomPause` dans `network/lobby.js`), les autres voient « Pause demandée par … ». S'il quitte le salon, n'importe qui peut la lever.
 
+### Sauvegarde de la campagne solo
+
+En solo, la campagne est sauvegardée dans le stockage du navigateur ou de l'appli (`presentation/menus/saved-campaign.js`), à trois moments seulement, jamais pendant le jeu : à l'ouverture de la pause (« ✓ Partie sauvegardée » sous le bouton), au bouton **Retour au menu** de la pause (en haut à droite), et quand le jeu passe en arrière-plan (autre onglet, appli quittée, téléphone verrouillé, page fermée) : la partie se met alors aussi en pause, et on la retrouve en pause au retour. Une sauvegarde copie l'état de la simulation (environ 250 ko) en quelques millisecondes. Une seule partie est gardée.
+
+Campagne → Solo propose alors **Reprendre** (candidat et jour) ou **Nouvelle partie**, sur l'écran « Avec qui ? ». La reprise passe par l'écran de chargement, sans scène d'ouverture, et continue exactement là où la partie s'était arrêtée ; la partie déclarée au compte reste la même, pour les déblocages de fin de partie. Seuls la campagne et le sprint du second tour sont sauvegardés (pas la scène d'ouverture, les débats télé ni les résultats) : quitter pendant un débat reprend à la dernière sauvegarde. La sauvegarde est effacée quand une nouvelle campagne solo commence (bouton « Jouer »), à l'élimination du joueur et aux résultats. Une sauvegarde faite avec une autre version des données du jeu n'est pas proposée. Le multijoueur et le mode Débat ne sont pas sauvegardés.
+
 ## Électeurs et persuasion
 
 - Les **Neutres** apparaissent dans chaque sous-zone, jusqu'à un plafond par sous-zone (`world_layout.json`, `max_npcs_by_origin`). Chaque habitant reçoit sa propre place, choisie loin de celles des autres (`prototype_config.json`, `home_margin_units`, `home_candidate_draws`) : il y apparaît, flâne autour (`roam_radius_units`) et y revient. Un habitant garde toujours son quartier d'origine.

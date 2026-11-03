@@ -2,6 +2,7 @@
 // du tutoriel, avec à gauche le post-it des objectifs et leurs explications ; une fois le tutoriel
 // terminé, un mémo des habitants et des bâtiments (deux post-its) prend sa place.
 // En multijoueur, la pause vaut pour tout le monde, et seul le joueur qui l'a lancée peut la lever.
+// En solo, la pause sauvegarde la partie (voir menus/saved-campaign.js) et propose « Retour au menu ».
 import { BIOME_NAMES } from './campaign-intro.js';
 import { placeDossier } from './dossier-layout.js';
 
@@ -30,13 +31,17 @@ export class MapPause {
    * `objectives` : le post-it (campaign-objectives.js) ; `wheel()` : la roue de la carte ;
    * `request(paused)` : demande la pause ou sa fin (solo : tout de suite ; multijoueur : au salon).
    * `hint` : un symbole ⏸ pulse sur la carte jusqu'à la première pause du joueur, puis `onUsed()` est appelé.
+   * `home()` : bouton « Retour au menu » (solo), qui sauvegarde la partie puis ouvre l'accueil.
    */
-  constructor(game, { objectives, wheel = () => null, request = () => {}, hint = false, onUsed = () => {} } = {}) {
-    this.game = game; this.objectives = objectives; this.wheel = wheel; this.request = request; this.hint = hint; this.onUsed = onUsed;
+  constructor(game, { objectives, wheel = () => null, request = () => {}, hint = false, onUsed = () => {}, home = () => {} } = {}) {
+    this.game = game; this.objectives = objectives; this.wheel = wheel; this.request = request; this.hint = hint; this.onUsed = onUsed; this.home = home;
     this.root = document.createElement('div'); this.root.id = 'map-pause'; this.root.hidden = true;
     this.root.innerHTML = '<div class="pause-veil"></div><p class="pause-title" role="status"><span class="pause-icon" aria-hidden="true"></span>Pause</p>'
-      + '<aside class="pause-memo" aria-label="Mémo" hidden></aside><p class="pause-prompt"></p>';
+      + '<aside class="pause-memo" aria-label="Mémo" hidden></aside><p class="pause-prompt"></p>'
+      + '<div class="pause-actions" hidden><button type="button" class="pause-home">Retour au menu</button><p class="pause-saved" role="status"></p></div>';
     this.memo = this.root.querySelector('.pause-memo'); this.prompt = this.root.querySelector('.pause-prompt');
+    this.actions = this.root.querySelector('.pause-actions'); this.saved = this.root.querySelector('.pause-saved');
+    this.actions.querySelector('.pause-home').addEventListener('click', () => { if (this.open && this.mine) this.home(); });
     this.memo.innerHTML = `<div class="memo-tabs" role="tablist">${MEMO.map(([title], i) => `<button type="button" role="tab" data-memo="${i}">${title}</button>`).join('')}</div>`
       + MEMO.map(([title, items], i) => `<section class="postit memo-note memo-note-${i}" role="tabpanel"><h2>${title}</h2><dl>${items.map(([name, text]) => `<dt>${name}</dt><dd>${text}</dd>`).join('')}</dl></section>`).join('');
     this.memo.addEventListener('click', event => { const tab = event.target.closest('[data-memo]'); if (tab) this.showMemo(Number(tab.dataset.memo)); });
@@ -45,8 +50,8 @@ export class MapPause {
     this.open = false; this.mine = false; this.openedAt = 0;
     // Pendant la pause, tout appui sur l'écran est pour elle (et ne fait pas marcher le candidat).
     game.addEventListener('pointerdown', event => {
-      // Le mémo se fait défiler du doigt sans lever la pause.
-      if (!this.open || this.memo.contains(event.target)) return;
+      // Le mémo se fait défiler du doigt sans lever la pause ; le bouton « Retour au menu » ne la lève pas non plus.
+      if (!this.open || this.memo.contains(event.target) || this.actions.contains(event.target)) return;
       event.preventDefault(); event.stopPropagation();
       if (performance.now() - this.openedAt > REOPEN_GUARD_MS) this.resumeRequested();
     }, true);
@@ -84,9 +89,16 @@ export class MapPause {
 
   resumeRequested() { if (this.open && this.mine) this.request(false); }
 
-  /** Affiche la pause. `mine` : ce joueur l'a lancée (lui seul la lève) ; sinon `by` nomme celui qui l'a lancée. */
-  show({ mine = true, by = '' } = {}) {
+  /**
+   * Affiche la pause. `mine` : ce joueur l'a lancée (lui seul la lève) ; sinon `by` nomme celui qui l'a lancée.
+   * `saved` (solo) : `true` si la partie vient d'être sauvegardée, `false` si l'appareil a refusé ;
+   * `null` (multijoueur) : ni sauvegarde ni bouton « Retour au menu ».
+   */
+  show({ mine = true, by = '', saved = null } = {}) {
     this.mine = mine;
+    this.actions.hidden = saved === null || !mine;
+    this.saved.textContent = saved ? '✓ Partie sauvegardée' : saved === false ? 'Sauvegarde impossible sur cet appareil' : '';
+    this.saved.classList.toggle('pause-save-failed', saved === false);
     // Première pause lancée par le joueur : il a compris, le symbole de la carte ne revient plus.
     if (mine && this.hint) { this.hint = false; this.game.classList.remove('map-pause-hinted'); this.onUsed(); }
     const touch = matchMedia('(any-pointer: coarse)').matches;

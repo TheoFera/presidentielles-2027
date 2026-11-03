@@ -153,10 +153,11 @@ export class GameSimulation {
       debate: debatePositions(state.debate),
       campaign_events: state.campaign_events.filter(event => event.debate).map(event => ({ id: event.id, debate: debatePositions(event.debate) })) };
   }
-  exportSnapshot() {
+  /** `space` : 2 pour un fichier lisible (outil de débogage), 0 pour la sauvegarde de la partie (plus petite et plus rapide). */
+  exportSnapshot(space = 2) {
     // Un outil de test ou une commande peut avoir changé un PNJ depuis le dernier tick.
     refreshElectoralState(this.state);
-    return JSON.stringify(this.state, null, 2);
+    return JSON.stringify(this.state, null, space);
   }
 
   /** Snapshot import is atomic. Invalid saves never damage the live game. */

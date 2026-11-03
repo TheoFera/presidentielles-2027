@@ -1,4 +1,4 @@
-import { CANDIDATES, homeContent, playersContent, candidatesContent, tutorialContent, loadingHints } from './arcade-content.js';
+import { CANDIDATES, homeContent, playersContent, resumeChoiceContent, candidatesContent, tutorialContent, loadingHints } from './arcade-content.js';
 import { enterLandscape, syncOrientation, toggleFullscreen } from '../interface/landscape.js';
 import { profileButton, profileContent, cleanNickname, collectionCardContent } from './player-profile.js';
 import { hydrateMedallions, playerCard, rememberTitle } from './player-card.js';
@@ -15,8 +15,9 @@ const installed = () => window.matchMedia('(display-mode: standalone), (display-
 const mobileLandscape =() => { if (!APP_BUILD && window.matchMedia('(any-pointer: coarse)').matches) void enterLandscape(); };
 
 export class StartMenu {
-  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null, arrivalSeconds = 0 }) {
-    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, ads, debateMode: debate, arrivalSeconds, selected: null, generation: 0 });
+  /** `saved()` : résumé de la campagne sauvegardée, ou `null` (voir menus/saved-campaign.js). */
+  constructor({ prepare, play, multiplayer, combat, audio = null, account = null, ads = null, debate = null, arrivalSeconds = 0, saved = () => null }) {
+    Object.assign(this, { prepare, play, multiplayer, combat, audio, account, ads, debateMode: debate, arrivalSeconds, saved, selected: null, generation: 0 });
     this.element = document.getElementById('start-menu');
     this.game = document.getElementById('game');
     const resize = () => {
@@ -85,8 +86,16 @@ export class StartMenu {
   /** « Avec qui ? » : seul contre l’IA, ou entre amis, pour la campagne comme pour le débat. */
   players(mode) {
     this.page('players', '', playersContent(mode));
-    this.element.querySelector('#solo').onclick = () => { mobileLandscape(); if (mode === 'debate') this.debate(emptyDebateSetup(this.debateMode.config)); else this.candidates(); };
+    this.element.querySelector('#solo').onclick = () => { mobileLandscape(); if (mode === 'debate') this.debate(emptyDebateSetup(this.debateMode.config)); else this.soloCampaign(); };
     this.element.querySelector('#multiplayer').onclick = () => { mobileLandscape(); this.multiplayer(this, mode); };
+  }
+  /** Campagne solo : s'il y a une partie sauvegardée, choix « Reprendre » ou « Nouvelle partie » ; sinon le choix du candidat. */
+  soloCampaign() {
+    const saved = this.saved();
+    if (!saved) { this.candidates(); return; }
+    this.page('players', '', resumeChoiceContent(saved), () => this.players('campaign'));
+    this.element.querySelector('#resume').onclick = () => { this.selected = saved.candidate_id.split(':')[1]; void this.loading({ resume: true }); };
+    this.element.querySelector('#new-game').onclick = () => this.candidates();
   }
   /** Mode Débat : réglages du combat. Le dernier réglage est gardé pour la revanche. */
   debate(setup = this.debateSetup) {
@@ -180,7 +189,7 @@ export class StartMenu {
   }
   candidates() {
     this.selected = null;
-    this.page('candidates', 'Choisissez votre candidat', candidatesContent(this.selected), () => this.players('campaign'));
+    this.page('candidates', 'Choisissez votre candidat', candidatesContent(this.selected), () => this.saved() ? this.soloCampaign() : this.players('campaign'));
     this.element.querySelectorAll('[data-candidate]').forEach(button => {
       button.onclick = () => {
         this.selected = button.dataset.candidate;
@@ -193,9 +202,10 @@ export class StartMenu {
     });
     this.element.querySelector('#prepare-game').onclick = () => { if (this.selected) void this.loading(); };
   }
-  async loading({ multiplayer = false, ready = null } = {}) {
+  /** Écran de chargement. `resume` : reprise de la campagne sauvegardée au lieu d'une nouvelle partie. */
+  async loading({ multiplayer = false, ready = null, resume = false } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
-    this.page('loading', '', tutorialContent(candidate), () => multiplayer ? this.home() : this.candidates());
+    this.page('loading', '', tutorialContent(candidate), () => multiplayer ? this.home() : resume ? this.soloCampaign() : this.candidates());
     if (multiplayer) this.element.querySelector('.loading-flash span:last-child').textContent = 'Multijoueur';
     const generation = this.generation;
     // Une astuce au hasard, puis la suivante toutes les 7 secondes tant que l’écran reste affiché.
@@ -219,13 +229,13 @@ export class StartMenu {
         if (generation !== this.generation) return;
         show(ratio);
         if (phases[phase]) strip.querySelector('#loading-status').textContent = phases[phase];
-      });
+      }, { resume });
       if (generation !== this.generation) return;
       show(1);
       // À 100 %, la barre laisse sa place au bouton « Jouer ».
       strip.classList.add('is-ready');
       this.element.querySelector('#loading-status').textContent = 'Prêt !';
-      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Jouer ➜';
+      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = resume ? 'Reprendre ➜' : 'Jouer ➜';
       button.onclick = async () => {
         if (!ready) { this.close({ fade: this.arrivalSeconds }); this.play(); return; }
         button.disabled = true; button.textContent = 'En attente…';
@@ -238,8 +248,10 @@ export class StartMenu {
     } catch (error) {
       if (generation !== this.generation) return;
       this.element.querySelector('#loading-status').textContent = error.message || 'Chargement interrompu.';
-      const button = this.element.querySelector('#start-campaign'); button.disabled = false; button.textContent = 'Réessayer';
-      button.onclick = () => void this.loading({ multiplayer, ready });
+      const button = this.element.querySelector('#start-campaign'); button.disabled = false;
+      // Sauvegarde illisible (autre version du jeu) : réessayer ne changerait rien, retour à l'accueil.
+      button.textContent = resume ? 'Accueil' : 'Réessayer';
+      button.onclick = () => resume ? this.home() : void this.loading({ multiplayer, ready });
     }
   }
   /** `fade` (secondes) : le menu s'efface en douceur sur la partie déjà dessinée derrière lui. */
