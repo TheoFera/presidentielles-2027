@@ -511,7 +511,8 @@ async function start() {
         }),
       ]);
       renderer.assets.defer([]);
-      for (const id of laterTiles) void renderer.assets.load(id);
+      // Comme loadRequired pour les autres images : une tuile qui avait échoué avant le lancement est retentée.
+      for (const id of laterTiles) { renderer.assets.failures.delete(id); void renderer.assets.load(id); }
       // Prepare the first complete frame behind the loading screen. In
       // particular, texture uploads must not become simulation catch-up time.
       // Chaque image est envoyée une fois à la carte graphique derrière l’écran de chargement :
