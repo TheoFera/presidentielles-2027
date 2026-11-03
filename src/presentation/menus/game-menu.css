@@ -65,48 +65,71 @@
 #start-menu[data-screen='candidates'] .menu-footer { position: absolute; right: 3%; bottom: 3%; margin: 0; }
 #start-menu #prepare-game { font-size: clamp(20px, 4cqw, 66px); padding: .9cqw 2.4cqw; border-radius: 2.4cqw; outline-color: #d6ffad; background: linear-gradient(#8aff1d, #31d00a 40%, #08971a 60%, #38e30a); box-shadow: inset 0 3px 0 #fff, inset 0 -6px 0 #077b27, 0 5px 0 #06160d, 0 0 20px #78ff3270; }
 
-/* Écran de chargement : bandeau, candidat, trois consignes, puis la barre qui devient « Jouer ».
-   Fond en dégradé CSS : aucune image en plus à charger. */
-#start-menu[data-screen='loading'] { background: radial-gradient(circle at 28% 60%, #2b5bd0 0, #0f2559 42%, #060f27 78%); }
-#start-menu[data-screen='loading'] .menu-shell { max-width: 1120px; gap: clamp(6px, 1.8cqh, 18px); }
-.loading-title { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 1.8cqh, 16px); text-align: center; }
-.loading-flash { display: flex; margin: 0; font: 900 clamp(12px, 2.2cqh, 19px)/1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
-.loading-flash span { padding: .3em .8em; background: #e63946; color: #fff; border-radius: 6px 0 0 6px; }
-.loading-flash span + span { background: #fff; color: #0b1d44; border-radius: 0 6px 6px 0; }
-#start-menu[data-screen='loading'] h1 { font-size: clamp(24px, 6.2cqh, 54px); line-height: 1.05; color: #ffd84a; }
-.loading-scene { flex: 1; min-height: 0; display: grid; grid-template-columns: .8fr 1.2fr; gap: 4%; align-items: center; }
-.loading-candidate { position: relative; height: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-/* Mise en avant du candidat en CSS seul : contre-jour rond derrière lui, colonne de lumière qui monte
-   du socle (bords fondus), puis socle lumineux sous les pieds. */
-.loading-stage::before { content: ''; position: absolute; z-index: -1; left: 50%; bottom: 0; width: min(50%, 32cqh); height: 88%; transform: translateX(-50%); background: linear-gradient(to top, #8fdcff66, #8fdcff1f 45%, #8fdcff00); -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); pointer-events: none; }
-.loading-stage { position: relative; z-index: 1; flex: 1; width: 100%; min-height: 0; display: flex; justify-content: center; background: radial-gradient(circle at 50% 42%, #b5e6ff55 0, #4f8dff33 22%, #2b5bd014 40%, transparent 58%); }
-.loading-stage::after { content: ''; position: absolute; z-index: -1; left: 50%; bottom: 0; width: min(64%, 40cqh); height: clamp(16px, 6cqh, 44px); transform: translate(-50%, 45%); border: 3px solid #a5e5ff; border-radius: 50%; background: radial-gradient(#bff0ffaa, #3fa8ff55 45%, transparent 72%); box-shadow: 0 0 24px #00c8ff, inset 0 0 18px #0084ff; }
-.loading-candidate img { position: relative; width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 16px #9fd8ffaa); }
-.loading-candidate strong { position: relative; z-index: 1; margin-top: clamp(16px, 4.5cqh, 34px); padding: .15em .8em; background: #fff; color: #0b1d44; border-bottom: 5px solid #2b5bd0; border-radius: 8px; font: 900 clamp(18px, 4cqh, 34px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .06em; box-shadow: 0 4px 0 #020714; }
-.loading-guide { display: flex; flex-direction: column; justify-content: center; gap: clamp(6px, 1.6cqh, 16px); min-height: 0; }
-.loading-guide h2 { margin: 0; font: 900 clamp(18px, 3.6cqh, 32px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: #fff; }
-.loading-tips { display: grid; gap: clamp(6px, 1.6cqh, 14px); }
-.loading-tips p { display: grid; grid-template-columns: auto 1fr; column-gap: clamp(10px, 1.6cqw, 18px); align-items: center; margin: 0; padding: clamp(8px, 1.6cqh, 14px) clamp(10px, 1.6cqw, 18px); background: #132a5ee6; border: 2px solid #3c67b8; border-radius: 14px; box-shadow: inset 0 1px 0 #ffffff30; }
-.loading-tips p > span { grid-row: 1 / 3; display: grid; place-items: center; width: clamp(34px, 7cqh, 58px); aspect-ratio: 1; font-size: clamp(20px, 4cqh, 32px); background: #f5c542; color: #0b1d44; border-radius: 12px; box-shadow: inset 0 -3px 0 #b8860b; }
-.loading-tips strong { font: 900 clamp(17px, 3.6cqh, 30px)/1.1 Impact, 'Arial Black', sans-serif; text-transform: uppercase; letter-spacing: .04em; color: #ffd84a; }
-.loading-tips small { color: #e3ecff; font-size: clamp(13px, 2.5cqh, 20px); line-height: 1.35; }
-.loading-tips kbd { display: inline-block; min-width: 1.7em; padding: 0 .35em; border: 2px solid #9fc3ff; border-bottom-width: 4px; border-radius: 6px; background: #16306a; font: 700 .9em/1.4 system-ui, sans-serif; text-align: center; color: #fff; }
-.loading-strip { width: 100%; display: grid; justify-items: center; gap: clamp(4px, .9cqh, 8px); text-align: center; }
-#loading-status { margin: 0; color: #cfdcff; font-size: clamp(13px, 2.2cqh, 18px); }
-.loading-bar { position: relative; border: 3px solid #fff; border-radius: 99px; background: #0a1430; overflow: hidden; box-shadow: 0 4px 0 #020714; }
-.loading-fill { position: absolute; inset: 0; background: linear-gradient(90deg, #2b5bd0 0 33.3%, #f4f4f4 33.3% 66.6%, #e63946 66.6%); clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0); transition: clip-path .35s ease-out; }
-#loading-percent { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: .15em .6em; border-radius: 99px; background: #0b1d44d9; font: 900 clamp(13px, 2.6cqh, 20px)/1 Impact, 'Arial Black', sans-serif; color: #fff; letter-spacing: .04em; }
-/* Une seule ligne, quelle que soit l’astuce : la page ne saute pas quand elle change. */
-.loading-hint { max-width: 100%; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #a9c0ee; font-size: clamp(12px, 2cqh, 16px); line-height: 1.35; }
-.loading-hint strong { color: #ffd84a; }
-/* La barre et le bouton occupent le même emplacement, de hauteur fixe : rien ne bouge quand l’un remplace l’autre.
+/* Écran de chargement de campagne. Le candidat occupe la colonne de gauche sur toute la hauteur ;
+   à droite : l’astuce en bulle sur la ligne de Retour, les trois consignes côte à côte,
+   puis en bas le bandeau « flash info » (même dessin que l’intro de campagne) et la barre, qui laisse sa place à « Jouer ».
+   --u : une unité qui suit la taille de l’écran (1 px sur téléphone en paysage, jusqu’à 1,7 px sur grand écran). */
+#start-menu[data-screen='loading'] { background: #0c1f4e; }
+#start-menu[data-screen='loading'] .menu-shell {
+  --u: clamp(.78px, min(.245cqh, .11cqw), 1.7px);
+  width: 100%; max-width: 1500px; display: grid; grid-template-columns: 27% minmax(0, 1fr) calc(150 * var(--u)); grid-template-rows: auto 1fr auto;
+  gap: calc(14 * var(--u)); font-family: system-ui, sans-serif;
+}
+/* Le quartier de départ du candidat, flouté et assombri. */
+.loading-backdrop { position: fixed; inset: 0; z-index: -1; background: center 70% / cover no-repeat; }
+.loading-backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #0a1a4026, #0a1a4040 28%, #0a1a40a6), linear-gradient(#0a1a4066, transparent 35% 60%, #0a1a40b3); }
+#start-menu[data-screen='loading'] .menu-header { display: contents; }
+#start-menu[data-screen='loading'] .menu-header button { z-index: 2; min-height: calc(36 * var(--u)); padding: 0; color: #fff; background: #0a1a40a6; border: 1px solid #ffffff4d; border-radius: 99px; box-shadow: none; font: 800 calc(14 * var(--u))/1 system-ui, sans-serif; }
+#start-menu[data-screen='loading'] #menu-back { grid-area: 1 / 1; justify-self: start; align-self: start; padding: 0 calc(12 * var(--u)) 0 calc(10 * var(--u)); }
+#start-menu[data-screen='loading'] .menu-tools { grid-area: 1 / 3; justify-self: end; align-self: start; z-index: 2; }
+#start-menu[data-screen='loading'] #menu-sound, #start-menu[data-screen='loading'] #menu-fullscreen { width: calc(36 * var(--u)); display: grid; place-items: center; font-size: calc(19 * var(--u)); }
+#start-menu[data-screen='loading'] #menu-sound svg { width: calc(18 * var(--u)); height: calc(18 * var(--u)); }
+/* Candidat */
+.loading-candidate { grid-area: 1 / 1 / 4 / 2; position: relative; z-index: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.loading-stage { position: relative; flex: 1; width: 100%; min-height: 0; display: flex; justify-content: center; padding-top: calc(42 * var(--u)); }
+.loading-stage::after { content: ''; position: absolute; z-index: -1; left: 50%; bottom: 0; width: 62%; height: 7%; transform: translate(-50%, 45%); background: radial-gradient(#000a, transparent 70%); }
+.loading-candidate img { width: 100%; height: 100%; min-height: 0; object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 0 10px #ffe7b366); }
+.loading-name { margin-top: calc(8 * var(--u)); padding: calc(8 * var(--u)) calc(16 * var(--u)) calc(7 * var(--u)); background: #fff; color: #0c1f4e; border-bottom: calc(3 * var(--u)) solid #2457d6; border-radius: 4px; box-shadow: 0 3px 0 #04081499; font: 900 calc(16 * var(--u))/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+/* Astuce : une bulle qui sort de la bouche du candidat. Deux lignes au plus. */
+.loading-hint { grid-area: 1 / 2; align-self: start; justify-self: start; position: relative; z-index: 1; max-width: 100%; padding: calc(10 * var(--u)) calc(16 * var(--u)) calc(11 * var(--u)); background: #fff; color: #0c1f4e; border-radius: calc(14 * var(--u)); box-shadow: 0 3px 0 #04081499; font: 600 calc(15 * var(--u))/1.3 system-ui, sans-serif; }
+#start-menu .loading-hint { margin: 0; line-height: 1.3; }
+.loading-hint::before { content: ''; position: absolute; left: calc(-14 * var(--u)); bottom: calc(8 * var(--u)); width: calc(16 * var(--u)); height: calc(18 * var(--u)); background: #fff; clip-path: polygon(100% 0, 0 100%, 100% 75%); }
+.loading-hint strong { color: #d42a32; font-weight: 900; }
+/* Consignes, côte à côte */
+.loading-guide { grid-area: 2 / 2 / 3 / 4; align-self: start; display: grid; gap: calc(10 * var(--u)); padding-top: calc(4 * var(--u)); min-width: 0; }
+.loading-guide h2 { justify-self: start; margin: 0; padding: calc(6 * var(--u)) calc(10 * var(--u)); background: #0c1f4e; border-radius: 4px; color: #ffd84a; font: 900 calc(11.5 * var(--u))/1 system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.loading-tips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(10 * var(--u)); }
+#start-menu .loading-tips p { display: grid; grid-template-columns: auto 1fr; align-content: start; align-items: center; gap: calc(9 * var(--u)); margin: 0; padding: calc(14 * var(--u)) calc(14 * var(--u)) calc(16 * var(--u)); background: #0c1f4ee6; border-top: calc(3 * var(--u)) solid #ffd84a; border-radius: 4px; box-shadow: 0 3px 0 #04081499; }
+.loading-tips p > span { display: grid; place-items: center; width: calc(34 * var(--u)); aspect-ratio: 1; background: #f5c542; color: #0b1d44; border-radius: 6px; font-size: calc(18 * var(--u)); }
+.loading-tips strong { color: #fff; font: 900 calc(15 * var(--u))/1 system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.loading-tips small { grid-column: 1 / 3; color: #d5def3; font: 500 calc(14 * var(--u))/1.3 system-ui, sans-serif; }
+.loading-tips kbd { display: inline-block; min-width: 1.7em; padding: 0 .35em; border: 1px solid #9fc3ff; border-bottom-width: 3px; border-radius: 5px; background: #16306a; font: 700 .9em/1.4 system-ui, sans-serif; text-align: center; color: #fff; }
+/* Bandeau « flash info » */
+.loading-news { grid-area: 3 / 2; align-self: end; position: relative; z-index: 1; display: grid; min-width: 0; }
+.loading-news-head { display: flex; align-items: stretch; min-width: 0; box-shadow: 0 3px 0 #04081499; }
+.loading-day { display: flex; align-items: center; z-index: 1; margin-right: calc(-8 * var(--u)); padding: 0 calc(16 * var(--u)) 0 calc(10 * var(--u)); background: linear-gradient(#ef3f45, #b5161c); color: #fff; font: 900 calc(15 * var(--u))/1 system-ui, sans-serif; letter-spacing: .04em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, calc(100% - 8 * var(--u)) 100%, 0 100%); }
+#start-menu[data-screen='loading'] .loading-news h1 { flex: 1; min-width: 0; margin: 0; padding: calc(7 * var(--u)) calc(12 * var(--u)) calc(7 * var(--u)) calc(16 * var(--u)); background: linear-gradient(#fff, #e6ebf5); color: #0c1f4e; border-top: calc(3 * var(--u)) solid; border-image: linear-gradient(90deg, #2457d6 0 33%, #fff 33% 66%, #e5333b 66%) 1; font: 900 calc(17 * var(--u))/1.1 system-ui, sans-serif; letter-spacing: .01em; text-transform: uppercase; text-shadow: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loading-news-ticker { display: flex; height: calc(24 * var(--u)); margin-right: 8%; background: #0c1f4e; color: #f2f5fb; }
+.loading-round { display: flex; align-items: center; padding: 0 calc(10 * var(--u)); background: #ffc94a; color: #0c1f4e; font: 900 calc(11 * var(--u))/1 system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+#start-menu[data-screen='loading'] #loading-status { display: flex; align-items: center; min-width: 0; min-height: 0; padding: 0 calc(10 * var(--u)); overflow: hidden; color: #f2f5fb; font: 700 calc(12 * var(--u))/1 system-ui, sans-serif; white-space: nowrap; }
+/* La barre et le bouton occupent le même emplacement, de taille fixe : rien ne bouge quand l’un remplace l’autre.
    Pendant le chargement, le bouton reste invisible (mais présent et désactivé). */
-.loading-action { display: grid; width: min(620px, 100%); height: clamp(34px, 7cqh, 56px); }
+.loading-strip { grid-area: 3 / 3; align-self: end; position: relative; z-index: 1; }
+.loading-action { display: grid; grid-template-columns: minmax(0, 1fr); height: calc(64 * var(--u)); }
 .loading-action > * { grid-area: 1 / 1; min-height: 0; }
-.loading-strip:not(.is-ready) #start-campaign:disabled, .loading-strip.is-ready .loading-bar { visibility: hidden; }
-#start-menu .loading-strip #start-campaign { width: 100%; height: 100%; min-height: 0; border-radius: 99px; padding: 0 24px; font-size: clamp(20px, 4.2cqh, 34px); letter-spacing: .08em; }
+.loading-meter { display: grid; align-content: end; gap: calc(7 * var(--u)); padding-bottom: calc(6 * var(--u)); }
+#start-menu[data-screen='loading'] #loading-percent { justify-self: end; color: #fff; font: 900 calc(20 * var(--u))/1 system-ui, sans-serif; text-shadow: 0 2px 0 #04081499; }
+.loading-bar { position: relative; height: calc(10 * var(--u)); overflow: hidden; background: #ffffff33; border-radius: 99px; }
+.loading-fill { position: absolute; inset: 0 auto 0 0; width: var(--progress, 0%); border-radius: 99px; background: linear-gradient(90deg, #2457d6 0 33.3%, #fff 33.3% 66.6%, #e5333b 66.6%); transition: width .35s ease-out; }
+.loading-strip:not(.is-ready) #start-campaign:disabled, .loading-strip.is-ready .loading-meter { visibility: hidden; }
+#start-menu .loading-strip #start-campaign { width: 100%; height: 100%; min-height: 0; padding: 0 calc(8 * var(--u)); border-radius: calc(12 * var(--u)); font-size: calc(21 * var(--u)); letter-spacing: .04em; white-space: nowrap; }
 .loading-strip.is-ready #start-campaign:not(:disabled) { animation: loading-ready 1.4s ease-in-out infinite; }
 @keyframes loading-ready { 50% { transform: scale(1.04); } }
+/* Écran très bas : on garde l’essentiel (bulle, consignes, bandeau). */
+@media (max-height: 330px) {
+  .loading-guide h2 { display: none; }
+  .loading-tips small { font-size: calc(12.5 * var(--u)); }
+}
 /* Barre du chargement du débat. */
 .menu-loading { height: 18px; border: 2px solid #abdfff; border-radius: 12px; overflow: hidden; appearance: none; background: #071327; }
 .menu-loading::-webkit-progress-bar { background: #071327; }
@@ -133,33 +156,7 @@
   #start-menu .menu-header button { min-height: 40px; }
   #start-menu #menu-back { padding: 6px 12px; }
   #start-menu #menu-fullscreen { width: 42px; font-size: 25px; }
-  #start-menu[data-screen='loading'] h1 { font-size: 22px; }
-  .loading-flash { font-size: 11px; }
-  .loading-title { gap: 6px; }
-  .loading-scene { margin-top: 4px; }
-  .loading-guide, .loading-tips { gap: 6px; }
-  .loading-guide h2 { font-size: 17px; }
-  .loading-tips p { padding: 6px 10px; border-radius: 10px; }
-  .loading-tips p > span { width: 30px; font-size: 18px; border-radius: 8px; }
-  .loading-tips strong { font-size: 16px; }
-  .loading-tips small { font-size: 12px; }
-  .loading-candidate strong { margin-top: 12px; font-size: 17px; border-bottom-width: 3px; }
-  .loading-stage::after { border-width: 2px; }
-  #loading-status, .loading-hint { font-size: 11px; }
-  .loading-action { height: 30px; }
-  .loading-bar { border-width: 2px; }
-  #loading-percent { font-size: 13px; }
   #start-menu #start-campaign { min-height: 44px; padding: 8px 24px; font-size: 20px; }
   .menu-loading { height: 12px; }
-  #start-menu .loading-strip #start-campaign { padding: 0 16px; font-size: 18px; }
-  .loading-tips p { padding: 5px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .menu-loading::-webkit-progress-value, .loading-fill { transition: none; } .loading-strip.is-ready #start-campaign:not(:disabled) { animation: none; } }
-@media (max-height: 350px) {
-  .loading-guide h2, .loading-hint { display: none; }
-  .loading-guide, .loading-tips { gap: 4px; }
-  .loading-tips p > span { width: 26px; font-size: 16px; }
-  .loading-tips strong { font-size: 14px; }
-  .loading-flash { display: none; }
-  .loading-strip { padding-bottom: 6px; }
-}

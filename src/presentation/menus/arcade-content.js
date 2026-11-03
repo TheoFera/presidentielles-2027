@@ -49,17 +49,28 @@ const GAME_HINTS = [
   'En tête des sondages, des journalistes vous filment : sortez du champ, la caméra vous ralentit.',
 ];
 export const loadingHints = candidate => [CANDIDATE_HINTS[candidate.id], ...GAME_HINTS].filter(Boolean);
+/** Fond de l’écran de chargement : le quartier où le candidat commence la partie, déjà flouté (léger, affiché tout de suite). */
+const LOADING_BACKDROPS = {
+  melenchon: new URL('../../../assets/images/menus/chargement-melenchon.png', import.meta.url).href,
+  philippe: new URL('../../../assets/images/menus/chargement-philippe.png', import.meta.url).href,
+  le_pen: new URL('../../../assets/images/menus/chargement-le-pen.png', import.meta.url).href,
+};
+/** Écran de chargement : l’astuce en bulle à côté du candidat, les trois consignes côte à côte,
+    puis un bandeau « flash info » (même dessin que l’intro de campagne) et la barre, qui laisse sa place à « Jouer ». */
 export function tutorialContent(candidate) {
   const card = (icon, title, text) => `<p><span aria-hidden="true">${icon}</span><strong>${title}</strong>${text}</p>`;
-  return `<div class="loading-title"><p class="loading-flash"><span>J-365</span><span>Premier tour</span></p><h1 tabindex="-1">Plus qu’un an avant l’élection</h1></div>`
-    + `<div class="loading-scene"><div class="loading-candidate"><div class="loading-stage"><img src="${portrait(candidate)}" alt=""></div><strong class="loading-name">${candidate.short}</strong></div>`
+  const backdrop = LOADING_BACKDROPS[candidate.id];
+  return (backdrop ? `<div class="loading-backdrop" style="background-image: url('${backdrop}')" aria-hidden="true"></div>` : '')
+    + `<div class="loading-candidate"><div class="loading-stage"><img src="${portrait(candidate)}" alt=""></div><strong class="loading-name">${candidate.short}</strong></div>`
+    + `<p class="loading-hint"><strong>Astuce :</strong> <span id="loading-tip"></span></p>`
     + `<div class="loading-guide"><h2>À vous de jouer !</h2><div class="loading-tips">`
     + card('✦', 'Convainquez', '<small>Arrêtez-vous près d’un passant pour lui parler.</small>')
     + card('⚑', 'Étendez-vous', '<small>Restez devant un bâtiment pour l’acquérir.</small>')
     + card('⚔', 'Combattez', '<small class="keyboard-guide"><kbd>←</kbd><kbd>→</kbd> marcher · <kbd>↑</kbd> sauter · <kbd>Espace</kbd> frapper · <kbd>R</kbd> ultime</small><small class="touch-guide">Utilisez les boutons à l’écran.</small>')
-    + `</div></div></div>`
-    + `<div class="loading-strip"><p id="loading-status" role="status">Chargement…</p>`
-    + `<div class="loading-action"><div class="loading-bar" role="progressbar" aria-label="Chargement de la campagne" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="loading-fill"></span><span id="loading-percent" aria-hidden="true">0 %</span></div>`
-    + `<button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></div>`
-    + `<p class="loading-hint"><strong>Astuce :</strong> <span id="loading-tip"></span></p></div>`;
+    + `</div></div>`
+    + `<div class="loading-news"><div class="loading-news-head"><span class="loading-day">J-365</span><h1 tabindex="-1">Plus qu’un an avant l’élection</h1></div>`
+    + `<div class="loading-news-ticker"><span class="loading-round">Premier tour</span><p id="loading-status" role="status">Chargement…</p></div></div>`
+    + `<div class="loading-strip"><div class="loading-action"><div class="loading-meter"><span id="loading-percent" aria-hidden="true">0 %</span>`
+    + `<div class="loading-bar" role="progressbar" aria-label="Chargement de la campagne" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="loading-fill"></span></div></div>`
+    + `<button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></div></div>`;
 }
