@@ -5,7 +5,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { captureSite, neutralizeSite, localUnitDamageMultiplier, updateStrategicSites } from '../src/simulation/strategic-sites.js';
 import { refreshElectoralState } from '../src/simulation/electoral-state.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
-import { updateVehicles, candidateTravelSpeed } from '../src/simulation/vehicles.js';
+import { updateVehicles, candidateTravelSpeed, garageRadius } from '../src/simulation/vehicles.js';
 import { prepareDonations, updateDonationCourier, settleMoney } from '../src/simulation/money.js';
 import { buildingOffers, updateEconomy } from '../src/simulation/economy.js';
 import { drawVehiclePrompts } from '../src/presentation/carte/vehicles.js';
@@ -36,7 +36,7 @@ test('Les jauges de vélo et scooter apparaissent seulement pendant une montée 
     c.x = site.x;
     const initial = structuredClone(c);
     const blocked = [
-      () => { c.x += sim.config.balance.vehicles.garage_radius_units + 0.01; },
+      () => { c.x += garageRadius(sim.config, site) + 0.01; },
       () => { c.axis = 1; }, () => { c.interaction_active = false; },
       () => { c.combat.jump_tick = sim.state.tick; }, () => { c.combat.height = 0.5; },
       () => { c.combat.attack_id = 'attaque'; }, () => { c.combat.stun_ticks = 3; },
@@ -82,7 +82,7 @@ test('Les indications d’achat suivent la disponibilité réelle du candidat', 
   assert.ok(c.purchase_hold);
   const initial = structuredClone(c);
   for (const block of [
-    () => { c.vehicle = { type: 'velo' }; }, () => { c.interaction_active = false; },
+    () => { c.interaction_active = false; },
     () => { c.campaign_active = false; }, () => { c.style_interaction_held = true; },
     () => { c.combat.attack_id = 'attaque'; }, () => { c.combat.jump_tick = 1; },
     () => { c.combat.stun_ticks = 3; }, () => { c.is_ko = true; },
@@ -151,7 +151,7 @@ test('Le vélo se récupère devant le garage peint et plus à son ancien emplac
   const sim = make(), site = sim.state.buildings.find(b => b.type === 'garage_velo'), c = own(sim, site);
   const zone = sim.state.world.subzones.find(z => z.id === site.subzone_id);
   c.interaction_active = true;
-  c.x = zone.start + zone.width * 445 / 1920;
+  c.x = zone.start + zone.width * 400 / 1920; // hors de la façade (433 à 773 px)
   updateVehicles(sim);
   assert.equal(c.vehicle_hold, null);
   c.x = zone.start + zone.width * 603 / 1920;
@@ -208,6 +208,18 @@ test('Tracts à la permanence ; aucun bâtiment de financement sur la carte', ()
   assert.equal(buildingOffers(sim.state,sim.config,c,site)[0].kind,'PRINT');
   assert.equal(sim.state.buildings.filter(b=>b.type==='financement').length,0);
 });
+test('À vélo, on interagit avec les bâtiments (tracts compris) sans pouvoir reprendre un véhicule', () => {
+  const sim=make(), site=sim.state.buildings.find(b=>b.type==='permanence'), c=own(sim,site);
+  c.money=10;const npc=sim.state.npcs.find(n=>n.origin_subzone_id===site.subzone_id);convertNeutral(sim,npc,c.faction_id);
+  const garage=sim.state.buildings.find(b=>b.type==='garage_velo');
+  c.x=site.x;c.vehicle={type:'velo',site_id:garage.id};
+  updateEconomy(sim);
+  assert.equal(c.purchase_hold?.kind,'PRINT');assert.equal(c.vehicle?.type,'velo');
+  own(sim,sim.state.buildings.find(b=>b.type==='garage_scooter'),c);
+  const scooter=sim.state.buildings.find(b=>b.type==='garage_scooter');c.x=scooter.x;c.vehicle={type:'velo',site_id:garage.id};
+  for(let i=0;i<sim.secondsToTicks(sim.config.balance.vehicles.mount_seconds)+2;i++)updateVehicles(sim);
+  assert.equal(c.vehicle.type,'velo');assert.equal(c.vehicle_hold,null);
+});
 test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et abandon sur action', () => {
   for (const type of ['garage_velo','garage_scooter']) {
     const sim=make(),site=sim.state.buildings.find(b=>b.type===type),c=sim.state.candidates[0];c.x=site.x;
@@ -217,9 +229,22 @@ test('Vélo et scooter : propriétaire, attente continue, vitesse accrue et aban
     c.axis=1;updateVehicles(sim);assert.equal(c.vehicle_hold,null);c.axis=0;
     for(let i=0;i<duration;i++)updateVehicles(sim);
     assert.equal(c.vehicle.type,type==='garage_velo'?'velo':'scooter');assert.ok(candidateTravelSpeed(sim.config,c)>sim.config.prototype.movement.candidate_speed_units_per_second);
-    for(const action of ['Jump','Attack','PressAttack','Dash','ActivateUltimate','HoldCampaignStyle']) {
+    for(const action of ['Jump','Attack','PressAttack','ActivateUltimate','HoldCampaignStyle']) {
       c.vehicle={type:'velo',site_id:site.id};sim.applyCommand({type:action,candidateId:c.id,active:true});assert.equal(c.vehicle,null,action);
     }
+    // Un double appui (dash) sur un véhicule est ignoré : on reste en selle, sans dépenser de charge.
+    c.vehicle={type:'velo',site_id:site.id};const charges=c.dash_charges;
+    sim.applyCommand({type:'Dash',candidateId:c.id,direction:1});
+    assert.equal(c.vehicle?.type,'velo');assert.equal(c.dash_active,false);assert.equal(c.dash_charges,charges);
+  }
+});
+test('La zone de montée couvre toute la façade du garage', () => {
+  for (const type of ['garage_velo', 'garage_scooter']) for (const site of make().state.buildings.filter(b => b.type === type)) {
+    const sim = make(), s = sim.state.buildings.find(b => b.id === site.id), c = own(sim, s);
+    assert.ok(garageRadius(sim.config, s) >= 2, s.site_id);
+    c.x = s.x + garageRadius(sim.config, s) - 0.05;
+    for (let i = 0; i < sim.secondsToTicks(sim.config.balance.vehicles.mount_seconds); i++) updateVehicles(sim);
+    assert.ok(c.vehicle, s.site_id);
   }
 });
 test('Une attente de garage et un véhicule reprennent à l’identique après sauvegarde', () => {
