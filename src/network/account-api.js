@@ -92,8 +92,10 @@ export class AccountClient {
   }
   /** Reprise unique, sur le compte, des candidats débloqués sur cet appareil avant la connexion. */
   async importDeviceUnlocks(unlocks) {
+    const token = this.session?.token;
     const result = await this.request('POST', 'progression/import', { unlocks });
-    if (this.me) this.setMe({ ...this.me, user: { ...this.me.user, device_imported: true }, unlocks: result.unlocks });
+    // Déconnecté ou autre compte entre-temps : la réponse ne concerne plus la session actuelle.
+    if (this.me && this.session?.token === token) this.setMe({ ...this.me, user: { ...this.me.user, device_imported: true }, unlocks: result.unlocks });
     return result;
   }
   createMatch(body) { return this.request('POST', 'matches', body); }

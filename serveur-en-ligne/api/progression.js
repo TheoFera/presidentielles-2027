@@ -85,15 +85,17 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
 export async function importDeviceUnlocks(db, userId, body, now = nowSeconds()) {
   const ids = body.unlocks;
   if (!Array.isArray(ids) || !ids.length || ids.length > 40 || ids.some(id => !isUnlockable(id))) throw new ApiError(400, 'invalid_input', 'Liste de candidats invalide.');
-  // Verrou : deux requêtes simultanées ne passent pas toutes les deux.
-  const claimed = await db.prepare('UPDATE users SET device_import_at = ? WHERE id = ? AND device_import_at IS NULL').bind(now, userId).run();
-  if (!claimed.meta.changes) throw new ApiError(409, 'already_imported', 'La progression d’un appareil a déjà été reprise sur ce compte.');
   const before = await listUnlocks(db, userId);
   const wanted = [...new Set(ids)];
-  await db.batch([
-    ...wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, unlocked_at) VALUES (?, ?, \'device_import\', ?)').bind(userId, id, now)),
-    audit(db, userId, 'device_import', null, wanted.join(',')),
+  // Un seul lot (transaction) : les ajouts et le journal ne passent que si la reprise n'a pas encore eu lieu,
+  // puis la reprise est marquée. Une requête simultanée ou rejouée n'ajoute rien ; une erreur n'enregistre rien.
+  const pending = 'EXISTS (SELECT 1 FROM users WHERE id = ? AND device_import_at IS NULL)';
+  const results = await db.batch([
+    ...wanted.map(id => db.prepare(`INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, unlocked_at) SELECT ?, ?, 'device_import', ? WHERE ${pending}`).bind(userId, id, now, userId)),
+    db.prepare(`INSERT INTO audit_log (created_at, user_id, action, target, detail) SELECT ?, ?, 'device_import', NULL, ? WHERE ${pending}`).bind(now, userId, wanted.join(',').slice(0, 300), userId),
+    db.prepare('UPDATE users SET device_import_at = ? WHERE id = ? AND device_import_at IS NULL').bind(now, userId),
   ]);
+  if (!results.at(-1).meta.changes) throw new ApiError(409, 'already_imported', 'La progression d’un appareil a déjà été reprise sur ce compte.');
   await updateTitleRank(db, userId);
   return { imported: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
 }

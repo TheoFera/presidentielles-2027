@@ -698,6 +698,19 @@ test('Reprise de la progression de l’appareil : une seule fois par compte', as
   }
   assert.equal((await api.call('POST', 'progression/import', { body: { unlocks: ['attal'] } })).status, 401);
   assert.equal((await api.call('POST', 'progression/import', { token: other, body: { unlocks: ['arthaud', 'arthaud'] } })).body.imported.length, 1);
+  // Panne pendant l'enregistrement : rien n'est noté, la reprise reste possible.
+  const flaky = await player(api, 'g-import3', 'Panne');
+  const batch = api.DB.batch;
+  api.DB.batch = async () => { api.DB.batch = batch; throw new Error('D1 indisponible'); };
+  assert.equal((await api.call('POST', 'progression/import', { token: flaky, body: { unlocks: ['attal'] } })).status, 500);
+  assert.deepEqual((await api.call('POST', 'progression/import', { token: flaky, body: { unlocks: ['attal'] } })).body.imported, ['attal']);
+  // Réponse arrivée après un changement de compte : ignorée.
+  const late = clientFor(api);
+  await late.client.signIn('google', await providerLogin(api, 'google', 'g-import4'));
+  const pending = late.client.importDeviceUnlocks(['roussel']);
+  late.client.forget();
+  await pending;
+  assert.equal(late.client.me, null);
   // Appareil sans progression en plus : rien à reprendre (la reprise n'est pas consommée).
   assert.deepEqual(deviceUnlocksToImport({ device_unlocks: [...DEFAULT_UNLOCKED] }, { signedIn: true, me: { user: { device_imported: false }, unlocks: [...DEFAULT_UNLOCKED] } }), []);
   assert.deepEqual(deviceUnlocksToImport({ device_unlocks: ['attal'] }, { signedIn: false, me: null }), []);
