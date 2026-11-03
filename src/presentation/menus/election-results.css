@@ -9,7 +9,7 @@
 .election-stage [data-faction='le_pen'] { --party: #426594; }
 .election-stage [data-faction='philippe'] { --party: #ba9450; }
 .election-screen { --u: min(1cqw, 1.78cqh); position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: calc(var(--u) * .9); padding-bottom: calc(var(--u) * .9); }
-.election-stage :is(h1, h2, strong, .election-score, .election-stamp, .election-countdown strong, .election-ticker > b) { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 900; letter-spacing: .02em; }
+.election-stage :is(h1, h2, strong, .election-score, .election-third-score, .election-stamp, .election-countdown strong, .election-ticker > b) { font-family: Impact, 'Arial Black', system-ui, sans-serif; font-weight: 900; letter-spacing: .02em; }
 .election-stage sup { font-size: .55em; line-height: 0; }
 
 /* Fond du plateau, visible seulement autour du face-à-face. */
@@ -38,9 +38,9 @@
 .election-art { position: absolute; left: 50%; top: calc(var(--y0) / var(--h) * -100%); height: calc(941 / var(--h) * 100%); aspect-ratio: 1672 / 941; transform: translateX(calc(var(--cx) / -1672 * 100%)); background: var(--menu-candidates-art) 0 0 / 100% 100% no-repeat; }
 /* Portraits de soirée électorale (ImageGen) : calés en haut, rognés sous la taille selon la hauteur disponible. */
 .election-portrait { background: var(--portrait) 50% 6% / max(130%, calc(var(--u) * 46)) auto no-repeat; }
-[data-faction='melenchon'] > .election-portrait { --portrait: url('../../../assets/images/resultats/portrait-melenchon.png'); }
-[data-faction='le_pen'] > .election-portrait { --portrait: url('../../../assets/images/resultats/portrait-le-pen.png'); }
-[data-faction='philippe'] > .election-portrait { --portrait: url('../../../assets/images/resultats/portrait-philippe.png'); }
+[data-faction='melenchon'] > :is(.election-portrait, .election-third-card) { --portrait: url('../../../assets/images/resultats/portrait-melenchon.png'); }
+[data-faction='le_pen'] > :is(.election-portrait, .election-third-card) { --portrait: url('../../../assets/images/resultats/portrait-le-pen.png'); }
+[data-faction='philippe'] > :is(.election-portrait, .election-third-card) { --portrait: url('../../../assets/images/resultats/portrait-philippe.png'); }
 .election-avatar .election-art { --h: 150; }
 [data-faction='melenchon'] .election-avatar .election-art { --cx: 470; --y0: 270; }
 [data-faction='le_pen'] .election-avatar .election-art { --cx: 822; --y0: 280; }
@@ -70,6 +70,19 @@
 #results [data-outcome='success'] .election-heading h1 { color: var(--gold); }
 .election-heading h1:focus { outline: none; }
 
+/* Premier tour : le duel réserve une bande basse au 3e, scores et noms des qualifiés remontent sous le titre. */
+.has-third .election-info { bottom: calc(var(--u) * 12.5); }
+/* Onglet du 3e, symétrique du titre : accroché au bas de la ligne centrale, même typographie en plus petit. */
+.election-third { position: absolute; z-index: 4; left: 50%; bottom: 0; translate: -50% 0; display: flex; flex-direction: column; align-items: center; }
+.election-third > p { margin: 0; padding: .25em 1.2em; font-size: max(10px, calc(var(--u) * 1.2)); font-weight: 900; font-style: italic; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; background: #5a6478; }
+.election-third-card { display: flex; align-items: center; gap: calc(var(--u) * 1.2); padding: calc(var(--u) * .8) calc(var(--u) * 2.2) calc(var(--u) * 1) calc(var(--u) * 1.2); background: #061233; border-radius: calc(var(--u) * 1) calc(var(--u) * 1) 0 0; }
+.election-third-portrait { flex: none; width: calc(var(--u) * 6.2); aspect-ratio: 1; border-radius: 50%; border: calc(var(--u) * .3) solid var(--party); background: var(--portrait) 50% 8% / 190% auto no-repeat, var(--party-dark); filter: saturate(.45) brightness(.9); }
+.election-third-score { margin: 0; font-size: calc(var(--u) * 4.6); line-height: .95; letter-spacing: -.03em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.election-third-score small { font-size: .4em; letter-spacing: 0; }
+.election-third-score > small { margin-left: .25em; }
+.election-third h2 { margin: 0; font-size: calc(var(--u) * 1.9); line-height: 1; text-transform: uppercase; white-space: nowrap; }
+.election-third h2 small { display: block; margin-bottom: .15em; font: 700 max(9px, calc(var(--u) * 1.05))/1.2 system-ui, sans-serif; letter-spacing: .25em; opacity: .85; }
+.election-third .election-you { margin-left: .5em; vertical-align: middle; font-family: system-ui, sans-serif; }
 
 /* Bandeau d’informations défilant et boutons. */
 .election-footer { display: flex; align-items: center; gap: calc(var(--u) * 1.5); padding: 0 calc(var(--u) * 2); min-width: 0; }
@@ -119,6 +132,7 @@
 .election-stage.is-playing .election-candidate[data-side='right'] { animation: election-right .65s 1.6s cubic-bezier(.2, .9, .3, 1.1) both; }
 .election-stage.is-playing .election-portrait { animation: election-rise .8s 1.6s cubic-bezier(.2, .8, .3, 1) both; }
 .election-stage.is-playing .election-info { animation: election-up .45s 1.85s cubic-bezier(.2, .9, .3, 1.2) both; }
+.election-stage.is-playing .election-third { animation: election-third .5s 2.1s cubic-bezier(.2, .9, .3, 1.2) both; }
 .election-stage.is-playing .election-footer { animation: election-up .5s 2.4s both; }
 .election-stage.is-playing .election-stamp { animation: election-stamp .45s 3.2s cubic-bezier(.3, 1.6, .5, 1) both; }
 .election-stage.is-playing .election-verdict { animation: election-slam .55s 3.3s cubic-bezier(.3, 1.5, .5, 1) both; }
@@ -141,6 +155,7 @@
 @keyframes election-right { from { transform: translateX(60%); opacity: 0; } }
 @keyframes election-rise { from { transform: translateY(18%); opacity: 0; } }
 @keyframes election-up { from { transform: translateY(60%); opacity: 0; } }
+@keyframes election-third { from { transform: translateY(100%); opacity: 0; } }
 @keyframes election-appear { from { opacity: 0; } }
 @keyframes election-stamp { from { transform: rotate(var(--tilt)) scale(2.8); opacity: 0; } 65% { transform: rotate(var(--tilt)) scale(.9); opacity: 1; } }
 @keyframes election-slam { from { transform: scale(2.4); opacity: 0; } }
