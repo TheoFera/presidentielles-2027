@@ -196,7 +196,7 @@ export class StartMenu {
   async loading({ multiplayer = false, ready = null } = {}) {
     const candidate = CANDIDATES.find(c => c.id === this.selected);
     this.page('loading', '', tutorialContent(candidate), () => multiplayer ? this.home() : this.candidates());
-    if (multiplayer) this.element.querySelector('.loading-flash span:last-child').textContent = 'Multijoueur';
+    if (multiplayer) this.element.querySelector('.loading-round').textContent = 'Multijoueur';
     const generation = this.generation;
     // Une astuce au hasard, puis la suivante toutes les 7 secondes tant que l’écran reste affiché.
     const hints = loadingHints(candidate), tip = this.element.querySelector('#loading-tip');
@@ -218,7 +218,7 @@ export class StartMenu {
       await this.prepare(`candidate:${this.selected}`, (ratio, phase) => {
         if (generation !== this.generation) return;
         show(ratio);
-        if (phases[phase]) strip.querySelector('#loading-status').textContent = phases[phase];
+        if (phases[phase]) this.element.querySelector('#loading-status').textContent = phases[phase];
       });
       if (generation !== this.generation) return;
       show(1);
