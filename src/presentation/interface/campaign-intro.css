@@ -21,7 +21,7 @@
 #game.intro-dossier #campaign-intro::before { opacity: .55; }
 
 /* Flash info du journal télévisé : titre sur fond blanc, pastille rouge « FLASH INFO »,
-   filet bleu-blanc-rouge, et brèves qui défilent sous le titre. */
+   et brèves qui défilent sous le titre. */
 .intro-news {
   position: absolute; left: 0; right: 0; bottom: 3.2%; display: grid;
   font-size: clamp(12px, min(1.75vw, 3.1dvh), 25px); line-height: 1.15;
@@ -36,7 +36,7 @@
 }
 .intro-news-title {
   flex: 1; min-width: 0; margin: 0; padding: .35em .8em .35em 1.1em; background: linear-gradient(#ffffff, #e6ebf5); color: #0c1f4e;
-  font-weight: 750; border-top: .14em solid; border-image: linear-gradient(90deg, #2457d6 0 33%, #fff 33% 66%, #e5333b 66%) 1;
+  font-weight: 750;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .intro-news-title strong { font-weight: 950; text-transform: uppercase; letter-spacing: .01em; }
