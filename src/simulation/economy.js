@@ -24,10 +24,8 @@ export function buildingOffer(state, config, candidate, building) {
   const settings = printing ? config.balance.buildings.imprimerie : buildingSettings(config, building, candidate.faction_id);
   let kind; let cost; let available = true; let reason = null;
   if (printing) {
+    // Imprimer ne demande aucun sympathisant sur place : le tract attend dans la pile qu'un sympathisant vienne le chercher.
     kind = 'PRINT'; cost = settings.tract_cost_by_level[building.level - 1];
-    if (biomeSympathisants(state, building.biome_id, candidate.faction_id).length < settings.required_local_sympathisants_to_use) {
-      available = false; reason = 'NO_SYMPATHISANT';
-    }
     // Pile de tracts limitée : un tract en attente compte jusqu'à ce qu'un sympathisant l'emporte.
     if (building.queue.filter(order => order.faction_id === candidate.faction_id).length >= settings.max_waiting_tracts) {
       available = false; reason = 'QUEUE_FULL';

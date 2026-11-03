@@ -180,3 +180,16 @@ test('Snapshot v13 : topologie et trajet d’un don reprennent à l’identique'
   const restored = new GameSimulation(config, 73); restored.importSnapshot(sim.exportSnapshot());
   advance(sim, 80); advance(restored, 80); assert.deepEqual(restored.state, sim.state);
 });
+
+test('Permanence : imprimer des tracts ne demande aucun sympathisant dans le quartier', () => {
+  const sim = new GameSimulation(config); sim.state.ai_enabled = false; const actor = candidate(sim); actor.money = 100;
+  const printer = sim.state.buildings.find(s => s.type === 'permanence'); captureSite(sim, printer, actor); actor.x = printer.x;
+  sim.applyCommand({ type: 'SelectCampaignStyle', candidateId: actor.id, styleId: 'melenchon_universaliste' });
+  const biome = zoneAt(sim.state.world, printer.x).biome_id;
+  for (const npc of sim.state.npcs) if (npc.faction_id === actor.faction_id && npc.role === 'SYMPATHISANT' && zoneAt(sim.state.world, npc.x).biome_id === biome) npc.faction_id = null;
+  const offer = buildingOffers(sim.state, config, actor, printer)[0];
+  assert.equal(offer.kind, 'PRINT'); assert.equal(offer.enabled, true); assert.equal(offer.reason, null);
+  advance(sim, sim.secondsToTicks(1.1));
+  assert.equal(actor.spending.PRINT, 0.1);
+  assert.equal(printer.queue.filter(o => o.faction_id === actor.faction_id).length, 1);
+});

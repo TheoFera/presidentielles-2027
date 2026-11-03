@@ -399,7 +399,6 @@
         1
       ],
       "preexisting_in_world": true,
-      "required_local_sympathisants_to_use": 1,
       "max_waiting_tracts": 5,
       "can_be_targeted_by_philippe": false,
       "pay_per_use": true,

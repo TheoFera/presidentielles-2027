@@ -153,7 +153,7 @@ export function drawBanknote(renderer, state, known = undefined) {
 const reasonTexts = {
   CAMPAIGN_BUDGET_EXCEEDED: 'Plafond de dépenses de campagne atteint', CANDIDATE_LIMIT: 'Vous en possédez déjà le maximum',
   GLOBAL_LIMIT: 'Vous avez déjà le maximum de tours', QUEUE_FULL: 'Pile de tracts pleine : attendez un sympathisant',
-  NO_SYMPATHISANT: 'Il faut un de vos sympathisants dans ce biome', NO_MILITANT: 'Aucun de vos militants dans ce biome',
+  NO_MILITANT: 'Aucun de vos militants dans ce biome',
   NO_SUPPORTER: 'Il faut 3 sympathisants libres',
   COOLDOWN: 'Pas encore prêt : patientez un peu', ADMINISTRATIVE_BAN: 'Meeting interdit pour vous (temporaire)',
   NOT_ON_STAGE: 'Sautez sur la scène pour lancer le meeting', NO_BUILDING: 'Aucune cible à portée',
