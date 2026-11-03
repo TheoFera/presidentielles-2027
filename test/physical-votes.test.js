@@ -323,16 +323,16 @@ test('raid : 3 sympathisants entrent au local, ressortent en SO côte à côte, 
   assert.ok(joining.every(npc => npc.role === 'SERVICE_D_ORDRE' && npc.raid), 'le raid ne s’arrête pas de lui-même');
 });
 
-test('un bâtiment sans partisans reste à son propriétaire ; seul un raid plus nombreux le ferme', () => {
+test('un bâtiment sans partisans reste à son propriétaire ; seul un raid le ferme', () => {
   const sim = make();
   const site = sim.state.buildings.find(building => building.type === 'tour_communication');
   captureSite(sim, site, sim.state.candidates.find(candidate => candidate.faction_id === 'le_pen'));
   for (const npc of sim.state.npcs) if (npc.faction_id === 'le_pen') npc.role = 'NEUTRE', npc.faction_id = null;
   advance(sim, sim.secondsToTicks(20));
   assert.equal(site.owner_id, 'le_pen');
-  // Un garde adverse en raid fait pression sur le bâtiment, plus fort que la présence locale (nulle).
+  // Un garde adverse seul devant la porte : deux fois le délai d'un raid complet (16 s).
   Object.assign(sim.state.npcs[0], { role: 'SERVICE_D_ORDRE', faction_id: 'melenchon', raid: { id: 'test' }, pressure_target_id: site.id });
-  for (let tick = 0; tick <= sim.secondsToTicks(sim.config.balance.buildings.tour_communication.closure_delay_seconds); tick++) updateStrategicSites(sim);
+  for (let tick = 0; tick <= 2 * sim.secondsToTicks(sim.config.balance.buildings.tour_communication.closure_delay_seconds); tick++) updateStrategicSites(sim);
   assert.equal(site.owner_id, null);
 });
 

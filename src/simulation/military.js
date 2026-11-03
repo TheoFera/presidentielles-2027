@@ -295,10 +295,11 @@ export function updateGuard(sim, npc) {
     if (moveNpcTowards(sim, npc, destination, s.move_speed)) npc.facing = raid.direction;
   } else {
     // Le bâtiment du groupe passe avant tout : celui qui revient d'un combat retrouve ses camarades à la façade.
-    const hostileSite = groupSite || state.buildings.filter(b => raidCanPress(state, npc, b)
+    // Sinon, personne ne part seul vers un nouveau bâtiment : on rejoint ou on attend d'abord les autres.
+    const regroup = !groupSite && raidRegroupPoint(state, npc);
+    const hostileSite = groupSite || !regroup && state.buildings.filter(b => raidCanPress(state, npc, b)
       && ringDelta(npc.x, b.x, state.world.length) * raid.direction >= -s.attack_range)
       .sort((a, b) => Math.abs(ringDelta(npc.x, a.x, state.world.length)) - Math.abs(ringDelta(npc.x, b.x, state.world.length)) || stableIdOrder(a, b))[0];
-    const regroup = !hostileSite && raidRegroupPoint(state, npc);
     if (regroup) {
       // Personne ne repart seul : on attend (ou on rejoint) les camarades encore occupés ou distancés.
       phase = 'RAID'; destination = regroup.x;
