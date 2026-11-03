@@ -24,9 +24,10 @@ export function choiceStep(offer, { free = 0, rewarded = 0 } = {}, adAvailable =
 }
 
 /** Textes de l'écran : le titre dit l'étape, les emplacements montrent le reste (pas de doublon). */
-function texts(offer, step, failed, saved) {
+export function texts(offer, step, failed, saved) {
   const n = offer.choices.length;
   const kicker = offer.won ? 'Victoire !' : 'Élection perdue';
+  if (step === 'free' && n === 1) return { kicker, title: 'Ton candidat à débloquer', text: `Tu as mis K.-O. ${unlockLabel(offer.choices[0]).name}. Débloque-le !` };
   if (step === 'free') return { kicker, title: 'Choisis ton candidat', text: `Tu as mis K.-O. ${n} candidats. Choisis celui que tu débloques.` };
   if (step === 'ad') return { kicker, title: offer.won ? 'Un 2ᵉ candidat ?' : 'Seconde chance',
     text: 'Regarde une pub jusqu’au bout pour en débloquer un.' };

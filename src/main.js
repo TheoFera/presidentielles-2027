@@ -56,6 +56,7 @@ import { shouldDrawFrame } from './presentation/rendu/frame-cadence.js';
 import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
+import { needsUnlockScreen } from './simulation/unlock-catalog.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
 import { applyAccountProgress, addDeviceUnlocks, deviceUnlocksToImport, unlockNames } from './presentation/comptes/account-progress.js';
 import { campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
@@ -598,8 +599,8 @@ async function start() {
       try { announce((await accounts.completeRun(run.id, ids)).unlocked, true); }
       catch (error) { throw { message: error.offline ? 'Pas de connexion : déblocage non enregistré.' : error.message, retry: !!error.offline }; }
     };
-    // Rien à choisir (aucun K.-O. nouveau, ou un seul candidat gagné sans bonus possible) : comme avant.
-    if (!offer || (offer.free === offer.choices.length && !offer.rewarded)) { record(offer?.choices ?? []); return; }
+    // Aucun K.-O. nouveau : rien à débloquer. Un seul candidat gagné passe aussi par l'écran de déblocage.
+    if (!needsUnlockScreen(offer)) { record([]); return; }
     const game = simulation;
     // Hors ligne et connecté : une pub déjà chargée pourrait passer, mais le choix ne serait pas enregistré.
     const none = { available: false, show: async () => false };
