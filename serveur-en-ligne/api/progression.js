@@ -4,6 +4,9 @@
 //   - multijoueur : résultat confirmé par les joueurs (matches.js) ;
 //   - campagne solo : partie déclarée au serveur au lancement (game_runs), puis
 //     terminée après une durée plausible, une seule fois.
+// Seule exception : la reprise, UNE fois par compte, des candidats gagnés sur l'appareil avant de se
+// connecter (importDeviceUnlocks). Cette progression est invérifiable ; elle est acceptée pour ne pas
+// faire repartir de zéro un joueur qui crée son compte après avoir joué, et notée dans le journal.
 // En solo, le serveur ne voit pas la partie : ces contrôles empêchent les requêtes
 // forgées (identifiant inconnu, partie inexistante, trop courte, rejouée), pas un jeu
 // entièrement modifié. Voir docs/comptes-partagetonjeu.md.
@@ -16,7 +19,6 @@ import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
 // Durée minimale lue dans les données du jeu (75 % de 365 jours × durée d'un jour) : le seuil suit tout
 // changement de durée. Le jeu fait le même calcul et ne propose pas de pub si la partie serait refusée.
 export const SOLO_CAMPAIGN_MIN_SECONDS = campaignMinSeconds(balance.time);
-export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 
 export async function listUnlocks(db, userId) {
   const rows = (await db.prepare('SELECT candidate_id FROM player_candidate_unlocks WHERE user_id = ?').bind(userId).all()).results;
@@ -57,7 +59,8 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (run.status !== 'playing' && !followUp) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   if (run.status === 'playing') {
     const elapsed = now - run.created_at;
-    if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS || elapsed > SOLO_CAMPAIGN_MAX_SECONDS) {
+    // Pas de durée maximale : une campagne sauvegardée peut être reprise des jours plus tard.
+    if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS) {
       await db.batch([db.prepare('UPDATE game_runs SET status = \'rejected\', completed_at = ? WHERE id = ?').bind(now, runId), audit(db, userId, 'run_rejected', runId, `${elapsed}s`)]);
       throw new ApiError(422, 'implausible_run', 'Fin de partie refusée : durée de campagne invalide.');
     }
@@ -73,4 +76,26 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (wanted.length) await db.batch(wanted.map(id => db.prepare('INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, source_run_id, unlocked_at) VALUES (?, ?, \'knockout\', ?, ?)').bind(userId, id, runId, now)));
   if (wanted.length) await updateTitleRank(db, userId);
   return { unlocked: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
+}
+
+/**
+ * Reprise des candidats débloqués sur l'appareil sans compte : une seule fois par compte (la 1re connexion
+ * d'un appareil qui a de la progression). Les identifiants inconnus ou de départ sont refusés.
+ */
+export async function importDeviceUnlocks(db, userId, body, now = nowSeconds()) {
+  const ids = body.unlocks;
+  if (!Array.isArray(ids) || !ids.length || ids.length > 40 || ids.some(id => !isUnlockable(id))) throw new ApiError(400, 'invalid_input', 'Liste de candidats invalide.');
+  const before = await listUnlocks(db, userId);
+  const wanted = [...new Set(ids)];
+  // Un seul lot (transaction) : les ajouts et le journal ne passent que si la reprise n'a pas encore eu lieu,
+  // puis la reprise est marquée. Une requête simultanée ou rejouée n'ajoute rien ; une erreur n'enregistre rien.
+  const pending = 'EXISTS (SELECT 1 FROM users WHERE id = ? AND device_import_at IS NULL)';
+  const results = await db.batch([
+    ...wanted.map(id => db.prepare(`INSERT OR IGNORE INTO player_candidate_unlocks (user_id, candidate_id, unlock_method, unlocked_at) SELECT ?, ?, 'device_import', ? WHERE ${pending}`).bind(userId, id, now, userId)),
+    db.prepare(`INSERT INTO audit_log (created_at, user_id, action, target, detail) SELECT ?, ?, 'device_import', NULL, ? WHERE ${pending}`).bind(now, userId, wanted.join(',').slice(0, 300), userId),
+    db.prepare('UPDATE users SET device_import_at = ? WHERE id = ? AND device_import_at IS NULL').bind(now, userId),
+  ]);
+  if (!results.at(-1).meta.changes) throw new ApiError(409, 'already_imported', 'La progression d’un appareil a déjà été reprise sur ce compte.');
+  await updateTitleRank(db, userId);
+  return { imported: wanted.filter(id => !before.includes(id)), unlocks: await listUnlocks(db, userId) };
 }

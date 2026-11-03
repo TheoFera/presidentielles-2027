@@ -5,7 +5,7 @@ import { validateConfig } from '../src/config.js';
 import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { startDebate, finishSprint, rankFirstRound } from '../src/simulation/match-lifecycle.js';
 import { convertNeutral } from '../src/simulation/npc-votes.js';
-import { expressedScores, electionModel } from '../src/presentation/menus/election-results.js';
+import { expressedScores, electionModel, electionMarkup } from '../src/presentation/menus/election-results.js';
 import { homeContent } from '../src/presentation/menus/arcade-content.js';
 import { demoElectionState, DEMO_SCENARIOS } from './election-demo.js';
 import { sanitizeCommands } from '../src/network/shared-commands.js';
@@ -119,4 +119,18 @@ test('L’aperçu de développement reste hors du jeu et de l’export', async (
   assert.doesNotMatch(main, /apercu|openResultsPreview/);
   const build = await readFile(new URL('../scripts/build-pages.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(build, /['"]test\//);
+});
+test('Annonce : le 3e candidat principal a son onglet au premier tour, plus dans le bandeau', () => {
+  for (const scenario of DEMO_SCENARIOS) {
+    const model = electionModel(demoElectionState('philippe', scenario));
+    const html = electionMarkup(model, { host: true });
+    const ticker = html.match(/election-ticker-track[\s\S]*?<\/p>/)[0];
+    if (model.first || model.direct) {
+      const third = model.ranking[2];
+      assert.match(html, new RegExp(`class="election-third" data-faction="${third}"`), scenario);
+      assert.match(html, /election-duel has-third/);
+      assert.doesNotMatch(ticker, new RegExp(third === 'le_pen' ? 'Le Pen' : third === 'melenchon' ? 'Mélenchon' : 'Philippe'), scenario);
+      assert.equal(/Éliminé/.test(html.match(/class="election-third"[\s\S]*?<\/p>/)[0]), model.first, scenario);
+    } else assert.doesNotMatch(html, /election-third/, scenario);
+  }
 });

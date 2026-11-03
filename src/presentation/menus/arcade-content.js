@@ -14,6 +14,15 @@ export function homeContent() {
 export function playersContent(mode) {
   return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">${mode === 'debate' ? 'Débat télé' : 'Campagne'} : avec qui jouer ?</h1><p class="players-mode" data-mode="${mode}" aria-hidden="true">${mode === 'debate' ? '⚔ Débat télé' : '★ Campagne'}</p><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Multijoueur</strong><span aria-hidden="true">♟</span></button></div></div>`;
 }
+/**
+ * Campagne → Solo avec une partie sauvegardée (menus/saved-campaign.js) : « Reprendre la partie »
+ * (candidat et jour) ou « Nouvelle partie », sur le même écran que « Avec qui ? ».
+ */
+export function resumeChoiceContent(saved) {
+  const candidate = CANDIDATES.find(c => `candidate:${c.id}` === saved.candidate_id);
+  const where = `${candidate?.short ?? ''} · ${saved.phase === 'SECOND_ROUND_SPRINT' ? '2nd tour · ' : ''}J-${saved.days_remaining}`;
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Campagne solo : reprendre la partie sauvegardée ?</h1><p class="players-mode" data-mode="campaign" aria-hidden="true">★ Partie sauvegardée</p><div class="mode-grid"><button class="mode-card arcade-button" id="resume"><strong>Reprendre<small>${where}</small></strong></button><button class="mode-card arcade-button" id="new-game"><strong>Nouvelle partie<small>remplace la sauvegarde</small></strong></button></div></div>`;
+}
 export function candidatesContent(selected = null) {
   return `<div class="candidate-grid">${CANDIDATES.map(c => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge" aria-hidden="true">♛ J1</span><strong class="visually-hidden">${c.short}</strong></button>`).join('')}</div><footer class="menu-footer"><button id="prepare-game" class="menu-primary arcade-button" ${selected ? '' : 'disabled'}>Valider <span aria-hidden="true">➜</span></button></footer>`;
 }
@@ -40,17 +49,28 @@ const GAME_HINTS = [
   'En tête des sondages, des journalistes vous filment : sortez du champ, la caméra vous ralentit.',
 ];
 export const loadingHints = candidate => [CANDIDATE_HINTS[candidate.id], ...GAME_HINTS].filter(Boolean);
+/** Fond de l’écran de chargement : le quartier où le candidat commence la partie, déjà flouté (léger, affiché tout de suite). */
+const LOADING_BACKDROPS = {
+  melenchon: new URL('../../../assets/images/menus/chargement-melenchon.png', import.meta.url).href,
+  philippe: new URL('../../../assets/images/menus/chargement-philippe.png', import.meta.url).href,
+  le_pen: new URL('../../../assets/images/menus/chargement-le-pen.png', import.meta.url).href,
+};
+/** Écran de chargement : l’astuce en bulle à côté du candidat, les trois consignes côte à côte,
+    puis un bandeau « flash info » (même dessin que l’intro de campagne) et la barre, qui laisse sa place à « Jouer ». */
 export function tutorialContent(candidate) {
   const card = (icon, title, text) => `<p><span aria-hidden="true">${icon}</span><strong>${title}</strong>${text}</p>`;
-  return `<div class="loading-title"><p class="loading-flash"><span>J-365</span><span>Premier tour</span></p><h1 tabindex="-1">Plus qu’un an avant l’élection</h1></div>`
-    + `<div class="loading-scene"><div class="loading-candidate"><div class="loading-stage"><img src="${portrait(candidate)}" alt=""></div><strong class="loading-name">${candidate.short}</strong></div>`
+  const backdrop = LOADING_BACKDROPS[candidate.id];
+  return (backdrop ? `<div class="loading-backdrop" style="background-image: url('${backdrop}')" aria-hidden="true"></div>` : '')
+    + `<div class="loading-candidate"><div class="loading-stage"><img src="${portrait(candidate)}" alt=""></div><strong class="loading-name">${candidate.short}</strong></div>`
+    + `<p class="loading-hint"><strong>Astuce :</strong> <span id="loading-tip"></span></p>`
     + `<div class="loading-guide"><h2>À vous de jouer !</h2><div class="loading-tips">`
     + card('✦', 'Convainquez', '<small>Arrêtez-vous près d’un passant pour lui parler.</small>')
     + card('⚑', 'Étendez-vous', '<small>Restez devant un bâtiment pour l’acquérir.</small>')
     + card('⚔', 'Combattez', '<small class="keyboard-guide"><kbd>←</kbd><kbd>→</kbd> marcher · <kbd>↑</kbd> sauter · <kbd>Espace</kbd> frapper · <kbd>R</kbd> ultime</small><small class="touch-guide">Utilisez les boutons à l’écran.</small>')
-    + `</div></div></div>`
-    + `<div class="loading-strip"><p id="loading-status" role="status">Chargement…</p>`
-    + `<div class="loading-action"><div class="loading-bar" role="progressbar" aria-label="Chargement de la campagne" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="loading-fill"></span><span id="loading-percent" aria-hidden="true">0 %</span></div>`
-    + `<button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></div>`
-    + `<p class="loading-hint"><strong>Astuce :</strong> <span id="loading-tip"></span></p></div>`;
+    + `</div></div>`
+    + `<div class="loading-news"><div class="loading-news-head"><span class="loading-day">J-365</span><h1 tabindex="-1">Plus qu’un an avant l’élection</h1></div>`
+    + `<div class="loading-news-ticker"><span class="loading-round">Premier tour</span><p id="loading-status" role="status">Chargement…</p></div></div>`
+    + `<div class="loading-strip"><div class="loading-action"><div class="loading-meter"><span id="loading-percent" aria-hidden="true">0 %</span>`
+    + `<div class="loading-bar" role="progressbar" aria-label="Chargement de la campagne" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="loading-fill"></span></div></div>`
+    + `<button id="start-campaign" class="menu-primary arcade-button" disabled>Chargement…</button></div></div>`;
 }

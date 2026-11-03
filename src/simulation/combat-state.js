@@ -38,7 +38,10 @@ export const canBeHit = actor => actor && actor.faction_id && !actor.eliminated 
 const team = actor => actor.team_id ?? actor.faction_id;
 // Les hologrammes de Mélenchon ne sont que des images : personne ne peut les viser ni les toucher.
 export const targetable = actor => canBeHit(actor) && actor.role !== 'HOLOGRAMME';
-export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && targetable(b) && team(a) !== team(b);
+// Les journalistes ne répondent qu'aux candidats (et à leurs hologrammes) : militants, service d'ordre, CRS
+// et habitants ne les visent ni ne les touchent.
+const mayHitPress = actor => actor.role === 'CANDIDAT' || actor.role === 'HOLOGRAMME';
+export const enemies = (a, b) => a.id !== b.id && canBeHit(a) && targetable(b) && team(a) !== team(b) && (!isPress(b) || mayHitPress(a));
 export const europeActive = (state, c) => c.ultimate_effect?.kind === 'EUROPE' && c.ultimate_effect.expires_tick > state.tick;
 export const interrupted = actor => actor.combat && (charging(actor) || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id);
 export const movementBlocked = actor => actor.combat && (actor.combat.charge_active || actor.dash_active || actor.combat.stun_ticks > 0 || actor.combat.hitstop_ticks > 0 || !!actor.combat.attack_id && actor.combat.jump_tick == null || actor.combat.dive_tick != null);

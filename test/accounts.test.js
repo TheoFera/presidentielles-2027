@@ -416,6 +416,10 @@ test('Progression solo : abandon, fin normale, durée, rejeu et requête forgée
   ageRun(api, run, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   const done = await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['roussel', 'le_pen_zemmouriste', 'roussel'] } });
   assert.equal(done.status, 200); assert.deepEqual(done.body.unlocked, ['roussel', 'le_pen_zemmouriste']);
+  // Campagne sauvegardée puis reprise trois jours plus tard : pas de durée maximale, déblocage accepté.
+  const lateId = UNLOCKABLE_IDS.find(id => !['roussel', 'le_pen_zemmouriste', 'glucksmann', 'arthaud', 'attal', 'retailleau', 'dupont_aignan', 'candidat_secret'].includes(id));
+  const resumed = await start(); ageRun(api, resumed, 3 * 24 * 3600);
+  assert.deepEqual((await api.call('POST', `runs/${resumed}/complete`, { token, body: { knockouts: [lateId] } })).body.unlocked, [lateId]);
   // Plus de 2 candidats choisis (requête forgée ou ancienne version du jeu) : seuls les 2 premiers sont gardés.
   const greedy = await start(); ageRun(api, greedy, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   const capped = await api.call('POST', `runs/${greedy}/complete`, { token, body: { knockouts: ['glucksmann', 'arthaud', 'attal'] } });
@@ -594,7 +598,7 @@ import { GameSimulation } from '../src/simulation/game-simulation.js';
 import { hit } from '../src/simulation/combat-state.js';
 import { AccountClient } from '../src/network/account-api.js';
 import { matchDeclaration, campaignPlacements, campaignKnockouts, debatePlacements } from '../src/network/ranked-match.js';
-import { applyAccountProgress, addDeviceUnlocks } from '../src/presentation/comptes/account-progress.js';
+import { applyAccountProgress, addDeviceUnlocks, deviceUnlocksToImport } from '../src/presentation/comptes/account-progress.js';
 import { isCampaignStyleUnlocked, isMinorCandidateUnlocked, isBetatestProfile } from '../src/simulation/campaign-styles.js';
 
 test('Simulation : un K.-O. de mineur par le joueur est noté, débloqué seulement aux résultats', () => {
@@ -663,6 +667,57 @@ test('Progression affichée : compte connecté, puis retour à la progression de
   profile.nickname = 'Joueur';
   assert.ok(isMinorCandidateUnlocked(profile, 'attal')); assert.ok(!isMinorCandidateUnlocked(profile, 'roussel'));
   assert.equal(profile.account, undefined);
+});
+
+test('Reprise de la progression de l’appareil : une seule fois par compte', async () => {
+  const api = makeApi();
+  // Joué sans compte : Attal et Mélenchon populiste débloqués sur l'appareil.
+  const profile = {};
+  addDeviceUnlocks(profile, ['attal', 'melenchon_populiste']);
+  const { client } = clientFor(api);
+  await client.signIn('google', await providerLogin(api, 'google', 'g-import'));
+  assert.equal(client.me.user.device_imported, false);
+  applyAccountProgress(profile, client);
+  const ids = deviceUnlocksToImport(profile, client);
+  assert.deepEqual(ids.sort(), ['attal', 'melenchon_populiste']);
+  const result = await client.importDeviceUnlocks(ids);
+  assert.deepEqual(result.imported.sort(), ['attal', 'melenchon_populiste']);
+  assert.equal(client.me.user.device_imported, true);
+  applyAccountProgress(profile, client);
+  assert.ok(isMinorCandidateUnlocked(profile, 'attal'), 'gardé une fois connecté');
+  assert.ok(isCampaignStyleUnlocked(profile, 'melenchon', 'melenchon_populiste'));
+  assert.deepEqual(deviceUnlocksToImport(profile, client), [], 'plus rien à reprendre');
+  assert.equal((await client.refresh()).user.device_imported, true);
+  assert.equal(api.sql("SELECT COUNT(*) AS n FROM player_candidate_unlocks WHERE unlock_method = 'device_import'")[0].n, 2);
+  assert.equal(api.sql("SELECT COUNT(*) AS n FROM audit_log WHERE action = 'device_import'")[0].n, 1);
+  // 2ᵉ reprise (autre appareil, requête rejouée) : refusée, rien d'ajouté.
+  const token = client.session.token;
+  const again = await api.call('POST', 'progression/import', { token, body: { unlocks: ['roussel'] } });
+  assert.equal(again.status, 409); assert.equal(again.body.error.code, 'already_imported');
+  assert.ok(!(await api.call('GET', 'progression', { token })).body.unlocks.includes('roussel'));
+  // Requêtes invalides (sans consommer la reprise) : identifiant inconnu, candidat de départ, liste vide, sans session.
+  const other = await player(api, 'g-import2', 'Autre');
+  for (const unlocks of [['candidat_secret'], ['le_pen_souverainiste'], [], 'attal']) {
+    assert.equal((await api.call('POST', 'progression/import', { token: other, body: { unlocks } })).status, 400);
+  }
+  assert.equal((await api.call('POST', 'progression/import', { body: { unlocks: ['attal'] } })).status, 401);
+  assert.equal((await api.call('POST', 'progression/import', { token: other, body: { unlocks: ['arthaud', 'arthaud'] } })).body.imported.length, 1);
+  // Panne pendant l'enregistrement : rien n'est noté, la reprise reste possible.
+  const flaky = await player(api, 'g-import3', 'Panne');
+  const batch = api.DB.batch;
+  api.DB.batch = async () => { api.DB.batch = batch; throw new Error('D1 indisponible'); };
+  assert.equal((await api.call('POST', 'progression/import', { token: flaky, body: { unlocks: ['attal'] } })).status, 500);
+  assert.deepEqual((await api.call('POST', 'progression/import', { token: flaky, body: { unlocks: ['attal'] } })).body.imported, ['attal']);
+  // Réponse arrivée après un changement de compte : ignorée.
+  const late = clientFor(api);
+  await late.client.signIn('google', await providerLogin(api, 'google', 'g-import4'));
+  const pending = late.client.importDeviceUnlocks(['roussel']);
+  late.client.forget();
+  await pending;
+  assert.equal(late.client.me, null);
+  // Appareil sans progression en plus : rien à reprendre (la reprise n'est pas consommée).
+  assert.deepEqual(deviceUnlocksToImport({ device_unlocks: [...DEFAULT_UNLOCKED] }, { signedIn: true, me: { user: { device_imported: false }, unlocks: [...DEFAULT_UNLOCKED] } }), []);
+  assert.deepEqual(deviceUnlocksToImport({ device_unlocks: ['attal'] }, { signedIn: false, me: null }), []);
 });
 
 test('Multijoueur : déclaration et ordre d’arrivée calculés depuis le salon existant', () => {

@@ -252,16 +252,17 @@ export function drawSiteRequirements(renderer, state) {
     const open = ['EMPTY', 'NEUTRAL', 'CLOSED'].includes(building.state);
     const threatened = building.state === 'ACTIVE' && building.owner_id === candidate.faction_id && !building.headquarters && building.closure_progress > 0;
     if (!open && !threatened) continue;
-    // Un bâtiment menacé se défend avec les soutiens de son quartier (strategic-sites.js) ; un bâtiment libre se prend avec ceux qui l'entourent.
-    const current = open ? localPoliticalPresence(state, config, building, candidate.faction_id) : building.current_political_presence;
-    const required = open ? buildingSettings(config, building, candidate.faction_id).required_presence_N1 : building.required_presence;
-    if (!required) continue;
+    // Un bâtiment libre se prend avec les soutiens qui l'entourent ; un raid ferme le bâtiment quel que soit
+    // le nombre de partisans : l'alerte d'un bâtiment menacé ne montre plus de seuil.
+    const current = open ? localPoliticalPresence(state, config, building, candidate.faction_id) : 0;
+    const required = open ? buildingSettings(config, building, candidate.faction_id).required_presence_N1 : 0;
+    if (!required && !threatened) continue;
     const sprite = renderer.assets?.get(buildingAssetId(building, state.world));
     const y = Math.max(8, buildingGeometry(renderer, building, sprite).top - 26);
     const need = { required, current };
     if (threatened) {
       ctx.globalAlpha = 0.7 + 0.3 * Math.sin(state.tick * 0.3);
-      drawPresenceRow(ctx, x, y, need, color, false, `⚠ ${current}/${required} : bâtiment menacé`);
+      drawPresenceRow(ctx, x, y, { required: 0, current: 0 }, color, false, '⚠ bâtiment menacé');
       ctx.globalAlpha = 1;
     } else drawPresenceRow(ctx, x, y, need, color, current >= required, `${current}/${required} soutiens`);
   }

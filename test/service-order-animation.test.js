@@ -13,6 +13,7 @@ import { convertNeutral } from '../src/simulation/npc-votes.js';
 import { SERVICE_ORDER_STYLES } from '../src/simulation/service-order-rules.js';
 import { campaignConfig } from '../scripts/validate-campaign.mjs';
 import { ringDelta } from '../src/simulation/world.js';
+import { distance } from '../src/simulation/territory.js';
 import { readPng } from '../scripts/lib/png.mjs';
 import { isolateMinorFigure } from '../src/presentation/personnages/minor-sprite-images.js';
 import { measureMinorSprites } from '../scripts/outils-images/measure-minor-sprites.mjs';
@@ -538,4 +539,87 @@ test('SO : les coups de pied supplémentaires préservent les apparences syndica
   for (const variants of Object.values(SERVICE_ORDER_VARIANTS)) for (const id of variants) {
     if (!preserved.includes(id)) assert.equal(SERVICE_ORDER_ATLASES[id].building, undefined);
   }
+});
+
+/** Raid de test : deux gardes devant un bâtiment adverse, sans candidat ni autre bâtiment. */
+function raidPairScene(positions) {
+  const sim = new GameSimulation(campaignConfig(), 42), s = sim.state;
+  const building = s.buildings.find(b => b.controls_zone && b.type !== 'meeting' && b.type !== 'institut_sondage');
+  Object.assign(building, { state: 'ACTIVE', owner_id: 'le_pen', headquarters: false });
+  s.buildings = [building]; s.candidates = []; s.temporary_units = []; s.next_raid_id = 2;
+  const template = s.npcs[0];
+  const guards = positions.map((offset, i) => ({ ...structuredClone(template), ...guard(`npc:${i}`), hidden_durability: 90, task: null,
+    x: building.x + offset, facing: 1, guard_anchor_x: building.x - 5,
+    raid: { id: 'raid:1', phase: 'OUTBOUND', direction: 1, started_tick: 0, building_id: null } }));
+  s.npcs = guards.slice();
+  return { sim, s, building, guards, template };
+}
+
+test('Raid : 8 s à trois gardes, 12 s à deux, 16 s seul, quels que soient les partisans du quartier', () => {
+  for (const [count, seconds] of [[3, 8], [2, 12], [1, 16]]) for (const supporters of [0, 6]) {
+    const { sim, s, building, guards, template } = raidPairScene(Array.from({ length: count }, (_, i) => -(i - 1) * 1.4));
+    for (let i = 0; i < supporters; i++) s.npcs.push({ ...structuredClone(template), id: `npc:${50 + i}`, faction_id: 'le_pen', role: 'SYMPATHISANT', x: building.x + 4 + i * .5, task: null });
+    // Le chrono commence quand tous les gardes frappent la porte.
+    for (let i = 0; i < sim.secondsToTicks(3) && !guards.every(n => n.pressure_target_id === building.id); i++) { for (const n of guards) updateGuard(sim, n); s.tick++; }
+    building.closure_progress = 0;
+    let ticks = 0;
+    for (; ticks < sim.secondsToTicks(30) && building.state === 'ACTIVE'; ticks++) {
+      updateStrategicSites(sim);
+      for (const n of guards) updateGuard(sim, n);
+      s.tick++;
+    }
+    assert.notEqual(building.state, 'ACTIVE');
+    assert.ok(Math.abs(ticks / sim.hz - seconds) < .5, `${count} garde(s), ${supporters} partisans : ${ticks / sim.hz} s au lieu de ${seconds} s`);
+  }
+});
+
+test('Raid : un garde parti se battre revient frapper le bâtiment avec son camarade', () => {
+  const { sim, s, building, guards, template } = raidPairScene([-1.5, 2]);
+  // Un militant adverse attire le second garde, au-delà du bâtiment.
+  const enemy = { ...structuredClone(template), id: 'npc:9', faction_id: 'le_pen', role: 'MILITANT', x: building.x + 4.5, hidden_durability: 1000, combat: combatState(), task: null };
+  s.npcs.push(enemy);
+  let fought = false;
+  for (let t = 0; t < sim.secondsToTicks(20); t++) {
+    s.tick++; beginCombatTick(sim);
+    if (t === sim.secondsToTicks(4)) s.npcs = s.npcs.filter(n => n !== enemy);
+    for (const n of guards) updateGuard(sim, n);
+    updateCombat(sim);
+    fought ||= guards[1].task?.phase === 'DEFEND';
+  }
+  assert.ok(fought, 'Le second garde est bien parti se battre.');
+  for (const n of guards) {
+    assert.equal(n.task.phase, 'PRESSURE');
+    assert.equal(n.pressure_target_id, building.id);
+    assert.ok(Math.abs(ringDelta(building.x, n.x, s.world.length)) < 2.5);
+  }
+});
+
+test('Raid : un garde libre rejoint son camarade en combat au lieu de partir seul', () => {
+  for (const withBuilding of [false, true]) {
+  const { sim, s, building, guards, template } = raidPairScene([20, 12]);
+  // Avec un bâtiment adverse loin devant, le garde libre ne part pas non plus le fermer seul.
+  const base = building.x;
+  if (withBuilding) building.x = (base + 40) % s.world.length; else s.buildings = [];
+  // Le garde de tête est libre ; l'autre se bat derrière lui contre un militant résistant.
+  const enemy = { ...structuredClone(template), id: 'npc:9', faction_id: 'le_pen', role: 'MILITANT', x: base + 10, hidden_durability: 100000, combat: combatState(), task: null };
+  s.npcs.push(enemy);
+  for (let t = 0; t < sim.secondsToTicks(6); t++) {
+    s.tick++; beginCombatTick(sim); enemy.x = base + 10;
+    for (const n of guards) updateGuard(sim, n);
+    updateCombat(sim);
+  }
+  assert.equal(guards[1].task.phase, 'DEFEND');
+  assert.ok(distance(s, guards[0].x, guards[1].x) < 4, 'Le premier garde est revenu près de son camarade.');
+  }
+});
+
+test('Raid : le garde de tête attend le dernier, puis le groupe repart ensemble', () => {
+  const { sim, s, guards } = raidPairScene([30, 20]);
+  s.buildings = [];
+  const front = guards[0].x;
+  for (let t = 0; t < sim.secondsToTicks(1.5); t++) { for (const n of guards) updateGuard(sim, n); s.tick++; }
+  assert.ok(Math.abs(ringDelta(front, guards[0].x, s.world.length)) < .01, 'Le garde de tête attend.');
+  for (let t = 0; t < sim.secondsToTicks(20); t++) { for (const n of guards) updateGuard(sim, n); s.tick++; }
+  assert.ok(ringDelta(front, guards[0].x, s.world.length) > 2, 'Le groupe est reparti.');
+  assert.ok(distance(s, guards[0].x, guards[1].x) < 3, 'Les deux gardes marchent ensemble.');
 });

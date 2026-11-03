@@ -188,6 +188,7 @@ export function validateSnapshot(next, simulation, nested = false) {
       if (task.alert_until_tick !== undefined && !integer(task.alert_until_tick)) fail('alerte de garde invalide');
       if (task.formation_index !== undefined && !integer(task.formation_index)) fail('place de garde invalide');
       if (task.combat_side != null && ![-1, 1].includes(task.combat_side)) fail('approche de garde invalide');
+      if (task.site_id != null && (!npc.raid || typeof task.site_id !== 'string')) fail('bâtiment de raid invalide');
     } else fail('tâche inconnue');
   }
   if (next.electorate.length !== next.world.subzones.length) fail('électorat incomplet');

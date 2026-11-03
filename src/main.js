@@ -57,9 +57,10 @@ import { AccountClient } from './network/account-api.js';
 import { accountsConfigured } from './network/auth-providers.js';
 import { RankedMatches, campaignPlacements, campaignKnockouts, debatePlacements } from './network/ranked-match.js';
 import { requireAccount, showAccountToast, decorateProfile } from './presentation/comptes/account-screens.js';
-import { applyAccountProgress, addDeviceUnlocks, unlockNames } from './presentation/comptes/account-progress.js';
+import { applyAccountProgress, addDeviceUnlocks, deviceUnlocksToImport, unlockNames } from './presentation/comptes/account-progress.js';
 import { campaignMinSeconds, earnedUnlocks, profileUnlockIds, unlockOffer, unlocksToProfile } from './simulation/unlock-catalog.js';
 import { openUnlockChoice } from './presentation/menus/unlock-choice.js';
+import { canSaveCampaign, clearSavedCampaign, loadSavedCampaign, saveCampaign, savedCampaignSummary } from './presentation/menus/saved-campaign.js';
 
 // L'horloge du jeu démarre un peu avant celle du serveur (temps de la requête) : marge avant de proposer une pub.
 const RUN_CLOCK_MARGIN_SECONDS = 10;
@@ -89,7 +90,20 @@ async function start() {
   };
   // Compte PartageTonJeu (facultatif) : jamais demandé au lancement ni pour le solo.
   const accounts = new AccountClient({ platform: globalThis.PTJNativeAuth?.platform?.() || (APP_BUILD ? 'android' : 'web') });
-  const syncProgress = () => { applyAccountProgress(profile, accounts); account.save({}); };
+  // 1re connexion d'un compte : les candidats gagnés sur cet appareil sans compte sont repris sur le compte (une fois par compte).
+  let importing = false, importRefused = false;
+  const importDeviceProgress = () => {
+    if (!accounts.signedIn) { importRefused = false; return; }
+    const ids = deviceUnlocksToImport(profile, accounts);
+    if (!ids.length || importing || importRefused) return;
+    importing = true;
+    accounts.importDeviceUnlocks(ids)
+      .then(result => { if (result.imported.length) showAccountToast(`Progression de cet appareil ajoutée à ton compte : ${unlockNames(result.imported)} !`, 'ok'); })
+      // Hors ligne : nouvel essai au prochain changement du compte. Refus (déjà repris, ancien serveur) : plus d'essai.
+      .catch(error => { if (!error.offline) { importRefused = true; void accounts.refresh().catch(() => {}); } })
+      .finally(() => { importing = false; });
+  };
+  const syncProgress = () => { applyAccountProgress(profile, accounts); account.save({}); importDeviceProgress(); };
   accounts.onChange(syncProgress); syncProgress();
   // Session retrouvée : le profil du compte se met à jour en arrière-plan (hors ligne, la copie locale sert).
   void accounts.refresh().catch(() => {});
@@ -204,13 +218,15 @@ async function start() {
   const objectives = new CampaignObjectives(document.getElementById('game'), { farewellSeconds: introSettings.objectives_farewell_seconds,
     onDone: ids => account.save({ tutorial_objectives: ids }) });
   // Pause en touchant la carte. En multijoueur, elle passe par le salon : elle vaut pour tous les joueurs.
+  // Solo : la pause sauvegarde la partie, et « Retour au menu » la sauvegarde avant d'ouvrir l'accueil.
   const mapPause = new MapPause(document.getElementById('game'), { objectives, wheel: () => electoralDisplay.wheel,
     hint: !profile.map_pause_used, onUsed: () => account.save({ map_pause_used: true }),
     request: on => {
       if (session) { session.request('pause', { paused: on }).catch(error => notify(error.message, 3)); return; }
       paused = on; input.clear(); human.reset(); clock.reset();
-      if (on) mapPause.show(); else { mapPause.hide(); previousTime = performance.now(); canvas.focus(); }
-    } });
+      if (on) mapPause.show({ saved: saveGame() }); else { mapPause.hide(); previousTime = performance.now(); canvas.focus(); }
+    },
+    home: () => { if (session) return; saveGame(); returnHome(); } });
   const introScene = new CampaignIntroScene(document.getElementById('game'), config, {
     renderer, wheel: () => electoralDisplay.wheel, play: cue => audio.play(cue),
     advance: () => objectives.advance(), explain: on => objectives.setExplain(on || mapPause.open),
@@ -261,6 +277,15 @@ async function start() {
     home: () => { if (session) returnHome(); else void ads.afterGame('debate', returnHome); },
   });
 
+  /**
+   * Sauvegarde de la campagne solo (menus/saved-campaign.js) : seulement à la pause, au retour au menu
+   * et quand le jeu passe en arrière-plan, jamais pendant le jeu. Rend `false` si l'appareil la refuse.
+   */
+  const saveGame = () => !session && !debateMatch && !menu?.active && canSaveCampaign(state) && saveCampaign(simulation, { run: soloRun });
+  // Nouvelle campagne solo lancée : elle remplace la sauvegarde au moment de jouer (voir play()).
+  let replacesSave = false;
+  // Partie finie pour le joueur (résultats, élimination) : sa sauvegarde est effacée une fois.
+  let saveCleared = false;
   /** La carte peut-elle ouvrir la pause : partie en cours, sans scène, choix de style, débat télé ni élimination ? */
   const canMapPause = () => !menu?.active && !debateMatch && !paused && !sceneFreeze && ['CAMPAIGN', 'SECOND_ROUND_SPRINT'].includes(state.phase)
     && !state.campaign_intro && !state.campaign_style_selection && !document.body.classList.contains('campaign-studio')
@@ -272,7 +297,7 @@ async function start() {
     transitions.reset(); sceneFreeze = false; curtain.style.opacity = 0; voteInterlude.hidden = true; matchDisplay.resultsHeld = false;
     matchDisplay.reset(); moneyCounter.reset(); sounds.reset(); combatMusic.clear();
     // Une partie importée déjà terminée ne compte pas dans les statistiques du profil.
-    resultRecorded = state.phase === 'RESULTS';
+    resultRecorded = state.phase === 'RESULTS'; saveCleared = false;
     knockoutsSeen = state.knockouts?.length ?? 0; announcedKnockouts.clear(); clearKnockoutReveals();
     introScene.stop(); objectives.reset(false); mapPause.reset();
     currentDay = state.days_remaining;
@@ -351,6 +376,9 @@ async function start() {
     simulation.applyCommand(command); state = simulation.getState();
   }, () => { input.clear(); pending = []; clock.reset(); });
   document.addEventListener('visibilitychange', () => {
+    // Onglet changé, appli quittée, téléphone verrouillé : la campagne solo se met en pause (on la retrouve
+    // en pause au retour) et elle est sauvegardée (le système peut fermer l'appli en arrière-plan sans prévenir).
+    if (document.hidden) { if (!session && canMapPause()) mapPause.request(true); else saveGame(); }
     // A hidden local tab pauses the session clock, not off-camera entities.
     // The simulation itself has no document/window/camera dependency.
     wasHidden = true; input.clear(); clock.reset();
@@ -360,7 +388,7 @@ async function start() {
   });
   // Closing the tab or leaving the page warns the other phones at once instead of
   // letting them wait for a time-out.
-  window.addEventListener('pagehide', event => { if (!event.persisted && session) stopSession(); });
+  window.addEventListener('pagehide', event => { saveGame(); if (!event.persisted && session) stopSession(); });
   function stopSession() {
     const oldSession = session; session = null; oldSession?.close(); remote.clear(); roomPhase = null; networkBusy = false; snapshots.reset(); campaignPrediction = null;
     void keepScreenAwake();
@@ -409,11 +437,21 @@ async function start() {
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
   }
-  async function prepare(candidateId, onProgress = () => {}) {
+  /** Prépare une campagne derrière l'écran de chargement. `resume` : reprend la partie sauvegardée. */
+  async function prepare(candidateId, onProgress = () => {}, { resume = false } = {}) {
     stopDebate();
     paused = true; input.clear(); debug.toggle(false);
     stylesDisplay.profile = profile;
-    simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile, { campaignIntro: true });
+    const saved = resume ? loadSavedCampaign(config) : null;
+    simulation = new GameSimulation(config, config.prototype.seed, candidateId, profile, { campaignIntro: !saved });
+    if (saved) {
+      try { simulation.importSnapshot(saved.json); } catch (error) {
+        // Partie enregistrée par une autre version du jeu : elle ne pourra jamais reprendre.
+        console.warn(error); clearSavedCampaign();
+        throw new Error('Cette sauvegarde ne peut pas être reprise avec cette version du jeu. Lancez une nouvelle campagne.');
+      }
+    }
+    replacesSave = !session && !saved;
     if (session) {
       simulation.state.human_candidate_ids = session.room.players.map(p => `candidate:${p.faction}`);
       campaignPrediction = session.host ? null : new CampaignPrediction(config, session.candidateId);
@@ -422,7 +460,9 @@ async function start() {
       simulation.profiles = Object.fromEntries(session.room.players.map(p => [`candidate:${p.faction}`,
         p.id === session.id ? profile : { ...unlocksToProfile(p.card?.unlocks || []), nickname: '' }]));
     }
-    startSoloRun(candidateId);
+    // Reprise : la partie déclarée au compte au départ reste la même (déblocages possibles en fin de partie).
+    if (saved) soloRun = saved.summary.run && accounts.ready ? { ...saved.summary.run } : null;
+    else startSoloRun(candidateId);
     resetPresentation(); simulationSpeed = 1; noticeRemaining = 0;
     // `?tutoriel` dans l'adresse : revoir les consignes et tous les objectifs, comme à la première partie.
     // Consignes « ← → » et « Frapper » : deux premières parties. Objectifs (et dossier du départ) : tant
@@ -431,7 +471,9 @@ async function start() {
     const tutorial = (profile.campaign_intro_seen || 0) < introSettings.tutorial_games || replay;
     const faction = candidateId.split(':')[1], done = replay ? [] : profile.tutorial_objectives || [];
     const briefing = !tutorialProgress(faction, done).complete;
-    introScene.start({ tutorial, briefing }); objectives.reset(briefing, { done, faction });
+    // Reprise : pas de scène d'ouverture, le post-it des objectifs revient tel quel.
+    if (!saved) introScene.start({ tutorial, briefing });
+    objectives.reset(briefing, { done, faction });
     renderer.artZone = null;
     // Premier dessin avec la scène d'ouverture (journalistes et public) : rien à charger en pleine scène.
     renderer.draw(introScene.view(state), state, 1, 0);
@@ -581,6 +623,8 @@ async function start() {
   }
 
   function play() {
+    if (replacesSave && !debateMatch) clearSavedCampaign();
+    replacesSave = false;
     snapshots.reset(); sentTick = null; paused = false; clock.reset(); input.clear(); previousTime = performance.now(); canvas.focus(); void keepScreenAwake();
     // Arrivée dans la campagne : la partie attend que le menu soit effacé, l'interface glisse à sa place.
     if (debateMatch || reducedMotion()) return;
@@ -679,7 +723,7 @@ async function start() {
   // Multijoueur : compte obligatoire. Une fois connecté, l'action voulue reprend toute seule.
   const multiplayerGate = (current, mode) => requireAccount(current, accounts, { resume: () => showMultiplayerSetup(current, connectRoom, mode), back: () => current.players(mode), suggestion: profile.nickname });
   setCandidateColors(config.prototype.presentation.factions);
-  menu = new StartMenu({ prepare, play, audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate, arrivalSeconds: transitionSettings.arrival_seconds,
+  menu = new StartMenu({ prepare, play, saved: () => savedCampaignSummary(config), audio, account, ads, combat: config.balance.candidate_combat, multiplayer: multiplayerGate, arrivalSeconds: transitionSettings.arrival_seconds,
     debate: { config, prepare: prepareDebate, play: playDebate } });
   menu.leave = stopSession;
   menu.onProfile = current => decorateProfile(current, accounts);
@@ -983,6 +1027,7 @@ async function start() {
       respawnCountdown.update(state, local, paused || !!state.campaign_style_selection || !scene.draw);
       const inCombat = state.phase === 'CAMPAIGN' && !state.campaign_intro && !!local && !local.eliminated && combatMusic.active(local, state, config);
       sounds.update(state, { paused, combat: inCombat });
+      if (!session && !saveCleared && (state.phase === 'RESULTS' || local?.eliminated)) { saveCleared = true; clearSavedCampaign(); }
       if (state.phase === 'RESULTS' && !resultRecorded) {
         resultRecorded = true;
         account.save(recordMatchResult(profile, state, { multiplayer: !!session }));

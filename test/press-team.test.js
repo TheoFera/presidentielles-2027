@@ -99,7 +99,7 @@ test('Micro : 6 dégâts, petite interruption, aucun recul et pas de seconde tou
 for(const role of ['PRESS_CAMERA','PRESS_REPORTER'])test(`Défaite de ${role} : les deux cessent le combat et sortent par le bas`,()=>{
   const f=setup();aim(f);const target=role==='PRESS_CAMERA'?f.camera:f.reporter;
   f.c.x=target.x+.5;f.c.facing=-1;
-  hit(f.sim,f.c,target,{kind:'CANDIDATE',damage:100,knockback:0,stun_seconds:.2,direction:-1},'test');
+  hit(f.sim,f.c,target,{kind:'CANDIDATE',damage:200,knockback:0,stun_seconds:.2,direction:-1},'test');
   assert.equal(f.sim.state.press_team.phase,'LEAVING');assert.equal(f.camera.expired,false);
   assert.equal(canBeHit(f.reporter),false);assert.equal(canBeHit(f.camera),false);
   assert.equal(filmed(f.sim.state,f.sim.config,f.c),false);
@@ -110,7 +110,7 @@ for(const role of ['PRESS_CAMERA','PRESS_REPORTER'])test(`Défaite de ${role} : 
 test('Un coup non mortel sur la caméra interrompt le tournage puis impose un nouveau cadrage',()=>{
   const f=setup();aim(f); f.c.x=100.7;
   hit(f.sim,f.c,f.camera,{kind:'CANDIDATE',damage:8,knockback:0,stun_seconds:.2,direction:-1},'test');
-  assert.equal(f.camera.filming,false);assert.equal(f.camera.hidden_durability,22);
+  assert.equal(f.camera.filming,false);assert.equal(f.camera.hidden_durability,52);
   ticks(f.sim,10);assert.equal(f.camera.filming,false);
 });
 
@@ -156,16 +156,18 @@ test('La charge complète demande réellement plus de temps pendant le filmage',
 });
 
 test('La caméra ne se tourne pas seule : sortir de sa portée la fait se déplacer et recadrer',()=>{
-  const f=setup();aim(f);f.c.x=f.camera.x+5;
+  const f=setup();aim(f);f.c.x=f.camera.x+f.sim.config.balance.press_team.camera_range+.5;
   const before=f.camera.x;ticks(f.sim,1);
   assert.ok(f.camera.x>before);assert.equal(f.camera.filming,false);assert.equal(filmed(f.sim.state,f.sim.config,f.c),false);
 });
 
-test('Un combo sur le cameraman suffit ; le micro laisse le temps de terminer le combat',()=>{
+test('Deux combos sur le cameraman suffisent ; le micro laisse le temps de terminer le combat',()=>{
   const f=setup();aim(f);f.reporter.combat.cooldown_ticks=0;
-  // La cible a atteint le cadreur par une esquive : trois touches normales, sans bonus de dégâts.
+  // La cible a atteint le cadreur par une esquive : touches normales, sans bonus de dégâts (60 PV, deux combos).
   f.c.x=f.camera.x+.8;f.c.facing=-1;
-  for(let i=0;i<90&&f.sim.state.press_team?.phase==='ACTIVE';i++){
+  for(let i=0;i<180&&f.sim.state.press_team?.phase==='ACTIVE';i++){
+    // Le final du premier combo repousse le cadreur : le joueur le rattrape pour enchaîner le second.
+    if(!f.c.combat.attack_id&&Math.abs(ringDelta(f.c.x,f.camera.x,f.sim.state.world.length))>1)f.c.x=f.camera.x+.8;
     if(i%5===0)requestAttack(f.sim,f.c,-1);
     ticks(f.sim,1);
   }
@@ -221,4 +223,19 @@ test('Même sur une touche tardive, le micro reste tendu pendant toute la courte
   while(f.c.combat.stun_ticks>0){assert.equal(pressPose(f.reporter,f.sim.state,f.sim.hz),5);held++;ticks(f.sim,1);}
   assert.equal(held,f.sim.secondsToTicks(s.micro_stun_seconds));
   ticks(f.sim,8);assert.equal(f.c.resistance,94,'Une extension plus longue ne doit pas infliger plusieurs touches.');
+});
+
+test('Seuls les candidats (et leurs hologrammes) peuvent frapper les journalistes ; PV doublés',()=>{
+  const f=setup(true),{sim,c,camera,reporter}=f,s=sim.state;
+  assert.equal(camera.hidden_durability,60);assert.equal(reporter.hidden_durability,160);
+  const militant=s.npcs.find(n=>n.role!=='NEUTRE'&&n.role!=='DEMOBILISE')||s.npcs[0];
+  const npc={...militant,id:'test-militant',role:'MILITANT',faction_id:'le_pen',is_ko:false,x:reporter.x-.5,combat:{...militant.combat,height:0}};
+  const spec={damage:10,knockback:0,direction:1};
+  assert.equal(hit(sim,npc,reporter,spec,'a1'),null,'un militant ne touche pas la journaliste');
+  assert.equal(hit(sim,{...npc,role:'CRS'},camera,spec,'a2'),null,'un CRS ne touche pas le cameraman');
+  assert.equal(hit(sim,{...npc,role:'SERVICE_D_ORDRE'},camera,spec,'a3'),null);
+  assert.equal(reporter.hidden_durability,160);assert.equal(camera.hidden_durability,60);
+  c.x=reporter.x-.5;
+  assert.ok(hit(sim,c,reporter,spec,'a4'),'le candidat touche la journaliste');
+  assert.ok(reporter.hidden_durability<160);
 });

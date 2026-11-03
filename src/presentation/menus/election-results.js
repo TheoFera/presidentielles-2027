@@ -72,7 +72,8 @@ function verdict(m) {
 function tickerItems(m) {
   if (!m.scores) return ['Aucune voix exprimée'];
   const items = [];
-  if (m.first || m.direct) items.push(...m.ranking.slice(2).map(f => `${person(f).name} ${format(m.scores[f])} %`), ...m.minors.map(x => `${x.name} ${format(x.value)} %`));
+  // Le 3e candidat principal a son propre onglet sur le plateau : le bandeau ne garde que les autres.
+  if (m.first || m.direct) items.push(...m.ranking.slice(3).map(f => `${person(f).name} ${format(m.scores[f])} %`), ...m.minors.map(x => `${x.name} ${format(x.value)} %`));
   if (m.firstRound?.scores) items.push(`Rappel du premier tour : ${m.firstRound.ranking.map(f => `${person(f).short} ${format(m.firstRound.scores[f])} %`).join(' · ')}`);
   items.push(`<b>Abstention et votes blancs ${format(m.neutral)} %</b>`);
   if (m.tie) items.push(tieText(m));
@@ -101,13 +102,27 @@ function half(m, f, index) {
     </div></article>`;
 }
 
+// Premier tour : le 3e candidat principal, en onglet accroché au bas de la ligne centrale (miroir du titre).
+function third(m) {
+  const f = (m.first || m.direct) ? m.ranking[2] : null, c = f && person(f);
+  if (!c) return '';
+  const value = m.scores?.[f];
+  const label = m.first ? `3<sup>e</sup> · Éliminé${fem(f)}` : '3<sup>e</sup>';
+  return `<div class="election-third" data-faction="${f}">
+    <p>${label}</p>
+    <div class="election-third-card"><span class="election-third-portrait" role="img" aria-label="${c.name}"></span>
+      <p class="election-third-score"><span data-value="${value ?? ''}" data-digits="1">${value == null ? '—' : scoreHtml(value, 1)}</span>${value == null ? '' : '<small>%</small>'}</p>
+      <h2><small>${c.name.slice(0, -c.short.length).trim()}</small>${c.short}${f === m.local ? '<b class="election-you">Vous</b>' : ''}</h2>
+    </div></div>`;
+}
+
 // Parcours imposé : premier tour → second tour, puis résultat final → bilan (où se trouvent Rejouer et le menu).
 function actions(m, { host }) {
   if (!m.first) return '<button class="election-primary" data-action="summary">Voir le bilan <span aria-hidden="true">➜</span></button>';
   return host ? '<button class="election-primary" data-action="continue">Continuer <span aria-hidden="true">➜</span></button>' : '<span class="election-waiting">En attente de l’hôte…</span>';
 }
 
-function markup(m, options) {
+export function electionMarkup(m, options = {}) {
   const items = tickerItems(m), ticker = items.map(t => `<span>${t}</span>`).join('');
   const firstRound = m.first || m.direct;
   return `<div class="election-stage" data-round="${m.first ? 'first' : 'second'}" data-outcome="${m.success ? 'success' : 'failure'}">
@@ -117,12 +132,13 @@ function markup(m, options) {
         <span class="election-brand"><i class="election-flag" aria-hidden="true"></i><b>Présidentielle</b> <strong>2027</strong></span>
         <span class="election-live"><b><i aria-hidden="true"></i>${options.preview ? 'Données fictives' : 'En direct'}</b><time>20:00</time></span>
       </header>
-      <div class="election-duel">
+      <div class="election-duel${firstRound && m.ranking[2] ? ' has-third' : ''}">
         ${half(m, m.ranking[0], 0)}
         ${half(m, m.ranking[1], 1)}
         <span class="election-divider" aria-hidden="true"></span>
         <div class="election-heading"><p>${firstRound ? 'Résultats du premier tour' : 'Résultats du second tour'}</p>
           <h1 class="election-verdict" tabindex="-1" role="status">${verdict(m)}</h1></div>
+        ${firstRound ? third(m) : ''}
       </div>
       <footer class="election-footer">
         <div class="election-ticker"><b>Résultats</b><div class="election-ticker-window"><p class="election-ticker-track" style="--items:${items.length}">${ticker}<span aria-hidden="true" class="election-ticker-copy">${ticker}</span></p></div></div>
@@ -145,7 +161,7 @@ export class ElectionResults {
   leavingButtons() { return LEAVING.map(action => this.stage.querySelector(`[data-action="${action}"]`)).filter(Boolean); }
   render(model, { preview = false, host = true, multiplayer = false, animate = true, onContinue, onSummary } = {}) {
     this.clear(); this.model = model; this.celebrated = false;
-    this.element.innerHTML = markup(model, { preview, host, multiplayer });
+    this.element.innerHTML = electionMarkup(model, { preview, host, multiplayer });
     this.stage = this.element.querySelector('.election-stage');
     for (const [action, callback] of Object.entries({ continue: onContinue, summary: onSummary })) {
       const button = this.element.querySelector(`[data-action="${action}"]`);

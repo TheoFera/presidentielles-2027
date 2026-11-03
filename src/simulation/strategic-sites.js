@@ -137,17 +137,22 @@ export function updateStrategicSites(sim) {
       }
     }
     building.current_political_presence = presence.get(building.subzone_id)?.get(building.owner_id) || 0;
-    let pressure = 0;
-    for (const n of raiders) if (n.faction_id !== building.owner_id && n.pressure_target_id === building.id)
-      pressure += config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.hostile_pressure_per_SO;
+    let pressure = 0, kickers = 0;
+    for (const n of raiders) if (n.faction_id !== building.owner_id && n.pressure_target_id === building.id) {
+      pressure += config.balance.buildings.faction_slot_melenchon_lepen_service_ordre.hostile_pressure_per_SO; kickers++;
+    }
     building.hostile_pressure = pressure;
-    // Un bâtiment ne se perd plus faute de partisans : seul un raid plus nombreux que la présence locale le ferme.
-    building.required_presence = building.hostile_pressure > 0 ? Math.floor(building.hostile_pressure) + 1 : 0;
+    building.required_presence = 0;
     building.current_effective_presence = Math.max(0, building.current_political_presence - building.hostile_pressure);
     if (headquartersProtected(state, building)) { building.closure_progress = 0; continue; }
     const s = buildingSettings(config, building);
-    if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
-    else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
+    // Seuls comptent les gardes qui frappent la porte, pas les partisans du quartier : un raid complet
+    // ferme en closure_delay_seconds (8 s), chaque garde manquant ajoute la moitié de ce délai (12 s à deux, 16 s seul).
+    if (kickers) {
+      const full = config.balance.physical_units.service_ordre.raid_recruits;
+      const seconds = s.closure_delay_seconds * (1 + Math.max(0, full - kickers) / 2);
+      building.closure_progress += 1 / sim.secondsToTicks(seconds);
+    } else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
     if (building.closure_progress >= 1 - 1e-9) {
       // Bâtiment fermé par un raid : compté pour chaque camp qui le pressait.
       for (const faction of new Set(raiders.filter(n => n.pressure_target_id === building.id && n.faction_id !== building.owner_id).map(n => n.faction_id)))

@@ -21,9 +21,9 @@
 #game.intro-dossier #campaign-intro::before { opacity: .55; }
 
 /* Flash info du journal télévisé : titre sur fond blanc, pastille rouge « FLASH INFO »,
-   filet bleu-blanc-rouge, et brèves qui défilent sous le titre. */
+   et brèves qui défilent sous le titre. */
 .intro-news {
-  position: absolute; left: 3%; right: 9%; bottom: 3.2%; display: grid;
+  position: absolute; left: 0; right: 0; bottom: 3.2%; display: grid;
   font-size: clamp(12px, min(1.75vw, 3.1dvh), 25px); line-height: 1.15;
   transform: translateX(-112%); transition: transform .5s cubic-bezier(.2, 1, .3, 1);
 }
@@ -36,11 +36,11 @@
 }
 .intro-news-title {
   flex: 1; min-width: 0; margin: 0; padding: .35em .8em .35em 1.1em; background: linear-gradient(#ffffff, #e6ebf5); color: #0c1f4e;
-  font-weight: 750; border-top: .14em solid; border-image: linear-gradient(90deg, #2457d6 0 33%, #fff 33% 66%, #e5333b 66%) 1;
+  font-weight: 750;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .intro-news-title strong { font-weight: 950; text-transform: uppercase; letter-spacing: .01em; }
-.intro-news-ticker { display: flex; height: 1.55em; margin-right: 6%; overflow: hidden; background: #0c1f4e; color: #f2f5fb; font-size: .62em; font-weight: 700; }
+.intro-news-ticker { display: flex; height: 1.55em; overflow: hidden; background: #0c1f4e; color: #f2f5fb; font-size: .62em; font-weight: 700; }
 .intro-news-live { display: flex; align-items: center; gap: .4em; padding: 0 .8em; background: #ffc94a; color: #0c1f4e; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .intro-news-live i { width: .55em; height: .55em; border-radius: 50%; background: #e5333b; animation: intro-live 1s steps(2) infinite; }
 .intro-news-scroll { flex: 1; display: flex; align-items: center; overflow: hidden; }
@@ -76,6 +76,8 @@
 #game.campaign-intro :is(#funds, #campaign-events, #notice, #poll-scores) { visibility: hidden; }
 #game.campaign-intro:not(.intro-tutorial) #electoral-display { visibility: hidden; }
 #game.campaign-intro:not(.intro-tuto-move):not(.intro-tuto-strike):not(.intro-controls) #touch-controls { visibility: hidden; }
+/* Le flash info court jusqu'au bord droit de l'écran : les boutons tactiles attendent qu'il soit passé. */
+#game.intro-news-on #touch-controls { visibility: hidden; }
 #game.intro-tuto-move .touch-directions button, :is(#game.intro-tuto-strike, #game.intro-controls) #attack-touch { animation: intro-key 1s ease-in-out infinite; outline: 3px solid #ffc94a; outline-offset: 2px; }
 /* Dossier : la carte et le post-it partent agrandis au centre, puis glissent à leur place. */
 #game.campaign-intro :is(#electoral-display, #campaign-objectives) { transition: transform .6s cubic-bezier(.3, .9, .3, 1); }

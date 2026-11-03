@@ -72,7 +72,10 @@ test('Fermeture : S et M comptent, SO non ; pression hostile réduit la présenc
   captureSite(sim, site, actor); const allies = [unit(sim, 'SYMPATHISANT', actor.faction_id, site.x), unit(sim, 'MILITANT', actor.faction_id, site.x)];
   const guards = [unit(sim, 'SERVICE_D_ORDRE', 'le_pen', site.x), unit(sim, 'SERVICE_D_ORDRE', 'le_pen', site.x)];
   for (const guard of guards) guard.raid = { id: 'test' };
-  for (let i = 0; i < sim.secondsToTicks(8); i++) { for (const guard of guards) guard.pressure_target_id = site.id; updateStrategicSites(sim); sim.state.tick++; }
+  // Deux gardes qui frappent : 12 s, que des partisans soient là ou non.
+  for (let i = 0; i < sim.secondsToTicks(11.5); i++) { for (const guard of guards) guard.pressure_target_id = site.id; updateStrategicSites(sim); sim.state.tick++; }
+  assert.equal(site.state, 'ACTIVE');
+  for (let i = 0; i < sim.secondsToTicks(.6); i++) { for (const guard of guards) guard.pressure_target_id = site.id; updateStrategicSites(sim); sim.state.tick++; }
   assert.equal(site.state, 'NEUTRAL'); assert.equal(site.owner_id, null); assert.equal(site.level, 0);
   assert.equal(allies.length, 2);
 });
