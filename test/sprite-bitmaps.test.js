@@ -63,6 +63,8 @@ test('Le chargeur réduit les animations, garde leurs dimensions logiques et lib
   assert.equal(closed, 1);
   assert.equal(await spriteBitmapLoader(.5)('npc-banlieue-1', '/habitant.png'), full);
   assert.equal(closed, 1, 'Un petit habitant reste à sa résolution originale');
+  assert.equal(await spriteBitmapLoader(.5)('building-barn-door-backdrop', '/garage.png'), full);
+  assert.equal(closed, 1, 'Le fond du garage reste à sa résolution originale');
 });
 
 test('Un navigateur qui ignore la réduction utilise le canevas de secours et libère ses copies', async t => {
