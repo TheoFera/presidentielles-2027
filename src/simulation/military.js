@@ -204,6 +204,49 @@ function updateDefensiveGuard(sim, npc) {
     destination_x: wrap(destination, state.world.length), destination_subzone_id: zoneAt(state.world, destination).id };
 }
 
+/** Un bâtiment adverse qu'un raid peut encore faire fermer. */
+const raidCanPress = (state, npc, b) => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== npc.faction_id && !headquartersProtected(state, b);
+
+/** Les camarades encore debout d'un raid, sans le garde lui-même. */
+const raidMates = (state, npc) => squad(state, npc.raid).filter(m => m !== npc && !m.is_ko && m.raid?.phase === 'OUTBOUND');
+
+/**
+ * Le bâtiment sur lequel travaille le groupe : celui que le plus de membres visent (même ceux partis se battre
+ * un instant). Tous les membres libres y retournent, même s'il est déjà derrière eux.
+ */
+function raidGroupSite(state, npc) {
+  const votes = new Map();
+  for (const m of squad(state, npc.raid)) {
+    if (m.is_ko || m.task?.kind !== 'GUARD' || !m.task.site_id) continue;
+    votes.set(m.task.site_id, (votes.get(m.task.site_id) || 0) + 1);
+  }
+  let best = null, bestVotes = 0;
+  for (const [id, count] of votes) {
+    const b = state.buildings.find(x => x.id === id);
+    if (!b || !raidCanPress(state, npc, b)) continue;
+    if (count > bestVotes || count === bestVotes && stableIdOrder(b, best) < 0) { best = b; bestVotes = count; }
+  }
+  return best;
+}
+
+/** Distance à laquelle un garde s'arrête près d'un camarade en plein combat. */
+const RAID_REJOIN_DISTANCE = 2.5;
+
+/**
+ * Point de ralliement d'un garde libre, ou null s'il peut avancer : un camarade encore en combat (on le
+ * rejoint), sinon le dernier du groupe s'il est trop loin derrière (on l'attend).
+ */
+function raidRegroupPoint(state, npc) {
+  const mates = raidMates(state, npc);
+  if (!mates.length) return null;
+  const busy = mates.filter(m => m.task?.phase === 'DEFEND')
+    .sort((a, b) => distance(state, npc.x, a.x) - distance(state, npc.x, b.x) || stableIdOrder(a, b))[0];
+  if (busy) return { x: busy.x, join: true };
+  const behind = Math.max(...mates.map(m => -ringDelta(npc.x, m.x, state.world.length) * npc.raid.direction));
+  // Au-delà des écarts normaux de marche (1,2 à 1,8 unité entre voisins), le premier attend le dernier.
+  return behind > 2 * mates.length + 1 ? { x: npc.x, join: false } : null;
+}
+
 /**
  * Un raid n'a pas de fin : le groupe part quand toutes ses recrues sont sorties du local, puis avance
  * sans jamais rentrer. Il va fermer les bâtiments adverses et ne se bat qu'avec les adversaires tout
@@ -235,6 +278,7 @@ export function updateGuard(sim, npc) {
   npc.moving = false;
   if (interrupted(npc)) return;
   const slot = guardSlot(state, npc, s.spacing_units);
+  const groupSite = raidGroupSite(state, npc);
   let destination; let phase; let formation = null, pressureSite = null;
   if (target) {
     formation = serviceOrderCombatPlace(state, npc, target, s, sim.hz);
@@ -250,11 +294,17 @@ export function updateGuard(sim, npc) {
     phase = 'GATHER'; destination = gatherX(state, npc, s.spacing_units, sim.hz);
     if (moveNpcTowards(sim, npc, destination, s.move_speed)) npc.facing = raid.direction;
   } else {
-    const hostileSite = state.buildings.filter(b => b.state === 'ACTIVE' && b.owner_id && b.owner_id !== npc.faction_id && !headquartersProtected(state, b)
-      && (npc.task?.phase === 'PRESSURE' && npc.task.target_id === b.id
-        || ringDelta(npc.x, b.x, state.world.length) * raid.direction >= -s.attack_range))
+    // Le bâtiment du groupe passe avant tout : celui qui revient d'un combat retrouve ses camarades à la façade.
+    const hostileSite = groupSite || state.buildings.filter(b => raidCanPress(state, npc, b)
+      && ringDelta(npc.x, b.x, state.world.length) * raid.direction >= -s.attack_range)
       .sort((a, b) => Math.abs(ringDelta(npc.x, a.x, state.world.length)) - Math.abs(ringDelta(npc.x, b.x, state.world.length)) || stableIdOrder(a, b))[0];
-    if (hostileSite) {
+    const regroup = !hostileSite && raidRegroupPoint(state, npc);
+    if (regroup) {
+      // Personne ne repart seul : on attend (ou on rejoint) les camarades encore occupés ou distancés.
+      phase = 'RAID'; destination = regroup.x;
+      if (regroup.join && distance(state, npc.x, regroup.x) > RAID_REJOIN_DISTANCE) moveNpcTowards(sim, npc, regroup.x, s.move_speed);
+      else { destination = npc.x; npc.moving = false; npc.facing = regroup.join ? Math.sign(ringDelta(npc.x, regroup.x, state.world.length)) || raid.direction : raid.direction; }
+    } else if (hostileSite) {
       pressureSite = hostileSite;
       // Chacun rejoint une place devant la façade avant de commencer à la frapper.
       // La portée de combat ne sert pas à fermer un bâtiment à distance.
@@ -271,6 +321,6 @@ export function updateGuard(sim, npc) {
       moveRaidTowards(sim, npc, destination, s);
     }
   }
-  npc.task = { kind: 'GUARD', phase, target_id: target?.id || pressureSite?.id || null, formation_index: formation?.index ?? slot.index, combat_side: formation?.side ?? null,
+  npc.task = { kind: 'GUARD', phase, target_id: target?.id || pressureSite?.id || null, site_id: pressureSite?.id || groupSite?.id || null, formation_index: formation?.index ?? slot.index, combat_side: formation?.side ?? null,
     destination_x: wrap(destination, state.world.length), destination_subzone_id: zoneAt(state.world, destination).id };
 }

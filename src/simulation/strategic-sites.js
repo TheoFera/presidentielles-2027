@@ -144,6 +144,9 @@ export function updateStrategicSites(sim) {
     if (headquartersProtected(state, building)) { building.closure_progress = 0; continue; }
     const s = buildingSettings(config, building);
     if (building.hostile_pressure > building.current_political_presence) building.closure_progress += 1 / sim.secondsToTicks(s.closure_delay_seconds);
+    // Un raid réduit (un ou deux gardes) continue de casser : les partisans sur place ralentissent la fermeture sans l'arrêter.
+    else if (building.hostile_pressure > 0) building.closure_progress += building.hostile_pressure
+      / (building.current_political_presence + building.hostile_pressure) / sim.secondsToTicks(s.closure_delay_seconds);
     else building.closure_progress = Math.max(0, building.closure_progress - s.closure_recovery_per_second / hz);
     if (building.closure_progress >= 1 - 1e-9) {
       // Bâtiment fermé par un raid : compté pour chaque camp qui le pressait.
