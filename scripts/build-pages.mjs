@@ -150,7 +150,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const started = Date.now();
   const report = await buildPages(defaultTarget, { webp: !process.argv.includes('--png'), app: process.argv.includes('--app') });
   const mib = bytes => (bytes / 1024 ** 2).toFixed(2);
-  if (!report.webp) console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
+  if (!report.webp) {
+    // Publication automatique (GitHub Actions) : un export en PNG fait environ 300 Mio à télécharger au lieu de 95.
+    // Il est refusé plutôt que publié en silence (c'était le cas jusqu'au 03/11/2026).
+    if (process.env.CI && !process.argv.includes('--png')) {
+      console.error('ffmpeg (avec libwebp) est introuvable : export refusé, les images resteraient en PNG (environ 3 fois plus lourdes).');
+      process.exit(1);
+    }
+    console.warn('ffmpeg (avec libwebp) est introuvable : les images restent en PNG, plus lourdes.');
+  }
   const format = !report.webp ? '' : report.app ? (APP_WEBP_QUALITY ? ` (WebP qualité ${APP_WEBP_QUALITY})` : ' (WebP sans perte)')
     : ` (WebP qualité ${WEB_WEBP_QUALITY}, carte et débat sans perte)`;
   console.log(`Jeu prêt dans dist/ : ${report.files} fichiers, ${mib(report.bytes)} Mio, dont ${mib(report.imageBytes)} Mio d'images${format}, en ${Math.round((Date.now() - started) / 1000)} s.`);
