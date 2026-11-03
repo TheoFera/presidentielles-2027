@@ -138,8 +138,8 @@
   },
   "press_team": {
     "enabled": true,
-    "camera_hp": 30,
-    "reporter_hp": 80,
+    "camera_hp": 60,
+    "reporter_hp": 160,
     "movement_multiplier": 0.5,
     "attack_speed_multiplier": 0.5,
     "move_speed": 4.8,
