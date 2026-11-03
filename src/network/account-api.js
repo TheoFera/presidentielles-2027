@@ -90,6 +90,14 @@ export class AccountClient {
     if (this.me) this.setMe({ ...this.me, unlocks: result.unlocks });
     return result;
   }
+  /** Reprise unique, sur le compte, des candidats débloqués sur cet appareil avant la connexion. */
+  async importDeviceUnlocks(unlocks) {
+    const token = this.session?.token;
+    const result = await this.request('POST', 'progression/import', { unlocks });
+    // Déconnecté ou autre compte entre-temps : la réponse ne concerne plus la session actuelle.
+    if (this.me && this.session?.token === token) this.setMe({ ...this.me, user: { ...this.me.user, device_imported: true }, unlocks: result.unlocks });
+    return result;
+  }
   createMatch(body) { return this.request('POST', 'matches', body); }
   joinMatch(id, body) { return this.request('POST', `matches/${id}/join`, body); }
   reportResult(id, body) { return this.request('POST', `matches/${id}/result`, body); }
