@@ -99,6 +99,15 @@ export function unlockOffer(state, faction, owned = []) {
   return { won, choices, free, rewarded };
 }
 
+/**
+ * L'écran de choix s'ouvre dès qu'il y a au moins un déblocage possible, même avec un seul candidat
+ * (victoire avec un seul K.-O. nouveau) : sinon le déblocage n'était annoncé que par un message
+ * « Débloqué : X ! » par-dessus les résultats du 1er tour.
+ */
+export function needsUnlockScreen(offer) {
+  return !!offer && offer.free + offer.rewarded > 0;
+}
+
 /** Multijoueur (sans pub) : le vainqueur de l'élection garde tous les candidats qu'il a mis K.-O. */
 export function earnedUnlocks(state, faction) {
   if (state?.phase !== 'RESULTS' || state.result?.winner !== faction) return [];

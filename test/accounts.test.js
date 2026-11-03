@@ -8,8 +8,8 @@ import { SOLO_CAMPAIGN_MIN_SECONDS } from '../serveur-en-ligne/api/progression.j
 import { NEWSLETTER_CONSENT_VERSION } from '../serveur-en-ligne/api/accounts.js';
 import { unsubscribeLink } from '../serveur-en-ligne/api/newsletter.js';
 import { appleClientSecret, revokeAppleAuthorization } from '../serveur-en-ligne/api/apple.js';
-import { choiceStep } from '../src/presentation/menus/unlock-choice.js';
-import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, earnedUnlocks, recordKnockout, unlockOffer } from '../src/simulation/unlock-catalog.js';
+import { choiceStep, texts as unlockChoiceTexts } from '../src/presentation/menus/unlock-choice.js';
+import { DEFAULT_UNLOCKED, STYLE_UNLOCKS, MINOR_UNLOCKS, UNLOCKABLE_IDS, MAX_RUN_UNLOCKS, RUN_FOLLOW_UP_SECONDS, earnedUnlocks, needsUnlockScreen, recordKnockout, unlockOffer } from '../src/simulation/unlock-catalog.js';
 import { CAMPAIGN_STYLES, DEFAULT_UNLOCKS } from '../src/simulation/campaign-styles.js';
 import { MINOR_FACTIONS } from '../src/simulation/world.js';
 import { ACCOUNT_NEWSLETTER_VERSION } from '../src/network/account-config.js';
@@ -186,6 +186,21 @@ test('Écran de choix : gratuit d’abord, puis pub seulement si elle est prête
   const loss = { won: false, choices: ['roussel'], free: 0, rewarded: 1 };
   assert.equal(choiceStep(loss, {}, true), 'ad');
   assert.equal(choiceStep(loss, { rewarded: 1 }, true), 'done');
+});
+
+test('Un seul candidat à débloquer : l’écran de déblocage s’ouvre quand même (pas de simple message)', () => {
+  const state = { phase: 'RESULTS', result: { winner: 'melenchon', second: 'le_pen' }, knockouts: [{ candidate_id: 'arthaud', by_faction: 'melenchon' }] };
+  const single = unlockOffer(state, 'melenchon');
+  assert.deepEqual(single, { won: true, choices: ['arthaud'], free: 1, rewarded: 0 });
+  assert.equal(needsUnlockScreen(single), true, 'victoire avec un seul K.-O. : écran de choix');
+  assert.equal(choiceStep(single, {}, false), 'free', 'le choix gratuit reste à faire, même sans pub');
+  assert.equal(choiceStep(single, { free: 1 }, false), 'done');
+  const t = unlockChoiceTexts(single, 'free', false, []);
+  assert.doesNotMatch(t.text, /1 candidats/);
+  assert.match(t.text, /Arthaud/);
+  assert.equal(needsUnlockScreen(unlockOffer({ ...state, result: { winner: 'le_pen' } }, 'melenchon')), true, 'défaite : seconde chance');
+  assert.equal(needsUnlockScreen(unlockOffer(state, 'melenchon', ['arthaud'])), false, 'rien de nouveau');
+  assert.equal(needsUnlockScreen(null), false);
 });
 
 test('Elo : classique à 2, somme nulle à 3, provisoire puis stable', () => {
