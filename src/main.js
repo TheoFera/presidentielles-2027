@@ -32,6 +32,7 @@ import { ultimateGlow } from './presentation/interface/ultimate-pulse.js';
 import { preparedDrawingSources } from './presentation/personnages/minor-sprite-images.js';
 import { BrowserInput } from './presentation/interface/input.js';
 import { DebugPanel } from './presentation/debogage/debug.js';
+import { perfWanted } from './presentation/debogage/perf-wanted.js';
 import { ElectoralDisplay } from './presentation/carte/electoral.js';
 import { interpolatedPlayerX } from './presentation/rendu/player-position.js';
 import { MatchDisplay } from './presentation/debat/match.js';
@@ -134,6 +135,8 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  // `?perf` : mesures de fluidité à l'écran (téléphones), chargées seulement sur demande.
+  if (perfWanted()) import('./presentation/debogage/perf-overlay.js').then(module => module.installPerfOverlay(renderer)).catch(() => {});
   // Pendant l'avertissement, les images de la campagne se chargent déjà en arrière-plan.
   warmUpBehindNotice(renderer.assets, worldAssetIds(renderer.assets.manifest, { buildings: [] }));
   const damageFeedback = new DamageFeedbackDisplay(config);
