@@ -93,7 +93,7 @@ export class WorldRenderer {
     let loadImage = null;
     if (this.mobileRendering && this.spriteBitmaps && spriteBitmapsSupported()) {
       installSpriteDrawing();
-      // Application, navigateurs Android et iPhone/iPad : planches réduites selon l'écran (mémoire). Ailleurs : résolution d'origine.
+      // Application Android et iPhone/iPad : planches réduites selon l'écran (mémoire). Ailleurs : résolution d'origine.
       const reduce = spriteReductionWanted(APP_BUILD);
       const screenHeight = Math.min(screen.width, screen.height) * Math.min(window.devicePixelRatio || 1, this.p.max_pixel_ratio);
       loadImage = spriteBitmapLoader(reduce ? spriteScaleFor(screenHeight) : 1);
