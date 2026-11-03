@@ -145,14 +145,15 @@ test('Une découpe reste dessinable si la conversion en bitmap est refusée', as
   assert.equal(canvas.width, 2); assert.equal(canvas.height, 2);
 });
 
-test('Planches réduites dans l’application et sur iPhone/iPad, réglables depuis l’adresse', () => {
+test('Planches réduites dans l’application, sur Android et sur iPhone/iPad, réglables depuis l’adresse', () => {
   const iphone = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', platform: 'iPhone', maxTouchPoints: 5 };
   const ipad = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 5 };
   const android = { userAgent: 'Mozilla/5.0 (Linux; Android 14)', platform: 'Linux armv8l', maxTouchPoints: 5 };
   const mac = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', platform: 'MacIntel', maxTouchPoints: 0 };
   assert.equal(spriteReductionWanted(false, '', iphone), true);
   assert.equal(spriteReductionWanted(false, '', ipad), true);
-  assert.equal(spriteReductionWanted(false, '', android), false);
+  assert.equal(spriteReductionWanted(false, '', android), true);
+  assert.equal(spriteReductionWanted(false, '?reduction=0', android), false);
   assert.equal(spriteReductionWanted(true, '', android), true);
   assert.equal(spriteReductionWanted(false, '', mac), false);
   assert.equal(spriteReductionWanted(false, '?reduction=0', iphone), false);

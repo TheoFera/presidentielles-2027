@@ -5,8 +5,8 @@
  * Les bitmaps gardent les pixels prêts à dessiner ; les sources des atlas découpés sont ensuite
  * libérées par minor-sprite-images.js. Le web garde la résolution native (scale = 1).
  *
- * L'application Android, l'iPhone et l'iPad réduisent les grandes planches selon l'écran
- * (spriteReductionWanted). Les autres navigateurs gardent la résolution d'origine.
+ * L'application Android, les navigateurs Android, l'iPhone et l'iPad réduisent les grandes planches selon
+ * l'écran (spriteReductionWanted). Les autres navigateurs gardent la résolution d'origine.
  *
  * Le reste du jeu ne change pas : les coordonnées des planches restent celles des fichiers d'origine.
  * naturalWidth / naturalHeight donnent la taille d'origine, et drawImage convertit les coordonnées
@@ -33,7 +33,7 @@ export function spriteBitmapsWanted(search = globalThis.location?.search || '', 
 }
 
 /**
- * Planches réduites selon l'écran : application Android et iPhone/iPad.
+ * Planches réduites selon l'écran : application et navigateurs Android, iPhone/iPad.
  * Sur iPhone, la campagne garde environ 770 Mio d'images décodées (644 Mio le 13/10, avant les nouvelles
  * planches) : Safari en jette alors une partie et la redécode en pleine partie, surtout pendant les
  * déplacements. Le débat, qui charge moins d'images, restait fluide.
@@ -42,8 +42,11 @@ export function spriteBitmapsWanted(search = globalThis.location?.search || '', 
 export function spriteReductionWanted(appBuild, search = globalThis.location?.search || '', nav = globalThis.navigator) {
   const forced = new URLSearchParams(search).get('reduction');
   if (forced === '1' || forced === '0') return forced === '1';
-  return appBuild || isAppleMobile(nav);
+  return appBuild || isAppleMobile(nav) || isAndroid(nav);
 }
+
+/** Navigateur Android (Chrome, Samsung Internet…) : même réduction que l'application, mêmes écrans. */
+export const isAndroid = (nav = globalThis.navigator) => /Android/.test(nav?.userAgent || '');
 
 /**
  * Réglage antérieur de l'application Android : un personnage de débat (le plus grand) mesure environ
