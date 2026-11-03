@@ -55,9 +55,14 @@ async function prepareImage(id, image, bitmaps = true) {
   }
   // Service d'ordre : découpes préparées en arrière-plan dès le chargement, et non à la première apparition
   // d'une tenue en pleine partie (0,2 à 0,5 s de gel sur un téléphone lent). Sans arrière-plan possible : comme avant.
-  // La planche reste gardée : la marche la dessine directement.
-  if (bitmaps && id.startsWith('security-so-')) for (const atlas of Object.values(SERVICE_ORDER_ATLASES)) {
-    for (const sheet of [atlas, atlas.building]) if (sheet?.isolated && sheet.sprite === id) void prepareAtlasFramesInBackground(image, sheet);
+  // Une fois toutes les découpes prêtes, la planche entière est libérée (28 tenues : 168 Mio en résolution
+  // d'origine) ; la marche dessine alors la première découpe (service-order-sprites.js).
+  if (bitmaps && id.startsWith('security-so-')) {
+    const jobs = [];
+    for (const atlas of Object.values(SERVICE_ORDER_ATLASES)) {
+      for (const sheet of [atlas, atlas.building]) if (sheet?.isolated && sheet.sprite === id) jobs.push(prepareAtlasFramesInBackground(image, sheet));
+    }
+    if (jobs.length && (await Promise.all(jobs)).every(Boolean)) preparedOnly = true;
   }
   if (id.startsWith('riders-') || id === 'vehicles') prepareVehicleAtlas(id, image);
   if (id.startsWith('building-')) prepareBuildingImage(image);
