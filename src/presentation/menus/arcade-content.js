@@ -14,6 +14,15 @@ export function homeContent() {
 export function playersContent(mode) {
   return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">${mode === 'debate' ? 'Débat télé' : 'Campagne'} : avec qui jouer ?</h1><p class="players-mode" data-mode="${mode}" aria-hidden="true">${mode === 'debate' ? '⚔ Débat télé' : '★ Campagne'}</p><div class="mode-grid"><button class="mode-card arcade-button" id="solo"><span aria-hidden="true">★</span><strong>Solo</strong><span aria-hidden="true">★</span></button><button class="mode-card arcade-button" id="multiplayer"><span aria-hidden="true">♟</span><strong>Multijoueur</strong><span aria-hidden="true">♟</span></button></div></div>`;
 }
+/**
+ * Campagne → Solo avec une partie sauvegardée (menus/saved-campaign.js) : « Reprendre la partie »
+ * (candidat et jour) ou « Nouvelle partie », sur le même écran que « Avec qui ? ».
+ */
+export function resumeChoiceContent(saved) {
+  const candidate = CANDIDATES.find(c => `candidate:${c.id}` === saved.candidate_id);
+  const where = `${candidate?.short ?? ''} · ${saved.phase === 'SECOND_ROUND_SPRINT' ? '2nd tour · ' : ''}J-${saved.days_remaining}`;
+  return `<div class="menu-home"><h1 class="visually-hidden" tabindex="-1">Campagne solo : reprendre la partie sauvegardée ?</h1><p class="players-mode" data-mode="campaign" aria-hidden="true">★ Partie sauvegardée</p><div class="mode-grid"><button class="mode-card arcade-button" id="resume"><strong>Reprendre<small>${where}</small></strong></button><button class="mode-card arcade-button" id="new-game"><strong>Nouvelle partie<small>remplace la sauvegarde</small></strong></button></div></div>`;
+}
 export function candidatesContent(selected = null) {
   return `<div class="candidate-grid">${CANDIDATES.map(c => `<button class="candidate-card" data-candidate="${c.id}" aria-label="${c.name}" aria-pressed="${c.id === selected}"><span class="candidate-badge" aria-hidden="true">♛ J1</span><strong class="visually-hidden">${c.short}</strong></button>`).join('')}</div><footer class="menu-footer"><button id="prepare-game" class="menu-primary arcade-button" ${selected ? '' : 'disabled'}>Valider <span aria-hidden="true">➜</span></button></footer>`;
 }

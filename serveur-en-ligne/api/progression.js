@@ -16,7 +16,6 @@ import balance from '../../donnees-jeu/game_balance.json' with { type: 'json' };
 // Durée minimale lue dans les données du jeu (75 % de 365 jours × durée d'un jour) : le seuil suit tout
 // changement de durée. Le jeu fait le même calcul et ne propose pas de pub si la partie serait refusée.
 export const SOLO_CAMPAIGN_MIN_SECONDS = campaignMinSeconds(balance.time);
-export const SOLO_CAMPAIGN_MAX_SECONDS = 8 * 3600;
 
 export async function listUnlocks(db, userId) {
   const rows = (await db.prepare('SELECT candidate_id FROM player_candidate_unlocks WHERE user_id = ?').bind(userId).all()).results;
@@ -57,7 +56,8 @@ export async function completeRun(db, userId, runId, body, now = nowSeconds()) {
   if (run.status !== 'playing' && !followUp) throw new ApiError(409, 'run_closed', 'Cette partie est déjà terminée.');
   if (run.status === 'playing') {
     const elapsed = now - run.created_at;
-    if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS || elapsed > SOLO_CAMPAIGN_MAX_SECONDS) {
+    // Pas de durée maximale : une campagne sauvegardée peut être reprise des jours plus tard.
+    if (elapsed < SOLO_CAMPAIGN_MIN_SECONDS) {
       await db.batch([db.prepare('UPDATE game_runs SET status = \'rejected\', completed_at = ? WHERE id = ?').bind(now, runId), audit(db, userId, 'run_rejected', runId, `${elapsed}s`)]);
       throw new ApiError(422, 'implausible_run', 'Fin de partie refusée : durée de campagne invalide.');
     }

@@ -416,6 +416,10 @@ test('Progression solo : abandon, fin normale, durée, rejeu et requête forgée
   ageRun(api, run, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   const done = await api.call('POST', `runs/${run}/complete`, { token, body: { knockouts: ['roussel', 'le_pen_zemmouriste', 'roussel'] } });
   assert.equal(done.status, 200); assert.deepEqual(done.body.unlocked, ['roussel', 'le_pen_zemmouriste']);
+  // Campagne sauvegardée puis reprise trois jours plus tard : pas de durée maximale, déblocage accepté.
+  const lateId = UNLOCKABLE_IDS.find(id => !['roussel', 'le_pen_zemmouriste', 'glucksmann', 'arthaud', 'attal', 'retailleau', 'dupont_aignan', 'candidat_secret'].includes(id));
+  const resumed = await start(); ageRun(api, resumed, 3 * 24 * 3600);
+  assert.deepEqual((await api.call('POST', `runs/${resumed}/complete`, { token, body: { knockouts: [lateId] } })).body.unlocked, [lateId]);
   // Plus de 2 candidats choisis (requête forgée ou ancienne version du jeu) : seuls les 2 premiers sont gardés.
   const greedy = await start(); ageRun(api, greedy, SOLO_CAMPAIGN_MIN_SECONDS + 5);
   const capped = await api.call('POST', `runs/${greedy}/complete`, { token, body: { knockouts: ['glucksmann', 'arthaud', 'attal'] } });

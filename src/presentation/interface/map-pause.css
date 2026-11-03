@@ -20,6 +20,10 @@
 /* Un sondage ancien reste estompé en jeu, mais la pause sert à le lire : il y est affiché bien net. */
 #game.map-pause .poll-stale :is(.map-poll-ring, .map-poll-ranking, .map-sector) { opacity: 1; }
 
+/* Retour au menu en pleine campagne (pause) : la carte, le post-it et les annonces passent au-dessus du menu
+   (z-index 10) ; ils sont cachés tant que le menu recouvre la partie. */
+#game[inert] :is(#electoral-display, #campaign-objectives, #campaign-events) { visibility: hidden; }
+
 /* Sous la carte et le post-it (z-index 19), au-dessus des annonces d'évènements (18, placées avant). */
 #map-pause { position: absolute; inset: 0; z-index: 18; }
 #map-pause[hidden] { display: none; }
@@ -34,6 +38,17 @@
 }
 .pause-icon { display: flex; gap: .2em; height: 1em; }
 .pause-icon::before, .pause-icon::after { content: ''; width: .3em; border-radius: .08em; background: currentColor; box-shadow: 0 2px #14272b; }
+/* Solo : « Retour au menu » en haut à gauche, et la confirmation de la sauvegarde dessous. */
+.pause-actions { position: absolute; left: 2.5%; top: 3%; display: flex; flex-direction: column; align-items: flex-start; gap: .35em; animation: pause-fade .3s ease-out both; }
+.pause-actions[hidden] { display: none; }
+.pause-home {
+  padding: .55em 1em; border: 0; border-radius: 6px; cursor: pointer; background: #fff5df; color: #14272b;
+  font: 900 clamp(11px, min(1.35vw, 2.5dvh), 17px)/1 system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase;
+  box-shadow: 0 0 0 2px #253438, 0 3px 0 #14272b;
+}
+.pause-home:active { transform: translateY(2px); box-shadow: 0 0 0 2px #253438, 0 1px 0 #14272b; }
+.pause-saved { margin: 0; color: #bfe8b0; font: 750 clamp(9px, min(1.1vw, 2dvh), 14px)/1.2 system-ui, sans-serif; text-shadow: 0 1px #14272b; }
+.pause-saved.pause-save-failed { color: #ffc7a8; }
 .pause-prompt {
   position: absolute; left: 50%; bottom: 4.5%; margin: 0; transform: translateX(-50%); white-space: nowrap;
   color: #fff5df; font: 800 clamp(11px, min(1.45vw, 2.6dvh), 19px)/1.2 system-ui, sans-serif; text-shadow: 0 2px #2c3c40;
@@ -85,5 +100,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   #game:is(.map-pause, .map-pause-closing) :is(#electoral-display, #campaign-objectives) { transition: none; }
-  .pause-veil, .pause-memo, .pause-prompt, #game.map-pause-hinted:not(.map-pause) #electoral-display:not(.map-clock-only) .map-pause-hint { animation: none; }
+  .pause-veil, .pause-memo, .pause-prompt, .pause-actions, #game.map-pause-hinted:not(.map-pause) #electoral-display:not(.map-clock-only) .map-pause-hint { animation: none; }
 }
