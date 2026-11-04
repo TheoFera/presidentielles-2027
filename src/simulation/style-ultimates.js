@@ -1,4 +1,5 @@
 import { activeCampaignStyle, clearCampaignUltimate } from './campaign-styles.js';
+import { footing, landingHeight, placeSummon } from './combat-actions.js';
 import { combatActors, combatState, enemies, hit, nearestEnemy } from './combat-state.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 
@@ -26,13 +27,15 @@ function surgeTurns(seed, id, startTick, roamingTicks) {
 
 export function tryBardellisation(sim, candidate) {
   if (activeCampaignStyle(sim.config, candidate)?.ultimate.kind !== 'BARDELLA' || candidate.bardellisation_used || !candidate.bardella_guardian_armed) return false;
+  const kept = footing(candidate.combat);
   clearCampaignUltimate(sim, candidate);
   candidate.bardellisation_used = true; candidate.bardella_form = true;
   // La relève revient avec une partie de la vie seulement, puis un court instant intouchable.
   const b = sim.config.balance.specials.bardella;
   candidate.resistance = sim.config.balance.candidate_combat.resistance_max * b.revive_resistance_ratio;
   if (sim.state.debate_bounds) candidate.debate_hp = candidate.debate_initial_hp * b.revive_resistance_ratio;
-  candidate.combat = combatState(); candidate.is_ko = false;
+  // La relève se fait sur place : un candidat sur un balcon y reste.
+  candidate.combat = { ...combatState(), ...kept }; candidate.is_ko = false;
   candidate.combat.invulnerable_until_tick = sim.state.tick + sim.secondsToTicks(b.revive_invulnerable_seconds);
   candidate.bardella_transition_tick = sim.state.tick;
   sim.emit('BardellaGuardianTriggered', { candidate_id: candidate.id });
@@ -45,6 +48,7 @@ function temporary(sim, owner, power, role, x, durability, extra = {}) {
     role, faction_id: owner.faction_id, ...(owner.team_id ? { team_id: owner.team_id } : {}), temporary: true, expired: false, x: combatPosition(sim.state, x),
     follow_offset: 0, facing: owner.facing, moving: false, expires_tick: power.expires_tick,
     hidden_durability: durability, combat: combatState(), persuasion_target_ids: [], ...extra };
+  placeSummon(sim, unit, owner);
   sim.state.temporary_units.push(unit); return unit;
 }
 export function createStyleProjectile(sim, owner, power, kind, settings, extra = {}) {
@@ -133,7 +137,7 @@ export function updateStyleTemporary(sim, unit) {
     const target = nearestEnemy(state, unit, state.world.length, t => t.role === 'CANDIDAT') || nearestEnemy(state, unit, s.projectile_range);
     if (target && state.tick >= unit.next_shot_tick) {
       unit.facing = Math.sign(combatDelta(state, unit.x, target.x)) || unit.facing;
-      createStyleProjectile(sim, unit, { id: unit.power_id }, 'BUBBLE', s, { target_id: target.id });
+      createStyleProjectile(sim, unit, { id: unit.power_id }, 'BUBBLE', s, { target_id: target.id, ...(state.platforms?.length ? { surface_height: unit.combat.height || 0 } : {}) });
       unit.next_shot_tick = state.tick + sim.secondsToTicks(1 / s.shots_per_second);
     }
     return true;
@@ -147,7 +151,12 @@ export function updateMolotov(sim, projectile, step) {
   projectile.remaining_range -= step;
   if (projectile.remaining_range <= 0) {
     const power = sim.state.powers.find(p => p.id === projectile.power_id);
-    if (power) { power.fire_zone = { x: projectile.x, expires_tick: sim.state.tick + sim.secondsToTicks(sim.config.balance.specials.fire.duration_seconds) }; power.burns = {}; }
+    if (power) {
+      power.fire_zone = { x: projectile.x, expires_tick: sim.state.tick + sim.secondsToTicks(sim.config.balance.specials.fire.duration_seconds) };
+      // Arène : le feu prend sur la surface où tombe le cocktail (balcon ou scène).
+      if (projectile.landing_height != null) power.fire_zone.height = projectile.landing_height;
+      power.burns = {};
+    }
   }
   return true;
 }
@@ -164,7 +173,8 @@ export function updateStyleEffects(sim) {
     const s = config.balance.specials.fire;
     for (const target of combatActors(state)) {
       if (!enemies(owner, target)) continue;
-      if ((target.combat.height || 0) <= 0.15 && (!target.dash_active || state.tick > target.dash_invulnerable_until_tick) && state.tick < power.fire_zone.expires_tick && Math.abs(combatDelta(state, power.fire_zone.x, target.x)) <= s.radius) {
+      const above = (target.combat.height || 0) - (power.fire_zone.height || 0);
+      if (above <= 0.15 && above >= -0.15 && (!target.dash_active || state.tick > target.dash_invulnerable_until_tick) && state.tick < power.fire_zone.expires_tick && Math.abs(combatDelta(state, power.fire_zone.x, target.x)) <= s.radius) {
         power.burns[target.id] ??= { next_tick: state.tick, expires_tick: state.tick };
         power.burns[target.id].expires_tick = state.tick + sim.secondsToTicks(s.burn_seconds);
       }

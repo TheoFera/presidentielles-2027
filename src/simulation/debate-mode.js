@@ -186,12 +186,12 @@ export class DebateMatch {
     const s = this.state;
     if (s.phase === 'OVER') {
       // Quelques secondes de plus, sans commandes : les coups en cours et la chute du KO se terminent.
-      if (s.tick - s.finished_tick < this.secondsToTicks(6)) new DebateSimulation(this.config, s).step();
+      if (s.tick - s.finished_tick < this.secondsToTicks(6)) { new DebateSimulation(this.config, s).step(); this.hideFallenBodies(); }
       return;
     }
     if (s.phase === 'ROUND_OVER') {
       // Le K.O. se termine à l’écran, puis tout repart à zéro pour le thème suivant.
-      if (s.tick - s.round_over_tick < this.secondsToTicks(this.config.balance.debate_mode.round_end_seconds)) new DebateSimulation(this.config, s).step();
+      if (s.tick - s.round_over_tick < this.secondsToTicks(this.config.balance.debate_mode.round_end_seconds)) { new DebateSimulation(this.config, s).step(); this.hideFallenBodies(); }
       else this.startRound(s.round_index + 1);
       return;
     }
@@ -210,12 +210,18 @@ export class DebateMatch {
     debate.step();
     this.resolveKnockouts();
   }
+  /** Un corps K.-O. qui glisse ou tombe dans le vide disparaît au même niveau que les vivants. */
+  hideFallenBodies() {
+    const s = this.state;
+    if (s.fall_death_height != null) for (const c of s.candidates) if (c.is_ko && !c.disappeared && c.combat.height <= s.fall_death_height) c.disappeared = true;
+  }
   resolveKnockouts() {
     const s = this.state;
     for (const hit of s.hit_results) if (hit.tick === s.tick && hit.score_damage) {
       const source = s.candidates.find(c => c.id === hit.source_id) || s.candidates.find(c => c.id === s.temporary_units.find(t => t.id === hit.source_id)?.owner_id);
       if (source) source.damage_dealt += hit.score_damage;
     }
+    this.hideFallenBodies();
     for (const c of s.candidates) if (!c.is_ko) {
       if (s.fall_death_height != null && c.combat.height <= s.fall_death_height) {
         c.debate_hp = 0; c.ko_reason = 'FALL'; c.disappeared = true;

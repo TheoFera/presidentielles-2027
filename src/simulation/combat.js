@@ -1,4 +1,4 @@
-import { airborne, charging, cancelCharge, diving, startDive, updateActions, verticalHit } from './combat-actions.js';
+import { airborne, charging, cancelCharge, diving, landingHeight, placeSummon, startDive, surfaceBelow, updateActions, verticalHit } from './combat-actions.js';
 import { isPress, pressAttackFactor } from './press-rules.js';
 import { defensiveGuard, guardDefendsPosition } from './service-order-rules.js';
 import { updateMobileCombat, successfulNormalHit, changeCharge } from './mobile-combat.js';
@@ -273,6 +273,8 @@ function triggerSpecial(sim, actor) {
       // Un hologramme n’a pas de points de vie : il disparaît seulement à la fin du pouvoir.
       moving: false, spawn_tick: state.tick, ready_tick: state.tick + sim.secondsToTicks(hologram ? s.appearance_seconds : 0), expires_tick: power.expires_tick, hidden_durability: hologram ? 0 : s.guard_hidden_durability,
       combat: combatState(), persuasion_target_ids: [] });
+    // Les CRS se posent au niveau de Philippe (les hologrammes recopient déjà sa hauteur).
+    if (!hologram) for (const unit of state.temporary_units.filter(u => u.power_id === power.id)) placeSummon(sim, unit, actor);
   }
   // The same button consumes the power; a short recovery prevents double activation.
   makeAttack(sim, actor, 'SPECIAL', { strong: true, range: 0, damage: 0, knockback: 0, electoral_damage: 0,
@@ -403,7 +405,7 @@ function updateProjectiles(sim, targets) {
     const owner = findCombatActor(state, p.owner_id);
     if (!owner || owner.faction_id !== p.faction_id || owner.expired) { p.remaining_range = 0; continue; }
     if(p.launch_tick!=null&&state.tick<p.launch_tick)continue;
-    if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;}
+    if(p.kind==='WAVE'&&!p.launched){p.x=owner.x;p.direction=owner.facing;p.launched=true;if(state.platforms?.length)p.surface_height=landingHeight(state,owner.x,owner.combat.height||0);}
     if(p.kind==='MOLOTOV'&&!p.launched){
       const target=findCombatActor(state, p.target_id);
       const visible=config.prototype.world.units_per_screen/2;
@@ -412,6 +414,8 @@ function updateProjectiles(sim, targets) {
       const delta=combatDelta(state,owner.x,targetX);
       p.x=owner.x;p.target_x=targetX;p.direction=Math.sign(delta)||owner.facing;
       p.remaining_range=Math.max(.1,Math.abs(delta));p.initial_range=p.remaining_range;p.launched=true;
+      // Arène : le cocktail part de la hauteur du lanceur et retombe sur la surface visée.
+      if(state.platforms?.length){p.launch_height=owner.combat.height||0;p.landing_height=landingHeight(state,targetX,Math.max(p.launch_height,seen?target.combat.height||0:p.launch_height));}
     }
     if (p.kind === 'BUBBLE') { const target = findCombatActor(state, p.target_id); if (target && enemies(owner,target) && !invisibleToEnemies(target,state.tick)) p.direction = Math.sign(combatDelta(state,p.x,target.x)) || p.direction; }
     const step = Math.min(p.remaining_range, p.speed / sim.hz);
@@ -445,6 +449,8 @@ function updateProjectiles(sim, targets) {
     }
     const nextX = p.x + p.direction * step;
     p.x = combatPosition(state, nextX); p.remaining_range -= step;
+    // La vague déferle sur la surface : en quittant un balcon, elle retombe sur la scène en dessous.
+    if (p.surface_height != null) p.surface_height = surfaceBelow(state, p.x, p.surface_height)?.height ?? p.surface_height;
     if (state.debate_bounds && p.x !== nextX) p.remaining_range = 0;
   }
   state.projectiles = state.projectiles.filter(p => p.remaining_range > 0);
@@ -458,6 +464,8 @@ function updateTemporaryUnits(sim) {
     if (state.tick >= unit.expires_tick) unit.expired = true;
     const owner = state.candidates.find(c => c.id === unit.owner_id);
     if (!owner || owner.is_ko || owner.eliminated) { unit.expired = true; continue; }
+    // Arène : une invocation tombée dans le vide disparaît.
+    if (state.fall_death_height != null && unit.combat.height <= state.fall_death_height) unit.expired = true;
     if (unit.expired) continue;
     if (unit.role === 'HOLOGRAMME') { mirrorHologram(sim, unit, state.powers.find(p => p.id === unit.power_id)); continue; }
     if (interrupted(unit) || state.tick < (unit.ready_tick || 0)) continue;

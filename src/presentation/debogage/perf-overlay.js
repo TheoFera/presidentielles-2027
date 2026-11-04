@@ -7,6 +7,7 @@
  */
 import { GameSimulation } from '../../simulation/game-simulation.js';
 import { AIController } from '../../simulation/controllers.js';
+import { DebateMatch } from '../../simulation/debate-mode.js';
 
 const WINDOW_MS = 5000;
 
@@ -42,6 +43,8 @@ export function installPerfOverlay(renderer) {
   const counters = { step: 0, ai: 0, draw: 0 };
   timeMethod(GameSimulation.prototype, 'step', counters, 'step');
   timeMethod(AIController.prototype, 'commands', counters, 'ai');
+  // Mode Débat : pas du combat et dessin (renderer.drawDebate) ; ses décisions d'ordinateur, très légères, ne sont pas comptées.
+  timeMethod(DebateMatch.prototype, 'step', counters, 'step');
   const panel = document.createElement('pre');
   panel.id = 'perf-overlay';
   Object.assign(panel.style, { position: 'fixed', left: '50%', top: '4px', transform: 'translateX(-50%)', zIndex: 99, margin: 0, padding: '3px 6px',
@@ -51,19 +54,24 @@ export function installPerfOverlay(renderer) {
   // ordinateur joués depuis l'image précédente, puis le dessin.
   const frames = [];
   let last = null, shown = 0;
-  const draw = renderer.draw;
-  renderer.draw = function (...args) {
-    const start = performance.now();
-    try { return draw.apply(this, args); } finally {
-      const now = performance.now();
-      if (last != null) frames.push({ time: now, gap: start - last, step: counters.step, ai: counters.ai, draw: now - start });
-      counters.step = 0; counters.ai = 0;
-      last = start;
-      while (frames.length && now - frames[0].time > WINDOW_MS) frames.shift();
-      if (now - shown > 500) {
-        shown = now;
-        panel.textContent = perfSummary(frames, performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null);
+  // Campagne (draw) et mode Débat (drawDebate) : chaque image dessinée ferme une mesure.
+  const measure = name => {
+    const draw = renderer[name];
+    if (typeof draw !== 'function') return;
+    renderer[name] = function (...args) {
+      const start = performance.now();
+      try { return draw.apply(this, args); } finally {
+        const now = performance.now();
+        if (last != null) frames.push({ time: now, gap: start - last, step: counters.step, ai: counters.ai, draw: now - start });
+        counters.step = 0; counters.ai = 0;
+        last = start;
+        while (frames.length && now - frames[0].time > WINDOW_MS) frames.shift();
+        if (now - shown > 500) {
+          shown = now;
+          panel.textContent = perfSummary(frames, performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null);
+        }
       }
-    }
+    };
   };
+  measure('draw'); measure('drawDebate');
 }

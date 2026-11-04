@@ -1,4 +1,4 @@
-import { actionState, armored, cancelCharge, charging, verticalHit } from './combat-actions.js';
+import { actionState, armored, cancelCharge, charging, footing, verticalHit } from './combat-actions.js';
 import { clearCampaignUltimate } from './campaign-styles.js';
 import { tryBardellisation } from './style-ultimates.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
@@ -84,6 +84,13 @@ export function demobilizeUnit(sim, npc) {
   sim.emit('NpcDemobilized', { npc_id: npc.id, previous_faction_id: oldFaction });
 }
 
+/** Remise à zéro d’un K.-O. sans téléporter le corps : il reste à sa hauteur (balcon, promontoire, saut). */
+function keepFooting(target, reset) {
+  const kept = footing(target.combat);
+  reset();
+  Object.assign(target.combat, kept);
+}
+
 /** The simulation computes every hit; the renderer never chooses a victim. */
 export function hit(sim, source, target, spec, attackId) {
   if (!enemies(source, target) || sim.state.debate_bounds && sim.state.eliminated_faction) return null;
@@ -113,7 +120,7 @@ export function hit(sim, source, target, spec, attackId) {
     result.score_damage = result.damage; result.debate_hp_before = target.debate_hp;
     target.debate_hp = Math.max(0, target.debate_hp - dealt); result.debate_hp_after = target.debate_hp;
     target.hits_received++; state.candidate_hit_count++;
-    if (target.debate_hp === 0) { revived = tryBardellisation(sim, target); if (!revived) { clearCampaignUltimate(sim,target,true); state.eliminated_faction = target.faction_id; } }
+    if (target.debate_hp === 0) { revived = tryBardellisation(sim, target); if (!revived) { keepFooting(target, () => clearCampaignUltimate(sim,target,true)); state.eliminated_faction = target.faction_id; } }
   } else if (target.role === 'CANDIDAT') {
     const before = controlledZones(state, config, target.faction_id).map(e => ({ subzone_id: e.subzone_id, support: { ...e.support }, controller: leadership(e.support, config).controller }));
     // Frapper un candidat mineur ne lui fait pas perdre de sympathisants : il faut les battre un par un.
@@ -126,7 +133,7 @@ export function hit(sim, source, target, spec, attackId) {
     target.resistance = Math.max(0, target.resistance - result.damage); target.last_damage_tick = state.tick;
     if (target.resistance === 0 && !target.is_ko) revived = tryBardellisation(sim, target);
     if (target.resistance === 0 && !target.is_ko && !revived) {
-      clearCampaignUltimate(sim, target, true);
+      keepFooting(target, () => clearCampaignUltimate(sim, target, true));
       const koLoss = target.minor ? 0 : electoralDamage(sim, target.faction_id, config.balance.candidate_combat.ko_electoral_damage_percent_points);
       result.electoral_damage += koLoss; target.electoral_damage_received += koLoss;
       target.is_ko = true; target.axis = 0; target.campaign_active = false; target.interaction_active = false; target.purchase_hold = null;
@@ -169,7 +176,7 @@ export function hit(sim, source, target, spec, attackId) {
   }
   if (protectedHit) result.knockback = 0;
   if (target.role === 'CANDIDAT') { target.purchase_hold = null; target.style_hold = null; target.style_interaction_held = false; }
-  if (revived) { target.combat = { ...combatState(), invulnerable_until_tick: target.combat.invulnerable_until_tick }; target.axis = 0; }
+  if (revived) { target.combat = { ...combatState(), ...footing(target.combat), invulnerable_until_tick: target.combat.invulnerable_until_tick }; target.axis = 0; }
   pressHit(sim, target);
   if (target.role !== 'CANDIDAT' && target.hidden_durability <= 0 && !isPress(target)) {
     if (target.temporary) { target.expired = true; target.combat.attack_id = null; }

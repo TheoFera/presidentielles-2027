@@ -14,11 +14,13 @@
  */
 
 // Décors plein écran : images ordinaires (les tuiles de la carte ont leur propre préparation, carte-plate.js).
-const ORDINARY = /^(plate-|debate-|background-)/;
+const ORDINARY = /^(plate-|background-)/;
 // Gardées à pleine résolution : effets d'ultime parfois dessinés en très grand, habitants déjà petits,
 // portes et fond du garage de campagne (morceaux du décor, dessinés à l'échelle de la tuile : réduits, les
-// feuillages autour des portes devenaient visiblement pixelisés).
-const FULL_SIZE = /^(ultimate-|npc-|building-barn-door)/;
+// feuillages autour des portes devenaient visiblement pixelisés), et décors des arènes du débat : décodés
+// une fois hors du fil du jeu et gardés prêts, comme les tuiles de la carte (une image ordinaire peut être
+// jetée de la mémoire puis redécodée en plein combat), mêmes pixels.
+const FULL_SIZE = /^(ultimate-|npc-|building-barn-door|debate-)/;
 
 export const spriteBitmapsSupported = () => typeof createImageBitmap === 'function' && typeof fetch === 'function'
   && typeof CanvasRenderingContext2D === 'function';

@@ -15,17 +15,48 @@ export function armored(state, actor) {
   const attack = state.attacks.find(a => a.id === actor.combat.attack_id);
   return attack?.kind === 'CHARGED' && attack.elapsed_ticks < attack.windup_ticks + attack.active_ticks;
 }
+/** Champs de position verticale : un K.-O. ou une relève ne doivent pas ramener le corps au niveau 0. */
+const FOOTING_KEYS = ['height', 'jump_tick', 'jump_base', 'jump_delay_ticks', 'dive_tick', 'drop_through_id'];
+export const footing = combat => Object.fromEntries(FOOTING_KEYS.filter(k => combat[k] !== undefined).map(k => [k, combat[k]]));
+/** Pupitre ou scène la plus haute sous x, sans dépasser height (null au-dessus du vide). */
+export function surfaceBelow(state, x, height) {
+  let best = null;
+  for (const p of state.platforms || []) if (onPlatform(p, x) && p.height <= height + 1e-6 && (!best || p.height > best.height)) best = p;
+  return best;
+}
+/** Arène : une invocation (CRS, encapuchonnés, Zemmour) apparaît au niveau de son candidat,
+ * puis suit la même physique que lui (elle tombe si elle sort du balcon). */
+export function placeSummon(sim, unit, owner) {
+  if (!sim.state.platforms?.length) return;
+  unit.combat.height = owner.combat.height || 0;
+  const support = platformUnder(sim.state, unit.x, unit.combat.height);
+  if (support) unit.platform_id = support.id;
+  else startPlatformFall(sim, unit);
+}
+/** Arène : hauteur de la surface où se pose ce qui part de height au-dessus de x (0 par défaut, hors arène). */
+export function landingHeight(state, x, height) {
+  if (!state.platforms?.length) return 0;
+  return surfaceBelow(state, x, height)?.height ?? Math.min(0, height);
+}
 /** K.-O. : on reste couché là où l’on est tombé (pupitre du débat, promontoire), pas sur la ligne de marche.
- * Mis K.-O. en l’air, on retombe sur le pupitre juste en dessous, ou au sol. */
-function knockoutHeight(state, actor) {
-  const c = actor.combat;
-  if (!airborne(actor) && !diving(actor)) return c.height || 0;
-  const below = (state.platforms || []).filter(p => onPlatform(p, actor.x) && p.height <= c.height).sort((a, b) => b.height - a.height)[0];
-  return below ? below.height : state.fall_death_height != null ? c.height : 0;
+ * Mis K.-O. en l’air (campagne), on retombe au sol. */
+function knockoutHeight(actor) {
+  return airborne(actor) || diving(actor) ? 0 : actor.combat.height || 0;
+}
+/** Arène : le corps K.-O. suit la même chute que les vivants, jusqu’au pupitre en dessous, ou dans le vide. */
+function updateKnockedOutOnPlatforms(sim, actor) {
+  const c = actor.combat, wasDiving = diving(actor);
+  Object.assign(c, actionState(), { height: c.height, jump_tick: c.jump_tick, jump_base: c.jump_base, drop_through_id: c.drop_through_id });
+  // Le plongeon s’arrête : le corps retombe depuis là où il était.
+  if (wasDiving) startPlatformFall(sim, actor, c.drop_through_id ?? null);
+  // Le K.-O. efface platform_id : retrouver le pupitre sous le corps, sinon il chute.
+  else if (!airborne(actor)) actor.platform_id = platformUnder(sim.state, actor.x, c.height)?.id ?? null;
+  updatePlatformHeight(sim, actor);
 }
 export function updateActions(sim, actor) {
   const c = actor.combat, b = sim.config.balance.candidate_combat;
-  if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState(), { height: actor.is_ko ? knockoutHeight(sim.state, actor) : 0 }); return; }
+  if (actor.is_ko && sim.state.platforms?.length && !actor.eliminated && !actor.campaign_debate_id) { updateKnockedOutOnPlatforms(sim, actor); return; }
+  if (actor.is_ko || actor.eliminated || actor.campaign_debate_id) { Object.assign(c, actionState(), { height: actor.is_ko ? knockoutHeight(actor) : 0 }); return; }
   if (c.press_tick != null) c.press_delay_ticks = (c.press_delay_ticks || 0) + 1 - pressAttackFactor(sim.state, sim.config, actor);
   if (c.press_tick != null && !c.press_airborne && !airborne(actor) && !c.attack_id && !c.stun_ticks && Math.abs(c.knockback_velocity) <= 0.02 && !actor.dash_active
     && sim.state.tick - c.press_tick - (c.press_delay_ticks || 0) >= sim.secondsToTicks(b.charge_activation_seconds)) {
@@ -133,10 +164,11 @@ export function verticalHit(config, source, target, spec) {
   const bottom = target.combat?.height || 0, top = bottom + height(target);
   let low, high;
   if (Number.isFinite(spec.area_height)) { low = Math.max(0, spec.area_height - spec.area_radius); high = spec.area_height + spec.area_radius; }
-  else if (kind === 'WAVE') { low = 0; high = 1.65; }
-  else if (kind === 'BUBBLE') { low = config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
+  // Arène : la vague et les bulles partent du niveau où se tient leur lanceur (balcon, scène), pas du niveau 0.
+  else if (kind === 'WAVE') { low = spec.surface_height || 0; high = low + 1.65; }
+  else if (kind === 'BUBBLE') { low = (spec.surface_height || 0) + config.balance.specials.zemmour.bubble_bottom; high = low + config.balance.specials.zemmour.bubble_height; }
   else if (kind === 'VERBAL') { low = 0.65; high = 0.9; }
-  else if (kind === 'SURGE') { low = 0; high = 1; }
+  else if (kind === 'SURGE') { low = source.combat?.height || 0; high = low + 1; }
   // Le plongeon frappe sous les pieds et à leur niveau : jamais un adversaire resté plus haut (pupitre non atteint).
   else if (kind === 'DIVE') { low = Math.max(0, (source.combat?.height || 0) - 0.4); high = (source.combat?.height || 0) + 0.15; }
   else { low = (source.combat?.height || 0) + height(source) * 0.3; high = low + height(source) * 0.65; }

@@ -563,3 +563,89 @@ test('K.-O. sur un balcon : le candidat reste couché sur le balcon, pas sur la 
   run(match, () => [], 30);
   assert.equal(second.is_ko, true); assert.equal(second.combat.height, balcony.height);
 });
+
+test('K.-O. par un coup sur un balcon, debout ou en plein saut : le corps tombe sur le balcon, pas en bas', () => {
+  for (const airborneHit of [false, true]) {
+    const match = started(duel('elysee'));
+    const debate = new DebateSimulation(match.config, match.state);
+    const [player, rival] = match.state.candidates;
+    const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+    Object.assign(player, { x: balcony.x, platform_id: airborneHit ? null : balcony.id }); player.combat.height = balcony.height;
+    if (airborneHit) Object.assign(player.combat, { height: balcony.height + 0.4, jump_tick: match.state.tick - 6, jump_base: balcony.height });
+    Object.assign(rival, { x: balcony.x - 0.6, platform_id: null }); rival.combat.height = player.combat.height;
+    player.debate_hp = 1;
+    assert.ok(hit(debate, rival, player, { kind: 'CANDIDATE', step: 1, damage: 5, knockback: 0, direction: 1 }, 'ko'));
+    assert.ok(player.combat.height >= balcony.height, 'le coup ne doit pas ramener le corps au niveau 0');
+    run(match, () => [], 40);
+    assert.equal(player.is_ko, true); assert.equal(player.disappeared, false);
+    assert.equal(player.combat.height, balcony.height);
+  }
+});
+
+test('K.-O. projeté hors d’un balcon : le corps tombe jusqu’à la scène en dessous, ou disparaît dans le vide', () => {
+  const match = started(trio('elysee'));
+  const [player, , third] = match.state.candidates;
+  const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+  Object.assign(player, { x: balcony.x - balcony.half_width + 0.1, platform_id: balcony.id }); player.combat.height = balcony.height;
+  player.combat.knockback_velocity = -4; player.debate_hp = 0;
+  // Au-dessus d’un trou : rien ne rattrape le corps.
+  const gap = match.state.platforms.find(p => p.id === 'scene-gauche');
+  Object.assign(third, { x: gap.x + gap.half_width + 1.2, platform_id: null }); Object.assign(third.combat, { height: 0, jump_tick: match.state.tick - 30, jump_base: -1.2 });
+  third.debate_hp = 0;
+  run(match, () => [], 90);
+  assert.equal(player.combat.height, 0); assert.equal(player.disappeared, false);
+  assert.equal(third.disappeared, true);
+});
+
+test('Ultimes lancés depuis un balcon : invocations, vague, cocktail et bulles partent du balcon, pas d’en bas', () => {
+  const required = config.balance.special_charge.required_points;
+  const launch = (a, b) => {
+    const match = new DebateMatch(config, duel('remue_menage', a, b), { nickname: 'betatest' });
+    while (match.state.phase === 'COUNTDOWN') match.step();
+    const [player, rival] = match.state.candidates;
+    const balcony = match.state.platforms.find(p => p.id === 'balcon-gauche');
+    Object.assign(player, { x: balcony.x, platform_id: balcony.id, facing: 1, special_charge: required }); player.combat.height = balcony.height;
+    rival.x = balcony.x + 6;
+    match.step([{ type: 'ActivateUltimate', candidateId: player.id }]);
+    return { match, player, balcony };
+  };
+  // Philippe : les CRS se posent sur le balcon (celui qui dépasse du bord tombe sur la scène).
+  {
+    const { match, player, balcony } = launch(fighter('philippe', 'philippe_gestionnaire'), fighter('le_pen', 'le_pen_souverainiste'));
+    const guards = match.state.temporary_units.filter(u => u.role === 'CRS');
+    assert.ok(guards.length > 0);
+    run(match, () => [], 40);
+    for (const guard of match.state.temporary_units.filter(u => u.role === 'CRS')) {
+      const over = Math.abs(guard.x - balcony.x) <= balcony.half_width + 0.3;
+      assert.equal(guard.combat.height, over ? balcony.height : 0, `${guard.id} à x=${guard.x}`);
+    }
+    assert.ok(match.state.temporary_units.some(u => u.combat.height === balcony.height), 'au moins un CRS reste avec Philippe');
+    assert.equal(player.combat.height, balcony.height);
+  }
+  // Le Pen : la vague déferle depuis le balcon, puis retombe sur la scène en le quittant.
+  {
+    const { match, balcony } = launch(fighter('le_pen', 'le_pen_souverainiste'), fighter('philippe', 'philippe_gestionnaire'));
+    let wave = null;
+    for (let i = 0; i < 120 && !wave?.launched; i++) { run(match); wave = match.state.projectiles.find(p => p.kind === 'WAVE'); }
+    assert.equal(wave.surface_height, balcony.height);
+    for (let i = 0; i < 200 && Math.abs(wave.x - balcony.x) <= balcony.half_width + 0.3; i++) run(match);
+    assert.equal(wave.surface_height, 0);
+    assert.equal(verticalHit(config, match.state.candidates[0], { role: 'CANDIDAT', combat: { height: 0 } }, wave), true);
+  }
+  // Le Pen zemmouriste : Zemmour apparaît derrière elle et ses bulles partent de sa hauteur.
+  {
+    const { match } = launch(fighter('le_pen', 'le_pen_zemmouriste'), fighter('philippe', 'philippe_gestionnaire'));
+    run(match, () => [], 30);
+    const zemmour = match.state.temporary_units.find(u => u.role === 'ZEMMOUR');
+    const bubble = match.state.projectiles.find(p => p.kind === 'BUBBLE');
+    assert.ok(zemmour && bubble);
+    assert.equal(bubble.surface_height, zemmour.combat.height);
+  }
+  // Mélenchon populiste : le cocktail part de sa hauteur.
+  {
+    const { match, balcony } = launch(fighter('melenchon', 'melenchon_populiste'), fighter('philippe', 'philippe_gestionnaire'));
+    let molotov = null;
+    for (let i = 0; i < 120 && !molotov?.launched; i++) { run(match); molotov = match.state.projectiles.find(p => p.kind === 'MOLOTOV'); }
+    assert.equal(molotov.launch_height, balcony.height);
+  }
+});

@@ -5,6 +5,7 @@ import { DEBATE_ARENAS, arenaSupportHeight, drawDebateArena } from './debate-are
 import { themeColor, themeIcon, themeName } from './debate-themes.js';
 import { candidateOpacity } from '../personnages/candidate-visibility.js';
 import { onPlatform } from '../../simulation/combat-actions.js';
+import { setClass, setHidden, setStyle } from '../interface/dom-updates.js';
 
 // Cadrage de chaque carte : hauteur du sol et taille des personnages.
 const MAP_LOOK = { plateau: { ground: 0.79, scale: 1.45 }, studio: { ground: 0.84, scale: 1.2 } };
@@ -318,20 +319,24 @@ export class DebateModeDisplay {
     const hz = this.config.balance.simulation_architecture.fixed_tick_hz, mode = this.config.balance.debate_mode;
     const signature = `${state.seed}:${state.map_id}:${state.candidates.map(c => c.id).join()}`;
     if (signature !== this.signature) { this.reset(); this.signature = signature; this.build(state); }
-    this.hud.hidden = false;
+    // Comme en campagne, l’interface n’est réécrite que quand une valeur change : sinon le navigateur
+    // recalcule styles et mise en page des jauges à chaque image.
+    setHidden(this.hud, false);
     for (const fighter of state.candidates) {
       const card = this.cards.get(fighter.id);
       const ratio = Math.max(0, fighter.debate_hp / fighter.debate_initial_hp);
-      card.life.style.width = `${ratio * 100}%`;
+      setStyle(card.life, 'width', `${ratio * 100}%`);
       // Barre retardée : on voit la vie perdue fondre, comme dans les jeux de combat.
       card.lagRatio = Math.max(ratio, card.lagRatio - elapsed * 0.45);
-      card.lag.style.width = `${card.lagRatio * 100}%`;
+      setStyle(card.lag, 'width', `${card.lagRatio * 100}%`);
       const value = String(Math.ceil(fighter.debate_hp));
-      if (card.value.textContent !== value) card.value.textContent = value;
-      card.value.setAttribute('aria-label', `${fighterLabel(this.config, fighter).name} : ${value} points de vie`);
-      card.ultimate.style.width = `${Math.min(1, fighter.special_charge / this.config.balance.special_charge.required_points) * 100}%`;
-      card.card.classList.toggle('ko', fighter.is_ko);
-      card.card.classList.toggle('danger', !fighter.is_ko && ratio < 0.25);
+      if (card.value.textContent !== value) {
+        card.value.textContent = value;
+        card.value.setAttribute('aria-label', `${fighterLabel(this.config, fighter).name} : ${value} points de vie`);
+      }
+      setStyle(card.ultimate, 'width', `${Math.min(1, fighter.special_charge / this.config.balance.special_charge.required_points) * 100}%`);
+      setClass(card.card, 'ko', fighter.is_ko);
+      setClass(card.card, 'danger', !fighter.is_ko && ratio < 0.25);
     }
     this.updateRounds(state);
     this.updateTheme(state);

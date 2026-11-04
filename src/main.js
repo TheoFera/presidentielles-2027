@@ -21,7 +21,7 @@ import { MapPause } from './presentation/interface/map-pause.js';
 import { guardGameZoom } from './presentation/interface/zoom-guard.js';
 import { titleName } from './simulation/player-titles.js';
 import { GameSimulation } from './simulation/game-simulation.js';
-import { warmUpSimulation } from './simulation/warm-up.js';
+import { warmUpDebate, warmUpSimulation } from './simulation/warm-up.js';
 import { FixedClock, catchUpTicks } from './simulation/fixed-clock.js';
 import { AIController, LocalHumanController, collectCommands, prepareAICommands } from './simulation/controllers.js';
 import { withAIObservation } from './simulation/ai-observation.js';
@@ -137,6 +137,8 @@ async function start() {
   const ai = new AIController(config);
   const canvas = document.getElementById('world');
   const renderer = new WorldRenderer(canvas, config);
+  // Dessin d’un combat du mode Débat : méthode du moteur de rendu, pour que `?perf` le mesure aussi.
+  renderer.drawDebate = (...args) => drawDebateMode(renderer, ...args);
   // `?perf` : mesures de fluidité à l'écran (téléphones), chargées seulement sur demande.
   if (perfWanted()) import('./presentation/debogage/perf-overlay.js').then(module => module.installPerfOverlay(renderer)).catch(() => {});
   // Pendant l'avertissement, les images de la campagne se chargent déjà en arrière-plan.
@@ -422,12 +424,19 @@ async function start() {
     debateState = debateMatch.getState(); debatePrevious = debateState; debateDisplay.reset(); debateDisplay.multiplayer = !!multiplayer;
     const wanted = debateAssetIds(renderer.assets.manifest, setup);
     onProgress(0);
+    // Combat d’essai jetable pendant que les images arrivent (simulation/warm-up.js), comme en campagne.
+    const warming = warmUpDebate(config, setup);
     let done = 0;
-    await Promise.all(wanted.map(id => renderer.assets.load(id).then(() => onProgress(++done / wanted.length * 0.9))));
+    await Promise.all(wanted.map(id => renderer.assets.load(id).then(() => onProgress(++done / wanted.length * 0.6))));
     // Un premier dessin révèle les dernières images utiles (poses, décor).
-    drawDebateMode(renderer, debateState, debateState, 1, 0);
+    renderer.drawDebate(debateState, debateState, 1, 0);
     await Promise.all([...renderer.assets.cache].filter(([, entry]) => !entry.ready).map(([id]) => renderer.assets.load(id)));
-    drawDebateMode(renderer, debateState, debateState, 1, 0);
+    // Comme en campagne : planches et ultimes envoyés à la carte graphique avant le combat,
+    // et police des étiquettes préparée, au lieu d’à-coups au premier coup ou au premier ultime.
+    await uploadLoadedImages(ratio => onProgress(.6 + .38 * ratio));
+    await warming;
+    renderer.ctx.save(); renderer.ctx.font = '800 12px system-ui, sans-serif'; renderer.ctx.fillText('VOUS · IA · JOUEUR', 0, 20); renderer.ctx.restore();
+    renderer.drawDebate(debateState, debateState, 1, 0);
     onProgress(1);
   }
   function playDebate() {
@@ -441,6 +450,20 @@ async function start() {
     matchDisplay.reset(); introScene.stop(); objectives.reset(false); mapPause.reset();
     stylesDisplay.state = null; stylesDisplay.dialog.close();
     menu.home();
+  }
+  /** Chaque image chargée est envoyée une fois à la carte graphique (derrière l’écran de chargement),
+   * par paquets de six, une image affichée entre deux paquets. Sinon ce transfert se fait au premier
+   * affichage, en pleine partie (à-coups). Sert à la campagne et au mode Débat. */
+  async function uploadLoadedImages(progress = () => {}) {
+    const ready = [...new Set([...renderer.assets.cache.values()].filter(entry => entry.ready)
+      .flatMap(entry => [...preparedDrawingSources(entry.image)]))];
+    for (let i = 0; i < ready.length; i += 6) {
+      renderer.ctx.save(); renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      for (const image of ready.slice(i, i + 6)) renderer.ctx.drawImage(image, 0, 0, 1, 1);
+      renderer.ctx.restore();
+      progress(Math.min(1, (i + 6) / ready.length));
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
   }
   /** Prépare une campagne derrière l'écran de chargement. `resume` : reprend la partie sauvegardée. */
   async function prepare(candidateId, onProgress = () => {}, { resume = false } = {}) {
@@ -517,17 +540,9 @@ async function start() {
       // particular, texture uploads must not become simulation catch-up time.
       // Chaque image est envoyée une fois à la carte graphique derrière l’écran de chargement :
       // sinon ce transfert se fait au premier affichage, en pleine partie (à-coups).
-      const ready = [...new Set([...renderer.assets.cache.values()].filter(entry => entry.ready)
-        .flatMap(entry => [...preparedDrawingSources(entry.image)]))];
       // Cette étape est souvent la plus longue : elle fait avancer la barre de 60 à 98 %.
       onProgress(.6, 'gpu');
-      for (let i = 0; i < ready.length; i += 6) {
-        renderer.ctx.save(); renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        for (const image of ready.slice(i, i + 6)) renderer.ctx.drawImage(image, 0, 0, 1, 1);
-        renderer.ctx.restore();
-        onProgress(.6 + .38 * Math.min(1, (i + 6) / ready.length), 'gpu');
-        await new Promise(resolve => requestAnimationFrame(resolve));
-      }
+      await uploadLoadedImages(ratio => onProgress(.6 + .38 * ratio, 'gpu'));
       await warming;
       // Derrière l'écran de chargement, d'abord la campagne déjà lancée (panneaux d'achat, étiquettes « soutiens »,
       // textes des gains), puis la scène d'ouverture : formatage des nombres, polices et étiquettes sont prêts
@@ -873,7 +888,12 @@ async function start() {
       const view = prediction.view();
       debateState = view.state; debatePrevious = view.previous; guestAlpha = clock.alpha;
     } else if (guest) guestView();
-    if (!halted && !guest) clock.advance(Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds), hostDebateTick);
+    // Rattrapage lissé, comme en campagne : après une image lente, un ou deux pas par image au lieu de tout
+    // le retard d’un coup (l’image suivante serait encore plus lente : effet boule de neige).
+    if (!halted && !guest) {
+      const frameSeconds = Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds);
+      clock.advance(frameSeconds, hostDebateTick, { maxTicks: catchUpTicks(clock, frameSeconds), maxBacklog: config.prototype.presentation.max_presentation_frame_seconds });
+    }
     if (debateHost) {
       // Un pas d'invité arrivé en retard a été rejoué : l'affichage relit l'état recalculé.
       if (debateHost.consumeRollback()) { debateState = debateMatch.getState(); debatePrevious = debateHost.history.get(debateHost.frame - 1) ?? debateState; }
@@ -895,7 +915,7 @@ async function start() {
     setText(notice, ''); notice.hidden = true;
     // Hôte : les combattants recalés par un retour en arrière glissent au lieu de sauter.
     const shown = debateHost ? debateHost.display(debateState) : debateState, shownPrevious = debateHost ? debateHost.display(debatePrevious) : debatePrevious;
-    drawDebateMode(renderer, shown, halted ? shown : shownPrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
+    renderer.drawDebate(shown, halted ? shown : shownPrevious, alpha, halted ? 0 : Math.min(elapsed, config.prototype.presentation.max_presentation_frame_seconds));
   }
 
   let pingElapsed = 0, lowLatency = false;

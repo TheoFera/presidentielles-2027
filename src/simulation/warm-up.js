@@ -53,3 +53,24 @@ export async function warmUpSimulation(config, { ticks = 280, yieldEvery = 25, p
     console.warn('Partie d’essai du chargement interrompue :', error);
   }
 }
+
+/**
+ * Mode Débat : combat d'essai jetable avec les mêmes combattants et la même arène, mené par l'ordinateur,
+ * pendant le chargement. Ultimes chargés dès le départ : coups, sauts, chutes et ultimes sont compilés avant
+ * le vrai combat au lieu de coûter à leur première apparition. Le vrai combat a son propre état et son hasard.
+ */
+export async function warmUpDebate(config, setup, { ticks = 600, yieldEvery = 30, pause = () => new Promise(resolve => setTimeout(resolve, 0)) } = {}) {
+  try {
+    const { DebateMatch, debateModeAICommands } = await import('./debate-mode.js');
+    const fighters = setup.fighters.map(({ player, ...fighter }) => fighter);
+    const match = new DebateMatch(config, { ...setup, fighters, seed: 97 });
+    for (let i = 0; i < ticks && match.state.phase !== 'OVER'; i++) {
+      if (match.state.phase === 'FIGHT' && match.state.tick === match.state.fight_started_tick)
+        for (const c of match.state.candidates) c.special_charge = config.balance.special_charge.required_points;
+      match.step(match.state.candidates.filter(c => !c.is_ko).flatMap(c => debateModeAICommands(match.state, config, c.id) || []));
+      if ((i + 1) % yieldEvery === 0) await pause();
+    }
+  } catch (error) {
+    console.warn('Combat d’essai du chargement interrompu :', error);
+  }
+}
