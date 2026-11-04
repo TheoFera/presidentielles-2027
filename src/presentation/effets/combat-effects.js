@@ -9,7 +9,7 @@ export function drawCombatEffects(renderer, state, debug) {
   for (const c of state.candidates) {
     if (candidateOpacity(c, state, config) < .99) continue;
     if (c.combat?.charge_active) {
-      const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * 1.1;
+      const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * (1.1 + (c.combat.height || 0));
       const progress = Math.min(1, (state.tick - c.combat.press_tick - (c.combat.press_delay_ticks || 0)) / (hz * config.balance.candidate_combat.charge_ready_seconds));
       ctx.fillStyle = '#203940'; ctx.fillRect(x - 22, y, 44, 6);
       ctx.fillStyle = progress >= 1 ? '#c5f8ff' : '#63bed1'; ctx.fillRect(x - 21, y + 1, 42 * progress, 4);
@@ -18,7 +18,8 @@ export function drawCombatEffects(renderer, state, debug) {
   for (const c of state.candidates) {
     if (candidateOpacity(c, state, config) < .99) continue;
     if (!c.dash_active) continue;
-    const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * .45;
+    // Les traits suivent le candidat en hauteur : balcon du débat, promontoire, saut.
+    const x = renderer.screenX(c.x), y = m.groundY - m.characterHeight * (.45 + (c.combat?.height || 0));
     ctx.strokeStyle = state.tick <= c.dash_invulnerable_until_tick ? '#c5f8ff' : '#e9dfcc88'; ctx.lineWidth = 3;
     for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - c.dash_direction * 12, y + i * 10); ctx.lineTo(x - c.dash_direction * (40 + i * 9), y + i * 10); ctx.stroke(); }
   }
@@ -28,8 +29,8 @@ export function drawCombatEffects(renderer, state, debug) {
     if (drawUltimateProjectile(renderer, p, state)) continue;
     if (p.kind === 'WAVE') {
       const h = m.characterHeight * 1.65;
-      const width = m.pixelsPerUnit * 1.8;
-      ctx.save(); ctx.translate(x, m.groundY); ctx.scale(p.direction || 1, 1);
+      const width = m.pixelsPerUnit * 1.8, floor = m.groundY - (p.surface_height || 0) * m.characterHeight;
+      ctx.save(); ctx.translate(x, floor); ctx.scale(p.direction || 1, 1);
       const wash = ctx.createLinearGradient(-width / 2, 0, width / 2, -h);
       wash.addColorStop(0, '#28578abb'); wash.addColorStop(1, '#78b4e8ef');
       ctx.fillStyle = wash; ctx.strokeStyle = '#293f5b'; ctx.lineWidth = 2.5;
@@ -47,12 +48,12 @@ export function drawCombatEffects(renderer, state, debug) {
         for (let y = 0; y <= h; y += 5) {
           const dx = Math.sin(y / 17 + state.tick / 4 + i) * 8;
           const px = x + p.direction * (width / 2 - i * 15 + dx);
-          if (!y) ctx.moveTo(px, m.groundY - h); else ctx.lineTo(px, m.groundY - h + y);
+          if (!y) ctx.moveTo(px, floor - h); else ctx.lineTo(px, floor - h + y);
         }
         ctx.stroke();
       }
     } else if (p.kind === 'MOLOTOV') {
-      const y = m.groundY - m.characterHeight * .7;
+      const y = m.groundY - m.characterHeight * (.7 + (p.launch_height || 0));
       ctx.save(); ctx.translate(x, y); ctx.rotate(state.tick * .4);
       ctx.fillStyle = '#f8c94b'; ctx.strokeStyle = '#843f34'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-6,-10,12,18,4); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#ff833c'; ctx.beginPath(); ctx.moveTo(-4,-12); ctx.lineTo(3,-26); ctx.lineTo(6,-12); ctx.fill(); ctx.restore();
@@ -60,7 +61,7 @@ export function drawCombatEffects(renderer, state, debug) {
       ctx.fillStyle = '#f4f0df'; ctx.strokeStyle = renderer.p.factions[p.faction_id].color; ctx.lineWidth = 2;
       if(p.kind==='BUBBLE') {
         const b=config.balance.specials.zemmour, w=m.pixelsPerUnit*b.bubble_width_units, h=m.characterHeight*b.bubble_height;
-        const y=m.groundY-m.characterHeight*(b.bubble_bottom+b.bubble_height);
+        const y=m.groundY-m.characterHeight*((p.surface_height||0)+b.bubble_bottom+b.bubble_height);
         ctx.beginPath();ctx.roundRect(x-w/2,y,w,h,Math.min(5,h/3));ctx.fill();ctx.stroke();
         continue;
       }

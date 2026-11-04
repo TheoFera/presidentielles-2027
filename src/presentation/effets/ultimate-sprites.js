@@ -171,8 +171,8 @@ export function drawUltimateProjectile(renderer,p,state) {
   const {metrics:m,config}=renderer,x=renderer.screenX(p.x),hz=hzOf(config);
   if(p.kind==='WAVE'&&p.launch_tick!=null&&state.tick<p.launch_tick)return true;
   if(p.kind==='WAVE') {
-    const {width,height,bottom}=waveEffectBounds(m);
-    return drawUltimateEffect(renderer,'wave_effect',cycle(state.tick-(p.launch_tick||0),hz,4,7),x-(p.direction||1)*width/2,bottom-height,width,height,p.direction);
+    const {width,height,bottom}=waveEffectBounds(m),lift=(p.surface_height||0)*m.characterHeight;
+    return drawUltimateEffect(renderer,'wave_effect',cycle(state.tick-(p.launch_tick||0),hz,4,7),x-(p.direction||1)*width/2,bottom-lift-height,width,height,p.direction);
   }
   if(p.kind==='MOLOTOV') {
     if(p.launch_tick!=null&&state.tick<p.launch_tick)return true;
@@ -181,7 +181,7 @@ export function drawUltimateProjectile(renderer,p,state) {
   }
   if(p.kind==='BUBBLE') {
     const b=config.balance.specials.zemmour,w=m.pixelsPerUnit*b.bubble_width_units,h=m.characterHeight*b.bubble_height;
-    const y=m.groundY-m.characterHeight*(b.bubble_bottom+b.bubble_height);
+    const y=m.groundY-m.characterHeight*((p.surface_height||0)+b.bubble_bottom+b.bubble_height);
     return drawUltimateEffect(renderer,'zemmour',4+cycle(state.tick,hz,4,12),x-(p.direction||1)*w/2,y,w,h,p.direction);
   }
   return false;
@@ -190,5 +190,7 @@ export function drawUltimateProjectile(renderer,p,state) {
 export function molotovArcHeight(projectile) {
   const total=Math.max(projectile.initial_range||projectile.remaining_range||1,1e-6);
   const progress=Math.max(0,Math.min(1,1-projectile.remaining_range/total));
-  return (1-progress)*.72+4*progress*(1-progress)*.65;
+  const arc=(1-progress)*.72+4*progress*(1-progress)*.65;
+  // Arène : départ à la hauteur du lanceur, arrivée sur la surface visée (balcon ou scène).
+  return projectile.landing_height==null?arc:arc+(1-progress)*(projectile.launch_height||0)+progress*projectile.landing_height;
 }

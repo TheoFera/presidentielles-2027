@@ -129,3 +129,18 @@ test('le candidat peut atterrir et marcher aux deux extrémités de chaque estra
     }
   }
 });
+
+test('K.-O. sur l’estrade d’un meeting : le corps reste couché sur l’estrade, pas dans la rue', async () => {
+  const { hit } = await import('../src/simulation/combat-state.js');
+  const sim = new GameSimulation(config, 42);
+  const meeting = sim.state.buildings.find(building => building.type === 'meeting');
+  meeting.state = 'ACTIVE';
+  const [candidate, rival] = sim.state.candidates;
+  Object.assign(candidate, { x: meeting.x, podium_site_id: meeting.id, resistance: 0.01 });
+  candidate.combat.height = config.balance.buildings.meeting.podium_height;
+  rival.x = meeting.x - 0.5;
+  assert.ok(hit(sim, rival, candidate, { kind: 'CANDIDATE', step: 1, damage: 5, knockback: 0, direction: 1 }, 'ko'));
+  assert.equal(candidate.is_ko, true);
+  for (let i = 0; i < 20; i++) sim.step([]);
+  assert.equal(candidate.combat.height, config.balance.buildings.meeting.podium_height);
+});

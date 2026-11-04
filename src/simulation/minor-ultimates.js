@@ -1,6 +1,7 @@
 import { combatActors, findCombatActor, enemies, hit, nearestEnemy, canBeHit } from './combat-state.js';
 import { combatDelta, combatPosition } from './combat-geometry.js';
 import { MINOR_ULTIMATE_KINDS, pendingSatchel, invisibleToEnemies } from './minor-ultimate-catalog.js';
+import { landingHeight, surfaceBelow } from './combat-actions.js';
 
 const settings = sim => sim.config.balance.minor_ultimates;
 const seconds = (sim, value) => sim.secondsToTicks(value);
@@ -40,8 +41,10 @@ export function startMinorUltimate(sim, owner, power) {
     case 'DELIVERY':
       power.impacts = [0, 1, 2].map(index => {
         const launch_tick = tick + seconds(sim, b.delivery.call_seconds) + seconds(sim, b.delivery.entry_seconds) + index * seconds(sim, b.delivery.interval_seconds);
-        return { x: combatPosition(sim.state, owner.x + owner.facing * b.delivery.spacing * (index + 1)),
-          launch_tick, tick: launch_tick + seconds(sim, b.delivery.warning_seconds), done: false };
+        const x = combatPosition(sim.state, owner.x + owner.facing * b.delivery.spacing * (index + 1));
+        // Arène : le colis frappe la surface la plus haute à cet endroit (balcon ou scène).
+        const surface = sim.state.platforms?.length ? { height: surfaceBelow(sim.state, x, Infinity)?.height ?? 0 } : {};
+        return { x, launch_tick, tick: launch_tick + seconds(sim, b.delivery.warning_seconds), done: false, ...surface };
       });
       power.expires_tick = power.impacts.at(-1).tick + seconds(sim, .8); break;
     case 'TOOLS':
@@ -154,12 +157,15 @@ function updateSatchel(sim, owner, p) {
     p.x = combatPosition(sim.state, owner.x + p.direction * offset);
     p.remaining_range = p.initial_range = Math.max(.1, Math.min(b.range, Math.abs(d)) - offset);
     p.launch_height = Math.max(0, owner.combat.height || 0); p.launched = true;
+    // Arène : la sacoche retombe sur la surface visée (balcon ou scène), pas au niveau 0.
+    if (sim.state.platforms?.length) { p.launch_height = owner.combat.height || 0; p.landing_height = landingHeight(sim.state, p.x + p.direction * p.remaining_range, p.launch_height + b.height); }
   }
   const step = Math.min(p.remaining_range, b.speed / sim.hz);
   p.x = combatPosition(sim.state, p.x + p.direction * step); p.remaining_range -= step;
   const progress = 1 - p.remaining_range / p.initial_range;
-  p.height = (1 - progress) * (b.height + p.launch_height) + 4 * progress * (1 - progress) * .65;
-  if (p.remaining_range <= 0) { p.landed = true; p.height = 0; }
+  const landing = p.landing_height || 0;
+  p.height = (1 - progress) * (b.height + p.launch_height) + 4 * progress * (1 - progress) * .65 + (landing && progress * landing);
+  if (p.remaining_range <= 0) { p.landed = true; p.height = landing; }
 }
 
 export function updateMinorUltimates(sim) {
@@ -174,7 +180,7 @@ export function updateMinorUltimates(sim) {
       if (drop.done || state.tick < drop.tick) continue;
       drop.done = true;
       for (const target of combatActors(state)) if (enemies(owner, target) && Math.abs(delta(sim, drop.x, target.x)) <= b.delivery.radius) {
-        impact(sim, owner, target, p, b.delivery.damage, b.delivery.knockback, { area_height: .5, area_radius: 1.2, direction: p.direction });
+        impact(sim, owner, target, p, b.delivery.damage, b.delivery.knockback, { area_height: .5 + (drop.height || 0), area_radius: 1.2, direction: p.direction });
       }
     }
     if (p.kind === 'BARRIER' && state.tick >= p.fall_tick) {

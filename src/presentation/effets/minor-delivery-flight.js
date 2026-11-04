@@ -33,7 +33,8 @@ export function deliveryMissilePose(power, drop, tick, hz, balance, metrics, scr
   const normal = { x: -Math.sin(plane.angle), y: Math.cos(plane.angle) };
   const from = { x: plane.x - forward.x * plane.width * .18 + normal.x * h * .65,
     y: plane.y - forward.y * plane.width * .18 + normal.y * h * .65 };
-  const target = { x: screenX(drop.x), y: metrics.groundY + h * (metrics.groundOffsetRatio ?? .06) };
+  // Arène : le missile vise la surface touchée (balcon ou scène).
+  const target = { x: screenX(drop.x), y: metrics.groundY + h * ((metrics.groundOffsetRatio ?? .06) - (drop.height || 0)) };
   const progress = Math.max(0, Math.min(1, (tick - launch) / (drop.tick - launch)));
   const duration = (drop.tick - launch) / hz, straight = .3;
   const launchSpeed = Math.hypot(plane.velocity.x, plane.velocity.y) * 1.18;

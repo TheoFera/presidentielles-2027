@@ -1,9 +1,10 @@
 /** Explosion de dessin animé : éclat bref, petits nuages et papiers, sans flash plein écran. */
-export function drawMinorExplosion(renderer, x, y, progress, radius, stationery = false) {
+/** floor : sol local sous l’explosion (balcon d’une arène), le sol du décor par défaut. */
+export function drawMinorExplosion(renderer, x, y, progress, radius, stationery = false, floor = null) {
   if (progress < 0 || progress >= 1) return;
   const { ctx, metrics: m } = renderer;
   const size = Math.min(radius, m.characterHeight * .72);
-  const ground = m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
+  const ground = floor ?? m.groundY + m.characterHeight * (m.groundOffsetRatio ?? .06);
   const ease = 1 - (1 - progress) ** 3;
   ctx.save();
   // Les impacts au sol montent en gerbe ; les explosions en vol gardent leur centre.

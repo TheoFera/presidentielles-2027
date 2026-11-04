@@ -11,7 +11,7 @@ export function drawStyleEffects(renderer, state) {
       const radius=config.balance.specials.fire.radius*m.pixelsPerUnit;
       // Conserver la taille des flammes et descendre leur sprite : sa base
       // s'enfonce légèrement dans le sol au lieu de sembler flotter dessus.
-      drawUltimateEffect(renderer,'fire',6+frame(2),renderer.screenX(power.fire_zone.x)-radius,m.groundY+m.characterHeight*.14-m.characterHeight*.32,radius*2,m.characterHeight*.32);
+      drawUltimateEffect(renderer,'fire',6+frame(2),renderer.screenX(power.fire_zone.x)-radius,m.groundY+m.characterHeight*(.14-.32-(power.fire_zone.height||0)),radius*2,m.characterHeight*.32);
     }
     for(const [id,burn] of Object.entries(power.burns||{})) {
       if(burn.expires_tick<=state.tick)continue;
